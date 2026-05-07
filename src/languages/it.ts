@@ -7565,6 +7565,57 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `aggiunto campo di report ${fieldType} "${fieldName}"${defaultValue ? ` con valore predefinito "${defaultValue}"` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} il requisito per gli acquisti con carta aziendale`,
+        expensifyCardRule: {
+            actionVerb: {block: 'bloccato', allow: 'consentito'},
+            amountOperator: {over: 'terminato', under: 'sotto'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `importi ${operator} ${amount}`,
+            theCard: 'la carta',
+            multipleCards: ({count}: {count: number}) => `${count} carte`,
+            joinFilters: ({items}: {items: string[]}) => {
+                if (items.length === 0) {
+                    return '';
+                }
+                if (items.length === 1) {
+                    return items.at(0) ?? '';
+                }
+                if (items.length === 2) {
+                    return `${items.at(0)} e ${items.at(1)}`;
+                }
+                return `${items.slice(0, -1).join(', ')} e ${items.at(-1)}`;
+            },
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += `${text === '' ? '' : ' '}${filters}`;
+                }
+                if (cards !== '') {
+                    text += `${text === '' ? '' : ' '} su ${cards}`;
+                }
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `ha rimosso la regola di spesa da ${cards}` : 'regola di spesa rimossa'),
+            restrictionVerb: {block: 'bloc', allow: 'consenti solo'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
+                    cards !== '' ? `ha modificato la regola di spesa da ${fromAction} a ${toAction} su ${cards}` : `ha modificato la regola di spesa da ${fromAction} a ${toAction}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => `regola di spesa applicata a ${count} carte aggiuntive`,
+                phraseVerb: {added: 'aggiunto', removed: 'rimosso', changed: 'modificato', set: 'imposta', applied: 'applicato'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} esercente '${value}'` : `esercente '${value}'`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} esercente da '${oldValue}' a '${newValue}'` : `esercente da '${oldValue}' a '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
+                    adjective !== '' ? `categoria di spesa ${adjective} "${value}"` : `categoria di spesa '${value}'`,
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `categoria di spesa ${adjective} da '${oldValue}' a '${newValue}'` : `categoria di spesa da '${oldValue}' a '${newValue}'`,
+                bodyMaxAmount: 'importo massimo',
+                bodyMaxAmountSet: ({value}: {value: string}) => `importo massimo pari a ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `importo massimo da ${oldValue} a ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `regola di spesa per ${count} carte aggiuntive`,
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `regola di spesa da ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} su ${cards}` : content),
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} da ${cards}` : content),
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',

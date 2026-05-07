@@ -7474,6 +7474,56 @@ ${reportName}
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `${fieldType}レポートフィールド「${fieldName}」を追加しました${defaultValue ? ` デフォルト値「${defaultValue}」付き` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の法人カード購入要件`,
+        expensifyCardRule: {
+            actionVerb: {block: 'ブロック済み', allow: '許可済み'},
+            amountOperator: {over: '終了', under: '以下の条件のもと'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金額 ${operator} ${amount}`,
+            theCard: 'カード',
+            multipleCards: ({count}: {count: number}) => `${count} 件のカード`,
+            joinFilters: ({items}: {items: string[]}) => {
+                if (items.length === 0) {
+                    return '';
+                }
+                if (items.length === 1) {
+                    return items.at(0) ?? '';
+                }
+                if (items.length === 2) {
+                    return `${items.at(0)} と ${items.at(1)}`;
+                }
+                return `${items.slice(0, -1).join(', ')}、${items.at(-1)}`;
+            },
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += `${text === '' ? '' : ' '}${filters}`;
+                }
+                if (cards !== '') {
+                    text += `${cards}での${text === '' ? '' : ' '}`;
+                }
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `${cards} から支出ルールを削除しました` : '支出ルールを削除しました'),
+            restrictionVerb: {block: 'ブロック', allow: 'のみ許可'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
+                    cards !== '' ? `${cards} の支出ルールを ${fromAction} から ${toAction} に変更しました` : `支出ルールを${fromAction}から${toAction}に変更しました`,
+                appliedToAdditionalCards: ({count}: {count: number}) => `${count} 枚の追加カードに支出ルールを適用しました`,
+                phraseVerb: {added: '追加済み', removed: '削除済み', changed: '変更済み', set: '設定', applied: '適用済み'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}なマーチャント「${value}」` : `加盟店「${value}」`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective}加盟店を「${oldValue}」から「${newValue}」に変更しました` : `加盟店名を「${oldValue}」から「${newValue}」に変更`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective}支出カテゴリー「${value}」` : `支出カテゴリ「${value}」`),
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective}支出カテゴリを「${oldValue}」から「${newValue}」に変更しました` : `支出カテゴリを「${oldValue}」から「${newValue}」に変更`,
+                bodyMaxAmount: '最大金額',
+                bodyMaxAmountSet: ({value}: {value: string}) => `最大金額を${value}に設定`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `最大金額を${oldValue}から${newValue}に変更`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `${count} 枚の追加カードに支出ルールを適用`,
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `${cards}の支出ルール`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${cards}の${content}` : content),
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${cards} からの ${content}` : content),
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',

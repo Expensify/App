@@ -7539,6 +7539,57 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `vereiste ${enabled ? 'ingeschakeld' : 'uitgeschakeld'} voor bedrijfskaarttransacties`,
+        expensifyCardRule: {
+            actionVerb: {block: 'geblokkeerd', allow: 'toegestaan'},
+            amountOperator: {over: 'over', under: 'onder'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `bedragen ${operator} ${amount}`,
+            theCard: 'de kaart',
+            multipleCards: ({count}: {count: number}) => `${count} kaarten`,
+            joinFilters: ({items}: {items: string[]}) => {
+                if (items.length === 0) {
+                    return '';
+                }
+                if (items.length === 1) {
+                    return items.at(0) ?? '';
+                }
+                if (items.length === 2) {
+                    return `${items.at(0)} en ${items.at(1)}`;
+                }
+                return `${items.slice(0, -1).join(', ')} en ${items.at(-1)}`;
+            },
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += `${text === '' ? '' : ' '}${filters}`;
+                }
+                if (cards !== '') {
+                    text += `${text === '' ? '' : ' '}op ${cards}`;
+                }
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `uitgavenregel verwijderd van ${cards}` : 'uitgave-regel verwijderd'),
+            restrictionVerb: {block: 'blokkeren', allow: 'alleen toestaan'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
+                    cards !== '' ? `uitgave-regel gewijzigd van ${fromAction} naar ${toAction} op ${cards}` : `heeft bestedingsregel gewijzigd van ${fromAction} naar ${toAction}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => `bestedingsregel toegepast op ${count} extra kaarten`,
+                phraseVerb: {added: 'toegevoegd', removed: 'verwijderd', changed: 'gewijzigd', set: 'instellen', applied: 'toegepast'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} handelaar '${value}'` : `handelaar '${value}'`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} handelaar van '${oldValue}' naar '${newValue}'` : `handelaar van '${oldValue}' naar '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) =>
+                    adjective !== '' ? `${adjective} uitgavencategorie '${value}'` : `uitgavencategorie '${value}'`,
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} uitgavencategorie van '${oldValue}' naar '${newValue}'` : `uitgavecategorie van '${oldValue}' naar '${newValue}'`,
+                bodyMaxAmount: 'max. bedrag',
+                bodyMaxAmountSet: ({value}: {value: string}) => `max. bedrag tot ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max. bedrag van ${oldValue} naar ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `bestedsregel naar ${count} extra kaarten`,
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `bestedingsregel van ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} op ${cards}` : content),
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} van ${cards}` : content),
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

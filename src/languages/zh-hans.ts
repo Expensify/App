@@ -7344,6 +7344,56 @@ ${reportName}
             `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) => `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 公司商务卡消费要求`,
+        expensifyCardRule: {
+            actionVerb: {block: '已阻止', allow: '允许'},
+            amountOperator: {over: '结束', under: '在…之下'},
+            amountFilter: ({operator, amount}: {operator: string; amount: string}) => `金额 ${operator} ${amount}`,
+            theCard: '该卡',
+            multipleCards: ({count}: {count: number}) => `${count} 张卡片`,
+            joinFilters: ({items}: {items: string[]}) => {
+                if (items.length === 0) {
+                    return '';
+                }
+                if (items.length === 1) {
+                    return items.at(0) ?? '';
+                }
+                if (items.length === 2) {
+                    return `${items.at(0)} 和 ${items.at(1)}`;
+                }
+                return `${items.slice(0, -1).join(', ')}，和 ${items.at(-1)}`;
+            },
+            addRule: ({verb, filters, cards}: {verb: string; filters: string; cards: string}) => {
+                let text = verb;
+                if (filters !== '') {
+                    text += `${text === '' ? '' : ' '}${filters}`;
+                }
+                if (cards !== '') {
+                    text += `${cards} 上的 ${text === '' ? '' : ' '}`;
+                }
+                return text;
+            },
+            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `已从${cards}中移除消费规则` : '已移除消费规则'),
+            restrictionVerb: {block: '封锁', allow: '仅允许'},
+            update: {
+                modeChange: ({fromAction, toAction, cards}: {fromAction: string; toAction: string; cards: string}) =>
+                    cards !== '' ? `已将 ${cards} 的消费规则从 ${fromAction} 更改为 ${toAction}` : `将消费规则从 ${fromAction} 更改为 ${toAction}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => `已将消费规则应用到另外 ${count} 张卡片`,
+                phraseVerb: {added: '已添加', removed: '已移除', changed: '已更改', set: '设置', applied: '已应用'},
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} 商户“${value}”` : `商户“${value}”`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `将${adjective}商户从“${oldValue}”更改为“${newValue}”` : `商户从“${oldValue}”变更为“${newValue}”`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} 支出类别“${value}”` : `支出类别“${value}”`),
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `将${adjective}支出类别从“${oldValue}”更改为“${newValue}”` : `将支出类别从“${oldValue}”更改为“${newValue}”`,
+                bodyMaxAmount: '最高金额',
+                bodyMaxAmountSet: ({value}: {value: string}) => `最大金额为 ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `最大金额从 ${oldValue} 变更为 ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `将消费规则应用到另外 ${count} 张卡片`,
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `来自${cards}的支出规则`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${cards} 上的 ${content}` : content),
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `来自${cards}的${content}` : content),
+            },
+        },
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
