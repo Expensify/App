@@ -775,7 +775,6 @@ describe('Unread Indicators', () => {
             currentUserAccountIDParam: USER_A_ACCOUNT_ID,
             currentUserEmailParam: USER_A_EMAIL,
             introSelected: undefined,
-            activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
