@@ -17,19 +17,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
-import {
-    enableAutoApprovalOptions,
-    enableCompanyCards,
-    enablePolicyAutoReimbursementLimit,
-    enablePolicyReportFields,
-    enablePolicyRules,
-    setPolicyPreventMemberCreatedTitle,
-    setPolicyPreventSelfApproval,
-    setWorkspaceApprovalMode,
-    upgradeToCorporate,
-} from '@src/libs/actions/Policy/Policy';
+import {upgradeToCorporate} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -39,6 +28,18 @@ import UpgradeConfirmation from './UpgradeConfirmation';
 import UpgradeIntro from './UpgradeIntro';
 
 type WorkspaceUpgradePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.UPGRADE>;
+
+const FEATURE_ID_TO_ATTRIBUTE_KEY: Record<string, string> = {
+    [CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id]: 'areRulesEnabled',
+    [CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id]: 'areCompanyCardsEnabled',
+    [CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id]: 'arePerDiemRatesEnabled',
+    [CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id]: 'areReportFieldsEnabled',
+    [CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id]: 'areWorkflowsEnabled',
+    [CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id]: 'preventSelfApproval',
+    [CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id]: 'shouldShowAutoApprovalOptions',
+    [CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id]: 'shouldShowAutoReimbursementLimitOption',
+    [CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id]: 'shouldShowCustomReportTitleOption',
+};
 
 function getFeatureNameAlias(featureName: string) {
     switch (featureName) {
@@ -131,84 +132,53 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
 
-        upgradeToCorporate(policy, feature?.name);
+        const featureKey = feature ? FEATURE_ID_TO_ATTRIBUTE_KEY[feature.id] : undefined;
+        const perDiemCustomUnitID = featureKey === 'arePerDiemRatesEnabled' ? perDiemCustomUnit?.customUnitID : undefined;
+        upgradeToCorporate(policy, featureKey, perDiemCustomUnitID);
     };
 
     // useCallback is needed here because confirmUpgrade is passed as a prop to child components;
     // the rule flags it because the deps could be inlined, but removing useCallback would cause unnecessary re-renders.
     // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const confirmUpgrade = useCallback(() => {
-        if (!policyID) {
+        if (!policyID || !feature) {
             return;
         }
-        if (!feature) {
-            if (featureNameAlias === CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) {
-                setPolicyPreventMemberCreatedTitle(policyID, true, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
-            }
-            return;
-        }
-        switch (feature.id) {
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
-                setPolicyPreventSelfApproval(policyID, true, policy?.preventSelfApproval);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
-                enableAutoApprovalOptions(policyID, true, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
-                enablePolicyAutoReimbursementLimit(policyID, true, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
-                switch (route.params.featureName) {
-                    case CONST.REPORT_FIELDS_FEATURE.qbo.classes:
-                        updateQuickbooksOnlineSyncClasses(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncClasses);
-                        break;
-                    case CONST.REPORT_FIELDS_FEATURE.qbo.customers:
-                        updateQuickbooksOnlineSyncCustomers(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncCustomers);
-                        break;
-                    case CONST.REPORT_FIELDS_FEATURE.qbo.locations:
-                        updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
-                        break;
-                    case CONST.REPORT_FIELDS_FEATURE.xero.mapping: {
-                        const {trackingCategories} = policy?.connections?.xero?.data ?? {};
-                        const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
-                        const {mappings} = policy?.connections?.xero?.config ?? {};
-                        const currentTrackingCategoryValue = currentTrackingCategory ? (mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '') : '';
-                        updateXeroMappings(
-                            policyID,
-                            categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD} : {},
-                            categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
-                        );
-                        break;
-                    }
-                    default: {
-                        enablePolicyReportFields(policyID, true);
-                    }
+
+        // QBO/Xero report-field sync updates require connection-specific API calls
+        // that can't be handled by the generic featureKey parameter
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id) {
+            switch (route.params.featureName) {
+                case CONST.REPORT_FIELDS_FEATURE.qbo.classes:
+                    updateQuickbooksOnlineSyncClasses(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncClasses);
+                    break;
+                case CONST.REPORT_FIELDS_FEATURE.qbo.customers:
+                    updateQuickbooksOnlineSyncCustomers(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncCustomers);
+                    break;
+                case CONST.REPORT_FIELDS_FEATURE.qbo.locations:
+                    updateQuickbooksOnlineSyncLocations(policyID, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD, qboConfig?.syncLocations);
+                    break;
+                case CONST.REPORT_FIELDS_FEATURE.xero.mapping: {
+                    const {trackingCategories} = policy?.connections?.xero?.data ?? {};
+                    const currentTrackingCategory = trackingCategories?.find((category) => category.id === categoryId);
+                    const {mappings} = policy?.connections?.xero?.config ?? {};
+                    const currentTrackingCategoryValue = currentTrackingCategory ? (mappings?.[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${currentTrackingCategory.id}`] ?? '') : '';
+                    updateXeroMappings(
+                        policyID,
+                        categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD} : {},
+                        categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
+                    );
+                    break;
                 }
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id:
-                enablePolicyRules(policy, true, false, policyDataRef.current);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id:
-                enableCompanyCards(policyID, true, false);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.id:
-                enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
-                break;
-            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
-                setWorkspaceApprovalMode(policy, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED, accountID, email);
-                break;
-            default:
+                default:
+                    break;
+            }
         }
     }, [
         policyID,
         feature,
-        featureNameAlias,
         policy,
         route.params.featureName,
-        perDiemCustomUnit?.customUnitID,
-        defaultApprover,
-        accountID,
-        email,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
