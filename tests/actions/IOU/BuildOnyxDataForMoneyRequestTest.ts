@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {buildOnyxDataForMoneyRequest} from '@libs/actions/IOU';
+import {buildOnyxDataForMoneyRequest} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import type {OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
