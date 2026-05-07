@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
@@ -14,7 +13,8 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardDescription, getDisplayableExpensifyCards} from '@libs/CardUtils';
+import {getDisplayableExpensifyCards} from '@libs/CardUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -26,7 +26,7 @@ import {useYourSpendData, YOUR_SPEND_ROW_STATE} from './useYourSpendData';
 const SKELETON_ROW_HEIGHT = 56;
 
 function YourSpendSection() {
-    const {approvalRowState, paymentRowState, cardRows, awaitingApprovalQuery, repaidLast30DaysQuery} = useYourSpendData();
+    const {approvalRowState, approvalTotals, paymentRowState, paymentTotals, cardRows, awaitingApprovalQuery, repaidLast30DaysQuery} = useYourSpendData();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -72,17 +72,17 @@ function YourSpendSection() {
                 {approvalRowState === YOUR_SPEND_ROW_STATE.READY && (
                     <View testID="your-spend-approval-row">
                         <MenuItemWithTopDescription
-                            title={translate('homePage.yourSpend.awaitingApproval')}
+                            description={translate('homePage.yourSpend.awaitingApproval')}
+                            title={approvalTotals.total !== undefined ? convertToDisplayString(approvalTotals.total, approvalTotals.currency) : undefined}
                             titleStyle={styles.textBold}
+                            onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: awaitingApprovalQuery}))}
                             shouldShowRightComponent
                             rightComponent={
-                                <Button
-                                    small
-                                    testID="your-spend-approval-row-view"
-                                    text={translate('common.view')}
-                                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: awaitingApprovalQuery}))}
-                                    style={styles.widgetItemButton}
-                                    isContentCentered
+                                <Icon
+                                    src={icons.ArrowRight}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
                             }
                             wrapperStyle={wrapperStyle}
@@ -110,17 +110,17 @@ function YourSpendSection() {
                 {paymentRowState === YOUR_SPEND_ROW_STATE.READY && (
                     <View testID="your-spend-payment-row">
                         <MenuItemWithTopDescription
-                            title={translate('homePage.yourSpend.repaidLast30Days')}
+                            description={translate('homePage.yourSpend.repaidLast30Days')}
+                            title={paymentTotals.total !== undefined ? convertToDisplayString(paymentTotals.total, paymentTotals.currency) : undefined}
                             titleStyle={styles.textBold}
+                            onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: repaidLast30DaysQuery}))}
                             shouldShowRightComponent
                             rightComponent={
-                                <Button
-                                    small
-                                    testID="your-spend-payment-row-view"
-                                    text={translate('common.view')}
-                                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: repaidLast30DaysQuery}))}
-                                    style={styles.widgetItemButton}
-                                    isContentCentered
+                                <Icon
+                                    src={icons.ArrowRight}
+                                    fill={theme.icon}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
                             }
                             wrapperStyle={wrapperStyle}
@@ -134,20 +134,20 @@ function YourSpendSection() {
                     if (!card) {
                         return null;
                     }
-                    const customTitle = card.nameValuePairs?.cardTitle;
-                    const description = customTitle && card.lastFourPAN ? `${customTitle} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : (customTitle ?? getCardDescription(card, translate));
                     const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
                     const hasLimitData = !!unapprovedExpenseLimit;
                     const spentFraction = hasLimitData ? 1 - (card.availableSpend ?? 0) / unapprovedExpenseLimit : 0;
+
+                    const cardTotal = cardRow.total !== undefined ? convertToDisplayString(cardRow.total, cardRow.currency) : undefined;
 
                     return (
                         <Hoverable key={cardRow.cardID}>
                             {(isHovered) => (
                                 <View testID={`your-spend-card-row-${cardRow.cardID}`}>
                                     <MenuItemWithTopDescription
-                                        title={translate('homePage.yourSpend.recentTransactions', {lastFour: cardRow.lastFour})}
+                                        description={translate('homePage.yourSpend.recentTransactions', {lastFour: cardRow.lastFour})}
+                                        title={cardTotal}
                                         titleStyle={styles.textBold}
-                                        description={description}
                                         onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: cardRow.query}))}
                                         shouldShowRightComponent
                                         rightComponent={

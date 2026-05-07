@@ -28,6 +28,8 @@ type YourSpendCardRow = {
     cardID: number;
     lastFour: string;
     query: string;
+    total: number | undefined;
+    currency: string | undefined;
 };
 
 type YourSpendApplicability = {
@@ -44,9 +46,16 @@ function getYourSpendApplicability(policies: OnyxCollection<Policy> | undefined,
     return {isApprovalApplicable, isPaymentApplicable, isCardApplicable};
 }
 
+type YourSpendRowTotals = {
+    total: number | undefined;
+    currency: string | undefined;
+};
+
 type UseYourSpendDataReturn = {
     approvalRowState: YourSpendRowState;
+    approvalTotals: YourSpendRowTotals;
     paymentRowState: YourSpendRowState;
+    paymentTotals: YourSpendRowTotals;
     cardRows: YourSpendCardRow[];
     awaitingApprovalQuery: string;
     repaidLast30DaysQuery: string;
@@ -83,22 +92,44 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [approvalSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}`);
     const [paymentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${paymentQueryJSON?.hash}`);
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
 
     const {isApprovalApplicable, isPaymentApplicable} = useMemo(() => getYourSpendApplicability(policies, cardList), [policies, cardList]);
 
     const displayableCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
+
+    // Map cardID → snapshot hash so we can look up totals from allSnapshots
+    const cardQueryHashByCardID = useMemo(
+        () =>
+            displayableCards.reduce<Record<number, number | undefined>>((acc, card) => {
+                const cardQuery = buildRecentCardTransactionsQuery(accountID, card.cardID);
+                acc[card.cardID] = buildSearchQueryJSON(cardQuery)?.hash;
+                return acc;
+            }, {}),
+        [displayableCards, accountID],
+    );
+
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
-            displayableCards.map((card) => ({
-                cardID: card.cardID,
-                lastFour: card.lastFourPAN ?? '',
-                query: buildRecentCardTransactionsQuery(accountID, card.cardID),
-            })),
-        [displayableCards, accountID],
+            displayableCards.map((card) => {
+                const hash = cardQueryHashByCardID[card.cardID];
+                const snapshot = hash !== undefined ? allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] : undefined;
+                return {
+                    cardID: card.cardID,
+                    lastFour: card.lastFourPAN ?? '',
+                    query: buildRecentCardTransactionsQuery(accountID, card.cardID),
+                    total: snapshot?.search.total,
+                    currency: snapshot?.search.currency,
+                };
+            }),
+        [displayableCards, accountID, cardQueryHashByCardID, allSnapshots],
     );
 
     const approvalRowState = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
     const paymentRowState = getYourSpendRowState({isApplicable: isPaymentApplicable, isOffline, searchResults: paymentSearchResults});
+
+    const approvalTotals: YourSpendRowTotals = {total: approvalSearchResults?.search.total, currency: approvalSearchResults?.search.currency};
+    const paymentTotals: YourSpendRowTotals = {total: paymentSearchResults?.search.total, currency: paymentSearchResults?.search.currency};
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
@@ -137,7 +168,9 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     return {
         approvalRowState,
+        approvalTotals,
         paymentRowState,
+        paymentTotals,
         cardRows,
         awaitingApprovalQuery,
         repaidLast30DaysQuery,
@@ -145,4 +178,4 @@ function useYourSpendData(): UseYourSpendDataReturn {
 }
 
 export {YOUR_SPEND_ROW_STATE, getYourSpendApplicability, getYourSpendRowState, useYourSpendData};
-export type {GetYourSpendRowStateParams, UseYourSpendDataReturn, YourSpendApplicability, YourSpendCardRow, YourSpendRowState};
+export type {GetYourSpendRowStateParams, UseYourSpendDataReturn, YourSpendApplicability, YourSpendCardRow, YourSpendRowState, YourSpendRowTotals};
