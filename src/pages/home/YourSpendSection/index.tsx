@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import RemainingLimitCircle from './RemainingLimitCircle';
-import {YOUR_SPEND_ROW_STATE, useYourSpendData} from './useYourSpendData';
+import {useYourSpendData, YOUR_SPEND_ROW_STATE} from './useYourSpendData';
 
 const SKELETON_ROW_HEIGHT = 56;
 
@@ -135,8 +135,7 @@ function YourSpendSection() {
                         return null;
                     }
                     const customTitle = card.nameValuePairs?.cardTitle;
-                    const description =
-                        customTitle && card.lastFourPAN ? `${customTitle} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : (customTitle ?? getCardDescription(card, translate));
+                    const description = customTitle && card.lastFourPAN ? `${customTitle} ${CONST.DOT_SEPARATOR} ${card.lastFourPAN}` : (customTitle ?? getCardDescription(card, translate));
                     const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
                     const hasLimitData = !!unapprovedExpenseLimit;
                     const spentFraction = hasLimitData ? 1 - (card.availableSpend ?? 0) / unapprovedExpenseLimit : 0;

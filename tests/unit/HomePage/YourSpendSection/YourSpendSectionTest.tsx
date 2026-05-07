@@ -3,8 +3,8 @@ import type {ReactNode} from 'react';
 import React from 'react';
 import type * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type * as UseYourSpendDataModule from '@pages/home/YourSpendSection/useYourSpendData';
 import YourSpendSection from '@pages/home/YourSpendSection';
+import type * as UseYourSpendDataModule from '@pages/home/YourSpendSection/useYourSpendData';
 import {useYourSpendData, YOUR_SPEND_ROW_STATE} from '@pages/home/YourSpendSection/useYourSpendData';
 import ROUTES from '@src/ROUTES';
 
@@ -68,8 +68,7 @@ jest.mock('@libs/CardUtils', () => {
 // unit test. Replace it with a passthrough that still mounts left/right/title content so the
 // outer testIDs and inner Button (in `rightComponent`) remain interactive.
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    type StubProps = {title?: string; rightComponent?: ReactNode; leftComponent?: ReactNode};
-    function MockMenuItemWithTopDescription({title, rightComponent, leftComponent}: StubProps) {
+    function MockMenuItemWithTopDescription({title, rightComponent, leftComponent}: {title?: string; rightComponent?: ReactNode; leftComponent?: ReactNode}) {
         return (
             <>
                 {leftComponent}
