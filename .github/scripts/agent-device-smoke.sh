@@ -21,8 +21,11 @@ SESSION=ci
 APP=com.expensify.chat.dev
 APK_GLOB="android/app/build/outputs/apk/development/debug/*.apk"
 METRO_READY_TIMEOUT=120
-SIGNIN_LOAD_TIMEOUT=120 # JS bundle delivery + React mount + Onyx hydrate
-ADVANCE_TIMEOUT=30 # SignIn -> magic-code transition after Continue
+SIGNIN_LOAD_TIMEOUT=300 # JS bundle delivery + React mount + Onyx hydrate
+                        # 120s was enough on a 4-core runner but free
+                        # 2-core ubuntu-latest is much slower; first
+                        # bundle delivery alone can take 2-3 min.
+ADVANCE_TIMEOUT=60      # SignIn -> magic-code transition after Continue
 SMOKE_EMAIL=rustam.zeinalov@callstack.com
 
 mkdir -p "$ART"
