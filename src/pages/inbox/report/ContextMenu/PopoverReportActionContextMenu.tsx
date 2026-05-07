@@ -8,6 +8,8 @@ import {cancelAnimation, useSharedValue, withTiming} from 'react-native-reanimat
 import {scheduleOnRN} from 'react-native-worklets';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
+import HoldOrRejectEducationalModal from '@components/HoldOrRejectEducationalModal';
+import HoldSubmitterEducationalModal from '@components/HoldSubmitterEducationalModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useAncestors from '@hooks/useAncestors';
@@ -83,6 +85,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const hideDelayProgress = useSharedValue(0);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
     const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
+    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
+    const [isRejectEducationalModalVisible, setIsRejectEducationalModalVisible] = useState(false);
+    const holdEducationalOnConfirmRef = useRef<() => void>(() => {});
 
     const [isRoomArchived, setIsRoomArchived] = useState(false);
     const [isChronosReportEnabled, setIsChronosReportEnabled] = useState(false);
@@ -469,11 +474,37 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         setIsDeleteCommentConfirmModalVisible(true);
     };
 
+    const showHoldEducationalModal: ReportActionContextMenu['showHoldEducationalModal'] = (onConfirm) => {
+        holdEducationalOnConfirmRef.current = onConfirm;
+        setIsHoldEducationalModalVisible(true);
+    };
+
+    const showRejectEducationalModal: ReportActionContextMenu['showRejectEducationalModal'] = (onConfirm) => {
+        holdEducationalOnConfirmRef.current = onConfirm;
+        setIsRejectEducationalModalVisible(true);
+    };
+
+    const dismissHoldEducationalModal = useCallback(() => {
+        const onConfirm = holdEducationalOnConfirmRef.current;
+        holdEducationalOnConfirmRef.current = () => {};
+        setIsHoldEducationalModalVisible(false);
+        onConfirm();
+    }, []);
+
+    const dismissRejectEducationalModal = useCallback(() => {
+        const onConfirm = holdEducationalOnConfirmRef.current;
+        holdEducationalOnConfirmRef.current = () => {};
+        setIsRejectEducationalModalVisible(false);
+        onConfirm();
+    }, []);
+
     useImperativeHandle(ref, () => ({
         showContextMenu,
         hideContextMenu,
         showDeleteModal,
         hideDeleteModal,
+        showHoldEducationalModal,
+        showRejectEducationalModal,
         isActiveReportAction,
         instanceIDRef,
         runAndResetOnPopoverHide,
@@ -536,6 +567,18 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 cancelText={translate('common.cancel')}
                 danger
             />
+            {!!isHoldEducationalModalVisible && (
+                <HoldSubmitterEducationalModal
+                    onClose={dismissHoldEducationalModal}
+                    onConfirm={dismissHoldEducationalModal}
+                />
+            )}
+            {!!isRejectEducationalModalVisible && (
+                <HoldOrRejectEducationalModal
+                    onClose={dismissRejectEducationalModal}
+                    onConfirm={dismissRejectEducationalModal}
+                />
+            )}
         </>
     );
 }

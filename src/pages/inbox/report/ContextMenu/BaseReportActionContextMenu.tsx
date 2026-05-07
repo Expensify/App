@@ -1,7 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
-import React, {memo, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -45,13 +45,17 @@ import {
     getHarvestOriginalReportID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
+    isCurrentUserSubmitter,
+    isDM,
     isHarvestCreatedExpenseReport,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
     isTrackExpenseReport as ReportUtilsIsTrackExpenseReport,
 } from '@libs/ReportUtils';
+import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, ReportAction} from '@src/types/onyx';
@@ -59,7 +63,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ContextMenuAction, ContextMenuActionPayload} from './ContextMenuActions';
 import ContextMenuActions from './ContextMenuActions';
 import type {ContextMenuAnchor, ContextMenuType} from './ReportActionContextMenu';
-import {hideContextMenu, showContextMenu} from './ReportActionContextMenu';
+import {hideContextMenu, showContextMenu, showHoldEducationalModal, showRejectEducationalModal} from './ReportActionContextMenu';
 
 type BaseReportActionContextMenuProps = {
     /** The ID of the report this report action is attached to. */
@@ -259,6 +263,31 @@ function BaseReportActionContextMenu({
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const delegateAccountID = useDelegateAccountID();
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initWithStoredValues :false});
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION, {initWithStoredValues :false});
+    const [chatReportForHold] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const isReportSubmitter = isCurrentUserSubmitter(chatReportForHold);
+    const isChatReportDM = isDM(chatReportForHold);
+
+    const handleHoldEducationalModal = useCallback(
+        (performHold: () => void) => {
+            const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+            if (isDismissed || isChatReportDM) {
+                performHold();
+            } else if (isReportSubmitter) {
+                showHoldEducationalModal(() => {
+                    setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
+                    performHold();
+                });
+            } else {
+                showRejectEducationalModal(() => {
+                    dismissRejectUseExplanation();
+                    performHold();
+                });
+            }
+        },
+        [dismissedHoldUseExplanation, dismissedRejectUseExplanation, isReportSubmitter, isChatReportDM, isOffline],
+    );
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
@@ -434,6 +463,7 @@ function BaseReportActionContextMenu({
                                 conciergeReportID,
                                 delegateAccountID,
                                 originalReportOfUnapprovedTransaction,
+                                handleHoldEducationalModal,
                             };
 
                             if ('renderContent' in contextAction) {

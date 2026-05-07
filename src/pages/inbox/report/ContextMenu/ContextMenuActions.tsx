@@ -313,6 +313,7 @@ type ContextMenuActionPayload = {
     conciergeReportID: string | undefined;
     originalReportOfUnapprovedTransaction?: OnyxEntry<ReportType>;
     delegateAccountID: number | undefined;
+    handleHoldEducationalModal: (performHold: () => void) => void;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -629,21 +630,21 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID).canHoldRequest;
         },
-        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
+        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, handleHoldEducationalModal}) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;
             }
 
+            const performHold = () =>
+                changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
+
             if (closePopover) {
-                hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID),
-                );
+                hideContextMenu(false, () => handleHoldEducationalModal(performHold));
                 return;
             }
 
-            // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline, currentUserPersonalDetails?.login ?? '', currentUserPersonalDetails.accountID);
+            handleHoldEducationalModal(performHold);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
