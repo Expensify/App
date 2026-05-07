@@ -441,10 +441,6 @@ const staticStyles = (theme: ThemeColors) =>
             verticalAlign: 'top',
         },
 
-        textAlignVerticalTop: {
-            textAlignVertical: 'top',
-        },
-
         lineHeightUndefined: {
             lineHeight: undefined,
         },

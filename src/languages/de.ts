@@ -2726,19 +2726,6 @@ ${amount} für ${merchant} – ${date}`,
         subtitle: 'Erstelle Agents, die deinen Workflow übernehmen. Spare dir die manuelle Arbeit und gewinne stundenweise Zeit im Alltag zurück.',
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {title: 'Keine Agenten erstellt', subtitle: 'Hör auf, Dinge manuell zu erledigen. Weise stattdessen eine:n Agent:in an und spare dir eine Menge Zeit.'},
-        error: {
-            genericAdd: 'Beim Hinzufügen dieses Agenten ist ein Problem aufgetreten',
-        },
-    },
-    addAgentPage: {
-        title: 'Neue Kontaktperson',
-        agentName: 'Name der Ansprechperson',
-        instructions: 'Eigene Anweisungen schreiben',
-        createAgent: 'Agent erstellen',
-        switchAvatar: 'Profilbild wechseln',
-        defaultAgentName: (displayName: string) => `Agent*in von ${displayName}`,
-        defaultPrompt:
-            'Lehne Ausgaben ab, die für Glücksspiele, Kinobesuche oder andere offensichtlich nicht geschäftliche Zwecke sind.\n\nErinnere den:die Nutzer:in daran, immer ein Belegfoto beizufügen, auf dem das Trinkgeld klar erkennbar ist.\n\nGenehmige den Bericht, wenn er früheren Berichten derselben Person sehr ähnlich ist.\n\nLehne Berichte mit mehr als 500 $ an Reisekosten ab.',
     },
     expenseRulesPage: {
         title: 'Ausgabenregeln',

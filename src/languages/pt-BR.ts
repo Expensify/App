@@ -2713,19 +2713,6 @@ ${amount} para ${merchant} - ${date}`,
         subtitle: 'Crie agentes para gerenciar seu fluxo de trabalho. Pule o trabalho manual e ganhe horas de volta no seu dia.',
         newAgent: 'Novo agente',
         emptyAgents: {title: 'Nenhum agente criado', subtitle: 'Pare de fazer tudo manualmente. Instrua um agente e economize muito tempo.'},
-        error: {
-            genericAdd: 'Houve um problema ao adicionar este agente',
-        },
-    },
-    addAgentPage: {
-        title: 'Novo agente',
-        agentName: 'Nome do agente',
-        instructions: 'Escrever instruções personalizadas',
-        createAgent: 'Criar agente',
-        switchAvatar: 'Trocar avatar',
-        defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
-        defaultPrompt:
-            'Rejeite despesas relacionadas a jogos de azar, cinema ou outros motivos claramente não relacionados ao negócio.\n\nLembre o usuário de sempre incluir uma imagem do recibo em que a gorjeta fique clara.\n\nAprove o relatório se ele for muito semelhante a relatórios anteriores do mesmo usuário.\n\nRejeite relatórios com mais de US$ 500 em despesas de viagem.',
     },
     expenseRulesPage: {
         title: 'Regras de despesas',

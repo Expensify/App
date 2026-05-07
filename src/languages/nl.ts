@@ -2719,19 +2719,6 @@ ${amount} voor ${merchant} - ${date}`,
         subtitle: 'Maak agents aan om je workflow af te handelen. Sla het handmatige werk over en krijg uren van je dag terug.',
         newAgent: 'Nieuwe medewerker',
         emptyAgents: {title: 'Geen agents aangemaakt', subtitle: 'Stop met dingen handmatig doen. Geef in plaats daarvan een opdracht aan een agent en bespaar jezelf veel tijd.'},
-        error: {
-            genericAdd: 'Er was een probleem bij het toevoegen van deze agent',
-        },
-    },
-    addAgentPage: {
-        title: 'Nieuwe agent',
-        agentName: 'Naam medewerker',
-        instructions: 'Schrijf aangepaste instructies',
-        createAgent: 'Agent aanmaken',
-        switchAvatar: 'Profielavatar wisselen',
-        defaultAgentName: (displayName: string) => `Agent van ${displayName}`,
-        defaultPrompt:
-            'Wijs declaraties af die zijn voor gokken, films of andere duidelijk niet-zakelijke redenen.\n\nHerinner de gebruiker eraan altijd een bonafbeelding toe te voegen waarop de fooi duidelijk is.\n\nKeur het verslag goed als het sterk lijkt op eerdere verslagen van dezelfde gebruiker.\n\nWijs verslagen af met meer dan $500 aan reiskosten.',
     },
     expenseRulesPage: {
         title: 'Declaratieregels',

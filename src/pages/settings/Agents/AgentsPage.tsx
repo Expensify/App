@@ -16,19 +16,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {clearAgentError, openAgentsPage} from '@userActions/Agent';
+import {openAgentsPage} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import AgentsListRow from './AgentsListRow';
 
 type AgentItem = {
     accountID: number;
     displayName: string;
     login: string;
-    pendingAction?: PendingAction | null;
-    errors?: Errors | null;
 };
 
 function AgentsPage() {
@@ -51,8 +47,8 @@ function AgentsPage() {
         openAgentsPage();
     }, [isCustomAgentEnabled]);
 
-    const agentItems: AgentItem[] = Object.entries(agentPrompts ?? {})
-        .map(([key, agentPrompt]) => {
+    const agentItems: AgentItem[] = Object.keys(agentPrompts ?? {})
+        .map((key) => {
             const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
             const details = personalDetailsList?.[accountID];
             if (!details) {
@@ -62,20 +58,15 @@ function AgentsPage() {
                 accountID,
                 displayName: details.displayName ?? details.login ?? '',
                 login: details.login ?? '',
-                pendingAction: agentPrompt?.pendingAction,
-                errors: agentPrompt?.errors,
             };
         })
-        .filter(Boolean) as AgentItem[];
+        .filter((item): item is AgentItem => item !== null);
 
     const renderItem = ({item}: {item: AgentItem}) => (
         <AgentsListRow
             accountID={item.accountID}
             displayName={item.displayName}
             login={item.login}
-            pendingAction={item.pendingAction}
-            errors={item.errors}
-            onErrorClose={() => clearAgentError(item.accountID)}
         />
     );
 
@@ -88,7 +79,7 @@ function AgentsPage() {
             success
             icon={icons.Plus}
             text={translate('agentsPage.newAgent')}
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD)}
+            onPress={() => {}}
         />
     );
 

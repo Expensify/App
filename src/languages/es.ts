@@ -2618,19 +2618,6 @@ ${amount} para ${merchant} - ${date}`,
             title: 'No se han creado agentes.',
             subtitle: 'Deja de hacer las cosas manualmente. En su lugar, instruye a un agente y ahorra mucho tiempo.',
         },
-        error: {
-            genericAdd: 'Hubo un problema al agregar este agente',
-        },
-    },
-    addAgentPage: {
-        title: 'Nuevo agente',
-        agentName: 'Nombre del agente',
-        instructions: 'Escribe instrucciones personalizadas',
-        createAgent: 'Crear agente',
-        switchAvatar: 'Cambiar avatar',
-        defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
-        defaultPrompt:
-            'Rechazar gastos por juegos de azar, películas u otras razones claramente no comerciales.\n\nRecordar al usuario que siempre incluya una imagen del recibo que muestre claramente la propina.\n\nAprobar el informe si es muy similar a informes anteriores del mismo usuario.\n\nRechazar informes con más de $500 en gastos de viaje.',
     },
     expenseRulesPage: {
         title: 'Reglas de gastos',

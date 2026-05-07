@@ -2722,19 +2722,6 @@ ${amount} per ${merchant} - ${date}`,
         subtitle: 'Crea agenti per gestire il tuo flusso di lavoro. Elimina il lavoro manuale e recupera ore della tua giornata.',
         newAgent: 'Nuovo agente',
         emptyAgents: {title: 'Nessun agente creato', subtitle: 'Smetti di fare le cose manualmente. Dai istruzioni a un agente e risparmia un sacco di tempo.'},
-        error: {
-            genericAdd: "Si è verificato un problema durante l'aggiunta di questo agente",
-        },
-    },
-    addAgentPage: {
-        title: 'Nuovo agente',
-        agentName: 'Nome agente',
-        instructions: 'Scrivi istruzioni personalizzate',
-        createAgent: 'Crea agente',
-        switchAvatar: 'Cambia avatar',
-        defaultAgentName: (displayName: string) => `Agente di ${displayName}`,
-        defaultPrompt:
-            "Rifiuta le spese relative a gioco d'azzardo, cinema o altri motivi chiaramente non legati all'attività.\n\nRicorda all'utente di includere sempre un'immagine della ricevuta in cui la mancia sia ben visibile.\n\nApprova il report se è molto simile ai report precedenti dello stesso utente.\n\nRifiuta i report con più di 500 $ di spese di viaggio.",
     },
     expenseRulesPage: {
         title: 'Regole spese',
