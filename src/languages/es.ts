@@ -9271,6 +9271,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     export: {
         basicExport: 'Exportar básico',
+        currentView: 'Exportar vista actual',
         reportLevelExport: 'Todos los datos - a nivel de informe',
         expenseLevelExport: 'Todos los datos - a nivel de gasto',
         exportInProgress: 'Exportación en curso',

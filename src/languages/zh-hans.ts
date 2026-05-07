@@ -8778,6 +8778,7 @@ ${reportName}
     },
     export: {
         basicExport: '基本导出',
+        currentView: '导出当前视图',
         reportLevelExport: '所有数据 - 报告级别',
         expenseLevelExport: '所有数据 - 报销级别',
         exportInProgress: '导出进行中',

@@ -9004,6 +9004,7 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     },
     export: {
         basicExport: 'Exportação básica',
+        currentView: 'Exportar visualização atual',
         reportLevelExport: 'Todos os dados - nível de relatório',
         expenseLevelExport: 'Todos os dados - nível de despesa',
         exportInProgress: 'Exportação em andamento',

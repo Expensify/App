@@ -9012,6 +9012,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     },
     export: {
         basicExport: 'Standaardexport',
+        currentView: 'Huidige weergave exporteren',
         reportLevelExport: 'Alle gegevens - rapportniveau',
         expenseLevelExport: 'Alle gegevens - uitgaveniveau',
         exportInProgress: 'Export bezig',

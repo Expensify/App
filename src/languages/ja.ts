@@ -8929,6 +8929,7 @@ ${reportName}
     },
     export: {
         basicExport: '基本エクスポート',
+        currentView: '現在のビューをエクスポート',
         reportLevelExport: 'すべてのデータ - レポートレベル',
         expenseLevelExport: 'すべてのデータ - 経費レベル',
         exportInProgress: 'エクスポート処理中',
