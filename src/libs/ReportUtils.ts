@@ -11641,15 +11641,6 @@ type PrepareOnboardingOnyxDataParams = {
 function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined, userReportedIntegration?: OnboardingAccounting): string {
     // Use markdown (not HTML) because buildOptimisticAddCommentReportAction -> getParsedComment
     // escapes HTML entities before parsing, so raw HTML tags would render as literal text.
-    //
-    // Speaker is Concierge (was "Expensify setup specialist"). For TEAM 11+ users, the
-    // server-side append in queueAdminsRoomWelcome (Web-Expensify PR #52519) inserts a
-    // separate "you also have <guide name> assigned" paragraph with a book-a-call link
-    // before the followup-list — so the human onboarding specialist gets introduced
-    // distinctly from Concierge.
-    //
-    // PLACEHOLDER COPY — pending team review on lighter (~50w) vs. middle (~70w)
-    // variants and per-tier vs. uniform value-teaser language.
     const welcomeHeader = "# Your free trial has started! Let's get you set up.\n👋 Hey there! I'm Concierge — I'll help you get Expensify working for your team. ";
 
     let message = welcomeHeader;
@@ -11711,12 +11702,6 @@ function prepareOnboardingOnyxData({
         onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
-    // All MANAGE_TEAM cohorts now go through the bespoke welcome path. The previous
-    // gate restricted to MICRO sizes (1-10) while we proved out the deterministic
-    // pregenerated followups; with the server-side guide-block append shipped on
-    // Web-Expensify (PR #52519) for non-Concierge guides, TEAM 11+ users also see
-    // the bespoke welcome — Concierge as the speaker plus an introduction to their
-    // assigned onboarding specialist with a book-a-call link.
     const isPhase1Cohort =
         companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL ||
         companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM ||
