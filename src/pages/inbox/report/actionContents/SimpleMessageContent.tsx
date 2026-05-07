@@ -12,7 +12,6 @@ import {
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getRemovedFromApprovalChainMessage,
-    getReportAction,
     getReportActionText,
     isActionOfType,
     isRejectedAction,
@@ -58,11 +57,15 @@ function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
 function ReceiptScanFailedContent({report}: {report: OnyxEntry<OnyxTypes.Report>}) {
     const {translate} = useLocalize();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    // Subscribe to the parent and grandparent report actions so the component re-renders when they arrive
+    // — getReportAction reads a static snapshot and would otherwise leave us with stale data on first paint.
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [grandparentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
     // The action's parent isn't always the IOU action (it can be the CREATED action when the thread spans an extra layer),
     // so fall back to the grandparent action — this matches the lookup in ReportNameUtils.
-    let iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    let iouAction: OnyxTypes.ReportAction | undefined = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
-        iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
+        iouAction = parentReport?.parentReportActionID ? grandparentReportActions?.[parentReport.parentReportActionID] : undefined;
     }
     const transactionID = getLinkedTransactionID(iouAction);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
