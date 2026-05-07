@@ -302,6 +302,25 @@ describe('PopoverMenu V2', () => {
             act(() => setMockModal({willAlertModalBecomeVisible: true, isPopover: true}));
             expect(onOpenChange).not.toHaveBeenCalled();
         });
+
+        it('does not close when mounted inside an already-covered non-popover modal', () => {
+            mockModalState.value = {willAlertModalBecomeVisible: true, isPopover: false};
+            const onOpenChange = jest.fn();
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            expect(onOpenChange).not.toHaveBeenCalledWith(false);
+        });
     });
 
     describe('usePopoverTrigger', () => {
