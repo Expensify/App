@@ -6,6 +6,7 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
 import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import type {ActiveAnchor} from '@components/PopoverMenu/v2/root/RootContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {computeAnchorPosition} from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -43,7 +44,26 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
-function BaseContent({
+/** Outer guard: skips the controller's subscriptions until the trigger has published an anchor. */
+function BaseContent(props: BaseContentProps): React.ReactElement | null {
+    const {
+        meta: {activeAnchor},
+    } = useRootState(BaseContent.displayName);
+    if (!activeAnchor) {
+        return null;
+    }
+    return (
+        <BaseContentInner
+            // eslint-disable-next-line react/jsx-props-no-spreading -- forwarding caller props past the anchor guard
+            {...props}
+            activeAnchor={activeAnchor}
+        />
+    );
+}
+
+BaseContent.displayName = 'PopoverMenu.BaseContent';
+
+function BaseContentInner({
     children,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     containerStyles,
@@ -55,20 +75,17 @@ function BaseContent({
     testID,
     maxHeightStyle,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
-}: BaseContentProps): React.ReactElement | null {
+    activeAnchor,
+}: BaseContentProps & {activeAnchor: ActiveAnchor}): React.ReactElement {
     const styles = useThemeStyles();
     const {
         state: {isVisible},
-        meta: {activeAnchor},
     } = useRootState(BaseContent.displayName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const {navigation, focus, subActions, itemActions, close} = useContentController(BaseContent.displayName);
 
-    if (!activeAnchor) {
-        return null;
-    }
     const anchorPosition = computeAnchorPosition(activeAnchor.rect, anchorAlignment);
 
     return (
@@ -114,8 +131,6 @@ function BaseContent({
         </ContentNavigationContext.Provider>
     );
 }
-
-BaseContent.displayName = 'PopoverMenu.BaseContent';
 
 export default BaseContent;
 export type {BasePopoverProps};
