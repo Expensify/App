@@ -34,7 +34,6 @@ import type {
     OriginalMessageChangeLog,
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
-    OriginalMessagePolicyChangeLog,
     OriginalMessageReimbursed,
     OriginalMessageUnreportedTransaction,
     PolicyBudgetFrequency,
