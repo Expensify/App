@@ -383,7 +383,22 @@ const ViolationsUtils = {
             !hasUserStartedFixingSmartscan;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
-            newTransactionViolations.push({name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true});
+            const missingFields: string[] = [];
+            if (TransactionUtils.isMerchantMissing(updatedTransaction)) {
+                missingFields.push('merchant');
+            }
+            if (TransactionUtils.isCreatedMissing(updatedTransaction)) {
+                missingFields.push('date');
+            }
+            if (TransactionUtils.isAmountMissing(updatedTransaction, isFromExpenseReport)) {
+                missingFields.push('amount');
+            }
+            newTransactionViolations.push({
+                name: CONST.VIOLATIONS.SMARTSCAN_FAILED,
+                type: CONST.VIOLATION_TYPES.WARNING,
+                showInReview: true,
+                ...(missingFields.length > 0 ? {data: {missingFields}} : {}),
+            });
         }
         if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
