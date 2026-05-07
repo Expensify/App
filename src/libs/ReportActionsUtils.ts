@@ -3965,7 +3965,7 @@ function getSpendRuleRestrictionVerb(translate: LocalizedTranslate, action: stri
     return action;
 }
 
-function spendRuleAmountToCents(value: string[]): number {
+function formatSpendRuleAmountToCents(value: string[]): number {
     const firstValue = value.at(0) ?? '';
     if (firstValue === '' || !Number.isFinite(Number(firstValue))) {
         return 0;
@@ -3974,7 +3974,7 @@ function spendRuleAmountToCents(value: string[]): number {
 }
 
 function spendRuleFormatAmountValue(amount: {value: string[]}, currency: string): string {
-    return convertAmountToDisplayString(spendRuleAmountToCents(amount.value), currency);
+    return convertAmountToDisplayString(formatSpendRuleAmountToCents(amount.value), currency);
 }
 
 type SpendRuleStringDiff = {added: string[]; removed: string[]};
@@ -3996,13 +3996,13 @@ function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: S
     if (!oldAmount || !newAmount) {
         return {added: [], removed: []};
     }
-    const sameAmount = oldAmount.operator === newAmount.operator && spendRuleAmountToCents(oldAmount.value) === spendRuleAmountToCents(newAmount.value);
+    const sameAmount = formatSpendRuleAmountToCents(oldAmount.value) === formatSpendRuleAmountToCents(newAmount.value);
     if (sameAmount) {
         return {added: [], removed: []};
     }
     return {
-        added: newAmount ? [newAmount] : [],
-        removed: oldAmount ? [oldAmount] : [],
+        added: [newAmount],
+        removed: [oldAmount],
     };
 }
 
