@@ -1,6 +1,8 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import type {ReactNode} from 'react';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Pressable as RNPressable, Text as RNText} from 'react-native';
 import type * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import YourSpendSection from '@pages/home/YourSpendSection';
@@ -68,7 +70,7 @@ jest.mock('@libs/CardUtils', () => {
 // unit test. Replace it with a Pressable passthrough that still mounts left/right/title/description
 // content and forwards `onPress` so row-level navigation can be exercised.
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    const {Pressable, Text} = jest.requireActual('react-native');
+    const {Pressable, Text} = jest.requireActual<{Pressable: typeof RNPressable; Text: typeof RNText}>('react-native');
     function MockMenuItemWithTopDescription({
         title,
         description,
@@ -83,7 +85,10 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
         onPress?: () => void;
     }) {
         return (
-            <Pressable onPress={onPress}>
+            <Pressable
+                accessibilityRole="button"
+                onPress={onPress}
+            >
                 {leftComponent}
                 {description ? <Text>{description}</Text> : null}
                 {title ? <Text>{title}</Text> : null}
