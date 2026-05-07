@@ -628,7 +628,6 @@ function IOURequestStepDistanceOdometer({
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 lastFocusedInputRef.current?.focus();
             });

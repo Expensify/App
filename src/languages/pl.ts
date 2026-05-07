@@ -919,10 +919,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: 'Lista czatów',
         saveTheWorld: 'Uratuj świat',
         tooltip: 'Zacznij tutaj!',
-        redirectToExpensifyClassicModal: {
-            title: 'Wkrótce dostępne',
-            description: 'Dopasowujemy jeszcze kilka elementów Nowego Expensify do Twojej specyficznej konfiguracji. Tymczasem przejdź do klasycznej wersji Expensify.',
-        },
     },
     homePage: {
         forYou: 'Dla ciebie',
@@ -1040,6 +1036,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: 'Dostosuj kategorie księgowe',
             linkCompanyCards: 'Połącz firmowe karty',
             setupRules: 'Skonfiguruj zasady wydatków',
+            inviteAccountant: 'Zaproś swojego księgowego',
         },
     },
     allSettingsScreen: {
@@ -2198,12 +2195,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Porozmawiaj z Concierge, aby rozwiązać problemy z bezpieczeństwem i odblokować swoje konto.',
         chatWithConcierge: 'Czat z Concierge',
     },
-    deviceManagementPage: {
-        title: 'Zarządzanie urządzeniami',
-        description: 'Zarządzaj wszystkimi urządzeniami, na których zalogowałeś się za pomocą swojego konta Expensify.',
-        revoke: 'Cofnąć',
-        unknownDevice: 'Nieznane Urządzenie',
-    },
     twoFactorAuth: {
         headerTitle: 'Uwierzytelnianie dwuskładnikowe',
         twoFactorAuthEnabled: 'Włączono uwierzytelnianie dwuskładnikowe',
@@ -2722,6 +2713,19 @@ ${amount} dla ${merchant} - ${date}`,
         subtitle: 'Twórz agentów do obsługi swojego przepływu pracy. Pomiń ręczną pracę i odzyskaj godziny w ciągu dnia.',
         newAgent: 'Nowy agent',
         emptyAgents: {title: 'Nie utworzono agentów', subtitle: 'Przestań robić wszystko ręcznie. Zamiast tego wydaj polecenia agentowi i zaoszczędź mnóstwo czasu.'},
+        error: {
+            genericAdd: 'Wystąpił problem podczas dodawania tego agenta',
+        },
+    },
+    addAgentPage: {
+        title: 'Nowy agent',
+        agentName: 'Nazwa agenta',
+        instructions: 'Napisz własne instrukcje',
+        createAgent: 'Utwórz agenta',
+        switchAvatar: 'Zmień awatar',
+        defaultAgentName: (displayName: string) => `Agent ${displayName}`,
+        defaultPrompt:
+            'Odrzucaj wydatki związane z hazardem, filmami lub innymi oczywistymi celami niezwiązanymi z działalnością biznesową.\n\nPrzypominaj użytkownikowi, aby zawsze dołączał zdjęcie paragonu, na którym wysokość napiwku jest wyraźnie widoczna.\n\nZatwierdź raport, jeśli jest bardzo podobny do wcześniejszych raportów tego samego użytkownika.\n\nOdrzucaj raporty zawierające więcej niż 500 USD wydatków na podróże.',
     },
     expenseRulesPage: {
         title: 'Reguły wydatków',
@@ -4292,6 +4296,10 @@ ${amount} dla ${merchant} - ${date}`,
             travelInvoicingVendor: 'Dostawca usług turystycznych',
             travelInvoicingPayableAccount: 'Konto zobowiązań z tytułu podróży',
             hr: 'HR',
+        },
+        createdForClient: {
+            title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
+            description: 'Świetna wiadomość 🎉. Skontaktuj się z nami, jeśli potrzebują pomocy przy konfiguracji.',
         },
         receiptPartners: {
             uber: {
@@ -6419,7 +6427,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             updateToUSD: 'Zaktualizuj na USD',
             updateWorkspaceCurrency: 'Zaktualizuj walutę przestrzeni roboczej',
             workspaceCurrencyNotSupported: 'Waluta przestrzeni roboczej nie jest obsługiwana',
-            yourWorkspace: `Twoje miejsce pracy jest ustawione na nieobsługiwaną walutę. Zobacz <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">listę obsługiwanych walut</a>.`,
+            yourWorkspace: `Twoje miejsce pracy jest ustawione na nieobsługiwaną walutę. Zobacz <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">listę obsługiwanych walut</a>.`,
             chooseAnExisting: 'Wybierz istniejące konto bankowe do opłacania wydatków lub dodaj nowe.',
         },
         changeOwner: {
@@ -6951,10 +6959,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     label: 'Sterowanie',
                     description: 'Dla organizacji z zaawansowanymi wymaganiami.',
                 },
-                submit2026: {
-                    label: 'Prześlij',
-                    description: 'Dla pracowników, którzy chcą przesyłać wydatki do pracodawcy.',
-                },
             },
             description: 'Wybierz plan odpowiedni dla siebie. Szczegółową listę funkcji i cen znajdziesz w naszej',
             subscriptionLink: 'strona pomocy dotycząca typów planów i cen',
@@ -6987,6 +6991,17 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 title: 'Gusto',
                 approvalMode: 'Tryb zatwierdzania',
                 finalApprover: 'Ostateczny zatwierdzający',
+                notSet: 'Nie ustawiono',
+                approvalModeDescription: 'Członkowie i menedżerowie są skonfigurowani do synchronizacji z Gusto.',
+                approvalModeWarningTitle: 'Zmienić tryb zatwierdzania?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Czy na pewno chcesz zmienić tryb zatwierdzania dla tego obszaru roboczego? Dowiedz się więcej o różnych trybach przepływu pracy obsługiwanych przez Gusto w naszej <a href="${helpSiteURL}">witrynie pomocy</a>.`,
+                approvalModeWarningConfirm: 'Zmień tryb zatwierdzania',
+                approvalModes: {
+                    basic: {label: 'Podstawowa akceptacja', description: 'Wszyscy użytkownicy przesyłają wydatki do jednej osoby w celu ich przetworzenia i zatwierdzenia.'},
+                    manager: {label: 'Zatwierdzenie przez menedżera', description: 'Pracownicy przesyłają raporty do swojego bezpośredniego menedżera skonfigurowanego w Gusto.'},
+                    custom: {label: 'Niestandardowa akceptacja', description: 'Ręcznie skonfiguruję procesy zatwierdzania w Expensify.'},
+                },
                 connect: 'Połącz',
                 connectionDescription: 'Połącz Gusto, aby synchronizować akceptacje pracowników z Twoim miejscem pracy.',
                 syncNow: 'Synchronizuj teraz',
@@ -7735,6 +7750,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Karta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Centralne fakturowanie',
             },
             is: 'Jest',
             action: {
@@ -8253,7 +8269,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             prompt: 'Zezwól na dostęp do lokalizacji w ustawieniach urządzenia, aby rozpocząć śledzenie dystansu GPS.',
         },
         gpsFloatingPillText: 'Trwa śledzenie GPS...',
-        liveActivity: {subtitle: 'Śledzenie dystansu', button: 'Zobacz postęp'},
+        liveActivity: {subtitle: 'Śledzenie dystansu', button: 'Zobacz postęp', lockScreenBadgeText: 'Dystans', lockScreenTrackingText: 'Śledzenie...'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Świadectwo zgubione lub uszkodzone',

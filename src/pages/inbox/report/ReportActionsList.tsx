@@ -7,7 +7,6 @@ import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlashList from '@components/FlashList/InvertedFlashList';
-import getShowScrollIndicator from '@components/FlashList/InvertedFlashList/getShowScrollIndicator';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/FlatList/hooks/useFlatListScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -532,7 +531,6 @@ function ReportActionsList({
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (shouldScrollToEndAfterLayout) {
                 return;
@@ -551,7 +549,6 @@ function ReportActionsList({
         }
         const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
         if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 reportScrollManager.scrollToBottom();
             });
@@ -564,7 +561,6 @@ function ReportActionsList({
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
                 // they are now in the list.
@@ -655,7 +651,6 @@ function ReportActionsList({
         if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             reportScrollManager.scrollToBottom();
         });
@@ -899,7 +894,6 @@ function ReportActionsList({
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
     }, [loadNewerChats]);
 
@@ -934,7 +928,7 @@ function ReportActionsList({
                         shouldFocusToTopOnMount && styles.justifyContentEnd,
                         shouldScrollToEndAfterLayout && StyleUtils.getHiddenChatContentStyle(),
                     ]}
-                    showsVerticalScrollIndicator={getShowScrollIndicator(shouldScrollToEndAfterLayout)}
+                    showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
@@ -947,6 +941,7 @@ function ReportActionsList({
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
                     key={listID}
+                    overrideProps={{isInvertedVirtualizedList: true}}
                     getItemType={(item) => item.actionName}
                     shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
                     initialScrollKey={linkedReportActionID}

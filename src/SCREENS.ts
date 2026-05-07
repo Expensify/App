@@ -125,7 +125,6 @@ const SCREENS = {
         UPDATE_PERSONAL_BANK_ACCOUNT: 'Settings_Update_Personal_Bank_Account',
         ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT: 'Settings_Add_Bank_Account_Select_Country_Verify_Account',
         BANK_ACCOUNT_PURPOSE: 'Settings_Bank_Account_Purpose',
-        DEVICE_MANAGEMENT: 'Settings_Device_Management',
         CLOSE: 'Settings_Close',
         REPORT_CARD_LOST_OR_DAMAGED: 'Settings_ReportCardLostOrDamaged',
         REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE: 'Settings_ReportCardLostOrDamaged_ConfirmMagicCode',
@@ -173,6 +172,7 @@ const SCREENS = {
 
         AGENTS: {
             ROOT: 'Settings_Agents',
+            ADD: 'Settings_Agents_Add',
         },
 
         RULES: {
@@ -362,7 +362,6 @@ const SCREENS = {
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
-        STEP_CATEGORY_CREATE: 'Money_Request_Step_Category_Create',
         STEP_DATE: 'Money_Request_Step_Date',
         STEP_DESCRIPTION: 'Money_Request_Step_Description',
         STEP_DISTANCE: 'Money_Request_Step_Distance',
@@ -523,7 +522,7 @@ const SCREENS = {
         ROOT: 'ReportChangeWorkspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector'},
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
 
     WORKSPACES_LIST: 'Workspaces_List',
@@ -671,6 +670,7 @@ const SCREENS = {
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',
         HR: 'Workspace_HR',
+        HR_GUSTO_APPROVAL_MODE: 'Workspace_HR_Gusto_Approval_Mode',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',

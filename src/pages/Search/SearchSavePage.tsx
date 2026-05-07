@@ -16,6 +16,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -135,6 +136,7 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 function SearchSavePage() {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [name, setName] = useState('');
 
@@ -151,7 +153,7 @@ function SearchSavePage() {
         Navigation.goBack();
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, undefined, translate, localeCompare);
+    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
     const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
 
     const {inputCallbackRef} = useAutoFocusInput();

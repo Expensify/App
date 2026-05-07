@@ -1250,6 +1250,25 @@ describe('TransactionUtils', () => {
 
             expect(result).toEqual([{displayName: 'login-only@example.com', login: 'login-only@example.com', avatarUrl: ''}]);
         });
+
+        it('should handle attendees stored as a plain object', () => {
+            const attendeesArray: Attendee[] = [
+                {email: 'attendee1@example.com', login: 'attendee1@example.com', displayName: 'Attendee One', avatarUrl: '', accountID: 3, selected: true},
+                {email: 'attendee2@example.com', login: 'attendee2@example.com', displayName: 'Attendee Two', avatarUrl: '', accountID: 4, selected: false},
+            ];
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: Object.fromEntries(attendeesArray.entries()) as unknown as Attendee[],
+                },
+            });
+
+            const result = TransactionUtils.getOriginalAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result.length).toBe(2);
+            expect(result.at(0)?.email).toBe('attendee1@example.com');
+            expect(result.at(1)?.email).toBe('attendee2@example.com');
+        });
     });
 
     describe('getAttendees', () => {
@@ -1394,6 +1413,68 @@ describe('TransactionUtils', () => {
             const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
 
             expect(result).toEqual([{displayName: 'edited@example.com', login: 'edited@example.com', avatarUrl: ''}]);
+        });
+
+        it('should handle comment attendees stored as a plain object', () => {
+            const attendeesArray: Attendee[] = [{email: 'attendee@example.com', login: 'attendee@example.com', displayName: 'Attendee', avatarUrl: '', accountID: 7, selected: true}];
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: Object.fromEntries(attendeesArray.entries()) as unknown as Attendee[],
+                },
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.email).toBe('attendee@example.com');
+        });
+
+        it('should handle modifiedAttendees stored as a plain object', () => {
+            const modifiedAttendeesArray: Attendee[] = [
+                {email: 'modified@example.com', login: 'modified@example.com', displayName: 'Modified Attendee', avatarUrl: '', accountID: 6, selected: true},
+            ];
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+                modifiedAttendees: Object.fromEntries(modifiedAttendeesArray.entries()) as unknown as Attendee[],
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.email).toBe('modified@example.com');
+        });
+
+        it('should fall back to report owner when comment attendees is an empty plain object', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: {} as unknown as Attendee[],
+                },
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
+        });
+
+        it('should fall back to report owner when modifiedAttendees is an empty plain object', () => {
+            const transaction = generateTransaction({
+                reportID: FAKE_OPEN_REPORT_ID,
+                comment: {
+                    attendees: [],
+                },
+                modifiedAttendees: {} as unknown as Attendee[],
+            });
+
+            const result = TransactionUtils.getAttendees(transaction, currentUserPersonalDetails);
+
+            expect(result.length).toBe(1);
+            expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
         });
     });
 

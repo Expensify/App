@@ -849,10 +849,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: 'lista de chats',
         saveTheWorld: 'Salvar el mundo',
         tooltip: '¡Comienza aquí!',
-        redirectToExpensifyClassicModal: {
-            title: 'Próximamente',
-            description: 'Estamos ajustando algunos detalles de New Expensify para adaptarla a tu configuración específica. Mientras tanto, dirígete a Expensify Classic.',
-        },
     },
     homePage: {
         forYou: 'Para ti',
@@ -977,6 +973,7 @@ const translations: TranslationDeepObject<typeof en> = {
             connectAccounting: ({integrationName}: {integrationName: string}) => `Conectar con ${integrationName}`,
             connectAccountingDefault: 'Conectar a contabilidad',
             customizeCategories: 'Personalizar categorías contables',
+            inviteAccountant: 'Invita a tu contador',
             linkCompanyCards: 'Vincular tarjetas corporativas',
             setupRules: 'Configurar reglas de gasto',
         },
@@ -2109,12 +2106,6 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad y desbloquear tu cuenta.',
         chatWithConcierge: 'Chatear con Concierge',
     },
-    deviceManagementPage: {
-        title: 'Gestión de dispositivos',
-        description: 'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify.',
-        revoke: 'Revocar',
-        unknownDevice: 'Dispositivo Desconocido',
-    },
     twoFactorAuth: {
         headerTitle: 'Autenticación de dos factores',
         twoFactorAuthEnabled: 'Autenticación de dos factores habilitada',
@@ -2627,6 +2618,19 @@ ${amount} para ${merchant} - ${date}`,
             title: 'No se han creado agentes.',
             subtitle: 'Deja de hacer las cosas manualmente. En su lugar, instruye a un agente y ahorra mucho tiempo.',
         },
+        error: {
+            genericAdd: 'Hubo un problema al agregar este agente',
+        },
+    },
+    addAgentPage: {
+        title: 'Nuevo agente',
+        agentName: 'Nombre del agente',
+        instructions: 'Escribe instrucciones personalizadas',
+        createAgent: 'Crear agente',
+        switchAvatar: 'Cambiar avatar',
+        defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
+        defaultPrompt:
+            'Rechazar gastos por juegos de azar, películas u otras razones claramente no comerciales.\n\nRecordar al usuario que siempre incluya una imagen del recibo que muestre claramente la propina.\n\nAprobar el informe si es muy similar a informes anteriores del mismo usuario.\n\nRechazar informes con más de $500 en gastos de viaje.',
     },
     expenseRulesPage: {
         title: 'Reglas de gastos',
@@ -4235,6 +4239,10 @@ ${amount} para ${merchant} - ${date}`,
             travelInvoicing: 'Exportar Viajes de Expensify por Pagar a',
             travelInvoicingVendor: 'Proveedor de viajes',
             travelInvoicingPayableAccount: 'Cuenta por pagar de viajes',
+        },
+        createdForClient: {
+            title: '¡Has creado un espacio de trabajo para tu cliente!',
+            description: 'Excelentes noticias 🎉. Contáctanos si necesitan ayuda con la configuración.',
         },
         receiptPartners: {
             uber: {
@@ -6249,6 +6257,26 @@ ${amount} para ${merchant} - ${date}`,
                 connectionDescription: 'Conecta Gusto para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.',
                 approvalMode: 'Modo de aprobación',
                 finalApprover: 'Aprobador final',
+                notSet: 'No configurado',
+                approvalModeDescription: 'Los miembros y gerentes están configurados para sincronizarse con Gusto.',
+                approvalModeWarningTitle: '¿Cambiar modo de aprobación?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `¿Seguro que quieres cambiar el modo de aprobación de este espacio de trabajo? Obtén más información sobre los diferentes modos de flujo de trabajo con Gusto en nuestro <a href="${helpSiteURL}">sitio de ayuda</a>.`,
+                approvalModeWarningConfirm: 'Cambiar modo de aprobación',
+                approvalModes: {
+                    basic: {
+                        label: 'Aprobación básica',
+                        description: 'Todos los usuarios envían a una sola persona para su procesamiento y aprobación.',
+                    },
+                    manager: {
+                        label: 'Aprobación del gerente',
+                        description: 'Los empleados envían informes a su gerente directo configurado en Gusto.',
+                    },
+                    custom: {
+                        label: 'Aprobación personalizada',
+                        description: 'Configuraré manualmente los flujos de aprobación en Expensify.',
+                    },
+                },
             },
         },
         export: {
@@ -6372,7 +6400,7 @@ ${amount} para ${merchant} - ${date}`,
             updateToUSD: 'Actualizar a USD',
             updateWorkspaceCurrency: 'Actualizar la moneda del espacio de trabajo',
             workspaceCurrencyNotSupported: 'Moneda del espacio de trabajo no soportada',
-            yourWorkspace: `Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">lista de monedas soportadas</a>.`,
+            yourWorkspace: `Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de monedas soportadas</a>.`,
             chooseAnExisting: 'Elige una cuenta bancaria existente para pagar gastos o añade una nueva.',
         },
         changeOwner: {
@@ -6428,10 +6456,6 @@ ${amount} para ${merchant} - ${date}`,
                 corporate: {
                     label: 'Controlar',
                     description: 'Para organizaciones con requisitos avanzados.',
-                },
-                submit2026: {
-                    label: 'Enviar',
-                    description: 'Para empleados que buscan enviar gastos a su empleador.',
                 },
             },
             description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
@@ -7658,6 +7682,7 @@ ${amount} para ${merchant} - ${date}`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturación centralizada',
             },
             is: 'Es',
             action: {
@@ -9530,6 +9555,8 @@ ${amount} para ${merchant} - ${date}`,
         liveActivity: {
             subtitle: 'Seguimiento de distancia',
             button: 'Ver progreso',
+            lockScreenBadgeText: 'Distancia',
+            lockScreenTrackingText: 'Siguiendo...',
         },
     },
 };
