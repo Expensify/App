@@ -152,7 +152,6 @@ import {
     getPolicyNameByID,
     getPolicyRole,
     getRuleApprovers,
-    getSortedTagKeys,
     getSubmitToAccountID,
     hasDependentTags as hasDependentTagsPolicyUtils,
     hasDynamicExternalWorkflow,
@@ -272,7 +271,6 @@ import {
     getRecentTransactions,
     getReimbursable,
     getTag,
-    getTagArrayFromName,
     getTaxAmount,
     getTaxCode,
     getTaxName,
@@ -2165,12 +2163,7 @@ function pushTransactionAutoSelectionsOnyxData(
         return autoSelections;
     }
 
-    const {optimisticCategories, optimisticTagLists, hasDependentTagsValue, isCategoriesUpdateEmpty, isTagListsUpdateEmpty} = getOptimisticPolicyState(
-        policyData,
-        policyUpdate,
-        categoriesUpdate,
-        tagListsUpdate,
-    );
+    const {optimisticCategories, optimisticTagLists, isCategoriesUpdateEmpty, isTagListsUpdateEmpty} = getOptimisticPolicyState(policyData, policyUpdate, categoriesUpdate, tagListsUpdate);
 
     const enabledCategoryKeys = Object.entries(optimisticCategories)
         .filter(([, cat]) => cat.enabled && cat.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
@@ -2179,6 +2172,10 @@ function pushTransactionAutoSelectionsOnyxData(
 
     const tagListKeys = Object.keys(optimisticTagLists);
 
+    // Auto-replace is scoped to single-level tags only. Web-E's removeTags() throws "NTagging not supported yet" for
+    // multi-level tag lists, and the auto-replace metadata we send to Auth doesn't carry tagListIndex/tagListName,
+    // so the backend can't know which level of the multi-level tag string should be replaced. Multi-level support
+    // is tracked as a separate NTag follow-up.
     let singleRemainingTag: string | undefined;
     if (tagListKeys.length === 1) {
         const tagListName = tagListKeys.at(0) ?? '';
@@ -2187,15 +2184,6 @@ function pushTransactionAutoSelectionsOnyxData(
             .map(([key]) => key);
         singleRemainingTag = enabledTagKeys.length === 1 ? enabledTagKeys.at(0) : undefined;
     }
-
-    const sortedTagKeys = tagListKeys.length > 1 ? getSortedTagKeys(optimisticTagLists) : [];
-    const perLevelSingleTag: Array<string | undefined> = sortedTagKeys.map((key) => {
-        const tags = optimisticTagLists[key]?.tags ?? {};
-        const enabledKeys = Object.entries(tags)
-            .filter(([, tag]) => tag.enabled && tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .map(([k]) => k);
-        return enabledKeys.length === 1 ? enabledKeys.at(0) : undefined;
-    });
 
     for (const {
         report,
@@ -2222,34 +2210,6 @@ function pushTransactionAutoSelectionsOnyxData(
                 const isTagInPolicy = !!optimisticTagLists[tagListName]?.tags?.[transaction.tag]?.enabled;
                 if (!isTagInPolicy) {
                     transactionUpdates.tag = singleRemainingTag;
-                    transactionRollback.tag = transaction.tag;
-                }
-            }
-
-            // Multi-level tag auto-select. Skipped for dependent-tag policies because the per-level
-            // sole-remaining check ignores parent-tag filtering and could write an invalid combination.
-            if (!isTagListsUpdateEmpty && !hasDependentTagsValue && tagListKeys.length > 1 && transaction.tag) {
-                const currentTags = getTagArrayFromName(transaction.tag);
-                let anyTagChanged = false;
-                const newTags = [...currentTags];
-
-                for (let i = 0; i < sortedTagKeys.length; i++) {
-                    const currentTag = currentTags.at(i);
-                    if (!currentTag) {
-                        continue;
-                    }
-                    const sortedTagKey = sortedTagKeys.at(i) ?? '';
-                    const levelTags = optimisticTagLists[sortedTagKey]?.tags ?? {};
-                    const isInPolicy = !!levelTags[currentTag]?.enabled;
-                    const singleTag = perLevelSingleTag.at(i);
-                    if (!isInPolicy && singleTag) {
-                        newTags[i] = singleTag;
-                        anyTagChanged = true;
-                    }
-                }
-
-                if (anyTagChanged) {
-                    transactionUpdates.tag = newTags.join(CONST.COLON);
                     transactionRollback.tag = transaction.tag;
                 }
             }

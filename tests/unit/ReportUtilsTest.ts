@@ -10122,14 +10122,15 @@ describe('ReportUtils', () => {
             expect(hasTransactionMerge).toBe(false);
         });
 
-        it('should not auto-select multi-level tags when the policy has dependent tags', async () => {
-            // Given a multi-level tag policy with dependent tags, where one level has a sole remaining tag.
-            // Auto-select should be skipped because the per-level sole-remaining check ignores parent filtering.
+        it('should not auto-select tags for multi-level tag policies', async () => {
+            // Auto-replace is intentionally scoped to single-level tags. Web-E does not support multi-level tag
+            // removal yet, and the auto-replace metadata sent to Auth doesn't carry tagListIndex/tagListName,
+            // so the backend can't determine which level of the multi-level tag string to replace.
             const level1Tags: PolicyTags = {
-                Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: ''}},
+                Engineering: {name: 'Engineering', enabled: true},
             };
             const level2Tags: PolicyTags = {
-                Q1: {name: 'Q1', enabled: true, rules: {parentTagsFilter: 'Engineering'}},
+                Q1: {name: 'Q1', enabled: true},
             };
             const fakePolicyTagsLists: PolicyTagLists = {
                 Department: {name: 'Department', orderWeight: 0, required: false, tags: level1Tags},
@@ -10173,7 +10174,6 @@ describe('ReportUtils', () => {
             const {result} = renderHook(() => usePolicyData(fakePolicyID), {wrapper: OnyxListItemProvider});
             await waitForBatchedUpdates();
 
-            // tagListsUpdate is non-empty so we exercise the multi-level branch's dependent-tag guard
             const tagsToDelete: Record<string, Partial<OnyxValueWithOfflineFeedback<PolicyTag>>> = {
                 Sales: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false},
             };
