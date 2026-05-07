@@ -25,6 +25,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyTagListByReportID from '@hooks/usePolicyTagListByReportID';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +39,7 @@ import {
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU/SplitExpenseItems';
-import {buildPolicyTagListByReportID, updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -218,8 +219,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
         evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, currentPolicy);
     };
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`] ?? {};
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
+    const policyTagListByReportID = usePolicyTagListByReportID({
+        splitExpenses,
+        allReportsList: allReports,
+        expenseReport,
+        currentUserPersonalDetails,
+    });
 
     const onSaveSplitExpense = () => {
         if (isPerDiemRequest(transaction) && hasCustomUnitOutOfPolicyViolation) {
@@ -283,13 +289,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        const policyTagListByReportID = buildPolicyTagListByReportID({
-            splitExpenses,
-            allReportsList: allReports,
-            expenseReport,
-            currentUserPersonalDetails,
-            allPolicyTagsList: allPolicyTags,
-        });
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,
@@ -314,7 +313,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             quickAction,
             iouReportNextStep,
             betas,
-            policyTags,
+            policyTags: policyTags ?? {},
             personalDetails,
             transactionReport: draftTransactionReport,
             expenseReport,

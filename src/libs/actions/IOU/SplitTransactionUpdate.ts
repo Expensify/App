@@ -1451,6 +1451,6 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     });
 }
 
-export {buildPolicyTagListByReportID, updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
+export {buildPolicyTagListByReportID, getExpenseReportChatContext, updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
 
 export type {UpdateSplitTransactionsParams};
