@@ -30,7 +30,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getAllTransactionViolations, getUpdatedMoneyRequestReportData} from '.';
+import {getAllTransactionViolations} from '.';
+import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
 
 function removeUnchangedBulkEditFields(
     transactionChanges: TransactionChanges,
@@ -450,7 +451,7 @@ function updateMultipleMoneyRequests({
             const hasCreatedAction = didCreateThreadInThisIteration || Object.values(threadReportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
             const optimisticCreatedValue: Record<string, Partial<OnyxTypes.ReportAction>> = {};
             if (!hasCreatedAction) {
-                const optimisticCreatedAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+                const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.REPORT.OWNER_EMAIL_FAKE});
                 optimisticCreatedAction.pendingAction = null;
                 backfilledCreatedActionID = optimisticCreatedAction.reportActionID;
                 optimisticCreatedValue[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;

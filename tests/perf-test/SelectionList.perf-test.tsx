@@ -5,7 +5,8 @@ import type {ComponentType} from 'react';
 import type ReactNative from 'react-native';
 import {measureRenders} from 'reassure';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import type {KeyboardStateContextValue} from '@components/withKeyboardState';
 import variables from '@styles/variables';
@@ -68,7 +69,6 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../src/hooks/useKeyboardState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         isKeyboardShown: false,
@@ -77,7 +77,6 @@ jest.mock('../../src/hooks/useKeyboardState', () => ({
 }));
 
 jest.mock('../../src/hooks/useScreenWrapperTransitionStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         didScreenTransitionEnd: true,
@@ -117,7 +116,7 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
             data={data}
             onSelectRow={onSelectRow}
             initiallyFocusedItemKey="item-0"
-            ListItem={RadioListItem}
+            ListItem={canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
             canSelectMultiple={canSelectMultiple}
         />
     );

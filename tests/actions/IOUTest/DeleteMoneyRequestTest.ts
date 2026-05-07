@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getReportPreviewAction} from '@libs/actions/IOU';
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
+import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -503,7 +503,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
 
             // Given a transaction thread
-            thread = buildTransactionThread(createIOUAction, iouReport);
+            thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
             expect(thread.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
@@ -611,7 +611,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
 
             // Given a transaction thread
-            thread = buildTransactionThread(createIOUAction, iouReport);
+            thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
             Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
@@ -750,7 +750,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Given a transaction thread
-            thread = buildTransactionThread(createIOUAction, iouReport);
+            thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
             expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
@@ -889,7 +889,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given a thread report
 
             jest.advanceTimersByTime(10);
-            thread = buildTransactionThread(createIOUAction, iouReport);
+            thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
             expect(thread.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
@@ -1211,7 +1211,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // Given a thread report
             jest.advanceTimersByTime(10);
-            thread = buildTransactionThread(createIOUAction, iouReport);
+            thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
             expect(thread.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 
@@ -1391,7 +1391,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // Given a transaction thread
-            thread = buildTransactionThread(createIOUAction, iouReport);
+            thread = buildTransactionThread(createIOUAction, iouReport, TEST_USER_ACCOUNT_ID);
 
             expect(thread.participants).toEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
 

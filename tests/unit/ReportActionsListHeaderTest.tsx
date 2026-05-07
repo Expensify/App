@@ -7,7 +7,6 @@ const REPORT_ID = '42';
 const mockUseOnyx = jest.fn<unknown[], [string]>();
 
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (key: string) => mockUseOnyx(key),
 }));
@@ -16,7 +15,6 @@ jest.mock('@pages/home/report/ConciergeThinkingMessage', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View: MockView} = require('react-native');
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: () => <MockView testID="ConciergeThinkingMessage" />,
     };
@@ -26,7 +24,6 @@ jest.mock('@pages/inbox/report/ListBoundaryLoader', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View: MockView} = require('react-native');
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: () => <MockView testID="ListBoundaryLoader" />,
     };
