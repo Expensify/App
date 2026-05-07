@@ -7,7 +7,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
+import type {Card, Policy, Report, ReportMetadata, Transaction} from '../../src/types/onyx';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -3324,6 +3324,38 @@ describe('TransactionUtils', () => {
         it('returns false when sourceCurrency is undefined and transactionCurrency matches destinationCurrency', () => {
             const transaction = generateTransaction({currency: 'EUR'});
             expect(TransactionUtils.shouldClearConvertedAmount(transaction, undefined, 'EUR')).toBe(false);
+        });
+    });
+
+    describe('getResolvedReportCurrency', () => {
+        it('returns the loaded report currency when available', () => {
+            const report = {
+                reportID: '1',
+                currency: 'EUR',
+            } as Report;
+            const transaction = generateTransaction({currency: 'USD'});
+
+            expect(TransactionUtils.getResolvedReportCurrency({report, transaction})).toBe('EUR');
+        });
+
+        it('falls back to the transaction currency for optimistic reports', () => {
+            const reportMetadata = {isOptimisticReport: true} as ReportMetadata;
+            const transaction = generateTransaction({currency: 'GBP'});
+
+            expect(TransactionUtils.getResolvedReportCurrency({report: undefined, reportMetadata, transaction})).toBe('GBP');
+        });
+
+        it('returns undefined when the report is not optimistic and currency is missing', () => {
+            const reportMetadata = {isOptimisticReport: false} as ReportMetadata;
+            const transaction = generateTransaction({currency: 'GBP'});
+
+            expect(TransactionUtils.getResolvedReportCurrency({report: undefined, reportMetadata, transaction})).toBeUndefined();
+        });
+
+        it('returns undefined when optimistic report metadata exists but transaction is missing', () => {
+            const reportMetadata = {isOptimisticReport: true} as ReportMetadata;
+
+            expect(TransactionUtils.getResolvedReportCurrency({report: undefined, reportMetadata, transaction: undefined})).toBeUndefined();
         });
     });
 });

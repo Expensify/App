@@ -1032,6 +1032,11 @@ function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
     return transaction?.currency ?? CONST.CURRENCY.USD;
 }
 
+/**
+ * Resolves the destination report currency during the first-open race after rejection.
+ * We prefer the loaded report currency, and only fall back to the transaction currency
+ * for optimistic reports so missing report data is not treated as a real mismatch.
+ */
 function getResolvedReportCurrency({
     report,
     reportMetadata,
