@@ -3914,7 +3914,7 @@ function getSpendRuleActionVerb(translate: LocalizedTranslate, action: string): 
 }
 
 function spendRuleAmountOperatorWord(translate: LocalizedTranslate, operator: string): string {
-    if (operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
+    if (operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO) {
         return translate('workspaceActions.expensifyCardRule.amountOperator.under');
     }
     if (operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
