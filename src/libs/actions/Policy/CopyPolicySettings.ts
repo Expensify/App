@@ -1,10 +1,10 @@
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as API from '@libs/API';
+import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as NumberUtils from '@libs/NumberUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {generateHexadecimalValue} from '@libs/NumberUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
@@ -52,7 +52,7 @@ function clearCopyPolicySettings(): void {
 }
 
 function requestCopyPolicySettingsNotification(): void {
-    API.write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {});
+    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS_NOTIFY, {});
 }
 
 function findCustomUnitByName(policy: Policy | undefined, unitName: string): CustomUnit | undefined {
@@ -78,7 +78,7 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
         const sourceDistance = findCustomUnitByName(sourcePolicy, CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (sourceDistance) {
             const targetDistance = findCustomUnitByName(targetPolicy, CONST.CUSTOM_UNITS.NAME_DISTANCE);
-            const targetUnitID = targetDistance?.customUnitID ?? NumberUtils.generateHexadecimalValue(13);
+            const targetUnitID = targetDistance?.customUnitID ?? generateHexadecimalValue(13);
             patch[targetUnitID] = {...sourceDistance, customUnitID: targetUnitID};
         }
     }
@@ -87,7 +87,7 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
         const sourcePerDiem = findCustomUnitByName(sourcePolicy, CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
         if (sourcePerDiem) {
             const targetPerDiem = findCustomUnitByName(targetPolicy, CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
-            const targetUnitID = targetPerDiem?.customUnitID ?? NumberUtils.generateHexadecimalValue(13);
+            const targetUnitID = targetPerDiem?.customUnitID ?? generateHexadecimalValue(13);
             patch[targetUnitID] = {...sourcePerDiem, customUnitID: targetUnitID};
         }
     }
@@ -214,7 +214,7 @@ function buildCopyPolicySettingsData(
                 ...snapshot,
                 ...(customUnitsPatch ? {customUnits: targetPolicy.customUnits} : {}),
                 pendingFields: clearedPendingFields,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
             },
         });
 
@@ -281,7 +281,7 @@ function copyPolicySettings(
         parts: parts.join(','),
     };
 
-    API.write(WRITE_COMMANDS.COPY_POLICY_SETTINGS, params, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.COPY_POLICY_SETTINGS, params, {optimisticData, successData, failureData});
 }
 
 export {PARTS_TO_POLICY_FIELDS, setCopyPolicySettingsData, clearCopyPolicySettings, requestCopyPolicySettingsNotification, buildCopyPolicySettingsData, copyPolicySettings};

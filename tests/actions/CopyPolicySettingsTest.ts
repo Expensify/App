@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
-import {buildCopyPolicySettingsData } from '@src/libs/actions/Policy/CopyPolicySettings';
+import {buildCopyPolicySettingsData} from '@src/libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
