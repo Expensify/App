@@ -1,7 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
+import {setConciergeSessionStartTime, setConciergeShowFullHistory} from '@libs/actions/ConciergeSession';
 import DateUtils from '@libs/DateUtils';
+import Log from '@libs/Log';
+import ONYXKEYS from '@src/ONYXKEYS';
 import useIsInSidePanel from './useIsInSidePanel';
+import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';
 
 /**
@@ -9,41 +13,69 @@ import useSidePanelState from './useSidePanelState';
  *
  * - **Side panel:** Uses the side panel's own session time (`DateUtils.getDBTime()`
  *   captured when the panel opens).
- * - **Main DM:** Captures `lastReadTime` on the **first** focus after navigating
- *   to the Concierge DM. This separates *read* messages (hidden behind "Show
- *   history") from *unread* messages (always visible), matching the issue spec.
- *   The value stays stable until the user navigates to a different chat.
+ * - **Main DM:** Captures `lastReadTime` on the first focus after navigating
+ *   to the Concierge DM. Persists via a RAM-only Onyx key so it survives
+ *   component unmounts caused by deep navigation (e.g. workspace sub-pages).
  */
 function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: string): string | null {
     const isInSidePanel = useIsInSidePanel();
     const isFocused = useIsFocused();
     const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
+    const [persistedTime = null] = useOnyx(ONYXKEYS.RAM_ONLY_CONCIERGE_SESSION_START_TIME);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const shouldHide = !isFocused || !isConciergeChat || isInSidePanel;
+    const shouldActivate = isFocused && isConciergeChat && !isInSidePanel;
+
     const [mainDMSessionStartTime, setMainDMSessionStartTime] = useState<string | null>(null);
-    const [prevShouldHide, setPrevShouldHide] = useState(true);
-    const [prevIsConciergeChat, setPrevIsConciergeChat] = useState(isConciergeChat);
+    const [prevShouldActivate, setPrevShouldActivate] = useState(false);
 
-    if (prevIsConciergeChat !== isConciergeChat) {
-        setPrevIsConciergeChat(isConciergeChat);
-        if (!isConciergeChat) {
-            setMainDMSessionStartTime(null);
-            setPrevShouldHide(true);
+    useEffect(() => {
+        Log.info(
+            '[ConciergeSession] render',
+            false,
+            {
+                isConciergeChat,
+                isFocused,
+                isInSidePanel,
+                shouldActivate,
+                persistedTime,
+                mainDMSessionStartTime,
+                prevShouldActivate,
+                conciergeReportID,
+            },
+        );
+    }, [isConciergeChat, isFocused, isInSidePanel, shouldActivate, persistedTime, mainDMSessionStartTime, prevShouldActivate, conciergeReportID]);
+
+    // When this is not the Concierge report, immediately clear the persisted state.
+    useEffect(() => {
+        if (isConciergeChat) {
+            return;
         }
+        setConciergeSessionStartTime(null);
+        setConciergeShowFullHistory(false);
+        Log.info('[ConciergeSession] clear (non-concierge)', false);
+    }, [isConciergeChat]);
+
+    if (!shouldActivate || prevShouldActivate) {
+        return isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
     }
 
-    // Capture the session boundary on the first hide→show transition per visit.
-    // For the main DM we use lastReadTime so that unread messages stay visible
-    // while read history is collapsed. Falls back to DateUtils.getDBTime() when
-    // lastReadTime is unavailable (e.g. fresh report with no reads).
-    if (prevShouldHide !== shouldHide) {
-        setPrevShouldHide(shouldHide);
-        if (!shouldHide && !mainDMSessionStartTime) {
-            setMainDMSessionStartTime(lastReadTime ?? DateUtils.getDBTime());
-        }
+    setPrevShouldActivate(true);
+    if (persistedTime) {
+        setMainDMSessionStartTime(persistedTime);
+        Log.info('[ConciergeSession] restore persisted session time', false, {persistedTime});
+    } else {
+        const boundary = lastReadTime ?? DateUtils.getDBTime();
+        setMainDMSessionStartTime(boundary);
+        setConciergeSessionStartTime(boundary);
+        Log.info('[ConciergeSession] set new session time', false, {boundary, lastReadTime});
     }
 
-    return isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
+    if (isInSidePanel) {
+        return sidePanelSessionStartTime;
+    }
+
+    return shouldActivate ? mainDMSessionStartTime : null;
 }
 
 export default useConciergeSessionStartTime;

@@ -565,6 +565,12 @@ const ONYXKEYS = {
     /** Stores the information if mobile selection mode is active */
     RAM_ONLY_MOBILE_SELECTION_MODE: 'mobileSelectionMode',
 
+    /** Persists the Concierge main DM session start time across unmounts (RAM-only) */
+    RAM_ONLY_CONCIERGE_SESSION_START_TIME: 'conciergeSessionStartTime',
+
+    /** Persists the Concierge main DM "show full history" flag across unmounts (RAM-only) */
+    RAM_ONLY_CONCIERGE_SHOW_FULL_HISTORY: 'conciergeShowFullHistory',
+
     NVP_PRIVATE_CANCELLATION_DETAILS: 'nvp_private_cancellationDetails',
 
     /** Stores the information about duplicated workspace */
@@ -1504,6 +1510,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ADD_NEW_PERSONAL_CARD]: OnyxTypes.AddNewPersonalCard;
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
     [ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE]: boolean;
+    [ONYXKEYS.RAM_ONLY_CONCIERGE_SESSION_START_TIME]: string | null;
+    [ONYXKEYS.RAM_ONLY_CONCIERGE_SHOW_FULL_HISTORY]: boolean;
     [ONYXKEYS.DUPLICATE_WORKSPACE]: OnyxTypes.DuplicateWorkspace;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;

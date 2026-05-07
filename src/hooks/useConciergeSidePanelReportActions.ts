@@ -1,9 +1,13 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {setConciergeShowFullHistory} from '@libs/actions/ConciergeSession';
 import DateUtils from '@libs/DateUtils';
+import Log from '@libs/Log';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useOnyx from './useOnyx';
 
 type UseConciergeReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -30,16 +34,42 @@ function useConciergeReportActions({
     greetingText,
     loadOlderChats,
 }: UseConciergeReportActionsParams) {
-    const [showFullHistory, setShowFullHistory] = useState(false);
+    const [persistedShowFullHistory = false] = useOnyx(ONYXKEYS.RAM_ONLY_CONCIERGE_SHOW_FULL_HISTORY);
+
+    const [showFullHistory, setShowFullHistoryState] = useState(persistedShowFullHistory);
+    const [prevPersistedShowFullHistory, setPrevPersistedShowFullHistory] = useState(persistedShowFullHistory);
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
 
-    if (prevSessionStartTime !== sessionStartTime) {
+    useEffect(() => {
+        Log.info('[ConciergeHistory] render', false, {
+            isConciergeChat,
+            sessionStartTime,
+            persistedShowFullHistory,
+            showFullHistory,
+            prevSessionStartTime,
+            prevHasUserSentMessage,
+        });
+    }, [isConciergeChat, sessionStartTime, persistedShowFullHistory, showFullHistory, prevSessionStartTime, prevHasUserSentMessage]);
+
+    if (prevPersistedShowFullHistory !== persistedShowFullHistory) {
+        setPrevPersistedShowFullHistory(persistedShowFullHistory);
+        setShowFullHistoryState(persistedShowFullHistory);
+        Log.info('[ConciergeHistory] sync from persisted', false, {persistedShowFullHistory});
+    }
+
+    const hasSessionChanged = sessionStartTime && prevSessionStartTime && prevSessionStartTime !== sessionStartTime;
+
+    if (hasSessionChanged) {
         setPrevSessionStartTime(sessionStartTime);
-        setShowFullHistory(false);
+        setShowFullHistoryState(false);
+        setConciergeShowFullHistory(false);
+        Log.info('[ConciergeHistory] reset on session change', false, {sessionStartTime});
     } else if (prevHasUserSentMessage && !hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
-        setShowFullHistory(false);
+        setShowFullHistoryState(false);
+        setConciergeShowFullHistory(false);
+        Log.info('[ConciergeHistory] reset on user message cleared', false);
     } else if (prevHasUserSentMessage !== hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
     }
@@ -177,7 +207,8 @@ function useConciergeReportActions({
     const filteredReportActions = useMemo(() => filterActions(reportActions), [filterActions, reportActions]);
 
     const handleShowPreviousMessages = useCallback(() => {
-        setShowFullHistory(true);
+        setShowFullHistoryState(true);
+        setConciergeShowFullHistory(true);
         loadOlderChats(true);
     }, [loadOlderChats]);
 
