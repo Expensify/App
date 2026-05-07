@@ -1,12 +1,12 @@
 import React from 'react';
-import * as PopoverMenu from '@components/PopoverMenu/v2';
+import {CheckmarkItem, Item, ScrollableContent, Sub} from '@components/PopoverMenu/v2';
 import {useVideoPopoverMenuActions, useVideoPopoverMenuState} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import CONST from '@src/CONST';
 
-/** Must be rendered inside a `<PopoverMenu.Root>`. */
+/** Must be rendered inside a `<Root>` from `@components/PopoverMenu/v2`. */
 function VideoPopoverMenu() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -19,22 +19,22 @@ function VideoPopoverMenu() {
     const normalSpeedLabel = translate('videoPlayer.normal');
 
     return (
-        <PopoverMenu.ScrollableContent>
+        <ScrollableContent>
             {showDownload && (
-                <PopoverMenu.Item
+                <Item
                     text={translate('common.download')}
                     icon={icons.Download}
                     onSelect={downloadAttachment}
                 />
             )}
-            <PopoverMenu.Sub>
-                <PopoverMenu.Sub.Trigger
+            <Sub>
+                <Sub.Trigger
                     text={playbackSpeedLabel}
                     icon={icons.Meter}
                 />
-                <PopoverMenu.Sub.Content backButtonText={playbackSpeedLabel}>
+                <Sub.Content backButtonText={playbackSpeedLabel}>
                     {CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => (
-                        <PopoverMenu.CheckmarkItem
+                        <CheckmarkItem
                             key={speed}
                             text={speed === 1 ? normalSpeedLabel : speed.toString()}
                             isSelected={currentPlaybackSpeed === speed}
@@ -42,9 +42,9 @@ function VideoPopoverMenu() {
                             onSelect={() => updatePlaybackSpeed(speed)}
                         />
                     ))}
-                </PopoverMenu.Sub.Content>
-            </PopoverMenu.Sub>
-        </PopoverMenu.ScrollableContent>
+                </Sub.Content>
+            </Sub>
+        </ScrollableContent>
     );
 }
 

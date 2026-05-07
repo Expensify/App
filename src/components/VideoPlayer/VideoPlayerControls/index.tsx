@@ -5,7 +5,7 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} fro
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-import * as PopoverMenu from '@components/PopoverMenu/v2';
+import {usePopoverTrigger} from '@components/PopoverMenu/v2';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertSecondsToTime} from '@components/VideoPlayer/utils';
@@ -60,7 +60,7 @@ type VideoPlayerControlsProps = {
 
 /** Three-dots overflow trigger; records the active player + source before opening. */
 function MoreMenuTrigger({videoPlayerRef, url, small}: {videoPlayerRef: RefObject<VideoPlayer | null>; url: string; small: boolean}) {
-    const {ref, onPress} = PopoverMenu.usePopoverTrigger();
+    const {ref, onPress} = usePopoverTrigger();
     const {updateVideoPopoverMenuPlayerRef, updateSource} = useVideoPopoverMenuActions();
     const icons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const {translate} = useLocalize();

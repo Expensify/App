@@ -11,7 +11,7 @@ import AttachmentOfflineIndicator from '@components/AttachmentOfflineIndicator';
 import Hoverable from '@components/Hoverable';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
-import * as PopoverMenu from '@components/PopoverMenu/v2';
+import {useIsPopoverVisible} from '@components/PopoverMenu/v2';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -71,7 +71,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const [isFirstLoad, setIsFirstLoad] = useState(true);
     // we add "#t=0.001" at the end of the URL to skip first millisecond of the video and always be able to show proper video preview when video is paused at the beginning
     const [sourceURL] = useState(() => VideoUtils.addSkipTimeTagToURL(url.includes('blob:') || url.includes('file:///') ? url : addEncryptedAuthTokenToURL(url, encryptedAuthToken), 0.001));
-    const isPopoverVisible = PopoverMenu.useIsPopoverVisible();
+    const isPopoverVisible = useIsPopoverVisible();
     const [controlStatusState, setControlStatusState] = useState(controlsStatus);
     const controlsOpacity = useSharedValue(1);
     const controlsAnimatedStyle = useAnimatedStyle(() => ({
