@@ -6,6 +6,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -74,7 +75,6 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
-import {getCurrentUserEmail} from './IOU';
 import {deleteMoneyRequest} from './IOU/DeleteMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
@@ -106,6 +106,7 @@ type HandleActionButtonPressParams = {
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     currentSearchKey?: SearchKey;
+    onHoldMenuOpen?: HoldMenuCallback;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
@@ -136,6 +137,7 @@ function handleActionButtonPress({
     lastPaymentMethod,
     userBillingGracePeriodEnds,
     currentSearchKey,
+    onHoldMenuOpen,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
@@ -148,7 +150,12 @@ function handleActionButtonPress({
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE) {
+    if (
+        hasHeldExpense &&
+        item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT &&
+        item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE &&
+        (item.action !== CONST.SEARCH.ACTION_TYPES.APPROVE || !onHoldMenuOpen)
+    ) {
         goToItem();
         return;
     }
@@ -172,6 +179,10 @@ function handleActionButtonPress({
             }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
+            if (hasHeldExpense) {
+                onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
             }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
@@ -984,6 +995,7 @@ function rejectMoneyRequestInBulk(
     policy: OnyxEntry<Policy>,
     transactionIDs: string[],
     currentUserAccountIDParam: number,
+    currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
     hash?: number,
 ) {
@@ -1004,7 +1016,7 @@ function rejectMoneyRequestInBulk(
         }
     > = {};
     for (const transactionID of transactionIDs) {
-        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, getCurrentUserEmail(), betas, undefined, true);
+        const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, undefined, true);
         if (data) {
             optimisticData.push(...data.optimisticData);
             successData.push(...data.successData);
@@ -1039,6 +1051,7 @@ function rejectMoneyRequestsOnSearch(
     allPolicies: OnyxCollection<Policy>,
     allReports: OnyxCollection<Report>,
     currentUserAccountIDParam: number,
+    currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
 ) {
     const transactionIDs = Object.keys(selectedTransactions);
@@ -1072,12 +1085,12 @@ function rejectMoneyRequestsOnSearch(
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
-            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, betas, hash);
+            rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
             const sharedRejectedToReportID = generateReportID();
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, getCurrentUserEmail(), betas, {sharedRejectedToReportID});
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {sharedRejectedToReportID});
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {

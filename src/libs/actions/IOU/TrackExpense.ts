@@ -104,22 +104,11 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import type {BuildOnyxDataForMoneyRequestKeys, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from './index';
-import {
-    buildMinimalTransactionForFormula,
-    getAllReports,
-    getAllTransactionDrafts,
-    getAllTransactions,
-    getAllTransactionViolations,
-    getMoneyRequestInformation,
-    getMoneyRequestPolicyTags,
-    getReceiptError,
-    getReportPreviewAction,
-    getSearchOnyxUpdate,
-    getTransactionWithPreservedLocalReceiptSource,
-    handleNavigateAfterExpenseCreate,
-    highlightTransactionOnSearchRouteIfNeeded,
-} from './index';
+import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
+import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags, getSearchOnyxUpdate} from './index';
+import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
+import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
+import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
 import type {
@@ -879,7 +868,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
         const selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmailParam, currentTime);
+        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailParam, created: currentTime});
         optimisticReportID = selfDMReport.reportID;
         optimisticReportActionID = selfDMCreatedReportAction.reportActionID;
         chatReport = selfDMReport;
@@ -1103,6 +1092,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isPersonalTrackingExpense: !shouldUseMoneyReport,
         existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
+        currentUserAccountID: currentUserAccountIDParam,
     });
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
@@ -1658,7 +1648,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         participantParams,
         policyParams: {
             ...policyParams,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             policyTagList: getMoneyRequestPolicyTags({
                 existingIOUReport,
                 moneyRequestReportID,
@@ -2026,7 +2015,6 @@ function convertBulkTrackedExpensesToIOU({
             personalDetails,
             betas,
             policyParams: {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 policyTagList: getMoneyRequestPolicyTags({
                     moneyRequestReportID: iouReportID,
                     parentChatReport: chatReport,
@@ -2162,6 +2150,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
         | typeof ONYXKEYS.GPS_DRAFT_DETAILS
         | typeof ONYXKEYS.SELF_DM_REPORT_ID
+        | typeof ONYXKEYS.ODOMETER_DRAFT
     > = {
         optimisticData: trackedExpenseOnyxData?.optimisticData ?? [],
         successData: trackedExpenseOnyxData?.successData ?? [],
@@ -2291,6 +2280,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         draftTransactionIDs = [],
         isSelfTourViewed,
         defaultWorkspaceName,
+        previousOdometerDraft,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -2453,6 +2443,19 @@ function trackExpense(params: CreateTrackExpenseParams) {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
             value: transaction?.iouRequestType,
+        });
+    }
+
+    if (previousOdometerDraft !== undefined && (odometerStart !== undefined || odometerEnd !== undefined)) {
+        onyxData?.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ODOMETER_DRAFT,
+            value: null,
+        });
+        onyxData?.failureData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ODOMETER_DRAFT,
+            value: previousOdometerDraft,
         });
     }
 

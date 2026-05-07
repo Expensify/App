@@ -150,7 +150,6 @@ export default {
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; BrowserNotifications is non-React code that cannot use the translate hook
             translate: translateLocal,
             reportAction,
             policy,

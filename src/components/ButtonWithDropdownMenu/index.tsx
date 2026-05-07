@@ -50,7 +50,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         wrapperStyle,
         useKeyboardShortcuts = false,
         defaultSelectedIndex = 0,
-        shouldShowSelectedItemCheck = false,
+        shouldShowRadioButton = false,
         testID,
         secondLineText = '',
         icon,
@@ -283,7 +283,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         }
                     }}
                     anchorPosition={popoverAnchorPosition}
-                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                    shouldShowRadioButton={shouldShowRadioButton}
                     anchorRef={nullCheckRef(dropdownAnchor)}
                     scrollContainerStyle={!shouldUseModalPaddingStyle && isSmallScreenWidth && {...styles.pt4, paddingBottom}}
                     anchorAlignment={anchorAlignment}

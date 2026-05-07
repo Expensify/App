@@ -159,7 +159,9 @@ import {
     isExpenseReport,
     isGroupChat as isGroupChatReportUtils,
     isHiddenForCurrentUser,
+    isInvoiceReport,
     isIOUReportUsingReport,
+    isMoneyRequestReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportManuallyReimbursed,
@@ -1590,7 +1592,7 @@ function openReport(params: OpenReportActionParams) {
             // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
             emailCreatingAction = (personalDetails ?? allPersonalDetails)?.[newReportObject.ownerAccountID]?.login ?? '';
         }
-        const optimisticCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
+        const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction});
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -1836,7 +1838,7 @@ function createGroupChat(
     ];
 
     // Create optimistic created action
-    const optimisticCreatedAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+    const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.REPORT.OWNER_EMAIL_FAKE});
     optimisticData.push({
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -1916,7 +1918,6 @@ function createGroupChat(
     };
 
     // Clear group chat data after navigation dismissed so we don't see stale data
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         clearGroupChat();
     });
@@ -2000,7 +2001,7 @@ function createTransactionThreadReport(
     }
 
     const optimisticTransactionThreadReportID = generateReportID();
-    const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
+    const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, currentUserAccountID, undefined, optimisticTransactionThreadReportID);
     const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     const participantAccountIDsForDetails = [currentUserAccountID];
     if (iouReportAction?.actorAccountID && iouReportAction.actorAccountID !== currentUserAccountID) {
@@ -3318,7 +3319,6 @@ function updateReportField({
     const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report,
         predictedNextStatus,
@@ -3726,7 +3726,6 @@ function buildNewReportOptimisticData(
     };
 
     // buildOptimisticNextStep is used in parallel
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const optimisticNextStepDeprecated = buildNextStepNew({
         report: optimisticReportData,
         predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
@@ -3951,7 +3950,7 @@ function removeFailedReport(reportID: string | undefined) {
 
 /** Add a policy report (workspace room) optimistically and navigate to it. */
 function addPolicyReport(policyReport: OptimisticChatReport) {
-    const createdReportAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
+    const createdReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.POLICY.OWNER_EMAIL_FAKE});
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.
@@ -4122,7 +4121,6 @@ function navigateToConciergeChatAndDeleteReport(
     }
     // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
     navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, undefined, undefined, undefined, personalDetails ?? allPersonalDetails);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
     });
@@ -5535,7 +5533,20 @@ function resolveActionableMentionWhisper(
 
     // When the action belongs to a child report (e.g. a one-transaction thread), also update
     // the parent report's participants so the members list the user is viewing updates immediately.
-    const parentInviteData = isInviteResolution && parentReport?.reportID && parentReport.reportID !== reportID ? buildParticipantsInviteData(parentReport, inviteeAccountIDs) : undefined;
+    // When parentReport is the same as the current report (e.g. viewing a transaction thread directly),
+    // fall back to the report's parentReportID to find the actual ancestor (IOU/expense/invoice report).
+    const isParentReportDifferent = !!parentReport?.reportID && parentReport.reportID !== reportID;
+    let parentInviteData = isInviteResolution && isParentReportDifferent ? buildParticipantsInviteData(parentReport, inviteeAccountIDs) : undefined;
+    if (!parentInviteData && isInviteResolution && report?.parentReportID && report.parentReportID !== reportID) {
+        const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+        if (ancestorReport && (isMoneyRequestReport(ancestorReport) || isInvoiceReport(ancestorReport))) {
+            parentInviteData = buildParticipantsInviteData(ancestorReport, inviteeAccountIDs);
+        }
+    }
+    let parentReportIDForUpdate: string | undefined;
+    if (parentInviteData) {
+        parentReportIDForUpdate = isParentReportDifferent ? parentReport.reportID : report?.parentReportID;
+    }
     const parentParticipantsOptimisticData = parentInviteData?.optimistic;
     const parentParticipantsFailureData = parentInviteData?.failure;
 
@@ -5562,10 +5573,10 @@ function resolveActionableMentionWhisper(
         },
     ];
 
-    if (parentParticipantsOptimisticData && parentReport?.reportID) {
+    if (parentParticipantsOptimisticData && parentReportIDForUpdate) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportIDForUpdate}`,
             value: parentParticipantsOptimisticData,
         });
     }
@@ -5593,10 +5604,10 @@ function resolveActionableMentionWhisper(
         },
     ];
 
-    if (parentParticipantsFailureData && parentReport?.reportID) {
+    if (parentParticipantsFailureData && parentReportIDForUpdate) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportIDForUpdate}`,
             value: parentParticipantsFailureData,
         });
     }
@@ -6008,7 +6019,7 @@ function deleteAppReport({
         const currentTime = DateUtils.getDBTime();
         const optimisticSelfDMReport = buildOptimisticSelfDMReport(currentTime);
         selfDMReportID = optimisticSelfDMReport.reportID;
-        createdAction = buildOptimisticCreatedReportAction(currentUserEmailParam ?? '', currentTime);
+        createdAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailParam ?? '', created: currentTime});
         selfDMParameters = {reportID: optimisticSelfDMReport.reportID, createdReportActionID: createdAction.reportActionID};
         optimisticData.push(
             {
@@ -6160,7 +6171,6 @@ function deleteAppReport({
         const updatedReportAction = {
             ...reportAction,
             originalMessage: {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ...reportAction.originalMessage,
                 IOUReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 type: CONST.IOU.TYPE.TRACK,
@@ -6833,7 +6843,6 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) 
         return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CHANGE_POLICY_EDUCATIONAL.path));
     });
@@ -6952,7 +6961,6 @@ function buildOptimisticChangePolicyData(
 
     if (newStatusNum != null && newStatusNum !== undefined) {
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: {...report, policyID: policy.id},
             predictedNextStatus: newStatusNum,

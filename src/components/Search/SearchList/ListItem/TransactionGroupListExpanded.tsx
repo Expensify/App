@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -14,6 +15,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -31,13 +33,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
     transactionsQueryJSON,
     showTooltip,
     canSelectMultiple,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onSelectRow,
     columns,
     groupBy,
@@ -73,6 +76,31 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
 
+    const neededReportIDs = useMemo(() => {
+        const ids = new Set<string>();
+        for (const transaction of visibleTransactions) {
+            if (transaction.reportID) {
+                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
+            }
+            if (transaction.reportAction?.childReportID) {
+                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+            }
+        }
+        return ids;
+    }, [visibleTransactions]);
+
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => {
+            const result: OnyxCollection<OnyxTypes.Report> = {};
+            for (const key of Object.keys(reports ?? {})) {
+                if (neededReportIDs.has(key)) {
+                    result[key] = reports?.[key];
+                }
+            }
+            return result;
+        },
+    });
+
     const isLastTransaction = (index: number) => {
         return index === visibleTransactions.length - 1;
     };
@@ -92,6 +120,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const shouldShowLoadingOnSearch = !!(!transactions?.length && transactionsSnapshotMetadata?.isLoading) || currentOffset > 0;
     const shouldDisplayLoadingIndicator = !isExpenseReportType && !!transactionsSnapshotMetadata?.isLoading && shouldShowLoadingOnSearch;
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const StyleUtils = useStyleUtils();
 
     const isAmountColumnWide = transactions.some((transaction) => transaction.isAmountColumnWide);
     const isTaxAmountColumnWide = transactions.some((transaction) => transaction.isTaxAmountColumnWide);
@@ -106,8 +135,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
-        const parentReport = getReportOrDraftReport(transactionItem?.reportID);
-        const transactionThreadReport = getReportOrDraftReport(transactionItem?.reportAction?.childReportID);
+        const parentReport = getReportOrDraftReport(transactionItem?.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]);
+        const transactionThreadReport = getReportOrDraftReport(
+            transactionItem?.reportAction?.childReportID,
+            undefined,
+            undefined,
+            undefined,
+            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`],
+        );
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem?.transactionID)}`];
 
         return {
@@ -185,7 +220,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const handleOnPress = (transaction: TransactionListItemType) => {
         if (isMobileSelectionModeEnabled) {
-            onCheckboxPress?.(transaction as unknown as TItem);
+            onSelectionButtonPress?.(transaction as unknown as TItem);
             return;
         }
         openReportInRHP(transaction);
@@ -224,7 +259,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                             isActionColumnWide={isActionColumnWide}
                         />
                     </View>
-                    <View style={[styles.borderBottom, styles.ml3, styles.mr3]} />
+                    <View style={[StyleUtils.getSelectedBorderBottomStyle(visibleTransactions.at(0)?.isSelected), styles.ml3, styles.mr3]} />
                 </>
             )}
             {visibleTransactions.map((transaction, index) => {
@@ -245,7 +280,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         shouldUseNarrowLayout={!isLargeScreenWidth}
                         shouldShowCheckbox={!!canSelectMultiple}
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
-                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                        onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
                         columns={currentColumns}
                         onButtonPress={() => handleButtonPress(transaction)}
                         style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.searchTableRowHeight] : styles.p4, styles.flex1]}
