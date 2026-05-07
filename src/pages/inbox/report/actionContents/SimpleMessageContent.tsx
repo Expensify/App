@@ -55,8 +55,15 @@ function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
     return SIMPLE_MESSAGE_ACTION_TYPES.has(action.actionName) || isUnapprovedAction(action) || isRejectedAction(action);
 }
 
-function ReceiptScanFailedContent({iouAction}: {iouAction: OnyxTypes.ReportAction | undefined}) {
+function ReceiptScanFailedContent({report}: {report: OnyxEntry<OnyxTypes.Report>}) {
     const {translate} = useLocalize();
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    // The action's parent isn't always the IOU action (it can be the CREATED action when the thread spans an extra layer),
+    // so fall back to the grandparent action — this matches the lookup in ReportNameUtils.
+    let iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
+        iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
+    }
     const transactionID = getLinkedTransactionID(iouAction);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const smartscanFailedViolation = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
@@ -107,9 +114,7 @@ function SimpleMessageContent({action, report}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-        // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
-        const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        return <ReceiptScanFailedContent iouAction={iouAction} />;
+        return <ReceiptScanFailedContent report={report} />;
     }
     if (isUnapprovedAction(action)) {
         return <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
