@@ -4100,16 +4100,6 @@ function spendRulePhraseVerbWord(translate: LocalizedTranslate, verb: SpendRuleP
     return translate(`workspaceActions.expensifyCardRule.update.phraseVerb.${verb}`);
 }
 
-function spendRuleAdjectiveWord(translate: LocalizedTranslate, adjective: SpendRulePhraseAdjective): string {
-    if (adjective === CONST.SPEND_RULES.ACTION.BLOCK) {
-        return translate('workspaceActions.expensifyCardRule.actionVerb.block');
-    }
-    if (adjective === CONST.SPEND_RULES.ACTION.ALLOW) {
-        return translate('workspaceActions.expensifyCardRule.actionVerb.allow');
-    }
-    return '';
-}
-
 function joinSpendRulePhrases(translate: LocalizedTranslate, phrases: readonly SpendRulePhrase[]): string {
     if (phrases.length === 0) {
         return '';
@@ -4204,14 +4194,14 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     const actionChanged = oldAction !== '' && oldAction !== newAction;
     const currency = typeof message?.currency === 'string' && message.currency !== '' ? message.currency : CONST.CURRENCY.USD;
 
-    const oldMerchants = (message?.oldMerchants ?? []).filter((value): value is string => typeof value === 'string' && value !== '');
-    const newMerchants = (message?.merchants ?? []).filter((value): value is string => typeof value === 'string' && value !== '');
-    const oldCategories = (message?.oldCategories ?? []).filter((value): value is string => typeof value === 'string' && value !== '');
-    const newCategories = (message?.categories ?? []).filter((value): value is string => typeof value === 'string' && value !== '');
-    const oldAmounts: SpendRuleAmount[] = (message?.oldAmounts ?? []).filter((amount): amount is SpendRuleAmount => typeof amount === 'object' && amount !== null);
-    const newAmounts: SpendRuleAmount[] = (message?.amounts ?? []).filter((amount): amount is SpendRuleAmount => typeof amount === 'object' && amount !== null);
-    const oldCards: SpendRuleCard[] = (message?.oldCards ?? []).filter((card): card is SpendRuleCard => typeof card === 'object' && card !== null);
-    const newCards: SpendRuleCard[] = (message?.cards ?? []).filter((card): card is SpendRuleCard => typeof card === 'object' && card !== null);
+    const oldMerchants = (message?.oldMerchants ?? []).filter((value) => value !== '');
+    const newMerchants = (message?.merchants ?? []).filter((value) => value !== '');
+    const oldCategories = (message?.oldCategories ?? []).filter((value) => value !== '');
+    const newCategories = (message?.categories ?? []).filter((value) => value !== '');
+    const oldAmounts = message?.oldAmounts ?? [];
+    const newAmounts = message?.amounts ?? [];
+    const oldCards = message?.oldCards ?? [];
+    const newCards = message?.cards ?? [];
 
     const merchantDiff = spendRuleStringDiff(oldMerchants, newMerchants);
     const categoryDiff = spendRuleStringDiff(oldCategories, newCategories);
@@ -4244,7 +4234,7 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
     }
 
     const adjective: SpendRulePhraseAdjective = newAction === CONST.SPEND_RULES.ACTION.BLOCK || newAction === CONST.SPEND_RULES.ACTION.ALLOW ? newAction : '';
-    const adjectiveWord = spendRuleAdjectiveWord(translate, adjective);
+    const adjectiveWord = spendRuleActionVerb(translate, adjective);
     const phrases: SpendRulePhrase[] = [];
 
     if (merchantDiff.added.length === 1 && merchantDiff.removed.length === 1) {
@@ -4315,9 +4305,10 @@ function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, report
             const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmountSet', {value: spendRuleFormatAmountValue(amount, currency)});
             phrases.push({verb: 'set', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
         }
-        for (let i = 0; i < amountDiff.removed.length; i++) {
+        if (amountDiff.removed.length > 0) {
             const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmount');
-            phrases.push({verb: 'removed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
+            const removedPhrase: SpendRulePhrase = {verb: 'removed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body};
+            phrases.push(...Array.from<SpendRulePhrase>({length: amountDiff.removed.length}).fill(removedPhrase));
         }
     }
 

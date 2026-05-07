@@ -768,11 +768,20 @@ type OriginalMessagePolicyChangeLog = {
     /** Spend rule action (`block` or `allow`) sent by the new structured changelog payload */
     action?: string;
 
+    /** Previous spend rule action when the rule's restriction type changed in an update */
+    oldAction?: string;
+
     /** Merchants included in a spend rule */
     merchants?: string[];
 
+    /** Previous list of merchants when a spend rule was updated */
+    oldMerchants?: string[];
+
     /** Categories (slugs) included in a spend rule */
     categories?: string[];
+
+    /** Previous list of categories when a spend rule was updated */
+    oldCategories?: string[];
 
     /** Max-amount filters in a spend rule */
     amounts?: Array<{
@@ -783,8 +792,26 @@ type OriginalMessagePolicyChangeLog = {
         value: string[];
     }>;
 
+    /** Previous list of max-amount filters when a spend rule was updated */
+    oldAmounts?: Array<{
+        /** Operator (`gte` for "over", `lte` for "under") */
+        operator: string;
+
+        /** Amount value as cents serialized to a string array (`['100000']`) */
+        value: string[];
+    }>;
+
     /** Cards a spend rule is scoped to */
     cards?: Array<{
+        /** Card identifier */
+        cardID: number | string;
+
+        /** Display name shown when the rule covers a single card */
+        displayName?: string;
+    }>;
+
+    /** Previous list of cards when a spend rule's card scope was updated */
+    oldCards?: Array<{
         /** Card identifier */
         cardID: number | string;
 
