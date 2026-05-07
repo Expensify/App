@@ -7161,6 +7161,7 @@ ${amount} para ${merchant} - ${date}`,
                 }
                 return text;
             },
+            removeRule: ({cards}) => (cards !== '' ? `eliminó la regla de gasto de ${cards}` : 'eliminó la regla de gasto'),
         },
         preventSelfApproval: (oldValue, newValue) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,

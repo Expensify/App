@@ -7308,6 +7308,7 @@ const translations = {
                 }
                 return text;
             },
+            removeRule: ({cards}: {cards: string}) => (cards !== '' ? `removed spend rule from ${cards}` : 'removed spend rule'),
         },
         preventSelfApproval: (oldValue: string, newValue: string) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
