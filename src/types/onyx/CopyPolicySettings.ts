@@ -1,4 +1,4 @@
-import type * as OnyxCommon from './OnyxCommon';
+import type {Errors} from './OnyxCommon';
 
 /** Onyx state of the Copy Policy Settings (bulk workspace edits) flow */
 type CopyPolicySettings = {
@@ -20,7 +20,7 @@ type CopyPolicySettings = {
     currentStep?: 'loading' | 'complete' | undefined;
 
     /** Error state */
-    errors?: OnyxCommon.Errors;
+    errors?: Errors;
 };
 
 export default CopyPolicySettings;
