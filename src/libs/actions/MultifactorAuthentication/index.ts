@@ -307,10 +307,10 @@ async function unblockCardPIN(params: MultifactorAuthenticationScenarioParameter
         );
 
         const {jsonCode, message} = response ?? {};
-        return parseHttpRequest(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.UNBLOCK_CARD_PIN, message);
+        return parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.UNBLOCK_CARD_PIN, message);
     } catch (error) {
         Log.hmmm('[MultifactorAuthentication] Failed to unblock card PIN', {error});
-        return parseHttpRequest(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.UNBLOCK_CARD_PIN, undefined);
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.UNBLOCK_CARD_PIN, undefined);
     }
 }
 
