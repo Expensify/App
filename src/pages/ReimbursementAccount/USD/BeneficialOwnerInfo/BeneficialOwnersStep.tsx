@@ -110,7 +110,6 @@ function BeneficialOwnersStep({onBackButtonPress}: BeneficialOwnersStepProps) {
         moveTo,
         resetScreenIndex,
         goToTheLastStep,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
     } = useSubStep<BeneficialOwnerSubStepProps>({
         bodyContent,
         startFrom: 0,
