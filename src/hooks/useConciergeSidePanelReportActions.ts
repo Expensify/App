@@ -2,6 +2,7 @@ import {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {setConciergeShowFullHistory} from '@libs/actions/ConciergeSession';
 import DateUtils from '@libs/DateUtils';
+import Log from '@libs/Log';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -82,8 +83,8 @@ function useConciergeReportActions({
         if (!isConciergeChat || !sessionStartTime) {
             return false;
         }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created > sessionStartTime);
-    }, [isConciergeChat, visibleReportActions, sessionStartTime]);
+        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created > sessionStartTime && action.actorAccountID !== currentUserAccountID);
+    }, [isConciergeChat, visibleReportActions, sessionStartTime, currentUserAccountID]);
 
     const hasPreviousMessages = useMemo(() => {
         if (!isConciergeChat || !sessionStartTime) {
@@ -96,10 +97,21 @@ function useConciergeReportActions({
         return hasReadMessagesInLoadedSet || hasOlderActions;
     }, [isConciergeChat, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasUnreadMessages, hasOlderActions]);
 
-    // Show the welcome greeting only when all messages are read (no unread),
-    // the user hasn't sent a new message, and they have prior chat history.
     const showConciergeWelcome = isConciergeChat && hadUserMessageAtSessionStart && !hasUserSentMessage && !hasUnreadMessages && !showFullHistory;
-    const showConciergeGreeting = isConciergeChat && hadUserMessageAtSessionStart && !hasUnreadMessages && !showFullHistory;
+    const showConciergeGreeting = isConciergeChat && hadUserMessageAtSessionStart && !showFullHistory;
+
+    if (isConciergeChat) {
+        Log.info('[ConciergeHistory] state', false, {
+            showConciergeWelcome,
+            showConciergeGreeting,
+            showFullHistory,
+            hasUserSentMessage,
+            hasUnreadMessages,
+            hadUserMessageAtSessionStart,
+            sessionStartTime,
+            visibleActionsCount: visibleReportActions.length,
+        });
+    }
 
     const conciergeGreetingAction = useMemo(() => {
         if (!showConciergeGreeting) {
@@ -113,7 +125,7 @@ function useConciergeReportActions({
             return undefined;
         }
         return reportActions.reduce<string | undefined>((earliest, action) => {
-            if (isCreatedAction(action) || action.created < sessionStartTime || action.actorAccountID !== currentUserAccountID) {
+            if (isCreatedAction(action) || action.created <= sessionStartTime || action.actorAccountID !== currentUserAccountID) {
                 return earliest;
             }
             return !earliest || action.created < earliest ? action.created : earliest;
@@ -125,7 +137,7 @@ function useConciergeReportActions({
             if (!firstUserMessageCreated || !sessionStartTime) {
                 return false;
             }
-            return isCreatedAction(action) || (action.created >= sessionStartTime && action.created >= firstUserMessageCreated);
+            return isCreatedAction(action) || (action.created > sessionStartTime && action.created >= firstUserMessageCreated);
         },
         [firstUserMessageCreated, sessionStartTime],
     );
@@ -142,32 +154,39 @@ function useConciergeReportActions({
 
     const filterActions = useCallback(
         (actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] => {
-            // Case 3: Only read messages — show greeting + CREATED
             if (showConciergeWelcome && conciergeGreetingAction) {
+                Log.info('[ConciergeHistory] filter path=welcome', false, {actionsCount: actions.length});
                 const createdAction = actions.find(isCreatedAction);
                 return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
             }
             if (!isConciergeChat || showFullHistory) {
+                Log.info('[ConciergeHistory] filter path=all', false, {isConciergeChat, showFullHistory});
                 return actions;
             }
             if (!sessionStartTime) {
+                Log.info('[ConciergeHistory] filter path=created-only', false);
                 return actions.filter(isCreatedAction);
             }
             if (!hadUserMessageAtSessionStart) {
+                Log.info('[ConciergeHistory] filter path=no-prior-messages', false);
                 return actions;
             }
 
-            // Cases 1 & 2: Unread messages exist but user hasn't sent a new
-            // message yet — show only unread actions (after the read boundary).
             if (hasUnreadMessages && !hasUserSentMessage) {
+                Log.info('[ConciergeHistory] filter path=unread-only', false);
                 return actions.filter(isUnreadAction);
             }
 
-            // User sent a message this session — show session actions
             const filtered = actions.filter(isCurrentSessionAction);
             if (filtered.length === 0) {
+                Log.info('[ConciergeHistory] filter path=session-empty-fallback', false, {actionsCount: actions.length});
                 return actions;
             }
+            Log.info('[ConciergeHistory] filter path=session-actions', false, {
+                filteredCount: filtered.length,
+                hasGreeting: !!conciergeGreetingAction,
+                firstUserMessageCreated,
+            });
             if (conciergeGreetingAction) {
                 const createdIndex = filtered.findIndex(isCreatedAction);
                 filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
@@ -185,6 +204,7 @@ function useConciergeReportActions({
             hasUnreadMessages,
             hasUserSentMessage,
             isUnreadAction,
+            firstUserMessageCreated,
         ],
     );
 

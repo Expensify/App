@@ -93,7 +93,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         if (!isConciergeChat || !sessionStartTime) {
             return false;
         }
-        return allReportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
+        return allReportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created > sessionStartTime);
     }, [isConciergeChat, allReportActions, currentUserAccountID, sessionStartTime]);
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
