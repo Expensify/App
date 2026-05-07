@@ -223,7 +223,7 @@ function ActionContentRouter({
     resolveActionableMentionWhisper,
     resolveActionableReportMentionWhisper,
     currentSearchHash,
-}: ActionContentRouterProps): React.JSX.Element {
+}: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -249,7 +249,7 @@ function ActionContentRouter({
                 );
             }
             // Empty case is short-circuited at the wrapper via isActionEmpty; this is a defensive fallback
-            return <RenderHTML html="" />;
+            return null;
         }
 
         return (
