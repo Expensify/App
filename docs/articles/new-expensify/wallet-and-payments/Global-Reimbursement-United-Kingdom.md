@@ -32,7 +32,7 @@ To comply with financial regulations, the following documents are needed:
 
 1. From the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Overview**.
 2. Under **Default currency**, choose **GBP £**.
-3. Return to the left-hand menu and select **Workflows > Make or Track Payments**.
+3. Return to the left-hand menu and select **Workflows > Payments**.
 4. Click **Connect bank account**, then confirm your **currency and country** (United Kingdom – GBP £).
 5. Click **Confirm** to proceed.
 
@@ -99,7 +99,7 @@ Once you agree to the terms, Expensify’s Compliance Team will review your subm
 
 To begin reimbursing:
 
-1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Make or track payments**.
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), go to **Workspaces > [Workspace Name] > Payments**.
 2. Set the verified GBP account as the default reimbursement method.
 3. Ask employees to add their personal deposit account.
 

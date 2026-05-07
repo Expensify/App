@@ -38,8 +38,9 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllTransactionViolations, getReportPreviewAction, getUserAccountID} from '.';
+import {getAllPersonalDetails, getAllTransactionViolations, getUserAccountID} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
+import {getReportPreviewAction} from './MoneyRequestBuilder';
 
 type PayInvoiceArgs = {
     paymentMethodType: PaymentMethodType;

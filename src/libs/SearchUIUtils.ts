@@ -94,11 +94,11 @@ import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/Report
 import {createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
+import {convertAttendeesToArray} from './AttendeeUtils';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -3711,15 +3711,15 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ATTENDEES) {
         return data.sort((a, b) => {
-            const aValue = a.comment?.attendees?.length ?? 0;
-            const bValue = b.comment?.attendees?.length ?? 0;
+            const aValue = convertAttendeesToArray(a.comment?.attendees).length;
+            const bValue = convertAttendeesToArray(b.comment?.attendees).length;
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
         const getTotalPerAttendee = (t: TransactionListItemType) => {
-            const attendeesCount = t.comment?.attendees?.length ?? 0;
+            const attendeesCount = convertAttendeesToArray(t.comment?.attendees).length;
             if (!attendeesCount) {
                 return 0;
             }
@@ -4782,7 +4782,12 @@ function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<Sear
     return parts.join(', ');
 }
 
-function getAmountDisplayValue(syntaxKey: SearchAmountFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string | undefined {
+function getAmountDisplayValue(
+    syntaxKey: SearchAmountFilterKeys,
+    form: Partial<SearchAdvancedFiltersForm>,
+    translate: LocalizedTranslate,
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+): string | undefined {
     const lessThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const greaterThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
     const equalTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
@@ -4946,6 +4951,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
     mapper?: (filterKey: SearchAdvancedFiltersKey) => T,
 ): Array<SearchFilter & T> {
     const filters: Array<SearchFilter & T> = [];
@@ -4968,7 +4974,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             }
 
             const displayValue = isAmountFilterKey(groupConfig.syntax)
-                ? getAmountDisplayValue(groupConfig.syntax, searchAdvancedFiltersForm, translate)
+                ? getAmountDisplayValue(groupConfig.syntax, searchAdvancedFiltersForm, translate, convertToDisplayStringWithoutCurrency)
                 : getDateDisplayValue(groupConfig.syntax, searchAdvancedFiltersForm, translate);
 
             if (displayValue) {
