@@ -384,14 +384,19 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     isFullWidth={shouldUseNarrowLayout}
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
-                        // If user submits before debounce catches up, submit the typed query directly
-                        // instead of selecting a stale focused list item from the previous query.
-                        if (textInputValue && textInputValue !== debouncedAutocompleteQueryValue) {
+                        const focusedOption = listRef.current?.getFocusedOption?.();
+                        const isInputAheadOfDebounce = !!textInputValue && textInputValue !== debouncedAutocompleteQueryValue;
+
+                        // During the debounce window, keep keyboard behavior for focused search rows
+                        // (e.g. Ask Concierge / typed query row), but avoid stale non-search row submits.
+                        if (isInputAheadOfDebounce) {
+                            if (focusedOption && isSearchQueryItem(focusedOption)) {
+                                onListItemPress(focusedOption);
+                                return;
+                            }
                             submitSearch(textInputValue);
                             return;
                         }
-
-                        const focusedOption = listRef.current?.getFocusedOption?.();
 
                         if (!focusedOption) {
                             submitSearch(textInputValue);

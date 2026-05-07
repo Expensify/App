@@ -10,7 +10,6 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebounce from '@hooks/useDebounce';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useFilteredOptions from '@hooks/useFilteredOptions';
@@ -395,17 +394,13 @@ function SearchAutocompleteList({
         return reportOptions.slice(0, 20);
     }, [autocompleteQueryValue, hasEffectiveInputQuery, searchOptions]);
 
-    const debounceHandleSearch = useDebounce(() => {
+    useEffect(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
             return;
         }
 
         handleSearch(autocompleteQueryWithoutFilters);
-    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
-
-    useEffect(() => {
-        debounceHandleSearch();
-    }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
+    }, [autocompleteQueryWithoutFilters, handleSearch]);
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'SearchAutocompleteList',
