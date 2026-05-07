@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
@@ -17,8 +16,8 @@ import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ROOT_TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/ROOT_TAB_SCREENS';
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
+import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import Navigation from '@libs/Navigation/Navigation';
 import {getRouteForCurrentStep as getReimbursementAccountRouteForCurrentStep} from '@libs/ReimbursementAccountUtils';
 import {getChatTabBrickRoadReportID} from '@libs/WorkspacesSettingsUtils';
@@ -33,32 +32,7 @@ import SCREENS from '@src/SCREENS';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
-
-const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
-    [SCREENS.HOME]: NAVIGATION_TABS.HOME,
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.INBOX,
-    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NAVIGATION_TABS.SEARCH,
-    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.SETTINGS,
-    [NAVIGATORS.WORKSPACE_NAVIGATOR]: NAVIGATION_TABS.WORKSPACES,
-};
-
-// Mirrors helpers in TabNavigatorBar — keeps tab-root detection consistent with tab-bar visibility.
-const TAB_WRAPPER_NAVIGATORS = new Set<string>([
-    NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-    NAVIGATORS.WORKSPACE_NAVIGATOR,
-]);
-
-const isAtTabRootLevel = (name: string | undefined): boolean => !name || ROOT_TAB_SCREENS.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
-
-const getPushTargetLeaf = (params: unknown): string | undefined => {
-    const p = params as {screen?: unknown; params?: unknown} | undefined;
-    if (typeof p?.screen !== 'string') {
-        return undefined;
-    }
-    return getPushTargetLeaf(p.params) ?? p.screen;
-};
+import ROUTE_TO_NAVIGATION_TAB from './NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 
 function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPaths | undefined {
     switch (status) {
@@ -149,13 +123,21 @@ function DebugTabView() {
         if (!rootState) {
             return undefined;
         }
-        const tabRoute = rootState.routes.find((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        // Multiple TAB_NAVIGATOR instances can exist in the root stack (e.g. workspace nav from RHP
+        // pushes a new one). Use `findLast` to read state from the most recent tab navigator,
+        // even when the focused root route is a modal — the bar should stay mounted under the RHP
+        // and just be visually covered by it.
+        const tabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
         const activeRoute = tabRoute?.state?.routes?.[tabRoute.state.index ?? 0];
         if (!activeRoute) {
             return undefined;
         }
-        const isAtRoot = isAtTabRootLevel(getFocusedLeafScreenName(activeRoute.state)) && isAtTabRootLevel(getPushTargetLeaf(activeRoute.params));
-        return {tabName: activeRoute.name, isAtRoot};
+        const focusedLeaf = getFocusedLeafScreenName(activeRoute.state) ?? activeRoute.name;
+        return {
+            tabName: activeRoute.name,
+            isAtRoot: isTabRouteAtRoot(activeRoute),
+            isOnFullWidthTabRoot: focusedLeaf === SCREENS.WORKSPACES_LIST,
+        };
     });
 
     const selectedTab = tabRootInfo ? ROUTE_TO_NAVIGATION_TAB[tabRootInfo.tabName] : undefined;
@@ -198,7 +180,7 @@ function DebugTabView() {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(reportID));
             }
         }
-        if (selectedTab === NAVIGATION_TABS.SETTINGS) {
+        if (selectedTab === NAVIGATION_TABS.SETTINGS || selectedTab === NAVIGATION_TABS.WORKSPACES) {
             const route = getSettingsRoute(status, reimbursementAccount, policyIDWithErrors);
 
             if (route) {
@@ -218,9 +200,16 @@ function DebugTabView() {
         return null;
     }
 
-    const positionStyle = shouldUseNarrowLayout
-        ? {bottom: variables.bottomTabHeight + safeAreaPaddingBottom, left: 0, right: 0}
-        : {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
+    const getPositionStyle = () => {
+        if (shouldUseNarrowLayout) {
+            return {bottom: variables.bottomTabHeight + safeAreaPaddingBottom, left: 0, right: 0};
+        }
+        if (tabRootInfo.isOnFullWidthTabRoot) {
+            return {bottom: 0, left: variables.navigationTabBarSize, right: 0};
+        }
+        return {bottom: 0, left: variables.navigationTabBarSize, width: variables.sideBarWithLHBWidth - variables.cropBorderWidth};
+    };
+    const positionStyle = getPositionStyle();
 
     return (
         <View

@@ -1,46 +1,17 @@
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
-import NAVIGATORS from '@src/NAVIGATORS';
+import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
 import SCREENS from '@src/SCREENS';
-import ROOT_TAB_SCREENS from './ROOT_TAB_SCREENS';
-
-const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
-    [SCREENS.HOME]: NAVIGATION_TABS.HOME,
-    [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.INBOX,
-    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NAVIGATION_TABS.SEARCH,
-    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.SETTINGS,
-    [NAVIGATORS.WORKSPACE_NAVIGATOR]: NAVIGATION_TABS.WORKSPACES,
-};
-
-// Count as tab-root when they surface as the resolved leaf.
-const TAB_WRAPPER_NAVIGATORS = new Set<string>([
-    NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-    NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR,
-    NAVIGATORS.WORKSPACE_NAVIGATOR,
-]);
-
-const isAtTabRootLevel = (name: string | undefined): boolean => !name || ROOT_TAB_SCREENS.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
-
-// Deepest `screen` in a `{screen, params}` chain (e.g. WORKSPACE_NAV → WORKSPACE_SPLIT_NAV → WORKSPACE.INITIAL).
-const getPushTargetLeaf = (params: unknown): string | undefined => {
-    const p = params as {screen?: unknown; params?: unknown} | undefined;
-    if (typeof p?.screen !== 'string') {
-        return undefined;
-    }
-    return getPushTargetLeaf(p.params) ?? p.screen;
-};
 
 /**
  * Custom tab bar rendered by the BottomTabNavigator. Only receives `state` (not the
@@ -55,8 +26,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const StyleUtils = useStyleUtils();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
-    // Check both leaves so wrapper hydration doesn't flash the tab bar on the push target (Android).
-    const isAtRoot = isAtTabRootLevel(getFocusedLeafScreenName(activeRoute?.state)) && isAtTabRootLevel(getPushTargetLeaf(activeRoute?.params));
+    const isAtRoot = isTabRouteAtRoot(activeRoute);
     // --- Narrow-only animation logic (hooks must run unconditionally per Rules of Hooks) ---
     // On native, screens also render the tab bar via bottomContent for swipe-back animations.
     // Delay showing this navigator's tab bar only when navigating back from a deeper screen
