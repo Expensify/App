@@ -95,7 +95,7 @@ type OptionRowLHNProps = {
     style?: StyleProp<TextStyle>;
 
     /** The item that should be rendered */
-    optionItem?: OptionData;
+    optionItem: OptionData;
 
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
@@ -104,9 +104,6 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
-
-    /** The concierge report ID from Onyx */
-    conciergeReportID: OnyxEntry<string>;
 };
 
 type RenderItemProps = {item: Report; index: number};

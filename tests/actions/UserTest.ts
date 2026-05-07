@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax */
 import Onyx from 'react-native-onyx';
 import type {OnyxMergeInput} from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -206,7 +205,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the optimisticData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
             const optimisticData = onyxData.optimisticData ?? [];
@@ -234,7 +233,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the successData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {successData?: Array<{key: string; value: unknown}>}];
             const successData = onyxData.successData ?? [];
@@ -259,7 +258,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the failureData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
@@ -280,7 +279,7 @@ describe('actions/User', () => {
             const validateCode = '123456';
 
             // Mock API.write to apply optimisticData
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             (mockAPI.write as jest.Mock).mockImplementation(
                 (
                     command: unknown,
@@ -374,7 +373,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the optimisticData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
             const optimisticData = onyxData.optimisticData ?? [];
@@ -466,7 +465,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the failureData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
@@ -506,7 +505,7 @@ describe('actions/User', () => {
             const contactMethod = 'test@example.com';
 
             // Mock API.write to apply optimisticData
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             (mockAPI.write as jest.Mock).mockImplementation(
                 (
                     command: unknown,
@@ -818,21 +817,21 @@ describe('actions/User', () => {
         const TEST_CONCIERGE_REPORT_ID = '999';
 
         it('should call RESPOND_TO_PROACTIVE_APP_REVIEW API with the given response', async () => {
-            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID);
+            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, expect.objectContaining({response: 'positive'}), expect.anything());
         });
 
         it('should call RESPOND_TO_PROACTIVE_APP_REVIEW API with skip response', async () => {
-            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID);
+            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, expect.objectContaining({response: 'skip'}), expect.anything());
         });
 
         it('should include optimisticReportActionID when message and conciergeChatReportID are provided for non-skip response', async () => {
-            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, 'Great app!', TEST_CONCIERGE_REPORT_ID);
+            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, 'Great app!', TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(
@@ -846,7 +845,7 @@ describe('actions/User', () => {
         });
 
         it('should NOT include optimisticReportActionID when response is skip even with message', async () => {
-            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, 'Some message', TEST_CONCIERGE_REPORT_ID);
+            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, 'Some message', TEST_CONCIERGE_REPORT_ID);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(
@@ -861,7 +860,7 @@ describe('actions/User', () => {
             await Onyx.merge(ONYXKEYS.NVP_APP_REVIEW, currentReview);
             await waitForBatchedUpdates();
 
-            UserActions.respondToProactiveAppReview('negative', currentReview, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID);
+            UserActions.respondToProactiveAppReview('negative', currentReview, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined);
             await waitForBatchedUpdates();
 
             expect(mockAPI.write).toHaveBeenCalledWith(

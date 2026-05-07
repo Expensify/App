@@ -17,7 +17,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {requestRefund as requestRefundByUser} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import {hasCardAuthenticatedError, isUserOnFreeTrial, shouldShowDiscountBanner, shouldShowPreTrialBillingBanner, shouldShowTrialEndedUI} from '@libs/SubscriptionUtils';
+import {
+    canCancelSubscription,
+    hasCardAuthenticatedError,
+    isUserOnFreeTrial,
+    shouldShowDiscountBanner,
+    shouldShowPreTrialBillingBanner,
+    shouldShowTrialEndedUI,
+} from '@libs/SubscriptionUtils';
 import {verifySetupIntent} from '@userActions/PaymentMethods';
 import {clearOutstandingBalance} from '@userActions/Subscription';
 import CONST from '@src/CONST';
@@ -29,11 +36,11 @@ import PreTrialBillingBanner from './BillingBanner/PreTrialBillingBanner';
 import SubscriptionBillingBanner from './BillingBanner/SubscriptionBillingBanner';
 import TrialEndedBillingBanner from './BillingBanner/TrialEndedBillingBanner';
 import TrialStartedBillingBanner from './BillingBanner/TrialStartedBillingBanner';
+import CancelSubscriptionMenuItem from './CancelSubscriptionMenuItem';
 import CardSectionActions from './CardSectionActions';
 import CardSectionButton from './CardSectionButton';
 import CardSectionDataEmpty from './CardSectionDataEmpty';
 import getSectionSubtitle from './CardSectionSubtitle';
-import RequestEarlyCancellationMenuItem from './RequestEarlyCancellationMenuItem';
 import type {BillingStatusResult} from './utils';
 import CardSectionUtils from './utils';
 
@@ -182,13 +189,13 @@ function CardSection() {
     };
 
     let BillingBanner: React.ReactNode | undefined;
-    if (shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies)) {
+    if (shouldShowDiscountBanner(session?.accountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies)) {
         BillingBanner = <EarlyDiscountBanner isSubscriptionPage />;
     } else if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <PreTrialBillingBanner />;
     } else if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
         BillingBanner = <TrialStartedBillingBanner />;
-    } else if (shouldShowTrialEndedUI(lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, account?.isFromInternalDomain, privateSubscription?.type)) {
+    } else if (shouldShowTrialEndedUI(session?.accountID, lastDayFreeTrial, userBillingFundID, allPolicies, isGrandfatheredFree, account?.isFromInternalDomain, privateSubscription?.type)) {
         BillingBanner = <TrialEndedBillingBanner />;
     }
     if (billingStatus) {
@@ -278,7 +285,9 @@ function CardSection() {
                 />
             )}
 
-            {!!(privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && account?.hasPurchases) && <RequestEarlyCancellationMenuItem />}
+            {!privateSubscription?.pendingFields?.type && canCancelSubscription(privateSubscription?.type, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, account?.hasPurchases) && (
+                <CancelSubscriptionMenuItem />
+            )}
         </Section>
     );
 }

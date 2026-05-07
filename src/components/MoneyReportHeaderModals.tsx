@@ -1,6 +1,8 @@
 import React, {useRef, useState} from 'react';
 import type {ReactNode} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDecisionModal from '@hooks/useDecisionModal';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useLocalize from '@hooks/useLocalize';
@@ -8,8 +10,8 @@ import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
+import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
+import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
@@ -38,14 +40,14 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactions);
+    const {accountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     // Derive data for hold menu
-    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList);
-    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true);
-    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions);
-    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere || reportHasOnlyNonReimbursableTransactions;
+    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID);
+    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true);
+    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID, transactions);
     const transactionIDs = transactions.map((t) => t.transactionID);
 
     // Imperative modals
@@ -87,7 +89,6 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
         // On iOS, delay opening the hold menu until active touch interactions finish to prevent visual glitches
         if (getPlatform() === CONST.PLATFORM.IOS) {
             return new Promise<void>((resolve) => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated -- InteractionManager is widely used across the codebase (120+ files) and kept alive via a dedicated RN patch
                 InteractionManager.runAfterInteractions(() => {
                     open().then(() => resolve());
                 });

@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -92,7 +93,7 @@ function PolicyDistanceRatesPage({
     const policyReportsSelector = useCallback(
         (reports: OnyxCollection<Report>) => {
             return Object.values(reports ?? {}).reduce((reportIDs, report) => {
-                if (report && report.policyID === policyID) {
+                if (report?.policyID === policyID) {
                     reportIDs.add(report.reportID);
                 }
                 return reportIDs;
@@ -113,8 +114,7 @@ function PolicyDistanceRatesPage({
             return Object.values(transactions ?? {}).reduce(
                 (transactionsData, transaction) => {
                     if (
-                        transaction &&
-                        transaction.reportID &&
+                        transaction?.reportID &&
                         policyReports?.has(transaction.reportID) &&
                         customUnit?.customUnitID &&
                         transaction?.comment?.customUnit?.customUnitID === customUnit.customUnitID &&
@@ -324,7 +324,6 @@ function PolicyDistanceRatesPage({
 
         deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedDistanceRates([]);
         });
@@ -532,10 +531,9 @@ function PolicyDistanceRatesPage({
                         data={filteredDistanceRatesList}
                         ListItem={TableListItem}
                         onSelectRow={openRateDetails}
-                        onCheckboxPress={toggleRate}
+                        onSelectionButtonPress={toggleRate}
                         selectedItems={selectedDistanceRates}
                         customListHeader={getCustomListHeader()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

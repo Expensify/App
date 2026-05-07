@@ -110,6 +110,12 @@ type Account = {
     /** The Report ID of the account manager */
     accountManagerReportID?: string;
 
+    /** The account ID of the partner manager */
+    partnerManagerAccountID?: number;
+
+    /** The email of the partner manager */
+    partnerManagerEmail?: string;
+
     /** The message to be displayed when code requested */
     message?: string;
 

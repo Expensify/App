@@ -8,7 +8,6 @@ import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
-/* eslint-disable rulesdir/prefer-onyx-connect-in-libs -- may refactor to useOnyx/connectWithoutView later */
 Onyx.connect({
     key: ONYXKEYS.CURRENCY_LIST,
     callback: (val) => {
@@ -19,7 +18,6 @@ Onyx.connect({
         currencyList = val;
     },
 });
-/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
 
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -201,14 +199,6 @@ function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: 
         .join('');
 }
 
-/**
- * Checks if passed currency code is a valid currency based on currency list
- */
-function isValidCurrencyCode(currencyCode: string): boolean {
-    const currency = currencyList?.[currencyCode];
-    return !!currency;
-}
-
 export {
     getCurrencyDecimals,
     getCurrencyUnit,
@@ -221,6 +211,5 @@ export {
     convertAmountToDisplayString,
     convertToDisplayStringWithoutCurrency,
     convertToDisplayStringWithExplicitCurrency,
-    isValidCurrencyCode,
     convertToShortDisplayString,
 };

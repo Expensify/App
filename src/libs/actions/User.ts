@@ -33,8 +33,8 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {getIsOffline} from '@libs/NetworkState';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
@@ -49,22 +49,23 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
-import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
-import type {Status} from '@src/types/onyx/PersonalDetails';
+import type {CurrentUserPersonalDetails, Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
+import {getDeviceInfoWithID} from './Device';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 
-let currentUserAccountID = -1;
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -187,9 +188,10 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod};
-
-    API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
+    getDeviceInfoWithID().then((deviceInfo) => {
+        const parameters: RequestContactMethodValidateCodeParams = {email: contactMethod, deviceInfo};
+        API.write(WRITE_COMMANDS.REQUEST_CONTACT_METHOD_VALIDATE_CODE, parameters, {optimisticData, successData, failureData});
+    });
 }
 
 /**
@@ -636,21 +638,21 @@ function triggerNotifications<TKey extends OnyxKey>(
     }
 }
 
-const isChannelMuted = (reportId: string) =>
+const isChannelMuted = (reportId: string, currentUserAccountIDParam: number) =>
     new Promise((resolve) => {
         // We use `connectWithoutView` here since this connection is non-reactive in nature.
         const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
                 Onyx.disconnect(connection);
-                const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
+                const notificationPreference = report?.participants?.[currentUserAccountIDParam]?.notificationPreference;
 
                 resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenForCurrentUser(notificationPreference));
             },
         });
     });
 
-function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServerUpdate<TKey>>) {
+function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
@@ -661,7 +663,7 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
         return;
     }
 
-    isChannelMuted(reportID).then((isSoundMuted) => {
+    isChannelMuted(reportID, currentUserAccountIDParam).then((isSoundMuted) => {
         if (isSoundMuted) {
             return;
         }
@@ -740,13 +742,13 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
 let pongHasBeenMissed = false;
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
-function subscribeToPusherPong() {
+function subscribeToPusherPong(currentUserAccountIDParam: number) {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
-    if (currentUserAccountID === -1) {
+    if (!currentUserAccountIDParam) {
         return;
     }
 
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountIDParam.toString(), (pushJSON) => {
         Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
         lastPongReceivedTimestamp = Date.now();
 
@@ -770,7 +772,7 @@ const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
 const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
 function pingPusher() {
-    if (isOffline()) {
+    if (getIsOffline()) {
         Log.info('[Pusher PINGPONG] Skipping PING because the client is offline');
         return;
     }
@@ -793,7 +795,7 @@ function pingPusher() {
 }
 
 function checkForLatePongReplies() {
-    if (isOffline()) {
+    if (getIsOffline()) {
         Log.info('[Pusher PINGPONG] Skipping checkForLatePongReplies because the client is offline');
         return;
     }
@@ -820,7 +822,7 @@ function checkForLatePongReplies() {
 
 let pingPusherIntervalID: ReturnType<typeof setInterval>;
 let checkForLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
-function initializePusherPingPong() {
+function initializePusherPingPong(currentUserAccountIDParam: number) {
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
@@ -831,7 +833,7 @@ function initializePusherPingPong() {
 
     // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
     // so there could be a little delay before the client is actually listening to this event.
-    subscribeToPusherPong();
+    subscribeToPusherPong(currentUserAccountIDParam);
 
     // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
     if (pingPusherIntervalID) {
@@ -890,7 +892,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
     // See https://github.com/Expensify/App/issues/57961 for more details
     const debouncedPlaySoundForMessageType = debounce(
         (pushJSONMessage: AnyOnyxServerUpdate[]) => {
-            playSoundForMessageType(pushJSONMessage);
+            playSoundForMessageType(pushJSONMessage, currentUserAccountIDParam);
         },
         CONST.TIMING.PLAY_SOUND_MESSAGE_DEBOUNCE_TIME,
         {trailing: true},
@@ -903,7 +905,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
         return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) or this is not the
             // main client we don't want to update Onyx with data from Pusher
-            if (currentUserAccountIDParam === -1) {
+            if (!currentUserAccountIDParam) {
                 return;
             }
             if (!ActiveClientManager.isClientTheLeader()) {
@@ -928,7 +930,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
         return Promise.resolve();
     });
 
-    initializePusherPingPong();
+    initializePusherPingPong(currentUserAccountIDParam);
 }
 
 /**
@@ -1050,20 +1052,37 @@ function generateStatementPDF(period: string) {
 
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
+ * This uses no offline support (Pattern C) — state is only updated after the server confirms success.
  * @param skipNavigation - When true, do not navigate (caller handles navigation, e.g. via useEffect when primaryContactMethod updates).
  */
 function setContactMethodAsDefault(
-    currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
-    policies: OnyxCollection<Policy>,
+    currentUserPersonalDetails: CurrentUserPersonalDetails,
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    backTo?: string,
-    skipNavigation?: boolean,
+    backTo: string | undefined,
+    skipNavigation: boolean,
+    validateCode: string,
 ) {
-    const oldDefaultContactMethod = currentEmail;
-    const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>
-    > = [
+    // Pattern C: only set a pending indicator optimistically, no actual data changes
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.LOGIN_LIST,
+            value: {
+                [newDefaultContactMethod]: {
+                    pendingFields: {
+                        defaultLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: {
+                        defaultLogin: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    // Pattern C: apply all actual data changes only after server confirms success
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1084,9 +1103,6 @@ function setContactMethodAsDefault(
             value: {
                 [newDefaultContactMethod]: {
                     pendingFields: {
-                        defaultLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                    errorFields: {
                         defaultLogin: null,
                     },
                 },
@@ -1096,43 +1112,15 @@ function setContactMethodAsDefault(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserPersonalDetails.accountID]: {
                     login: newDefaultContactMethod,
                     displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
                 },
             },
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [newDefaultContactMethod]: {
-                    pendingFields: {
-                        defaultLogin: null,
-                    },
-                },
-            },
-        },
-    ];
-    const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>
-    > = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                primaryLogin: oldDefaultContactMethod,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                email: oldDefaultContactMethod,
-            },
-        },
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -1147,65 +1135,11 @@ function setContactMethodAsDefault(
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [currentUserAccountID]: {...currentUserPersonalDetails},
-            },
-        },
     ];
 
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy) {
-            continue;
-        }
-
-        let optimisticPolicyDataValue;
-        let failurePolicyDataValue;
-
-        if (policy.employeeList) {
-            const currentEmployee = policy.employeeList[oldDefaultContactMethod];
-            optimisticPolicyDataValue = {
-                employeeList: {
-                    [oldDefaultContactMethod]: null,
-                    [newDefaultContactMethod]: currentEmployee,
-                },
-            };
-            failurePolicyDataValue = {
-                employeeList: {
-                    [oldDefaultContactMethod]: currentEmployee,
-                    [newDefaultContactMethod]: null,
-                },
-            };
-        }
-
-        if (policy.ownerAccountID === currentUserAccountID) {
-            optimisticPolicyDataValue = {
-                ...optimisticPolicyDataValue,
-                owner: newDefaultContactMethod,
-            };
-            failurePolicyDataValue = {
-                ...failurePolicyDataValue,
-                owner: policy.owner,
-            };
-        }
-
-        if (optimisticPolicyDataValue && failurePolicyDataValue) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: optimisticPolicyDataValue,
-            });
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
-                value: failurePolicyDataValue,
-            });
-        }
-    }
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
+        validateCode,
     };
 
     API.write(WRITE_COMMANDS.SET_CONTACT_METHOD_AS_DEFAULT, parameters, {
@@ -1241,13 +1175,13 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
 /**
  * Sets a custom status
  */
-function updateCustomStatus(status: Status) {
+function updateCustomStatus(currentUserAccountIDParam: number, status: Status) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserAccountIDParam]: {
                     status,
                 },
             },
@@ -1324,14 +1258,13 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
+function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
         value: typeof value === 'object' && value != null ? JSON.stringify(value) : value,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof name>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: name,
@@ -1339,8 +1272,7 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
         },
     ];
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureData: Array<OnyxUpdate<typeof name>> | undefined = shouldRevertValue
+    const failureData: AnyOnyxUpdate[] | undefined = shouldRevertValue
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
@@ -1370,6 +1302,10 @@ function requestRefund() {
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
+}
+
+function setShouldShowBranchNameInTitle(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
 }
 
 function lockAccount(accountID?: number, domainAccountID?: number, domainName?: string) {
@@ -1536,6 +1472,7 @@ function respondToProactiveAppReview(
     currentProactiveAppReview: AppReview | null | undefined,
     userEmail: string | undefined,
     userAccountID: number,
+    delegateAccountID: number | undefined,
     message?: string,
     conciergeChatReportID?: string,
 ) {
@@ -1557,6 +1494,7 @@ function respondToProactiveAppReview(
             reportID: conciergeChatReportID,
             currentUserEmail: userEmail,
             currentUserAccountID: userAccountID,
+            delegateAccountIDParam: delegateAccountID,
         });
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();
@@ -1889,6 +1827,14 @@ function clearDraftSpendRule() {
     Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, null);
 }
 
+function updateSpendRuleFormDraft(draftData: Partial<SpendRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT, draftData);
+}
+
+function clearSpendRuleFormDraft() {
+    Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT, null);
+}
+
 export {
     closeAccount,
     setServerErrorsOnForm,
@@ -1926,6 +1872,7 @@ export {
     requestValidateCodeAction,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
+    setShouldShowBranchNameInTitle,
     resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,
@@ -1943,6 +1890,8 @@ export {
     setDraftSpendRule,
     updateDraftSpendRule,
     clearDraftSpendRule,
+    updateSpendRuleFormDraft,
+    clearSpendRuleFormDraft,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
 };

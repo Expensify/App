@@ -20,7 +20,6 @@ declare -r GITHUB_ACTIONS=(
     "$ACTIONS_DIR/getAndroidRolloutPercentage/getAndroidRolloutPercentage.ts"
     "$ACTIONS_DIR/getArtifactInfo/getArtifactInfo.ts"
     "$ACTIONS_DIR/getDeployPullRequestList/getDeployPullRequestList.ts"
-    "$ACTIONS_DIR/getGraphiteString/getGraphiteString.ts"
     "$ACTIONS_DIR/getPreviousVersion/getPreviousVersion.ts"
     "$ACTIONS_DIR/getPullRequestDetails/getPullRequestDetails.ts"
     "$ACTIONS_DIR/getPullRequestIncrementalChanges/getPullRequestIncrementalChanges.ts"

@@ -40,7 +40,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 
 | **Action** | **When It Appears** | **Who Can See It** | **What It Does** |
 |------------|---------------------|---------------------|------------------|
-| **Hold** | On draft, submitted, or approved reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
+| **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
 | **Change workspace** | Before report is exported | Submitter, Approver, Admin | Moves the report to a different workspace |
 | **Change approver** | On submitted reports, before the report is final-approved | Admin | "Add Approver" allows an extra approver to be inserted into the approval workflow at the current point. "Bypass Approver" allows an admin to take control of the report approval and final approve |
 | **Delete** | Only on draft/unsubmitted reports | Submitter | Permanently removes the report |
@@ -48,9 +48,11 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 | **Mark as exported** | On approved/paid reports when integrated to an accounting system| Admin, Exporter | Marks the report as manually exported for tracking purposes |
 | **Export to [accounting system]** | When an accounting system is connected | Admin, Exporter | Sends the report to an external system such as Xero or QuickBooks Online |
 | **Duplicate expense** | On non-card expenses in any state | Submitter | Creates a copy of the expense on your primary workspace with the same details. Date is set to today and receipts are not copied |
+| **Duplicate report** | On reports the submitter owns, in any state | Submitter | Creates a copy of the report and its non-card expenses. Date is set to today and receipts are not copied |
 | **Download** | Any report state | All roles | Downloads a copy of the report as a PDF |
 | **Print** | Any report state | All roles | Opens the report in a printable format and triggers the browser's print dialog |
 | **Submit** | For draft reports | Submitter, Admin (on behalf of submitter) | Kicks off report approval workflow |
+| **Reject** | On Outstanding reports | Assigned approver | Returns the entire report to the submitter or a previous approver with a required reason. The report moves to Draft (if rejected to submitter) or stays Outstanding (if rejected to a previous approver) |
 | **Approve** | For outstanding reports | Admin | Skips current approver  |
 | **View details** | Any report | All roles | Opens details view with options to share, pin, view members |
 | **Cancel payment** | After payment is initiated, but before the payment has been processed, or always for a manual payment | Payer | Cancels pending payment |
