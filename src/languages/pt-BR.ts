@@ -9190,6 +9190,11 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             restrictDefaultLoginSelection: 'Restringir seleção de login padrão',
             restrictDefaultLoginSelectionDescription:
                 'Impede que os membros alterem o e-mail de login para um endereço fora do domínio da empresa, evitando que burlem restrições de políticas.',
+            expensifyCardPreferredWorkspace: 'Espaço de trabalho preferido para o Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Todas as transações do Expensify Card serão criadas no espaço de trabalho preferido para o Expensify Card em vez do espaço de trabalho preferido. Ativar este recurso substituirá a configuração do espaço de trabalho preferido apenas para as transações do Expensify Card.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'Para usar esta configuração, o espaço de trabalho preferido deve estar habilitado e o domínio deve ter o Expensify Card configurado.',
             findGroup: 'Encontrar grupo',
         },
     },

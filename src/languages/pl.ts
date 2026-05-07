@@ -9180,6 +9180,11 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             noWorkspacesMessage: 'W tej domenie nie ma żadnych obszarów roboczych. Obszar roboczy jest wymagany, aby włączyć to ograniczenie.',
             restrictDefaultLoginSelection: 'Ogranicz wybór domyślnego logowania',
             restrictDefaultLoginSelectionDescription: 'Zapobiega zmianie adresu e-mail do logowania przez członków na adres spoza domeny firmowej, aby obejść ograniczenia zasad.',
+            expensifyCardPreferredWorkspace: 'Preferowana przestrzeń robocza dla Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Wszystkie transakcje Expensify Card będą tworzone w preferowanej przestrzeni roboczej dla Expensify Card zamiast w preferowanej przestrzeni roboczej. Włączenie tej funkcji zastąpi ustawienie preferowanej przestrzeni roboczej wyłącznie dla transakcji Expensify Card.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'Aby korzystać z tego ustawienia, preferowana przestrzeń robocza musi być włączona, a domena musi mieć skonfigurowaną Expensify Card.',
             findGroup: 'Znajdź grupę',
         },
     },

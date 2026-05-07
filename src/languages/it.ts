@@ -9228,6 +9228,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             noWorkspacesMessage: 'Non ci sono spazi di lavoro su questo dominio. È necessario uno spazio di lavoro per abilitare questa restrizione.',
             restrictDefaultLoginSelection: 'Limita la selezione di accesso predefinita',
             restrictDefaultLoginSelectionDescription: 'Impedisce ai membri di modificare l’email di accesso al di fuori del dominio aziendale per eludere le restrizioni delle policy.',
+            expensifyCardPreferredWorkspace: 'Area di lavoro preferita per Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Tutte le transazioni Expensify Card verranno create nell’area di lavoro preferita per Expensify Card anziché nell’area di lavoro preferita. L’attivazione di questa funzione sostituirà l’impostazione dell’area di lavoro preferita solo per le transazioni Expensify Card.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'Per utilizzare questa impostazione, l’area di lavoro preferita deve essere abilitata e la Expensify Card deve essere configurata per il dominio.',
             findGroup: 'Trova gruppo',
         },
     },

@@ -458,13 +458,7 @@
 "../../src/pages/ReimbursementAccount/EnterSignerInfo/index.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/set-state-in-effect"	4
-"../../src/pages/ReimbursementAccount/USD/BankInfo/BankInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
-"../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/BeneficialOwnersStep.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
-"../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/subSteps/BeneficialOwnerDetailsFormSubSteps/ConfirmationUBO.tsx"	"no-restricted-syntax"	1
-"../../src/pages/ReimbursementAccount/USD/BusinessInfo/BusinessInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/IndustryCode/IndustryCodeSelector.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/ReimbursementAccount/USD/CompleteVerification/CompleteVerification.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
-"../../src/pages/ReimbursementAccount/USD/Requestor/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4

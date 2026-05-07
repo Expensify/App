@@ -9476,6 +9476,11 @@ ${amount} para ${merchant} - ${date}`,
             noWorkspacesMessage: 'No hay espacios de trabajo en este dominio. Se requiere un espacio de trabajo para habilitar esta restricción.',
             restrictDefaultLoginSelection: 'Restringir el inicio de sesión predeterminado',
             restrictDefaultLoginSelectionDescription: 'Evita que los miembros cambien su correo de inicio de sesión fuera del dominio de la empresa para eludir restricciones de políticas.',
+            expensifyCardPreferredWorkspace: 'Espacio de trabajo preferido para Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Todas las transacciones de Expensify Card se crearán en el espacio de trabajo preferido de Expensify Card en lugar del espacio de trabajo preferido. Al habilitar esta función, la configuración de espacio de trabajo preferido se aplicará solo a las transacciones de Expensify Card.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'Para usar esta configuración, el espacio de trabajo preferido debe estar habilitado y el dominio debe tener Expensify Card configurada.',
             findGroup: 'Encontrar grupo',
         },
     },

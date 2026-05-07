@@ -9112,6 +9112,10 @@ ${reportName}
             noWorkspacesMessage: 'このドメインにワークスペースがありません。この制限を有効にするにはワークスペースが必要です。',
             restrictDefaultLoginSelection: 'デフォルトのログイン選択を制限する',
             restrictDefaultLoginSelectionDescription: 'メンバーがポリシー制限を回避するために、ログイン用のメールアドレスを会社のドメイン以外に変更することを防ぎます。',
+            expensifyCardPreferredWorkspace: 'Expensify Card 優先ワークスペース',
+            expensifyCardPreferredWorkspaceDescription:
+                'すべての Expensify Card トランザクションは、優先ワークスペースではなく Expensify Card 優先ワークスペースで作成されます。この機能を有効にすると、Expensify Card トランザクションに対してのみ優先ワークスペースの設定が上書きされます。',
+            expensifyCardPreferredWorkspaceDisabledMessage: 'この設定を使用するには、優先ワークスペースを有効にし、ドメインに Expensify Card が設定されている必要があります。',
             findGroup: 'グループを検索',
         },
     },
