@@ -1321,11 +1321,6 @@ function getPayOption(
             ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
             : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, personalPolicyID, lastPaymentMethods));
 
-    const selectedCurrencies =
-        selectedReports.length > 0 ? selectedReports.map((report) => report.currency) : transactionKeys.map((transactionIDKey) => selectedTransactions[transactionIDKey].currency);
-
-    const hasMixedCurrencies = new Set(selectedCurrencies).size > 1;
-
     const shouldShowBulkPayOption =
         selectedReports.length > 0
             ? selectedReports.every(
@@ -1343,7 +1338,6 @@ function getPayOption(
     return {
         shouldEnableBulkPayOption: shouldShowBulkPayOption,
         isFirstTimePayment: !hasLastPaymentMethod,
-        hasMixedCurrencies,
     };
 }
 
