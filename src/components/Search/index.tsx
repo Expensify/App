@@ -56,7 +56,6 @@ import {
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
-    isTransactionSearchType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -84,6 +83,7 @@ import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
+import SearchStaticList from './SearchStaticList';
 import SearchTableHeader from './SearchTableHeader';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
@@ -1462,21 +1462,14 @@ function Search({
         searchResults?.data,
     ]);
 
-    const onLayoutBase = useCallback(() => {
+    const onLayout = useCallback(() => {
         hasHadFirstLayout.current = true;
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
-        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-    }, [onDestinationVisible]);
-
-    // Deferred layout only needs the base work (no scroll handling, no content-ready signal).
-    const onDeferredLayout = onLayoutBase;
-
-    const onLayout = useCallback(() => {
-        onLayoutBase();
         handleSelectionListScroll(stableSortedData, searchListRef.current);
+        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         onContentReady?.();
-    }, [onLayoutBase, handleSelectionListScroll, stableSortedData, onContentReady]);
+    }, [handleSelectionListScroll, stableSortedData, onContentReady, onDestinationVisible]);
 
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
@@ -1572,14 +1565,25 @@ function Search({
     );
 
     // When heavy work is deferred (e.g. during the RHP dismiss animation after
-    // submitting an expense), skip the expensive render below. The ancestor
-    // SearchPage (via SearchPageNarrow / SearchPageWide) renders a SearchStaticList
-    // overlay that covers this component, so the user sees real-looking content.
-    // The minimal View fires onLayout to flush the deferred API write and set
-    // hasHadFirstLayout.
-    if (isDeferringHeavyWork && searchResults?.data && isTransactionSearchType(type)) {
-        // Zero-sized View - onLayout still fires on RN, which is all we need here.
-        return <View onLayout={onDeferredLayout} />;
+    // submitting an expense), show a lightweight static list instead of the skeleton.
+    // This gives the user real-looking content during the animation while avoiding
+    // the expensive hooks and renders of the full Search component.
+    // Restricted to transaction-based search types (expense/invoice) because
+    // SearchStaticList only renders rows with a transactionID - non-transaction
+    // types (chat, task, report) would render empty/blank during the deferral.
+    const isTransactionSearchType = type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
+    if (isDeferringHeavyWork && searchResults?.data && isTransactionSearchType) {
+        return (
+            <SearchStaticList
+                searchResults={searchResults}
+                queryJSON={queryJSON}
+                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                canSelectMultiple={canSelectMultiple}
+                columns={currentColumns}
+                contentContainerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
+                onLayout={onLayout}
+            />
+        );
     }
 
     // This is a performance optimization for the submit-expense->search path only.
