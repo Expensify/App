@@ -71,6 +71,7 @@ function ReviewReimbursable() {
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setReimbursable}
+                selectedValue={reviewDuplicates?.reimbursable}
             />
         </ScreenWrapper>
     );

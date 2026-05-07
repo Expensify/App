@@ -227,8 +227,12 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
-
-        if (item?.policyID && shouldRestrictUserBillableActions(item.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
+        const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
+        if (
+            item?.policyID &&
+            itemPolicy &&
+            shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
+        ) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
             return;
         }

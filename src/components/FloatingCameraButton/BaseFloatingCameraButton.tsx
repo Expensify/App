@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
@@ -16,6 +16,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
 import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
@@ -66,6 +67,22 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
             }
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
+
+            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN, {
+                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN,
+                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN,
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: quickActionReportID,
+                    [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: Platform.OS,
+                    [CONST.TELEMETRY.ATTRIBUTE_SOURCE]: 'camera_fab',
+                },
+            });
+            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION, {
+                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION,
+                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN),
+            });
+
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, true);
         });

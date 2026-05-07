@@ -8,7 +8,6 @@ const mockGetEnvironment: jest.MockedFunction<() => Promise<string>> = jest.fn()
 const mockGetEnvironmentURL: jest.MockedFunction<() => Promise<string>> = jest.fn();
 
 jest.mock('@libs/Environment/getEnvironment', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => mockGetEnvironment()),
 }));
