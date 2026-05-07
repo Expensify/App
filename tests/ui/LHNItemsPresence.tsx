@@ -624,7 +624,7 @@ describe('SidebarLinksData', () => {
                 transactionID: expenseTransaction.transactionID,
                 iouReportID: expenseReport.reportID,
             });
-            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
+            const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, TEST_USER_ACCOUNT_ID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
             // When a single transaction thread is initialized in Onyx
