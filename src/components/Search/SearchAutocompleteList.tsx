@@ -4,8 +4,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
@@ -116,14 +116,26 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
         );
     }
 
-    const fsClass = FS.getChatFSClass((props.item as SearchOption<Report> | undefined)?.item);
+    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, rightHandSideComponent, onFocus, shouldSyncFocus, wrapperStyle} = props;
+    const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
-        <UserListItem
+        <BareUserListItem
+            item={item}
+            keyForList={item.keyForList}
+            isFocused={isFocused}
+            showTooltip={showTooltip}
+            isDisabled={isDisabled}
+            onSelectRow={onSelectRow}
+            onDismissError={onDismissError}
+            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
+            rightHandSideComponent={rightHandSideComponent}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
+            wrapperStyle={wrapperStyle}
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={fsClass}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            shouldHighlightSelectedItem
         />
     );
 }
@@ -420,7 +432,7 @@ function SearchAutocompleteList({
         }
 
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
-            const report = getReportOrDraftReport(option.reportID);
+            const report = getReportOrDraftReport(option.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
             const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
@@ -498,6 +510,7 @@ function SearchAutocompleteList({
         translate,
         isLoadingOptions,
         isRecentSearchesDataLoaded,
+        reports,
     ]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
@@ -582,6 +595,7 @@ function SearchAutocompleteList({
             ref={setListRef}
             initialScrollIndex={0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+            shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
             addBottomSafeAreaPadding

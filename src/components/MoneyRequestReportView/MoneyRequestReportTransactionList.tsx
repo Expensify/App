@@ -593,6 +593,7 @@ function MoneyRequestReportTransactionList({
             onArrowRightPress={handleArrowRightPress}
             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards ?? {}}
             isLastItem={!showPendingExpensePlaceholder && transaction.transactionID === lastTransactionID}
+            shouldScrollHorizontally={shouldScrollHorizontally}
         />
     );
 
@@ -655,7 +656,8 @@ function MoneyRequestReportTransactionList({
                     !isDesktopTableLayout && styles.pl5,
                     isDesktopTableLayout ? styles.pr11 : styles.pr16,
                     styles.alignItemsCenter,
-                    isDesktopTableLayout && [styles.highlightBG, styles.searchTableTopRadius, styles.mh5, styles.borderBottom],
+                    isDesktopTableLayout && [styles.highlightBG, styles.searchTableTopRadius, styles.mh5],
+                    StyleUtils.getSelectedBorderBottomStyle(selectedTransactionIDs.length > 0),
                 ]}
             >
                 <View
@@ -690,11 +692,11 @@ function MoneyRequestReportTransactionList({
                         shouldShowSorting
                         sortBy={sortBy}
                         sortOrder={sortOrder}
+                        shouldRemoveTotalColumnFlex
                         columns={columnsToShow}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
-                        shouldRemoveTotalColumnFlex
                         onSortPress={(selectedSortBy, selectedSortOrder) => {
                             if (!isSortableColumnName(selectedSortBy)) {
                                 return;

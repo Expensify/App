@@ -450,7 +450,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
     | 'showTooltip'
     | 'canSelectMultiple'
-    | 'onCheckboxPress'
+    | 'onSelectionButtonPress'
     | 'columns'
     | 'groupBy'
     | 'accountID'
