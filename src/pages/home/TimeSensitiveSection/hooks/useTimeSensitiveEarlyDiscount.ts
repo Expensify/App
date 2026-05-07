@@ -26,18 +26,23 @@ function useTimeSensitiveEarlyDiscount(): TimeSensitiveEarlyDiscountState {
 
     const isEligibleForDiscount = shouldShowDiscountBanner(accountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies);
 
+    const [discountInfo, setDiscountInfo] = useState<DiscountInfo | null>(() => (isEligibleForDiscount ? getEarlyDiscountInfo(firstDayFreeTrial) : null));
+
     // Tick once per second so the countdown stays in sync with wall-clock time
     // while the user is viewing the Home page.
-    const [tick, setTick] = useState(0);
     useEffect(() => {
         if (!isEligibleForDiscount) {
+            setDiscountInfo(null);
             return;
         }
-        const intervalID = setInterval(() => setTick((previousTick) => previousTick + 1), CONST.MILLISECONDS_PER_SECOND);
-        return () => clearInterval(intervalID);
-    }, [isEligibleForDiscount]);
 
-    const discountInfo = isEligibleForDiscount ? getEarlyDiscountInfo(firstDayFreeTrial) : null;
+        setDiscountInfo(getEarlyDiscountInfo(firstDayFreeTrial));
+        const intervalID = setInterval(() => {
+            setDiscountInfo(getEarlyDiscountInfo(firstDayFreeTrial));
+        }, CONST.MILLISECONDS_PER_SECOND);
+
+        return () => clearInterval(intervalID);
+    }, [firstDayFreeTrial, isEligibleForDiscount]);
 
     const shouldShowEarlyDiscount = isEligibleForDiscount && discountInfo?.discountType === EARLY_DISCOUNT_HALF_OFF;
 
