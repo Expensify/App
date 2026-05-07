@@ -55,8 +55,11 @@ import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasReceipt as hasReceiptTransactionUtils,
+    isAmountMissing,
+    isCreatedMissing,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest,
+    isMerchantMissing,
     isScanning,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
@@ -260,9 +263,10 @@ function MoneyRequestReceiptView({
     const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
     const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
 
+    const receiptState = transactionToCheck?.receipt?.state;
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
-        const imageViolations = [];
-        const allViolations = [];
+        const imageViolations: string[] = [];
+        const allViolations: string[] = [];
         const filteredViolations = filterReceiptViolations(transactionViolations ?? []);
 
         for (const violation of filteredViolations) {
@@ -289,8 +293,29 @@ function MoneyRequestReceiptView({
                 }
             }
         }
+
+        // When the backend updates receipt state to SCAN_FAILED, the violation data may not
+        // have arrived in Onyx yet (it's computed client-side by getViolationsOnyxData which
+        // only runs during explicit user actions). Add a fallback so the message appears immediately.
+        const hasSmartScanFailedViolation = filteredViolations.some((v) => v.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+        if (receiptState === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && !hasSmartScanFailedViolation) {
+            const missingFields: string[] = [];
+            if (isMerchantMissing(transactionToCheck)) {
+                missingFields.push('merchant');
+            }
+            if (isCreatedMissing(transactionToCheck)) {
+                missingFields.push('date');
+            }
+            if (isAmountMissing(transactionToCheck)) {
+                missingFields.push('amount');
+            }
+            const fallbackMessage = translate('violations.smartscanFailed', {canEdit, missingFields});
+            imageViolations.push(fallbackMessage);
+            allViolations.push(fallbackMessage);
+        }
+
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit]);
+    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit, receiptState, transactionToCheck]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
