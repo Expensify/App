@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -64,7 +63,6 @@ function DynamicQuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnec
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksDesktopExportDateSelectPage"
             data={data}
-            listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbd.exportDate.description')}</Text>}
             onBackButtonPress={goBack}
             onSelectRow={selectExportDate}

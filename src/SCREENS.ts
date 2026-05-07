@@ -172,6 +172,7 @@ const SCREENS = {
 
         AGENTS: {
             ROOT: 'Settings_Agents',
+            ADD: 'Settings_Agents_Add',
         },
 
         RULES: {
@@ -361,7 +362,6 @@ const SCREENS = {
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
-        STEP_CATEGORY_CREATE: 'Money_Request_Step_Category_Create',
         STEP_DATE: 'Money_Request_Step_Date',
         STEP_DESCRIPTION: 'Money_Request_Step_Description',
         STEP_DISTANCE: 'Money_Request_Step_Distance',
@@ -522,7 +522,7 @@ const SCREENS = {
         ROOT: 'ReportChangeWorkspace_Root',
     },
 
-    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector'},
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
     WORKSPACE_DUPLICATE: {ROOT: 'Workspace_Duplicate_Root', SELECT_FEATURES: 'Workspace_Duplicate_Select_Features'},
 
     WORKSPACES_LIST: 'Workspaces_List',
@@ -670,6 +670,7 @@ const SCREENS = {
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',
         HR: 'Workspace_HR',
+        HR_GUSTO_APPROVAL_MODE: 'Workspace_HR_Gusto_Approval_Mode',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',
@@ -1025,6 +1026,7 @@ const SCREENS = {
         MEMBER_MOVE_TO_GROUP: 'Member_Move_To_Group',
         GROUP_DETAILS: 'Domain_Group_Details',
         GROUP_EDIT_NAME: 'Domain_Group_Edit_Name',
+        SECURITY_GROUPS_PREFERRED_WORKSPACE: 'Domain_Security_Groups_Preferred_Workspace',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

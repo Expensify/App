@@ -2,9 +2,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getReportPreviewAction} from '@libs/actions/IOU';
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
+import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -412,8 +412,8 @@ describe('actions/Duplicate', () => {
             });
             await waitForBatchedUpdates();
 
-            const transactionThreadReport1 = buildTransactionThread(iouAction1, expenseReport);
-            const transactionThreadReport2 = buildTransactionThread(iouAction2, expenseReport);
+            const transactionThreadReport1 = buildTransactionThread(iouAction1, expenseReport, RORY_ACCOUNT_ID);
+            const transactionThreadReport2 = buildTransactionThread(iouAction2, expenseReport, RORY_ACCOUNT_ID);
 
             expect(transactionThreadReport1.participants).toEqual({
                 [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},

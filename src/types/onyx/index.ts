@@ -68,7 +68,7 @@ import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
-import type {ExpensifyCardSettingsBase} from './ExpensifyCardSettings';
+import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -96,6 +96,7 @@ import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
 import type Network from './Network';
 import type NewGroupChatDraft from './NewGroupChatDraft';
+import type OdometerDraft from './OdometerDraft';
 import type Onboarding from './Onboarding';
 import type OnboardingRHPVariant from './OnboardingRHPVariant';
 import type OnyxInputOrEntry from './OnyxInputOrEntry';
@@ -222,6 +223,7 @@ export type {
     ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
+    NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
@@ -255,6 +257,7 @@ export type {
     OnyxUpdateEvent,
     OnyxUpdatesFromServer,
     AnyOnyxUpdatesFromServer,
+    OdometerDraft,
     Pages,
     PendingConciergeResponse,
     PersonalBankAccount,

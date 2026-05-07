@@ -9,13 +9,17 @@ import TextLink from '@components/TextLink';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import {getCardSettings} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -32,6 +36,11 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const settings = getCardSettings(cardSettings);
+    const programKey = getCardProgramKey(cardSettings);
+    const privateSubscription = usePrivateSubscription();
+    const isUSProgram = programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT;
+    const shouldShowCashbackToggle = isUSProgram && !isSubscriptionTypeOfInvoicing(privateSubscription?.type);
+    const shouldApplyCashbackToBill = settings?.shouldApplyCashbackToBill ?? true;
 
     const paymentBankAccountID = settings?.paymentBankAccountID;
     const paymentBankAccountNumber = settings?.paymentBankAccountNumber;
@@ -88,6 +97,25 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 }
                             />
                         </OfflineWithFeedback>
+                        {shouldShowCashbackToggle && (
+                            <ToggleSettingOptionRow
+                                title={translate('workspace.expensifyCard.applyCashbackToBill')}
+                                subtitle={translate('workspace.expensifyCard.applyCashbackToBillDescription')}
+                                switchAccessibilityLabel={translate('workspace.expensifyCard.applyCashbackToBill')}
+                                isActive={shouldApplyCashbackToBill}
+                                shouldPlaceSubtitleBelowSwitch
+                                wrapperStyle={[styles.mv3, styles.mh5]}
+                                pendingAction={settings?.pendingFields?.shouldApplyCashbackToBill}
+                                errors={settings?.errors}
+                                onCloseError={() => clearCashbackToBillError(defaultFundID)}
+                                onToggle={(isEnabled: boolean) => {
+                                    if (!programKey) {
+                                        return;
+                                    }
+                                    toggleCashbackToBill(defaultFundID, programKey, isEnabled, settings?.shouldApplyCashbackToBill);
+                                }}
+                            />
+                        )}
                     </View>
                 </ScrollView>
             </ScreenWrapper>

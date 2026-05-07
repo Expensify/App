@@ -1,8 +1,87 @@
-import {enrichAndSortAttendees, normalizeAttendee, normalizeAttendees} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, enrichAndSortAttendees, normalizeAttendee, normalizeAttendees} from '@libs/AttendeeUtils';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
+const makeAttendee = (overrides: Partial<Attendee> = {}): Attendee => ({
+    displayName: 'Test User',
+    avatarUrl: 'https://example.com/avatar.png',
+    ...overrides,
+});
+
 describe('AttendeeUtils', () => {
+    describe('convertAttendeesToArray', () => {
+        describe('falsy / missing values', () => {
+            it('returns [] for undefined', () => {
+                expect(convertAttendeesToArray(undefined)).toEqual([]);
+            });
+
+            it('returns [] for null (unexpected runtime value)', () => {
+                expect(convertAttendeesToArray(null)).toEqual([]);
+            });
+        });
+
+        describe('array inputs', () => {
+            it('returns [] for an empty array', () => {
+                expect(convertAttendeesToArray([])).toEqual([]);
+            });
+
+            it('returns the same array reference when input is already an array', () => {
+                const attendees: Attendee[] = [makeAttendee({email: 'a@test.com'})];
+                expect(convertAttendeesToArray(attendees)).toBe(attendees);
+            });
+
+            it('returns all items for an array with multiple attendees', () => {
+                const attendees: Attendee[] = [makeAttendee({email: 'a@test.com'}), makeAttendee({email: 'b@test.com'}), makeAttendee({email: 'c@test.com'})];
+                expect(convertAttendeesToArray(attendees)).toHaveLength(3);
+                expect(convertAttendeesToArray(attendees)).toEqual(attendees);
+            });
+        });
+
+        describe('plain-object inputs (Onyx-deserialized arrays)', () => {
+            it('returns [] for an empty object {}', () => {
+                expect(convertAttendeesToArray({})).toEqual([]);
+            });
+
+            it('converts a single-entry object to a one-element array', () => {
+                const attendee = makeAttendee({email: 'a@test.com'});
+                const result = convertAttendeesToArray({first: attendee});
+                expect(result).toHaveLength(1);
+                expect(result.at(0)).toBe(attendee);
+            });
+
+            it('converts a multi-entry object to an array containing all values', () => {
+                const a1 = makeAttendee({email: 'a@test.com'});
+                const a2 = makeAttendee({email: 'b@test.com'});
+                const a3 = makeAttendee({email: 'c@test.com'});
+                const result = convertAttendeesToArray({first: a1, second: a2, third: a3});
+                expect(result).toHaveLength(3);
+                expect(result).toContain(a1);
+                expect(result).toContain(a2);
+                expect(result).toContain(a3);
+            });
+
+            it('preserves all attendee fields when converting from an object', () => {
+                const attendee = makeAttendee({email: 'user@test.com', displayName: 'Alice', login: 'alice', accountID: 42, selected: true});
+                const result = convertAttendeesToArray({first: attendee});
+                expect(result.at(0)).toMatchObject({email: 'user@test.com', displayName: 'Alice', login: 'alice', accountID: 42, selected: true});
+            });
+        });
+
+        describe('non-object primitives (unexpected runtime values)', () => {
+            it('returns [] for a string', () => {
+                expect(convertAttendeesToArray('invalid')).toEqual([]);
+            });
+
+            it('returns [] for a number', () => {
+                expect(convertAttendeesToArray(42)).toEqual([]);
+            });
+
+            it('returns [] for a boolean', () => {
+                expect(convertAttendeesToArray(true)).toEqual([]);
+            });
+        });
+    });
+
     describe('normalizeAttendee', () => {
         it('should trim email and omit it when blank', () => {
             const attendee: Attendee = {

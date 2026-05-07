@@ -74,7 +74,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         if (!CONFIG.IS_HYBRID_APP && exitTo !== ROUTES.WORKSPACE_NEW && !isAccountLoading && !isLoggingInAsNewUser) {
             Navigation.isNavigationReady().then(() => {
                 // remove this screen and navigate to exit route
-                Navigation.goBack();
+                Navigation.goBack(ROUTES.HOME);
                 if (exitTo) {
                     Navigation.navigate(exitTo as Route);
                 }
