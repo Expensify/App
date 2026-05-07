@@ -7,6 +7,7 @@ import SettlementAccountSelector, {BankAccountListItemLeftElement} from '@compon
 import type {BankAccountListItem} from '@components/SettlementAccountSelector';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
@@ -30,18 +31,19 @@ import type SCREENS from '@src/SCREENS';
 import type {BankName} from '@src/types/onyx/Bank';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
+type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
 
 /**
  * Settlement account selection page for Expensify Card.
  * Uses the SettlementAccountSelector component for the selection UI.
  */
-function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
+function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -153,11 +155,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.settlementAccount')}
                     onBackButtonPress={() => {
-                        if (route.params && 'backTo' in route.params && route.params.backTo) {
-                            Navigation.goBack(route.params.backTo);
-                            return;
-                        }
-                        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID));
+                        Navigation.goBack(backPath);
                     }}
                 />
                 <SettlementAccountSelector
@@ -171,4 +169,4 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     );
 }
 
-export default WorkspaceSettlementAccountPage;
+export default DynamicWorkspaceSettlementAccountPage;

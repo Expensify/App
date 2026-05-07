@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import {convertAttendeesToArray} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -72,7 +73,9 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
     const attendeesIDs = transactions
         // If the transaction is a split, then attendees are not present as a property so we need to use a helper function.
         ?.flatMap<number | undefined>((tr) =>
-            tr.comment?.attendees?.map?.((att) => (tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID)),
+            convertAttendeesToArray(tr.comment?.attendees).map((att) =>
+                tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID,
+            ),
         )
         .filter((accountID) => !!accountID);
 

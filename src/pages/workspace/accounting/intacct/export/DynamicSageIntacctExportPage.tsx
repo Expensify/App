@@ -1,33 +1,24 @@
-import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import replaceCompanyCardsRoute from '@libs/Navigation/helpers/replaceCompanyCardsRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
-import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-function SageIntacctExportPage({policy}: WithPolicyProps) {
+function DynamicSageIntacctExportPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT>>();
-    const backTo = route?.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path);
     const {export: exportConfig, pendingFields, errorFields} = policy?.connections?.intacct?.config ?? {};
-    const shouldGoBackToSpecificRoute = exportConfig?.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT;
-
-    const goBack = () => {
-        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
-    };
 
     const sections = [
         {
@@ -64,13 +55,13 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName="SageIntacctExportPage"
+            displayName="DynamicSageIntacctExportPage"
             headerTitle="workspace.accounting.export"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}
             title="workspace.sageIntacct.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            onBackButtonPress={goBack}
+            onBackButtonPress={() => Navigation.goBack(replaceCompanyCardsRoute(backPath))}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
@@ -94,4 +85,4 @@ function SageIntacctExportPage({policy}: WithPolicyProps) {
     );
 }
 
-export default withPolicyConnections(SageIntacctExportPage);
+export default withPolicyConnections(DynamicSageIntacctExportPage);

@@ -21,7 +21,8 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ReplaceReceipt} from '.';
-import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTags, getReceiptError} from '.';
+import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTags} from '.';
+import {getReceiptError} from './MoneyRequestBuilder';
 
 /**
  * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
