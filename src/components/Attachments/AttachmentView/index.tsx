@@ -172,8 +172,7 @@ function AttachmentView({
     const [imageError, setImageError] = useState(false);
 
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
-    const isLocalVideoSource =
-        typeof source === 'string' && (source.startsWith('blob:') || source.startsWith('file:') || CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix)));
+    const isLocalVideoSource = typeof source === 'string' && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
     const shouldShowOfflineVideoIndicator = isOffline && !!isVideo && typeof source === 'string' && !isLocalVideoSource;
 
     useEffect(() => {
