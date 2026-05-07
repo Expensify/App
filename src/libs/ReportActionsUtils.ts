@@ -3998,9 +3998,7 @@ type SpendRuleAmountDiff = {added: SpendRuleAmount[]; removed: SpendRuleAmount[]
 function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: SpendRuleAmount[]): SpendRuleAmountDiff {
     const oldAmount = oldAmounts.at(0);
     const newAmount = newAmounts.at(0);
-    const sameAmount =
-        oldAmount?.operator === newAmount?.operator &&
-        spendRuleAmountToCents(oldAmount?.value) === spendRuleAmountToCents(newAmount?.value);
+    const sameAmount = oldAmount?.operator === newAmount?.operator && spendRuleAmountToCents(oldAmount?.value) === spendRuleAmountToCents(newAmount?.value);
     if (sameAmount) {
         return {added: [], removed: []};
     }
