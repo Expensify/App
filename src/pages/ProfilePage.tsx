@@ -1,12 +1,12 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -22,8 +22,10 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {
     findSelfDMReportID,
@@ -44,7 +46,7 @@ import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -81,8 +83,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const loginParams = route.params?.login;
-
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
@@ -93,6 +93,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
 
     const isValidAccountID = isValidAccountRoute(accountID);
+    const loginParams = route.params?.login;
 
     let details: OnyxEntry<PersonalDetails>;
     // Check if we have the personal details already in Onyx
@@ -114,7 +115,7 @@ function ProfilePage({route}: ProfilePageProps) {
     }
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
@@ -263,10 +264,12 @@ function ProfilePage({route}: ProfilePageProps) {
                                 shouldShowRightIcon
                                 title={notificationPreference}
                                 description={translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID, navigateBackTo))}
+                                onPress={() => {
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
+                                }}
                             />
                         )}
-                        {!isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
+                        {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
                             <MenuItem
                                 title={`${translate('privateNotes.title')}`}
                                 titleStyle={styles.flex1}
@@ -297,10 +300,12 @@ function ProfilePage({route}: ProfilePageProps) {
                         )}
                     </ScrollView>
                     {!hasAvatar && isLoading && (
-                        <FullScreenLoadingIndicator
-                            style={styles.flex1}
-                            reasonAttributes={{context: 'ProfilePage', isLoading}}
-                        />
+                        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={{context: 'ProfilePage', isLoading}}
+                            />
+                        </View>
                     )}
                 </View>
             </FullPageNotFoundView>

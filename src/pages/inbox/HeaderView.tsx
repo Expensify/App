@@ -3,9 +3,10 @@ import {accountGuideDetailsSelector} from '@selectors/Account';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
+import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
@@ -28,6 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePolicy from '@hooks/usePolicy';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -37,10 +39,12 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
+import {getHumanAgentAccountIDFromReportAction, getHumanAgentFirstName} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
+    chatIncludesChronos,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
@@ -72,6 +76,7 @@ import {
     shouldDisableDetailPage as shouldDisableDetailPageReportUtils,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
@@ -81,7 +86,6 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import reportsSelector from '@src/selectors/Attributes';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type HeaderViewProps = {
@@ -96,9 +100,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const parentReportAction = useParentReportAction(report);
 
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
     const route = useRoute();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
@@ -113,7 +117,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {selector: pendingChatMembersSelector});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector});
+    const reportAttributes = useReportAttributes();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
@@ -122,6 +126,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report, isReportArchived);
+    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true, undefined, reportMetadata);
@@ -152,10 +157,12 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         : undefined;
     const statusColorForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, conciergeReportID, isParentReportHeaderDataArchived);
-    const reportDescription = Parser.htmlToText(getReportDescription(report));
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, policy, conciergeReportID, isParentReportHeaderDataArchived);
+    const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(parentReportAction);
+    const humanAgentName = getHumanAgentFirstName(parentReportAction, personalDetails);
+    const reportDescription = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getReportDescription(report)));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
-    const policyDescription = getPolicyDescriptionText(policy);
+    const policyDescription = StringUtils.lineBreaksToSpaces(getPolicyDescriptionText(policy));
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     // This is used to ensure that we display the text exactly as the user entered it when displaying thread header text, instead of parsing their text to HTML.
@@ -185,7 +192,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         isAdminRoom(report) &&
         !!canUserPerformWriteAction(report, isReportArchived) &&
         !isChatThread &&
-        introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO;
+        introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO &&
+        introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID));
 
@@ -211,11 +219,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         );
     };
 
-    // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
-    // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
+    // Memoize so trial Onyx values and current user account participate in React updates (shouldShowDiscountBanner is pure).
     const shouldShowDiscount = useMemo(
-        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies) && !isReportArchived,
-        [hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, isReportArchived, allPolicies],
+        () => shouldShowDiscountBanner(currentUserAccountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, allPolicies) && !isReportArchived,
+        [currentUserAccountID, hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, isReportArchived, allPolicies],
     );
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
@@ -237,7 +244,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurposeSelected);
     const shouldShowRegisterForWebinar =
-        introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread)) && !isInSidePanel;
+        (introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO || introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL) &&
+        (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread)) &&
+        !isInSidePanel;
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !isInSidePanel;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !isInSidePanel;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
@@ -268,6 +277,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
             <View
                 style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
+                onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
                 <View style={[styles.appContentHeader, styles.pr3]}>
                     {isLoading ? (
@@ -336,6 +346,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                                 parentReportID={parentNavigationReport?.parentReportID}
                                                 parentReportActionID={isParentOneTransactionThread ? undefined : parentNavigationReport?.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
+                                                humanAgentAccountID={humanAgentAccountID}
+                                                humanAgentName={humanAgentName}
                                             />
                                         )}
                                         {shouldShowSubtitle() && (
@@ -384,6 +396,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                             success={!hasActiveScheduledCall}
                                         />
                                     )}
+                                    {!shouldUseNarrowLayout && chatIncludesChronos(report) && <ChronosTimerHeaderButton report={report} />}
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
@@ -404,7 +417,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     </Tooltip>
                                 )}
                                 {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!isInSidePanel && <SidePanelButton />}
+                                {!isInSidePanel && !isConciergeChat && <SidePanelButton />}
                             </View>
                         </View>
                     )}
@@ -423,6 +436,13 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                         />
                     )}
                 </View>
+                {!!report && shouldUseNarrowLayout && chatIncludesChronos(report) && (
+                    <View style={[styles.appBG, styles.pl0]}>
+                        <View style={[styles.ph5, styles.pb3]}>
+                            <ChronosTimerHeaderButton report={report} />
+                        </View>
+                    </View>
+                )}
                 {!!report && shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && (
                     <View style={[styles.appBG, styles.pl0]}>
                         <View style={[styles.ph5, styles.pb3]}>

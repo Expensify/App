@@ -1,4 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {delegateEmailSelector} from '@selectors/Account';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -12,6 +13,7 @@ import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -37,6 +39,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const route = useRoute<PlatformStackRouteProp<ReportDescriptionNavigatorParamList, typeof SCREENS.REPORT_DESCRIPTION_ROOT>>();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
@@ -56,12 +59,12 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
             if (values.description !== Parser.htmlToMarkdown(report?.description ?? '') && !isEmptyObject(report)) {
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
-                editTask(report, {description: values.description});
+                editTask(report, {description: values.description}, delegateEmail);
             }
 
             Navigation.dismissModalWithReport({reportID: report?.reportID});
         },
-        [report],
+        [report, delegateEmail],
     );
 
     if (!isTaskReport(report)) {

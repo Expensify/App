@@ -1,5 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -38,11 +40,8 @@ type UseReceiptScanParams = {
     /** Report ID to navigate back to */
     backToReport: string | undefined;
 
-    /** Whether multi-scan is enabled */
-    isMultiScanEnabled: boolean | undefined;
-
-    /** Whether the user is starting a scan request */
-    isStartingScan: boolean | undefined;
+    /** The route name to determine if scan is starting */
+    routeName: IOURequestStepScanProps['route']['name'];
 
     /** Callback to replace receipt and navigate back when editing */
     updateScanAndNavigate: (file: FileObject, source: string) => void;
@@ -59,10 +58,10 @@ type UseMobileReceiptScanParams = {
     iouType: IOUType;
 
     /** Whether multi-scan is enabled */
-    isMultiScanEnabled?: boolean;
+    isMultiScanEnabled: boolean;
 
     /** Whether the user is starting a scan request */
-    isStartingScan?: boolean;
+    isStartingScan: boolean;
 
     /** The current receipt files being scanned */
     receiptFiles: ReceiptFile[];
@@ -76,29 +75,17 @@ type UseMobileReceiptScanParams = {
     /** Callback to start the location permission flow */
     setStartLocationPermissionFlow: (value: boolean) => void;
 
-    /** Callback to update multi-scan enabled state in parent */
-    setIsMultiScanEnabled: ((value: boolean) => void) | undefined;
+    /** Callback to update multi-scan enabled state */
+    setIsMultiScanEnabled: (value: boolean) => void;
+
+    /** Callback to update scanned receipt files */
+    setReceiptFiles: (value: ReceiptFile[]) => void;
 };
 
 type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<Transaction>;
-
-        /**
-         * Callback function that is triggered on the `onLayout` event.
-         * Receives a function (`setTestReceiptAndNavigate`) as an argument,
-         */
-        onLayout?: (setTestReceiptAndNavigate: () => void) => void;
-
-        /** If the receipts preview should be shown */
-        isMultiScanEnabled?: boolean;
-
-        /** Updates isMultiScanEnabled flag */
-        setIsMultiScanEnabled?: (value: boolean) => void;
-
-        /** Indicates whether users start to create scan request */
-        isStartingScan?: boolean;
     };
 
 type ReceiptFile = {
@@ -107,5 +94,7 @@ type ReceiptFile = {
     transactionID: string;
 };
 
+type ScanRoute = PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN | typeof SCREENS.MONEY_REQUEST.CREATE>;
+
 export default IOURequestStepScanProps;
-export type {ReceiptFile, UseMobileReceiptScanParams, UseReceiptScanParams};
+export type {ReceiptFile, ScanRoute, UseMobileReceiptScanParams, UseReceiptScanParams};

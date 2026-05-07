@@ -168,11 +168,14 @@ type BeneficialOwnersStepBaseProps = {
 
 // BeneficialOwnerDraftData is saved under dynamic key which consists of prefix, beneficial owner ID and input key
 type BeneficialOwnerDataKey = `beneficialOwner_${string}_${string}`;
-type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number};
+type ReimbursementAccountFormExtraProps = BeneficialOwnersStepExtraProps & {bankAccountID?: number; isComingFromExpensifyCard?: boolean};
 
 type BeneficialOwnersStepExtraProps = {
     [key: BeneficialOwnerDataKey]: string | FileObject[];
     beneficialOwnerKeys?: string[];
+    isUserDirector?: boolean;
+    ownerBeingModifiedID?: string;
+    isEditingCreatedOwner?: boolean;
 };
 
 type BeneficialOwnersStepProps = BeneficialOwnersStepBaseProps & BeneficialOwnersStepExtraProps;

@@ -50,6 +50,9 @@ type DecisionModalProps = {
 
     /** Whether modal is visible */
     isVisible: boolean;
+
+    /** Whether to handle browser navigation back to close the modal */
+    shouldHandleNavigationBack?: boolean;
 };
 
 function DecisionModal({
@@ -67,6 +70,7 @@ function DecisionModal({
     isFirstOptionSuccess = true,
     isSecondOptionSuccess = false,
     isSecondOptionDanger = false,
+    shouldHandleNavigationBack,
 }: DecisionModalProps) {
     const styles = useThemeStyles();
 
@@ -77,8 +81,10 @@ function DecisionModal({
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
             onModalHide={onModalHide}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
         >
-            <ScrollView contentContainerStyle={styles.m5}>
+            <ScrollView contentContainerStyle={styles.p5}>
                 <View>
                     <View style={[styles.flexRow, styles.mb5]}>
                         <Header
@@ -112,4 +118,5 @@ function DecisionModal({
     );
 }
 
+export type {DecisionModalProps};
 export default DecisionModal;

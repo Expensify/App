@@ -59,7 +59,7 @@ type ShareCodePageProps = ShareCodePageOnyxProps & BackToParams;
  */
 
 function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>): ImageSourcePropType | undefined {
-    if (!policy || !policy.id || report?.type !== 'chat') {
+    if (!policy?.id || report?.type !== 'chat') {
         return expensifyLogo;
     }
 
@@ -71,7 +71,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -97,11 +97,11 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     .join(' & ');
             }
 
-            return getParentNavigationSubtitle(report, conciergeReportID, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
+            return getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived).workspaceName ?? getChatRoomSubtitle(report, false, isReportArchived);
         }
 
         return currentUserPersonalDetails.login;
-    }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID]);
+    }, [report, policy, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber, conciergeReportID]);
 
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
@@ -169,7 +169,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                             isAnonymousAction
                             title={translate('common.download')}
                             icon={icons.Download}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
                         />
                     )}

@@ -3,15 +3,18 @@ import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {createWorkspaceWithPolicyDraft} from '@userActions/App';
-import {generatePolicyID} from '@userActions/Policy/Policy';
+import {generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
@@ -28,23 +31,27 @@ function PersonalCardUpgradePage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {accountID, email = ''} = currentUserPersonalDetails;
+    const activePolicy = useActivePolicy();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const onUpgrade = () => {
         createWorkspaceWithPolicyDraft({
             introSelected,
+            policyName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+            currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             policyOwnerEmail: '',
             transitionFromOldDot: false,
             makeMeAdmin: false,
             policyID,
             lastUsedPaymentMethod: lastPaymentMethod?.[policyID] as LastPaymentMethodType,
-            activePolicyID,
-            currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-            currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+            activePolicy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email,
             shouldCreateControlPolicy: false,
             isSelfTourViewed,
             betas,

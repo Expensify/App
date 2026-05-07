@@ -64,7 +64,7 @@ function UploadFile({
     totalFilesSizeLimit = 0,
     fileLimit = 0,
 }: UploadFileProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();

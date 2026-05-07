@@ -7,9 +7,10 @@ import type {Transaction} from '@src/types/onyx';
  * This is useful when transactions are deleted and we need to clean up the selection state.
  *
  * @param transactions - The current list of transactions
+ * @param reportID - The report that owns the current transaction list
  */
-function useFilterSelectedTransactions(transactions: Transaction[]) {
-    const {selectedTransactionIDs} = useSearchStateContext();
+function useFilterSelectedTransactions(transactions: Transaction[], reportID?: string) {
+    const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchStateContext();
     const {setSelectedTransactions} = useSearchActionsContext();
 
     const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
@@ -18,9 +19,13 @@ function useFilterSelectedTransactions(transactions: Transaction[]) {
         if (filteredSelectedTransactionIDs.length === selectedTransactionIDs.length) {
             return;
         }
+
+        if (reportID && currentSelectedTransactionReportID && currentSelectedTransactionReportID !== reportID) {
+            return;
+        }
+
         setSelectedTransactions(filteredSelectedTransactionIDs);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredSelectedTransactionIDs]);
+    }, [currentSelectedTransactionReportID, filteredSelectedTransactionIDs, reportID, selectedTransactionIDs.length, setSelectedTransactions]);
 }
 
 export default useFilterSelectedTransactions;

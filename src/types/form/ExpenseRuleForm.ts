@@ -23,4 +23,3 @@ type ExpenseRuleForm = Form<
 >;
 
 export type {ExpenseRuleForm, InputID};
-export default INPUT_IDS;

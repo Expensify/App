@@ -32,7 +32,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['FreezeCard'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FreezeCard']);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isCurrentUser = frozenByAccountID === session?.accountID;
@@ -56,7 +56,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                     {adminFrozenTextPrefix}
                     <TextLink
                         onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
-                        style={styles.link}
+                        style={[styles.textLabel, styles.link]}
                     >
                         {frozenByName}
                     </TextLink>
@@ -71,7 +71,7 @@ function FrozenCardHeader({cardPreview, onUnfreezePress, onAskToUnfreezePress, c
                 {frozenNeedsUnfreezePrefix}
                 <TextLink
                     onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(Number(frozenByAccountID), Navigation.getActiveRoute()))}
-                    style={styles.link}
+                    style={[styles.textLabel, styles.link]}
                 >
                     {frozenByName}
                 </TextLink>

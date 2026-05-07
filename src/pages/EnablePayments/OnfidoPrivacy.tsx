@@ -1,12 +1,12 @@
 import React, {useRef} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormScrollView from '@components/FormScrollView';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -78,13 +78,16 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                 </>
             ) : null}
             {hasAcceptedPrivacyPolicy && isLoading ? (
-                <FullscreenLoadingIndicator
-                    reasonAttributes={{
-                        context: 'OnfidoPrivacy',
-                        hasAcceptedPrivacyPolicy,
-                        isLoading,
-                    }}
-                />
+                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{
+                            context: 'OnfidoPrivacy',
+                            hasAcceptedPrivacyPolicy,
+                            isLoading,
+                        }}
+                    />
+                </View>
             ) : null}
         </View>
     );

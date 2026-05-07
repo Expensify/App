@@ -50,8 +50,26 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
             'isOwnPolicyExpenseChat',
             'participantAccountIDs',
             'created',
+            'lastReadTime',
+            'lastVisibleActionCreated',
+            'lastMentionedTime',
+            'isPinned',
+            'hasOutstandingChildRequest',
+            'hasOutstandingChildTask',
+            'parentReportID',
+            'parentReportActionID',
+            'lastReadSequenceNumber',
+            'lastVisibleActionLastModified',
+            'chatReportID',
+            'iouReportID',
+            'currency',
+            'managerID',
+            'policyID',
+            'visibility',
+            'writeCapability',
+            'invoiceReceiver',
         ],
-        maskList: ['reportName', 'description', 'ownerAccountID', 'managerID'],
+        maskList: ['reportName', 'description', 'ownerAccountID', 'managerID', 'lastMessageText', 'lastMessageHtml'],
     },
     [ONYXKEYS.COLLECTION.TRANSACTION]: {
         allowList: ['transactionID', 'reportID', 'created', 'category', 'tag', 'billable'],
@@ -75,14 +93,15 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
     },
 };
 
-const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS>>([
+const onyxKeysToRemove = new Set<ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXKEYS.DERIVED>>([
     ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID,
     ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID,
     ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
     ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
-    ONYXKEYS.PLAID_LINK_TOKEN,
+    ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
     ONYXKEYS.ONFIDO_TOKEN,
     ONYXKEYS.ONFIDO_APPLICANT_ID,
+    ...Object.values(ONYXKEYS.DERIVED),
 ]);
 
 const keysToMask = new Set([
@@ -340,7 +359,7 @@ const removePrivateOnyxKeys = (onyxState: OnyxState): OnyxState => {
     const newState: OnyxState = {};
 
     for (const key of Object.keys(onyxState)) {
-        if (onyxKeysToRemove.has(key as ValueOf<typeof ONYXKEYS>)) {
+        if (onyxKeysToRemove.has(key as ValueOf<typeof ONYXKEYS> | ValueOf<typeof ONYXKEYS.DERIVED>)) {
             continue;
         }
         newState[key] = onyxState[key];

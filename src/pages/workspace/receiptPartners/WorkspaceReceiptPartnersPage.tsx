@@ -40,7 +40,7 @@ type WorkspaceReceiptPartnersPageProps = PlatformStackScreenProps<WorkspaceSplit
 
 function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps) {
     const policyID = route.params.policyID;
-    const icons = useMemoizedLazyExpensifyIcons(['Key', 'Mail', 'NewWindow', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Key', 'Mail', 'NewWindow', 'Trashcan']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -50,7 +50,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const {getReceiptPartnersIntegrationData, shouldShowEnterCredentialsError, isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
-    const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
+    const [selectedPartner, setSelectedPartner] = useState<(typeof receiptPartnerNames)[keyof typeof receiptPartnerNames] | null>(null);
     const isLoading = policy?.isLoading;
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const integrations = policy?.receiptPartners;
@@ -331,7 +331,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                                             <OfflineWithFeedback pendingAction={integrations?.uber?.pendingFields?.centralBillingAccountEmail}>
                                                 <MenuItemWithTopDescription
                                                     description={translate('workspace.receiptPartners.uber.centralBillingAccount')}
-                                                    title={integrations.uber.centralBillingAccountEmail}
+                                                    title={integrations?.uber?.centralBillingAccountEmail}
                                                     shouldShowRightIcon
                                                     style={[styles.sectionMenuItemTopDescription, styles.mt5]}
                                                     onPress={() =>

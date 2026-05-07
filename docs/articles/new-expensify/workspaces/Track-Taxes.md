@@ -17,7 +17,7 @@ To enable tax tracking in a workspace:
 1. In the **navigation tabs** on the left (web) or bottom (mobile), click Workspaces.
 2. Click your **workspace name**.
 3. Click **More Features**.
-4. Under the **Spend** section, toggle on **Taxes**.
+4. Under the **Reports** section, toggle on **Taxes**.
 
 Once enabled, a new **Taxes** section will appear in the left-hand menu.
 
@@ -80,7 +80,7 @@ Expenses sometimes have more than one tax applied to them (for example, in Canad
 
 To handle multiple tax rates, you can create a new tax rate that combines both into a single rate. For example, if you have a GST of 5% and PST of 7%, you can add them together and create a new tax rate of 12%.
 
-You can generate a CSV from the Reports page containing all the expense information, including the split-out taxes, by going to the Reports tab, clicking **Export To**, and selecting **Tax Report**. 
+You can generate a CSV from the Reports page containing all the expense information, including the split-out taxes, by going to the **Spend > Reports**, selecting the report. licking **Export To**, and selecting **Tax Report**. 
 
 ## How do I handle the taxes for a receipt that includes more than one tax rate?
 
@@ -88,6 +88,17 @@ If your receipt includes more than one tax rate, there are two ways you can hand
 
 - Many tax authorities do not require reporting tax amounts by rate; therefore, you can apply the highest rate on the receipt and then modify the tax amount on the receipt if necessary. Please check with your tax advisor to determine if this approach suits you.
 - Alternatively, you can apply each specific tax rate by splitting the expense by the applicable costs for each rate. To do this, open the expense and click **Split Expense**. Then, apply the correct tax rate to each.
+
+## What happens if an expense with tax is moved to a workspace where tax tracking is disabled?
+
+If an expense that includes tax data is moved or merged into a workspace that does not have tax tracking enabled, the tax fields (**Tax** and **Tax amount**) will still appear on the expense with a "Tax no longer valid" violation.
+
+To resolve this, tap the **Tax** or **Tax amount** field on the expense. An alert will appear explaining that tax tracking is disabled on the workspace. You can then choose to:
+
+- **Delete tax** — Removes the tax rate and tax amount from the expense.
+- **Cancel** — Keeps the tax data on the expense.
+
+Alternatively, you can enable tax tracking on the workspace to edit the tax details directly.
 
 ## What if my workspace has multiple tax rates?
 

@@ -1,6 +1,10 @@
 import type {ValueOf} from 'type-fest';
+import {getErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
+import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
@@ -8,7 +12,6 @@ import Base64URL from '@src/utils/Base64URL';
 
 /**
  * Passkey authentication type metadata.
- * Not part of SecureStore — passkeys bypass the native secure store entirely.
  */
 const PASSKEY_AUTH_TYPE = {
     NAME: 'Passkey',
@@ -111,24 +114,53 @@ function buildAllowedCredentialDescriptors(credentials: Array<{id: string; trans
         transports: c.transports?.filter(isSupportedTransport),
     }));
 }
-
-function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason {
-    return Object.values<string>(VALUES.REASON.WEBAUTHN).includes(name);
+/**
+ * Extracts the AAGUID (Authenticator Attestation Globally Unique Identifier) from WebAuthn authenticatorData.
+ * The AAGUID occupies bytes 37-52: after rpIdHash (32 bytes), flags (1 byte), and signCount (4 bytes).
+ * Returns a UUID-formatted string, or empty string if authenticatorData is too short.
+ */
+function extractAAGUID(authData: ArrayBuffer): string | undefined {
+    const bytes = new Uint8Array(authData);
+    if (bytes.length < 53) {
+        return undefined;
+    }
+    const aaguidBytes = bytes.slice(37, 53);
+    const hex = Array.from(aaguidBytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32)].join('-');
 }
 
-/** Decodes WebAuthn DOMException errors and maps them to authentication error reasons. */
-function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
-    if (error instanceof DOMException && isWebAuthnReason(error.name)) {
-        return error.name;
+/**
+ * Maps DOMException.name strings to REASON values.
+ * Follows the same pattern as SIGN_ERROR_CODE_MAP in NativeBiometricsHSM/helpers.ts.
+ */
+const DOM_EXCEPTION_NAME_MAP: Record<string, MultifactorAuthenticationReason> = {
+    NotAllowedError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.NOT_ALLOWED,
+    InvalidStateError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.INVALID_STATE,
+    SecurityError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.SECURITY_ERROR,
+    AbortError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.ABORT,
+    NotSupportedError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.NOT_SUPPORTED,
+    ConstraintError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.CONSTRAINT_ERROR,
+    TimeoutError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.TIMEOUT,
+    DataError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.DATA_ERROR,
+    UnknownError: VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.UNKNOWN,
+};
+
+/** Decodes WebAuthn DOMException errors and maps them to MFAError. */
+function decodeWebAuthnError(error: unknown): MFAError {
+    Log.info('[Passkey] WebAuthn error', false, {error: getErrorMessage(error)});
+    if (error instanceof DOMException) {
+        const reason = DOM_EXCEPTION_NAME_MAP[error.name];
+        if (reason) {
+            return createLocalMFAError(reason, error.message);
+        }
     }
 
-    return VALUES.REASON.WEBAUTHN.GENERIC;
+    return createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.WEBAUTHN.UNRECOGNIZED, getErrorMessage(error));
 }
 
 export {
     PASSKEY_AUTH_TYPE,
     arrayBufferToBase64URL,
-    base64URLToArrayBuffer,
     isWebAuthnSupported,
     buildPublicKeyCredentialCreationOptions,
     buildPublicKeyCredentialRequestOptions,
@@ -136,5 +168,6 @@ export {
     authenticateWithPasskey,
     buildAllowedCredentialDescriptors,
     isSupportedTransport,
+    extractAAGUID,
     decodeWebAuthnError,
 };

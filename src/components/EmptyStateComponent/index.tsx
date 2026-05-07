@@ -18,6 +18,7 @@ function EmptyStateComponent({
     title,
     titleStyles,
     subtitle,
+    subtitleStyles,
     children,
     headerStyles,
     cardStyles,
@@ -54,11 +55,11 @@ function EmptyStateComponent({
                         {subtitleText ??
                             (doesSubtitleContainCustomEmojiAndMore ? (
                                 <TextWithEmojiFragment
-                                    style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}
+                                    style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, subtitleStyles]}
                                     message={subtitle}
                                 />
                             ) : (
-                                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
+                                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, subtitleStyles]}>{subtitle}</Text>
                             ))}
                         {children}
                         {!isEmpty(buttons) && (

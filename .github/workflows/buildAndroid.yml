@@ -178,6 +178,8 @@ jobs:
           sign: true
           re-sign: true
           ad-hoc: ${{ inputs.variant == 'Adhoc' }}
+          # We don't need Rock to setup java, because we already ran the setup-java action above
+          setup-java: false
           keystore-file: './upload-key.keystore'
           keystore-store-file: 'upload-key.keystore'
           keystore-store-password: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}

@@ -1,13 +1,13 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 type SearchPageFooterProps = {
     count: number | undefined;
@@ -20,6 +20,7 @@ function SearchPageFooter({count, total, currency}: SearchPageFooterProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();

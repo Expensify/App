@@ -1,5 +1,6 @@
 import {emailSelector} from '@selectors/Session';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -12,6 +13,7 @@ import {shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 
 function SystemChatReportFooterMessage() {
     const {translate} = useLocalize();
@@ -20,16 +22,22 @@ function SystemChatReportFooterMessage() {
     const {environmentURL} = useEnvironment();
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [choice] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
-    const adminChatReportID = useMemo(() => {
-        const adminPolicy = activePolicyID
-            ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]
-            : Object.values(policies ?? {}).find((policy) => shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins);
+    const adminChatReportIDSelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>) => {
+            const adminPolicy = activePolicyID
+                ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]
+                : Object.values(allPolicies ?? {}).find(
+                      (policy) => shouldShowPolicy(policy, false, currentUserLogin) && policy?.role === CONST.POLICY.ROLE.ADMIN && policy?.chatReportIDAdmins,
+                  );
 
-        return String(adminPolicy?.chatReportIDAdmins ?? CONST.DEFAULT_NUMBER_ID);
-    }, [activePolicyID, policies, currentUserLogin]);
+            return String(adminPolicy?.chatReportIDAdmins ?? CONST.DEFAULT_NUMBER_ID);
+        },
+        [activePolicyID, currentUserLogin],
+    );
+
+    const [adminChatReportID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: adminChatReportIDSelector});
 
     const [adminChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${adminChatReportID}`);
 

@@ -19,6 +19,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const {LaptopReviewCard} = useMemoizedLazyIllustrations(['LaptopReviewCard']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -33,7 +34,10 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             >
                 <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-                    <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false)}> {CONST.CONCIERGE_CHAT_NAME}</TextLink>
+                    <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false)}>
+                        {' '}
+                        {CONST.CONCIERGE_CHAT_NAME}
+                    </TextLink>
                     .
                 </Text>
             </EmptyStateComponent>

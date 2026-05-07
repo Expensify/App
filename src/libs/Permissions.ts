@@ -29,14 +29,24 @@ function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?:
 }
 
 /**
- * Track flows are temporarily disabled.
+ * Track flows ("Share with my accountant", "Categorize it") are hardcoded off.
+ * TODO: Remove this gate and its call sites once the new track flows feature is complete.
+ * See: https://github.com/Expensify/Expensify/issues/504214
  */
 function canUseTrackFlows(): boolean {
+    return false;
+}
+
+/**
+ * Private notes are temporarily disabled.
+ */
+function canUsePrivateNotes(): boolean {
     return false;
 }
 
 export default {
     canUseLinkPreviews,
     canUseTrackFlows,
+    canUsePrivateNotes,
     isBetaEnabled,
 };
