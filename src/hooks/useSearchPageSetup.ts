@@ -3,7 +3,7 @@ import {useEffect} from 'react';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {openSearch, search} from '@libs/actions/Search';
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {hasDeferredWrite, waitForDeferredFlush} from '@libs/deferredLayoutWrite';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import useNetwork from './useNetwork';
@@ -54,8 +54,15 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         if (isSnapshotDataLoaded || isSnapshotSearchLoading) {
             return;
         }
-        const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
+        const fireSearch = () => search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: false});
+
+        // A deferred SEARCH write has not entered the sequential queue yet, so waitForWrites
+        // cannot see it. Wait for the flush first, then let waitForWrites block on its response.
+        if (hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            waitForDeferredFlush(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH).then(fireSearch);
+            return;
+        }
+        fireSearch();
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {

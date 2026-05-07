@@ -49,6 +49,21 @@ type DeferredChannel = {
 
 const channels = new Map<string, DeferredChannel>();
 
+// Resolvers waiting for a channel's write() to execute. Populated by
+// waitForDeferredFlush() and drained whenever the channel's callback is about
+// to run (normal flush, reserved fast-path) or the channel is torn down without
+// a write (reservation safety timeout).
+const flushWaiters = new Map<string, Array<() => void>>();
+
+function resolveFlushWaiters(key: string) {
+    const waiters = flushWaiters.get(key);
+    if (!waiters) {
+        return;
+    }
+    flushWaiters.delete(key);
+    waiters.forEach((resolve) => resolve());
+}
+
 // Watch keys that outlive their channel. When a reserved channel is flushed
 // immediately (flushRequested path), the channel is deleted but the watch key
 // must remain accessible so Search's lazy getOptimisticWatchKey() resolution
@@ -84,6 +99,7 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
                     flushedWatchKeys.set(key, optimisticWatchKey);
                 }
                 callback();
+                resolveFlushWaiters(key);
                 return;
             }
         } else {
@@ -112,6 +128,7 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
 function flushDeferredWrite(key: string) {
     const channel = channels.get(key);
     if (!channel) {
+        resolveFlushWaiters(key);
         return;
     }
 
@@ -123,6 +140,7 @@ function flushDeferredWrite(key: string) {
     clearChannelTimeout(channel);
     channels.delete(key);
     channel.write();
+    resolveFlushWaiters(key);
 }
 
 /**
@@ -154,6 +172,7 @@ function reserveDeferredWriteChannel(key: string) {
     const safetyTimeoutId = setTimeout(() => {
         Log.warn(`[DeferredLayoutWrite] Safety timeout fired for reserved channel "${key}" - the real write was never registered`);
         channels.delete(key);
+        resolveFlushWaiters(key);
     }, DEFAULT_SAFETY_TIMEOUT_MS);
 
     channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true});
@@ -161,6 +180,22 @@ function reserveDeferredWriteChannel(key: string) {
 
 function hasDeferredWrite(key: string): boolean {
     return channels.has(key);
+}
+
+/**
+ * Returns a Promise that resolves once the deferred write for `key` has executed
+ * (normal flush or reserved fast-path) or the channel has been torn down by a
+ * safety timeout. Resolves immediately when no channel is registered.
+ */
+function waitForDeferredFlush(key: string): Promise<void> {
+    if (!channels.has(key)) {
+        return Promise.resolve();
+    }
+    return new Promise<void>((resolve) => {
+        const list = flushWaiters.get(key) ?? [];
+        list.push(resolve);
+        flushWaiters.set(key, list);
+    });
 }
 
 /**
@@ -245,6 +280,17 @@ function resetForTesting() {
     }
     channels.clear();
     flushedWatchKeys.clear();
+    flushWaiters.clear();
 }
 
-export {registerDeferredWrite, reserveDeferredWriteChannel, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey, deferOrExecuteWrite, resetForTesting};
+export {
+    registerDeferredWrite,
+    reserveDeferredWriteChannel,
+    flushDeferredWrite,
+    cancelDeferredWrite,
+    hasDeferredWrite,
+    waitForDeferredFlush,
+    getOptimisticWatchKey,
+    deferOrExecuteWrite,
+    resetForTesting,
+};
