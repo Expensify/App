@@ -1088,9 +1088,17 @@ function rejectMoneyRequestsOnSearch(
             rejectMoneyRequestInBulk(reportID, comment, policy, selectedTransactionIDs, currentUserAccountIDParam, currentUserLogin, betas, hash);
         } else {
             // Share a single destination ID across all rejections from the same source report
-            const sharedRejectOptions = {sharedRejectedToReportID: generateReportID()};
+            const sharedRejectedToReportID = generateReportID();
+            let existingRejectedReport: OnyxEntry<Report>;
+            const setExistingRejectedReport = (nextRejectedReport: OnyxEntry<Report>) => {
+                existingRejectedReport = nextRejectedReport;
+            };
             for (const transactionID of selectedTransactionIDs) {
-                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, sharedRejectOptions);
+                rejectMoneyRequest(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, {
+                    sharedRejectedToReportID,
+                    existingRejectedReport,
+                    setExistingRejectedReport,
+                });
             }
         }
         if (isSingleReport && areAllExpensesSelected && !isPolicyDelayedSubmissionEnabled) {

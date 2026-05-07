@@ -75,6 +75,7 @@ type RejectMoneyRequestData = {
 type RejectMoneyRequestOptions = {
     sharedRejectedToReportID?: string;
     existingRejectedReport?: OnyxEntry<OnyxTypes.Report>;
+    setExistingRejectedReport?: (report: OnyxEntry<OnyxTypes.Report>) => void;
 };
 
 function dismissRejectUseExplanation() {
@@ -119,7 +120,6 @@ function prepareRejectMoneyRequestData(
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
     const allTransactionViolations = getAllTransactionViolations();
-    const sharedRejectOptions = options;
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const transactionAmount = getAmount(transaction);
@@ -371,9 +371,7 @@ function prepareRejectMoneyRequestData(
                 ...existingOpenReport,
                 total: originalRejectedReportTotal - transactionAmount,
             };
-            if (sharedRejectOptions) {
-                sharedRejectOptions.existingRejectedReport = movedToReport;
-            }
+            options?.setExistingRejectedReport?.(movedToReport);
             rejectedToReportID = existingOpenReport.reportID;
 
             const [, , iouAction] = buildOptimisticMoneyRequestEntities({
@@ -485,9 +483,7 @@ function prepareRejectMoneyRequestData(
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
             expenseCreatedReportActionID = createdActionForExpenseReport.reportActionID;
             newExpenseReport.parentReportActionID = reportPreviewAction.reportActionID;
-            if (sharedRejectOptions) {
-                sharedRejectOptions.existingRejectedReport = newExpenseReport;
-            }
+            options?.setExistingRejectedReport?.(newExpenseReport);
             optimisticData.push(
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
