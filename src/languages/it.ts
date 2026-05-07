@@ -9040,7 +9040,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
     },
     export: {
         basicExport: 'Esportazione di base',
-        currentView: 'Esporta vista corrente',
         reportLevelExport: 'Tutti i dati - livello report',
         expenseLevelExport: 'Tutti i dati - livello spesa',
         exportInProgress: 'Esportazione in corso',

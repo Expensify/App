@@ -8996,7 +8996,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     },
     export: {
         basicExport: 'Podstawowy eksport',
-        currentView: 'Eksportuj bieżący widok',
         reportLevelExport: 'Wszystkie dane – poziom raportu',
         expenseLevelExport: 'Wszystkie dane – poziom wydatku',
         exportInProgress: 'Trwa eksport',

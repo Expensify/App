@@ -9071,7 +9071,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     },
     export: {
         basicExport: 'Export basique',
-        currentView: 'Exporter la vue actuelle',
         reportLevelExport: 'Toutes les données - niveau note de frais',
         expenseLevelExport: 'Toutes les données - niveau dépense',
         exportInProgress: 'Export en cours',

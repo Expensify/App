@@ -9050,7 +9050,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
     export: {
         basicExport: 'Standardexport',
-        currentView: 'Aktuelle Ansicht exportieren',
         reportLevelExport: 'Alle Daten – Berichtsebene',
         expenseLevelExport: 'Alle Daten – Ausgabenebene',
         exportInProgress: 'Export wird ausgeführt',
