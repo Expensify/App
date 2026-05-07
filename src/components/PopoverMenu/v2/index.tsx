@@ -1,7 +1,7 @@
 // Named re-exports + `sideEffects: false` keep `import *` tree-shakeable on webpack today and Metro when Expo's flags flip on.
 
-export {Content, ScrollableContent, VirtualizedContent} from './content';
-export type {ContentProps, ScrollableContentProps, VirtualizedContentProps} from './content';
+export {Content, ScrollableContent} from './content';
+export type {ContentProps, ScrollableContentProps} from './content';
 
 export {Root, useIsPopoverVisible, usePopoverTrigger, useSecondaryInteractionTrigger} from './root';
 export type {AnchorRef, RootProps, UsePopoverTriggerResult, UseSecondaryInteractionTriggerResult} from './root';

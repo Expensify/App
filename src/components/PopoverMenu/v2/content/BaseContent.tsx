@@ -16,7 +16,7 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentCloseContext, ContentFocusContext, ContentItemActionsContext, ContentNavigationContext, ContentSubActionsContext} from './ContentContext';
 import useContentController from './useContentController';
 
-/** Props exposed to callers of `<Content>`, `<ScrollableContent>`, and `<VirtualizedContent>`. */
+/** Props exposed to callers of `<Content>` and `<ScrollableContent>`. */
 type BasePopoverProps = {
     children: ReactNode;
     anchorAlignment?: AnchorAlignment;

@@ -68,11 +68,10 @@ No `shouldOverlay` opt-out: item selection closes the popover synchronously in t
 
 ### Content variants
 
-Three variants cover the full N regime:
+Two variants cover the bounded-N regime:
 
 - **`<Content>`** — fits content; default. Use when the menu has bounded rows that comfortably fit (≤ ~20 typical).
 - **`<ScrollableContent>`** — wraps children in a `<ScrollView>` capped at window height. Use when N is bounded but might exceed viewport.
-- **`<VirtualizedContent>`** — FlashList-backed; takes `data` + `keyExtractor` + `renderItem` instead of children. Use when N is genuinely unbounded (hundreds+). Constraints: only `<Item>`/`<CheckmarkItem>` rows allowed (no `<Sub>`); arrow-key nav is limited to currently-visible rows.
 
 ### Anchor
 
@@ -83,7 +82,7 @@ The pressable attached to a trigger hook's `ref` IS the anchor — there is no s
 Grouped by feature, not by file type. Each subfolder owns its components, contexts, and hooks, and re-exports its public surface through a barrel (`index.ts`); the top-level [`index.tsx`](./index.tsx) re-exports each barrel.
 
 - **`root/`** — `<Root>` provider, the trigger hooks (`usePopoverTrigger`, `useSecondaryInteractionTrigger`), the visibility hook (`useIsPopoverVisible`), and the shared anchor-opener helper.
-- **`content/`** — public surface variants (`<Content>`, `<ScrollableContent>`, `<VirtualizedContent>`) plus the internal scaffolding they share.
+- **`content/`** — public surface variants (`<Content>`, `<ScrollableContent>`) plus the internal scaffolding they share.
 - **`rows/`** — leaf rows rendered inside content (`<Item>`, `<CheckmarkItem>`, `<Label>`, `<Header>`, `<Separator>`, `<Group>`).
 - **`sub/`** — `<Sub>` plus its compound members `<Sub.Trigger>` and `<Sub.Content>`.
 
@@ -102,8 +101,8 @@ These are enforced at runtime — not just by convention.
 | Component / Hook | Must be rendered / called inside |
 |---|---|
 | `usePopoverTrigger`, `useSecondaryInteractionTrigger`, `useIsPopoverVisible` | `Root` |
-| `Content`, `ScrollableContent`, `VirtualizedContent` | `Root` |
-| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub` | `Content` or `ScrollableContent` (transitively, including inside `<Sub.Content>`). `<VirtualizedContent>` only allows `Item` / `CheckmarkItem` |
+| `Content`, `ScrollableContent` | `Root` |
+| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub` | `Content` or `ScrollableContent` (transitively, including inside `<Sub.Content>`) |
 | `Sub.Trigger`, `Sub.Content` | `Sub` |
 
 Violating any of these throws synchronously during render. The exception isn't `__DEV__`-gated, so a slip past local dev fails loudly on staging instead of silently corrupting layout.

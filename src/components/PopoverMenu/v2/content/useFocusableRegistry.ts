@@ -17,7 +17,7 @@ type UseFocusableRegistryResult = {
     resetFocus: () => void;
 };
 
-/** Registry is rebuilt as `new Map(prev)` per change — in-place mutation breaks RC memoization of action closures (allocation cost noted in plan §11). */
+/** Item registry, focus index, and Enter shortcut for focusable rows. */
 function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRegistryResult {
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
     const orderedIDs = useOrderedIDs(registry);
@@ -34,6 +34,7 @@ function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRe
     const actions: FocusableRegistryActions = {
         registerItem: (id, item) =>
             setRegistry((prev) => {
+                // Rebuild via `new Map(prev)` — state must be replaced, not mutated: https://react.dev/reference/rules/components-and-hooks-must-be-pure#state
                 const next = new Map(prev);
                 next.set(id, item);
                 return next;

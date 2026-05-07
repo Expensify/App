@@ -58,29 +58,6 @@ jest.mock('@components/OfflineWithFeedback', () => {
     return MockOfflineWithFeedback;
 });
 
-// Mock renders rows synchronously so VirtualizedContent items reach `<MenuItem>` capture.
-jest.mock('@shopify/flash-list', () => {
-    /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo. */
-    const ReactLocal = jest.requireActual('react');
-    const RN = jest.requireActual('react-native');
-    function FlashList<T>({
-        data,
-        renderItem,
-        keyExtractor,
-    }: {
-        data: T[];
-        renderItem: (info: {item: T; index: number; target: string}) => ReactNode;
-        keyExtractor: (item: T, index: number) => string;
-    }) {
-        return ReactLocal.createElement(
-            RN.View,
-            null,
-            ...data.map((item, index) => ReactLocal.createElement(ReactLocal.Fragment, {key: keyExtractor(item, index)}, renderItem({item, index, target: 'Cell'}))),
-        );
-    }
-    return {FlashList};
-});
-
 jest.mock('@components/CompactMenuContext', () => {
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo. */
     const ReactActual = jest.requireActual('react');
@@ -1332,33 +1309,6 @@ describe('PopoverMenu V2', () => {
             press('More');
             expect(findItemByTitle('USD')).toBeUndefined();
             expect(findItemByTitle('Inner')).toBeDefined();
-        });
-    });
-
-    describe('VirtualizedContent', () => {
-        it('renders rows from `data` via FlashList', () => {
-            const data = [
-                {id: '1', label: 'Alpha'},
-                {id: '2', label: 'Beta'},
-                {id: '3', label: 'Gamma'},
-            ];
-            render(
-                <Harness initialOpen>
-                    <PopoverMenu.VirtualizedContent
-                        data={data}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({item}) => (
-                            <PopoverMenu.Item
-                                text={item.label}
-                                onSelect={() => {}}
-                            />
-                        )}
-                    />
-                </Harness>,
-            );
-            expect(findItemByTitle('Alpha')).toBeDefined();
-            expect(findItemByTitle('Beta')).toBeDefined();
-            expect(findItemByTitle('Gamma')).toBeDefined();
         });
     });
 

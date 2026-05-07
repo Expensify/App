@@ -21,7 +21,7 @@ type MeasurableRef = RefObject<View | null>;
 
 type Rect = {x: number; y: number} & Dimensions;
 
-/** Sync popover-position math, shared by the async measure-and-resolve hook and any caller that already has a measured rect (e.g. from `getBoundingClientRect()`). */
+/** Sync alignment math — for callers that already have a measured rect. */
 function computeAnchorPosition(rect: Rect, alignment: AnchorAlignment): AnchorPosition {
     const {x, y, width, height} = rect;
     let horizontal = x + width;
