@@ -55,11 +55,19 @@ function getTransactionDirectionSign(transaction: Transaction): number | undefin
 }
 
 function hasPendingScanStateAndUnknownDirection(transaction: Transaction): boolean {
-    return (
-        transaction.receipt?.source !== undefined &&
-        (transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_READY || transaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANNING) &&
-        getTransactionDirectionSign(transaction) === undefined
-    );
+    if (transaction.receipt?.source === undefined) {
+        return false;
+    }
+
+    if (transaction.receipt?.state !== CONST.IOU.RECEIPT_STATE.SCAN_READY && transaction.receipt?.state !== CONST.IOU.RECEIPT_STATE.SCANNING) {
+        return false;
+    }
+
+    if (getTransactionDirectionSign(transaction) !== undefined) {
+        return false;
+    }
+
+    return true;
 }
 
 function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
@@ -109,10 +117,7 @@ function getReportPreviewSenderID({
     const loadedTransactionCount = transactions?.length ?? 0;
     const childMoneyRequestCount = action?.childMoneyRequestCount ?? 0;
     const activeMoneyRequestCount = iouReport?.transactionCount ?? childMoneyRequestCount;
-    const activeIOUActions =
-        iouActions?.filter((iouAction) => {
-            return !isExplicitlyDeletedIOUAction(iouAction);
-        }) ?? [];
+    const activeIOUActions = iouActions?.filter((iouAction) => !isExplicitlyDeletedIOUAction(iouAction)) ?? [];
     const uniqueIOUActionActorMap = new Map<string, number>();
 
     for (const iouAction of activeIOUActions) {
@@ -140,7 +145,7 @@ function getReportPreviewSenderID({
     const hasActorAccountIDForEachTransaction =
         activeIOUActions.length > 0 && !!transactionActorAccountIDs && transactionActorAccountIDs.length > 0 && transactionActorAccountIDs.every((accountID) => accountID !== undefined);
 
-    // 1. Use actorAccountID when it is available for every transaction. Otherwise, fall back to known transaction direction only.
+    // 1. Use actorAccountID when it is available for every transaction.
     if (hasActorAccountIDForEachTransaction) {
         const areAllTransactionsCreatedByOneActor = new Set(transactionActorAccountIDs).size < 2;
 
@@ -148,8 +153,8 @@ function getReportPreviewSenderID({
             return undefined;
         }
     } else {
-        // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
-        // We have to do it this way because there can be a case when actions are not available
+        // 1. If actor data is unavailable, fall back to transaction direction.
+        // We use amount sign here because there can be cases where actions are not available.
         // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
         const transactionSigns = transactions?.map((transaction) => getTransactionDirectionSign(transaction)) ?? [];
         const transactionsWithUnknownDirection = (transactions ?? []).filter((transaction, index) => transactionSigns.at(index) === undefined);
@@ -232,12 +237,14 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         }
         const activeMoneyRequestCount = iouReport?.transactionCount ?? action?.childMoneyRequestCount ?? 0;
         const allReportTransactions = Object.values(reportTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
-        const orphanedInclusiveTransactions = getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
+        const nonDeletedTransactionsIncludingOrphans = getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
         const filteredTransactions =
-            orphanedInclusiveTransactions.length < allReportTransactions.length ? getAllNonDeletedTransactions(reportTransactions, iouActions ?? []) : orphanedInclusiveTransactions;
+            nonDeletedTransactionsIncludingOrphans.length < allReportTransactions.length
+                ? getAllNonDeletedTransactions(reportTransactions, iouActions ?? [])
+                : nonDeletedTransactionsIncludingOrphans;
 
         if (filteredTransactions.length < allReportTransactions.length && filteredTransactions.length < activeMoneyRequestCount) {
-            return orphanedInclusiveTransactions;
+            return nonDeletedTransactionsIncludingOrphans;
         }
 
         return filteredTransactions;
