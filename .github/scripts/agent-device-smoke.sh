@@ -21,10 +21,10 @@ SESSION=ci
 APP=com.expensify.chat.dev
 APK_GLOB="android/app/build/outputs/apk/development/debug/*.apk"
 METRO_READY_TIMEOUT=120
-SIGNIN_LOAD_TIMEOUT=300 # JS bundle delivery + React mount + Onyx hydrate
-                        # 120s was enough on a 4-core runner but free
-                        # 2-core ubuntu-latest is much slower; first
-                        # bundle delivery alone can take 2-3 min.
+SIGNIN_LOAD_TIMEOUT=360 # JS bundle delivery + React mount + Onyx hydrate.
+                        # Free 2-core ubuntu-latest is much slower than
+                        # local Pixel 8 — observed ~290s on a real run,
+                        # so 360 gives ~70s safety margin.
 ADVANCE_TIMEOUT=60      # SignIn -> magic-code transition after Continue
 SMOKE_EMAIL=rustam.zeinalov@callstack.com
 
@@ -128,15 +128,30 @@ if ! grep -q "Foreground app: $APP" "$ART/appstate.txt"; then
   exit 1
 fi
 
-# Drive the email-submit interaction. Selector by label rather than @ref:
-# refs renumber per snapshot and the field's label is stable.
-echo "::group::fill email + press Continue"
-agent-device fill 'label="Phone or email"' "$SMOKE_EMAIL" --session "$SESSION"
+# Drive the email-submit interaction.
+#
+# Use @ref discovered from the snapshot above rather than a label= selector.
+# The Android label is "Phone or email," (with a trailing comma) where the
+# iOS label has no comma; agent-device's selector form does exact-match,
+# so the cross-platform-friendly path is to parse the ref out of the
+# snapshot we already captured and act on it directly. Refs are stable
+# inside the same session as long as we don't re-snapshot between.
+EMAIL_REF=$(grep -oE '@e[0-9]+ \[text-field\] "Phone or email' "$ART/snapshot-signin.txt" \
+            | head -1 | grep -oE '@e[0-9]+')
+CONTINUE_REF=$(grep -oE '@e[0-9]+ \[button\] "Continue"' "$ART/snapshot-signin.txt" \
+              | head -1 | grep -oE '@e[0-9]+')
+
+if [ -z "$EMAIL_REF" ] || [ -z "$CONTINUE_REF" ]; then
+  echo "::error::could not parse email/continue refs from snapshot-signin.txt"
+  echo "--- snapshot-signin.txt: ---"
+  cat "$ART/snapshot-signin.txt"
+  exit 1
+fi
+
+echo "::group::fill email ($EMAIL_REF) + press Continue ($CONTINUE_REF)"
+agent-device fill "$EMAIL_REF" "$SMOKE_EMAIL" --session "$SESSION"
 agent-device screenshot "$ART/email-filled.png" --session "$SESSION"
-# `--first` is unsupported on `press` (warning is benign — the action
-# still resolves selector ambiguity to the on-screen instance).
-agent-device press 'label="Continue"' --session "$SESSION" 2>&1 \
-  | grep -vE '^Warning:' || true
+agent-device press "$CONTINUE_REF" --session "$SESSION"
 echo "::endgroup::"
 
 # Wait for advance to magic-code screen. Detection: the new field has
