@@ -16,6 +16,7 @@ function VideoPopoverMenu() {
 
     const showDownload = !isOffline && !isLocalFile;
     const playbackSpeedLabel = translate('videoPlayer.playbackSpeed');
+    const normalSpeedLabel = translate('videoPlayer.normal');
 
     return (
         <PopoverMenu.ScrollableContent>
@@ -35,7 +36,7 @@ function VideoPopoverMenu() {
                     {CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => (
                         <PopoverMenu.CheckmarkItem
                             key={speed}
-                            text={speed === 1 ? translate('videoPlayer.normal') : speed.toString()}
+                            text={speed === 1 ? normalSpeedLabel : speed.toString()}
                             isSelected={currentPlaybackSpeed === speed}
                             shouldPutLeftPaddingWhenNoIcon
                             onSelect={() => updatePlaybackSpeed(speed)}
