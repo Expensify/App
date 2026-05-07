@@ -1,7 +1,7 @@
 import {NavigationContext} from '@react-navigation/core';
 import {use, useEffect} from 'react';
 
-/** Soft — no-ops outside a `<NavigationContainer>` so tests / Storybook / isolated renders don't crash. */
+/** Closes the popover when the parent screen blurs. Soft-reads `NavigationContext` so isolated renders (tests / Storybook) don't crash. */
 function useCloseOnScreenBlur(close: () => void): void {
     const navigation = use(NavigationContext);
     useEffect(() => {
