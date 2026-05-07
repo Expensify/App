@@ -139,6 +139,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     // Billing keys
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -253,6 +254,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
+                conciergeReportID,
                 currentUserAccountID: currentUserPersonalDetails?.accountID,
                 currentUserLogin: currentUserPersonalDetails?.email ?? '',
             });
@@ -379,7 +381,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     duplicateReportAction({
                         sourceReport: moneyRequestReport,
@@ -400,6 +401,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         transactionViolations: allTransactionViolations,
                         translate,
                         recentWaypoints: recentWaypoints ?? [],
+                        conciergeReportID,
                         currentUserAccountID: currentUserPersonalDetails?.accountID,
                         currentUserLogin: currentUserPersonalDetails?.email ?? '',
                     });
@@ -495,7 +497,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         if (goBackRoute) {
                             navigateOnDeleteExpense(goBackRoute);
                         }
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, false);
                             removeTransaction(transaction.transactionID);
@@ -520,7 +521,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.goBack(backToRoute);
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         deleteAppReport({
                             report: moneyRequestReport,

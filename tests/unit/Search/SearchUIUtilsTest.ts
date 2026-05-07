@@ -2511,8 +2511,8 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                     data: searchResults.data,
-                    currentAccountID: 20745,
-                    currentUserEmail: '',
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
@@ -2606,8 +2606,8 @@ describe('SearchUIUtils', () => {
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     data: searchResults.data,
-                    currentAccountID: 2074551,
-                    currentUserEmail: '',
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
                     translate: translateLocal,
                     formatPhoneNumber,
                     bankAccountList: {},
@@ -6314,7 +6314,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             })
@@ -6399,7 +6398,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6460,7 +6458,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6505,7 +6502,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6526,7 +6522,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6554,7 +6549,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6582,7 +6576,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: mockSavedSearches,
                 isOffline: true,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6614,7 +6607,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6646,7 +6638,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6690,7 +6681,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6727,7 +6717,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6784,7 +6773,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6828,7 +6816,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6898,7 +6885,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -6972,7 +6958,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -7047,7 +7032,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: true,
             });
@@ -7071,7 +7055,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             })
@@ -7145,7 +7128,6 @@ describe('SearchUIUtils', () => {
                 savedSearches: {},
                 isOffline: false,
                 defaultExpensifyCard: undefined,
-                shouldRedirectToExpensifyClassic: false,
                 draftTransactionIDs: [],
                 isTrackIntentUser: false,
             });
@@ -9745,5 +9727,44 @@ describe('getCardDescriptionForSearchTable', () => {
 
     it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
         expect(getCardDescriptionForSearchTable(baseCompanyCard, translateLocal)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
+    });
+});
+
+describe('getWithdrawalStatusOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns three options keyed by SETTLEMENT_STATUS values in enum order', () => {
+        const options = SearchUIUtils.getWithdrawalStatusOptions(translateLocal);
+        expect(options).toEqual([
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.PENDING, text: 'Pending'},
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.CLEARED, text: 'Cleared'},
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.FAILED, text: 'Failed'},
+        ]);
+    });
+});
+
+describe('getWithdrawalStatusDisplayText', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns undefined for empty input', () => {
+        expect(SearchUIUtils.getWithdrawalStatusDisplayText(undefined, translateLocal)).toBeUndefined();
+        expect(SearchUIUtils.getWithdrawalStatusDisplayText([], translateLocal)).toBeUndefined();
+    });
+
+    it('returns the translated label for a single-element selection', () => {
+        expect(SearchUIUtils.getWithdrawalStatusDisplayText([CONST.SEARCH.SETTLEMENT_STATUS.PENDING], translateLocal)).toBe('Pending');
+    });
+
+    it('joins translated labels for a multi-value selection, preserving options order', () => {
+        expect(
+            SearchUIUtils.getWithdrawalStatusDisplayText(
+                [CONST.SEARCH.SETTLEMENT_STATUS.FAILED, CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
+                translateLocal,
+            ),
+        ).toBe('Pending, Cleared, Failed');
     });
 });

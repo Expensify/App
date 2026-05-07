@@ -86,6 +86,13 @@ type OpenPersonalBankAccountSetupViewProps = {
     isUserValidated?: boolean;
 };
 
+type VBBAOnyxKey =
+    | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
+    | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+    | typeof ONYXKEYS.ONFIDO_TOKEN
+    | typeof ONYXKEYS.ONFIDO_APPLICANT_ID
+    | typeof ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN;
+
 function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
@@ -311,7 +318,35 @@ function updateAddPersonalBankAccountDraft(bankData: Partial<PersonalBankAccount
 /**
  * Helper method to build the Onyx data required during setup of a Verified Business Bank Account
  */
-function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = true): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> {
+function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = true): OnyxData<VBBAOnyxKey> {
+    const failureData: Array<OnyxUpdate<VBBAOnyxKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+            value: {
+                isLoading: false,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+            value: null,
+        },
+    ];
+    if (currentStep !== CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ONFIDO_TOKEN,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.ONFIDO_APPLICANT_ID,
+            value: null,
+        });
+    }
+
     return {
         optimisticData: [
             {
@@ -339,16 +374,7 @@ function getVBBADataForOnyx(currentStep?: BankAccountStep, shouldShowLoading = t
                 },
             },
         ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {
-                    isLoading: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
-                },
-            },
-        ],
+        failureData,
     };
 }
 
@@ -359,10 +385,7 @@ function addBusinessWebsiteForDraft(websiteUrl: string) {
 /**
  * Get the Onyx data required to set the last used payment method to VBBA for a given policyID
  */
-function getOnyxDataForConnectingVBBAAndLastPaymentMethod(
-    policyID?: string,
-    lastPaymentMethod?: LastPaymentMethodType | string,
-): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD> {
+function getOnyxDataForConnectingVBBAAndLastPaymentMethod(policyID?: string, lastPaymentMethod?: LastPaymentMethodType | string): OnyxData<VBBAOnyxKey> {
     const onyxData = getVBBADataForOnyx();
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
 
