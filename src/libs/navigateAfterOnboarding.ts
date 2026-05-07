@@ -6,8 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingRHPVariant} from '@src/types/onyx';
 import {setDisableDismissOnEscape} from './actions/Modal';
-import SidePanelActions from './actions/SidePanel';
-import {setOnboardingRHPVariant} from './actions/Welcome';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
@@ -126,32 +124,4 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     });
 }
 
-/**
- * After creating or joining a Submit workspace during onboarding,
- * navigate to Workspace > Categories with the side panel open so
- * the #admins room is visible in Concierge Anywhere.
- */
-function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, isSmallScreenWidth = false) {
-    setDisableDismissOnEscape(false);
-
-    if (!policyID) {
-        Navigation.navigate(ROUTES.HOME);
-        return;
-    }
-
-    setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-    Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-        SidePanelActions.openSidePanel(!isSmallScreenWidth);
-    });
-}
-
-function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, isSmallScreenWidth = false) {
-    Navigation.dismissModal();
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateToSubmitWorkspaceAfterOnboarding(policyID, isSmallScreenWidth);
-    });
-}
-
-export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue};
