@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
@@ -19,7 +20,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyCategoryAttendeesRequired, setPolicyCategoryDescriptionRequired} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type CategoryRequiredFieldsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS>;
@@ -34,6 +35,7 @@ function CategoryRequiredFieldsPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const decodedCategoryName = getDecodedCategoryName(categoryName);
+    const backPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(categoryName), ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
 
     const policyCategory = policyCategories?.[categoryName];
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
@@ -52,7 +54,7 @@ function CategoryRequiredFieldsPage({
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.categoryRules.requiredFieldsTitle')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView
                     contentContainerStyle={[styles.flexGrow1]}

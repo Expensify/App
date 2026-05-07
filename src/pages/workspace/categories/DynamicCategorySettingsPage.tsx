@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -45,17 +46,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type CategorySettingsPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>
+type DynamicCategorySettingsPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS>;
 
-function CategorySettingsPage({
-    route: {
-        params: {backTo, policyID, categoryName},
-        name,
-    },
-    navigation,
-}: CategorySettingsPageProps) {
+function DynamicCategorySettingsPage({route, navigation}: DynamicCategorySettingsPageProps) {
+    const {policyID, categoryName} = route.params;
+    const {name} = route;
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -73,6 +70,8 @@ function CategorySettingsPage({
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
+    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.path);
     const {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
@@ -94,7 +93,7 @@ function CategorySettingsPage({
     const policyHasTags = hasTags(policyTags);
 
     const navigateBack = () => {
-        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : backPath);
     };
 
     const isFocused = useIsFocused();
@@ -178,15 +177,20 @@ function CategorySettingsPage({
         });
     }, [showConfirmModal, translate]);
 
+    const policyCategoryName = policyCategory?.name;
+
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean) => {
+            if (!policyCategoryName) {
+                return;
+            }
             if (shouldPreventDisableOrDelete) {
                 showCannotDeleteOrDisableLastCategoryModal();
                 return;
             }
             setWorkspaceCategoryEnabled({
                 policyData,
-                categoriesToUpdate: {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+                categoriesToUpdate: {[policyCategoryName]: {name: policyCategoryName, enabled: value}},
                 isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
                 setupCategoryTaskReport,
                 setupCategoryTaskParentReport,
@@ -205,7 +209,7 @@ function CategorySettingsPage({
             showCannotDeleteOrDisableLastCategoryModal,
             shouldPreventDisableOrDelete,
             policyData,
-            policyCategory?.name,
+            policyCategoryName,
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
@@ -222,7 +226,7 @@ function CategorySettingsPage({
     );
 
     const navigateToEditCategory = () => {
-        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name));
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));
     };
 
     const deleteCategory = () => {
@@ -256,7 +260,7 @@ function CategorySettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="CategorySettingsPage"
+                testID="DynamicCategorySettingsPage"
             >
                 <HeaderWithBackButton
                     title={decodedCategoryName}
@@ -310,7 +314,7 @@ function CategorySettingsPage({
                                             CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
                                             isQuickSettingsFlow
                                                 ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
                                         ),
                                     );
                                     return;
@@ -318,7 +322,7 @@ function CategorySettingsPage({
                                 Navigation.navigate(
                                     isQuickSettingsFlow
                                         ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                        : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
                                 );
                             }}
                             shouldShowRightIcon
@@ -334,7 +338,7 @@ function CategorySettingsPage({
                                         ROUTES.WORKSPACE_UPGRADE.getRoute(
                                             policyID,
                                             CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                            ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
+                                            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
                                         ),
                                     );
                                     return;
@@ -342,7 +346,7 @@ function CategorySettingsPage({
                                 Navigation.navigate(
                                     isQuickSettingsFlow
                                         ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                        : ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
+                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
                                 );
                             }}
                             shouldShowRightIcon
@@ -380,7 +384,7 @@ function CategorySettingsPage({
                                 title={approverText}
                                 description={translate('workspace.rules.categoryRules.approver')}
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path));
                                 }}
                                 shouldShowRightIcon
                                 disabled={approverDisabled}
@@ -396,7 +400,7 @@ function CategorySettingsPage({
                                     title={defaultTaxRateText}
                                     description={translate('workspace.rules.categoryRules.defaultTaxRate')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -407,7 +411,7 @@ function CategorySettingsPage({
                                     title={flagAmountsOverText}
                                     description={translate('workspace.rules.categoryRules.flagAmountsOver')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -417,7 +421,7 @@ function CategorySettingsPage({
                                     title={requireReceiptsOverText}
                                     description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -427,7 +431,7 @@ function CategorySettingsPage({
                                     title={requireItemizedReceiptsOverText}
                                     description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -437,7 +441,7 @@ function CategorySettingsPage({
                                     title={requiredFieldsTitle}
                                     description={translate('workspace.rules.categoryRules.requireFields')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -447,7 +451,7 @@ function CategorySettingsPage({
                                     title={policyCategory?.commentHint}
                                     description={translate('workspace.rules.categoryRules.descriptionHint')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -460,4 +464,4 @@ function CategorySettingsPage({
     );
 }
 
-export default CategorySettingsPage;
+export default DynamicCategorySettingsPage;

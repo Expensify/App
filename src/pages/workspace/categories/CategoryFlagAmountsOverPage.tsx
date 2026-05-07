@@ -43,6 +43,7 @@ function CategoryFlagAmountsOverPage({
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM_DRAFT);
     const expenseLimitType = formDraft?.expenseLimitType ?? policyCategories?.[categoryName]?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
     const decodedCategoryName = getDecodedCategoryName(categoryName);
+    const backPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(categoryName), ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
 
     useEffect(() => {
         return () => {
@@ -73,14 +74,14 @@ function CategoryFlagAmountsOverPage({
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.categoryRules.flagAmountsOver')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <FormProvider
                     style={[styles.flexGrow1]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM}
                     onSubmit={({maxExpenseAmount}) => {
                         setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType, policyCategories);
-                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
+                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backPath));
                     }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline

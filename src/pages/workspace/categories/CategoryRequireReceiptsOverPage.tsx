@@ -8,13 +8,14 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {removePolicyCategoryReceiptsRequired, setPolicyCategoryReceiptsAndItemizedReceiptRequired, setPolicyCategoryReceiptsRequired} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER>;
@@ -44,6 +45,7 @@ function CategoryRequireReceiptsOverPage({
     const isAlwaysSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === 0;
     const isNeverSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
     const isPolicyReceiptDisabled = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoReceipt === undefined;
+    const backPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(categoryName), ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
 
     const requireReceiptsOverListData = [
         ...(!isPolicyReceiptDisabled
@@ -89,7 +91,7 @@ function CategoryRequireReceiptsOverPage({
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.categoryRules.requireReceiptsOver')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <SelectionList
                     data={requireReceiptsOverListData}
@@ -104,7 +106,7 @@ function CategoryRequireReceiptsOverPage({
                         } else {
                             removePolicyCategoryReceiptsRequired(policyData, categoryName);
                         }
-                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
+                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backPath));
                     }}
                     style={{containerStyle: styles.pt3}}
                     shouldSingleExecuteRowSelect
