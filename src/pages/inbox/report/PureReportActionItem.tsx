@@ -294,6 +294,7 @@ function PureReportActionItem({
     );
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
+    const hasDraft = draftMessage !== undefined;
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
@@ -389,12 +390,12 @@ function PureReportActionItem({
     }, [isDeletedParentAction, action.reportActionID]);
 
     useEffect(() => {
-        if (prevDraftMessage !== undefined || draftMessage === undefined) {
+        if (prevDraftMessage !== undefined || !hasDraft) {
             return;
         }
 
         focusComposerWithDelay(composerTextInputRef.current)(true);
-    }, [prevDraftMessage, draftMessage]);
+    }, [prevDraftMessage, hasDraft]);
 
     useEffect(() => {
         if (!Permissions.canUseLinkPreviews()) {
@@ -411,11 +412,11 @@ function PureReportActionItem({
     }, [action, reportID]);
 
     useEffect(() => {
-        if (draftMessage === undefined || !isDeletedAction(action)) {
+        if (!hasDraft || !isDeletedAction(action)) {
             return;
         }
         deleteReportActionDraft(reportID, action);
-    }, [draftMessage, action, reportID, deleteReportActionDraft]);
+    }, [hasDraft, action, reportID, deleteReportActionDraft]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
@@ -598,8 +599,7 @@ function PureReportActionItem({
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
 
-    const isEmpty = isActionEmpty(action, report);
-    const hasDraft = draftMessage !== undefined;
+    const isEmpty = isActionEmpty(action, report) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses);
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
     // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
@@ -623,7 +623,7 @@ function PureReportActionItem({
             <PressableWithSecondaryInteraction
                 ref={popoverAnchorRef}
                 onPress={() => {
-                    if (draftMessage === undefined) {
+                    if (!hasDraft) {
                         onPress?.();
                     }
                     if (!Keyboard.isVisible()) {
@@ -635,7 +635,7 @@ function PureReportActionItem({
                 onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={showPopover}
-                preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
+                preventDefaultContextMenu={!hasDraft && !hasErrors}
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={accessibilityLabel}
                 accessibilityHint={translate('accessibilityHints.chatMessage')}
@@ -644,7 +644,7 @@ function PureReportActionItem({
             >
                 <Hoverable
                     shouldHandleScroll
-                    isDisabled={draftMessage !== undefined}
+                    isDisabled={hasDraft}
                     shouldFreezeCapture={isPaymentMethodPopoverActive}
                     onHoverIn={() => {
                         setIsReportActionActive(false);
@@ -665,7 +665,7 @@ function PureReportActionItem({
                                     isArchivedRoom={isArchivedRoom}
                                     displayAsGroup={displayAsGroup}
                                     disabledActions={disabledActions}
-                                    isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                    isVisible={hovered && !hasDraft && !hasErrors}
                                     isThreadReportParentAction={isThreadReportParentAction}
                                     draftMessage={draftMessage}
                                     isChronosReport={isChronosReport}
@@ -675,16 +675,14 @@ function PureReportActionItem({
                             )}
                             <View
                                 style={StyleUtils.getReportActionItemStyle(
-                                    hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
-                                    draftMessage === undefined && !!onPress,
+                                    hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || hasDraft || isPaymentMethodPopoverActive,
+                                    !hasDraft && !!onPress,
                                 )}
                             >
                                 <OfflineWithFeedback
                                     onClose={onClose}
                                     dismissError={dismissError}
-                                    pendingAction={
-                                        draftMessage !== undefined ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
-                                    }
+                                    pendingAction={hasDraft ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))}
                                     shouldHideOnDelete={!isDeletedParentAction}
                                     errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
                                     errorRowStyles={[styles.ml10, styles.mr2]}
@@ -698,7 +696,7 @@ function PureReportActionItem({
                                         onPress={onPress}
                                     >
                                         {isWhisper && <WhisperBanner whisperedTo={whisperedTo} />}
-                                        {isEmpty || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses) ? (
+                                        {isEmpty ? (
                                             <RenderHTML html="" />
                                         ) : (
                                             <ReportActionItemFrame
@@ -706,7 +704,7 @@ function PureReportActionItem({
                                                 report={report}
                                                 iouReport={iouReport}
                                                 displayAsGroup={displayAsGroup}
-                                                draftMessage={draftMessage}
+                                                hasDraft={hasDraft}
                                                 isWhisper={isWhisper}
                                                 isOnSearch={isOnSearch}
                                                 hovered={!!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive}

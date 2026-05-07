@@ -24,8 +24,8 @@ type ReportActionItemFrameProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** ReportAction draft message */
-    draftMessage: string | undefined;
+    /** Whether the action has a draft message — selects between Draft / Single / Grouped wrap. */
+    hasDraft: boolean;
 
     /** Whether the report action is a whisper */
     isWhisper: boolean;
@@ -49,7 +49,7 @@ function ReportActionItemFrame({
     report,
     iouReport,
     displayAsGroup,
-    draftMessage,
+    hasDraft,
     isWhisper,
     isOnSearch,
     hovered,
@@ -58,7 +58,7 @@ function ReportActionItemFrame({
 }: ReportActionItemFrameProps): React.JSX.Element {
     const styles = useThemeStyles();
 
-    if (draftMessage !== undefined) {
+    if (hasDraft) {
         return <ReportActionItemDraft>{children}</ReportActionItemDraft>;
     }
 
@@ -66,7 +66,7 @@ function ReportActionItemFrame({
         return (
             <ReportActionItemSingle
                 action={action}
-                showHeader={draftMessage === undefined}
+                showHeader
                 wrapperStyle={{
                     ...(isOnSearch && styles.p0),
                     ...(isWhisper && styles.pt1),
