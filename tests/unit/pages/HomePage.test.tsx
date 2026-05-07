@@ -87,11 +87,11 @@ jest.mock('@pages/home/AnnouncementSection', () => {
     }
     return MockAnnouncementSection;
 });
-jest.mock('@pages/home/AssignedCardsSection', () => {
-    function MockAssignedCardsSection() {
+jest.mock('@pages/home/YourSpendSection', () => {
+    function MockYourSpendSection() {
         return null;
     }
-    return MockAssignedCardsSection;
+    return MockYourSpendSection;
 });
 jest.mock('@pages/home/DiscoverSection', () => {
     function MockDiscoverSection() {

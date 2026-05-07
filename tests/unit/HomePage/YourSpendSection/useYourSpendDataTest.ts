@@ -32,8 +32,9 @@ const CARD_LAST_FOUR_1 = '1111';
 const CARD_LAST_FOUR_2 = '2222';
 
 // Fixed query strings the mocked builders will return.
-// These must be valid parseable query strings so buildSearchQueryJSON can compute
-// real hashes from them, matching what the hook computes during rendering.
+// These must be valid query strings the search parser accepts, so
+// buildSearchQueryJSON can compute real hashes from them, matching
+// what the hook computes during rendering.
 const APPROVAL_QUERY = `type:expense status:outstanding from:${ACCOUNT_ID} reimbursable:yes`;
 const PAYMENT_QUERY = `type:expense status:paid from:${ACCOUNT_ID} reimbursable:yes`;
 const CARD_QUERY_1 = `type:expense from:${ACCOUNT_ID} cardID:${CARD_ID_1}`;

@@ -65,16 +65,30 @@ jest.mock('@libs/CardUtils', () => {
 });
 
 // `MenuItemWithTopDescription` requires a ScreenWrapper transition context which isn't set up in this
-// unit test. Replace it with a passthrough that still mounts left/right/title content so the
-// outer testIDs and inner Button (in `rightComponent`) remain interactive.
+// unit test. Replace it with a Pressable passthrough that still mounts left/right/title/description
+// content and forwards `onPress` so row-level navigation can be exercised.
 jest.mock('@components/MenuItemWithTopDescription', () => {
-    function MockMenuItemWithTopDescription({title, rightComponent, leftComponent}: {title?: string; rightComponent?: ReactNode; leftComponent?: ReactNode}) {
+    const {Pressable, Text} = jest.requireActual('react-native');
+    function MockMenuItemWithTopDescription({
+        title,
+        description,
+        rightComponent,
+        leftComponent,
+        onPress,
+    }: {
+        title?: string;
+        description?: string;
+        rightComponent?: ReactNode;
+        leftComponent?: ReactNode;
+        onPress?: () => void;
+    }) {
         return (
-            <>
+            <Pressable onPress={onPress}>
                 {leftComponent}
-                {title}
+                {description ? <Text>{description}</Text> : null}
+                {title ? <Text>{title}</Text> : null}
                 {rightComponent}
-            </>
+            </Pressable>
         );
     }
     return MockMenuItemWithTopDescription;
@@ -86,7 +100,9 @@ jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => {
         ...actual,
         useYourSpendData: jest.fn(() => ({
             approvalRowState: 'loading',
+            approvalTotals: {total: undefined, currency: undefined},
             paymentRowState: 'loading',
+            paymentTotals: {total: undefined, currency: undefined},
             cardRows: [],
             awaitingApprovalQuery: '',
             repaidLast30DaysQuery: '',
@@ -96,8 +112,10 @@ jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => {
 
 type MockHookData = {
     approvalRowState: string;
+    approvalTotals: {total: number | undefined; currency: string | undefined};
     paymentRowState: string;
-    cardRows: Array<{cardID: number; query: string; lastFour: string}>;
+    paymentTotals: {total: number | undefined; currency: string | undefined};
+    cardRows: Array<{cardID: number; query: string; lastFour: string; total: number | undefined; currency: string | undefined}>;
     awaitingApprovalQuery: string;
     repaidLast30DaysQuery: string;
 };
@@ -105,7 +123,9 @@ type MockHookData = {
 function mockHook(data: Partial<MockHookData>) {
     (useYourSpendData as jest.Mock).mockReturnValue({
         approvalRowState: YOUR_SPEND_ROW_STATE.HIDDEN,
+        approvalTotals: {total: undefined, currency: undefined},
         paymentRowState: YOUR_SPEND_ROW_STATE.HIDDEN,
+        paymentTotals: {total: undefined, currency: undefined},
         cardRows: [],
         awaitingApprovalQuery: 'type:expense status:outstanding',
         repaidLast30DaysQuery: 'type:expense status:paid',
@@ -149,23 +169,25 @@ describe('YourSpendSection', () => {
         expect(screen.queryByTestId('your-spend-approval-row')).toBeNull();
     });
 
-    it('navigates to SEARCH_ROOT when the approval row View button is tapped', () => {
+    it('navigates to SEARCH_ROOT when the approval row is tapped', () => {
         const approvalQuery = 'type:expense status:outstanding from:12345 reimbursable:yes';
         mockHook({
             approvalRowState: YOUR_SPEND_ROW_STATE.READY,
             awaitingApprovalQuery: approvalQuery,
         });
         render(<YourSpendSection />);
-        const viewButton = screen.getByTestId('your-spend-approval-row-view');
-        fireEvent.press(viewButton);
+        // Press the row description (translation key surfaces as the text in tests because
+        // useLocalize is mocked to (key) => key).
+        const description = screen.getByText('homePage.yourSpend.awaitingApproval');
+        fireEvent.press(description);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approvalQuery}));
     });
 
     it('renders a card row for each entry in cardRows', () => {
         mockHook({
             cardRows: [
-                {cardID: 1, query: 'type:expense cardID:1', lastFour: '1234'},
-                {cardID: 2, query: 'type:expense cardID:2', lastFour: '5678'},
+                {cardID: 1, query: 'type:expense cardID:1', lastFour: '1234', total: undefined, currency: undefined},
+                {cardID: 2, query: 'type:expense cardID:2', lastFour: '5678', total: undefined, currency: undefined},
             ],
         });
         render(<YourSpendSection />);
