@@ -3974,6 +3974,179 @@ function spendRuleCategoryDisplayName(translate: LocalizedTranslate, slug: strin
     return slug;
 }
 
+function spendRuleRestrictionVerb(translate: LocalizedTranslate, action: string): string {
+    if (action === CONST.SPEND_RULES.ACTION.BLOCK) {
+        return translate('workspaceActions.expensifyCardRule.restrictionVerb.block');
+    }
+    if (action === CONST.SPEND_RULES.ACTION.ALLOW) {
+        return translate('workspaceActions.expensifyCardRule.restrictionVerb.allow');
+    }
+    return action;
+}
+
+function spendRuleAmountToCents(value: unknown): number {
+    const valueArray: unknown[] = Array.isArray(value) ? (value as unknown[]) : [];
+    const firstValue = valueArray.at(0);
+    if (typeof firstValue === 'string' && firstValue !== '' && Number.isFinite(Number(firstValue))) {
+        return Number.parseInt(firstValue, 10);
+    }
+    if (typeof firstValue === 'number' && Number.isFinite(firstValue)) {
+        return firstValue;
+    }
+    return 0;
+}
+
+function spendRuleFormatAmountValue(amount: {value?: unknown}, currency: string): string {
+    return convertToShortDisplayString(spendRuleAmountToCents(amount?.value), currency);
+}
+
+function spendRuleAmountKey(amount: {operator?: unknown; value?: unknown}): string {
+    const operator = typeof amount?.operator === 'string' ? amount.operator : '';
+    return `${operator}:${spendRuleAmountToCents(amount?.value)}`;
+}
+
+type SpendRuleStringDiff = {added: string[]; removed: string[]};
+
+function spendRuleStringDiff(oldValues: readonly string[], newValues: readonly string[]): SpendRuleStringDiff {
+    const oldSet = Array.from(new Set(oldValues));
+    const newSet = Array.from(new Set(newValues));
+    const added = newSet.filter((value) => !oldSet.includes(value)).sort();
+    const removed = oldSet.filter((value) => !newSet.includes(value)).sort();
+    return {added, removed};
+}
+
+type SpendRuleAmount = {operator?: unknown; value?: unknown};
+type SpendRuleAmountDiff = {added: SpendRuleAmount[]; removed: SpendRuleAmount[]};
+
+function spendRuleAmountDiff(oldAmounts: readonly SpendRuleAmount[], newAmounts: readonly SpendRuleAmount[]): SpendRuleAmountDiff {
+    const oldByKey = new Map<string, SpendRuleAmount>();
+    for (const amount of oldAmounts) {
+        oldByKey.set(spendRuleAmountKey(amount), amount);
+    }
+    const newByKey = new Map<string, SpendRuleAmount>();
+    for (const amount of newAmounts) {
+        newByKey.set(spendRuleAmountKey(amount), amount);
+    }
+    const added: SpendRuleAmount[] = [];
+    for (const [key, amount] of newByKey) {
+        if (!oldByKey.has(key)) {
+            added.push(amount);
+        }
+    }
+    const removed: SpendRuleAmount[] = [];
+    for (const [key, amount] of oldByKey) {
+        if (!newByKey.has(key)) {
+            removed.push(amount);
+        }
+    }
+    return {added, removed};
+}
+
+type SpendRuleCard = {cardID?: number | string; displayName?: string};
+type SpendRuleCardDiff = {added: SpendRuleCard[]; removed: SpendRuleCard[]};
+
+function spendRuleCardID(card: SpendRuleCard): number | undefined {
+    const raw = card?.cardID;
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+        return raw;
+    }
+    if (typeof raw === 'string' && /^\d+$/.test(raw)) {
+        return Number.parseInt(raw, 10);
+    }
+    return undefined;
+}
+
+function spendRuleCardDiff(oldCards: readonly SpendRuleCard[], newCards: readonly SpendRuleCard[]): SpendRuleCardDiff {
+    const oldByID = new Map<number, SpendRuleCard>();
+    for (const card of oldCards) {
+        const id = spendRuleCardID(card);
+        if (id !== undefined) {
+            oldByID.set(id, card);
+        }
+    }
+    const newByID = new Map<number, SpendRuleCard>();
+    for (const card of newCards) {
+        const id = spendRuleCardID(card);
+        if (id !== undefined) {
+            newByID.set(id, card);
+        }
+    }
+    const added: SpendRuleCard[] = [];
+    for (const [id, card] of newByID) {
+        if (!oldByID.has(id)) {
+            added.push(card);
+        }
+    }
+    const removed: SpendRuleCard[] = [];
+    for (const [id, card] of oldByID) {
+        if (!newByID.has(id)) {
+            removed.push(card);
+        }
+    }
+    return {added, removed};
+}
+
+type SpendRulePhraseVerb = 'added' | 'removed' | 'changed' | 'set' | 'applied';
+type SpendRulePhraseAdjective = '' | typeof CONST.SPEND_RULES.ACTION.BLOCK | typeof CONST.SPEND_RULES.ACTION.ALLOW;
+
+type SpendRulePhrase = {
+    verb: SpendRulePhraseVerb;
+    adjective: SpendRulePhraseAdjective;
+    bodyWithAdjective: string;
+    bodyWithoutAdjective: string;
+};
+
+function spendRulePhraseVerbWord(translate: LocalizedTranslate, verb: SpendRulePhraseVerb): string {
+    return translate(`workspaceActions.expensifyCardRule.update.phraseVerb.${verb}`);
+}
+
+function spendRuleAdjectiveWord(translate: LocalizedTranslate, adjective: SpendRulePhraseAdjective): string {
+    if (adjective === CONST.SPEND_RULES.ACTION.BLOCK) {
+        return translate('workspaceActions.expensifyCardRule.actionVerb.block');
+    }
+    if (adjective === CONST.SPEND_RULES.ACTION.ALLOW) {
+        return translate('workspaceActions.expensifyCardRule.actionVerb.allow');
+    }
+    return '';
+}
+
+function joinSpendRulePhrases(translate: LocalizedTranslate, phrases: readonly SpendRulePhrase[]): string {
+    if (phrases.length === 0) {
+        return '';
+    }
+    if (phrases.length === 1) {
+        const phrase = phrases.at(0);
+        if (!phrase) {
+            return '';
+        }
+        return `${spendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`;
+    }
+
+    const firstVerb = phrases.at(0)?.verb;
+    const allSameVerb = firstVerb !== undefined && phrases.every((phrase) => phrase.verb === firstVerb);
+
+    if (!allSameVerb) {
+        const parts = phrases.map((phrase) => `${spendRulePhraseVerbWord(translate, phrase.verb)} ${phrase.bodyWithAdjective}`);
+        return spendRuleJoinFilters(translate, parts);
+    }
+
+    const firstPhrase = phrases.at(0);
+    if (!firstPhrase) {
+        return '';
+    }
+    const firstAdjective = firstPhrase.adjective;
+    const parts: string[] = [`${spendRulePhraseVerbWord(translate, firstPhrase.verb)} ${firstPhrase.bodyWithAdjective}`];
+    for (let i = 1; i < phrases.length; i++) {
+        const phrase = phrases.at(i);
+        if (!phrase) {
+            continue;
+        }
+        const useOwnAdjective = phrase.adjective !== '' && phrase.adjective !== firstAdjective;
+        parts.push(useOwnAdjective ? phrase.bodyWithAdjective : phrase.bodyWithoutAdjective);
+    }
+    return spendRuleJoinFilters(translate, parts);
+}
+
 function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE)) {
         return '';
@@ -4014,6 +4187,165 @@ function getAddExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAct
     }
 
     return translate('workspaceActions.expensifyCardRule.addRule', {verb, filters: filtersDesc, cards: cardsSummary});
+}
+
+function getUpdateExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE)) {
+        return '';
+    }
+    const message = getOriginalMessage(reportAction) ?? {};
+    const pre = getSpendRulePreformattedText(message);
+    if (pre) {
+        return pre;
+    }
+
+    const oldAction = typeof message?.oldAction === 'string' ? message.oldAction : '';
+    const newAction = typeof message?.action === 'string' ? message.action : '';
+    const actionChanged = oldAction !== '' && oldAction !== newAction;
+    const currency = typeof message?.currency === 'string' && message.currency !== '' ? message.currency : CONST.CURRENCY.USD;
+
+    const oldMerchants = (message?.oldMerchants ?? []).filter((value): value is string => typeof value === 'string' && value !== '');
+    const newMerchants = (message?.merchants ?? []).filter((value): value is string => typeof value === 'string' && value !== '');
+    const oldCategories = (message?.oldCategories ?? []).filter((value): value is string => typeof value === 'string' && value !== '');
+    const newCategories = (message?.categories ?? []).filter((value): value is string => typeof value === 'string' && value !== '');
+    const oldAmounts: SpendRuleAmount[] = (message?.oldAmounts ?? []).filter((amount): amount is SpendRuleAmount => typeof amount === 'object' && amount !== null);
+    const newAmounts: SpendRuleAmount[] = (message?.amounts ?? []).filter((amount): amount is SpendRuleAmount => typeof amount === 'object' && amount !== null);
+    const oldCards: SpendRuleCard[] = (message?.oldCards ?? []).filter((card): card is SpendRuleCard => typeof card === 'object' && card !== null);
+    const newCards: SpendRuleCard[] = (message?.cards ?? []).filter((card): card is SpendRuleCard => typeof card === 'object' && card !== null);
+
+    const merchantDiff = spendRuleStringDiff(oldMerchants, newMerchants);
+    const categoryDiff = spendRuleStringDiff(oldCategories, newCategories);
+    const amountDiff = spendRuleAmountDiff(oldAmounts, newAmounts);
+    const cardDiff = spendRuleCardDiff(oldCards, newCards);
+
+    const merchantsChanged = merchantDiff.added.length > 0 || merchantDiff.removed.length > 0;
+    const categoriesChanged = categoryDiff.added.length > 0 || categoryDiff.removed.length > 0;
+    const amountsChanged = amountDiff.added.length > 0 || amountDiff.removed.length > 0;
+    const cardsChanged = cardDiff.added.length > 0 || cardDiff.removed.length > 0;
+    const filtersAndCardsUnchanged = !merchantsChanged && !categoriesChanged && !amountsChanged && !cardsChanged;
+
+    const newCardsSummary = spendRuleCardsSummary(translate, newCards);
+
+    if (actionChanged && filtersAndCardsUnchanged) {
+        return translate('workspaceActions.expensifyCardRule.update.modeChange', {
+            fromMode: spendRuleRestrictionVerb(translate, oldAction),
+            toMode: spendRuleRestrictionVerb(translate, newAction),
+            cards: newCardsSummary,
+        });
+    }
+
+    if (cardsChanged && !merchantsChanged && !categoriesChanged && !amountsChanged && !actionChanged) {
+        if (cardDiff.added.length > 0 && cardDiff.removed.length === 0) {
+            return translate('workspaceActions.expensifyCardRule.update.appliedToAdditionalCards', {count: cardDiff.added.length});
+        }
+        if (cardDiff.added.length === 0 && cardDiff.removed.length > 0) {
+            return translate('workspaceActions.expensifyCardRule.removeRule', {cards: spendRuleCardsSummary(translate, cardDiff.removed)});
+        }
+    }
+
+    const adjective: SpendRulePhraseAdjective = newAction === CONST.SPEND_RULES.ACTION.BLOCK || newAction === CONST.SPEND_RULES.ACTION.ALLOW ? newAction : '';
+    const adjectiveWord = spendRuleAdjectiveWord(translate, adjective);
+    const phrases: SpendRulePhrase[] = [];
+
+    if (merchantDiff.added.length === 1 && merchantDiff.removed.length === 1) {
+        const oldValue = merchantDiff.removed.at(0) ?? '';
+        const newValue = merchantDiff.added.at(0) ?? '';
+        phrases.push({
+            verb: 'changed',
+            adjective,
+            bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchantChange', {adjective: adjectiveWord, oldValue, newValue}),
+            bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchantChange', {adjective: '', oldValue, newValue}),
+        });
+    } else {
+        for (const merchant of merchantDiff.added) {
+            phrases.push({
+                verb: 'added',
+                adjective,
+                bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchant', {adjective: adjectiveWord, value: merchant}),
+                bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchant', {adjective: '', value: merchant}),
+            });
+        }
+        for (const merchant of merchantDiff.removed) {
+            phrases.push({
+                verb: 'removed',
+                adjective,
+                bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchant', {adjective: adjectiveWord, value: merchant}),
+                bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodyMerchant', {adjective: '', value: merchant}),
+            });
+        }
+    }
+
+    if (categoryDiff.added.length === 1 && categoryDiff.removed.length === 1) {
+        const oldValue = spendRuleCategoryDisplayName(translate, categoryDiff.removed.at(0) ?? '');
+        const newValue = spendRuleCategoryDisplayName(translate, categoryDiff.added.at(0) ?? '');
+        phrases.push({
+            verb: 'changed',
+            adjective,
+            bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', {adjective: adjectiveWord, oldValue, newValue}),
+            bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategoryChange', {adjective: '', oldValue, newValue}),
+        });
+    } else {
+        for (const category of categoryDiff.added) {
+            const value = spendRuleCategoryDisplayName(translate, category);
+            phrases.push({
+                verb: 'added',
+                adjective,
+                bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', {adjective: adjectiveWord, value}),
+                bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', {adjective: '', value}),
+            });
+        }
+        for (const category of categoryDiff.removed) {
+            const value = spendRuleCategoryDisplayName(translate, category);
+            phrases.push({
+                verb: 'removed',
+                adjective,
+                bodyWithAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', {adjective: adjectiveWord, value}),
+                bodyWithoutAdjective: translate('workspaceActions.expensifyCardRule.update.bodySpendCategory', {adjective: '', value}),
+            });
+        }
+    }
+
+    if (amountDiff.added.length === 1 && amountDiff.removed.length === 1) {
+        const oldValue = spendRuleFormatAmountValue(amountDiff.removed.at(0) ?? {}, currency);
+        const newValue = spendRuleFormatAmountValue(amountDiff.added.at(0) ?? {}, currency);
+        const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmountChange', {oldValue, newValue});
+        phrases.push({verb: 'changed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
+    } else {
+        for (const amount of amountDiff.added) {
+            const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmountSet', {value: spendRuleFormatAmountValue(amount, currency)});
+            phrases.push({verb: 'set', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
+        }
+        for (let i = 0; i < amountDiff.removed.length; i++) {
+            const body = translate('workspaceActions.expensifyCardRule.update.bodyMaxAmount');
+            phrases.push({verb: 'removed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
+        }
+    }
+
+    if (cardDiff.added.length > 0) {
+        const body = translate('workspaceActions.expensifyCardRule.update.bodyAppliedToAdditionalCards', {count: cardDiff.added.length});
+        phrases.push({verb: 'applied', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
+    }
+    if (cardDiff.removed.length > 0) {
+        const body = translate('workspaceActions.expensifyCardRule.update.bodyRemovedFromCards', {cards: spendRuleCardsSummary(translate, cardDiff.removed)});
+        phrases.push({verb: 'removed', adjective: '', bodyWithAdjective: body, bodyWithoutAdjective: body});
+    }
+
+    if (phrases.length === 0) {
+        return getAddExpensifyCardRuleMessage(translate, reportAction);
+    }
+
+    const joined = joinSpendRulePhrases(translate, phrases);
+
+    if (cardsChanged) {
+        return joined;
+    }
+
+    const onlyRemovedPhrase = phrases.length === 1 && phrases.at(0)?.verb === 'removed';
+    if (onlyRemovedPhrase) {
+        return translate('workspaceActions.expensifyCardRule.update.composeFromCards', {content: joined, cards: newCardsSummary});
+    }
+
+    return translate('workspaceActions.expensifyCardRule.update.composeOnCards', {content: joined, cards: newCardsSummary});
 }
 
 function getRemoveExpensifyCardRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
@@ -4707,6 +5039,7 @@ export {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getAddExpensifyCardRuleMessage,
+    getUpdateExpensifyCardRuleMessage,
     getAddedApprovalRuleMessage,
     getDeletedApprovalRuleMessage,
     getUpdatedApprovalRuleMessage,

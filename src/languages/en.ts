@@ -7309,6 +7309,35 @@ const translations = {
                 return text;
             },
             removeRule: ({cards}: {cards: string}) => (cards !== '' ? `removed spend rule from ${cards}` : 'removed spend rule'),
+            restrictionVerb: {
+                block: 'block',
+                allow: 'only allow',
+            },
+            update: {
+                modeChange: ({fromMode, toMode, cards}: {fromMode: string; toMode: string; cards: string}) =>
+                    cards !== '' ? `changed spend rule from ${fromMode} to ${toMode} on ${cards}` : `changed spend rule from ${fromMode} to ${toMode}`,
+                appliedToAdditionalCards: ({count}: {count: number}) => `applied spend rule to ${count} additional cards`,
+                phraseVerb: {
+                    added: 'added',
+                    removed: 'removed',
+                    changed: 'changed',
+                    set: 'set',
+                    applied: 'applied',
+                },
+                bodyMerchant: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} merchant '${value}'` : `merchant '${value}'`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} merchant from '${oldValue}' to '${newValue}'` : `merchant from '${oldValue}' to '${newValue}'`,
+                bodySpendCategory: ({adjective, value}: {adjective: string; value: string}) => (adjective !== '' ? `${adjective} spend category '${value}'` : `spend category '${value}'`),
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}: {adjective: string; oldValue: string; newValue: string}) =>
+                    adjective !== '' ? `${adjective} spend category from '${oldValue}' to '${newValue}'` : `spend category from '${oldValue}' to '${newValue}'`,
+                bodyMaxAmount: 'max amount',
+                bodyMaxAmountSet: ({value}: {value: string}) => `max amount to ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}: {oldValue: string; newValue: string}) => `max amount from ${oldValue} to ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}: {count: number}) => `spend rule to ${count} additional cards`,
+                bodyRemovedFromCards: ({cards}: {cards: string}) => `spend rule from ${cards}`,
+                composeOnCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} on ${cards}` : content),
+                composeFromCards: ({content, cards}: {content: string; cards: string}) => (cards !== '' ? `${content} from ${cards}` : content),
+            },
         },
         preventSelfApproval: (oldValue: string, newValue: string) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,

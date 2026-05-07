@@ -7162,6 +7162,35 @@ ${amount} para ${merchant} - ${date}`,
                 return text;
             },
             removeRule: ({cards}) => (cards !== '' ? `eliminó la regla de gasto de ${cards}` : 'eliminó la regla de gasto'),
+            restrictionVerb: {
+                block: 'bloquear',
+                allow: 'solo permitir',
+            },
+            update: {
+                modeChange: ({fromMode, toMode, cards}) =>
+                    cards !== '' ? `cambió la regla de gasto de ${fromMode} a ${toMode} en ${cards}` : `cambió la regla de gasto de ${fromMode} a ${toMode}`,
+                appliedToAdditionalCards: ({count}) => `aplicó la regla de gasto a ${count} tarjetas adicionales`,
+                phraseVerb: {
+                    added: 'agregó',
+                    removed: 'eliminó',
+                    changed: 'cambió',
+                    set: 'estableció',
+                    applied: 'aplicó',
+                },
+                bodyMerchant: ({adjective, value}) => (adjective !== '' ? `comerciante ${adjective} '${value}'` : `comerciante '${value}'`),
+                bodyMerchantChange: ({adjective, oldValue, newValue}) =>
+                    adjective !== '' ? `comerciante ${adjective} de '${oldValue}' a '${newValue}'` : `comerciante de '${oldValue}' a '${newValue}'`,
+                bodySpendCategory: ({adjective, value}) => (adjective !== '' ? `categoría de gasto ${adjective} '${value}'` : `categoría de gasto '${value}'`),
+                bodySpendCategoryChange: ({adjective, oldValue, newValue}) =>
+                    adjective !== '' ? `categoría de gasto ${adjective} de '${oldValue}' a '${newValue}'` : `categoría de gasto de '${oldValue}' a '${newValue}'`,
+                bodyMaxAmount: 'monto máximo',
+                bodyMaxAmountSet: ({value}) => `monto máximo en ${value}`,
+                bodyMaxAmountChange: ({oldValue, newValue}) => `monto máximo de ${oldValue} a ${newValue}`,
+                bodyAppliedToAdditionalCards: ({count}) => `la regla de gasto a ${count} tarjetas adicionales`,
+                bodyRemovedFromCards: ({cards}) => `la regla de gasto de ${cards}`,
+                composeOnCards: ({content, cards}) => (cards !== '' ? `${content} en ${cards}` : content),
+                composeFromCards: ({content, cards}) => (cards !== '' ? `${content} de ${cards}` : content),
+            },
         },
         preventSelfApproval: (oldValue, newValue) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
