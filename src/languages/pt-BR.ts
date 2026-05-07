@@ -1036,6 +1036,12 @@ const translations: TranslationDeepObject<typeof en> = {
             setupRules: 'Configurar regras de gasto',
             inviteAccountant: 'Convide seu contador',
         },
+        yourSpend: {
+            title: 'Seus gastos',
+            awaitingApproval: 'Aguardando aprovação',
+            repaidLast30Days: 'Reembolsado nos últimos 30 dias',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Transações recentes • ${lastFour}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',

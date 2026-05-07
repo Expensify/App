@@ -1037,6 +1037,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (pluralCount: number) => `Verbleibende Zeit: ${pluralCount} Tage`,
             }),
         },
+        yourSpend: {
+            title: 'Ihre Ausgaben',
+            awaitingApproval: 'Ausstehende Genehmigung',
+            repaidLast30Days: 'In den letzten 30 Tagen zurückgezahlt',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Aktuelle Transaktionen • ${lastFour}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

@@ -1040,6 +1040,12 @@ const translations: TranslationDeepObject<typeof en> = {
             setupRules: 'Configurer les règles de dépense',
             inviteAccountant: 'Inviter votre comptable',
         },
+        yourSpend: {
+            title: 'Vos dépenses',
+            awaitingApproval: 'En attente d’approbation',
+            repaidLast30Days: 'Remboursé au cours des 30 derniers jours',
+            recentTransactions: ({lastFour}: {lastFour: string}) => `Transactions récentes • ${lastFour}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
