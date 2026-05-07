@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -307,7 +307,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                     <TabScreenWithFocusTrapWrapper>
                                         <SelectionList
                                             data={filteredMembers}
-                                            ListItem={UserListItem}
+                                            ListItem={BareUserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
                                             style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}

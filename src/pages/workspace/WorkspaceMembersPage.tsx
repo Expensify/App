@@ -282,7 +282,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
             removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
@@ -1006,8 +1005,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         }}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onCheckboxPress={(item) => toggleUser(item.login)}
-                        shouldUseDefaultRightHandSideCheckmark={false}
+                        onSelectionButtonPress={(item) => toggleUser(item.login)}
                         shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}

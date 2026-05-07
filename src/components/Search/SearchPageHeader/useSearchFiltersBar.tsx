@@ -18,6 +18,7 @@ import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup'
 import WorkspaceSelectPopup from '@components/Search/FilterDropdowns/WorkspaceSelectPopup';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ReportFieldKey, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -169,6 +170,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const type = queryJSON.type;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
 
     const {isOffline} = useNetwork();
     const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
@@ -206,217 +208,225 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
         });
     };
 
-    const filters = mapFiltersFormToLabelValueList<FilterItem>(searchAdvancedFiltersForm, queryJSON.policyID, SKIPPED_FILTERS, translate, localeCompare, (filterKey) => {
-        const groupConfig = FILTER_GROUP_MAP[filterKey];
-        if (groupConfig) {
-            if (isAmountFilterKey(groupConfig.syntax)) {
-                return makeAmountFilterItem(groupConfig.syntax, translate(groupConfig.label), searchAdvancedFiltersForm, updateFilterForm);
+    const filters = mapFiltersFormToLabelValueList<FilterItem>(
+        searchAdvancedFiltersForm,
+        queryJSON.policyID,
+        SKIPPED_FILTERS,
+        translate,
+        localeCompare,
+        convertToDisplayStringWithoutCurrency,
+        (filterKey) => {
+            const groupConfig = FILTER_GROUP_MAP[filterKey];
+            if (groupConfig) {
+                if (isAmountFilterKey(groupConfig.syntax)) {
+                    return makeAmountFilterItem(groupConfig.syntax, translate(groupConfig.label), searchAdvancedFiltersForm, updateFilterForm);
+                }
+                return makeDateFilterItem(groupConfig.syntax, groupConfig.label, searchAdvancedFiltersForm, updateFilterForm);
             }
-            return makeDateFilterItem(groupConfig.syntax, groupConfig.label, searchAdvancedFiltersForm, updateFilterForm);
-        }
 
-        if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
-            return {
-                PopoverComponent: ({closeOverlay, setPopoverWidth}) => (
-                    <ReportFieldPopup
-                        closeOverlay={closeOverlay}
-                        setPopoverWidth={setPopoverWidth}
-                        updateFilterForm={updateFilterForm}
-                    />
-                ),
-                sentryLabel: getFilterSentryLabel(filterKey),
-                onClosePress: () => {
-                    const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
-                        if (curr.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
-                            acc[curr as SearchAdvancedFiltersKey] = undefined;
-                        }
-                        return acc;
-                    }, {} as Partial<SearchAdvancedFiltersForm>);
-                    updateFilterForm(formValues);
-                },
-            };
-        }
-
-        const label = FILTER_LABEL_MAP[filterKey];
-        if (!label) {
-            return {PopoverComponent: () => null, onClosePress: () => {}};
-        }
-
-        switch (filterKey) {
-            case FILTER_KEYS.IN:
-            case FILTER_KEYS.TAX_RATE:
-            case FILTER_KEYS.EXPORTED_TO:
-            case FILTER_KEYS.TAG:
-            case FILTER_KEYS.CATEGORY: {
-                const PopupComponent = {
-                    [FILTER_KEYS.TAX_RATE]: TaxRateSelectPopup,
-                    [FILTER_KEYS.EXPORTED_TO]: ExportedToSelectPopup,
-                    [FILTER_KEYS.TAG]: TagSelectPopup,
-                    [FILTER_KEYS.CATEGORY]: CategorySelectPopup,
-                    [FILTER_KEYS.IN]: InSelectPopup,
-                }[filterKey];
+            if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
-                        <PopupComponent
-                            updateFilterForm={updateFilterForm}
+                    PopoverComponent: ({closeOverlay, setPopoverWidth}) => (
+                        <ReportFieldPopup
                             closeOverlay={closeOverlay}
+                            setPopoverWidth={setPopoverWidth}
+                            updateFilterForm={updateFilterForm}
                         />
                     ),
                     sentryLabel: getFilterSentryLabel(filterKey),
-                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
+                    onClosePress: () => {
+                        const formValues = Object.keys(searchAdvancedFiltersForm).reduce((acc, curr) => {
+                            if (curr.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+                                acc[curr as SearchAdvancedFiltersKey] = undefined;
+                            }
+                            return acc;
+                        }, {} as Partial<SearchAdvancedFiltersForm>);
+                        updateFilterForm(formValues);
+                    },
                 };
             }
-            case FILTER_KEYS.CARD_ID: {
-                return {
-                    PopoverComponent: ({closeOverlay, isExpanded}) => (
-                        <CardSelectPopup
-                            isExpanded={isExpanded}
-                            updateFilterForm={updateFilterForm}
-                            closeOverlay={closeOverlay}
-                        />
-                    ),
-                    sentryLabel: getFilterSentryLabel(filterKey),
-                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
-                };
+
+            const label = FILTER_LABEL_MAP[filterKey];
+            if (!label) {
+                return {PopoverComponent: () => null, onClosePress: () => {}};
             }
-            case FILTER_KEYS.FEED: {
-                return {
-                    PopoverComponent: ({closeOverlay, isExpanded}) => (
-                        <FeedFilterPopup
-                            isExpanded={isExpanded}
-                            updateFilterForm={updateFilterForm}
-                            closeOverlay={closeOverlay}
-                        />
-                    ),
-                    sentryLabel: getFilterSentryLabel(filterKey),
-                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
-                };
-            }
-            case FILTER_KEYS.MERCHANT:
-            case FILTER_KEYS.DESCRIPTION:
-            case FILTER_KEYS.REPORT_ID:
-            case FILTER_KEYS.TITLE:
-            case FILTER_KEYS.WITHDRAWAL_ID: {
-                return {
-                    PopoverComponent: ({closeOverlay}) => (
-                        <TextInputPopup
-                            placeholder={translate(label)}
+
+            switch (filterKey) {
+                case FILTER_KEYS.IN:
+                case FILTER_KEYS.TAX_RATE:
+                case FILTER_KEYS.EXPORTED_TO:
+                case FILTER_KEYS.TAG:
+                case FILTER_KEYS.CATEGORY: {
+                    const PopupComponent = {
+                        [FILTER_KEYS.TAX_RATE]: TaxRateSelectPopup,
+                        [FILTER_KEYS.EXPORTED_TO]: ExportedToSelectPopup,
+                        [FILTER_KEYS.TAG]: TagSelectPopup,
+                        [FILTER_KEYS.CATEGORY]: CategorySelectPopup,
+                        [FILTER_KEYS.IN]: InSelectPopup,
+                    }[filterKey];
+                    return {
+                        PopoverComponent: ({closeOverlay}) => (
+                            <PopupComponent
+                                updateFilterForm={updateFilterForm}
+                                closeOverlay={closeOverlay}
+                            />
+                        ),
+                        sentryLabel: getFilterSentryLabel(filterKey),
+                        onClosePress: () => updateFilterForm({[filterKey]: undefined}),
+                    };
+                }
+                case FILTER_KEYS.CARD_ID: {
+                    return {
+                        PopoverComponent: ({closeOverlay, isExpanded}) => (
+                            <CardSelectPopup
+                                isExpanded={isExpanded}
+                                updateFilterForm={updateFilterForm}
+                                closeOverlay={closeOverlay}
+                            />
+                        ),
+                        sentryLabel: getFilterSentryLabel(filterKey),
+                        onClosePress: () => updateFilterForm({[filterKey]: undefined}),
+                    };
+                }
+                case FILTER_KEYS.FEED: {
+                    return {
+                        PopoverComponent: ({closeOverlay, isExpanded}) => (
+                            <FeedFilterPopup
+                                isExpanded={isExpanded}
+                                updateFilterForm={updateFilterForm}
+                                closeOverlay={closeOverlay}
+                            />
+                        ),
+                        sentryLabel: getFilterSentryLabel(filterKey),
+                        onClosePress: () => updateFilterForm({[filterKey]: undefined}),
+                    };
+                }
+                case FILTER_KEYS.MERCHANT:
+                case FILTER_KEYS.DESCRIPTION:
+                case FILTER_KEYS.REPORT_ID:
+                case FILTER_KEYS.TITLE:
+                case FILTER_KEYS.WITHDRAWAL_ID: {
+                    return {
+                        PopoverComponent: ({closeOverlay}) => (
+                            <TextInputPopup
+                                placeholder={translate(label)}
+                                label={translate(label)}
+                                defaultValue={searchAdvancedFiltersForm[filterKey] ?? ''}
+                                closeOverlay={closeOverlay}
+                                onChange={(value) => updateFilterForm({[filterKey]: value})}
+                            />
+                        ),
+                        sentryLabel: getFilterSentryLabel(filterKey),
+                        onClosePress: () => updateFilterForm({[filterKey]: undefined}),
+                    };
+                }
+                case FILTER_KEYS.CURRENCY:
+                case FILTER_KEYS.PURCHASE_CURRENCY: {
+                    return {
+                        PopoverComponent: ({closeOverlay}) => (
+                            <CurrencySelectPopup
+                                closeOverlay={closeOverlay}
+                                translationKey={label}
+                                value={searchAdvancedFiltersForm[filterKey] ?? []}
+                                onChange={(selectedItems) => {
+                                    const update: Partial<SearchAdvancedFiltersForm> = {};
+                                    update[filterKey] = selectedItems.map((item) => item.value);
+                                    updateFilterForm(update);
+                                }}
+                            />
+                        ),
+                        sentryLabel: getFilterSentryLabel(filterKey),
+                        onClosePress: () => updateFilterForm({[filterKey]: undefined}),
+                    };
+                }
+                case FILTER_KEYS.BILLABLE:
+                case FILTER_KEYS.REIMBURSABLE:
+                case FILTER_KEYS.WITHDRAWAL_TYPE: {
+                    const formValue = searchAdvancedFiltersForm[filterKey];
+                    const items = getSingleSelectFilterOptions(filterKey, translate);
+                    const value = items.find((option) => option.value === formValue) ?? null;
+                    const singleSelectComponent = ({closeOverlay}: PopoverComponentProps) => (
+                        <SingleSelectPopup
                             label={translate(label)}
-                            defaultValue={searchAdvancedFiltersForm[filterKey] ?? ''}
+                            items={items}
+                            value={value}
                             closeOverlay={closeOverlay}
-                            onChange={(value) => updateFilterForm({[filterKey]: value})}
+                            onChange={(item) => updateFilterForm({[filterKey]: item?.value})}
                         />
-                    ),
-                    sentryLabel: getFilterSentryLabel(filterKey),
-                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
-                };
-            }
-            case FILTER_KEYS.CURRENCY:
-            case FILTER_KEYS.PURCHASE_CURRENCY: {
-                return {
-                    PopoverComponent: ({closeOverlay}) => (
-                        <CurrencySelectPopup
+                    );
+                    return {PopoverComponent: singleSelectComponent, sentryLabel: getFilterSentryLabel(filterKey), onClosePress: () => updateFilterForm({[filterKey]: undefined})};
+                }
+                case FILTER_KEYS.HAS:
+                case FILTER_KEYS.IS:
+                case FILTER_KEYS.EXPENSE_TYPE:
+                case FILTER_KEYS.STATUS: {
+                    let formValues = searchAdvancedFiltersForm[filterKey] ?? [];
+
+                    if (filterKey === FILTER_KEYS.STATUS) {
+                        formValues = Array.isArray(formValues) ? formValues : formValues.split(',');
+                    }
+
+                    const items = getMultiSelectFilterOptions(filterKey, type, translate);
+                    const value = items.filter((item) => formValues.includes(item.value));
+
+                    const multiSelectComponent = ({closeOverlay}: PopoverComponentProps) => (
+                        <MultiSelectFilterPopup
                             closeOverlay={closeOverlay}
                             translationKey={label}
-                            value={searchAdvancedFiltersForm[filterKey] ?? []}
-                            onChange={(selectedItems) => {
+                            items={items}
+                            value={value}
+                            onChangeCallback={(selectedItems) => {
+                                if (filterKey === FILTER_KEYS.STATUS) {
+                                    updateFilterForm({status: selectedItems.length ? selectedItems.map((item) => item.value) : CONST.SEARCH.STATUS.EXPENSE.ALL});
+                                    return;
+                                }
                                 const update: Partial<SearchAdvancedFiltersForm> = {};
-                                update[filterKey] = selectedItems.map((item) => item.value);
+                                update[filterKey] = selectedItems.map((item) => item.value) as ExpenseTypeValues & HasFilterValues & IsFilterValues;
                                 updateFilterForm(update);
                             }}
                         />
-                    ),
-                    sentryLabel: getFilterSentryLabel(filterKey),
-                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
-                };
-            }
-            case FILTER_KEYS.BILLABLE:
-            case FILTER_KEYS.REIMBURSABLE:
-            case FILTER_KEYS.WITHDRAWAL_TYPE: {
-                const formValue = searchAdvancedFiltersForm[filterKey];
-                const items = getSingleSelectFilterOptions(filterKey, translate);
-                const value = items.find((option) => option.value === formValue) ?? null;
-                const singleSelectComponent = ({closeOverlay}: PopoverComponentProps) => (
-                    <SingleSelectPopup
-                        label={translate(label)}
-                        items={items}
-                        value={value}
-                        closeOverlay={closeOverlay}
-                        onChange={(item) => updateFilterForm({[filterKey]: item?.value})}
-                    />
-                );
-                return {PopoverComponent: singleSelectComponent, sentryLabel: getFilterSentryLabel(filterKey), onClosePress: () => updateFilterForm({[filterKey]: undefined})};
-            }
-            case FILTER_KEYS.HAS:
-            case FILTER_KEYS.IS:
-            case FILTER_KEYS.EXPENSE_TYPE:
-            case FILTER_KEYS.STATUS: {
-                let formValues = searchAdvancedFiltersForm[filterKey] ?? [];
+                    );
 
-                if (filterKey === FILTER_KEYS.STATUS) {
-                    formValues = Array.isArray(formValues) ? formValues : formValues.split(',');
+                    return {PopoverComponent: multiSelectComponent, sentryLabel: getFilterSentryLabel(filterKey), onClosePress: () => updateFilterForm({[filterKey]: undefined})};
                 }
-
-                const items = getMultiSelectFilterOptions(filterKey, type, translate);
-                const value = items.filter((item) => formValues.includes(item.value));
-
-                const multiSelectComponent = ({closeOverlay}: PopoverComponentProps) => (
-                    <MultiSelectFilterPopup
-                        closeOverlay={closeOverlay}
-                        translationKey={label}
-                        items={items}
-                        value={value}
-                        onChangeCallback={(selectedItems) => {
-                            if (filterKey === FILTER_KEYS.STATUS) {
-                                updateFilterForm({status: selectedItems.length ? selectedItems.map((item) => item.value) : CONST.SEARCH.STATUS.EXPENSE.ALL});
-                                return;
-                            }
-                            const update: Partial<SearchAdvancedFiltersForm> = {};
-                            update[filterKey] = selectedItems.map((item) => item.value) as ExpenseTypeValues & HasFilterValues & IsFilterValues;
-                            updateFilterForm(update);
-                        }}
-                    />
-                );
-
-                return {PopoverComponent: multiSelectComponent, sentryLabel: getFilterSentryLabel(filterKey), onClosePress: () => updateFilterForm({[filterKey]: undefined})};
+                case FILTER_KEYS.ASSIGNEE:
+                case FILTER_KEYS.ATTENDEE:
+                case FILTER_KEYS.TO:
+                case FILTER_KEYS.FROM:
+                    return {
+                        PopoverComponent: ({closeOverlay}) => (
+                            <UserSelectPopup
+                                value={searchAdvancedFiltersForm[filterKey] ?? []}
+                                label={translate(label)}
+                                closeOverlay={closeOverlay}
+                                onChange={(selectedUsers) => {
+                                    const update: Partial<SearchAdvancedFiltersForm> = {};
+                                    update[filterKey] = selectedUsers;
+                                    updateFilterForm(update);
+                                }}
+                            />
+                        ),
+                        sentryLabel: getFilterSentryLabel(filterKey),
+                        onClosePress: () => updateFilterForm({[filterKey]: undefined}),
+                    };
+                case FILTER_KEYS.POLICY_ID:
+                    return {
+                        PopoverComponent: ({closeOverlay}) => (
+                            <WorkspaceSelectPopup
+                                policyIDQuery={queryJSON.policyID}
+                                updateFilterForm={updateFilterForm}
+                                closeOverlay={closeOverlay}
+                            />
+                        ),
+                        sentryLabel: getFilterSentryLabel(filterKey),
+                        onClosePress: () => updateFilterForm({[filterKey]: undefined}),
+                    };
+                default:
+                    // This should be unreachable
+                    return {PopoverComponent: () => null, onClosePress: () => {}};
             }
-            case FILTER_KEYS.ASSIGNEE:
-            case FILTER_KEYS.ATTENDEE:
-            case FILTER_KEYS.TO:
-            case FILTER_KEYS.FROM:
-                return {
-                    PopoverComponent: ({closeOverlay}) => (
-                        <UserSelectPopup
-                            value={searchAdvancedFiltersForm[filterKey] ?? []}
-                            label={translate(label)}
-                            closeOverlay={closeOverlay}
-                            onChange={(selectedUsers) => {
-                                const update: Partial<SearchAdvancedFiltersForm> = {};
-                                update[filterKey] = selectedUsers;
-                                updateFilterForm(update);
-                            }}
-                        />
-                    ),
-                    sentryLabel: getFilterSentryLabel(filterKey),
-                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
-                };
-            case FILTER_KEYS.POLICY_ID:
-                return {
-                    PopoverComponent: ({closeOverlay}) => (
-                        <WorkspaceSelectPopup
-                            policyIDQuery={queryJSON.policyID}
-                            updateFilterForm={updateFilterForm}
-                            closeOverlay={closeOverlay}
-                        />
-                    ),
-                    sentryLabel: getFilterSentryLabel(filterKey),
-                    onClosePress: () => updateFilterForm({[filterKey]: undefined}),
-                };
-            default:
-                // This should be unreachable
-                return {PopoverComponent: () => null, onClosePress: () => {}};
-        }
-    });
+        },
+    );
 
     return {
         filters,

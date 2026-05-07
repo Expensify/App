@@ -4,7 +4,7 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -395,10 +395,7 @@ const ViolationsUtils = {
             const hasCategoryOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === 'categoryOutOfPolicy');
             const hasMissingCategoryViolation = transactionViolations.some((violation) => violation.name === 'missingCategory');
             const categoryKey = updatedTransaction.category;
-            const categoryData = policyCategories?.[categoryKey ?? ''];
-            // A category being created optimistically (pendingAction === 'add') is treated as valid
-            // so in-situ creation doesn't trigger a "categoryOutOfPolicy" violation before the server confirms it.
-            const isCategoryInPolicy = categoryKey ? !!(categoryData?.enabled || categoryData?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) : false;
+            const isCategoryInPolicy = categoryKey ? policyCategories?.[categoryKey]?.enabled : false;
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
@@ -528,7 +525,7 @@ const ViolationsUtils = {
         const shouldShowMissingComment =
             !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
-        const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
+        const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         const ownerAccountID = iouReport?.ownerAccountID;
@@ -750,7 +747,7 @@ const ViolationsUtils = {
             case 'missingAttendees':
                 return translate('violations.missingAttendees');
             case 'missingTag':
-                return translate('violations.missingTag', {tagName});
+                return translate('violations.missingTag', tagName);
             case 'modifiedAmount':
                 return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
             case 'modifiedDate':
