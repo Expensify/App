@@ -5261,11 +5261,12 @@ function getColumnsToShow({
             }
 
             if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
-                result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
-            }
-
-            if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.TOTAL)) {
-                result.push(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+                const totalIndex = result.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+                if (totalIndex >= 0) {
+                    result.splice(totalIndex, 0, CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                } else {
+                    result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
+                }
             }
 
             // Don't return early — fall through to updateColumns to detect empty columns
