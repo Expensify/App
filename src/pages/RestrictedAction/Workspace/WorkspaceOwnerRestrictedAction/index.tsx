@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -20,10 +20,12 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
-    const addPaymentCard = () => {
-        Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
-    };
+    const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
+    const goToSubscription = useCallback(() => {
+        Navigation.dismissModal({
+            afterTransition: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute)),
+        });
+    }, [activeRoute]);
 
     return (
         <ScreenWrapper
@@ -52,8 +54,8 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.restrictedAction.addPaymentCardToContinueUsingWorkspace')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
-                        text={translate('workspace.restrictedAction.addPaymentCard')}
-                        onPress={addPaymentCard}
+                        text={translate('workspace.restrictedAction.goToSubscription')}
+                        onPress={goToSubscription}
                         success
                         large
                     />
