@@ -136,7 +136,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields, translate);
 
             const street = values[inputFieldsIDs.street as keyof typeof values];
             if (street && !isValidAddress(street as FormValue)) {

@@ -1,9 +1,11 @@
 import {Str} from 'expensify-common';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
-import {convertToShortDisplayString} from './CurrencyUtils';
 
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
@@ -25,7 +27,12 @@ function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], ta
     return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
 }
 
-function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxAmountNoReceipt?: number | null) {
+function formatRequireReceiptsOverText(
+    translate: LocaleContextProps['translate'],
+    policy: Policy,
+    categoryMaxAmountNoReceipt: number | null | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+) {
     const isAlwaysSelected = categoryMaxAmountNoReceipt === 0;
     const isNeverSelected = categoryMaxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
 
@@ -37,9 +44,38 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
         return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
     }
 
-    const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
+    if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoReceipt === undefined) {
+        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
+    }
 
-    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD));
+    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD));
+}
+
+function formatRequireItemizedReceiptsOverText(
+    translate: LocaleContextProps['translate'],
+    policy: Policy,
+    categoryMaxAmountNoItemizedReceipt: number | null | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+) {
+    const isAlwaysSelected = categoryMaxAmountNoItemizedReceipt === 0;
+    const isNeverSelected = categoryMaxAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
+
+    if (isAlwaysSelected) {
+        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.always`);
+    }
+
+    if (isNeverSelected) {
+        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
+    }
+
+    if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
+        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
+    }
+
+    return translate(
+        `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
+        convertToDisplayString(policy.maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+    );
 }
 
 function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: string) {
@@ -111,9 +147,22 @@ function getDecodedCategoryName(categoryName: string) {
     return Str.htmlDecode(categoryName);
 }
 
+function getAvailableNonPersonalPolicyCategories(policyCategories: OnyxCollection<PolicyCategories>, personalPolicyID: string | undefined) {
+    return Object.fromEntries(
+        Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
+            if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${personalPolicyID}`) {
+                return false;
+            }
+            const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            return availableCategories.length > 0;
+        }),
+    );
+}
+
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
+    formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
     getCategoryExpenseRule,
     getCategoryDefaultTaxRate,
@@ -122,4 +171,5 @@ export {
     isCategoryMissing,
     isCategoryDescriptionRequired,
     getDecodedCategoryName,
+    getAvailableNonPersonalPolicyCategories,
 };

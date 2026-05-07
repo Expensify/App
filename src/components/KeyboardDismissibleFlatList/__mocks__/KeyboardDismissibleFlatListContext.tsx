@@ -1,22 +1,44 @@
 import type {PropsWithChildren} from 'react';
-import {createContext} from 'react';
-import type {KeyboardDismissibleFlatListContextValue} from '@components/KeyboardDismissibleFlatList/types';
+import {createContext, useContext} from 'react';
+import type {
+    KeyboardDismissibleFlatListActionsContextValue,
+    KeyboardDismissibleFlatListContextValue,
+    KeyboardDismissibleFlatListStateContextValue,
+} from '@components/KeyboardDismissibleFlatList/types';
 import createSharedValueMock from '../../../../tests/utils/createSharedValueMock';
 
-const mockSharedValue: KeyboardDismissibleFlatListContextValue = {
+const mockStateValue: KeyboardDismissibleFlatListStateContextValue = {
     keyboardHeight: createSharedValueMock(0),
     keyboardOffset: createSharedValueMock(0),
     scrollY: createSharedValueMock(0),
-    onScroll: () => {},
     contentSizeHeight: createSharedValueMock(0),
     layoutMeasurementHeight: createSharedValueMock(0),
+};
+
+const mockActionsValue: KeyboardDismissibleFlatListActionsContextValue = {
+    onScroll: () => {},
     setListBehavior: () => {},
 };
 
-const KeyboardDismissibleFlatListContext = createContext<KeyboardDismissibleFlatListContextValue>(mockSharedValue);
+const KeyboardDismissibleFlatListStateContext = createContext<KeyboardDismissibleFlatListStateContextValue>(mockStateValue);
+const KeyboardDismissibleFlatListActionsContext = createContext<KeyboardDismissibleFlatListActionsContextValue>(mockActionsValue);
 
 function KeyboardDismissibleFlatListContextProvider({children}: PropsWithChildren) {
-    return <KeyboardDismissibleFlatListContext.Provider value={mockSharedValue}>{children}</KeyboardDismissibleFlatListContext.Provider>;
+    return (
+        <KeyboardDismissibleFlatListActionsContext.Provider value={mockActionsValue}>
+            <KeyboardDismissibleFlatListStateContext.Provider value={mockStateValue}>{children}</KeyboardDismissibleFlatListStateContext.Provider>
+        </KeyboardDismissibleFlatListActionsContext.Provider>
+    );
 }
 
-export {KeyboardDismissibleFlatListContext, KeyboardDismissibleFlatListContextProvider};
+function useKeyboardDismissibleFlatListState(): KeyboardDismissibleFlatListStateContextValue {
+    return useContext(KeyboardDismissibleFlatListStateContext);
+}
+
+function useKeyboardDismissibleFlatListActions(): KeyboardDismissibleFlatListActionsContextValue {
+    return useContext(KeyboardDismissibleFlatListActionsContext);
+}
+
+const mockContextValue: KeyboardDismissibleFlatListContextValue = {...mockStateValue, ...mockActionsValue};
+
+export {KeyboardDismissibleFlatListContextProvider, useKeyboardDismissibleFlatListState, useKeyboardDismissibleFlatListActions, mockContextValue};

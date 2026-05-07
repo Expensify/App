@@ -1,6 +1,6 @@
 import React from 'react';
 import Reanimated from 'react-native-reanimated';
-import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
+import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
@@ -22,8 +22,6 @@ function ActionSheetAwareScrollView({style, children, ref, ...restProps}: Action
     );
 }
 
-export default ActionSheetAwareScrollView;
-
 /**
  * This function should be used as renderScrollComponent prop for FlatList
  * @param props - props that will be passed to the ScrollView from FlatList
@@ -34,4 +32,4 @@ const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = (props)
     return <ActionSheetAwareScrollView {...props} />;
 };
 
-export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
+export {renderScrollComponent, ActionSheetAwareScrollViewProvider, Actions, useActionSheetAwareScrollViewState, useActionSheetAwareScrollViewActions};

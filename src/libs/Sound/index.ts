@@ -2,7 +2,8 @@ import {Howl} from 'howler';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import {getIsMuted, SOUNDS, withMinimalExecutionTime} from './BaseSound';
-import config from './config';
+
+const config = {prefix: '/sounds/'};
 
 function cacheSoundAssets() {
     // Exit early if the Cache API is not available in the current browser.

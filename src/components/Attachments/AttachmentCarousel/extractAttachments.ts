@@ -3,11 +3,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Attachment} from '@components/Attachments/types';
 import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import {getHtmlWithAttachmentID, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {getHtmlWithAttachmentID, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
-import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {Report, ReportAction, ReportActions, VisibleReportActionsDerivedValue} from '@src/types/onyx';
 import type {Note} from '@src/types/onyx/Report';
 
 /**
@@ -22,6 +22,7 @@ function extractAttachments(
         reportActions,
         report,
         isReportArchived,
+        visibleReportActionsData,
     }: {
         privateNotes?: Record<number, Note>;
         accountID?: number;
@@ -29,6 +30,7 @@ function extractAttachments(
         reportActions?: OnyxEntry<ReportActions>;
         report: OnyxEntry<Report>;
         isReportArchived: boolean | undefined;
+        visibleReportActionsData?: VisibleReportActionsDerivedValue;
     },
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
@@ -115,9 +117,13 @@ function extractAttachments(
         return attachments.reverse();
     }
 
+    const reportID = report?.reportID;
+    if (!reportID) {
+        return attachments.reverse();
+    }
     const actions = [...(parentReportAction ? [parentReportAction] : []), ...getSortedReportActions(Object.values(reportActions ?? {}))];
-    for (const [key, action] of actions.entries()) {
-        if (!shouldReportActionBeVisible(action, key, canUserPerformAction) || isMoneyRequestAction(action)) {
+    for (const action of actions) {
+        if (!isReportActionVisible(action, reportID, canUserPerformAction, visibleReportActionsData) || isMoneyRequestAction(action)) {
             continue;
         }
 

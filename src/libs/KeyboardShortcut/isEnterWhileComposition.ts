@@ -19,7 +19,19 @@ const isEnterWhileComposition = (event: KeyboardEvent | React.KeyboardEvent): bo
         return event.keyCode === 229;
     }
 
-    return event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && (event as unknown as NativeSyntheticEvent<KeyboardEvent>)?.nativeEvent?.isComposing;
+    // Check if this is a native KeyboardEvent (has isComposing directly) or a React synthetic event (has nativeEvent.isComposing)
+    // For native KeyboardEvent, isComposing is directly on the event
+    // For React synthetic events, it's on event.nativeEvent.isComposing
+    let isComposing: boolean | undefined;
+
+    if (event instanceof KeyboardEvent) {
+        isComposing = event.isComposing;
+    } else {
+        const nativeEvent = (event as unknown as NativeSyntheticEvent<KeyboardEvent>)?.nativeEvent;
+        isComposing = nativeEvent?.isComposing;
+    }
+
+    return event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !!isComposing;
 };
 
 export default isEnterWhileComposition;

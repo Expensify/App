@@ -17,7 +17,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const personalDetails = usePersonalDetails();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const isCurrentUserAnonymous = session?.accountID === accountID && isAnonymousUser(session);
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};

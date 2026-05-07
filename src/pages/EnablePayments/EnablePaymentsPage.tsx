@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,35 +18,44 @@ import FailedKYC from './FailedKYC';
 // Steps
 import OnfidoStep from './OnfidoStep';
 import TermsStep from './TermsStep';
+import useHasFreshWalletData from './useHasFreshWalletData';
 
 function EnablePaymentsPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {
-        canBeMissing: true,
-        // We want to refresh the wallet each time the user attempts to activate the wallet so we won't use the
-        // stored values here.
-        initWithStoredValues: false,
-    });
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
 
     const {isPendingOnfidoResult, hasFailedOnfido} = userWallet ?? {};
+    const hasFreshData = useHasFreshWalletData(isOffline, userWallet?.isLoading);
 
+    // Always fetch fresh wallet data on mount
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (isPendingOnfidoResult || hasFailedOnfido) {
-            Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
+        openEnablePaymentsPage();
+    }, [isOffline]);
+
+    // Only redirect after the fresh data loading cycle (isLoading: true → false) completes,
+    // to avoid acting on stale cached values from a previous session.
+    useEffect(() => {
+        if (isOffline || !hasFreshData) {
             return;
         }
 
-        openEnablePaymentsPage();
-    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido]);
+        if (isPendingOnfidoResult || hasFailedOnfido) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET, {forceReplace: true});
+        }
+    }, [isOffline, isPendingOnfidoResult, hasFailedOnfido, hasFreshData]);
 
-    if (isEmptyObject(userWallet)) {
-        return <FullScreenLoadingIndicator />;
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'EnablePaymentsPage',
+            isUserWalletEmpty,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

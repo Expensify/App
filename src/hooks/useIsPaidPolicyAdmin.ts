@@ -16,11 +16,10 @@ function useIsPaidPolicyAdmin() {
         (policies: OnyxCollection<Policy>) => {
             return Object.values(policies ?? {}).some((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserPersonalDetails.login));
         },
-        [currentUserPersonalDetails?.login],
+        [currentUserPersonalDetails.login],
     );
 
     const [isCurrentUserPolicyAdmin = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
         selector: isUserPaidPolicyAdminSelector,
     });
 

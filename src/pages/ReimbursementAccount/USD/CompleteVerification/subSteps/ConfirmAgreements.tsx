@@ -39,8 +39,8 @@ function TermsAndConditionsLabel() {
 }
 
 function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const confirmAgreementsValues = useMemo(
@@ -54,7 +54,7 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
     };
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (!isRequiredFulfilled(values.acceptTermsAndConditions)) {
                 errors.acceptTermsAndConditions = translate('common.error.acceptTerms');

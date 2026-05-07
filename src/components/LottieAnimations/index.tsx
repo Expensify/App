@@ -79,11 +79,6 @@ const DotLottieAnimations = {
         w: 180,
         h: 200,
     },
-    GenericEmptyState: {
-        file: require<LottieViewProps['source']>('@assets/animations/GenericEmptyState.lottie'),
-        w: 375,
-        h: 240,
-    },
     TripsEmptyState: {
         file: require<LottieViewProps['source']>('@assets/animations/TripsEmptyState.lottie'),
         w: 375,
@@ -93,6 +88,11 @@ const DotLottieAnimations = {
         file: require<LottieViewProps['source']>('@assets/animations/BankVault.lottie'),
         w: 375,
         h: 240,
+    },
+    Fingerprint: {
+        file: require<LottieViewProps['source']>('@assets/animations/Fingerprint.lottie'),
+        w: 204,
+        h: 204,
     },
 } satisfies Record<string, DotLottieAnimation>;
 

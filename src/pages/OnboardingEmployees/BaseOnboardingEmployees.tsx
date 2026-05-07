@@ -4,10 +4,11 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +18,7 @@ import {setOnboardingCompanySize} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {BaseOnboardingEmployeesProps} from './types';
 
 type OnboardingListItem = ListItem & {
@@ -25,18 +27,22 @@ type OnboardingListItem = ListItem & {
 function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingEmployeesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: true});
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.EMPLOYEES);
     const [selectedCompanySize, setSelectedCompanySize] = useState<OnboardingCompanySize | null | undefined>(onboardingCompanySize);
     const [error, setError] = useState('');
 
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
         const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
-            .filter((size) => !isSmb || size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO)
+            .filter(
+                (size) =>
+                    // Always hide the deprecated 1-10 option. For SMB-qualified users, also hide 1-4 and 5-10 since they already indicated they manage a team.
+                    size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && (!isSmb || (size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM)),
+            )
             .map((companySize): OnboardingListItem => {
                 return {
                     text: translate(`onboarding.employees.${companySize}`),
@@ -68,6 +74,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
                 }}
                 pressOnEnter
+                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
             />
         </>
     );
@@ -79,13 +86,17 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         >
             <HeaderWithBackButton
                 shouldShowBackButton
-                progressBarPercentage={onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? 80 : 90}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute());
                 }}
                 shouldDisplayHelpButton={false}
             />
-            <Text style={[styles.textHeadlineH1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+            <Text
+                style={[styles.textHeadlineH1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                accessibilityRole={CONST.ROLE.HEADER}
+            >
                 {translate('onboarding.employees.title')}
             </Text>
             <SelectionList
@@ -96,7 +107,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 }}
                 initiallyFocusedItemKey={companySizeOptions.find((item) => item.keyForList === selectedCompanySize)?.keyForList}
                 shouldUpdateFocusedIndex
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 footerContent={footerContent}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}}
             />

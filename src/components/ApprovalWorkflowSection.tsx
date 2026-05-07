@@ -1,22 +1,23 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
+import UserPill from './UserPill';
+import UserPills from './UserPills';
 
 type ApprovalWorkflowSectionProps = {
     /** Single workflow displayed in this component */
@@ -34,27 +35,32 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-        selector: personalDetailsByEmailSelector,
-    });
+    const personalDetailsByEmail = usePersonalDetailsByEmail();
 
     const approverTitle = (index: number) =>
         approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
 
-    const members = approvalWorkflow.isDefault
-        ? translate('workspace.common.everyone')
-        : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
-              .map((m) => Str.removeSMSDomain(m.displayName))
-              .join(', ');
+    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 
+    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
+
+    const memberPills = sortedMembers.map((m) => ({
+        avatar: m.avatar,
+        displayName: m.displayName,
+        email: m.email,
+    }));
     return (
         <PressableWithoutFeedback
             accessibilityRole="button"
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.APPROVAL_WORKFLOW_SECTION}
             style={[styles.border, shouldUseNarrowLayout ? styles.p3 : styles.p4, styles.flexRow, styles.justifyContentBetween, styles.mt6, styles.mbn3]}
             onPress={onPress}
-            accessibilityLabel={translate('workflowsPage.addApprovalsTitle')}
+            accessibilityLabel={translate('workflowsPage.accessibilityLabel', {
+                members,
+                approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
+            })}
         >
             <View style={[styles.flex1]}>
                 {approvalWorkflow.isDefault && (
@@ -78,14 +84,24 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                     style={styles.p0}
                     titleStyle={styles.textLabelSupportingNormal}
                     descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                    description={members}
+                    description={approvalWorkflow.isDefault ? members : undefined}
                     numberOfLinesDescription={4}
+                    shouldBeAccessible={false}
+                    tabIndex={-1}
                     icon={icons.Users}
                     iconHeight={20}
                     iconWidth={20}
                     iconFill={theme.icon}
                     onPress={onPress}
                     shouldRemoveBackground
+                    titleComponent={
+                        !approvalWorkflow.isDefault ? (
+                            <View style={styles.ml3}>
+                                <UserPills users={memberPills} />
+                            </View>
+                        ) : undefined
+                    }
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_EXPENSES_FROM}
                 />
 
                 {approvalWorkflow.approvers.map((approver, index) => (
@@ -97,16 +113,28 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                             style={styles.p0}
                             titleStyle={styles.textLabelSupportingNormal}
                             descriptionTextStyle={[styles.textNormalThemeText, styles.lineHeightXLarge]}
-                            description={Str.removeSMSDomain(approver.displayName)}
                             icon={icons.UserCheck}
+                            shouldBeAccessible={false}
+                            tabIndex={-1}
                             iconHeight={20}
                             iconWidth={20}
                             numberOfLinesDescription={1}
                             iconFill={theme.icon}
                             onPress={onPress}
                             shouldRemoveBackground
-                            helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
+                            titleComponent={
+                                <View style={[styles.ml3, styles.pr3]}>
+                                    <UserPill
+                                        avatar={approver.avatar}
+                                        displayName={approver.displayName}
+                                        email={approver.email}
+                                        style={styles.userPillStandalone}
+                                    />
+                                </View>
+                            }
+                            helperText={getApprovalLimitDescription({approver, currency, translate, convertToDisplayString, personalDetailsByEmail})}
                             helperTextStyle={styles.workflowApprovalLimitText}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                         />
                     </View>
                 ))}

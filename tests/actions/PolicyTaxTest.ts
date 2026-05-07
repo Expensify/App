@@ -52,7 +52,7 @@ describe('actions/PolicyTax', () => {
         it('Set policy`s custom tax name', () => {
             const customTaxName = 'Custom tag name';
             mockFetch?.pause?.();
-            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
+            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -93,7 +93,7 @@ describe('actions/PolicyTax', () => {
             const originalCustomTaxName = fakePolicy?.taxRates?.name;
 
             mockFetch?.pause?.();
-            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
+            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName, originalCustomTaxName);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -140,7 +140,7 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -181,7 +181,7 @@ describe('actions/PolicyTax', () => {
             const originalDefaultExternalID = fakePolicy?.taxRates?.defaultExternalID;
 
             mockFetch?.pause?.();
-            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode, originalDefaultExternalID);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -227,7 +227,7 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
@@ -269,7 +269,7 @@ describe('actions/PolicyTax', () => {
             const originalDefaultForeignCurrencyID = fakePolicy?.taxRates?.foreignTaxDefault;
 
             mockFetch?.pause?.();
-            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode, originalDefaultForeignCurrencyID);
             return waitForBatchedUpdates()
                 .then(
                     () =>

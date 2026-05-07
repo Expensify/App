@@ -76,7 +76,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
-        const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
         if (values.dob) {
             if (!isValidPastDate(values.dob) || !meetsMaximumAgeRequirement(values.dob)) {

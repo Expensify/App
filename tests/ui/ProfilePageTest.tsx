@@ -26,23 +26,19 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
-    getShouldPopToSidebar: jest.fn(() => false),
-    popToSidebar: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
         ...actualNav,
-        useRoute: jest.fn(),
+        useRoute: jest.fn(() => ({params: {}})),
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
         }),
         usePreventRemove: jest.fn(),
     };
 });
-
-jest.mock('@components/Icon/Illustrations');
 
 // Replace MenuItemWithTopDescription with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItemWithTopDescription', () => {

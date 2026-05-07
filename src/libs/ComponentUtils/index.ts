@@ -1,4 +1,4 @@
-import type {Component} from 'react';
+import type {NativeMethods} from 'react-native';
 import type {AnimatedRef} from 'react-native-reanimated';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import type AccessibilityRoleForm from './types';
@@ -8,7 +8,7 @@ import type AccessibilityRoleForm from './types';
  */
 const ACCESSIBILITY_ROLE_FORM: AccessibilityRoleForm = 'form';
 
-function forceClearInput(animatedInputRef: AnimatedRef<Component>) {
+function forceClearInput(animatedInputRef: AnimatedRef<NativeMethods>) {
     'worklet';
 
     const input = animatedInputRef.current;

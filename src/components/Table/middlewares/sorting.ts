@@ -54,10 +54,12 @@ type SortingMethods<ColumnKey extends string = string> = {
  * @template T - The type of items in the data array.
  * @template ColumnKey - The type of column keys.
  * @param compareItems - The callback to compare two items in the table.
+ * @param initialSortColumn - The initial column to sort by on mount.
  * @returns The result of the sorting middleware.
  */
 type UseSortingProps<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
+    initialSortColumn?: ColumnKey;
 };
 
 /**
@@ -77,11 +79,12 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
  * @template T - The type of items in the data array.
  * @template ColumnKey - The type of column keys.
  * @param compareItems - The callback to compare two items in the table.
+ * @param initialSortColumn - The initial column to sort by on mount.
  * @returns The result of the sorting middleware.
  */
-function useSorting<T, ColumnKey extends string = string>({compareItems}: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
+function useSorting<T, ColumnKey extends string = string>({compareItems, initialSortColumn}: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
     const [activeSorting, updateSorting] = useState<ActiveSorting<ColumnKey>>({
-        columnKey: undefined,
+        columnKey: initialSortColumn,
         order: 'asc',
     });
 

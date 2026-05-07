@@ -144,6 +144,7 @@ function AddressFormFields({
                     limitSearchesToCountry={shouldAllowCountryChange ? undefined : defaultValues?.country}
                     onCountryChange={handleCountryChange}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete="address-line1"
                 />
             </View>
             <InputWrapper
@@ -158,6 +159,7 @@ function AddressFormFields({
                 errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
                 containerStyles={styles.mt6}
                 forwardedFSClass={forwardedFSClass}
+                autoComplete="address-line2"
             />
 
             {shouldDisplayStateSelector && (
@@ -188,9 +190,10 @@ function AddressFormFields({
                 value={values?.zipCode}
                 defaultValue={defaultValues?.zipCode}
                 errorText={errors?.zipCode ? translate('bankAccount.error.zipCode') : ''}
-                hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
+                hint={translate('common.zipCodeExampleFormat', CONST.COUNTRY_ZIP_REGEX_DATA.US.samples)}
                 containerStyles={styles.mt3}
                 forwardedFSClass={forwardedFSClass}
+                autoComplete="postal-code"
             />
             {shouldDisplayCountrySelector && (
                 <View style={[styles.mt3, styles.mhn5]}>

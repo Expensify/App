@@ -1,11 +1,12 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+import useInitialOnyxValue from '@hooks/useInitialOnyxValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearCardListErrors, requestReplacementExpensifyCard} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -26,23 +27,15 @@ function ReportCardLostConfirmMagicCodePage({
     },
 }: ReportCardLostConfirmMagicCodePageProps) {
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, {canBeMissing: true});
+    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
 
-    const primaryLogin = account?.primaryLogin ?? '';
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const primaryLogin = usePrimaryContactMethod();
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const initialCardList = useInitialOnyxValue(ONYXKEYS.CARD_LIST);
     const physicalCard = cardList?.[cardID];
-    const [newCardID, setNewCardID] = useState<string>('');
-    const previousCardList = usePrevious(cardList);
     const validateError = getLatestErrorMessageField(physicalCard);
 
-    useEffect(() => {
-        const newID = Object.keys(cardList ?? {}).find((cardKey) => cardList?.[cardKey]?.cardID && !(cardKey in (previousCardList ?? {})));
-        if (!newID || physicalCard?.cardID) {
-            return;
-        }
-        setNewCardID(newID);
-    }, [cardList, physicalCard?.cardID, previousCardList]);
+    const newCardID = Object.keys(cardList ?? {}).find((key) => !Object.hasOwn(initialCardList ?? {}, key) && cardList?.[key]?.cardID) ?? '';
 
     useEffect(() => {
         if (formData?.isLoading) {
@@ -57,15 +50,12 @@ function ReportCardLostConfirmMagicCodePage({
         setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, newErrors);
     }, [formData?.isLoading, formData?.errors, physicalCard?.errors]);
 
-    const handleValidateCodeEntered = useCallback(
-        (validateCode: string) => {
-            if (!physicalCard) {
-                return;
-            }
-            requestReplacementExpensifyCard(physicalCard.cardID, reason, validateCode);
-        },
-        [physicalCard, reason],
-    );
+    const handleValidateCodeEntered = (validateCode: string) => {
+        if (!physicalCard) {
+            return;
+        }
+        requestReplacementExpensifyCard(physicalCard.cardID, reason, validateCode);
+    };
 
     if (newCardID) {
         return (
@@ -88,7 +78,7 @@ function ReportCardLostConfirmMagicCodePage({
             handleSubmitForm={handleValidateCodeEntered}
             isLoading={formData?.isLoading}
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateError={validateError}
             clearError={() => {

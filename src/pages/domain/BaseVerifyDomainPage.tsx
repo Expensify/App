@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainValidationCode, resetDomainValidationError, validateDomain} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -49,7 +50,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain ? Str.extractEmailDomain(domain.email) : '';
     const doesDomainExist = !!domain;
 
@@ -76,8 +77,13 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         resetDomainValidationError(domainAccountID);
     }, [domainAccountID, doesDomainExist]);
 
-    if (isLoadingOnyxValue(domainMetadata)) {
-        return <FullScreenLoadingIndicator />;
+    const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
+    if (isLoadingDomain) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'BaseVerifyDomainPage',
+            isLoadingDomain,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (!domain) {

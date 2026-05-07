@@ -4,15 +4,19 @@ import type CONST from '@src/CONST';
 
 type ListBehavior = ValueOf<typeof CONST.LIST_BEHAVIOR>;
 
-type KeyboardDismissibleFlatListContextValue = {
+type KeyboardDismissibleFlatListStateContextValue = {
     keyboardHeight: SharedValue<number>;
     keyboardOffset: SharedValue<number>;
     contentSizeHeight: SharedValue<number>;
     layoutMeasurementHeight: SharedValue<number>;
-    onScroll: ScrollHandlerProcessed<Record<string, unknown>>;
     scrollY: SharedValue<number>;
+};
+
+type KeyboardDismissibleFlatListActionsContextValue = {
+    onScroll: ScrollHandlerProcessed<Record<string, unknown>>;
     setListBehavior: React.Dispatch<React.SetStateAction<ListBehavior>>;
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export type {KeyboardDismissibleFlatListContextValue, ListBehavior};
+type KeyboardDismissibleFlatListContextValue = KeyboardDismissibleFlatListStateContextValue & KeyboardDismissibleFlatListActionsContextValue;
+
+export type {KeyboardDismissibleFlatListContextValue, KeyboardDismissibleFlatListStateContextValue, KeyboardDismissibleFlatListActionsContextValue, ListBehavior};

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -27,6 +28,7 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
+    const {translate} = useLocalize();
 
     return (
         <Modal
@@ -48,8 +50,8 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
 
                 {/* Title and prompt */}
                 <View>
-                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb3]}>Enjoying New Expensify?</Text>
-                    <Text style={[styles.textAlignCenter, styles.textSupporting]}>{'Let us know so we can help make your\nexpensing experience even better.'}</Text>
+                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb3]}>{translate('proactiveAppReview.title')}</Text>
+                    <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('proactiveAppReview.description')}</Text>
                 </View>
 
                 {/* Buttons */}
@@ -58,13 +60,13 @@ function ProactiveAppReviewModal({isVisible, onPositive, onNegative, onSkip}: Pr
                     style={[styles.mt5]}
                     onPress={onPositive}
                     pressOnEnter
-                    text="Yeah!"
+                    text={translate('proactiveAppReview.positiveButton')}
                     large
                 />
                 <Button
                     style={[styles.mt3, styles.noSelect]}
                     onPress={onNegative}
-                    text="Not really"
+                    text={translate('proactiveAppReview.negativeButton')}
                     large
                 />
             </View>

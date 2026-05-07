@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -8,11 +8,13 @@ import Icon from '@components/Icon';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type AnimatedCollapsibleProps = {
+type AnimatedCollapsibleProps = WithSentryLabel & {
     /** Whether the component is expanded */
     isExpanded: boolean;
 
@@ -67,20 +69,23 @@ function AnimatedCollapsible({
     disabled = false,
     shouldShowToggleButton = true,
     borderBottomStyle,
+    sentryLabel,
 }: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const contentHeight = useSharedValue(0);
     const descriptionHeight = useSharedValue(0);
     const hasExpanded = useSharedValue(isExpanded);
-    const [isRendered, setIsRendered] = React.useState(isExpanded);
-    useEffect(() => {
-        hasExpanded.set(isExpanded);
-        if (isExpanded) {
-            setIsRendered(true);
-        }
-    }, [isExpanded, hasExpanded]);
+    const [isRendered, setIsRendered] = useState(isExpanded);
+
+    // Keep Reanimated shared value in sync with prop (idempotent when unchanged)
+    hasExpanded.set(isExpanded);
+    // Mount content for collapse animation once expanded; unmount after animation via scheduleOnRN
+    if (isExpanded && !isRendered) {
+        setIsRendered(true);
+    }
 
     const animatedHeight = useDerivedValue(() => {
         if (!contentHeight.get()) {
@@ -139,6 +144,7 @@ function AnimatedCollapsible({
                         style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                        sentryLabel={sentryLabel}
                     >
                         {({hovered}) => (
                             <Icon
@@ -178,7 +184,7 @@ function AnimatedCollapsible({
                             }
                         }}
                     >
-                        <View style={[styles.pv2, styles.ph3, styles.pb1]}>
+                        <View style={isLargeScreenWidth ? [styles.pv2, styles.ph3, styles.pb1] : styles.ph3}>
                             <View style={[styles.borderBottom, borderBottomStyle]} />
                         </View>
                         {children}

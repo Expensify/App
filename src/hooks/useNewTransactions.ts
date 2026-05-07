@@ -23,9 +23,7 @@ function useNewTransactions(hasOnceLoadedReportActions: boolean | undefined, tra
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
         return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
-        // Depending only on transactions is enough because prevTransactions is a helper object.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions]);
+    }, [transactions, prevTransactions]);
 
     // In case when we have loaded the report, but there were no transactions in it, then we need to explicitly set skipFirstTransactionsChange to false, as it will be not set in the useMemo above.
     useEffect(() => {

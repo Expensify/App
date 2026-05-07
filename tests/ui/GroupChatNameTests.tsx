@@ -1,4 +1,3 @@
-/* eslint-disable testing-library/no-node-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {act, render, screen, waitFor} from '@testing-library/react-native';
@@ -27,15 +26,12 @@ jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
-    /* eslint-disable-next-line @typescript-eslint/naming-convention */
     __esModule: true,
     default: {
         ignoreLogs: jest.fn(),
         ignoreAllLogs: jest.fn(),
     },
 }));
-
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
 jest.mock('@react-navigation/native');
 
@@ -119,7 +115,7 @@ jest.mock('@src/components/Navigation/NavigationTabBar', () => {
 });
 
 // Mock FloatingActionButtonAndPopover component to prevent act() warnings
-jest.mock('@src/pages/home/sidebar/FloatingActionButtonAndPopover', () => {
+jest.mock('@src/pages/inbox/sidebar/FloatingActionButtonAndPopover', () => {
     const {View} = require('react-native');
     return (props: Record<string, unknown>) => {
         return (
@@ -132,7 +128,7 @@ jest.mock('@src/pages/home/sidebar/FloatingActionButtonAndPopover', () => {
 });
 
 // Mock ProfileAvatarWithIndicator component to prevent act() warnings
-jest.mock('@src/pages/home/sidebar/ProfileAvatarWithIndicator', () => {
+jest.mock('@src/pages/inbox/sidebar/ProfileAvatarWithIndicator', () => {
     const {View} = require('react-native');
     return (props: Record<string, unknown>) => {
         return (
@@ -191,13 +187,14 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
         })
         .then(async () => TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A'))
         .then(() => {
-            subscribeToUserEvents();
+            subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
             return waitForBatchedUpdates();
         })
         .then(async () => {
             // Simulate setting an unread report and personal details
             await act(async () => {
                 await Promise.all([
+                    Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         reportID: REPORT_ID,
                         reportName,

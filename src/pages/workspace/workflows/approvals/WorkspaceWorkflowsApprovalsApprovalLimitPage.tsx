@@ -1,9 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
-import type {NumberWithSymbolFormRef} from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -13,10 +11,13 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import UserPill from '@components/UserPill';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -31,7 +32,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -41,12 +41,10 @@ type WorkspaceWorkflowsApprovalsApprovalLimitPageProps = WithPolicyAndFullscreen
 function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApprovalLimitPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
-    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-        selector: personalDetailsByEmailSelector,
-    });
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const personalDetailsByEmail = usePersonalDetailsByEmail();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) || 0;
@@ -56,27 +54,17 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const selectedApproverEmail = currentApprover?.overLimitForwardsTo ?? '';
 
-    const defaultApprovalLimit = currentApprover?.approvalLimit ? convertToFrontendAmountAsString(currentApprover.approvalLimit, currency) : '';
+    const defaultApprovalLimit = currentApprover?.approvalLimit ? convertToFrontendAmountAsString(currentApprover.approvalLimit, getCurrencyDecimals(currency)) : '';
 
-    const [editedApprovalLimit, setEditedApprovalLimit] = useState<string | null>(null);
+    const [editedApprovalLimit, setEditedApprovalLimit] = useState<{approverEmail: string; value: string} | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const amountFormRef = useRef<NumberWithSymbolFormRef>(null);
-    const isFocused = useIsFocused();
 
-    const approvalLimit = editedApprovalLimit ?? defaultApprovalLimit;
-
-    // Clear the amount input when the screen is focused and the over-limit approver was unselected
-    useEffect(() => {
-        if (!isFocused || currentApprover?.approvalLimit != null || editedApprovalLimit !== null) {
-            return;
-        }
-        amountFormRef.current?.updateNumber('');
-    }, [isFocused, currentApprover?.approvalLimit, editedApprovalLimit]);
+    const approverEmail = currentApprover?.email ?? '';
+    const approvalLimit = editedApprovalLimit?.approverEmail === approverEmail ? editedApprovalLimit.value : defaultApprovalLimit;
 
     const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
 
     const approverDisplayName = currentApprover ? Str.removeSMSDomain(currentApprover.displayName) : '';
@@ -112,6 +100,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
         if (!approvalWorkflow || !currentApprover) {
             return;
         }
+
         setApprovalWorkflowApprover({
             approver: {
                 ...currentApprover,
@@ -167,27 +156,15 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
     };
 
     const handleAmountChange = (value: string) => {
-        setEditedApprovalLimit(value);
-        setHasSubmitted(false);
-    };
-
-    const saveCurrentStateToOnyx = () => {
-        const limitInCents = approvalLimit ? convertToBackendAmount(Number.parseFloat(approvalLimit)) : null;
-        updateCurrentApprover({
-            approvalLimit: limitInCents,
-            overLimitForwardsTo: selectedApproverEmail,
-        });
-        setEditedApprovalLimit(null);
+        setEditedApprovalLimit({approverEmail, value});
         setHasSubmitted(false);
     };
 
     const navigateToApproverSelector = () => {
-        saveCurrentStateToOnyx();
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.getRoute(policyID, approverIndex));
     };
 
     const navigateToApproverChange = () => {
-        saveCurrentStateToOnyx();
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, approverIndex));
     };
 
@@ -223,10 +200,22 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                             {isEditFlow ? (
                                 <>
                                     <MenuItemWithTopDescription
-                                        title={approverDisplayName}
+                                        accessibilityLabel={approverDisplayName}
                                         titleStyle={styles.textNormalThemeText}
                                         description={translate('workflowsPage.approver')}
                                         descriptionTextStyle={approverDisplayName ? styles.textLabelSupportingNormal : undefined}
+                                        titleComponent={
+                                            currentApprover ? (
+                                                <View style={styles.pr3}>
+                                                    <UserPill
+                                                        avatar={currentApprover.avatar}
+                                                        displayName={currentApprover.displayName}
+                                                        email={currentApprover.email}
+                                                        style={styles.userPillStandalone}
+                                                    />
+                                                </View>
+                                            ) : undefined
+                                        }
                                         onPress={navigateToApproverChange}
                                         shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
@@ -246,6 +235,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
                             <View style={styles.mb4}>
                                 <AmountForm
+                                    key={approverEmail}
                                     label={translate('workflowsApprovalLimitPage.reportAmountLabel')}
                                     currency={currency}
                                     value={approvalLimit}
@@ -255,15 +245,26 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                     disabled={areLimitFieldsDisabled}
                                     errorText={amountError}
                                     onSubmitEditing={handleSubmit}
-                                    numberFormRef={amountFormRef}
                                 />
                             </View>
 
                             <MenuItemWithTopDescription
-                                title={selectedApproverDisplayName}
+                                accessibilityLabel={selectedApproverDisplayName}
                                 titleStyle={styles.textNormalThemeText}
                                 description={translate('workflowsApprovalLimitPage.additionalApproverLabel')}
                                 descriptionTextStyle={selectedApproverDisplayName ? styles.textLabelSupportingNormal : undefined}
+                                titleComponent={
+                                    selectedApproverEmail ? (
+                                        <View style={styles.pr3}>
+                                            <UserPill
+                                                avatar={selectedApproverPersonalDetails?.avatar}
+                                                displayName={selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail}
+                                                email={selectedApproverEmail}
+                                                style={styles.userPillStandalone}
+                                            />
+                                        </View>
+                                    ) : undefined
+                                }
                                 onPress={navigateToApproverSelector}
                                 shouldShowRightIcon
                                 wrapperStyle={styles.sectionMenuItemTopDescription}

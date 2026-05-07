@@ -22,7 +22,7 @@ type ImportedMultiLevelTagsPageProps = PlatformStackScreenProps<SettingsNavigato
 
 function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingTags, setIsImportingTags] = useState(false);
     const policyID = route.params.policyID;
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);

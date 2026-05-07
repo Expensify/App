@@ -1,5 +1,3 @@
-import type {LinkAccount} from 'react-native-plaid-link-sdk';
-import type {PlaidAccount} from 'react-plaid-link';
 import {getApiRoot} from '@libs/ApiUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -13,14 +11,10 @@ type CompanyCardBankConnection = {
     isNewDot: string;
 };
 
-type CompanyCardPlaidConnection = {
+type PersonalCardBankConnection = {
     authToken: string;
-    publicToken: string;
-    domainName: string;
-    feedName: string;
-    feed: string;
-    country: string;
-    plaidAccounts: string;
+    isNewDot: string;
+    scrapeMinDate: string;
 };
 
 function getCompanyCardBankConnection(policyID?: string, bankName?: string | null) {
@@ -44,6 +38,31 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string | nul
     const commandURL = getApiRoot(
         {
             shouldSkipWebProxy: true,
+        },
+        forceProductionAPI,
+    );
+    return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
+}
+
+function getPersonalCardBankConnection(bankName?: string | null) {
+    const bankConnection = Object.keys(CONST.PERSONAL_CARDS.BANKS).find((key) => CONST.PERSONAL_CARDS.BANKS[key as keyof typeof CONST.PERSONAL_CARDS.BANKS] === bankName);
+
+    if (!bankName || !bankConnection) {
+        return null;
+    }
+    const authToken = NetworkStore.getAuthToken();
+    const params: PersonalCardBankConnection = {
+        authToken: authToken ?? '',
+        isNewDot: 'true',
+        scrapeMinDate: '',
+    };
+    const bank = CONST.PERSONAL_CARDS.BANK_CONNECTIONS[bankConnection as keyof typeof CONST.PERSONAL_CARDS.BANK_CONNECTIONS];
+
+    // The Amex connection whitelists only our production servers, so we need to always use the production API for American Express
+    const forceProductionAPI = bank === CONST.PERSONAL_CARDS.BANK_CONNECTIONS.AMEX;
+    const commandURL = getApiRoot(
+        {
+            shouldSkipWebProxy: true,
             command: '',
         },
         forceProductionAPI,
@@ -51,26 +70,4 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string | nul
     return `${commandURL}partners/banks/${bank}/oauth_callback.php?${new URLSearchParams(params).toString()}`;
 }
 
-function getCompanyCardPlaidConnection(policyID?: string, publicToken?: string, feed?: string, feedName?: string, country?: string, plaidAccounts?: LinkAccount[] | PlaidAccount[]) {
-    if (!policyID || !publicToken || !feed || !feedName || !country || !plaidAccounts?.length) {
-        return null;
-    }
-    const authToken = NetworkStore.getAuthToken();
-    const params: CompanyCardPlaidConnection = {
-        authToken: authToken ?? '',
-        feed,
-        feedName,
-        publicToken,
-        country,
-        domainName: PolicyUtils.getDomainNameForPolicy(policyID),
-        plaidAccounts: JSON.stringify(plaidAccounts),
-    };
-
-    const commandURL = getApiRoot({
-        shouldSkipWebProxy: true,
-        command: '',
-    });
-    return `${commandURL}partners/banks/plaid/oauth_callback.php?${new URLSearchParams(params).toString()}`;
-}
-
-export {getCompanyCardPlaidConnection, getCompanyCardBankConnection};
+export {getCompanyCardBankConnection, getPersonalCardBankConnection};

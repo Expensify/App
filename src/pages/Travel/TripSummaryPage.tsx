@@ -20,8 +20,8 @@ type TripSummaryPageProps = StackScreenProps<TravelNavigatorParamList, typeof SC
 function TripSummaryPage({route}: TripSummaryPageProps) {
     const {translate} = useLocalize();
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`, {canBeMissing: true});
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(route.params.transactionID)}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(route.params.transactionID)}`);
     const reservationsData: TripReservationUtils.ReservationData[] = TripReservationUtils.getReservationsFromTripReport(report, transaction ? [transaction] : []);
 
     return (
@@ -41,7 +41,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
                     shouldShowBackButton
                 />
                 <ScrollView>
-                    {reservationsData.map(({reservation, transactionID, sequenceIndex}) => {
+                    {reservationsData.map(({reservation, transactionID, sequenceIndex, isCancelled}) => {
                         return (
                             <OfflineWithFeedback key={`${transactionID}-${sequenceIndex}`}>
                                 <ReservationView
@@ -49,6 +49,7 @@ function TripSummaryPage({route}: TripSummaryPageProps) {
                                     transactionID={transactionID}
                                     tripRoomReportID={route.params.reportID}
                                     sequenceIndex={sequenceIndex}
+                                    isCancelled={isCancelled}
                                 />
                             </OfflineWithFeedback>
                         );

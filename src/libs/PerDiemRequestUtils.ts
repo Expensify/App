@@ -2,10 +2,11 @@ import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, start
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import CONST from '@src/CONST';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import type {OptionTree, SectionBase} from './OptionsListUtils';
+import type {OptionTree} from './OptionsListUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -30,10 +31,7 @@ type ModifiedOptionTree = OptionTree & {
     currency: string;
 };
 
-type DestinationTreeSection = SectionBase & {
-    data: ModifiedOptionTree[];
-    indexOffset?: number;
-};
+type DestinationTreeSection = Section<ModifiedOptionTree>;
 
 type Destination = {
     name: string;
@@ -106,9 +104,8 @@ function getDestinationListSections({
         destinationSections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
             data,
-            indexOffset: data.length,
+            sectionIndex: 0,
         });
 
         return destinationSections;
@@ -119,9 +116,8 @@ function getDestinationListSections({
         destinationSections.push({
             // "Selected" section
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 1,
         });
     }
 
@@ -136,9 +132,8 @@ function getDestinationListSections({
         destinationSections.push({
             // "All" section when items amount less than the threshold
             title: '',
-            shouldShow: false,
             data,
-            indexOffset: data.length,
+            sectionIndex: 2,
         });
 
         return destinationSections;
@@ -153,9 +148,8 @@ function getDestinationListSections({
         destinationSections.push({
             // "Recent" section
             title: translate('common.recent'),
-            shouldShow: true,
             data,
-            indexOffset: data.length,
+            sectionIndex: 3,
         });
     }
 
@@ -163,9 +157,8 @@ function getDestinationListSections({
     destinationSections.push({
         // "All" section when items amount more than the threshold
         title: translate('common.all'),
-        shouldShow: true,
         data,
-        indexOffset: data.length,
+        sectionIndex: 4,
     });
 
     return destinationSections;

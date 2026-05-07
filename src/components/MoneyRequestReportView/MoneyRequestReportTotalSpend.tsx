@@ -4,10 +4,10 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type MoneyRequestReportTotalSpendProps = {
@@ -42,9 +42,10 @@ function MoneyRequestReportTotalSpend({
     hasPendingAction,
     textContainerStyle,
 }: MoneyRequestReportTotalSpendProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
     const isFocused = useIsFocused();
     const shouldShowComments = hasComments || isLoadingReportActions;
 

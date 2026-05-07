@@ -6,7 +6,7 @@ import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {setDraftValues} from '@userActions/FormActions';
@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SafeString from '@src/utils/SafeString';
 
-type NationalityProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
+type NationalityProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
 const {NATIONALITY, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
@@ -22,7 +22,7 @@ function Nationality({onNext, isEditing, isUserEnteringHisOwnData, ownerBeingMod
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const nationalityInputID = `${PREFIX}_${ownerBeingModifiedID}_${NATIONALITY}` as const;
     const countryDefaultValue = SafeString(reimbursementAccountDraft?.[nationalityInputID]);
     const [selectedCountry, setSelectedCountry] = useState<string>(countryDefaultValue);
@@ -34,9 +34,9 @@ function Nationality({onNext, isEditing, isUserEnteringHisOwnData, ownerBeingMod
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, [nationalityInputID]);
+            return getFieldRequiredErrors(values, [nationalityInputID], translate);
         },
-        [nationalityInputID],
+        [nationalityInputID, translate],
     );
 
     return (

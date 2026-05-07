@@ -1,9 +1,17 @@
 import React, {useMemo} from 'react';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ValueSelectionListProps} from './types';
 
-function ValueSelectionList({items = [], selectedItem, onItemSelected, shouldShowTooltips = true}: ValueSelectionListProps) {
+function ValueSelectionList({
+    items = [],
+    selectedItem,
+    onItemSelected,
+    shouldShowTooltips = true,
+    addBottomSafeAreaPadding = true,
+    disableKeyboardShortcuts = false,
+    alternateNumberOfSupportedLines,
+}: ValueSelectionListProps) {
     const options = useMemo(
         () => items.map((item) => ({value: item.value, alternateText: item.description, text: item.label ?? '', isSelected: item === selectedItem, keyForList: item.value ?? ''})),
         [items, selectedItem],
@@ -17,8 +25,10 @@ function ValueSelectionList({items = [], selectedItem, onItemSelected, shouldSho
             shouldStopPropagation
             shouldShowTooltips={shouldShowTooltips}
             shouldUpdateFocusedIndex
-            ListItem={RadioListItem}
-            addBottomSafeAreaPadding
+            ListItem={SingleSelectListItem}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            disableKeyboardShortcuts={disableKeyboardShortcuts}
+            alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
         />
     );
 }

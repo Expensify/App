@@ -20,7 +20,7 @@ const transaction: Transaction & {mcc: string; modifiedMCC: string} = {
     managedCard: false,
     mcc: '',
     merchant: "Mario's",
-    modifiedAmount: 0,
+    modifiedAmount: '',
     modifiedCreated: '',
     modifiedCurrency: '',
     modifiedMCC: '',
@@ -54,5 +54,5 @@ const transactionWithOptionalSearchFields: TransactionWithOptionalSearchFields =
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
 };
 
-export default transaction;
+// eslint-disable-next-line import/prefer-default-export
 export {transactionWithOptionalSearchFields};

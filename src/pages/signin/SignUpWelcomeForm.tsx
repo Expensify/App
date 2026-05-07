@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {setReadyToShowAuthScreens} from '@userActions/HybridApp';
 import {clearSignInData, signUpUser} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
@@ -17,8 +18,8 @@ function SignUpWelcomeForm() {
     const network = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
 
     return (
@@ -36,6 +37,7 @@ function SignUpWelcomeForm() {
                     }}
                     pressOnEnter
                     style={[styles.mb2]}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.JOIN}
                 />
                 {!!serverErrorText && (
                     <FormHelpMessage

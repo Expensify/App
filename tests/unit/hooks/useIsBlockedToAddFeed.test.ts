@@ -35,11 +35,15 @@ const mockCardFeeds = {
 };
 
 jest.mock('@hooks/useCardFeeds', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 describe('useIsBlockedToAddFeed', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
     beforeEach(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, mockPolicy);
     });
@@ -110,6 +114,47 @@ describe('useIsBlockedToAddFeed', () => {
         const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
         expect(result.current.isBlockedToAddNewFeeds).toBe(false);
     });
+    it('should return isBlockedToAddNewFeeds as false if collect policy and only CSV feed exists', () => {
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'csv#123456': {
+                    feed: 'csv#123456',
+                    domainID: 123456,
+                    customFeedName: 'CSV Upload',
+                    accountList: [],
+                },
+            },
+            {status: 'loaded'},
+        ]);
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        expect(result.current.isBlockedToAddNewFeeds).toBe(false);
+    });
+
+    it('should return isBlockedToAddNewFeeds as true if collect policy has CSV feed and a real feed', () => {
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'csv#123456': {
+                    feed: 'csv#123456',
+                    domainID: 123456,
+                    customFeedName: 'CSV Upload',
+                    accountList: [],
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'plaid.ins_19': {
+                    feed: 'plaid.ins_19',
+                    domainID: 123456,
+                    customFeedName: 'Bank Feed',
+                    accountList: [],
+                },
+            },
+            {status: 'loaded'},
+        ]);
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        expect(result.current.isBlockedToAddNewFeeds).toBe(true);
+    });
+
     it('should return isBlockedToAddNewFeeds as false when data is still loading', () => {
         (useCardFeeds as jest.Mock).mockReturnValue([mockCardFeeds, {status: 'loading'}, {isLoading: true}]);
         const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));

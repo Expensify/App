@@ -1,25 +1,51 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
-    computeReportName,
+    // eslint-disable-next-line no-restricted-imports -- testing computeReportName directly
+    computeReportName as computeReportNameOriginal,
     getGroupChatName,
     getInvoicePayerName,
     getInvoicesChatName,
+    getMoneyRequestReportName,
     getPolicyExpenseChatName,
     getReportName as getSimpleReportName,
 } from '@libs/ReportNameUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
-import {createAdminRoom, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
+import type {PersonalDetailsList, Policy, PolicyTagLists, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import createRandomPolicy from '../utils/collections/policies';
+import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+const currentUserLogin = 'lagertha2@vikings.net';
 describe('ReportNameUtils', () => {
     const currentUserAccountID = 5;
+    const computeReportName = (
+        report?: Report,
+        reports?: OnyxCollection<Report>,
+        policies?: OnyxCollection<Policy>,
+        transactions?: OnyxCollection<Transaction>,
+        allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+        personalDetailsList?: PersonalDetailsList,
+        reportActions?: OnyxCollection<ReportActions>,
+        currentUserID = currentUserAccountID,
+    ) =>
+        computeReportNameOriginal({
+            report,
+            reports,
+            policies,
+            transactions,
+            allReportNameValuePairs,
+            personalDetailsList,
+            reportActions,
+            currentUserAccountID: currentUserID,
+            currentUserLogin,
+        });
     const participantsPersonalDetails: PersonalDetailsList = [
         {
             accountID: 1,
@@ -52,7 +78,6 @@ describe('ReportNameUtils', () => {
             pronouns: 'She/her',
         },
     ].reduce((acc, detail) => {
-        // eslint-disable-next-line no-param-reassign
         acc[String(detail.accountID)] = detail;
         return acc;
     }, {} as PersonalDetailsList);
@@ -82,7 +107,16 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('Ragnar Lothbrok');
         });
 
@@ -92,7 +126,16 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('floki@vikings.net');
         });
 
@@ -102,7 +145,16 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('(833) 240-3627');
         });
 
@@ -114,7 +166,16 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
         });
     });
@@ -122,7 +183,16 @@ describe('ReportNameUtils', () => {
     describe('computeReportName - Admin room', () => {
         test('Active admin room', () => {
             const report = createAdminRoom(10);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('#admins');
         });
 
@@ -140,6 +210,7 @@ describe('ReportNameUtils', () => {
                 reportNameValuePairs,
                 participantsPersonalDetails,
                 emptyCollections.reportActions,
+                currentUserAccountID,
             );
             expect(nameEn).toBe('#admins (archived)');
 
@@ -152,6 +223,7 @@ describe('ReportNameUtils', () => {
                 reportNameValuePairs,
                 participantsPersonalDetails,
                 emptyCollections.reportActions,
+                currentUserAccountID,
             );
             expect(nameEs).toBe('#admins (archivado)');
 
@@ -167,7 +239,16 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe("Ragnar Lothbrok's expenses");
         });
     });
@@ -180,7 +261,16 @@ describe('ReportNameUtils', () => {
             };
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'lagertha2@vikings.net', authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('Lagertha Lothbrok (you)');
         });
     });
@@ -193,8 +283,75 @@ describe('ReportNameUtils', () => {
                 reportName: htmlTaskTitle,
             };
 
-            const name = computeReportName(report, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, emptyCollections.reportActions);
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
             expect(name).toBe('heading with link');
+        });
+
+        test('Returns plain text title without HTML conversion', () => {
+            const plainTaskTitle = 'Fix the login bug on Android';
+            const report: Report = {
+                ...createRegularTaskReport(41, currentUserAccountID),
+                reportName: plainTaskTitle,
+            };
+
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+            expect(name).toBe('Fix the login bug on Android');
+        });
+
+        test('Trims whitespace from plain text title', () => {
+            const report: Report = {
+                ...createRegularTaskReport(42, currentUserAccountID),
+                reportName: '  Expense report review  ',
+            };
+
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+            expect(name).toBe('Expense report review');
+        });
+
+        test('Returns empty string for undefined reportName', () => {
+            const report: Report = {
+                ...createRegularTaskReport(43, currentUserAccountID),
+                reportName: undefined,
+            };
+
+            const name = computeReportName(
+                report,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                emptyCollections.reportActions,
+                currentUserAccountID,
+            );
+            expect(name).toBe('');
         });
     });
 
@@ -225,8 +382,17 @@ describe('ReportNameUtils', () => {
                 },
             };
 
-            const expected = translate(CONST.LOCALES.EN, 'iou.submitted', {memo: 'via workflow'});
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
+            const expected = translate(CONST.LOCALES.EN, 'iou.submitted', 'via workflow');
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
             expect(name).toBe(expected);
         });
 
@@ -254,8 +420,444 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.rejectedThisReport');
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection);
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
             expect(name).toBe(expected);
+        });
+        test('Hold parent action', () => {
+            const thread: Report = createWorkspaceThread(52);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+            } as unknown as ReportAction;
+
+            expect(thread.parentReportID).toBeDefined();
+            expect(thread.parentReportActionID).toBeDefined();
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const expected = translate(CONST.LOCALES.EN, 'iou.heldExpense');
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(expected);
+        });
+        test('Unhold parent action', () => {
+            const thread: Report = createWorkspaceThread(53);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.UNHOLD,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+            } as unknown as ReportAction;
+
+            expect(thread.parentReportID).toBeDefined();
+            expect(thread.parentReportActionID).toBeDefined();
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const expected = translate(CONST.LOCALES.EN, 'iou.unheldExpense');
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe(expected);
+        });
+
+        test('uses provided policy tags for modified expense thread name generation', () => {
+            const thread: Report = {
+                ...createRegularChat(52, [currentUserAccountID, 1]),
+                policyID: 'policy123',
+                parentReportID: '1000',
+                parentReportActionID: '2000',
+            };
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    oldTag: 'Engineering',
+                    tag: 'Finance',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {
+                    [actionId]: parentAction,
+                },
+            };
+
+            const policyTagsCollection = {
+                [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${thread.policyID}`]: {
+                    tagList0: {
+                        name: 'Cost Center',
+                        required: false,
+                        orderWeight: 0,
+                        tags: {},
+                    },
+                },
+            } as OnyxCollection<PolicyTagLists>;
+
+            const name = computeReportNameOriginal({
+                report: thread,
+                reports: emptyCollections.reports,
+                policies: emptyCollections.policies,
+                personalDetailsList: participantsPersonalDetails,
+                reportActions: reportActionsCollection,
+                currentUserAccountID,
+                currentUserLogin: '',
+                allPolicyTags: policyTagsCollection,
+            });
+
+            expect(name).toContain('Cost Center');
+        });
+
+        test('ADD_CARD_FEED parent action', () => {
+            const thread: Report = createWorkspaceThread(100);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('added card feed "Visa Commercial"');
+        });
+
+        test('UPDATE_REQUIRE_COMPANY_CARDS_ENABLED parent action', () => {
+            const thread: Report = createWorkspaceThread(150);
+            const enabledParentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    enabled: true,
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction},
+            };
+
+            const enabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(enabledName).toBe('enabled the company card purchases requirement');
+
+            const disabledParentAction: ReportAction = {
+                ...enabledParentAction,
+                originalMessage: {
+                    enabled: false,
+                },
+            } as unknown as ReportAction;
+            const disabledReportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction},
+            };
+            const disabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                disabledReportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(disabledName).toBe('disabled the company card purchases requirement');
+        });
+
+        test('DELETE_CARD_FEED parent action', () => {
+            const thread: Report = createWorkspaceThread(101);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    feedName: 'Amex Corporate',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('removed card feed "Amex Corporate"');
+        });
+
+        test('RENAME_CARD_FEED parent action', () => {
+            const thread: Report = createWorkspaceThread(102);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    oldName: 'Old Feed Name',
+                    newName: 'New Feed Name',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('renamed card feed to "New Feed Name" (previously "Old Feed Name")');
+        });
+
+        test('ASSIGN_COMPANY_CARD parent action', () => {
+            const thread: Report = createWorkspaceThread(103);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '1234',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('assigned user@example.com "US Bank" company card ending in 1234');
+        });
+
+        test('UNASSIGN_COMPANY_CARD parent action', () => {
+            const thread: Report = createWorkspaceThread(104);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '5678',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
+        });
+
+        test('UPDATE_CARD_FEED_LIABILITY parent action with ALLOW type', () => {
+            const thread: Report = createWorkspaceThread(105);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW,
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
+        });
+
+        test('UPDATE_CARD_FEED_STATEMENT_PERIOD parent action with numeric days', () => {
+            const thread: Report = createWorkspaceThread(106);
+            const parentAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: String(thread.parentReportActionID),
+                message: [],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    statementPeriodEndDay: '15',
+                    previousStatementPeriodEndDay: '20',
+                },
+            } as unknown as ReportAction;
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: parentAction},
+            };
+
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
+            expect(name).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
         });
     });
 
@@ -323,6 +925,7 @@ describe('ReportNameUtils', () => {
                 reportNameValuePairs,
                 participantsPersonalDetails,
                 emptyCollections.reportActions,
+                currentUserAccountID,
             );
             expect(name).toBe('Ragnar Lothbrok (archived) ');
         });
@@ -334,7 +937,7 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1000, [currentUserAccountID, 1, 2]),
             };
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID});
             expect(name).toBe('Ragnar, floki@vikings.net');
         });
 
@@ -343,7 +946,7 @@ describe('ReportNameUtils', () => {
                 ...createRegularChat(1001, [currentUserAccountID, 1]),
             };
 
-            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails});
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails, currentUserAccountID});
             expect(name).toBe('Ragnar Lothbrok');
         });
     });
@@ -361,6 +964,7 @@ describe('ReportNameUtils', () => {
                 report,
                 receiverPolicy,
                 personalDetails: participantsPersonalDetails,
+                currentUserAccountID,
             });
 
             expect(name).toBe('Personal Workspace');
@@ -378,6 +982,7 @@ describe('ReportNameUtils', () => {
                 report,
                 receiverPolicy,
                 personalDetails: participantsPersonalDetails,
+                currentUserAccountID,
             });
 
             const normalizedName = name?.replaceAll('\u00A0', ' ');
@@ -404,7 +1009,7 @@ describe('ReportNameUtils', () => {
             } as unknown as Report;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'Ragnar Lothbrok'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
         });
 
         it('falls back to owner login when display name not present', () => {
@@ -414,7 +1019,7 @@ describe('ReportNameUtils', () => {
             } as unknown as Report;
 
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails});
-            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', {displayName: 'floki'}));
+            expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'floki'));
         });
 
         it('returns report name when no personal details or owner', () => {
@@ -531,6 +1136,76 @@ describe('ReportNameUtils', () => {
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
+        });
+    });
+
+    describe('getMoneyRequestReportName', () => {
+        it('should return "New Report" when reportName is empty string, report is expense report, and policy has empty fieldList', () => {
+            // Given an expense report with empty reportName
+            const expenseReport: Report = {
+                ...createExpenseReport(200),
+                reportID: '200',
+                reportName: '',
+                policyID: '200',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: 'USD',
+            };
+
+            // And a policy with empty fieldList
+            const policyWithEmptyFieldList: Policy = {
+                ...createRandomPolicy(200, CONST.POLICY.TYPE.TEAM),
+                id: '200',
+                fieldList: {},
+            };
+
+            // When we get the money request report name
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithEmptyFieldList});
+
+            // Then it should return "New Report"
+            expect(reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
+        });
+
+        it('should not return empty string for expense report with empty reportName when policy has a normal fieldList', () => {
+            // Given an expense report with empty reportName
+            const expenseReport: Report = {
+                ...createExpenseReport(201),
+                reportID: '201',
+                reportName: '',
+                policyID: '201',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 0,
+                currency: 'USD',
+            };
+
+            // And a policy with a normal (non-empty) fieldList
+            const policyWithFieldList: Policy = {
+                ...createRandomPolicy(201, CONST.POLICY.TYPE.TEAM),
+                id: '201',
+                fieldList: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    text_title: {
+                        defaultValue: '{report:type} {report:startdate}',
+                        deletable: false,
+                        externalIDs: [],
+                        fieldID: 'text_title',
+                        isTax: false,
+                        name: 'title',
+                        orderWeight: 0,
+                        type: 'formula',
+                        target: 'expense',
+                        values: [],
+                        disabledOptions: [],
+                        keys: [],
+                    },
+                },
+            };
+
+            // When we get the money request report name
+            const reportName = getMoneyRequestReportName({report: expenseReport, policy: policyWithFieldList});
+
+            // Then it should NOT return empty string — it should fall through to dynamic name computation
+            expect(reportName).not.toBe('');
         });
     });
 });

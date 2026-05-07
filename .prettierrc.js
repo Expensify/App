@@ -6,7 +6,7 @@ module.exports = {
     arrowParens: 'always',
     printWidth: 190,
     singleAttributePerLine: true,
-    plugins: [require.resolve('@trivago/prettier-plugin-sort-imports')],
+    plugins: [require.resolve('@prettier/plugin-oxc'), require.resolve('@trivago/prettier-plugin-sort-imports')],
     // Parser plugins to support TypeScript and JSX
     importOrderParserPlugins: ['typescript', 'jsx'],
     // Use modern 'with' syntax for import assertions

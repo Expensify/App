@@ -6,7 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -14,7 +14,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
-    icon: IconAsset | Extract<ExpensifyIconName, 'ChatBubbles' | 'CommentBubbles'>;
+    icon: Extract<ExpensifyIconName, 'ChatBubbles' | 'CommentBubbles' | 'Pin' | 'QrCode'>;
 
     /** Translation key for the label */
     translationKey: TranslationPaths;
@@ -123,6 +123,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report?: OnyxEntry<Report>;
+
+    /** Policy tied to the report */
+    policy?: OnyxEntry<Policy>;
 
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;

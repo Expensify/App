@@ -1,0 +1,20 @@
+diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+index f733e49..2d1da44 100644
+--- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
++++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+@@ -719,6 +719,15 @@ export const GooglePlacesAutocomplete = ({ ref, ...rest }) => {
+           ]}
+           onPress={() => _onPress(rowData)}
+           onBlur={_onBlur}
++          tabIndex={0}
++          accessible
++          accessibilityRole="button"
++          onKeyDown={(e) => {
++            if (e.key === ' ') {
++              e.preventDefault();
++              _onPress(rowData);
++            }
++          }}
+         >
+           <View
+             style={[

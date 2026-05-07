@@ -55,6 +55,9 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */
         shouldShowPatriotActLink?: boolean;
+
+        /** Whether the form submit button should be enabled when offline */
+        enabledWhenOffline?: boolean;
     };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -72,13 +75,14 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     customLastNameLabel,
     shouldShowPatriotActLink = false,
     forwardedFSClass,
+    enabledWhenOffline: enabledWhenOfflineProp = true,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = getFieldRequiredErrors(values, stepFields);
+            const errors = getFieldRequiredErrors(values, stepFields, translate);
 
             const firstName = values[firstNameInputID as keyof FormOnyxValues<TFormID>] as string;
             if (!isRequiredFulfilled(firstName)) {
@@ -125,7 +129,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            enabledWhenOffline
+            enabledWhenOffline={enabledWhenOfflineProp}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{formTitle}</Text>
@@ -139,6 +143,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete="given-name"
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -150,6 +155,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                     shouldSaveDraft={!isEditing}
                     containerStyles={[styles.mb6]}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete="family-name"
                 />
                 {shouldShowHelpLinks && (
                     <>

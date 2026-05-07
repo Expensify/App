@@ -1,5 +1,6 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -45,14 +46,23 @@ for (let reportNum = 1; reportNum <= numberOfMockReports; reportNum++) {
 
 describe('useAncestors', () => {
     beforeAll(() => {
-        Onyx.multiSet({
-            [ONYXKEYS.COLLECTION.REPORT]: mockReports,
-            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: mockReportActions,
+        Onyx.init({
+            keys: ONYXKEYS,
         });
+
+        Onyx.multiSet({
+            ...mockReports,
+            ...mockReportActions,
+        } as unknown as OnyxMultiSetInput);
         return waitForBatchedUpdates();
     });
 
-    afterAll(Onyx.clear);
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        jest.clearAllMocks();
+    });
 
     test('returns correct ancestor reports and actions', () => {
         let reportNum = 8;

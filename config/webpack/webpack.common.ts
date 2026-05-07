@@ -1,4 +1,5 @@
 import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
+import {execSync} from 'child_process';
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
@@ -17,6 +18,9 @@ import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 // eslint-disable-next-line import/extensions
 import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+// eslint-disable-next-line import/extensions
+import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
 // eslint-disable-next-line import/extensions
 import type Environment from './types.ts';
 
@@ -25,6 +29,16 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 dotenv.config();
+
+function getCurrentBranchName(): string {
+    try {
+        return execSync('git rev-parse --abbrev-ref HEAD', {encoding: 'utf-8'}).trim();
+    } catch {
+        return '';
+    }
+}
+
+const localBranchName = getCurrentBranchName();
 
 type Options = {
     rel: string;
@@ -55,9 +69,13 @@ const includeModules = [
     'react-native-view-shot',
     '@react-native/assets',
     'expo',
-    'expo-av',
+    'expo-audio',
+    'expo-video',
+    'expo-image',
     'expo-image-manipulator',
     'expo-modules-core',
+    'victory-native',
+    '@shopify/react-native-skia',
 ].join('|');
 
 const environmentToLogoSuffixMap: Record<string, string> = {
@@ -92,7 +110,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         mode: isDevelopment ? 'development' : 'production',
         devtool: 'source-map',
         entry: {
-            main: ['babel-polyfill', './index.js'],
+            main: './index.js',
         },
         output: {
             // Use simple filenames in development to prevent memory leaks from contenthash changes
@@ -116,10 +134,19 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 isStaging: file === '.env.staging',
                 useThirdPartyScripts: process.env.USE_THIRD_PARTY_SCRIPTS === 'true' || (platform === 'web' && ['.env.production', '.env.staging'].includes(file)),
             }),
+            // Inject <link rel="prefetch" /> into HTML
+            // This is not "webpackPrefetch: true" equivalent!
+            // By convention we use ".prefetch" suffix for such chunks
+            new PreloadWebpackPlugin({
+                rel: 'prefetch',
+                as: 'script',
+                fileWhitelist: [/(.+)\.prefetch(.*)\.js$/],
+                include: 'asyncChunks',
+            }),
             new PreloadWebpackPlugin({
                 rel: 'preload',
                 as: 'font',
-                fileWhitelist: [/\.woff2$/],
+                fileWhitelist: [/\.woff2|ttf$/],
                 include: 'allAssets',
             }),
             new PreloadWebpackPlugin({
@@ -146,8 +173,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     {from: 'assets/fonts/web', to: 'fonts'},
                     {from: 'assets/sounds', to: 'sounds'},
                     {from: 'assets/pdfs', to: 'pdfs'},
-                    {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
-                    {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
+                    {from: 'node_modules/react-pdf/dist/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
+                    {from: 'node_modules/react-pdf/dist/Page/TextLayer.css', to: 'css/TextLayer.css'},
                     {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
                     {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 
@@ -157,8 +184,12 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
 
                     // Group‑IB web SDK injection file
                     {from: 'web/snippets/gib.js', to: 'gib.js'},
+
+                    // CanvasKit WASM files for @shopify/react-native-skia web support (uses full version)
+                    {from: 'node_modules/canvaskit-wasm/bin/full/canvaskit.wasm'},
                 ],
             }),
+            new ModuleInitTimingPlugin(),
             new webpack.EnvironmentPlugin({JEST_WORKER_ID: ''}),
             new webpack.IgnorePlugin({
                 resourceRegExp: /^\.\/locale$/,
@@ -182,6 +213,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // react-native-render-html uses variable to log exclusively during development.
                 // See https://reactnative.dev/docs/javascript-environment
                 __DEV__: /staging|prod|adhoc/.test(file) === false,
+                // Expose the current git branch so the debug menu can display it in the browser tab title.
+                // Empty string in non-development builds.
+                __GIT_BRANCH__: JSON.stringify(isDevelopment ? localBranchName : ''),
             }),
             ...(isDevelopment ? [] : [new MiniCssExtractPlugin()]),
 
@@ -189,7 +223,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             ...(isDevelopment
                 ? []
                 : ([
-                      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                       sentryWebpackPlugin({
                           authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
                           org: 'expensify',
@@ -235,12 +268,12 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                      * You can remove something from this list if it doesn't use "react-native" as an import and it doesn't
                      * use JSX/JS that needs to be transformed by babel.
                      */
-                    exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|.native.js$`)],
+                    exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|\\.native\\.(js|jsx|ts|tsx)$`)],
                 },
                 // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
                 // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
                 {
-                    test: new RegExp('node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
+                    test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs'),
                     type: 'asset/source',
                 },
 
@@ -279,7 +312,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     use: isDevelopment ? ['style-loader', 'css-loader'] : [MiniCssExtractPlugin.loader, 'css-loader'],
                 },
                 {
-                    test: /\.(woff|woff2)$/i,
+                    test: /\.(woff|woff2|ttf)$/i,
                     type: 'asset',
                 },
                 {
@@ -306,6 +339,12 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 lodash: 'lodash-es',
                 'react-native-config': 'react-web-config',
                 'react-native$': 'react-native-web',
+                // Use victory-native source files instead of pre-compiled dist (which uses CommonJS exports)
+                'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
+                // Required for @shopify/react-native-skia web support
+                'react-native/Libraries/Image/AssetRegistry': false,
+                // Use legacy build of pdfjs-dist to support older browsers
+                'pdfjs-dist$': path.resolve(dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.mjs'),
                 // Module alias for web
                 // https://webpack.js.org/configuration/resolve/#resolvealias
                 '@assets': path.resolve(dirname, '../../assets'),
@@ -329,6 +368,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             fallback: {
                 'process/browser': require.resolve('process/browser'),
                 crypto: false,
+                fs: false,
+                path: false,
             },
         },
 
@@ -364,6 +405,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         test: /[\\/]node_modules[\\/](heic-to)[\\/]/,
                         name: 'heicTo',
                         chunks: 'all',
+                        priority: 10, // ensure this chunk has always its own group
                     },
                     // ExpensifyIcons chunk - separate chunk loaded eagerly for offline support
                     expensifyIcons: {

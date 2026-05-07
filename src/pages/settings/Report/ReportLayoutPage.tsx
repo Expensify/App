@@ -21,7 +21,7 @@ type ReportLayoutItem = ListItem & {
 function ReportLayoutPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reportLayoutGroupByNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
+    const [reportLayoutGroupByNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupByNVP);
 
@@ -71,7 +71,6 @@ function ReportLayoutPage() {
                 data={layoutOptions}
                 ListItem={SingleSelectListItem}
                 onSelectRow={onSelectGroupBy}
-                shouldHighlightSelectedItem={false}
                 initiallyFocusedItemKey={layoutOptions.find((option) => option.isSelected)?.keyForList}
             />
         </ScreenWrapper>

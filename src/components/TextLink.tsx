@@ -1,6 +1,5 @@
 import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,9 +29,12 @@ type TextLinkProps = (LinkProps | PressProps) &
 
         /** Callback that is called when mousedown is triggered */
         onMouseDown?: MouseEventHandler;
+
+        /** Whether to suppress the default link style */
+        suppressDefaultStyle?: boolean;
     };
 
-function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), ref, ...rest}: TextLinkProps) {
+function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
@@ -61,7 +63,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
 
     return (
         <Text
-            style={[styles.link, style]}
+            style={suppressDefaultStyle ? style : [styles.link, style]}
             role={CONST.ROLE.LINK}
             href={href}
             onPress={openLinkOnTap}
@@ -69,6 +71,7 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
             onMouseDown={onMouseDown}
             ref={ref}
             suppressHighlighting
+            accessible
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >

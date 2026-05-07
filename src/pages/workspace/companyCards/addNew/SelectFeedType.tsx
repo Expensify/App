@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,11 +19,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function SelectFeedType() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
+    const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : undefined);
+    const typeSelected = localTypeSelected ?? defaultTypeSelected;
 
     const submit = useCallback(() => {
         if (!typeSelected) {
@@ -45,16 +47,6 @@ function SelectFeedType() {
             data: {selectedFeedType: typeSelected},
         });
     }, [isUSCountry, typeSelected]);
-
-    useEffect(() => {
-        if (addNewCard?.data.selectedFeedType) {
-            setTypeSelected(addNewCard?.data.selectedFeedType);
-            return;
-        }
-        if (doesCountrySupportPlaid) {
-            setTypeSelected(CONST.COMPANY_CARDS.FEED_TYPE.DIRECT);
-        }
-    }, [addNewCard?.data.selectedFeedType, doesCountrySupportPlaid]);
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
@@ -115,10 +107,10 @@ function SelectFeedType() {
 
             <SelectionList
                 key={typeSelected ? 'feed-type-loaded' : 'feed-type-loading'}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 data={finalData}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setHasError(false);
                 }}
                 shouldSingleExecuteRowSelect

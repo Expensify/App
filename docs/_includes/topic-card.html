@@ -1,0 +1,11 @@
+{% assign topic = include.topic %}
+<div class="topic-card">
+    <img class="icon" src="{{ topic.icon }}" alt="{{ topic.title }}" />
+    <h3 class="title with-margin">{{ topic.title }}</h3>
+    <ul class="topic-links">
+        {% for link in topic.links %}
+            <li><a href="{{ link.href }}">{{ link.label }}</a></li>
+        {% endfor %}
+        <li><a href="{{ topic.hub }}">More</a></li>
+    </ul>
+</div>

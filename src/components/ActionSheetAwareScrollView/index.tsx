@@ -2,7 +2,7 @@
 // On all other platforms, the action sheet is implemented using the Animated.ScrollView
 import React from 'react';
 import Reanimated from 'react-native-reanimated';
-import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
+import {Actions, ActionSheetAwareScrollViewProvider, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState} from './ActionSheetAwareScrollViewContext';
 import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
 import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
 
@@ -20,8 +20,6 @@ function ActionSheetAwareScrollView({children, ref, ...restProps}: ActionSheetAw
     );
 }
 
-export default ActionSheetAwareScrollView;
-
 /**
  * The bottom spacing config for this action sheet is only used on Android and iOS. On other platforms,
  * this component will be a default Reanimated.ScrollView, because the onScroll handler used is from Reanimated.
@@ -36,4 +34,4 @@ const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = (props)
     return <ActionSheetAwareScrollView {...props} />;
 };
 
-export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};
+export {renderScrollComponent, ActionSheetAwareScrollViewProvider, Actions, useActionSheetAwareScrollViewState, useActionSheetAwareScrollViewActions};

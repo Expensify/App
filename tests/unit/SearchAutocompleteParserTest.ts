@@ -299,6 +299,45 @@ const tests = [
     },
 ];
 
+const limitAutocompleteTests = [
+    {
+        description: 'basic limit filter autocomplete',
+        query: 'limit:10',
+        expected: {
+            autocomplete: {key: 'limit', value: '10', negated: false, start: 6, length: 2},
+            ranges: [{key: 'limit', value: '10', negated: false, start: 6, length: 2}],
+        },
+    },
+    {
+        description: 'empty limit value shows autocomplete suggestion',
+        query: 'limit:',
+        expected: {
+            autocomplete: {key: 'limit', value: '', start: 6, length: 0, negated: false},
+            ranges: [],
+        },
+    },
+    {
+        description: 'limit filter in complex query',
+        query: 'type:expense limit:100 merchant:test',
+        expected: {
+            autocomplete: {key: 'merchant', value: 'test', negated: false, start: 32, length: 4},
+            ranges: [
+                {key: 'type', value: 'expense', negated: false, start: 5, length: 7},
+                {key: 'limit', value: '100', negated: false, start: 19, length: 3},
+                {key: 'merchant', value: 'test', negated: false, start: 32, length: 4},
+            ],
+        },
+    },
+    {
+        description: 'limit filter is case-insensitive',
+        query: 'LIMIT:50',
+        expected: {
+            autocomplete: {key: 'limit', value: '50', negated: false, start: 6, length: 2},
+            ranges: [{key: 'limit', value: '50', negated: false, start: 6, length: 2}],
+        },
+    },
+];
+
 const nameFieldContinuationTests = [
     {
         query: 'to:John Smi',
@@ -700,6 +739,14 @@ describe('autocomplete parser', () => {
 
 describe('autocomplete parser - name field continuation detection', () => {
     test.each(nameFieldContinuationTests)(`$description: $query`, ({query, expected}) => {
+        const result = parse(query) as SearchQueryJSON;
+
+        expect(result).toEqual(expected);
+    });
+});
+
+describe('autocomplete parser - limit filter', () => {
+    test.each(limitAutocompleteTests)('$description: $query', ({query, expected}) => {
         const result = parse(query) as SearchQueryJSON;
 
         expect(result).toEqual(expected);

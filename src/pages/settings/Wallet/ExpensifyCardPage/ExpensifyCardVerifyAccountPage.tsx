@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {revealVirtualCardDetails} from '@libs/actions/Card';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -9,12 +9,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import useExpensifyCardContext from './useExpensifyCardContext';
+import {useExpensifyCardActions} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardVerifyAccountPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DOMAIN_CARD_CONFIRM_MAGIC_CODE>
@@ -24,9 +23,8 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     const {cardID} = route.params;
     const {translate} = useLocalize();
     const [validateError, setValidateError] = useState<Errors>({});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const primaryLogin = account?.primaryLogin ?? '';
-    const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardContext();
+    const primaryLogin = usePrimaryContactMethod();
+    const {setIsCardDetailsLoading, setCardsDetails, setCardsDetailsErrors} = useExpensifyCardActions();
 
     const navigateBack = () => {
         if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_CONFIRM_MAGIC_CODE) {
@@ -44,7 +42,7 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
         // We can't store the response in Onyx for security reasons.
         // That is why this action is handled manually and the response is stored in a local state.
         // Hence eslint disable here.
-        // eslint-disable-next-line rulesdir/no-thenable-actions-in-views
+
         revealVirtualCardDetails(Number.parseInt(cardID, 10), validateCode)
             .then((value) => {
                 setCardsDetails((prevState: Record<number, ExpensifyCardDetails | null>) => ({...prevState, [cardID]: value}));
@@ -55,14 +53,6 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
                 navigateBack();
             })
             .catch((error: TranslationPaths) => {
-                if (error === 'cardPage.missingPrivateDetails') {
-                    setCardsDetailsErrors((prevState) => ({
-                        ...prevState,
-                        [cardID]: error,
-                    }));
-                    navigateBack();
-                    return;
-                }
                 setValidateError(getMicroSecondOnyxErrorWithTranslationKey(error));
             })
             .finally(() => {

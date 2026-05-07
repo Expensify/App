@@ -1,22 +1,27 @@
 import type {PropsWithChildren} from 'react';
-import React, {createContext, useMemo} from 'react';
+import React, {createContext, useContext, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import useWorkletStateMachine from '@hooks/useWorkletStateMachine';
 import type {StateMachine} from '@hooks/useWorkletStateMachine';
 import createDummySharedValue from '@src/utils/createDummySharedValue';
 import {INITIAL_ACTION_SHEET_STATE} from './constants';
-import type {ActionSheetAwareScrollViewContextValue, ActionSheetAwareScrollViewMeasurements} from './types';
+import type {ActionSheetAwareScrollViewActionsContextValue, ActionSheetAwareScrollViewMeasurements, ActionSheetAwareScrollViewStateContextValue} from './types';
 
 const NOOP = () => {};
 
-const initialContextValue: ActionSheetAwareScrollViewContextValue = {
+const initialStateContextValue: ActionSheetAwareScrollViewStateContextValue = {
     currentActionSheetState: createDummySharedValue(INITIAL_ACTION_SHEET_STATE),
+};
+
+const initialActionsContextValue: ActionSheetAwareScrollViewActionsContextValue = {
     transitionActionSheetState: NOOP,
     transitionActionSheetStateWorklet: NOOP,
     resetStateMachine: NOOP,
 };
 
-const ActionSheetAwareScrollViewContext = createContext<ActionSheetAwareScrollViewContextValue>(initialContextValue);
+const ActionSheetAwareScrollViewStateContext = createContext<ActionSheetAwareScrollViewStateContextValue>(initialStateContextValue);
+
+const ActionSheetAwareScrollViewActionsContext = createContext<ActionSheetAwareScrollViewActionsContextValue>(initialActionsContextValue);
 
 const Actions = {
     OPEN_KEYBOARD: 'OPEN_KEYBOARD',
@@ -104,17 +109,35 @@ function ActionSheetAwareScrollViewProvider(props: PropsWithChildren) {
         INITIAL_ACTION_SHEET_STATE,
     );
 
-    const value = useMemo(
+    const stateValue = useMemo<ActionSheetAwareScrollViewStateContextValue>(
         () => ({
             currentActionSheetState: currentState,
+        }),
+        [currentState],
+    );
+
+    const actionsValue = useMemo<ActionSheetAwareScrollViewActionsContextValue>(
+        () => ({
             transitionActionSheetState: transition,
             transitionActionSheetStateWorklet: transitionWorklet,
             resetStateMachine: reset,
         }),
-        [currentState, reset, transition, transitionWorklet],
+        [reset, transition, transitionWorklet],
     );
 
-    return <ActionSheetAwareScrollViewContext.Provider value={value}>{props.children}</ActionSheetAwareScrollViewContext.Provider>;
+    return (
+        <ActionSheetAwareScrollViewActionsContext.Provider value={actionsValue}>
+            <ActionSheetAwareScrollViewStateContext.Provider value={stateValue}>{props.children}</ActionSheetAwareScrollViewStateContext.Provider>
+        </ActionSheetAwareScrollViewActionsContext.Provider>
+    );
 }
 
-export {ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions, States};
+function useActionSheetAwareScrollViewState(): ActionSheetAwareScrollViewStateContextValue {
+    return useContext(ActionSheetAwareScrollViewStateContext);
+}
+
+function useActionSheetAwareScrollViewActions(): ActionSheetAwareScrollViewActionsContextValue {
+    return useContext(ActionSheetAwareScrollViewActionsContext);
+}
+
+export {ActionSheetAwareScrollViewProvider, Actions, States, useActionSheetAwareScrollViewActions, useActionSheetAwareScrollViewState};

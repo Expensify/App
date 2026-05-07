@@ -22,7 +22,7 @@ import Parser from '@libs/Parser';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, isUserPolicyAdmin} from '@libs/PolicyUtils';
+import {getDefaultApprover, isPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as FormActions from '@userActions/FormActions';
@@ -37,32 +37,10 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {createPolicyExpenseChats} from './Policy';
 
-type OnyxDataReturnType = {
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
-};
-
 type WorkspaceMembersRoleData = {
     email: string;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
 };
-
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            delete allPolicies[key];
-            return;
-        }
-
-        allPolicies[key] = val;
-    },
-});
 
 let allReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
@@ -80,27 +58,6 @@ Onyx.connectWithoutView({
     },
 });
 
-/** Check if the passed employee is an approver in the policy's employeeList */
-function isApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
-    if (policy?.approver === employeeLogin) {
-        return true;
-    }
-    return Object.values(policy?.employeeList ?? {}).some(
-        (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
-    );
-}
-
-/**
- * Returns the policy of the report
- * @deprecated Get the data straight from Onyx - This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
- */
-function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
-    if (!allPolicies || !policyID) {
-        return undefined;
-    }
-    return allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-}
-
 /**
  * Build optimistic data for adding members to the announcement/admins room
  */
@@ -108,10 +65,10 @@ function buildRoomMembersOnyxData(
     roomType: typeof CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE | typeof CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
     policyID: string,
     accountIDs: number[],
-): OnyxDataReturnType {
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT> {
     const report = ReportUtils.getRoom(roomType, policyID);
     const reportMetadata = ReportUtils.getReportMetadata(report?.reportID);
-    const roomMembers: OnyxDataReturnType = {
+    const roomMembers: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT> = {
         optimisticData: [],
         failureData: [],
         successData: [],
@@ -124,7 +81,7 @@ function buildRoomMembersOnyxData(
     const participantAccountIDs = [...Object.keys(report.participants ?? {}).map(Number), ...accountIDs];
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-    roomMembers.optimisticData.push(
+    roomMembers.optimisticData?.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
@@ -141,7 +98,7 @@ function buildRoomMembersOnyxData(
         },
     );
 
-    roomMembers.failureData.push(
+    roomMembers.failureData?.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
@@ -160,20 +117,34 @@ function buildRoomMembersOnyxData(
             },
         },
     );
-    roomMembers.successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
-        value: {
-            pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
+    roomMembers.successData?.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+            value: {
+                participants: accountIDs.reduce((acc, curr) => {
+                    if (ReportUtils.isOptimisticPersonalDetail(curr)) {
+                        Object.assign(acc, {[curr]: null});
+                    }
+                    return acc;
+                }, {}),
+            },
         },
-    });
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`,
+            value: {
+                pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
+            },
+        },
+    );
     return roomMembers;
 }
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData {
-    const onyxData: OnyxData = {
+function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> {
+    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -217,8 +188,8 @@ function removeOptimisticRoomMembers(
     roomType: typeof CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE | typeof CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
     policyID: string | undefined,
     accountIDs: number[],
-): OnyxDataReturnType {
-    const roomMembers: OnyxDataReturnType = {
+): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_METADATA> {
+    const roomMembers: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_METADATA> = {
         optimisticData: [],
         failureData: [],
         successData: [],
@@ -237,21 +208,21 @@ function removeOptimisticRoomMembers(
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, reportMetadata?.pendingChatMembers ?? [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    roomMembers.optimisticData.push({
+    roomMembers.optimisticData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
         value: {
             pendingChatMembers,
         },
     });
-    roomMembers.failureData.push({
+    roomMembers.failureData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
         value: {
             pendingChatMembers: reportMetadata?.pendingChatMembers ?? null,
         },
     });
-    roomMembers.successData.push({
+    roomMembers.successData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`,
         value: {
@@ -267,16 +238,17 @@ function removeOptimisticRoomMembers(
  * @param [policyID] The id of the policy.
  * @param [loginList] The logins of the users whose roles are being updated to non-admin role or are removed from a workspace
  */
-function resetAccountingPreferredExporter(policy: OnyxEntry<Policy>, loginList: string[]): OnyxDataReturnType {
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+function resetAccountingPreferredExporter(policy: OnyxEntry<Policy>, loginList: string[]): OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     if (!policy?.id) {
         return {optimisticData, successData, failureData};
     }
     const owner = policy?.owner ?? ReportUtils.getPersonalDetailsForAccountID(policy?.ownerAccountID).login ?? '';
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
-    const adminLoginList = loginList.filter((login) => isUserPolicyAdmin(policy, login));
+
+    const adminLoginList = loginList.filter((login) => isPolicyAdmin(policy, login, false));
     const connections = [CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, CONST.POLICY.CONNECTIONS.NAME.QBD];
 
     if (!adminLoginList.length) {
@@ -353,20 +325,40 @@ function resetAccountingPreferredExporter(policy: OnyxEntry<Policy>, loginList: 
 }
 
 /**
+ * Walk the forwardsTo chain starting from the current default approver
+ * and return the first approver that is not in the removal set.
+ * Falls back to the policy owner if no valid approver is found.
+ */
+function findNextApproverInChain(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]): string | undefined {
+    const employeeList = policy?.employeeList ?? {};
+    const visited = new Set<string>();
+    let current = employeeList[policy?.approver ?? '']?.forwardsTo;
+
+    while (current && !visited.has(current)) {
+        if (!selectedMemberEmails.includes(current)) {
+            return current;
+        }
+        visited.add(current);
+        current = employeeList[current]?.forwardsTo;
+    }
+
+    return policy?.owner;
+}
+
+/**
  * Remove the passed members from the policy employeeList
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function removeMembers(policyID: string, selectedMemberEmails: string[], policyMemberEmailsToAccountIDs: Record<string, number>) {
-    if (selectedMemberEmails.length === 0) {
+function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], policyMemberEmailsToAccountIDs: Record<string, number>) {
+    if (!policy?.id || selectedMemberEmails.length === 0) {
         return;
     }
+
+    const policyID = policy.id;
 
     const accountIDs = selectedMemberEmails.map((email) => policyMemberEmailsToAccountIDs[email]).filter((id) => id !== undefined);
 
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
 
     const workspaceChats = ReportUtils.getWorkspaceChats(policyID, accountIDs);
     // comment out for time this issue would be resolved https://github.com/Expensify/App/issues/35952
@@ -415,70 +407,18 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
         };
     }
 
-    for (const employeeEmail of Object.keys(policy?.employeeList ?? {})) {
-        const employee = policy?.employeeList?.[employeeEmail];
-        optimisticMembersState[employeeEmail] = optimisticMembersState[employeeEmail] ?? {};
-        failureMembersState[employeeEmail] = failureMembersState[employeeEmail] ?? {};
-        if (employee?.submitsTo && selectedMemberEmails.includes(employee?.submitsTo)) {
-            optimisticMembersState[employeeEmail] = {
-                ...optimisticMembersState[employeeEmail],
-                submitsTo: policy?.owner,
-            };
-            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
-            successMembersState[employeeEmail] = {
-                ...successMembersState[employeeEmail],
-                submitsTo: policy?.owner,
-            };
-            failureMembersState[employeeEmail] = {
-                ...failureMembersState[employeeEmail],
-                submitsTo: employee?.submitsTo,
-            };
-        }
-        if (employee?.forwardsTo && selectedMemberEmails.includes(employee?.forwardsTo)) {
-            optimisticMembersState[employeeEmail] = {
-                ...optimisticMembersState[employeeEmail],
-                forwardsTo: policy?.owner,
-            };
-            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
-            successMembersState[employeeEmail] = {
-                ...successMembersState[employeeEmail],
-                forwardsTo: policy?.owner,
-            };
-            failureMembersState[employeeEmail] = {
-                ...failureMembersState[employeeEmail],
-                forwardsTo: employee?.forwardsTo,
-            };
-        }
-        if (employee?.overLimitForwardsTo && selectedMemberEmails.includes(employee?.overLimitForwardsTo)) {
-            optimisticMembersState[employeeEmail] = {
-                ...optimisticMembersState[employeeEmail],
-                overLimitForwardsTo: '',
-                approvalLimit: null,
-            };
-            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
-            successMembersState[employeeEmail] = {
-                ...successMembersState[employeeEmail],
-                overLimitForwardsTo: '',
-                approvalLimit: null,
-            };
-            failureMembersState[employeeEmail] = {
-                ...failureMembersState[employeeEmail],
-                overLimitForwardsTo: employee?.overLimitForwardsTo,
-                approvalLimit: employee?.approvalLimit,
-            };
-        }
-    }
-
     const approvalRules: ApprovalRule[] = policy?.rules?.approvalRules ?? [];
     const optimisticApprovalRules = approvalRules.filter((rule) => !selectedMemberEmails.includes(rule?.approver ?? ''));
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
                 employeeList: optimisticMembersState,
-                approver: selectedMemberEmails.includes(policy?.approver ?? '') ? policy?.owner : policy?.approver,
+                approver: selectedMemberEmails.includes(policy?.approver ?? '') ? findNextApproverInChain(policy, selectedMemberEmailsWithDuplicates) : policy?.approver,
                 rules: {
                     ...(policy?.rules ?? {}),
                     approvalRules: optimisticApprovalRules,
@@ -486,29 +426,32 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
             },
         },
     ];
-    optimisticData.push(...announceRoomMembers.optimisticData, ...adminRoomMembers.optimisticData, ...preferredExporterOnyxData.optimisticData);
+    optimisticData.push(...(announceRoomMembers.optimisticData ?? []), ...(adminRoomMembers.optimisticData ?? []), ...(preferredExporterOnyxData.optimisticData ?? []));
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {employeeList: successMembersState},
         },
     ];
-    successData.push(...announceRoomMembers.successData, ...adminRoomMembers.successData, ...preferredExporterOnyxData.successData);
+    successData.push(...(announceRoomMembers.successData ?? []), ...(adminRoomMembers.successData ?? []), ...(preferredExporterOnyxData.successData ?? []));
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {employeeList: failureMembersState, approver: policy?.approver, rules: policy?.rules},
         },
     ];
-    failureData.push(...announceRoomMembers.failureData, ...adminRoomMembers.failureData, ...preferredExporterOnyxData.failureData);
+    failureData.push(...(announceRoomMembers.failureData ?? []), ...(adminRoomMembers.failureData ?? []), ...(preferredExporterOnyxData.failureData ?? []));
 
     const pendingChatMembers = ReportUtils.getPendingChatMembers(accountIDs, [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     for (const report of workspaceChats) {
+        const currentTime = DateUtils.getDBTime();
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -526,16 +469,14 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
                     pendingChatMembers,
                 },
             },
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
                 value: {
-                    private_isArchived: true,
+                    private_isArchived: currentTime,
                 },
             },
         );
-        const currentTime = DateUtils.getDBTime();
         const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
         for (const action of Object.values(reportActions)) {
             if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
@@ -571,12 +512,11 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
                     pendingChatMembers: null,
                 },
             },
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`,
                 value: {
-                    private_isArchived: false,
+                    private_isArchived: null,
                 },
             },
         );
@@ -646,8 +586,11 @@ function removeMembers(policyID: string, selectedMemberEmails: string[], policyM
     API.write(WRITE_COMMANDS.DELETE_MEMBERS_FROM_WORKSPACE, params, {optimisticData, successData, failureData});
 }
 
-function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
+    if (!policy?.id) {
+        return {optimisticData: [], successData: [], failureData: [], memberRoles: []};
+    }
+    const policyID = policy?.id;
     const previousEmployeeList = {...policy?.employeeList};
     const memberRoles: WorkspaceMembersRoleData[] = selectedMemberEmails.map((login: string) => {
         return {
@@ -656,7 +599,7 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMembe
         };
     });
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -673,7 +616,7 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMembe
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -690,13 +633,22 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMembe
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                employeeList: previousEmployeeList,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                employeeList: {
+                    ...memberRoles.reduce((member: Record<string, PolicyEmployee>, current) => {
+                        // eslint-disable-next-line no-param-reassign
+                        member[current.email] = {
+                            ...(previousEmployeeList[current.email] ?? {}),
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                        };
+                        return member;
+                    }, {}),
+                },
             },
         },
     ];
@@ -706,9 +658,9 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMembe
             policy,
             memberRoles.map((member) => member.email),
         );
-        optimisticData.push(...preferredExporterOnyxData.optimisticData);
-        successData.push(...preferredExporterOnyxData.successData);
-        failureData.push(...preferredExporterOnyxData.failureData);
+        optimisticData.push(...(preferredExporterOnyxData.optimisticData ?? []));
+        successData.push(...(preferredExporterOnyxData.successData ?? []));
+        failureData.push(...(preferredExporterOnyxData.failureData ?? []));
     }
 
     const adminRoom = ReportUtils.getAllPolicyReports(policyID).find(ReportUtils.isAdminRoom);
@@ -752,25 +704,26 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policyID: string, selectedMembe
     return {optimisticData, successData, failureData, memberRoles};
 }
 
-function updateWorkspaceMembersRole(policyID: string, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
-    const {optimisticData, successData, failureData, memberRoles} = buildUpdateWorkspaceMembersRoleOnyxData(policyID, selectedMemberEmails, selectedMemberAccountIDs, newRole);
+function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEmails: string[], selectedMemberAccountIDs: number[], newRole: ValueOf<typeof CONST.POLICY.ROLE>) {
+    if (!policy?.id) {
+        return;
+    }
+    const {optimisticData, successData, failureData, memberRoles} = buildUpdateWorkspaceMembersRoleOnyxData(policy, selectedMemberEmails, selectedMemberAccountIDs, newRole);
 
     const params: UpdateWorkspaceMembersRoleParams = {
-        policyID,
+        policyID: policy.id,
         employees: JSON.stringify(memberRoles.map((item) => ({email: item.email, role: item.role}))),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE, params, {optimisticData, successData, failureData});
 }
 
-function requestWorkspaceOwnerChange(policyID: string | undefined, currentUserAccountID: number, currentUserAccountLogin: string) {
-    if (!policyID) {
+function requestWorkspaceOwnerChange(policy: OnyxEntry<Policy>, currentUserAccountID: number, currentUserAccountLogin: string) {
+    if (!policy?.id) {
         return;
     }
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+    const policyID = policy.id;
     const ownershipChecks = {...policyOwnershipChecks?.[policyID]};
 
     const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
@@ -861,12 +814,17 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    policyID: string,
+    policy: Policy,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserAccountID: number,
+    approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
+    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
+    const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = Object.values(invitedEmailsToAccountIDs);
 
@@ -881,11 +839,11 @@ function buildAddMembersToWorkspaceOnyxData(
         policyID,
         role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR ? accountIDs : [],
     );
-    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs]);
+    const optimisticAnnounceChat = ReportUtils.buildOptimisticAnnounceChat(policyID, [...policyMemberAccountIDs, ...accountIDs], currentUserAccountID);
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, undefined, policyExpenseChatNotificationPreference);
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, currentUserAccountID, reportActionsList, undefined, policyExpenseChatNotificationPreference);
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -895,15 +853,26 @@ function buildAddMembersToWorkspaceOnyxData(
             email,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             role,
-            submitsTo: getDefaultApprover(allPolicies?.[policyKey]),
+            submitsTo: approverEmail ?? getDefaultApprover(policy),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
+            pendingAction: null,
             errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
         };
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -915,14 +884,22 @@ function buildAddMembersToWorkspaceOnyxData(
         },
     ];
     optimisticData.push(
-        ...newPersonalDetailsOnyxData.optimisticData,
+        ...(newPersonalDetailsOnyxData.optimisticData ?? []),
         ...membersChats.onyxOptimisticData,
         ...announceRoomChat.onyxOptimisticData,
-        ...announceRoomMembers.optimisticData,
-        ...adminRoomMembers.optimisticData,
+        ...(announceRoomMembers.optimisticData ?? []),
+        ...(adminRoomMembers.optimisticData ?? []),
     );
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -932,14 +909,24 @@ function buildAddMembersToWorkspaceOnyxData(
         },
     ];
     successData.push(
-        ...newPersonalDetailsOnyxData.finallyData,
+        ...(newPersonalDetailsOnyxData.finallyData ?? []),
         ...membersChats.onyxSuccessData,
         ...announceRoomChat.onyxSuccessData,
-        ...announceRoomMembers.successData,
-        ...adminRoomMembers.successData,
+        ...(announceRoomMembers.successData ?? []),
+        ...(adminRoomMembers.successData ?? []),
     );
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+            | typeof ONYXKEYS.COLLECTION.REPORT
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
@@ -951,7 +938,7 @@ function buildAddMembersToWorkspaceOnyxData(
             },
         },
     ];
-    failureData.push(...membersChats.onyxFailureData, ...announceRoomChat.onyxFailureData, ...announceRoomMembers.failureData, ...adminRoomMembers.failureData);
+    failureData.push(...membersChats.onyxFailureData, ...announceRoomChat.onyxFailureData, ...(announceRoomMembers.failureData ?? []), ...(adminRoomMembers.failureData ?? []));
 
     return {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins};
 }
@@ -963,27 +950,39 @@ function buildAddMembersToWorkspaceOnyxData(
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
     welcomeNote: string,
-    policyID: string,
+    policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserAccountID: number,
+    approverEmail?: string,
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
+    reportActionsList?: OnyxCollection<ReportActions>,
 ) {
+    if (!policy?.id) {
+        Log.warn('addMembersToWorkspace: Policy ID is undefined');
+        return;
+    }
     const {optimisticData, successData, failureData, optimisticAnnounceChat, membersChats, logins} = buildAddMembersToWorkspaceOnyxData(
         invitedEmailsToAccountIDs,
-        policyID,
+        policy,
         policyMemberAccountIDs,
         role,
         formatPhoneNumber,
+        currentUserAccountID,
+        approverEmail,
+        undefined,
+        reportActionsList,
     );
 
     const params: AddMembersToWorkspaceParams = {
-        employees: JSON.stringify(logins.map((login) => ({email: login, role}))),
+        employees: JSON.stringify(logins.map((login) => ({email: login, role, ...(approverEmail ? {submitsTo: approverEmail} : {})}))),
         ...(optimisticAnnounceChat.announceChatReportID ? {announceChatReportID: optimisticAnnounceChat.announceChatReportID} : {}),
         ...(optimisticAnnounceChat.announceChatReportActionID ? {announceCreatedReportActionID: optimisticAnnounceChat.announceChatReportActionID} : {}),
         welcomeNote: Parser.replace(welcomeNote, {
             shouldEscapeText: false,
         }),
-        policyID,
+        policyID: policy.id,
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
@@ -996,17 +995,32 @@ type PolicyMember = {
     role: string;
     submitsTo?: string;
     forwardsTo?: string;
+    customField1?: string;
+    customField2?: string;
+    approvalLimit?: string;
+    overLimitForwardsTo?: string;
 };
 
-function importPolicyMembers(policyID: string, members: PolicyMember[]) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
+function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]) {
+    if (!policy?.id) {
+        Log.warn('importPolicyMembers called without a valid policy');
+        return;
+    }
     const {added, updated} = members.reduce(
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
             if (employee) {
-                if (curr.role !== employee.role || (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') || (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '')) {
+                const existingCustomField1 = employee.employeeUserID;
+                const existingCustomField2 = employee.employeePayrollID;
+                if (
+                    curr.role !== employee.role ||
+                    (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') ||
+                    (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '') ||
+                    (curr.customField1 !== undefined && curr.customField1 !== (existingCustomField1 ?? '')) ||
+                    (curr.customField2 !== undefined && curr.customField2 !== (existingCustomField2 ?? '')) ||
+                    (curr.approvalLimit !== undefined && curr.approvalLimit !== String(employee.approvalLimit ?? '')) ||
+                    (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? ''))
+                ) {
                     acc.updated++;
                 }
             } else {
@@ -1019,8 +1033,19 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
     const onyxData = updateImportSpreadsheetData(added, updated);
 
     const parameters = {
-        policyID,
-        employees: JSON.stringify(members.map((member) => ({email: member.email, role: member.role, submitsTo: member.submitsTo, forwardsTo: member.forwardsTo}))),
+        policyID: policy.id,
+        employees: JSON.stringify(
+            members.map((member) => ({
+                email: member.email,
+                role: member.role,
+                submitsTo: member.submitsTo,
+                forwardsTo: member.forwardsTo,
+                ...(member.customField1 !== undefined && {customField1: member.customField1}),
+                ...(member.customField2 !== undefined && {customField2: member.customField2}),
+                ...(member.approvalLimit !== undefined && {approvalLimit: member.approvalLimit}),
+                ...(member.overLimitForwardsTo !== undefined && {overLimitForwardsTo: member.overLimitForwardsTo}),
+            })),
+        ),
     };
 
     API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
@@ -1036,7 +1061,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
     const optimisticMembersState = {policyID, inviterEmail};
     const failureMembersState = {policyID, inviterEmail};
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1044,7 +1069,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1063,7 +1088,7 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
 function joinAccessiblePolicy(policyID: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof memberJoinKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1071,7 +1096,7 @@ function joinAccessiblePolicy(policyID: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof memberJoinKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1088,7 +1113,7 @@ function joinAccessiblePolicy(policyID: string) {
 function askToJoinPolicy(policyID: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof memberJoinKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1096,7 +1121,7 @@ function askToJoinPolicy(policyID: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof memberJoinKey>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
@@ -1135,6 +1160,20 @@ function clearAddMemberError(policyID: string, login: string, accountID: number)
     });
 }
 
+/**
+ * Removes an error after trying to update a member role
+ */
+function clearUpdateMemberRoleError(policyID: string, login: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        employeeList: {
+            [login]: {
+                pendingAction: null,
+                errors: null,
+            },
+        },
+    });
+}
+
 function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
@@ -1168,6 +1207,17 @@ function setWorkspaceInviteRoleDraft(policyID: string, role: ValueOf<typeof CONS
 
 function clearWorkspaceInviteRoleDraft(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, null);
+}
+
+function setWorkspaceInviteApproverDraft(policyID: string, approverEmail: string) {
+    if (!approverEmail) {
+        return;
+    }
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, approverEmail);
+}
+
+function clearWorkspaceInviteApproverDraft(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, null);
 }
 
 /**
@@ -1312,6 +1362,8 @@ function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, tran
 
 function clearInviteDraft(policyID: string) {
     setWorkspaceInviteMembersDraft(policyID, {});
+    clearWorkspaceInviteRoleDraft(policyID);
+    clearWorkspaceInviteApproverDraft(policyID);
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
@@ -1333,6 +1385,7 @@ export {
     addMembersToWorkspace,
     clearDeleteMemberError,
     clearAddMemberError,
+    clearUpdateMemberRoleError,
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
@@ -1340,7 +1393,6 @@ export {
     askToJoinPolicy,
     acceptJoinRequest,
     declineJoinRequest,
-    isApprover,
     importPolicyMembers,
     downloadMembersCSV,
     clearInviteDraft,
@@ -1348,6 +1400,8 @@ export {
     openPolicyMemberProfilePage,
     setWorkspaceInviteRoleDraft,
     clearWorkspaceInviteRoleDraft,
+    setWorkspaceInviteApproverDraft,
+    clearWorkspaceInviteApproverDraft,
     setImportedSpreadsheetMemberData,
     clearImportedSpreadsheetMemberData,
 };

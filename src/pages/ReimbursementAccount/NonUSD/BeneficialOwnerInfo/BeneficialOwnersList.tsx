@@ -34,8 +34,8 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
     const {isOffline} = useNetwork();
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const error = getLatestErrorMessage(reimbursementAccount);
 
     const owners =

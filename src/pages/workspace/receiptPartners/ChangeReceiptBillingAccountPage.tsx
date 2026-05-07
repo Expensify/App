@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -34,24 +34,21 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [selectedOption, setSelectedOption] = useState<string>('');
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const [selectedOptionState, setSelectedOption] = useState<string | undefined>(undefined);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params?.policyID;
     const integration = route.params?.integration;
     const policy = usePolicy(policyID);
     const integrations = policy?.receiptPartners;
     const centralBillingAccountEmail = integration ? integrations?.[integration]?.centralBillingAccountEmail : undefined;
+    const selectedOption = selectedOptionState ?? centralBillingAccountEmail ?? '';
 
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
-    const workspaceMembers = useMemo(() => {
-        let membersList: MemberForList[] = [];
-        if (!policy?.employeeList) {
-            return membersList;
-        }
-
+    let workspaceMembers: MemberForList[] = [];
+    if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList)) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 continue;
@@ -77,66 +74,40 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                     isSelected: email === selectedOption || personalDetail?.login === selectedOption,
                 });
 
-                membersList.push(memberForList);
+                workspaceMembers.push(memberForList);
             }
         }
 
-        membersList = sortAlphabetically(membersList, 'text', localeCompare);
+        workspaceMembers = sortAlphabetically(workspaceMembers, 'text', localeCompare);
+    }
 
-        return membersList;
-    }, [policy?.employeeList, localeCompare, isOffline, icons.FallbackAvatar, selectedOption]);
+    let data = workspaceMembers;
+    if (debouncedSearchTerm && workspaceMembers.length > 0) {
+        const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
+        data = tokenizedSearch(workspaceMembers, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+    } else if (workspaceMembers.length === 0) {
+        data = [];
+    }
 
-    const data = useMemo(() => {
-        if (workspaceMembers.length === 0) {
-            return [];
-        }
-
-        let membersToDisplay = workspaceMembers;
-
-        // Apply search filter if there's a search term
-        if (debouncedSearchTerm) {
-            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-            membersToDisplay = tokenizedSearch(workspaceMembers, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
-        }
-
-        return membersToDisplay;
-    }, [workspaceMembers, countryCode, debouncedSearchTerm]);
-
-    useEffect(() => {
+    const toggleOption = (option: MemberForList) => {
         if (!centralBillingAccountEmail) {
             return;
         }
-        setSelectedOption(centralBillingAccountEmail);
-    }, [centralBillingAccountEmail]);
+        setSelectedOption(option.login);
 
-    const toggleOption = useCallback(
-        (option: MemberForList) => {
-            if (!centralBillingAccountEmail) {
-                return;
-            }
-            setSelectedOption(option.login);
+        changePolicyUberBillingAccount(policyID, option.login, centralBillingAccountEmail);
+        Navigation.goBack();
+    };
 
-            changePolicyUberBillingAccount(policyID, option.login, centralBillingAccountEmail);
-            Navigation.goBack();
-        },
-        [policyID, centralBillingAccountEmail],
-    );
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const headerMessage = getHeaderMessage(data.length !== 0, false, searchValue, countryCode);
 
-    const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
-
-        return getHeaderMessage(data.length !== 0, false, searchValue, countryCode);
-    }, [debouncedSearchTerm, data.length, countryCode]);
-
-    const textInputOptions = useMemo(
-        () => ({
-            label: textInputLabel,
-            value: searchTerm,
-            onChangeText: setSearchTerm,
-            headerMessage,
-        }),
-        [headerMessage, searchTerm, setSearchTerm, textInputLabel],
-    );
+    const textInputOptions = {
+        label: textInputLabel,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
 
     return (
         <AccessOrNotFoundWrapper

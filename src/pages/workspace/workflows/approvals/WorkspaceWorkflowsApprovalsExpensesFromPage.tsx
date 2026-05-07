@@ -1,10 +1,11 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -13,7 +14,8 @@ import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -32,31 +34,49 @@ type WorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenL
 function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsExpensesFromPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const {showConfirmModal} = useConfirmModal();
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const [selectedMembers, setSelectedMembers] = useState<SelectionListApprover[]>([]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
-    const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
+    const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow?.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
+    const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
-    const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
+    // Build a map of member emails to their existing workflow's approver email (for non-default workflows only)
+    const membersInExistingWorkflows = (() => {
+        const employees = policy?.employeeList ?? {};
+        const defaultApprover = getDefaultApprover(policy);
+        const map = new Map<string, string>();
+
+        for (const employee of Object.values(employees)) {
+            if (!employee.email || !employee.submitsTo || employee.submitsTo === defaultApprover) {
+                continue;
+            }
+            // Only track members who submit to a non-default approver (i.e., they're in a custom workflow)
+            if (employees[employee.submitsTo]) {
+                map.set(employee.email, employee.submitsTo);
+            }
+        }
+        return map;
+    })();
 
     useEffect(() => {
         if (!approvalWorkflow?.members) {
             return;
         }
 
+        // Intentional: derives the selected-members list from the approval workflow data.
+        // This effect synchronizes local component state with the Onyx-sourced workflow when it changes.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSelectedMembers(
             approvalWorkflow.members.map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-                const login = personalDetailLogins?.[accountID];
 
                 return {
                     text: Str.removeSMSDomain(member.displayName),
@@ -69,26 +89,21 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
                             owner={policy?.owner}
-                            login={login}
+                            login={member.email}
                         />
                     ),
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, icons.FallbackAvatar]);
+    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, policyMemberEmailsToAccountIDs, translate, icons.FallbackAvatar]);
 
-    const approversEmail = useMemo(() => approvalWorkflow?.approvers.map((member) => member?.email), [approvalWorkflow?.approvers]);
-    const allApprovers = useMemo(() => {
-        const members: SelectionListApprover[] = [...selectedMembers];
+    const approversEmail = approvalWorkflow?.approvers.map((member) => member?.email);
+    const allApprovers: SelectionListApprover[] = [...selectedMembers];
 
-        if (!approvalWorkflow?.availableMembers) {
-            return members;
-        }
+    if (approvalWorkflow?.availableMembers) {
         const availableMembers = approvalWorkflow.availableMembers
             .map((member) => {
-                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
-                const login = personalDetailLogins?.[accountID];
 
                 return {
                     text: Str.removeSMSDomain(member.displayName),
@@ -101,7 +116,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         <MemberRightIcon
                             role={policy?.employeeList?.[member.email]?.role}
                             owner={policy?.owner}
-                            login={login}
+                            login={member.email}
                         />
                     ),
                 };
@@ -110,12 +125,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 (member) => (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) && !selectedMembers.some((selectedOption) => selectedOption.login === member.login),
             );
 
-        members.push(...availableMembers);
+        allApprovers.push(...availableMembers);
+    }
 
-        return members;
-    }, [selectedMembers, approvalWorkflow?.availableMembers, policy?.employeeList, policy?.owner, policy?.preventSelfApproval, personalDetailLogins, icons.FallbackAvatar, approversEmail]);
-
-    const goBack = useCallback(() => {
+    const goBack = () => {
         let backTo;
         if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
@@ -123,9 +136,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
         Navigation.goBack(backTo);
-    }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
+    };
 
-    const nextStep = useCallback(() => {
+    const nextStep = () => {
         const members: Member[] = selectedMembers.map((member) => ({displayName: member.text ?? '', avatar: member.icons?.at(0)?.source, email: member.login ?? ''}));
         setApprovalWorkflowMembers(members);
 
@@ -134,27 +147,52 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         } else {
             goBack();
         }
-    }, [route.params.policyID, selectedMembers, isInitialCreationFlow, goBack]);
+    };
 
-    const button = useMemo(() => {
-        let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
+    let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
+    if (shouldShowListEmptyContent) {
+        buttonText = translate('common.buttonConfirm');
+    }
 
-        if (shouldShowListEmptyContent) {
-            buttonText = translate('common.buttonConfirm');
+    const button = (
+        <FormAlertWithSubmitButton
+            isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
+            buttonText={buttonText}
+            onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            enabledWhenOffline
+        />
+    );
+
+    const toggleMember = (members: SelectionListApprover[]) => {
+        // Only show warning when creating a new workflow and a member is being added (not removed)
+        if (isCreateAction && members.length > selectedMembers.length) {
+            // Find the newly added member by comparing with current selection
+            const newMember = members.find((m) => !selectedMembers.some((s) => s.login === m.login));
+            const existingApproverEmail = newMember?.login ? membersInExistingWorkflows.get(newMember.login) : undefined;
+
+            if (newMember && existingApproverEmail) {
+                const memberName = Str.removeSMSDomain(newMember.text ?? newMember.login ?? '');
+                const approverDetails = getPersonalDetailByEmail(existingApproverEmail);
+                const approverName = Str.removeSMSDomain(approverDetails?.displayName ?? existingApproverEmail);
+
+                showConfirmModal({
+                    title: translate('workflowsExpensesFromPage.memberAlreadyInWorkflowTitle'),
+                    prompt: translate('workflowsExpensesFromPage.memberAlreadyInWorkflowPrompt', {memberName, approverName}),
+                    confirmText: translate('common.confirm'),
+                    cancelText: translate('common.cancel'),
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    setSelectedMembers(members);
+                });
+                return;
+            }
         }
 
-        return (
-            <FormAlertWithSubmitButton
-                isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
-                buttonText={buttonText}
-                onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                enabledWhenOffline
-            />
-        );
-    }, [isInitialCreationFlow, nextStep, selectedMembers.length, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
-
-    const toggleMember = (members: SelectionListApprover[]) => setSelectedMembers(members);
+        setSelectedMembers(members);
+    };
 
     return (
         <AccessOrNotFoundWrapper

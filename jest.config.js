@@ -19,6 +19,10 @@ module.exports = {
         '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
     testPathIgnorePatterns: ['<rootDir>/node_modules'],
+    // .worktrees/ holds parallel git worktrees a developer may check out locally.
+    // Each one carries its own modules/hybrid-app/package.json, which trips
+    // jest-haste-map's "duplicate package name" assertion. Skip them entirely.
+    modulePathIgnorePatterns: ['<rootDir>/.worktrees/'],
     globals: {
         __DEV__: true,
         WebSocket: {},
@@ -35,5 +39,6 @@ module.exports = {
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
         '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
+        '^parse-imports-exports$': '<rootDir>/node_modules/parse-imports-exports/index.cjs',
     },
 };

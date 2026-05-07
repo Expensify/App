@@ -47,3 +47,15 @@
 - Upstream PR/issue: https://github.com/lottie-react-native/lottie-react-native/pull/1351
 - E/App issue: <Please create an E/App issue ([template](./../.github/ISSUE_TEMPLATE/NewPatchTemplate.md)) for each introduced patch. Link it here and if patch won't be removed in the future (no upstream PR exists) explain why>
 - PR introducing patch: https://github.com/Expensify/App/pull/69535
+
+### [lottie-react-native+6.5.1+005+support-RN-83.patch](lottie-react-native+6.5.1+005+support-RN-83.patch)
+
+- Reason:
+
+    ```
+    React Native v0.83.0 support
+    ```
+
+- Upstream PR/issue: https://github.com/lottie-react-native/lottie-react-native/pull/1374
+- E/App issue: <Please create an E/App issue ([template](./../.github/ISSUE_TEMPLATE/NewPatchTemplate.md)) for each introduced patch. Link it here and if patch won't be removed in the future (no upstream PR exists) explain why>
+- PR introducing patch: https://github.com/Expensify/App/pull/79962

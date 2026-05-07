@@ -13,15 +13,15 @@ import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 function JobTitle({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
     const inputID = INPUT_IDS.SIGNER_JOB_TITLE;
     const defaultValue = String(enterSignerInfoFormDraft?.[inputID] ?? '');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            return getFieldRequiredErrors(values, [inputID]);
+            return getFieldRequiredErrors(values, [inputID], translate);
         },
-        [inputID],
+        [inputID, translate],
     );
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({

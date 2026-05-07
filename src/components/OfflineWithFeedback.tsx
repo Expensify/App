@@ -113,6 +113,11 @@ function OfflineWithFeedback({
                 return child;
             }
 
+            if (child.type === React.Fragment) {
+                const childProps = child.props as {children?: React.ReactNode};
+                return React.createElement(React.Fragment, {key: child.key}, applyStrikeThrough(childProps.children));
+            }
+
             type ChildComponentProps = ChildrenProps & {style?: AllStyles};
             const childProps = child.props as ChildComponentProps;
             const props: StrikethroughProps = {

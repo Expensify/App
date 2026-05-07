@@ -1,14 +1,9 @@
-import React, {useCallback, useMemo} from 'react';
-import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import React from 'react';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,66 +22,48 @@ type EditReportFieldDropdownPageProps = {
     onSubmit: (form: Record<string, string>) => void;
 };
 
-function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
-    const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS, {canBeMissing: true});
+function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
+    const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
-    const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [], [recentlyUsedReportFields, fieldKey, localeCompare]);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
-    const itemRightSideComponent = useCallback(
-        (item: ListItem) => {
-            if (item.text === fieldValue) {
-                return (
-                    <Icon
-                        src={icons.Checkmark}
-                        fill={theme.iconSuccessFill}
-                    />
-                );
-            }
+    const recentlyUsedOptions = recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [];
 
-            return null;
-        },
-        [fieldValue, icons.Checkmark, theme.iconSuccessFill],
-    );
+    const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
-    const [sections, headerMessage] = useMemo(() => {
-        const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
+    const sections = getReportFieldOptionsSection({
+        searchValue: debouncedSearchValue,
+        selectedOptions: [
+            {
+                keyForList: fieldValue,
+                searchText: fieldValue,
+                text: fieldValue,
+            },
+        ],
+        options: validFieldOptions,
+        recentlyUsedOptions,
+        translate,
+    });
 
-        const policyReportFieldOptions = getReportFieldOptionsSection({
-            searchValue: debouncedSearchValue,
-            selectedOptions: [
-                {
-                    keyForList: fieldValue,
-                    searchText: fieldValue,
-                    text: fieldValue,
-                },
-            ],
-            options: validFieldOptions,
-            recentlyUsedOptions,
-            translate,
-        });
+    const policyReportFieldData = sections.at(0)?.data ?? [];
+    const selectedOptionKey = policyReportFieldData.filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList;
 
-        const policyReportFieldData = policyReportFieldOptions.at(0)?.data ?? [];
-        const header = getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue);
+    const textInputOptions = {
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+        headerMessage: getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue),
+    };
 
-        return [policyReportFieldOptions, header];
-    }, [fieldOptions, localeCompare, debouncedSearchValue, fieldValue, recentlyUsedOptions, translate]);
-
-    const selectedOptionKey = useMemo(() => (sections.at(0)?.data ?? []).filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList, [sections, fieldValue]);
     return (
-        <SelectionList
-            textInputValue={searchValue}
-            textInputLabel={translate('common.search')}
+        <SelectionListWithSections
             sections={sections ?? []}
+            ListItem={SingleSelectListItem}
+            shouldShowTextInput
+            textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            onChangeText={setSearchValue}
-            headerMessage={headerMessage}
-            ListItem={RadioListItem}
-            rightHandSideComponent={itemRightSideComponent}
+            initiallyFocusedItemKey={selectedOptionKey}
         />
     );
 }
 
-export default EditReportFieldDropdownPage;
+export default EditReportFieldDropdown;

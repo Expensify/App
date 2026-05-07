@@ -1,3 +1,4 @@
+import {NavigationContainer} from '@react-navigation/native';
 import {screen} from '@testing-library/react-native';
 import type {ComponentType} from 'react';
 import Onyx from 'react-native-onyx';
@@ -5,12 +6,14 @@ import {measureRenders} from 'reassure';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {setHasRadio} from '@libs/NetworkState';
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import {ActionListContext, ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportActionsList from '@src/pages/home/report/ReportActionsList';
-import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -70,7 +73,12 @@ beforeAll(() =>
 const mockOnLayout = jest.fn();
 const mockOnScroll = jest.fn();
 const mockLoadChats = jest.fn();
-const mockRef = {current: null, flatListRef: null, scrollPosition: null, setScrollPosition: () => {}};
+const mockRef = {current: null, flatListRef: null, scrollPositionRef: {current: {}}, scrollOffsetRef: {current: 0}};
+const mockReactionListContextValue = {
+    showReactionList: () => {},
+    hideReactionList: () => {},
+    isActiveReportAction: () => false,
+};
 
 const TEST_USER_ACCOUNT_ID = 1;
 const TEST_USER_LOGIN = 'test@test.com';
@@ -84,7 +92,7 @@ const parentReportAction = createRandomReportAction(1);
 
 beforeEach(() => {
     // Initialize the network key for OfflineWithFeedback
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    setHasRadio(true);
     wrapOnyxWithWaitForBatchedUpdates(Onyx);
     signUpWithTestUser();
 });
@@ -96,25 +104,27 @@ afterEach(() => {
 function ReportActionsListWrapper() {
     const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
     return (
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
-            <ReactionListContext.Provider value={mockRef}>
-                <ActionListContext.Provider value={mockRef}>
-                    <ReportActionsList
-                        parentReportAction={parentReportAction}
-                        parentReportActionForTransactionThread={undefined}
-                        sortedReportActions={reportActions}
-                        sortedVisibleReportActions={reportActions}
-                        report={report}
-                        onLayout={mockOnLayout}
-                        onScroll={mockOnScroll}
-                        listID={1}
-                        loadOlderChats={mockLoadChats}
-                        loadNewerChats={mockLoadChats}
-                        transactionThreadReport={report}
-                    />
-                </ActionListContext.Provider>
-            </ReactionListContext.Provider>
-        </ComposeProviders>
+        <NavigationContainer ref={navigationRef}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
+                <ReactionListContext.Provider value={mockReactionListContextValue}>
+                    <ActionListContext.Provider value={mockRef}>
+                        <ReportActionsList
+                            parentReportAction={parentReportAction}
+                            parentReportActionForTransactionThread={undefined}
+                            sortedReportActions={reportActions}
+                            sortedVisibleReportActions={reportActions}
+                            report={report}
+                            onLayout={mockOnLayout}
+                            onScroll={mockOnScroll}
+                            listID={1}
+                            loadOlderChats={mockLoadChats}
+                            loadNewerChats={mockLoadChats}
+                            transactionThreadReport={report}
+                        />
+                    </ActionListContext.Provider>
+                </ReactionListContext.Provider>
+            </ComposeProviders>
+        </NavigationContainer>
     );
 }
 

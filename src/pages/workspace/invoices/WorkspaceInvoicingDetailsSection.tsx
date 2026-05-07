@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -37,6 +38,7 @@ function WorkspaceInvoicingDetailsSection({policyID}: WorkspaceInvoicingDetailsS
                 shouldShowRightIcon
                 title={policy?.invoice?.companyName}
                 description={translate('workspace.invoices.companyName')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_NAME}
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID))}
                 style={horizontalPadding}
             />
@@ -45,6 +47,7 @@ function WorkspaceInvoicingDetailsSection({policyID}: WorkspaceInvoicingDetailsS
                 shouldShowRightIcon
                 title={policy?.invoice?.companyWebsite}
                 description={translate('workspace.invoices.companyWebsite')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_WEBSITE}
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID))}
                 style={horizontalPadding}
             />

@@ -11,17 +11,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
-// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionList';
-import type RadioListItem from './SelectionList/ListItem/RadioListItem';
-import type TableListItem from './SelectionList/ListItem/TableListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
+import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/SingleSelectWithAvatarListItem';
 import type {ListItem} from './SelectionList/types';
-import type UserListItem from './SelectionListWithSections/UserListItem';
 
 type SelectorType<T = string> = ListItem & {
     value: T;
@@ -48,8 +45,8 @@ type SelectionScreenProps<T = string> = {
     /** Sections for the section list */
     data: Array<SelectorType<T>>;
 
-    /** Default renderer for every item in the list */
-    listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+    /** Renderer for every item in the list. Defaults to SingleSelectListItem. */
+    ListItem?: typeof SingleSelectListItem | typeof SingleSelectWithAvatarListItem;
 
     /** The style is applied for the wrap component of list item */
     listItemWrapperStyle?: StyleProp<ViewStyle>;
@@ -121,7 +118,7 @@ function SelectionScreen<T = string>({
     listEmptyContent,
     listFooterContent,
     data,
-    listItem,
+    ListItem = SingleSelectListItem,
     listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
@@ -144,7 +141,7 @@ function SelectionScreen<T = string>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     return (
@@ -171,7 +168,7 @@ function SelectionScreen<T = string>({
                 >
                     <SelectionList
                         data={data}
-                        ListItem={listItem}
+                        ListItem={ListItem}
                         onSelectRow={onSelectRow}
                         showScrollIndicator
                         shouldShowTooltips={false}
@@ -184,7 +181,7 @@ function SelectionScreen<T = string>({
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                         alternateNumberOfSupportedLines={2}
-                        addBottomSafeAreaPadding={!errors || isEmptyObject(errors)}
+                        addBottomSafeAreaPadding
                     >
                         <ErrorMessageRow
                             errors={errors}

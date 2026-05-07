@@ -31,6 +31,14 @@ export default {
         margin: 20,
     },
 
+    mn5: {
+        margin: -20,
+    },
+
+    mn6: {
+        margin: -24,
+    },
+
     mhAuto: {
         marginHorizontal: 'auto',
     },
@@ -45,6 +53,10 @@ export default {
 
     mh2: {
         marginHorizontal: 8,
+    },
+
+    mh2half: {
+        marginHorizontal: 10,
     },
 
     mh3: {
@@ -167,8 +179,20 @@ export default {
         marginRight: 40,
     },
 
+    mr13: {
+        marginRight: 52,
+    },
+
+    mrn1: {
+        marginRight: -4,
+    },
+
     mrn2: {
         marginRight: -8,
+    },
+
+    mrn3: {
+        marginRight: -12,
     },
 
     mrn5: {
@@ -519,6 +543,10 @@ export default {
         paddingVertical: 24,
     },
 
+    pv8: {
+        paddingVertical: 32,
+    },
+
     pv10: {
         paddingVertical: 40,
     },
@@ -591,6 +619,10 @@ export default {
         paddingRight: 4,
     },
 
+    pr1half: {
+        paddingRight: 6,
+    },
+
     pr2: {
         paddingRight: 8,
     },
@@ -617,6 +649,10 @@ export default {
 
     pr8: {
         paddingRight: 32,
+    },
+
+    pr9: {
+        paddingRight: 36,
     },
 
     pr10: {
@@ -851,8 +887,16 @@ export default {
         minHeight: 128,
     },
 
+    minHeight42: {
+        minHeight: 168,
+    },
+
     minHeight65: {
         minHeight: 260,
+    },
+
+    minHeight55: {
+        minHeight: 220,
     },
 
     minWidth18: {
@@ -864,5 +908,9 @@ export default {
     },
     maxHeight100Percentage: {
         maxHeight: '100%',
+    },
+
+    maxWidth100Percentage: {
+        maxWidth: '100%',
     },
 } satisfies Record<string, ViewStyle>;

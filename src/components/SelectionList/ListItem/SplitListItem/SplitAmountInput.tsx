@@ -3,7 +3,10 @@ import type {BlurEvent} from 'react-native';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import CONST from '@src/CONST';
 import SplitAmountDisplay from './SplitAmountDisplay';
 
 type SplitAmountInputProps = {
@@ -25,6 +28,12 @@ type SplitAmountInputProps = {
 
 function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onSplitExpenseValueChange, focusHandler, onInputBlur, inputCallbackRef}: SplitAmountInputProps) {
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+
+    const onFormatAmount = (amountAsInt: number, currencyParam?: string) => {
+        const decimals = getCurrencyDecimals(currencyParam);
+        return convertToFrontendAmountAsString(amountAsInt, decimals);
+    };
 
     if (splitItem.isEditable) {
         return (
@@ -42,9 +51,10 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
                 submitBehavior="blurAndSubmit"
                 formatAmountOnBlur
                 onAmountChange={onSplitExpenseValueChange}
+                onFormatAmount={onFormatAmount}
                 prefixContainerStyle={[styles.pv0, styles.h100]}
                 prefixStyle={styles.lineHeightUndefined}
-                inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                inputStyle={[styles.lineHeightUndefined]}
                 containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                 touchableInputWrapperStyle={[styles.ml3]}
                 maxLength={formattedOriginalAmount.length + 1}
@@ -54,6 +64,8 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
                 shouldWrapInputInContainer={false}
                 onFocus={focusHandler}
                 onBlur={onInputBlur}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMBERS_AND_PUNCTUATION}
+                allowNegativeInput
             />
         );
     }

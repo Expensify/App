@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 function SetupMethod() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
     const illustrations = useMemoizedLazyIllustrations(['MoneyWings']);
 

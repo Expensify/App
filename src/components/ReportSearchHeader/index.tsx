@@ -3,11 +3,16 @@ import {View} from 'react-native';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type ReportSearchHeaderProps from './types';
 
 function ReportSearchHeader({report, style, transactions, avatarBorderColor}: ReportSearchHeaderProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
+
+    const statusContainerStyle = useMemo(() => {
+        return [isLargeScreenWidth ? styles.mt1 : styles.mt0Half, report?.shouldShowStatusAsPending && styles.offlineFeedbackPending];
+    }, [isLargeScreenWidth, styles.mt1, styles.mt0Half, report?.shouldShowStatusAsPending, styles.offlineFeedbackPending]);
 
     const middleContent = useMemo(() => {
         return (
@@ -19,12 +24,24 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor}: Re
                 shouldEnableDetailPageNavigation={false}
                 shouldEnableAvatarNavigation={false}
                 avatarBorderColor={avatarBorderColor}
+                size={isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                 customDisplayNameStyle={styles.fontWeightNormal}
                 parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
-                parentNavigationStatusContainerStyles={isLargeScreenWidth ? styles.mt1 : styles.mt0Half}
+                parentNavigationStatusContainerStyles={statusContainerStyle}
             />
         );
-    }, [report, transactions, avatarBorderColor, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1, isLargeScreenWidth, styles.textMicro, styles.mt0Half]);
+    }, [
+        report,
+        transactions,
+        avatarBorderColor,
+        styles.fontWeightNormal,
+        styles.textLineHeightNormal,
+        styles.minHeight4,
+        styles.mt1,
+        isLargeScreenWidth,
+        styles.textMicro,
+        statusContainerStyle,
+    ]);
 
     return (
         <View

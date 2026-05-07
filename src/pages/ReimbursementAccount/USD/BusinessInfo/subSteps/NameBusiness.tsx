@@ -16,7 +16,7 @@ const STEP_FIELDS = [COMPANY_NAME_KEY];
 function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const defaultCompanyName = reimbursementAccount?.achData?.companyName ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
@@ -31,7 +31,7 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
             if (values.companyName && !isValidCompanyName(values.companyName)) {
                 errors.companyName = translate('bankAccount.error.companyName');

@@ -5,59 +5,58 @@ keywords: [New Expensify, retract report, edit submitted report, resubmit report
 ---
 
 
-If you submitted a report too early or need to make changes, you can easily update it by retracting the report using **Retract**. This returns the report to an editable state.
-
-**Note:** Report actions like creating, submitting, or retracting can only be done in your own account. If you need to help a teammate, consider asking them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). 
+If you submitted a report too early or need to make changes, you can update it by retracting the report using **Retract**. This returns the report to an editable state.
 
 # When to Retract a Report
 
-This option is helpful when:
+Retracting a report is useful when:
 - You submitted a report too early.
 - Expenses were added by mistake.
 - Additional receipts or notes are needed.
-- You want to move expenses to a different report.
+- You want to move expenses to a different report or create a new report.
 
 You can retract reports with the following statuses:
-- **Outstanding reports**: Only the submitter (or a Workspace Admin submitting their own report) can use **Retract**.
-- **Done reports**: Only **Workspace Admins** can use **Retract**.
+- **Outstanding reports:** Only the member who submitted the report can retract it.
+- **Done reports:** Only Workspace Admins can retract the report.
 
-**Note:** Held expenses or violations won’t stop you from retracting a report.
+**Note:** Held expenses or violations won’t prevent you from retracting a report.
 
 ---
 
-## How to retract an outstanding report
+## How to retract an outstanding expense report
 
 1. Open the report.
-2. Tap the **More** menu (three dots in the top-right corner).
-3. Tap **Retract**.
-4. The report will change to **Draft** and display a **Retracted** system message.
-   - You can only retract outstanding reports you submitted from your own account. Reports submitted by other members require CoPilot access to retract.
+2. Select **More**.
+3. Select **Retract**.
+4. The report will change to **Draft** and display a **Retracted** message in the report activity.
+   - You can only retract outstanding reports you submitted from your own account. Reports submitted by other members require Copilot access to retract.
 
 **Note:** Submitters won’t receive a notification when retracting their own report.
 
 ---
 
-## How to retract a done report
+## How to retract a Done expense report
 
-1. Open the done report.
-2. Tap **More** > **Retract**.
-3. A system message confirms the report is retracted and editable.
+1. Open the report.
+2. Select **More** 
+3. Select **Retract**.
+4. The report moves back to **Draft**, and a **Retracted** entry appears in the report activity.
 
-**Note:** Only Workspace Admins can retract done reports.
+**Note:** Only Workspace Admins can retract Done reports.
 
 ---
 
-## Editing Expense Reports After Exporting to an Accounting System
+## How to edit an expense report after it’s been exported
 
-Admins can still retract done reports even if they’ve already been exported to an accounting system such as QuickBooks or NetSuite.
+Workspace Admins can retract Done reports even if they’ve already been exported to an accounting system like QuickBooks, Xero, NetSuite, or Intacct.
 
-When you click **Retract**, a warning modal will appear to let you know:
-- Retracting the report may cause **data mismatches** between Expensify and the accounting software.
-- Any edits made to the expense report **won’t sync** with the report that’s already been exported.
+When you select **Retract**, you’ll see a warning that explains:
+- Retracting the report may cause data mismatches between Expensify and the accounting system.
+- Any changes made after retraction won’t sync to the exported version.
 
-From there, you can choose:
-- **Retract**: Confirms and returns the report to an editable state.
-- **Cancel**: Dismisses the warning message without making changes to the expense report.
+You can then choose:
+- **Retract** to continue and edit the report
+- **Cancel** to leave the report unchanged
 
 After retracting, a Workspace Admin can fully edit the report—adding or deleting expenses, changing categories, and more.
 
@@ -73,10 +72,14 @@ Yes. Retract the report, remove the expense, and then resubmit the updated repor
 
 You can't retract a report that’s already been **approved** or **paid**.
 
-## What happens if I retract and edit a report after it’s exported to our accounting system?
+## What happens if I retract and edit a report after it’s exported to an accounting system?
 
 You’ll see a warning modal before retracting. Any edits won’t sync to the external system. If you make changes to the report, those will need to be manually reconciled in the accounting system.
 
 ## Can I edit or retract someone else’s outstanding report?
 
-No. You can only retract outstanding reports you submitted from your own account. If you need to take these actions for another employee, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). Admins can retract done reports for their colleagues. 
+No. You can only retract outstanding reports you submitted from your own account. If you need to take these actions for another member, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access). Workspace Admins can retract Done reports for members. 
+
+## Can a Workspace Admin create an expense report for a member?
+
+Yes. Workspace Admins can create an expense report for a member by **moving expenses to a new report**. This creates a new report on the member’s default workspace and moves the selected expenses into it. For step-by-step instructions, see [Create and submit expense reports in New Expensify](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).

@@ -33,7 +33,7 @@ type CurrencyPickerProps = {
 
 function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerText, value, excludeCurrencies, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
-    const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const styles = useThemeStyles();
 
     const updateInput = (item: CurrencyListItem) => {

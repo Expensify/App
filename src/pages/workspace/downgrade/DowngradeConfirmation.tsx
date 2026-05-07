@@ -27,7 +27,7 @@ function DowngradeConfirmation({onConfirmDowngrade, policyID}: Props) {
         },
         [login],
     );
-    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector});
+    const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
     const hasOtherControlWorkspaces = hasOtherControlWorkspacesPolicyUtils(adminPolicies, policyID);
 
     return (

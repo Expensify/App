@@ -11,7 +11,6 @@ import {
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
     // Will be fixed in https://github.com/Expensify/App/issues/76852
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
@@ -35,7 +34,7 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {formatPhoneNumber, localeCompare} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -147,7 +146,7 @@ describe('ReportUtils', () => {
         const isPreviewMessageForParentChatReport = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getReportPreviewMessage(report, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy));
+        await measureFunction(() => getReportPreviewMessage(report, undefined, reportAction, shouldConsiderReceiptBeingScanned, isPreviewMessageForParentChatReport, policy));
     });
 
     test('[ReportUtils] getReportName on 1k participants', async () => {
@@ -156,8 +155,7 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         // Will be fixed in https://github.com/Expensify/App/issues/76852
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        await measureFunction(() => getReportName(report, policy));
+        await measureFunction(() => getReportName({report, policy}));
     });
 
     test('[ReportUtils] canShowReportRecipientLocalTime on 1k participants', async () => {
@@ -204,7 +202,7 @@ describe('ReportUtils', () => {
         const reportParticipants = Array.from({length: 1000}, (v, i) => i + 1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants));
+        await measureFunction(() => temporary_getMoneyRequestOptions(report, policy, reportParticipants, [CONST.BETAS.ALL]));
     });
 
     test('[ReportUtils] getWorkspaceChat on 1k policies', async () => {
@@ -268,7 +266,7 @@ describe('ReportUtils', () => {
             requiresTag: true,
         };
 
-        const onyxData: OnyxData = {
+        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
             optimisticData: [],
             failureData: [],
             successData: [],
@@ -293,6 +291,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIOUReportActionDisplayMessage(reportAction));
+        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction));
     });
 });

@@ -1,14 +1,84 @@
+import type CONST from '@src/CONST';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
- * General pending action structure for domain admins.
+ * General pending action structure for domain members and admins
  * Pending actions structure is dictated by how `domain_` updates are handled in the app to prevent them from resetting unintentionally.
  */
-type GeneralDomainAdminPendingAction = {
+type GeneralDomainMemberPendingAction = {
     /**
      * Base pending actions
      */
-    pendingAction: OnyxCommon.PendingAction;
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
+/**
+ * Pending actions structure for domain members
+ */
+type DomainMemberPendingActions = {
+    /**
+     * Pending action related to a specific domain vacation delegate
+     */
+    vacationDelegate?: OnyxCommon.PendingAction;
+
+    /** Pending action for the list of emails exempt from the 2FA requirement */
+    twoFactorAuthExemptEmails?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending actions for specific domain member lock account action.
+     */
+    lockAccount?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending actions for changing domain security group.
+     */
+    changeDomainSecurityGroup?: OnyxCommon.PendingAction;
+} & GeneralDomainMemberPendingAction;
+
+/**
+ * Represents the pending actions related to a domain's security group.
+ */
+type DomainSecurityGroupPendingActions = {
+    /**
+     * Pending action for the security group name
+     */
+    name?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the strictly enforce workspace rules setting
+     */
+    enableStrictPolicyRules?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the default security group ID
+     */
+    defaultSecurityGroupID?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the restricted expense workspace creation
+     */
+    enableRestrictedPolicyCreation?: OnyxCommon.PendingAction;
+
+    /**
+     * Base pending action for group-level operations (create, delete)
+     */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for toggling the preferred workspace setting
+     */
+    enableRestrictedPrimaryPolicy?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for changing the preferred workspace ID
+     */
+    restrictedPrimaryPolicyID?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the restricted default login selection
+     */
+    enableRestrictedPrimaryLogin?: OnyxCommon.PendingAction;
 };
 
 /**
@@ -18,7 +88,7 @@ type DomainPendingAction = {
     /**
      * Pending actions for specific administrators, keyed by their accountID
      */
-    admin?: Record<number, GeneralDomainAdminPendingAction>;
+    admin?: Record<number, GeneralDomainMemberPendingAction>;
 
     /**
      * Pending action for the technical contact email
@@ -29,6 +99,22 @@ type DomainPendingAction = {
      * Pending action for the "use technical contact billing card" setting
      */
     useTechnicalContactBillingCard?: OnyxCommon.PendingAction;
-};
 
+    /**
+     * Pending actions for specific domain member, keyed by their email
+     */
+    member?: Record<string | number, DomainMemberPendingActions>;
+
+    /**
+     * Pending action for the 2FA toggle
+     */
+    twoFactorAuthRequired?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the domain itself
+     */
+    pendingAction?: OnyxCommon.PendingAction;
+} & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupPendingActions>;
+
+export type {GeneralDomainMemberPendingAction, DomainSecurityGroupPendingActions};
 export default DomainPendingAction;

@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {parsePhoneNumber} from './PhoneNumber';
 
 let countryCodeByIPOnyx: number;
+
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
     callback: (val) => (countryCodeByIPOnyx = val ?? 1),
@@ -83,8 +84,4 @@ function formatPhoneNumberWithCountryCode(number: string, countryCodeByIP: numbe
     return parsedPhoneNumber.number.international;
 }
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    formatPhoneNumber,
-    formatPhoneNumberWithCountryCode,
-};
+export {formatPhoneNumber, formatPhoneNumberWithCountryCode};

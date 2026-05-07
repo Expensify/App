@@ -9,7 +9,6 @@ This is how the application manages all the data stored in Onyx.
 - **Actions** - The files stored in `/src/libs/actions`
 - **Derived Values** - Special Onyx keys containing values computed from other Onyx values
 - **Collections** - Multiple related data objects stored as individual keys with IDs
-- **canBeMissing** - Parameter indicating whether a component expects Onyx data to be present
 
 ## Rules
 ### - Actions MUST be the only means to write or read data from the server
@@ -36,17 +35,7 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 
 **To flag a key as safe for removal:**
 - Add the key to the `evictableKeys` option in `Onyx.init(options)`
-- Implement `canEvict` in the Onyx config for each component subscribing to a key
-- The key will only be deleted when all subscribers return `true` for `canEvict`
-
-Example:
-```js
-Onyx.init({
-    evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-});
-
-const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: !isActiveReport});
-```
+- A least recently accessed key will only be deleted when an Onyx operation retries after failing.
 
 ## Onyx Derived Values
 
@@ -126,24 +115,3 @@ compute: ([reports, personalDetails]) => {
 - Explain the purpose and dependencies
 - Document any special cases or performance considerations
 - Include type annotations for better developer experience
-
-## canBeMissing Parameter
-
-The `canBeMissing` parameter indicates whether a component connecting to Onyx expects the data to be present or if it can handle missing data gracefully.
-
-### - Components MUST use the `canBeMissing` parameter appropriately
-This parameter was added because in some places we are assuming some data will be there, but actually we never load it, which leads to hard to debug bugs.
-
-The linter error exists until we add the param to all callers. Once that happens we can make the param mandatory and remove the linter.
-
-### - `canBeMissing` SHOULD be set to `false` when data is guaranteed to be present
-The main criteria for setting `canBeMissing` to `false`:
-
-- **Data is always loaded before component renders**: If the data is always ensured to be loaded before this component renders, then `canBeMissing` SHOULD be set to `false`
-- **Always returned by OpenApp**: Any data that is always returned by `OpenApp` used in a component where we have a user (so not in the homepage for example) will have `canBeMissing` set to `false`
-- **User always has data**: Maybe we always try to load a piece of data, but the data can be missing/empty, in this case `canBeMissing` would be set to `false`
-
-### - `canBeMissing` SHOULD be set to `true` for potentially missing data
-If neither of the above conditions apply, then the param SHOULD probably be `true`, but additionally we MUST make sure that the code using the data manages correctly the fact that the data might be missing.
-
-Context: [Slack discussion](https://expensify.slack.com/archives/C03TQ48KC/p1741208342513379)

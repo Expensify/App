@@ -107,6 +107,7 @@ function EditTagPage({route}: EditTagPageProps) {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     <InputWrapper
                         InputComponent={TextInput}

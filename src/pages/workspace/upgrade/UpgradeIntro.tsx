@@ -50,7 +50,6 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const shouldUseTeamPricing = isCategorizing || isDistanceRateUpgrade || isReporting;
         return `${convertToShortDisplayString(
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL],
             upgradeCurrency,
         )} `;
@@ -59,7 +58,20 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
         .map((feat) => feat?.icon)
         .filter((icon) => icon !== undefined);
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Tag', 'Coins', 'Rules', 'CompanyCard', 'PerDiem', 'ReportReceipt', 'CarIce', 'BlueShield', 'Pencil', 'Luggage']);
+    const illustrations = useMemoizedLazyIllustrations([
+        'FolderOpen',
+        'Tag',
+        'Coins',
+        'Rules',
+        'CompanyCard',
+        'PerDiem',
+        'ReportReceipt',
+        'CarIce',
+        'BlueShield',
+        'Pencil',
+        'Luggage',
+        'Members',
+    ]);
     const illustrationIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'NetSuiteSquare', 'QBDSquare', 'AdvancedApprovalsSquare', 'Unlock']);
     const imported = new Set([...Object.keys(illustrations), ...Object.keys(illustrationIcons)]);
     const missing = allIconNames.filter((n): n is string => !!n && !imported.has(n));
@@ -154,7 +166,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 />
             </View>
             <View style={[styles.mt6, styles.renderHTML]}>
-                <RenderHTML html={translate('workspace.upgrade.note', {subscriptionLink})} />
+                <RenderHTML html={translate('workspace.upgrade.note', subscriptionLink)} />
             </View>
         </View>
     );

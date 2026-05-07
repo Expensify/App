@@ -14,7 +14,6 @@ function useTransactionsByID(transactionIDs: string[] | undefined) {
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector: transactionsSelector,
-            canBeMissing: true,
         },
         [transactionsSelector],
     );

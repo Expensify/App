@@ -6,7 +6,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -35,7 +35,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
     const [currency, setCurrency] = useState<ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>>(initialCurrency ?? CONST.PAYMENT_CARD_CURRENCY.USD);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM> => {
-        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS);
+        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
 
         if (values.securityCode && !isValidSecurityCode(values.securityCode)) {
             errors.securityCode = translate('addPaymentCardPage.error.securityCode');
@@ -114,6 +114,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={[styles.mt5]}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
+                        autoComplete="cc-csc"
                     />
                 </>
                 <PaymentCardCurrencyModal
@@ -131,14 +132,13 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
         <View style={[styles.mh5, styles.flexGrow1]}>
             <SelectionList
                 data={currencyOptions}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={(option) => {
                     selectCurrency(option.value);
                 }}
                 style={{containerStyle: styles.mhn5}}
                 initiallyFocusedItemKey={currency}
                 customListHeader={<PaymentCardCurrencyHeader isSectionList />}
-                shouldStopPropagation
             />
         </View>
     );

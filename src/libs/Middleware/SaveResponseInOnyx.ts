@@ -1,6 +1,10 @@
+import type {OnyxKey} from 'react-native-onyx';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
 import CONST from '@src/CONST';
+import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+import type OnyxRequest from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
 import type Middleware from './types';
 
 // If we're executing any of these requests, we don't need to trigger our OnyxUpdates flow to update the current data even if our current value is out of
@@ -13,7 +17,7 @@ const requestsToIgnoreLastUpdateID = new Set<string>([
     SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES,
 ]);
 
-const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
+const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: OnyxRequest<TKey>) =>
     requestResponse.then((response = {}) => {
         const onyxUpdates = response?.onyxData ?? [];
 
@@ -23,7 +27,7 @@ const SaveResponseInOnyx: Middleware = (requestResponse, request) =>
             return Promise.resolve(response);
         }
 
-        const responseToApply = {
+        const responseToApply: OnyxUpdatesFromServer<TKey> = {
             type: CONST.ONYX_UPDATE_TYPES.HTTPS,
             lastUpdateID: Number(response?.lastUpdateID ?? CONST.DEFAULT_NUMBER_ID),
             previousUpdateID: Number(response?.previousUpdateID ?? CONST.DEFAULT_NUMBER_ID),

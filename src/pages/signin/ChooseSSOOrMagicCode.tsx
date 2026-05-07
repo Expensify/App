@@ -30,8 +30,8 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
@@ -55,6 +55,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                     onPress={() => {
                         Navigation.navigate(ROUTES.SAML_SIGN_IN);
                     }}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SSO}
                 />
 
                 <View style={[styles.mt5]}>
@@ -73,6 +74,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                         resendValidateCode(credentials?.login);
                         setIsUsingMagicCode(true);
                     }}
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.MAGIC_CODE}
                 />
                 {!!account && !isEmptyObject(account.errors) && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                 <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />

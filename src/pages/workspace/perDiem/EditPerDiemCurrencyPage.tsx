@@ -28,7 +28,7 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const subRateID = route.params.subRateID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const customUnit = getPerDiemCustomUnit(policy);
 

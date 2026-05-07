@@ -9,12 +9,17 @@ import TextLink from '@components/TextLink';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
+import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,13 +33,19 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: false});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const settings = getCardSettings(cardSettings);
+    const programKey = getCardProgramKey(cardSettings);
+    const privateSubscription = usePrivateSubscription();
+    const isUSProgram = programKey === CONST.COUNTRY.US || programKey === CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT;
+    const shouldShowCashbackToggle = isUSProgram && !isSubscriptionTypeOfInvoicing(privateSubscription?.type);
+    const shouldApplyCashbackToBill = settings?.shouldApplyCashbackToBill ?? true;
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID;
-    const paymentBankAccountNumber = cardSettings?.paymentBankAccountNumber;
-    const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? false;
-    const settlementFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
+    const paymentBankAccountID = settings?.paymentBankAccountID;
+    const paymentBankAccountNumber = settings?.paymentBankAccountNumber;
+    const isMonthlySettlementAllowed = settings?.isMonthlySettlementAllowed ?? false;
+    const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
 
@@ -86,6 +97,25 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                 }
                             />
                         </OfflineWithFeedback>
+                        {shouldShowCashbackToggle && (
+                            <ToggleSettingOptionRow
+                                title={translate('workspace.expensifyCard.applyCashbackToBill')}
+                                subtitle={translate('workspace.expensifyCard.applyCashbackToBillDescription')}
+                                switchAccessibilityLabel={translate('workspace.expensifyCard.applyCashbackToBill')}
+                                isActive={shouldApplyCashbackToBill}
+                                shouldPlaceSubtitleBelowSwitch
+                                wrapperStyle={[styles.mv3, styles.mh5]}
+                                pendingAction={settings?.pendingFields?.shouldApplyCashbackToBill}
+                                errors={settings?.errors}
+                                onCloseError={() => clearCashbackToBillError(defaultFundID)}
+                                onToggle={(isEnabled: boolean) => {
+                                    if (!programKey) {
+                                        return;
+                                    }
+                                    toggleCashbackToBill(defaultFundID, programKey, isEnabled, settings?.shouldApplyCashbackToBill);
+                                }}
+                            />
+                        )}
                     </View>
                 </ScrollView>
             </ScreenWrapper>

@@ -13,12 +13,13 @@ type ConfirmationProps = SubStepProps & {policyID: string};
 function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) {
     const {translate} = useLocalize();
 
-    const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {canBeMissing: true});
-    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT, {canBeMissing: false});
+    const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
+    const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const currency = policy?.outputCurrency ?? '';
-    const country = mapCurrencyToCountry(currency);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
+    const country = mapCurrencyToCountry(currency) ?? reimbursementAccountDraft?.country;
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, country);
     const copyOfID = enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_COPY_OF_ID] ?? [];
     const addressProof = enterSignerInfoFormDraft?.[INPUT_IDS.SIGNER_ADDRESS_PROOF] ?? [];

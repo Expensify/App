@@ -19,7 +19,6 @@ function useHasPerDiemTransactions(transactionIDs: string[]) {
         ONYXKEYS.COLLECTION.TRANSACTION,
         {
             selector,
-            canBeMissing: true,
         },
         [selector],
     );

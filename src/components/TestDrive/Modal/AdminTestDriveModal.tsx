@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
 import useLocalize from '@hooks/useLocalize';
@@ -12,12 +13,11 @@ import BaseTestDriveModal from './BaseTestDriveModal';
 
 function AdminTestDriveModal() {
     const {translate} = useLocalize();
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
-    const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`, {canBeMissing: true});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
 
     const navigate = () => {
         Log.hmmm('[AdminTestDriveModal] Navigate function called');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Log.hmmm('[AdminTestDriveModal] Calling Navigation.navigate()');
             Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
