@@ -12,7 +12,7 @@ function ConnectionCompletePage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ConnectionComplete', 'ExpensifyWordmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ConnectionComplete', 'ExpensifyWordmark']);
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>

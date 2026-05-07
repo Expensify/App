@@ -14,6 +14,9 @@ type PasskeyCredential = {
 
     /** Optional array of transport methods that can be used to communicate with the authenticator */
     transports?: PasskeyTransport[];
+
+    /** Authenticator model identifier (UUID). Identifies the authenticator provider (e.g. Apple Passwords, Google Password Manager). */
+    aaguid?: string;
 };
 
 /**

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
@@ -77,13 +77,10 @@ function Avatar({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [imageError, setImageError] = useState(false);
+    const [errorSource, setErrorSource] = useState<string | undefined>(undefined);
+    const imageError = errorSource !== undefined && errorSource === originalSource;
 
-    useNetwork({onReconnect: () => setImageError(false)});
-
-    useEffect(() => {
-        setImageError(false);
-    }, [originalSource]);
+    useNetwork({onReconnect: () => setErrorSource(undefined)});
 
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
@@ -121,10 +118,11 @@ function Avatar({
         >
             {typeof avatarSource === 'string' ? (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(size, type), iconAdditionalStyles]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: avatarSource}}
                         style={imageStyle}
-                        onError={() => setImageError(true)}
+                        onError={() => setErrorSource(typeof originalSource === 'string' ? originalSource : undefined)}
                         cachePolicy="memory-disk"
                     />
                 </View>

@@ -10,6 +10,7 @@ const DEFAULT_STATE: MultifactorAuthenticationState = {
     registrationChallenge: undefined,
     authorizationChallenge: undefined,
     softPromptApproved: false,
+    scenarioName: undefined,
     scenario: undefined,
     payload: undefined,
     isRegistrationComplete: false,
@@ -39,7 +40,7 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             }
             // Invalid validate code is a continuable error - it doesn't fail the entire MFA flow,
             // instead it's displayed on the current screen and the user can retry
-            if (action.payload.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.INVALID_VALIDATE_CODE) {
+            if (action.payload.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.INVALID_VALIDATE_CODE) {
                 return {...state, continuableError: action.payload, error: undefined};
             }
             return {...state, error: action.payload, continuableError: undefined};
@@ -73,6 +74,7 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
             return {
                 ...DEFAULT_STATE,
+                scenarioName: action.payload.scenario,
                 scenario,
                 payload: action.payload.payload,
             };
@@ -82,6 +84,7 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
         case 'REREGISTER':
             return {
                 ...DEFAULT_STATE,
+                scenarioName: state.scenarioName,
                 scenario: state.scenario,
                 payload: state.payload,
             };

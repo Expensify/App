@@ -42,7 +42,7 @@ You can reimburse submitted and approved reports in Expensify using direct depos
 For international bank transfers.
 
 ## Setup requirements
-- A Workspace Admin must [enable global reimbursements](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Enable-Global-Reimbursements).
+- A Workspace Admin must [enable global reimbursements](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Enable-Global-Reimbursement).
 - Recipients must [connect a deposit account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-Personal-US-Bank-Account).
 
 > Only verified business accounts can send global reimbursements.

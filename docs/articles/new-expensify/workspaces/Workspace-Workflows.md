@@ -34,16 +34,16 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
 
 ![Enable workflow features]({{site.url}}/assets/images/submissions-03.png){:width="100%"}
 
-## How to Add Approvals
+## How to enable Approvals
 
 - Requires each expense to be reviewed and approved before payment.
 - You can assign an approver per workspace member.
 - You can also set an over-limit approver for reports that exceed a specific amount. 
 - The default approver is the **Workspace Owner**, but any workspace member can be selected.
 
-Learn how to [add Approvals](https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals) on your workspace. 
+Learn how to [enable Approvals](https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals) on your workspace. 
 
-## How to Set a Submission Frequency
+## How to enable Submissions
 
 - Controls when expenses are automatically submitted.
 - Choose how frequently expenses are submitted:
@@ -56,7 +56,7 @@ Learn how to [add Approvals](https://help.expensify.com/articles/new-expensify/w
    - Manually – Expenses are auto-added to a report, but employees must submit them manually.
 - If turned **off**, all reimbursable and non-reimbursable expenses are submitted instantly.
 
-Learn how to [configure Submissions](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#submission-frequency) on your workspace. 
+Learn how to [configure Submissions](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Workflows#how-to-set-a-submission-frequency) on your workspace. 
 
 ---
 

@@ -4,24 +4,46 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {
+    getDistanceRateCustomUnitRate,
+    getPerDiemRateCustomUnitRate,
+    getSortedTagKeys,
+    isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
+    isDefaultTagName,
+    isTaxTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type {Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
+
+type ViolationTranslationParams = {
+    violation: TransactionViolation;
+    translate: LocaleContextProps['translate'];
+    canEdit?: boolean;
+    tags?: PolicyTagLists;
+    companyCardPageURL?: string;
+    connectionLink?: string;
+    card?: Card;
+    isMarkAsCash?: boolean;
+    routeDistanceMeters?: number;
+    distanceUnit?: Unit;
+};
 
 /**
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
@@ -41,6 +63,10 @@ function isMaxExpenseAmountRuleEnabled(maxAmount: number | undefined) {
     return typeof maxAmount === 'number' && maxAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
+function hasEnabledTags(tags?: PolicyTags): boolean {
+    return !!tags && Object.values(tags).some((tag) => !!tag.enabled);
+}
+
 /**
  * Calculates tag out of policy and missing tag violations for the given transaction
  */
@@ -56,27 +82,28 @@ function getTagViolationsForSingleLevelTags(
     const hasTagOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAG_OUT_OF_POLICY);
     const hasMissingTagViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.MISSING_TAG);
     const isTagInPolicy = policyTags ? !!policyTags[updatedTransaction.tag ?? '']?.enabled : false;
+    const hasEnabledTagsInList = hasEnabledTags(policyTags);
     let newTransactionViolations = [...transactionViolations];
 
-    // Add 'tagOutOfPolicy' violation if tag is not in policy
-    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
+    // Add 'tagOutOfPolicy' violation if tag is not in policy and there are enabled tags
+    if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy && hasEnabledTagsInList) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
         newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}, showInReview: true});
     }
 
-    // Remove 'tagOutOfPolicy' violation if tag is in policy
-    if (hasTagOutOfPolicyViolation && updatedTransaction.tag && isTagInPolicy) {
+    // Remove 'tagOutOfPolicy' violation if tag is empty, in policy, or there are no enabled tags
+    if (hasTagOutOfPolicyViolation && (!updatedTransaction.tag || isTagInPolicy || !hasEnabledTagsInList)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY});
     }
 
-    // Remove 'missingTag' violation if tag is valid according to policy
-    if (hasMissingTagViolation && isTagInPolicy) {
+    // Remove 'missingTag' violation if tag is valid according to policy or there are no enabled tags
+    if (hasMissingTagViolation && (isTagInPolicy || !hasEnabledTagsInList)) {
         newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_TAG});
     }
 
-    // Add 'missingTag violation' if tag is required and not set
-    if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
+    // Add 'missingTag violation' if tag is required, not set, and there are enabled tags
+    if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags && hasEnabledTagsInList) {
         const tagName = policyTagList[policyTagListName]?.name;
         const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
         newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {tagName: tagNameToShow}});
@@ -89,6 +116,7 @@ function getTagViolationsForSingleLevelTags(
  */
 function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transactionViolations: TransactionViolation[], tagName: string) {
     const tagViolations = [...transactionViolations];
+    const policyTagKeys = getSortedTagKeys(policyTagList);
 
     if (!tagName) {
         for (const tagList of Object.values(policyTagList)) {
@@ -100,7 +128,15 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
         }
     } else {
         const tags = TransactionUtils.getTagArrayFromName(tagName);
-        if (Object.keys(policyTagList).length !== tags.length || tags.includes('')) {
+        // Only flag ALL_TAG_LEVELS_REQUIRED if a required tag level is empty or missing.
+        // Previously this used `tags.includes('')` and a length check which flagged any
+        // empty/missing level regardless of whether it was required, causing false violations
+        // when only some levels were filled (e.g. "Engineering" with non-required second level).
+        const hasEmptyRequiredLevel = policyTagKeys.some((key, index) => {
+            const tagValue = tags.at(index) ?? '';
+            return tagValue === '' && (policyTagList[key]?.required ?? true);
+        });
+        if (hasEmptyRequiredLevel) {
             tagViolations.push({
                 name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -128,6 +164,11 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
     // Otherwise, we put TAG_OUT_OF_POLICY in Onyx (when applicable)
     const errorIndexes = [];
     for (let i = 0; i < policyTagKeys.length; i++) {
+        const tags = policyTagList[policyTagKeys[i]].tags;
+        const listHasEnabledTags = hasEnabledTags(tags);
+        if (!listHasEnabledTags) {
+            continue;
+        }
         const isTagRequired = policyTagList[policyTagKeys[i]].required ?? true;
         const isTagSelected = !!selectedTags.at(i);
         if (isTagRequired && (!isTagSelected || (selectedTags.length === 1 && selectedTags.at(0) === ''))) {
@@ -148,7 +189,11 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
         for (let i = 0; i < policyTagKeys.length; i++) {
             const selectedTag = selectedTags.at(i);
             const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = Object.values(tags).some((tag) => tag.name === selectedTag && !!tag.enabled);
+            const listHasEnabledTags = hasEnabledTags(tags);
+            if (!listHasEnabledTags) {
+                continue;
+            }
+            const isTagInPolicy = !!selectedTag && !!tags[selectedTag]?.enabled;
             if (!isTagInPolicy && selectedTag) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
@@ -199,10 +244,10 @@ function getTagViolationsForMultiLevelTags(
  */
 function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, errorIndexes: number[], tags: PolicyTagLists, translate: LocaleContextProps['translate']): string {
     if (isEmpty(errorIndexes) || isEmpty(tags)) {
-        return translate('violations.someTagLevelsRequired', {tagName});
+        return translate('violations.someTagLevelsRequired', tagName);
     }
     const tagsWithIndexes = keyBy(Object.values(tags), 'orderWeight');
-    return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', {tagName: tagsWithIndexes[i]?.name})).join('. ');
+    return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', tagsWithIndexes[i]?.name)).join('. ');
 }
 
 /**
@@ -255,16 +300,18 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
             return !!(category && policyCategories?.[category]?.enabled);
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAG_OUT_OF_POLICY}`]: () => {
-            // Tag is fixed if it's empty or matches a valid tag in policy
             if (!tag) {
                 return true;
             }
             if (!policyTagLists) {
                 return false;
             }
-            const hasEnabledTags = Object.values(policyTagLists).some((tagList) => tagList.tags && Object.values(tagList.tags).some((t) => t.enabled));
-            const hasMatchingTag = Object.values(policyTagLists).some((tagList) => tagList.tags && Object.values(tagList.tags).some((t) => t.name === tag && t.enabled));
-            return hasEnabledTags && hasMatchingTag;
+            const hasAnyEnabledTags = Object.values(policyTagLists).some((tagList) => hasEnabledTags(tagList.tags));
+            if (!hasAnyEnabledTags) {
+                return true;
+            }
+            const hasMatchingTag = Object.values(policyTagLists).some((tagList) => !!tagList.tags?.[tag]?.enabled);
+            return hasMatchingTag;
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.TAX_OUT_OF_POLICY}`]: () => {
             if (!taxCode || !policyTaxRates) {
@@ -413,7 +460,6 @@ const ViolationsUtils = {
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
@@ -478,8 +524,9 @@ const ViolationsUtils = {
             canCalculateAmountViolations && !isInvoiceTransaction && typeof categoryOverLimit === 'number' && expenseAmount > categoryOverLimit && isControlPolicy;
         const shouldShowMissingComment =
             !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
-        const attendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees ?? [];
-        const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
+        const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
+        const attendees = convertAttendeesToArray(rawAttendees);
+        const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         const ownerAccountID = iouReport?.ownerAccountID;
         // Calculate attendees minus owner. When ownerAccountID is known, filter by accountID.
@@ -623,11 +670,14 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.MISSING_ATTENDEES});
         }
 
-        if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
+        const hasTransactionTaxData = !!updatedTransaction.taxCode || !!updatedTransaction.taxValue || !!updatedTransaction.taxAmount;
+        const shouldAddTaxOutOfPolicy = !isTimeRequest && !isPerDiemRequest && (isPolicyTrackTaxEnabled ? !isTaxInPolicy : hasTransactionTaxData);
+
+        if (!hasTaxOutOfPolicyViolation && shouldAddTaxOutOfPolicy) {
             newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
         }
 
-        if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {
+        if (hasTaxOutOfPolicyViolation && !shouldAddTaxOutOfPolicy) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY});
         }
         return {
@@ -644,16 +694,8 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(
-        violation: TransactionViolation,
-        translate: LocaleContextProps['translate'],
-        canEdit = true,
-        tags?: PolicyTagLists,
-        companyCardPageURL?: string,
-        connectionLink?: string,
-        card?: Card,
-        isMarkAsCash?: boolean,
-    ): string {
+    getViolationTranslation(params: ViolationTranslationParams): string {
+        const {violation, translate, canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, routeDistanceMeters, distanceUnit} = params;
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -681,11 +723,11 @@ const ViolationsUtils = {
             case 'billableExpense':
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
-                return translate('violations.cashExpenseWithNoReceipt', {formattedLimit});
+                return translate('violations.cashExpenseWithNoReceipt', formattedLimit);
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':
-                return translate('violations.conversionSurcharge', {surcharge});
+                return translate('violations.conversionSurcharge', surcharge);
             case 'customUnitOutOfPolicy':
                 return translate('violations.customUnitOutOfPolicy');
             case 'duplicatedTransaction':
@@ -695,9 +737,9 @@ const ViolationsUtils = {
             case 'futureDate':
                 return translate('violations.futureDate');
             case 'invoiceMarkup':
-                return translate('violations.invoiceMarkup', {invoiceMarkup});
+                return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':
-                return translate('violations.maxAge', {maxAge});
+                return translate('violations.maxAge', maxAge);
             case 'missingCategory':
                 return translate('violations.missingCategory');
             case 'missingComment':
@@ -705,39 +747,45 @@ const ViolationsUtils = {
             case 'missingAttendees':
                 return translate('violations.missingAttendees');
             case 'missingTag':
-                return translate('violations.missingTag', {tagName});
+                return translate('violations.missingTag', tagName);
             case 'modifiedAmount':
                 return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
             case 'modifiedDate':
                 return translate('violations.modifiedDate');
+            case 'increasedDistance': {
+                const distance = routeDistanceMeters ?? 0;
+                const formattedRouteDistance = distance > 0 && distanceUnit ? DistanceRequestUtils.getDistanceForDisplayLabel(distance, distanceUnit) : undefined;
+                return translate('violations.increasedDistance', {formattedRouteDistance});
+            }
             case 'nonExpensiworksExpense':
                 return translate('violations.nonExpensiworksExpense');
             case 'overAutoApprovalLimit':
-                return translate('violations.overAutoApprovalLimit', {formattedLimit});
+                return translate('violations.overAutoApprovalLimit', formattedLimit);
             case 'overCategoryLimit':
-                return translate('violations.overCategoryLimit', {formattedLimit});
+                return translate('violations.overCategoryLimit', formattedLimit);
             case 'overLimit':
-                return translate('violations.overLimit', {formattedLimit});
+                return translate('violations.overLimit', formattedLimit);
             case 'overTripLimit':
-                return translate('violations.overTripLimit', {formattedLimit});
+                return translate('violations.overTripLimit', formattedLimit);
             case 'overLimitAttendee':
-                return translate('violations.overLimitAttendee', {formattedLimit});
+                return translate('violations.overLimitAttendee', formattedLimit);
             case 'perDayLimit':
-                return translate('violations.perDayLimit', {formattedLimit});
+                return translate('violations.perDayLimit', formattedLimit);
             case 'receiptNotSmartScanned':
                 return translate('violations.receiptNotSmartScanned');
             case 'receiptRequired':
-                return translate('violations.receiptRequired', {formattedLimit, category: getDecodedCategoryName(category ?? '')});
+                return translate('violations.receiptRequired', formattedLimit, getDecodedCategoryName(category ?? ''));
             case 'itemizedReceiptRequired':
-                return translate('violations.itemizedReceiptRequired', {formattedLimit});
+                return translate('violations.itemizedReceiptRequired', formattedLimit);
             case 'customRules':
-                return translate('violations.customRules', {message});
+                return translate('violations.customRules', message);
             case 'rter': {
                 let isPersonalCardViolation = false;
                 if (cardID !== undefined && cardID !== null && card) {
                     isPersonalCardViolation = !!isPersonalCard(card);
                 }
-                return translate('violations.rter', {
+                return translate(
+                    'violations.rter',
                     brokenBankConnection,
                     isAdmin,
                     isTransactionOlderThan7Days,
@@ -745,20 +793,20 @@ const ViolationsUtils = {
                     rterType,
                     companyCardPageURL,
                     connectionLink,
-                    isPersonalCard: isPersonalCardViolation,
+                    isPersonalCardViolation,
                     isMarkAsCash,
-                });
+                );
             }
             case 'smartscanFailed':
                 return translate('violations.smartscanFailed', {canEdit});
             case 'someTagLevelsRequired':
                 return getTagViolationMessagesForMultiLevelTags(tagName, errorIndexes, tags ?? {}, translate);
             case 'tagOutOfPolicy':
-                return translate('violations.tagOutOfPolicy', {tagName});
+                return translate('violations.tagOutOfPolicy', tagName);
             case 'taxAmountChanged':
                 return translate('violations.taxAmountChanged');
             case 'taxOutOfPolicy':
-                return translate('violations.taxOutOfPolicy', {taxName});
+                return translate('violations.taxOutOfPolicy', taxName);
             case 'taxRateChanged':
                 return translate('violations.taxRateChanged');
             case 'taxRequired':
@@ -768,9 +816,7 @@ const ViolationsUtils = {
             case 'companyCardRequired':
                 return translate('violations.companyCardRequired');
             case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
-                return translate('violations.prohibitedExpense', {
-                    prohibitedExpenseTypes: violation.data?.prohibitedExpenseRule ?? [],
-                });
+                return translate('violations.prohibitedExpense', violation.data?.prohibitedExpenseRule ?? []);
             case CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI:
                 return translate('violations.receiptGeneratedWithAI');
             case CONST.VIOLATIONS.NO_ROUTE:
@@ -789,18 +835,31 @@ const ViolationsUtils = {
         return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
     },
 
-    getRBRMessages(
-        transaction: Transaction,
-        transactionViolations: TransactionViolation[],
-        translate: LocaleContextProps['translate'],
-        missingFieldError?: string,
-        transactionThreadActions?: ReportAction[],
-        tags?: PolicyTagLists,
-        companyCardPageURL?: string,
-        connectionLink?: string,
-        cardList?: CardList,
-        isMarkAsCash?: boolean,
-    ): string {
+    getRBRMessages({
+        transaction,
+        transactionViolations,
+        translate,
+        missingFieldError,
+        transactionThreadActions,
+        tags,
+        companyCardPageURL,
+        connectionLink,
+        cardList,
+        isMarkAsCash,
+        canEdit = true,
+    }: {
+        transaction: Transaction;
+        transactionViolations: TransactionViolation[];
+        translate: LocaleContextProps['translate'];
+        missingFieldError?: string;
+        transactionThreadActions?: ReportAction[];
+        tags?: PolicyTagLists;
+        companyCardPageURL?: string;
+        connectionLink?: string;
+        cardList?: CardList;
+        isMarkAsCash?: boolean;
+        canEdit?: boolean;
+    }): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
 
@@ -812,7 +871,18 @@ const ViolationsUtils = {
             ...filteredViolations.map((violation) => {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                const message = ViolationsUtils.getViolationTranslation({
+                    violation,
+                    translate,
+                    canEdit,
+                    tags,
+                    companyCardPageURL,
+                    connectionLink,
+                    card,
+                    isMarkAsCash,
+                    routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
+                    distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+                });
                 if (!message) {
                     return;
                 }
@@ -860,6 +930,6 @@ const ViolationsUtils = {
 };
 
 export {getIsViolationFixed};
-export type {ViolationFixParams};
+export type {ViolationFixParams, ViolationTranslationParams};
 export default ViolationsUtils;
 export {filterReceiptViolations};

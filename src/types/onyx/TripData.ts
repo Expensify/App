@@ -231,6 +231,9 @@ type PnrData = {
     /** Reason for suspending the booking. */
     suspendReason: string;
 
+    /** Overall booking status of the PNR. */
+    bookingStatus?: string;
+
     /**
      * Fare Amount details for the PNR.
      */
@@ -883,6 +886,18 @@ type AirPnr = {
             validatingAirlineCode: string;
             /** Vendor cancellation ID for the ticket. */
             vendorCancellationId: string;
+        }>;
+        /** Last confirmed tickets before cancellation/voiding. */
+        lastConfirmedTickets?: Array<{
+            /** Flight coupons associated with the ticket. */
+            flightCoupons: Array<{
+                /** Index of the flight. */
+                flightIdx: number;
+                /** Index of the leg. */
+                legIdx: number;
+                /** Status of the flight coupon. */
+                status: string;
+            }>;
         }>;
         /** Index of the traveler. */
         travelerIdx: number;
@@ -1709,8 +1724,8 @@ type CarPnr = {
 
 /** Represents the structure of RailPnr. */
 type RailPnr = {
-    /** Details of the inward journey. */
-    inwardJourney: {
+    /** Details of the inward journey (undefined for one-way trips). */
+    inwardJourney?: {
         /** Status of the inward journey. */
         journeyStatus: string;
 

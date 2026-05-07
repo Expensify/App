@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {getUpdateMoneyRequestParams} from '@libs/actions/IOU';
+import {getUpdateMoneyRequestParams} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -128,6 +128,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
@@ -158,6 +159,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
@@ -193,6 +195,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
@@ -222,6 +225,7 @@ describe('split distance system message', () => {
             },
             policy: undefined,
             policyTagList: undefined,
+            reportPolicyTags: undefined,
             policyCategories: undefined,
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,

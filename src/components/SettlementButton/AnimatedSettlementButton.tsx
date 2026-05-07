@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -39,9 +39,8 @@ function AnimatedSettlementButton({
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
     const buttonMarginTop = useSharedValue<number>(gap);
     const height = useSharedValue<number>(variables.componentSizeNormal);
-    const [canShow, setCanShow] = React.useState(true);
-    const [minWidth, setMinWidth] = React.useState<number>(0);
-    const viewRef = useRef<HTMLElement | null>(null);
+    const [canShow, setCanShow] = useState(true);
+    const [minWidth, setMinWidth] = useState<number>(0);
 
     const containerStyles = useAnimatedStyle(() => ({
         height: height.get(),
@@ -50,36 +49,41 @@ function AnimatedSettlementButton({
     }));
 
     const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
-    const stretchOutY = useCallback(() => {
+
+    const finishAnimationAndReset = () => {
+        setMinWidth(0);
+        setCanShow(true);
+        height.set(variables.componentSizeNormal);
+        buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
+        onAnimationFinish();
+    };
+
+    const onButtonExitComplete: () => void = () => {
         'worklet';
 
         if (shouldAddTopMargin) {
             buttonMarginTop.set(withTiming(willShowPaymentButton ? gap : 0, {duration: buttonDuration}));
         }
         if (willShowPaymentButton) {
-            scheduleOnRN(onAnimationFinish);
+            scheduleOnRN(finishAnimationAndReset);
             return;
         }
-        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(onAnimationFinish)));
-    }, [buttonDuration, buttonMarginTop, gap, height, onAnimationFinish, shouldAddTopMargin, willShowPaymentButton]);
+        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(finishAnimationAndReset)));
+    };
 
-    const buttonAnimation = useMemo(
-        () =>
-            new Keyframe({
-                from: {
-                    opacity: 1,
-                    transform: [{scale: 1}],
-                },
-                to: {
-                    opacity: 0,
-                    transform: [{scale: 0}],
-                },
-            })
-                .delay(buttonDelay)
-                .duration(buttonDuration)
-                .withCallback(stretchOutY),
-        [buttonDelay, buttonDuration, stretchOutY],
-    );
+    const buttonAnimation = new Keyframe({
+        from: {
+            opacity: 1,
+            transform: [{scale: 1}],
+        },
+        to: {
+            opacity: 0,
+            transform: [{scale: 0}],
+        },
+    })
+        .delay(buttonDelay)
+        .duration(buttonDuration)
+        .withCallback(onButtonExitComplete);
 
     let icon;
     if (isApprovedAnimationRunning) {
@@ -88,26 +92,26 @@ function AnimatedSettlementButton({
         icon = expensifyIcons.Checkmark;
     }
 
-    useEffect(() => {
-        if (!isAnimationRunning) {
-            setMinWidth(0);
-            setCanShow(true);
-            height.set(variables.componentSizeNormal);
-            buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
+    const animatedViewRef = (el: View | null) => {
+        if (!el || !isAnimationRunning) {
             return;
         }
-        setMinWidth(viewRef.current?.getBoundingClientRect?.().width ?? 0);
+        setMinWidth((el as unknown as HTMLElement).getBoundingClientRect?.().width ?? 0);
+    };
+
+    useEffect(() => {
+        if (!isAnimationRunning) {
+            return;
+        }
         const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY);
         return () => clearTimeout(timer);
-    }, [buttonMarginTop, gap, height, isAnimationRunning, shouldAddTopMargin]);
+    }, [isAnimationRunning]);
 
     return (
         <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
             {isAnimationRunning && canShow && (
                 <Animated.View
-                    ref={(el: View | null) => {
-                        viewRef.current = el as HTMLElement | null;
-                    }}
+                    ref={animatedViewRef}
                     exiting={buttonAnimation}
                 >
                     <Button

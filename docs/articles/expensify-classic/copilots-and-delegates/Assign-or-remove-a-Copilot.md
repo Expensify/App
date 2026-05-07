@@ -1,7 +1,8 @@
 ---
 title: Understanding the Copilot Function
-description: Safely delegate tasks without sharing login information.
-keywords: Expensify Classic, Copilot, delegate access, expense management
+description: Safely delegate tasks to a Copilot without sharing your login information.
+keywords: [Expensify Classic, Copilot, copilot access, delegate access, expense management, full access, submit only access, account delegation, share account, behalf of, proxy access]
+internalScope: Applies to all members. Covers how to delegate a CoPilot and navigate between accounts as a CoPilot. Does not cover taking account actions once access is delegated. 
 ---
 
 You can safely delegate tasks to someone else without sharing your login information by assigning them as your **Copilot**. A Copilot can access your Expensify account through their own login to:
@@ -13,7 +14,7 @@ You can safely delegate tasks to someone else without sharing your login informa
 
 ---
 
-# Assign a Copilot
+# How to Assign a Copilot
 
 1. Go to **Settings > Account > Profile**.
 2. Under **Copilot Access**, enter the email or phone number of the person you want to assign as your Copilot.

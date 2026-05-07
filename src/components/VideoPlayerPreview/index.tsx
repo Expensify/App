@@ -10,6 +10,7 @@ import {usePlaybackActionsContext, usePlaybackStateContext} from '@components/Vi
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
@@ -54,42 +55,39 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentRouteReportID} = usePlaybackStateContext();
     const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
+    const report = useReportOrReportDraft(reportID);
 
     /* This needs to be isSmallScreenWidth because we want to be able to play video in chat (not in attachment modal) when preview is inside an RHP */
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [isThumbnail, setIsThumbnail] = useState(true);
-    const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
+    const [webMeasuredDimensions, setWebMeasuredDimensions] = useState<Dimensions | null>(null);
+    const measuredDimensions = getPlatform() === CONST.PLATFORM.WEB && videoUrl && webMeasuredDimensions ? webMeasuredDimensions : videoDimensions;
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
 
     useEffect(() => {
-        const platform = getPlatform();
-        // On web platform, we can use the DOM video element to get accurate video dimensions
-        // by loading the video metadata. On mobile platforms, we rely on the provided videoDimensions
-        // since document.createElement is not available in React Native environments.
-        if (videoUrl && platform === CONST.PLATFORM.WEB) {
-            const video = document.createElement('video');
-            video.onloadedmetadata = () => {
-                if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {
-                    return;
-                }
-                setMeasuredDimensions({
-                    width: video.videoWidth,
-                    height: video.videoHeight,
-                });
-            };
-            video.src = videoUrl;
-            video.load();
-
-            return () => {
-                video.src = '';
-            };
+        if (!videoUrl || getPlatform() !== CONST.PLATFORM.WEB) {
+            return;
         }
-        setMeasuredDimensions(videoDimensions);
-    }, [videoUrl, measuredDimensions.width, measuredDimensions.height, videoDimensions]);
+        const video = document.createElement('video');
+        video.onloadedmetadata = () => {
+            if (video.videoWidth === videoDimensions.width && video.videoHeight === videoDimensions.height) {
+                return;
+            }
+            setWebMeasuredDimensions({
+                width: video.videoWidth,
+                height: video.videoHeight,
+            });
+        };
+        video.src = videoUrl;
+        video.load();
+        return () => {
+            video.src = '';
+        };
+    }, [videoUrl, videoDimensions.width, videoDimensions.height]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
@@ -103,11 +101,11 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
             return;
         }
 
-        setMeasuredDimensions({width: track.size.width, height: track.size.height});
+        setWebMeasuredDimensions({width: track.size.width, height: track.size.height});
     };
 
     const handleOnPress = () => {
-        updateCurrentURLAndReportID(videoUrl, reportID);
+        updateCurrentURLAndReportID(videoUrl, report, reportID);
         if (isSmallScreenWidth) {
             onShowModalPress();
         }
@@ -117,13 +115,15 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         return navigation.addListener('blur', () => !isOnAttachmentRoute() && setIsThumbnail(true));
     }, [navigation]);
 
-    useEffect(() => {
+    const playbackKey = `${currentlyPlayingURL}|${currentRouteReportID}|${videoUrl}|${reportID}|${isOnSearch}`;
+    const [prevPlaybackKey, setPrevPlaybackKey] = useState(playbackKey);
+    if (prevPlaybackKey !== playbackKey) {
+        setPrevPlaybackKey(playbackKey);
         const isFocused = doesUserRemainOnFirstRenderRoute();
-        if (videoUrl !== currentlyPlayingURL || reportID !== currentRouteReportID || !isFocused) {
-            return;
+        if (videoUrl === currentlyPlayingURL && reportID === currentRouteReportID && isFocused) {
+            setIsThumbnail(false);
         }
-        setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, doesUserRemainOnFirstRenderRoute, isOnSearch]);
+    }
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>

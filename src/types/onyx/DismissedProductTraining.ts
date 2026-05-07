@@ -1,17 +1,7 @@
 import CONST from '@src/CONST';
 
-const {
-    CONCIERGE_LHN_GBR,
-    RENAME_SAVED_SEARCH,
-    SCAN_TEST_TOOLTIP,
-    SCAN_TEST_TOOLTIP_MANAGER,
-    SCAN_TEST_CONFIRMATION,
-    OUTSTANDING_FILTER,
-    ACCOUNT_SWITCHER,
-    SCAN_TEST_DRIVE_CONFIRMATION,
-    MULTI_SCAN_EDUCATIONAL_MODAL,
-    GPS_TOOLTIP,
-} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, MULTI_SCAN_EDUCATIONAL_MODAL, GPS_TOOLTIP, HAS_FILTER_NEGATION} =
+    CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
@@ -45,21 +35,6 @@ type DismissedProductTraining = {
     [RENAME_SAVED_SEARCH]: DismissedProductTrainingElement;
 
     /**
-     * When user dismisses the globalCreateTooltip product training tooltip, we store the timestamp here.
-     */
-    [SCAN_TEST_TOOLTIP]: DismissedProductTrainingElement;
-
-    /**
-     * When user dismisses the test manager tooltip product training tooltip, we store the timestamp here.
-     */
-    [SCAN_TEST_TOOLTIP_MANAGER]: DismissedProductTrainingElement;
-
-    /**
-     * When user dismisses the test manager on confirmation page product training tooltip, we store the timestamp here.
-     */
-    [SCAN_TEST_CONFIRMATION]: DismissedProductTrainingElement;
-
-    /**
      * When user dismisses the outstanding filter product training tooltip, we store the timestamp here.
      */
     [OUTSTANDING_FILTER]: DismissedProductTrainingElement;
@@ -88,6 +63,11 @@ type DismissedProductTraining = {
      * When user dismisses the GPS tooltip, we store the timestamp here.
      */
     [GPS_TOOLTIP]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the Has filter negation tooltip, we store the timestamp here.
+     */
+    [HAS_FILTER_NEGATION]: DismissedProductTrainingElement;
 };
 
 export default DismissedProductTraining;

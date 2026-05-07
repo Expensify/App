@@ -54,7 +54,7 @@ Select your Identity (SAML) Provider for detailed steps on configuring SAML Sing
 # How SAML Single Sign-On (SSO) affects login behavior
 
 - Members with email addresses matching your verified domain will be prompted to log in through your configured IdP.
-- Members using a personal or secondary email (e.g., Gmail) must [update their email address](https://help.expensify.com/articles/expensify-classic/settings/Change-or-add-email-address) to match the verified domain for SSO access.
+- Members using a personal or secondary email (e.g., Gmail) must [update their email address](https://help.expensify.com/articles/expensify-classic/settings/Contact-Methods) to match the verified domain for SSO access.
 
 ---
 

@@ -63,7 +63,7 @@ function TextBase<TFormID extends OnyxFormKey>({
             if (!isValid) {
                 (errors as Record<string, string>)[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, characterLimit);
             } else if (fieldID === CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT || fieldID === CONST.MERCHANT_RULES.FIELDS.MERCHANT) {
-                if (isInvalidMerchantValue(trimmedValue)) {
+                if (trimmedValue && isInvalidMerchantValue(trimmedValue)) {
                     (errors as Record<string, string>)[fieldID] = translate('iou.error.invalidMerchant');
                 }
             }

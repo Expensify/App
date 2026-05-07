@@ -14,6 +14,7 @@ import FS from '@libs/Fullstory';
 import Log from '@libs/Log';
 import shouldOpenLastVisitedPath from '@libs/shouldOpenLastVisitedPath';
 import {getPathFromURL} from '@libs/Url';
+import {getBaseTheme} from '@styles/theme/utils';
 import {updateLastVisitedPath} from '@userActions/App';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import CONST from '@src/CONST';
@@ -25,9 +26,10 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getActiveTabName from './helpers/getActiveTabName';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
 import getPathFromState from './helpers/getPathFromState';
-import {isSplitNavigatorName, isWorkspacesTabScreenName} from './helpers/isNavigatorName';
+import {isSplitNavigatorName} from './helpers/isNavigatorName';
 import {saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage} from './helpers/lastVisitedTabPathUtils';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
@@ -73,9 +75,13 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     Navigation.setIsNavigationReady();
-    if (isWorkspacesTabScreenName(state.routes.at(-1)?.name)) {
+
+    const lastRoute = state.routes.at(-1);
+    const activeTabName = getActiveTabName(lastRoute);
+
+    if (activeTabName === NAVIGATORS.WORKSPACE_NAVIGATOR) {
         saveWorkspacesTabPathToSessionStorage(currentPath);
-    } else if (state.routes.at(-1)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+    } else if (activeTabName === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
         saveSettingsTabPathToSessionStorage(currentPath);
     }
 
@@ -145,7 +151,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     // https://reactnavigation.org/docs/themes
     const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+        const defaultNavigationTheme = getBaseTheme(themePreference) === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
 
         return {
             ...defaultNavigationTheme,
@@ -190,7 +196,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         const lastRoute = navigationRef?.getRootState()?.routes?.at(-1);
 
         // Sidebar is a separate screen only in SplitNavigators, so shouldPopToSidebar should only be set when the last route is a SplitNavigator.
-        if (!isSplitNavigatorName(lastRoute?.name)) {
+        // When the last route is TAB_NAVIGATOR, check the active tab inside it.
+        const effectiveName = lastRoute?.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveTabName(lastRoute) : lastRoute?.name;
+        if (!isSplitNavigatorName(effectiveName)) {
             return;
         }
 

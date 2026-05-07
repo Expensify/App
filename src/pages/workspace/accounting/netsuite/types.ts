@@ -4,7 +4,6 @@ import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {SelectorType} from '@components/SelectionScreen';
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
@@ -78,10 +77,7 @@ type ExpenseRouteParams = {
     policyID: string;
 };
 
-type CustomFieldSubStepWithPolicy = SubStepProps & {
-    /** Policy ID of the current policy */
-    policyID: string;
-
+type CustomFieldSubPageWithPolicy = SubPageProps & {
     /** Current policy in the form steps */
     policy: Policy | undefined;
 
@@ -116,7 +112,7 @@ export type {
     ToggleItem,
     AccordionItem,
     ExpenseRouteParams,
-    CustomFieldSubStepWithPolicy,
+    CustomFieldSubPageWithPolicy,
     CustomListSelectorType,
     ExtendedMenuItemWithSubscribedSettings,
     CustomSubPageTokenInputProps,

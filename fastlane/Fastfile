@@ -330,6 +330,10 @@ platform :ios do
       path: "./" + ENV["APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE"]
     )
 
+    install_provisioning_profile(
+      path: "./" + ENV["APPLE_LIVE_ACTIVITY_PROVISIONING_PROFILE_FILE"]
+    )
+
     update_code_signing_settings(
       path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
       profile_name: ENV["APPLE_STORE_PROVISIONING_PROFILE_NAME"],
@@ -354,6 +358,14 @@ platform :ios do
       build_configurations: "Release"
     )
 
+    update_code_signing_settings(
+      path: "Mobile-Expensify/iOS/Expensify.xcodeproj",
+      profile_name: ENV["APPLE_LIVE_ACTIVITY_PROVISIONING_PROFILE_NAME"],
+      targets: "LiveActivityExtension",
+      bundle_identifier: ENV["APPLE_ID"] + ".LiveActivityExtension",
+      build_configurations: "Release"
+    )
+
     build_app(
       workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
       scheme: "Expensify",
@@ -365,6 +377,7 @@ platform :ios do
           ENV["APPLE_ID"] => ENV["APPLE_STORE_PROVISIONING_PROFILE_NAME"],
           ENV["APPLE_ID"] + ".SmartScanExtension" => ENV["APPLE_SHARE_PROVISIONING_PROFILE_NAME"],
           ENV["APPLE_ID"] + ".NotificationServiceExtension" => ENV["APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME"],
+          ENV["APPLE_ID"] + ".LiveActivityExtension" => ENV["APPLE_LIVE_ACTIVITY_PROVISIONING_PROFILE_NAME"],
         }
       }
     )
@@ -390,6 +403,10 @@ platform :ios do
       path: "./OldApp_AdHoc_Notification_Service.mobileprovision"
     )
 
+    install_provisioning_profile(
+      path: "./OldApp_AdHoc_LiveActivityExtension.mobileprovision"
+    )
+
     build_app(
       workspace: "Mobile-Expensify/iOS/Expensify.xcworkspace",
       scheme: "Expensify AdHoc",
@@ -401,6 +418,7 @@ platform :ios do
           "com.expensify.expensifylite.adhoc" => "(OldApp) AdHoc",
           "com.expensify.expensifylite.adhoc.SmartScanExtension" => "(OldApp) AdHoc: Share Extension",
           "com.expensify.expensifylite.adhoc.NotificationServiceExtension" => "(OldApp) AdHoc: Notification Service",
+          "com.expensify.expensifylite.adhoc.LiveActivityExtension" => "(OldApp) AdHoc: LiveActivityExtension",
         }
       }
     )

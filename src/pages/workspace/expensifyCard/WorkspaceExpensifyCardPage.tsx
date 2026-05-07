@@ -3,10 +3,13 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {filterInactiveCards, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -19,6 +22,8 @@ type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNa
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
     const defaultFundID = useDefaultFundID(policyID);
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -41,7 +46,17 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const renderContent = () => {
         if (isLoading) {
-            return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'WorkspaceExpensifyCardPage',
+                isOffline,
+                hasOnceLoaded: !!cardSettings?.hasOnceLoaded,
+            };
+            return (
+                <FullScreenLoadingIndicator
+                    shouldUseGoBackButton
+                    reasonAttributes={reasonAttributes}
+                />
+            );
         }
         if (paymentBankAccountID) {
             return (

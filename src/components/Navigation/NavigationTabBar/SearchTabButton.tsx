@@ -1,7 +1,6 @@
 import React from 'react';
 import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
-import useDefaultSearchQuery from '@hooks/useDefaultSearchQuery';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,13 +29,9 @@ type SearchTabButtonProps = {
 function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch']);
-    const defaultSearchQuery = useDefaultSearchQuery();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
-
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
-    const lastQueryJSON = lastSearchParams?.queryJSON;
 
     const navigateToSearch = () => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
@@ -67,9 +62,10 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
                 }
             }
 
-            const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
+            const lastQueryJSON = lastSearchParams?.queryJSON;
             const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
+            const defaultSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery}));
         });
     };
 
@@ -78,15 +74,15 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             <PressableWithFeedback
                 onPress={navigateToSearch}
                 role={CONST.ROLE.TAB}
-                accessibilityLabel={translate('common.reports')}
+                accessibilityLabel={translate('common.spend')}
                 accessibilityState={searchAccessibilityState}
                 style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
             >
                 {({hovered}) => (
                     <TabBarItem
-                        icon={expensifyIcons.MoneySearch}
-                        label={translate('common.reports')}
+                        icon={expensifyIcons.ReceiptMultiple}
+                        label={translate('common.spend')}
                         isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                         isHovered={hovered}
                     />
@@ -99,15 +95,15 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
         <PressableWithFeedback
             onPress={navigateToSearch}
             role={CONST.ROLE.TAB}
-            accessibilityLabel={translate('common.reports')}
+            accessibilityLabel={translate('common.spend')}
             accessibilityState={searchAccessibilityState}
             wrapperStyle={styles.flex1}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
         >
             <TabBarItem
-                icon={expensifyIcons.MoneySearch}
-                label={translate('common.reports')}
+                icon={expensifyIcons.ReceiptMultiple}
+                label={translate('common.spend')}
                 isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
                 numberOfLines={1}
             />

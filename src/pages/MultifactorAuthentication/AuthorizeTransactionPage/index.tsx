@@ -1,16 +1,16 @@
-import React, {useState} from 'react';
+import type {SeverityLevel} from '@sentry/react-native';
+import * as Sentry from '@sentry/react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import ScenarioConfigs from '@components/MultifactorAuthentication/config/scenarios';
-import {
-    AlreadyReviewedFailureScreen,
-    DeniedTransactionServerFailureScreen,
-    DeniedTransactionSuccessScreen,
-} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
+import {DeniedTransactionServerFailureScreen, DeniedTransactionSuccessScreen} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
@@ -24,6 +24,15 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import MultifactorAuthenticationAuthorizeTransactionActions from './AuthorizeTransactionActions';
 import MultifactorAuthenticationAuthorizeTransactionContent from './AuthorizeTransactionContent';
+
+function addBreadcrumb(message: string, data?: Record<string, string | number | boolean | undefined>, level: SeverityLevel = 'info'): void {
+    Sentry.addBreadcrumb({
+        message: `[3DS Authorize] ${message}`,
+        category: CONST.TELEMETRY.BREADCRUMB_CATEGORY_3DS_AUTHORIZE,
+        level,
+        data,
+    });
+}
 
 type MultifactorAuthenticationAuthorizeTransactionPageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION>;
 
@@ -46,54 +55,97 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
     const {executeScenario} = useMultifactorAuthentication();
 
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
+    const allowNavigatingAwayRef = useRef(false);
 
-    const showConfirmModal = () => {
+    const showConfirmModal = useCallback(() => {
         // FullPageOfflineBlockingView doesn't wrap HeaderWithBackButton, so we handle navigation manually when offline.
         // Offline mode isn't supported in MFA; navigate users away immediately without showing the confirmation modal.
         if (isOffline) {
+            addBreadcrumb('Offline back-navigation (no deny sent)', {transactionID}, 'warning');
+            allowNavigatingAwayRef.current = true;
             Navigation.closeRHPFlow();
             return;
         }
         setConfirmModalVisibility(true);
-    };
+    }, [isOffline, transactionID]);
 
     const hideConfirmModal = () => {
         setConfirmModalVisibility(false);
     };
 
+    const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = (e) => {
+        if (allowNavigatingAwayRef.current || !transaction || !!denyOutcomeScreen) {
+            return;
+        }
+        e.preventDefault();
+        showConfirmModal();
+    };
+
+    useBeforeRemove(onBeforeRemove);
+
     const onApproveTransaction = () => {
+        addBreadcrumb('Approve tapped', {transactionID});
+        allowNavigatingAwayRef.current = true;
         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {
             transactionID,
         });
     };
 
     const onDenyTransaction = () => {
+        addBreadcrumb('Deny tapped', {transactionID});
         setIsDenyingTransaction(true);
-        denyTransaction({transactionID}).then(({reason}) => {
-            if (reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.TRANSACTION_DENIED) {
+        denyTransaction({transactionID}).then(({reason, httpStatusCode, message}) => {
+            addBreadcrumb('Deny completed', {transactionID, reason, httpStatusCode, message});
+            if (reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.FLOW_OUTCOMES.TRANSACTION_DENIED) {
                 setDenyOutcomeScreen(<DeniedTransactionSuccessScreen />);
                 return;
             }
-            setDenyOutcomeScreen(authorizeTransactionConfig.failureScreens[reason] ?? <DeniedTransactionServerFailureScreen />);
+            const failureScreen = reason ? authorizeTransactionConfig.failureScreens[reason] : undefined;
+            setDenyOutcomeScreen(failureScreen ?? <DeniedTransactionServerFailureScreen />);
         });
     };
 
     const onSilentlyDenyTransaction = () => {
+        addBreadcrumb('Silent deny (user canceled flow)', {transactionID}, 'warning');
         fireAndForgetDenyTransaction({transactionID});
+        setConfirmModalVisibility(false);
+        allowNavigatingAwayRef.current = true;
         Navigation.closeRHPFlow();
     };
+
+    // Automatically navigate away if transaction becomes nullish and we didn't deny it here
+    // User must have actioned it on a different device.
+    useEffect(() => {
+        if (transaction || isDenyingTransaction || denyOutcomeScreen) {
+            return;
+        }
+        addBreadcrumb('Transaction disappeared (actioned on another device)', {transactionID}, 'info');
+        Navigation.closeRHPFlow();
+    }, [denyOutcomeScreen, transaction, isDenyingTransaction, transactionID]);
 
     if (denyOutcomeScreen) {
         return <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>{denyOutcomeScreen}</ScreenWrapper>;
     }
 
+    // This will briefly be true after the transaction deny call has succeeded and Onyx has removed the transaction
+    // from state, but denyTransaction has not yet resolved. If we reach this case and isDenyingTransaction isn't
+    // true, then something unexpected has happened (we should've navigated away due to the useEffect above)
     if (!transaction) {
-        // isDenyingTransaction is handled here because:
-        // When the transaction denial succeeds, the transaction gets removed from the queue slightly sooner than denyTransaction resolves.
-        // We handle this case specially here so that the user does not see a momentary flash of the AlreadyReviewedFailureScreen
+        if (!isDenyingTransaction) {
+            addBreadcrumb('Transaction unavailable', {transactionID}, 'warning');
+        }
         return (
             <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>
-                {isDenyingTransaction ? <DeniedTransactionSuccessScreen /> : <AlreadyReviewedFailureScreen />}
+                <HeaderWithBackButton
+                    title={translate('multifactorAuthentication.reviewTransaction.reviewTransaction')}
+                    onBackButtonPress={() => {
+                        Navigation.closeRHPFlow();
+                    }}
+                    shouldShowBackButton
+                />
+                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
+                    <FullScreenLoadingIndicator reasonAttributes={{context: 'MultifactorAuthenticationScenarioAuthorizeTransactionPage'}} />
+                </View>
             </ScreenWrapper>
         );
     }

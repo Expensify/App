@@ -11,6 +11,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import {useSearchRouterActions} from './SearchRouterContext';
+import startSearchPageVisibleSpan from './startSearchPageVisibleSpan';
 
 type SearchButtonProps = {
     style?: StyleProp<ViewStyle>;
@@ -32,7 +33,12 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
             startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
                 name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
                 op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_TRIGGER]: 'button',
+                },
             });
+
+            startSearchPageVisibleSpan();
 
             openSearchRouter();
         })();

@@ -165,6 +165,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Style for the icon container */
         iconContainerStyle?: StyleProp<ViewStyle>;
 
+        /** Style for the clear button */
+        clearButtonStyle?: StyleProp<ViewStyle>;
+
         /** The width of inner content */
         contentWidth?: number;
 
@@ -198,6 +201,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Whether the input prefix should use the default `Text` line height fallback. Disable this if you intentionally want the prefix to have `lineHeight: undefined` */
         shouldUseDefaultLineHeightForPrefix?: boolean;
 
+        /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
+        rightHandSideComponent?: React.ReactNode;
+
         /** Reference to the outer element */
         ref?: ForwardedRef<BaseTextInputRef>;
 
@@ -205,6 +211,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         navigation?: Omit<NavigationProp<ReactNavigation.RootParamList>, 'getState'> & {
             getState(): NavigationState | undefined;
         };
+
+        /** Whether the input should be allowed to be focused in landscape mode */
+        shouldAllowFocusInLandscapeMode?: boolean;
     };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 
 type ListBoundaryLoaderProps = {
@@ -99,9 +100,13 @@ function ListBoundaryLoader({
     if (type === CONST.LIST_COMPONENTS.HEADER && isLoadingNewerReportActions) {
         // applied for a header of the list, i.e. when you scroll to the bottom of the list
         // the styles for android and the rest components are different that's why we use two different components
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'ListBoundaryLoader.header',
+            isLoadingNewerReportActions,
+        };
         return (
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.listBoundaryLoader]}>
-                <ActivityIndicator />
+                <ActivityIndicator reasonAttributes={reasonAttributes} />
             </View>
         );
     }

@@ -1,8 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Circle, Rect} from 'react-native-svg';
+import {Circle} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
+import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -25,7 +26,7 @@ type AccountSwitcherSkeletonViewProps = {
     style?: StyleProp<ViewStyle>;
 
     /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.AVATAR_SIZE.DEFAULT, width, style, reasonAttributes}: AccountSwitcherSkeletonViewProps) {
@@ -52,12 +53,12 @@ function AccountSwitcherSkeletonView({shouldAnimate = true, avatarSize = CONST.A
                     cy={avatarPlaceholderRadius}
                     r={avatarPlaceholderRadius}
                 />
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: rectXTranslation}, {translateY: 6}]}
                     width="45%"
                     height="8"
                 />
-                <Rect
+                <SkeletonRect
                     transform={[{translateX: rectXTranslation}, {translateY: 26}]}
                     width="55%"
                     height="8"

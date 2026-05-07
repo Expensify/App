@@ -7,7 +7,7 @@ import type {Transaction} from '@src/types/onyx';
 import EReceipt from './EReceipt';
 import type {OverrideThemeProps} from './EReceipt';
 import PerDiemEReceipt from './PerDiemEReceipt';
-import type {TransactionListItemType} from './SelectionListWithSections/types';
+import type {TransactionListItemType} from './Search/SearchList/ListItem/types';
 
 type EReceiptWithSizeCalculationProps = {
     /* TransactionID of the transaction this EReceipt corresponds to */

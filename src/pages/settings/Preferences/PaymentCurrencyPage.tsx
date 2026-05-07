@@ -48,7 +48,7 @@ function PaymentCurrencyPage() {
                         searchInputLabel={translate('common.search')}
                         onSelect={(option: CurrencyListItem) => {
                             if (option.currencyCode !== paymentCurrency) {
-                                updateGeneralSettings(personalPolicyID, personalPolicy?.name ?? '', option.currencyCode);
+                                updateGeneralSettings(personalPolicy, personalPolicy?.name ?? '', option.currencyCode);
                             }
                             handleDismissKeyboardAndGoBack();
                         }}

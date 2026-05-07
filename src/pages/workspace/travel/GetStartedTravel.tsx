@@ -16,7 +16,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['PendingTravel'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PendingTravel']);
 
     return (
         <FeatureList
@@ -35,6 +35,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     activePolicyID={policyID}
                     shouldShowVerifyAccountModal={false}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.GET_STARTED_BUTTON}
+                    large
                 />
             }
         />

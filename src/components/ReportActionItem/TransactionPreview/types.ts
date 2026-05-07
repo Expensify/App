@@ -47,11 +47,6 @@ type TransactionPreviewProps = {
     /** True if the IOU Preview card is hovered */
     isHovered?: boolean;
 
-    /** Whether or not an IOU report contains expenses in a different currency
-     * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
-     */
-    shouldShowPendingConversionMessage?: boolean;
-
     /** Whether a message is a whisper */
     isWhisper?: boolean;
 
@@ -72,6 +67,9 @@ type TransactionPreviewProps = {
 
     /** Whether the item should be highlighted */
     shouldHighlight?: boolean;
+
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID?: string;
 };
 
 type TransactionPreviewContentProps = {

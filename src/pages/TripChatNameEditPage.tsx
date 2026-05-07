@@ -7,11 +7,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
-import {getReportName} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import StringUtils from '@libs/StringUtils';
 import {updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -28,12 +29,12 @@ type TripChatNameEditPageProps = Partial<PlatformStackScreenProps<NewChatNavigat
 
 function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const styles = useThemeStyles();
+    const reportAttributes = useReportAttributes();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
     const reportID = report?.reportID;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const currentChatName = getReportName({report});
+    const currentChatName = getReportName(report, reportAttributes);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
         const errors: Errors = {};

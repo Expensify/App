@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,10 +19,11 @@ function AmexCustomFeed() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [typeSelected, setTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
+    const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
+    const typeSelected = localTypeSelected ?? addNewCard?.data.selectedAmexCustomFeed;
     const [hasError, setHasError] = useState(false);
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!typeSelected) {
             setHasError(true);
             return;
@@ -34,14 +35,6 @@ function AmexCustomFeed() {
                 selectedAmexCustomFeed: typeSelected,
             },
         });
-    }, [typeSelected]);
-
-    useEffect(() => {
-        setTypeSelected(addNewCard?.data.selectedAmexCustomFeed);
-    }, [addNewCard?.data.selectedAmexCustomFeed]);
-
-    const handleBackButtonPress = () => {
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
     };
 
     const data = [
@@ -68,14 +61,11 @@ function AmexCustomFeed() {
         },
     ];
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.next'),
-            onConfirm: submit,
-        }),
-        [submit, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: submit,
+    };
 
     return (
         <ScreenWrapper
@@ -86,7 +76,9 @@ function AmexCustomFeed() {
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.addCards')}
-                onBackButtonPress={handleBackButtonPress}
+                onBackButtonPress={() => {
+                    setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+                }}
             />
 
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.howDoYouWantToConnect')}</Text>
@@ -96,9 +88,9 @@ function AmexCustomFeed() {
 
             <SelectionList
                 data={data}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
-                    setTypeSelected(value);
+                    setLocalTypeSelected(value);
                     setHasError(false);
                 }}
                 confirmButtonOptions={confirmButtonOptions}
