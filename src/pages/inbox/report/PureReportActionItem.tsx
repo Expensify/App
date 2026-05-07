@@ -13,6 +13,8 @@ import InlineSystemMessage from '@components/InlineSystemMessage';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
+import RenderHTML from '@components/RenderHTML';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import {SearchStateContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
@@ -45,14 +47,23 @@ import {
     getReportActionMessage,
     getReportActionText,
     getWhisperedTo,
+    isActionEmpty,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
+    isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
     isTripPreview,
     isWhisperActionTargetedToOthers,
+    useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
-import {canWriteInReport, isCompletedTaskReport, isHarvestCreatedExpenseReport as isHarvestCreatedExpenseReportUtils, isTaskReport} from '@libs/ReportUtils';
+import {
+    canWriteInReport,
+    isCompletedTaskReport,
+    isHarvestCreatedExpenseReport as isHarvestCreatedExpenseReportUtils,
+    isTaskReport,
+    shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
+} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
@@ -64,13 +75,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
+import LinkPreviewer from './LinkPreviewer';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
+import ReportActionItemFrame from './ReportActionItemFrame';
+import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
 import WhisperBanner from './WhisperBanner';
@@ -270,6 +284,7 @@ function PureReportActionItem({
     const isReportArchived = useReportIsArchived(reportID);
 
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
+    const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
@@ -583,6 +598,10 @@ function PureReportActionItem({
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     const isWhisper = whisperedTo.length > 0 && transactionsWithReceipts.length === 0;
 
+    const isEmpty = isActionEmpty(action, report);
+    const hasDraft = draftMessage !== undefined;
+    const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
+
     // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
     const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
     const formattedTimestamp = datetimeToCalendarTime(action.created, false);
@@ -679,48 +698,84 @@ function PureReportActionItem({
                                         onPress={onPress}
                                     >
                                         {isWhisper && <WhisperBanner whisperedTo={whisperedTo} />}
-                                        <ActionContentRouter
-                                            action={action}
-                                            report={report}
-                                            originalReport={originalReport}
-                                            originalReportID={originalReportID}
-                                            iouReport={iouReport}
-                                            reportID={reportID}
-                                            displayAsGroup={displayAsGroup}
-                                            draftMessage={draftMessage}
-                                            isWhisper={isWhisper}
-                                            hovered={!!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive}
-                                            hasErrors={hasErrors}
-                                            isActive={isReportActionActive && !isContextMenuActive}
-                                            isHidden={isHidden}
-                                            moderationDecision={moderationDecision}
-                                            updateHiddenState={updateHiddenState}
-                                            isArchivedRoom={isArchivedRoom}
-                                            isReportArchived={isReportArchived}
-                                            isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
-                                            isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
-                                            reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
-                                            personalDetails={personalDetails}
-                                            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                                            shouldShowBorder={shouldShowBorder}
-                                            isThreadReportParentAction={isThreadReportParentAction}
-                                            isOnSearch={isOnSearch}
-                                            shouldDisplayContextMenuValue={shouldDisplayContextMenuValue}
-                                            userBillingFundID={userBillingFundID}
-                                            index={index}
-                                            contextMenuAnchorRef={popoverAnchorRef}
-                                            composerTextInputRef={composerTextInputRef}
-                                            contextMenuStateValue={contextMenuStateValue}
-                                            contextMenuActionsValue={contextMenuActionsValue}
-                                            setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
-                                            setIsEmojiPickerActive={setIsEmojiPickerActive}
-                                            toggleContextMenuFromActiveReportAction={toggleContextMenuFromActiveReportAction}
-                                            handleShowContextMenu={handleShowContextMenu}
-                                            showPopover={showPopover}
-                                            resolveActionableMentionWhisper={resolveActionableMentionWhisper}
-                                            resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
-                                            currentSearchHash={currentSearchHash}
-                                        />
+                                        {isEmpty || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses) ? (
+                                            <RenderHTML html="" />
+                                        ) : (
+                                            <ReportActionItemFrame
+                                                action={action}
+                                                report={report}
+                                                iouReport={iouReport}
+                                                displayAsGroup={displayAsGroup}
+                                                draftMessage={draftMessage}
+                                                isWhisper={isWhisper}
+                                                isOnSearch={isOnSearch}
+                                                hovered={!!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive}
+                                                isActive={isReportActionActive && !isContextMenuActive}
+                                                moderationDecision={moderationDecision}
+                                            >
+                                                <ActionContentRouter
+                                                    action={action}
+                                                    report={report}
+                                                    originalReport={originalReport}
+                                                    originalReportID={originalReportID}
+                                                    iouReport={iouReport}
+                                                    reportID={reportID}
+                                                    displayAsGroup={displayAsGroup}
+                                                    draftMessage={draftMessage}
+                                                    isWhisper={isWhisper}
+                                                    hovered={!!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive}
+                                                    isHidden={isHidden}
+                                                    moderationDecision={moderationDecision}
+                                                    updateHiddenState={updateHiddenState}
+                                                    isArchivedRoom={isArchivedRoom}
+                                                    isReportArchived={isReportArchived}
+                                                    isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
+                                                    isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
+                                                    reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+                                                    personalDetails={personalDetails}
+                                                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                                                    shouldShowBorder={shouldShowBorder}
+                                                    isOnSearch={isOnSearch}
+                                                    shouldDisplayContextMenuValue={shouldDisplayContextMenuValue}
+                                                    userBillingFundID={userBillingFundID}
+                                                    index={index}
+                                                    contextMenuAnchorRef={popoverAnchorRef}
+                                                    composerTextInputRef={composerTextInputRef}
+                                                    contextMenuStateValue={contextMenuStateValue}
+                                                    contextMenuActionsValue={contextMenuActionsValue}
+                                                    setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
+                                                    toggleContextMenuFromActiveReportAction={toggleContextMenuFromActiveReportAction}
+                                                    handleShowContextMenu={handleShowContextMenu}
+                                                    resolveActionableMentionWhisper={resolveActionableMentionWhisper}
+                                                    resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
+                                                    currentSearchHash={currentSearchHash}
+                                                />
+                                                {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
+                                                    <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>
+                                                        <LinkPreviewer linkMetadata={action.linkMetadata?.filter((item) => !isEmptyObject(item))} />
+                                                    </View>
+                                                )}
+                                                {!isOnSearch && !isMessageDeleted(action) && (
+                                                    <ReportActionItemEmojiReactions
+                                                        reportAction={action}
+                                                        reportID={reportID}
+                                                        shouldBlockReactions={hasErrors}
+                                                        setIsEmojiPickerActive={setIsEmojiPickerActive}
+                                                        hasDraft={hasDraft}
+                                                    />
+                                                )}
+                                                {shouldDisplayThreadReplies && (
+                                                    <ReportActionItemThread
+                                                        reportAction={action}
+                                                        report={report}
+                                                        isHovered={!!hovered || !!isReportActionLinked || isContextMenuActive || !!isEmojiPickerActive}
+                                                        onSecondaryInteraction={showPopover}
+                                                        isActive={isReportActionActive && !isContextMenuActive}
+                                                        hasDraft={hasDraft}
+                                                    />
+                                                )}
+                                            </ReportActionItemFrame>
+                                        )}
                                     </SearchActionHeader>
                                 </OfflineWithFeedback>
                             </View>
