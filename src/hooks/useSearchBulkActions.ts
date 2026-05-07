@@ -334,7 +334,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         });
     }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);
 
-    const selectedCurrencies = selectedReports.length > 0 ? selectedReports.map((report) => report.currency) : Object.values(selectedTransactions).map((transaction) => transaction.currency);
+    const selectedCurrencies = [...selectedReports.map((report) => report.currency), ...Object.values(selectedTransactions).map((transaction) => transaction.currency)].filter(Boolean);
     const hasMixedCurrencies = new Set(selectedCurrencies).size > 1;
 
     const {bulkPayButtonOptions, businessBankAccountOptions, shouldShowBusinessBankAccountOptions} = useBulkPayOptions({
@@ -1234,7 +1234,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
 
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption;
+        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
 
         if (shouldShowPayOption) {
             const shouldShowPaySubmenu = !!bulkPayButtonOptions?.length;
