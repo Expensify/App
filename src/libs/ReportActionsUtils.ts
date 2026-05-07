@@ -3965,20 +3965,16 @@ function getSpendRuleRestrictionVerb(translate: LocalizedTranslate, action: stri
     return action;
 }
 
-function spendRuleAmountToCents(value: unknown): number {
-    const valueArray: unknown[] = Array.isArray(value) ? (value as unknown[]) : [];
-    const firstValue = valueArray.at(0);
-    if (typeof firstValue === 'string' && firstValue !== '' && Number.isFinite(Number(firstValue))) {
-        return Number.parseInt(firstValue, 10);
+function spendRuleAmountToCents(value: string[]): number {
+    const firstValue = value.at(0) ?? '';
+    if (firstValue === '' || !Number.isFinite(Number(firstValue))) {
+        return 0;
     }
-    if (typeof firstValue === 'number' && Number.isFinite(firstValue)) {
-        return firstValue;
-    }
-    return 0;
+    return Number.parseInt(firstValue, 10) * 100;
 }
 
-function spendRuleFormatAmountValue(amount: {value?: unknown}, currency: string): string {
-    return convertToShortDisplayString(spendRuleAmountToCents(amount?.value), currency);
+function spendRuleFormatAmountValue(amount: {value: string[]}, currency: string): string {
+    return convertAmountToDisplayString(spendRuleAmountToCents(amount.value), currency);
 }
 
 type SpendRuleStringDiff = {added: string[]; removed: string[]};
@@ -3991,13 +3987,16 @@ function computeSpendRuleStringDiff(oldValues: string[], newValues: string[]): S
     return {added, removed};
 }
 
-type SpendRuleAmount = {operator?: unknown; value?: unknown};
+type SpendRuleAmount = {operator: string; value: string[]};
 type SpendRuleAmountDiff = {added: SpendRuleAmount[]; removed: SpendRuleAmount[]};
 
 function computeSpendRuleAmountDiff(oldAmounts: SpendRuleAmount[], newAmounts: SpendRuleAmount[]): SpendRuleAmountDiff {
     const oldAmount = oldAmounts.at(0);
     const newAmount = newAmounts.at(0);
-    const sameAmount = oldAmount?.operator === newAmount?.operator && spendRuleAmountToCents(oldAmount?.value) === spendRuleAmountToCents(newAmount?.value);
+    if (!oldAmount || !newAmount) {
+        return {added: [], removed: []};
+    }
+    const sameAmount = oldAmount.operator === newAmount.operator && spendRuleAmountToCents(oldAmount.value) === spendRuleAmountToCents(newAmount.value);
     if (sameAmount) {
         return {added: [], removed: []};
     }
