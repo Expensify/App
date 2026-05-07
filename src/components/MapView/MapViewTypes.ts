@@ -20,7 +20,7 @@ type MapViewProps = {
     // Locations on which to put markers
     waypoints?: WayPoint[];
     // List of coordinates which together forms a direction.
-    directionCoordinates?: Coordinate[];
+    directionCoordinates?: Coordinate[] | Coordinate[][];
     // Callback to call when the map is idle / ready.
     onMapReady?: () => void;
     // Whether the map is interactive or not
@@ -38,7 +38,7 @@ type MapViewProps = {
 
 type DirectionProps = {
     // Coordinates of points that constitute the direction
-    coordinates: Coordinate[];
+    coordinates: Coordinate[] | Coordinate[][];
 
     // ID of the layer to place the line layer below
     belowLayerID?: string;

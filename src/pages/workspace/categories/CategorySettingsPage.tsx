@@ -450,6 +450,7 @@ function CategorySettingsPage({
                                         Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
                                     }}
                                     shouldShowRightIcon
+                                    shouldRenderAsHTML
                                 />
                             </OfflineWithFeedback>
                         </>

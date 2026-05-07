@@ -98,7 +98,7 @@ Approval workflows help automate expense report reviews.
 
 ## Enable Approvals
 1. In the left-hand menu, select **Workflows**.
-2. Toggle **Add Approvals** on.
+2. Toggle **Approvals** on.
 
 ## Configure a Default Workflow
 1. In the left-hand menu, select **Workflows**.

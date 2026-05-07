@@ -73,6 +73,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether this is the last item in the list */
     isLastItem?: boolean;
+
+    /** Whether the list is horizontally scrollable */
+    shouldScrollHorizontally?: boolean;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -93,6 +96,7 @@ function MoneyRequestReportTransactionItem({
     shouldBeHighlighted,
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
+    shouldScrollHorizontally = false,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -164,7 +168,7 @@ function MoneyRequestReportTransactionItem({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         shouldShowTooltip
-                        shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
+                        shouldUseNarrowLayout={shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally)}
                         shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                         onCheckboxPress={toggleTransaction}
                         columns={columns}

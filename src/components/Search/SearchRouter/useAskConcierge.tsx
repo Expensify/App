@@ -4,13 +4,14 @@ import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import useSidePanelReportID from '@hooks/useSidePanelReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {addComment, setConciergeThinkingKickoff} from '@userActions/Report';
+import {addComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
  * Returns a callback that opens the side panel (or Concierge chat on native)
  * and sends the provided search query as a message.
+ * Also returns a flag indicating whether the Ask Concierge item is ready to be displayed.
  */
 function useAskConcierge() {
     const sidePanelReportID = useSidePanelReportID();
@@ -20,18 +21,19 @@ function useAskConcierge() {
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetReportID)}`);
     const {timezone, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
-    return (searchQuery: string) => {
-        openConciergeAnywhere();
-        if (!targetReport || !targetReportID) {
+    const askConcierge = (searchQuery: string) => {
+        const trimmedQuery = searchQuery.trim();
+        if (!trimmedQuery || !shouldShowAskConcierge) {
             return;
         }
-        setConciergeThinkingKickoff();
+        openConciergeAnywhere();
         addComment({
             report: targetReport,
             notifyReportID: targetReportID,
             ancestors: [],
-            text: searchQuery,
+            text: trimmedQuery,
             timezoneParam: timezone ?? CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID,
             shouldPlaySound: true,
@@ -39,6 +41,8 @@ function useAskConcierge() {
             delegateAccountID,
         });
     };
+
+    return {askConcierge, shouldShowAskConcierge};
 }
 
 export default useAskConcierge;
