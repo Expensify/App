@@ -8,6 +8,7 @@ import {
     setupMergeTransactionData,
     setupMergeTransactionDataAndNavigate,
 } from '@libs/actions/MergeTransaction';
+import type {TargetTransactionThreadReportCandidate} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
