@@ -5617,7 +5617,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const draftReports = {
-                '19': draftReport,
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT}19`]: draftReport,
             };
 
             const participant: Participant = {
