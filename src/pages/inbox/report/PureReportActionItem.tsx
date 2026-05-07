@@ -2,7 +2,7 @@
 import {useNavigation} from '@react-navigation/native';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
-import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, use, useContext, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -288,10 +288,7 @@ function PureReportActionItem({
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
-    const highlightedBackgroundColorIfNeeded = useMemo(
-        () => (isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
-        [StyleUtils, isReportActionLinked, theme.messageHighlightBG, shouldHighlight],
-    );
+    const highlightedBackgroundColorIfNeeded = isReportActionLinked || shouldHighlight ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {};
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
     const hasDraft = draftMessage !== undefined;
@@ -299,18 +296,15 @@ function PureReportActionItem({
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
 
-    const updateHiddenState = useCallback(
-        (isHiddenValue: boolean) => {
-            setIsHidden(isHiddenValue);
-            const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
-            const isAttachment = (message?.html ?? '').search(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX) !== -1 || isReportMessageAttachment(message);
-            if (!isAttachment) {
-                return;
-            }
-            updateHiddenAttachments(action.reportActionID, isHiddenValue);
-        },
-        [action.reportActionID, action.message, updateHiddenAttachments],
-    );
+    const updateHiddenState = (isHiddenValue: boolean) => {
+        setIsHidden(isHiddenValue);
+        const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
+        const isAttachment = (message?.html ?? '').search(CONST.REGEX.ATTACHMENT.ATTACHMENT_REGEX) !== -1 || isReportMessageAttachment(message);
+        if (!isAttachment) {
+            return;
+        }
+        updateHiddenAttachments(action.reportActionID, isHiddenValue);
+    };
 
     const isOnSearch = useIsOnSearch();
     let currentSearchHash: number | undefined;
@@ -320,7 +314,7 @@ function PureReportActionItem({
     }
 
     const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const dismissError = useCallback(() => {
+    const dismissError = () => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (isSendingMoney && transactionID && reportID) {
             cleanUpMoneyRequest(transactionID, action, reportID, report, chatReport, undefined, originalReportID, true);
@@ -333,9 +327,9 @@ function PureReportActionItem({
             clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID);
-    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, originalReportID, isReportActionLinked, report, chatReport, clearError, navigation]);
+    };
 
-    const showDismissReceiptErrorModal = useCallback(async () => {
+    const showDismissReceiptErrorModal = async () => {
         const result = await showConfirmModal({
             title: translate('iou.dismissReceiptError'),
             prompt: translate('iou.dismissReceiptErrorConfirmation'),
@@ -347,9 +341,9 @@ function PureReportActionItem({
         if (result.action === ModalActions.CONFIRM) {
             dismissError();
         }
-    }, [showConfirmModal, translate, dismissError]);
+    };
 
-    const onClose = useCallback(() => {
+    const onClose = () => {
         const errors = linkedTransactionRouteError ?? getLatestErrorMessageField(action as OnyxDataWithErrors);
         const errorEntries = Object.entries(errors ?? {});
         const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
@@ -360,7 +354,7 @@ function PureReportActionItem({
         } else {
             dismissError();
         }
-    }, [linkedTransactionRouteError, action, showDismissReceiptErrorModal, dismissError]);
+    };
 
     useEffect(
         () => () => {
@@ -441,111 +435,86 @@ function PureReportActionItem({
         setIsHidden(false);
     }, [latestDecision, action]);
 
-    const toggleContextMenuFromActiveReportAction = useCallback(() => {
+    const toggleContextMenuFromActiveReportAction = () => {
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
-    }, [action.reportActionID]);
+    };
 
-    const handleShowContextMenu = useCallback(
-        (callback: () => void) => {
-            if (!(popoverAnchorRef.current && 'measureInWindow' in popoverAnchorRef.current)) {
-                return;
-            }
+    const handleShowContextMenu = (callback: () => void) => {
+        if (!(popoverAnchorRef.current && 'measureInWindow' in popoverAnchorRef.current)) {
+            return;
+        }
 
-            popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
-                transitionActionSheetState({
-                    type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
-                    payload: {
-                        popoverHeight: 0,
-                        frameY,
-                        height,
-                    },
-                });
-
-                callback();
+        popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
+            transitionActionSheetState({
+                type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
+                payload: {
+                    popoverHeight: 0,
+                    frameY,
+                    height,
+                },
             });
-        },
-        [transitionActionSheetState],
-    );
 
-    const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
+            callback();
+        });
+    };
+
+    const disabledActions = !canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : [];
 
     /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param [event] - A press event.
      */
-    const showPopover = useCallback(
-        (event: GestureResponderEvent | MouseEvent) => {
-            // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenuValue) {
-                return;
-            }
+    const showPopover = (event: GestureResponderEvent | MouseEvent) => {
+        // Block menu on the message being Edited or if the report action item has errors
+        if (hasDraft || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenuValue) {
+            return;
+        }
 
-            handleShowContextMenu(() => {
-                setIsContextMenuActive(true);
-                const selection = SelectionScraper.getCurrentSelection();
-                showContextMenu({
-                    type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                    event,
-                    selection,
-                    contextMenuAnchor: popoverAnchorRef.current,
-                    report: {
-                        reportID,
-                        originalReportID,
-                        isArchivedRoom,
-                        isChronos: isChronosReport,
-                    },
-                    reportAction: {
-                        reportActionID: action.reportActionID,
-                        draftMessage,
-                        isThreadReportParentAction,
-                    },
-                    callbacks: {
-                        onShow: toggleContextMenuFromActiveReportAction,
-                        onHide: toggleContextMenuFromActiveReportAction,
-                        setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
-                    },
-                    disabledOptions: disabledActions,
-                });
+        handleShowContextMenu(() => {
+            setIsContextMenuActive(true);
+            const selection = SelectionScraper.getCurrentSelection();
+            showContextMenu({
+                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                event,
+                selection,
+                contextMenuAnchor: popoverAnchorRef.current,
+                report: {
+                    reportID,
+                    originalReportID,
+                    isArchivedRoom,
+                    isChronos: isChronosReport,
+                },
+                reportAction: {
+                    reportActionID: action.reportActionID,
+                    draftMessage,
+                    isThreadReportParentAction,
+                },
+                callbacks: {
+                    onShow: toggleContextMenuFromActiveReportAction,
+                    onHide: toggleContextMenuFromActiveReportAction,
+                    setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
+                },
+                disabledOptions: disabledActions,
             });
-        },
-        [
-            draftMessage,
-            action.errors,
-            action.reportActionID,
-            reportID,
-            toggleContextMenuFromActiveReportAction,
-            originalReportID,
-            shouldDisplayContextMenuValue,
-            disabledActions,
-            isArchivedRoom,
-            isChronosReport,
-            handleShowContextMenu,
-            isThreadReportParentAction,
-        ],
-    );
+        });
+    };
 
-    const contextMenuStateValue = useMemo(
-        () => ({
-            anchor: popoverAnchorRef,
-            report,
-            isReportArchived,
-            action,
-            transactionThreadReport,
-            isDisabled: false,
-            shouldDisplayContextMenu: shouldDisplayContextMenuValue,
-            originalReportID,
-        }),
-        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived, originalReportID],
-    );
+    const contextMenuStateValue = {
+        anchor: popoverAnchorRef,
+        report,
+        isReportArchived,
+        action,
+        transactionThreadReport,
+        isDisabled: false,
+        shouldDisplayContextMenu: shouldDisplayContextMenuValue,
+        originalReportID,
+    };
 
-    const contextMenuActionsValue = useMemo(
-        () => ({
-            checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
-            onShowContextMenu: handleShowContextMenu,
-        }),
-        [toggleContextMenuFromActiveReportAction, handleShowContextMenu],
-    );
+    const contextMenuActionsValue = {
+        checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+        onShowContextMenu: handleShowContextMenu,
+    };
 
     const createdTransactionID = isMoneyRequestAction(parentReportActionForTransactionThread) ? getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : undefined;
 
