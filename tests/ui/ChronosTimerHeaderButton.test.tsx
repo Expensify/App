@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention -- Mock module paths use non-standard naming conventions required by jest.mock */
 import {PortalProvider} from '@gorhom/portal';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';
@@ -9,6 +8,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -48,6 +48,12 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 jest.mock('@hooks/useIsInSidePanel', () => ({
     __esModule: true,
     default: () => false,
+}));
+
+const mockUseNetwork = jest.fn(() => ({isOffline: false}));
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => mockUseNetwork(),
 }));
 
 jest.mock('@hooks/useReportIsArchived', () => ({
@@ -128,6 +134,7 @@ describe('ChronosTimerHeaderButton', () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
         jest.clearAllMocks();
+        mockUseNetwork.mockReturnValue({isOffline: false});
     });
 
     it('should send a start timer command when the main button is pressed', async () => {
@@ -164,6 +171,113 @@ describe('ChronosTimerHeaderButton', () => {
         await waitForBatchedUpdates();
 
         // Then addComment is called with the start timer command
+        expect(mockAddComment).toHaveBeenCalledTimes(1);
+        expect(mockAddComment).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: mockReport,
+                text: CONST.CHRONOS.TIMER_COMMAND.START,
+            }),
+        );
+    });
+
+    it('should disable the button while the OpenReport API is in progress', async () => {
+        // Given the OpenReport API is in flight for this report (RAM-only loading state set)
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${TEST_REPORT_ID}`, {
+            isLoadingInitialReportActions: true,
+        });
+
+        // When ChronosTimerHeaderButton is rendered
+        renderComponent();
+        await waitForBatchedUpdates();
+
+        // Then every rendered button reports a disabled accessibility state
+        const buttons = screen.getAllByRole('button');
+        expect(buttons.length).toBeGreaterThan(0);
+        for (const btn of buttons) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- React test instance `.props` is typed as `unknown`; we read the rendered accessibilityState directly here
+            expect(btn.props.accessibilityState?.disabled).toBe(true);
+        }
+
+        // And pressing the main "Start Timer" button does not trigger addComment
+        fireEvent.press(screen.getByText('Start Timer'));
+        await waitForBatchedUpdates();
+        expect(mockAddComment).not.toHaveBeenCalled();
+    });
+
+    it('should not send a start timer command from an already-open dropdown when OpenReport flips to in-progress', async () => {
+        // Given the report is already loaded and the dropdown menu is open with the Start Timer option visible
+        renderComponent();
+        await waitForBatchedUpdates();
+        fireEvent.press(getDropdownArrowButton());
+        await waitForBatchedUpdates();
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Start Timer')).toBeOnTheScreen();
+        });
+
+        // When a background OpenReport for the same report kicks off (e.g. from a remount of the report list)
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${TEST_REPORT_ID}`, {
+            isLoadingInitialReportActions: true,
+        });
+        await waitForBatchedUpdates();
+
+        // And the user selects the (already-visible) Start Timer item from the popover
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Start Timer'));
+        await waitForBatchedUpdates();
+
+        // Then addComment is not called because the option is gated by the in-flight OpenReport
+        expect(mockAddComment).not.toHaveBeenCalled();
+    });
+
+    it('should not navigate to Schedule OOO from an already-open dropdown when OpenReport flips to in-progress', async () => {
+        // Given the report is already loaded and the dropdown menu is open with the Schedule OOO option visible
+        renderComponent();
+        await waitForBatchedUpdates();
+        fireEvent.press(getDropdownArrowButton());
+        await waitForBatchedUpdates();
+        await waitFor(() => {
+            expect(screen.getByTestId('PopoverMenuItem-Schedule OOO')).toBeOnTheScreen();
+        });
+
+        // When a background OpenReport for the same report kicks off
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${TEST_REPORT_ID}`, {
+            isLoadingInitialReportActions: true,
+        });
+        await waitForBatchedUpdates();
+
+        // And the user selects the (already-visible) Schedule OOO item from the popover
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Schedule OOO'));
+        await waitForBatchedUpdates();
+
+        // Then Navigation.navigate is not called because the option is gated by the in-flight OpenReport
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('should keep the button enabled while offline so queued start/stop comments are sent on reconnect', async () => {
+        // Given the OpenReport API is optimistically in flight for this report
+        // (its optimisticData sets isLoadingInitialReportActions=true)
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${TEST_REPORT_ID}`, {
+            isLoadingInitialReportActions: true,
+        });
+
+        // And the app is offline (so the OpenReport request is queued and isLoadingInitialReportActions
+        // would stay true until reconnect)
+        mockUseNetwork.mockReturnValue({isOffline: true});
+
+        // When ChronosTimerHeaderButton is rendered
+        renderComponent();
+        await waitForBatchedUpdates();
+
+        // Then no rendered button is marked disabled via accessibility state
+        const buttons = screen.getAllByRole('button');
+        expect(buttons.length).toBeGreaterThan(0);
+        for (const btn of buttons) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access -- React test instance `.props` is typed as `unknown`; we read the rendered accessibilityState directly here
+            expect(btn.props.accessibilityState?.disabled).not.toBe(true);
+        }
+
+        // And pressing the main "Start Timer" button still queues the start timer command
+        fireEvent.press(screen.getByText('Start Timer'));
+        await waitForBatchedUpdates();
         expect(mockAddComment).toHaveBeenCalledTimes(1);
         expect(mockAddComment).toHaveBeenCalledWith(
             expect.objectContaining({

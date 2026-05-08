@@ -203,6 +203,11 @@ function camelToKebabCase<T extends string>(str: T) {
     return str.replaceAll(/([a-z])([A-Z])/g, '$1-$2').toLowerCase() as KebabCase<T>;
 }
 
+/** Escapes special regex characters in a string so it can be used as a literal pattern in a RegExp. */
+function escapeRegExp(str: string): string {
+    return str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -224,4 +229,5 @@ export default {
     camelToHyphenCase,
     camelToKebabCase,
     toLowerCase,
+    escapeRegExp,
 };

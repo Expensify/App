@@ -372,6 +372,7 @@ function prepareRejectMoneyRequestData(
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID: currentUserAccountIDParam,
             });
             createdIOUReportActionID = iouAction.reportActionID;
 
@@ -463,6 +464,7 @@ function prepareRejectMoneyRequestData(
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID: currentUserAccountIDParam,
             });
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
@@ -1039,14 +1041,12 @@ function rejectExpenseReport(
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
         value: isRejectToSubmitter
             ? // buildOptimisticNextStep is used in parallel
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
                   isRejectedReport: true,
               })
             : // buildOptimisticNextStep is used in parallel
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,

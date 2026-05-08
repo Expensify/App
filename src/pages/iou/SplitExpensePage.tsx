@@ -5,6 +5,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -25,11 +26,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID} from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
-import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/Split';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
@@ -38,6 +39,7 @@ import {
     initSplitExpenseItemData,
     updateSplitExpenseAmountField,
 } from '@libs/actions/IOU/SplitExpenseItems';
+import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -50,13 +52,14 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -68,13 +71,15 @@ import SplitList from './SplitList';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
 
+const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding;
+
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
 
@@ -87,8 +92,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`);
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
-    const draftTransactionReport = getReportOrDraftReport(draftTransaction?.reportID);
-    const parentTransactionReport = getReportOrDraftReport(draftTransactionReport?.parentReportID);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const draftTransactionReport = useReportOrReportDraft(draftTransaction?.reportID);
+    const parentTransactionReport = useReportOrReportDraft(draftTransactionReport?.parentReportID);
     const expenseReport = draftTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? draftTransactionReport : parentTransactionReport;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
     const [expenseReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
@@ -97,7 +103,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
@@ -269,6 +274,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isPerDiem,
             isCard,
             translate,
+            convertToDisplayString,
         });
         if (saveError) {
             setErrorMessage(saveError);
@@ -377,32 +383,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         };
     });
 
-    const listFooterContent = (
-        <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
-            <MenuItem
-                onPress={onAddSplitExpense}
-                title={translate('iou.addSplit')}
-                icon={icons.Plus}
-                style={[styles.ph4]}
-                sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
-            />
-            {isInitialSplit && (
-                <MenuItem
-                    onPress={onMakeSplitsEven}
-                    title={translate('iou.makeSplitsEven')}
-                    icon={icons.ArrowsLeftRight}
-                    style={[styles.ph4]}
-                    sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
-                />
-            )}
-        </View>
-    );
-
     const warningMessage = computeSplitWarningMessage({
         splitExpenses,
         transactionDetailsAmount,
         currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
         translate,
+        convertToDisplayString,
     });
 
     const footerContent = (
@@ -426,6 +412,30 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SAVE_BUTTON}
             />
         </View>
+    );
+
+    const listFooterContent = (
+        <>
+            <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
+                <MenuItem
+                    onPress={onAddSplitExpense}
+                    title={translate('iou.addSplit')}
+                    icon={icons.Plus}
+                    style={[styles.ph4]}
+                    sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
+                />
+                {isInitialSplit && (
+                    <MenuItem
+                        onPress={onMakeSplitsEven}
+                        title={translate('iou.makeSplitsEven')}
+                        icon={icons.ArrowsLeftRight}
+                        style={[styles.ph4]}
+                        sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
+                    />
+                )}
+            </View>
+            {isInLandscapeMode && footerContent}
+        </>
     );
 
     const splitStartDate = draftTransaction?.comment?.splitsStartDate;
@@ -474,7 +484,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
         Keyboard.dismiss();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             initDraftSplitExpenseDataForEdit(draftTransaction, item.transactionID, item.reportID ?? reportID);
             Navigation.navigate(ROUTES.SPLIT_EXPENSE_EDIT.getRoute(item.reportID ?? reportID, originalTransactionID, item.transactionID, Navigation.getActiveRoute()));
@@ -494,6 +503,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         );
     }
 
+    const collapsibleHeaderOffset = isInitialSplit ? TAB_NAVIGATOR_HEIGHT_LANDSCAPE : 0;
+
     return (
         <ScreenWrapper
             testID="SplitExpensePage"
@@ -502,11 +513,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         >
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(draftTransaction) || !isSplitAvailable}>
                 <View style={styles.flex1}>
-                    <HeaderWithBackButton
-                        title={headerTitle}
-                        subtitle={translate('iou.splitExpenseSubtitle', convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency), draftTransaction?.merchant ?? '')}
-                        onBackButtonPress={() => Navigation.goBack(backTo)}
-                    />
+                    <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={collapsibleHeaderOffset}>
+                        <HeaderWithBackButton
+                            title={headerTitle}
+                            subtitle={translate('iou.splitExpenseSubtitle', convertToDisplayString(transactionDetailsAmount, transactionDetails?.currency), draftTransaction?.merchant ?? '')}
+                            onBackButtonPress={() => Navigation.goBack(backTo)}
+                        />
+                    </CollapsibleHeaderOnKeyboard>
 
                     {isInitialSplit ? (
                         <View style={styles.flex1}>
@@ -526,7 +539,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                                     listFooterContent={listFooterContent}
                                                     mode={CONST.TAB.SPLIT.AMOUNT}
                                                 />
-                                                {footerContent}
+                                                {!isInLandscapeMode && footerContent}
                                             </View>
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
@@ -542,7 +555,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                                     listFooterContent={listFooterContent}
                                                     mode={CONST.TAB.SPLIT.PERCENTAGE}
                                                 />
-                                                {footerContent}
+                                                {!isInLandscapeMode && footerContent}
                                             </View>
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
@@ -551,15 +564,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
                                             <View style={styles.flex1}>
-                                                {headerDateContent}
+                                                {!isInLandscapeMode && headerDateContent}
                                                 <SplitList
                                                     data={options}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
+                                                    listHeaderContent={isInLandscapeMode ? headerDateContent : undefined}
                                                     listFooterContent={listFooterContent}
                                                     mode={CONST.TAB.SPLIT.DATE}
                                                 />
-                                                {footerContent}
+                                                {!isInLandscapeMode && footerContent}
                                             </View>
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
@@ -575,7 +589,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                 listFooterContent={listFooterContent}
                                 mode={CONST.TAB.SPLIT.AMOUNT}
                             />
-                            {footerContent}
+                            {!isInLandscapeMode && footerContent}
                         </View>
                     )}
                 </View>
