@@ -4927,6 +4927,37 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
+        advanceFiltersPopupContainer: {
+            maxHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+            flexDirection: 'row',
+        },
+
+        advanceFiltersFullscreenContainer: {
+            flex: 1,
+            paddingBottom: 8,
+        },
+
+        typeFiltersContainer: {
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
+            paddingVertical: 8,
+        },
+
+        typeFilterMenu: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 4,
+            gap: 12,
+        },
+
+        filterContentContainer: {
+            flex: 1,
+            paddingVertical: 8,
+            minWidth: 331,
+        },
+
         searchActionsBarContainer: {
             marginBottom: 16,
             paddingHorizontal: 20,

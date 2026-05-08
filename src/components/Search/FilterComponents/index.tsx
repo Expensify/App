@@ -5,7 +5,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {FILTER_LABEL_MAP, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
+import {FILTER_VIEW_MAP, getMultiSelectFilterOptions, getSingleSelectFilterOptions} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,7 +67,7 @@ function TextInputFilterComponents({filterKey, value, onChange}: TextInputFilter
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const label = translate(FILTER_LABEL_MAP[filterKey]);
+    const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
     return (
         <TextInput
             placeholder={label}

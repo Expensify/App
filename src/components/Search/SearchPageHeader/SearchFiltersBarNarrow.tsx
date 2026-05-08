@@ -17,7 +17,7 @@ type SearchFiltersBarNarrowProps = {
 function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
     const styles = useThemeStyles();
     const scrollRef = useRef<FlatList<SearchFilter & FilterItem>>(null);
-    const {filters, hasErrors, shouldShowFiltersBarLoading} = useSearchFiltersBar(queryJSON);
+    const {filters, ClearFiltersButton, hasErrors, shouldShowFiltersBarLoading} = useSearchFiltersBar(queryJSON);
 
     const adjustScroll = (info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
@@ -55,7 +55,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             horizontal
             keyboardShouldPersistTaps="always"
             style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, !!filters.length && styles.mb4]}
-            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
+            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5, styles.alignItemsCenter]}
             ref={scrollRef}
             showsHorizontalScrollIndicator={false}
             data={filters}
@@ -63,6 +63,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             renderItem={renderFilterItem}
             onEndReached={adjustScroll}
             onEndReachedThreshold={0.75}
+            ListFooterComponent={() => ClearFiltersButton}
         />
     );
 }

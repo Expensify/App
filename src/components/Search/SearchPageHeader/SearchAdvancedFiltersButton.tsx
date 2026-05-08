@@ -10,10 +10,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateAdvancedFilters} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import AdvancedFilters from '../FilterDropdowns/AdvancedFilters';
+import useFullscreenAdvancedFilters from '../FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
+import FilterPopupButton from '../FilterDropdowns/FilterPopupButton';
+import type {FilterPopupButtonProps, PopoverComponentProps} from '../FilterDropdowns/FilterPopupButton';
 
 type SearchAdvancedFiltersButtonProp = {
     queryJSON: SearchQueryJSON;
@@ -23,44 +24,63 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const fullscreen = useFullscreenAdvancedFilters();
+    const {isMediumScreenWidth} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
     const filterFormValues = useFilterFormValues(queryJSON);
     useSearchFilterSync(queryJSON, filterFormValues);
 
-    const openAdvancedFilters = () => {
-        updateAdvancedFilters(filterFormValues);
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    };
+    const filtersPopup = ({closeOverlay}: PopoverComponentProps) => (
+        <AdvancedFilters
+            queryJSON={queryJSON}
+            closeOverlay={closeOverlay}
+        />
+    );
 
-    if (shouldUseNarrowLayout || isMediumScreenWidth) {
-        return (
+    if (fullscreen || isMediumScreenWidth) {
+        const ButtonComponent: FilterPopupButtonProps['ButtonComponent'] = ({onPress, ref}) => (
             <PressableWithFeedback
+                ref={ref}
                 accessibilityLabel={translate('search.filtersHeader')}
                 role={CONST.ROLE.BUTTON}
-                style={[styles.searchActionsBar(shouldUseNarrowLayout)]}
+                style={[styles.searchActionsBar(fullscreen)]}
                 hoverStyle={styles.buttonHoveredBG}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-                onPress={openAdvancedFilters}
+                onPress={onPress}
             >
                 <Icon
                     src={expensifyIcons.Filter}
                     fill={theme.icon}
-                    small={shouldUseNarrowLayout}
+                    small={fullscreen}
                     extraSmall={isMediumScreenWidth}
                 />
             </PressableWithFeedback>
         );
+
+        return (
+            <FilterPopupButton
+                PopoverComponent={filtersPopup}
+                ButtonComponent={ButtonComponent}
+                smallScreenModalType={fullscreen ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT : undefined}
+            />
+        );
     }
 
     return (
-        <Button
-            small
-            accessibilityLabel={translate('search.filtersHeader')}
-            text={translate('search.filtersHeader')}
-            icon={expensifyIcons.Filter}
-            onPress={openAdvancedFilters}
-            sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
+        <FilterPopupButton
+            PopoverComponent={filtersPopup}
+            popoverWidth={CONST.ADVANCED_FILTERS_POPOVER_WIDTH}
+            ButtonComponent={({onPress, ref}) => (
+                <Button
+                    ref={ref}
+                    small
+                    accessibilityLabel={translate('search.filtersHeader')}
+                    text={translate('search.filtersHeader')}
+                    icon={expensifyIcons.Filter}
+                    onPress={onPress}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
+                />
+            )}
         />
     );
 }

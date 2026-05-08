@@ -10,7 +10,7 @@ type SearchFiltersBarWideProps = {
 };
 
 function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
-    const {filters, hasErrors, shouldShowFiltersBarLoading} = useSearchFiltersBar(queryJSON);
+    const {filters, ClearFiltersButton, hasErrors, shouldShowFiltersBarLoading} = useSearchFiltersBar(queryJSON);
 
     if (hasErrors) {
         return null;
@@ -29,12 +29,17 @@ function SearchFiltersBarWide({queryJSON}: SearchFiltersBarWideProps) {
         );
     }
 
-    return filters.map((item) => (
-        <SearchFilterBar
-            key={item.key}
-            item={item}
-        />
-    ));
+    return (
+        <>
+            {filters.map((item) => (
+                <SearchFilterBar
+                    key={item.key}
+                    item={item}
+                />
+            ))}
+            {ClearFiltersButton}
+        </>
+    );
 }
 
 SearchFiltersBarWide.displayName = 'SearchFiltersBarWide';
