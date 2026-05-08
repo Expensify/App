@@ -211,7 +211,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
                 success
                 medium={!fullscreen}
                 large={fullscreen}
-                text={translate('common.apply')}
+                text={translate('common.confirm')}
                 onPress={updateAmountFilter}
             />
         </View>

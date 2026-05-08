@@ -60,7 +60,7 @@ function TextInputFilterContent({filterKey, value: initialValue, onChange}: Text
                 success
                 medium={!fullscreen}
                 large={fullscreen}
-                text={translate('common.apply')}
+                text={translate('common.confirm')}
                 onPress={() => onChange({[filterKey]: value})}
             />
         </View>
@@ -97,7 +97,7 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
                     style={[styles.ph5, styles.pb3]}
                     success
                     large
-                    text={translate('common.apply')}
+                    text={translate('common.confirm')}
                     onPress={() => onChange({[filterKey]: value} as Partial<SearchAdvancedFiltersForm>)}
                 />
             </View>
