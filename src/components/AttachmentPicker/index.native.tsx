@@ -28,25 +28,6 @@ import AttachmentCamera from './AttachmentCamera';
 import type {CapturedPhoto} from './AttachmentCamera';
 import type AttachmentPickerProps from './types';
 
-const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
-    pdf: String(types.pdf),
-    doc: String(types.doc),
-    docx: String(types.docx),
-    zip: String(types.zip),
-    txt: String(types.plainText),
-    json: String(types.json),
-    xls: String(types.xls),
-    xlsx: String(types.xlsx),
-    jpg: String(types.images),
-    jpeg: String(types.images),
-    png: String(types.images),
-    gif: String(types.images),
-    heif: String(types.images),
-    heic: String(types.images),
-    tif: String(types.images),
-    tiff: String(types.images),
-};
-
 type LocalCopy = {
     name: string | null;
     uri: string;
@@ -150,10 +131,8 @@ function AttachmentPicker({
     shouldHideCameraOption = false,
     shouldValidateImage = true,
     shouldHideGalleryOption = false,
-    acceptedFileTypes,
     fileLimit = 1,
     onOpenPicker,
-    shouldSkipAttachmentTypeModal = false,
 }: AttachmentPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
@@ -293,25 +272,8 @@ function AttachmentPicker({
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
-        let pickerTypes: string[];
-        if (acceptedFileTypes && acceptedFileTypes.length > 0) {
-            const mappedTypes = acceptedFileTypes.reduce<string[]>((result, extension) => {
-                const nativeType = EXTENSION_TO_NATIVE_TYPE[String(extension)];
-                if (nativeType !== undefined && !result.includes(nativeType)) {
-                    result.push(nativeType);
-                }
-                return result;
-            }, []);
-            // If any extension has no native type mapping, fall back to allFiles so those
-            // file types remain selectable. Downstream validation handles the type check.
-            const hasUnmappedExtensions = acceptedFileTypes.some((ext) => EXTENSION_TO_NATIVE_TYPE[String(ext)] === undefined);
-            pickerTypes = mappedTypes.length > 0 && !hasUnmappedExtensions ? mappedTypes : [types.allFiles];
-        } else {
-            pickerTypes = [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles];
-        }
-
         const pickedFiles = await pick({
-            type: pickerTypes,
+            type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
             allowMultiSelection: fileLimit !== 1,
         });
 
@@ -339,7 +301,7 @@ function AttachmentPicker({
                 type: file.type,
             };
         });
-    }, [acceptedFileTypes, fileLimit, type]);
+    }, [fileLimit, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
@@ -394,6 +356,19 @@ function AttachmentPicker({
         },
         [showGeneralAlert, showImageCorruptionAlert, translate],
     );
+
+    /**
+     * Opens the attachment modal
+     *
+     * @param onPickedHandler A callback that will be called with the selected attachment
+     * @param onCanceledHandler A callback that will be called without a selected attachment
+     */
+    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
+        completeAttachmentSelection.current = onPickedHandler;
+        onCanceled.current = onCanceledHandler;
+        onClosed.current = onClosedHandler;
+        setIsVisible(true);
+    };
 
     /**
      * Closes the attachment modal
@@ -512,33 +487,6 @@ function AttachmentPicker({
         onClosed.current();
         delete onModalHide.current;
     }, []);
-
-    /**
-     * Opens the attachment modal, or directly launches the document picker when shouldSkipAttachmentTypeModal is true.
-     */
-    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
-        completeAttachmentSelection.current = onPickedHandler;
-        onCanceled.current = onCanceledHandler;
-        onClosed.current = onClosedHandler;
-
-        if (shouldSkipAttachmentTypeModal) {
-            onOpenPicker?.();
-            showDocumentPicker()
-                .catch((error: Error) => {
-                    if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
-                        return;
-                    }
-                    showGeneralAlert(error.message);
-                    throw error;
-                })
-                .then((result) => pickAttachment(result))
-                .catch(console.error)
-                .finally(() => onClosedHandler());
-            return;
-        }
-
-        setIsVisible(true);
-    };
 
     /**
      * Setup native attachment selection to start after this popover closes
