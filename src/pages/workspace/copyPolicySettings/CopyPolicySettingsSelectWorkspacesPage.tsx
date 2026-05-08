@@ -1,9 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Checkbox from '@components/Checkbox';
+import Avatar from '@components/Avatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -19,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,7 +44,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const currentUserEmail = currentUserPersonalDetails?.email;
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
+    const [selectedTargetIDs, setSelectedTargetIDs] = useState<string[]>([]);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const isSourceCorporate = sourcePolicy?.type === CONST.POLICY.TYPE.CORPORATE;
@@ -84,7 +84,6 @@ function CopyPolicySettingsSelectWorkspacesPage() {
     const [searchValue, setSearchValue, filteredPolicies] = useSearchResults(eligiblePolicies, filterPolicy, sortPolicies);
 
     const shouldShowSearch = eligiblePolicies.length > SEARCH_THRESHOLD;
-    const selectedTargetIDs = copyPolicySettings?.targetPolicyIDs ?? [];
 
     const listItems: ListItem[] = useMemo(
         () =>
@@ -92,30 +91,33 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                 text: policy.title,
                 keyForList: policy.id,
                 isSelected: selectedTargetIDs.includes(policy.id),
+                leftElement: (
+                    <View style={[styles.mr3]}>
+                        <Avatar
+                            source={policy.avatarURL ?? getDefaultWorkspaceAvatar(policy.title)}
+                            size={CONST.AVATAR_SIZE.DEFAULT}
+                            name={policy.title}
+                            avatarID={policy.id}
+                            type={CONST.ICON_TYPE_WORKSPACE}
+                        />
+                    </View>
+                ),
             })),
-        [filteredPolicies, selectedTargetIDs],
+        [filteredPolicies, selectedTargetIDs, styles.mr3],
     );
 
-    const toggleItem = useCallback(
-        (item: ListItem) => {
-            if (!item.keyForList) {
-                return;
-            }
-            const next = item.isSelected ? selectedTargetIDs.filter((id) => id !== item.keyForList) : [...selectedTargetIDs, item.keyForList];
-            setCopyPolicySettingsData({targetPolicyIDs: next});
-        },
-        [selectedTargetIDs],
-    );
-
-    const isSelectAllChecked = eligiblePolicies.length > 0 && selectedTargetIDs.length === eligiblePolicies.length;
-    const isIndeterminate = selectedTargetIDs.length > 0 && !isSelectAllChecked;
-
-    const toggleAll = useCallback(() => {
-        if (isSelectAllChecked) {
-            setCopyPolicySettingsData({targetPolicyIDs: []});
+    const toggleItem = useCallback((item: ListItem) => {
+        if (!item.keyForList) {
             return;
         }
-        setCopyPolicySettingsData({targetPolicyIDs: eligiblePolicies.map((policy) => policy.id)});
+        const id = item.keyForList;
+        setSelectedTargetIDs((prev) => (prev.includes(id) ? prev.filter((selectedID) => selectedID !== id) : [...prev, id]));
+    }, []);
+
+    const isSelectAllChecked = eligiblePolicies.length > 0 && selectedTargetIDs.length === eligiblePolicies.length;
+
+    const toggleAll = useCallback(() => {
+        setSelectedTargetIDs(isSelectAllChecked ? [] : eligiblePolicies.map((policy) => policy.id));
     }, [isSelectAllChecked, eligiblePolicies]);
 
     const onConfirm = useCallback(() => {
@@ -165,31 +167,13 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                     <Text style={[styles.textSupporting]}>{translate('workspace.copySettings.whichWorkspaces')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
-                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <PressableWithFeedback
-                            style={[styles.userSelectNone, styles.alignItemsCenter]}
-                            onPress={toggleAll}
-                            accessible={false}
-                            accessibilityElementsHidden
-                            importantForAccessibility="no-hide-descendants"
-                            tabIndex={-1}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_SELECT_WORKSPACES_SELECT_ALL}
-                        >
-                            <Text style={[styles.textLabelSupporting]}>{translate('workspace.copySettings.selectAll')}</Text>
-                        </PressableWithFeedback>
-                        <Checkbox
-                            accessibilityLabel={translate('workspace.copySettings.selectAll')}
-                            isChecked={isSelectAllChecked}
-                            isIndeterminate={isIndeterminate}
-                            onPress={toggleAll}
-                            disabled={eligiblePolicies.length === 0}
-                            shouldSelectOnPressEnter
-                        />
-                    </View>
                     <SelectionList
                         data={listItems}
                         ListItem={MultiSelectListItem}
+                        canSelectMultiple
                         onSelectRow={toggleItem}
+                        onSelectAll={eligiblePolicies.length > 0 ? toggleAll : undefined}
+                        selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.RIGHT}
                         shouldSingleExecuteRowSelect
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}
