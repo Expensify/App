@@ -529,7 +529,7 @@ function search({
     prevReportsLength,
     isOffline = false,
     isLoading,
-    shouldUpdateLastSearchParams = false,
+    shouldUpdateLastSearchParams = true,
     skipWaitForWrites = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
