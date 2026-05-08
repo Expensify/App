@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getArrayDepth from '@libs/getArrayDepth';
 import {getWaypointIndex} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,7 +81,8 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
         });
     }
 
-    const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
+    const hasCoordinates = getArrayDepth(coordinates) === 3 ? !!coordinates.flat().length : !!coordinates.length;
+    const shouldDisplayMap = !requireRouteToDisplayMap || hasCoordinates;
 
     return !isOffline && !!mapboxAccessToken?.token && shouldDisplayMap ? (
         <DistanceMapView

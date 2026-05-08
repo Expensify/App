@@ -2,6 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
@@ -15,8 +16,6 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -39,11 +38,8 @@ import ReportNavigateAwayHandler from './ReportNavigateAwayHandler';
 import ReportNotFoundGuard from './ReportNotFoundGuard';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import {ActionListContext} from './ReportScreenContext';
+import type ReportScreenNavigationProps from './types';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
-
-type ReportScreenNavigationProps =
-    | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
 
 type ReportScreenProps = ReportScreenNavigationProps;
 
@@ -104,8 +100,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             <LinkedActionNotFoundGuard>
                                 <ReportDragAndDropProvider>
                                     {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
-                                    <ReportHeader />
-                                    {!shouldDeferNonEssentials && <AccountManagerBanner reportID={reportIDFromRoute} />}
+                                    <CollapsibleHeaderOnKeyboard>
+                                        <ReportHeader />
+                                        {!shouldDeferNonEssentials && <AccountManagerBanner reportID={reportIDFromRoute} />}
+                                    </CollapsibleHeaderOnKeyboard>
                                     <OfflineWithFeedback
                                         pendingAction={reportPendingAction}
                                         errors={reportErrors}
