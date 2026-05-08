@@ -30,6 +30,7 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
         <PopoverMenu.Sub>
             <PopoverMenu.Sub.Trigger text="More" />
             <PopoverMenu.Sub.Content>
+                <PopoverMenu.Sub.BackButton text="Back" />
                 <PopoverMenu.Item text="Archive" onSelect={...} />
             </PopoverMenu.Sub.Content>
         </PopoverMenu.Sub>
@@ -44,7 +45,7 @@ The canonical wrappers own a `PressableWithFeedback` (or `PressableWithSecondary
 - **`<PopoverMenu.Trigger>` / `usePopoverTrigger()`** — primary trigger. The wrapper takes `{accessibilityLabel, sentryLabel?, style?, disabled?, role?, testID?, onPress?, children}` and renders a `PressableWithFeedback`; the hook returns `{ref, onPress}` for any pressable. The wrapper's optional `onPress` runs *before* the popover opens (analytics or pre-press setup). Reach for the hook when the trigger needs a non-`PressableWithFeedback` shape (e.g. an `IconButton` with a tooltip), pre-press validation that gates opening, or programmatic ref composition.
 - **`<PopoverMenu.SecondaryInteractionTrigger>` / `useSecondaryInteractionTrigger()`** — long-press (native) / right-click (web) variant. Same shape: optional `onSecondaryInteraction` runs *before* the popover opens.
 - **`<PopoverMenu.Sub.Trigger>` / `useSubTrigger({disabled?})`** — sub-level analogue. The wrapper renders an opinionated `MenuItem` drill-down row; the hook returns `{ref, onPress, onFocus, focused, isAtParentLevel}` to compose any pressable as a sub trigger.
-- **`<PopoverMenu.Sub.BackButton>` / `useSubBackButton()`** — sub-level back button. Auto-rendered by `<Sub.Content>` at the active level; opt out by rendering `<Sub.BackButton>` explicitly among `<Sub.Content>`'s children (your placement and shape win, the auto-render is skipped). Hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
+- **`<PopoverMenu.Sub.BackButton>` / `useSubBackButton()`** — sub-level back button. Render it as a child of `<Sub.Content>` (matches Radix / React Aria explicit-composition); the wrapper self-gates to the active level so siblings at ancestor levels stay mounted without rendering. Hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
 
 ### Row composition — `useSelectableRow({onSelect?, disabled?})`
 

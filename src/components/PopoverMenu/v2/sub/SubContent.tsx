@@ -1,4 +1,3 @@
-import React from 'react';
 import type {ReactNode} from 'react';
 import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
 import {useSubContext} from './SubContext';
@@ -8,7 +7,7 @@ type SubContentProps = {
 };
 
 /** Stays mounted at ancestor levels so nested `<Sub>` instances live across drill-downs. */
-function SubContent({children}: SubContentProps): React.ReactElement | null {
+function SubContent({children}: SubContentProps): ReactNode {
     // Resolve Sub first — closer-neighbor error wins over the also-true "outside <Content>".
     const subContext = useSubContext(SubContent.displayName);
     const {currentSubID, isAncestorOfCurrent} = useContentNavigation(SubContent.displayName);
@@ -17,7 +16,7 @@ function SubContent({children}: SubContentProps): React.ReactElement | null {
         return null;
     }
 
-    return <>{children}</>;
+    return children;
 }
 
 SubContent.displayName = 'PopoverMenu.SubContent';
