@@ -128,12 +128,12 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
 
     const getInitialSelectedAmountModifier = () => {
         const hasLessThan = !!value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
-        const hasGreaterhan = !!value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
-        if (hasLessThan && hasGreaterhan) {
+        const hasGreaterThan = !!value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
+        if (hasLessThan && hasGreaterThan) {
             return BETWEEN_MODIFIER;
         }
 
-        if (hasGreaterhan) {
+        if (hasGreaterThan) {
             return CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN;
         }
 
