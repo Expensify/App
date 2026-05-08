@@ -69,11 +69,11 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
             return;
         }
 
-        startScanProcessSpan(isMultiScanEnabled);
-
         if (isMultiScanEnabled) {
             return;
         }
+
+        startScanProcessSpan(isMultiScanEnabled);
 
         const fileTransactionIDs = receiptFiles.map((rf: ReceiptFile) => rf.transactionID);
         setMultipleMoneyRequestParticipantsFromReport(fileTransactionIDs, report, currentUserPersonalDetails.accountID).then(() =>

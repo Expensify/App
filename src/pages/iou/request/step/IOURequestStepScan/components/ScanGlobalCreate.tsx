@@ -119,11 +119,11 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             return;
         }
 
-        startScanProcessSpan(isMultiScanEnabled);
-
         if (isMultiScanEnabled) {
             return;
         }
+
+        startScanProcessSpan(isMultiScanEnabled);
 
         navigateGlobalCreate(receiptFiles);
     };
