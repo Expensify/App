@@ -86,6 +86,11 @@ function MultifactorAuthenticationOverlay() {
             setIsVisible(true);
             progress.value = withTiming(1, {duration: CONST.ANIMATED_TRANSITION});
         } else if (isVisible) {
+            // Pop the current screen so the Stack plays its slide-out animation,
+            // and fade the backdrop simultaneously. Both run for ANIMATED_TRANSITION.
+            if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
+                mfaNavigationRef.goBack();
+            }
             progress.value = withTiming(0, {duration: CONST.ANIMATED_TRANSITION}, (finished) => {
                 if (!finished) {
                     return;
