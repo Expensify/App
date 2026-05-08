@@ -3268,7 +3268,6 @@ type MultifactorAuthenticationOverlayParamList = {
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
         promptType: MultifactorAuthenticationPromptType;
     };
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: undefined;
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;

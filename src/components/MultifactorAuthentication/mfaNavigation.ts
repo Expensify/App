@@ -15,10 +15,8 @@ function navigate<T extends keyof MultifactorAuthenticationOverlayParamList>(
 ) {
     const params = args[0] as Record<string, unknown> | undefined;
 
-    // Navigator is mounted only while the overlay is visible. If a navigation
-    // request arrives before mount (e.g. the MFA state machine fires before
-    // the overlay finishes its open animation), buffer it and let onReady
-    // apply it from the placeholder INITIAL_SCREEN so the slide animation plays.
+    // Navigator mounts only while the overlay is visible. Buffer the request
+    // until the placeholder INITIAL_SCREEN lays out and triggers the push.
     if (!mfaNavigationRef.isReady()) {
         pendingNavigation = {screen: screen as string, params};
         return;
