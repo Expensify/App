@@ -50,7 +50,7 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
                 easing: Easing.inOut(Easing.quad),
             },
             (finished) => {
-                if (!finished || !isExpanded.get()) {
+                if (!finished) {
                     return;
                 }
                 isAnimating.set(false);
@@ -67,12 +67,17 @@ function Accordion({isExpanded, children, duration = 300, isToggleTriggered, sty
             };
         }
 
+        let display = 'inline';
+        if (!isExpanded.get() && !isAnimating.get()) {
+            display = 'none';
+        }
+
         return {
             height: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             maxHeight: !isToggleTriggered.get() ? undefined : derivedHeight.get(),
             opacity: derivedOpacity.get(),
             overflow: isAnimating.get() ? 'hidden' : 'visible',
-            display: isExpanded.get() ? 'inline' : 'none',
+            display,
         };
     });
 
