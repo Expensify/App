@@ -268,6 +268,24 @@ async function bootApp(): Promise<void> {
     // best effort
   }
 
+  // Disable Android Autofill globally. Without this, the framework
+  // silently populates editable fields (email, password, etc.) when
+  // they gain focus and a credential is cached on the AVD. That
+  // makes the LLM appear to "succeed" with just a press call —
+  // recorded cache misses the actual fill action, and replay on a
+  // different AVD snapshot (where autofill state has rotated)
+  // breaks because press alone no longer suffices. Forcing the LLM
+  // to explicitly fill makes both record and replay deterministic.
+  try {
+    execFileSync(
+      "adb",
+      ["shell", "settings", "put", "secure", "autofill_service", "null"],
+      { timeout: 5_000, stdio: "ignore" },
+    );
+  } catch {
+    // best effort
+  }
+
   log("boot: starting Metro");
   const metroLog = fs.openSync(path.join(ARTIFACTS_DIR, "metro.log"), "a");
   const metro = spawn("npm", ["start"], {
@@ -336,13 +354,15 @@ async function bootApp(): Promise<void> {
     }
     // ANR-recovery: when the runner is memory-pressured the system
     // shows a "Pixel Launcher isn't responding" dialog over our app.
-    // The Expensify activity stays in the foreground (per appstate)
-    // but the accessibility tree is captured by the dialog overlay,
-    // so SignIn is hidden until the dialog is dismissed. Press
-    // "Wait", then force-relaunch our activity via `am start` to
-    // ensure we're on top regardless of what the launcher is doing.
+    // Press "Wait" to dismiss, then force-stop + relaunch via
+    // agent-device. Plain `am start` was insufficient: if the ANR
+    // hit during JS bundle delivery, MainActivity was in a half-
+    // initialised state and `am start` just brought that broken
+    // activity to the foreground (run 25560886459 stuck on splash
+    // for 600s after recovering from an ANR via am start). Force-
+    // stop guarantees a clean process spawn for the next launch.
     if (isAnrDialog(snap)) {
-      log("boot: ANR dialog detected — dismissing and relaunching app");
+      log("boot: ANR dialog detected — dismissing and force-relaunching app");
       try {
         const waitBtn = snap.nodes.find(
           (n) => n.kind === "button" && n.text?.toLowerCase() === "wait",
@@ -354,23 +374,37 @@ async function bootApp(): Promise<void> {
         log(`boot: dismiss press failed: ${(e as Error).message.slice(0, 80)}`);
       }
       try {
+        execFileSync("adb", ["shell", "am", "force-stop", APP_PACKAGE], {
+          timeout: 5_000,
+          stdio: "ignore",
+        });
+      } catch (e) {
+        log(`boot: force-stop failed: ${(e as Error).message.slice(0, 80)}`);
+      }
+      try {
+        const serial = execFileSync("adb", ["get-serialno"], {
+          encoding: "utf8",
+        }).trim();
         execFileSync(
-          "adb",
+          "agent-device",
           [
-            "shell",
-            "am",
-            "start",
-            "-n",
-            `${APP_PACKAGE}/com.expensify.chat.MainActivity`,
+            "open",
+            APP_PACKAGE,
+            "--platform",
+            "android",
+            "--serial",
+            serial,
+            "--session",
+            SESSION,
+            "--relaunch",
           ],
-          { timeout: 10_000, stdio: "ignore" },
+          { timeout: 30_000, stdio: "ignore" },
         );
       } catch (e) {
-        log(`boot: am start failed: ${(e as Error).message.slice(0, 80)}`);
+        log(`boot: relaunch failed: ${(e as Error).message.slice(0, 80)}`);
       }
-      // Skip this iteration's normal sleep; recheck immediately so
-      // we don't waste 6s waiting on a known-stale state.
-      await sleep(2_000);
+      // Give the process a moment to come back up before re-snapshotting.
+      await sleep(3_000);
       continue;
     }
     if (Date.now() - lastProbeAt >= BOOT_PROBE_INTERVAL_MS) {
