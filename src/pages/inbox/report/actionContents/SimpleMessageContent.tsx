@@ -19,6 +19,7 @@ import {
     wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
 import {getDeletedTransactionMessage, getPolicyChangeMessage} from '@libs/ReportUtils';
+import {isAmountMissing, isCreatedMissing, isMerchantMissing} from '@libs/TransactionUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,23 +55,47 @@ function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
     return SIMPLE_MESSAGE_ACTION_TYPES.has(action.actionName) || isUnapprovedAction(action) || isRejectedAction(action);
 }
 
-function ReceiptScanFailedContent({report}: {report: OnyxEntry<OnyxTypes.Report>}) {
+function ReceiptScanFailedContent({action, report}: {action: OnyxTypes.ReportAction; report: OnyxEntry<OnyxTypes.Report>}) {
     const {translate} = useLocalize();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    // In one-transaction-thread reports, `report` is the IOU report — but the RECEIPT_SCAN_FAILED
+    // action's reportID points to the transaction thread.  Use that as the base for the parent-chain
+    // traversal so we always reach the IOU action regardless of how the report is displayed.
+    const actionReportID = action.reportID;
+    const [actionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(actionReportID)}`);
+    const baseReport = actionReportID && actionReportID !== report?.reportID ? actionReport : report;
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(baseReport?.parentReportID)}`);
     // Subscribe to the parent and grandparent report actions so the component re-renders when they arrive
     // — getReportAction reads a static snapshot and would otherwise leave us with stale data on first paint.
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(baseReport?.parentReportID)}`);
     const [grandparentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
     // The action's parent isn't always the IOU action (it can be the CREATED action when the thread spans an extra layer),
     // so fall back to the grandparent action — this matches the lookup in ReportNameUtils.
-    let iouAction: OnyxTypes.ReportAction | undefined = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
+    let iouAction: OnyxTypes.ReportAction | undefined = baseReport?.parentReportActionID ? parentReportActions?.[baseReport.parentReportActionID] : undefined;
     if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
         iouAction = parentReport?.parentReportActionID ? grandparentReportActions?.[parentReport.parentReportActionID] : undefined;
     }
     const transactionID = getLinkedTransactionID(iouAction);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const smartscanFailedViolation = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
-    const missingFields = smartscanFailedViolation?.data?.missingFields ?? [];
+    let missingFields = smartscanFailedViolation?.data?.missingFields ?? [];
+
+    // Fallback: when the violation data hasn't arrived in Onyx yet but the transaction's receipt
+    // state is already SCAN_FAILED, compute missingFields from the transaction directly.
+    if (missingFields.length === 0 && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED) {
+        const computed: string[] = [];
+        if (isMerchantMissing(transaction)) {
+            computed.push('merchant');
+        }
+        if (isCreatedMissing(transaction)) {
+            computed.push('date');
+        }
+        if (isAmountMissing(transaction)) {
+            computed.push('amount');
+        }
+        missingFields = computed;
+    }
+
     return <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields})} />;
 }
 
@@ -117,7 +142,12 @@ function SimpleMessageContent({action, report}: SimpleMessageContentProps) {
         return <ReportActionItemBasicMessage message={translate('violations.resolvedDuplicates')} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-        return <ReceiptScanFailedContent report={report} />;
+        return (
+            <ReceiptScanFailedContent
+                action={action}
+                report={report}
+            />
+        );
     }
     if (isUnapprovedAction(action)) {
         return <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
