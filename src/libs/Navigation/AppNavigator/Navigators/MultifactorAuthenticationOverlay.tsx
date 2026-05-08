@@ -61,9 +61,19 @@ function MultifactorAuthenticationOverlay() {
     const {translate} = useLocalize();
 
     const {isModalOpen} = state;
-    const [isVisible, setIsVisible] = useState(false);
+    const [prevIsModalOpen, setPrevIsModalOpen] = useState(isModalOpen);
+    const [isClosing, setIsClosing] = useState(false);
     const progress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+
+    // Mirror isModalOpen transitions during render so the slide-out animation can
+    // outlast isModalOpen=false. Cleared by the close-animation completion callback.
+    if (prevIsModalOpen !== isModalOpen) {
+        setPrevIsModalOpen(isModalOpen);
+        setIsClosing(!isModalOpen);
+    }
+
+    const isVisible = isModalOpen || isClosing;
 
     const navigationTheme = useMemo(() => {
         const base = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
@@ -76,34 +86,32 @@ function MultifactorAuthenticationOverlay() {
         };
     }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
 
-    const resetState = useCallback(() => {
-        clearPendingNavigation();
-        setIsVisible(false);
-        dispatch({type: 'RESET'});
-    }, [dispatch]);
-
     useEffect(() => {
         if (isModalOpen) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- isVisible is not derivable from isModalOpen; it stays true during the close animation
-            setIsVisible(true);
             progress.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
-        } else if (isVisible) {
-            // Pop the current screen so the Stack plays its slide-out animation,
-            // and fade the backdrop simultaneously. Both run for ANIMATED_TRANSITION.
-            if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
-                mfaNavigationRef.goBack();
-            }
-            progress.set(
-                withTiming(0, {duration: CONST.ANIMATED_TRANSITION}, (finished) => {
-                    if (!finished) {
-                        return;
-                    }
-                    scheduleOnRN(resetState);
-                }),
-            );
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only trigger on isModalOpen change
-    }, [isModalOpen]);
+        if (!isClosing) {
+            return;
+        }
+        // Pop the current screen so the Stack plays its slide-out animation,
+        // and fade the backdrop simultaneously. Both run for ANIMATED_TRANSITION.
+        if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
+            mfaNavigationRef.goBack();
+        }
+        progress.set(
+            withTiming(0, {duration: CONST.ANIMATED_TRANSITION}, (finished) => {
+                if (!finished) {
+                    return;
+                }
+                scheduleOnRN(() => {
+                    clearPendingNavigation();
+                    setIsClosing(false);
+                    dispatch({type: 'RESET'});
+                });
+            }),
+        );
+    }, [isModalOpen, isClosing, progress, dispatch]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
         opacity: progress.get() * variables.overlayOpacity,
