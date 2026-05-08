@@ -563,17 +563,32 @@ async function verifyPostState(
 ): Promise<{ ok: true; snap: Snapshot } | { ok: false; reason: string }> {
   const snap = adCli.snapshot();
   const app = adCli.appstate();
-  if (expectedSignature && snapshotSignature(snap) !== expectedSignature) {
-    return {
-      ok: false,
-      reason: `post-state signature drift (recorded ${expectedSignature}, observed ${snapshotSignature(snap)})`,
-    };
-  }
+
+  // Expect (when declared) is the source of truth: it's a deterministic
+  // predicate over the live UI, while the post-signature is a structural
+  // hash that can drift on cosmetic re-renders, animation timing, or
+  // node-ordering changes that don't affect what the user actually sees.
+  // If expect passes, the step succeeded — drift becomes advisory.
   if (step.expect) {
     const ev = evaluateExpect(step.expect, snap, app);
     if (!ev.ok) {
       return { ok: false, reason: `expect failed: ${ev.reason}` };
     }
+    if (expectedSignature && snapshotSignature(snap) !== expectedSignature) {
+      log(
+        `::warning::post-signature drift but expect passed (recorded ${expectedSignature}, observed ${snapshotSignature(snap)}) — accepting`,
+      );
+    }
+    return { ok: true, snap };
+  }
+
+  // No expect declared — fall back to signature equality so a cache-hit
+  // path still has *some* post-state check.
+  if (expectedSignature && snapshotSignature(snap) !== expectedSignature) {
+    return {
+      ok: false,
+      reason: `post-state signature drift (recorded ${expectedSignature}, observed ${snapshotSignature(snap)})`,
+    };
   }
   return { ok: true, snap };
 }
