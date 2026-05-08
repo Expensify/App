@@ -6,6 +6,7 @@ import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {HoldMenuCallback} from '@components/Search';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -29,7 +30,7 @@ import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getSubmitToAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
+import {getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
@@ -105,6 +106,7 @@ type HandleActionButtonPressParams = {
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     currentSearchKey?: SearchKey;
+    onHoldMenuOpen?: HoldMenuCallback;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
@@ -135,6 +137,7 @@ function handleActionButtonPress({
     lastPaymentMethod,
     userBillingGracePeriodEnds,
     currentSearchKey,
+    onHoldMenuOpen,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
@@ -147,7 +150,12 @@ function handleActionButtonPress({
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE) {
+    if (
+        hasHeldExpense &&
+        item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT &&
+        item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE &&
+        (item.action !== CONST.SEARCH.ACTION_TYPES.APPROVE || !onHoldMenuOpen)
+    ) {
         goToItem();
         return;
     }
@@ -171,6 +179,10 @@ function handleActionButtonPress({
             }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
+                return;
+            }
+            if (hasHeldExpense) {
+                onHoldMenuOpen?.(item as TransactionReportGroupListItemType, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
                 return;
             }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
@@ -517,7 +529,7 @@ function search({
     prevReportsLength,
     isOffline = false,
     isLoading,
-    shouldUpdateLastSearchParams = true,
+    shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
@@ -615,6 +627,7 @@ function search({
 }
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
+    const firstReport = (reportList.at(0) ?? {}) as Report;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -657,10 +670,9 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
         },
     ];
 
-    const report = (reportList.at(0) ?? {}) as Report;
     const parameters: SubmitReportParams = {
-        reportID: report.reportID,
-        managerAccountID: getSubmitToAccountID(policy.at(0), report) ?? report?.managerID,
+        reportID: firstReport.reportID,
+        managerAccountID: getSubmitReportManagerAccountID(policy.at(0), firstReport),
         reportActionID: rand64(),
     };
 

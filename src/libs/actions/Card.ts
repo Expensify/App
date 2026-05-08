@@ -38,7 +38,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SpendRuleForm} from '@src/types/form';
 import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
-import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
+import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep, PossibleFraudData} from '@src/types/onyx/Card';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -689,6 +689,52 @@ function updateSettlementFrequency(
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
+}
+
+function toggleCashbackToBill(workspaceAccountID: number, programKey: CardProgramKey, shouldApplyCashbackToBill: boolean, currentValue?: boolean) {
+    const optimisticValue = {
+        [programKey]: {shouldApplyCashbackToBill, pendingFields: {shouldApplyCashbackToBill: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+    };
+    const successValue = {[programKey]: {shouldApplyCashbackToBill, pendingFields: {shouldApplyCashbackToBill: null}}};
+    const failureValue = {
+        [programKey]: {shouldApplyCashbackToBill: currentValue ?? true, pendingFields: {shouldApplyCashbackToBill: null}},
+        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+    };
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: optimisticValue,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: successValue,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: failureValue,
+        },
+    ];
+
+    const parameters = {
+        workspaceAccountID,
+        shouldApplyCashbackToBill,
+    };
+
+    API.write(WRITE_COMMANDS.TOGGLE_CARD_CASHBACK_TO_BILL, parameters, {optimisticData, successData, failureData});
+}
+
+function clearCashbackToBillError(workspaceAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {errors: null});
 }
 
 function updateSettlementAccount(
@@ -1703,7 +1749,13 @@ function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, ex
  * Resolves a fraud alert for a given card.
  * When the user clicks on the whisper it sets the optimistic data to the resolution and calls the API
  */
-function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportID: string | undefined, reportActionID: string | undefined) {
+function resolveFraudAlert(
+    cardID: number | undefined,
+    isFraud: boolean,
+    reportID: string | undefined,
+    reportActionID: string | undefined,
+    previousPossibleFraud: PossibleFraudData | null = null,
+) {
     if (!reportID || !reportActionID || !cardID) {
         Log.hmmm('[resolveFraudAlert] Missing required parameters');
         return;
@@ -1711,7 +1763,7 @@ function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportI
 
     const resolution = isFraud ? CONST.CARD_FRAUD_ALERT_RESOLUTION.FRAUD : CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -1721,6 +1773,17 @@ function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportI
                         resolution,
                     },
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        possibleFraud: null,
+                    },
                 },
             },
         },
@@ -1738,7 +1801,7 @@ function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportI
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.CARD_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -1749,6 +1812,17 @@ function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportI
                     },
                     pendingAction: null,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {
+                [cardID]: {
+                    nameValuePairs: {
+                        possibleFraud: previousPossibleFraud,
+                    },
                 },
             },
         },
@@ -1860,6 +1934,8 @@ export {
     unassignCard,
     updateAssignedCardName,
     updateAssignedCardTransactionStartDate,
+    toggleCashbackToBill,
+    clearCashbackToBillError,
     toggleContinuousReconciliation,
     setCardReconciliationAccount,
     updateExpensifyCardLimitType,

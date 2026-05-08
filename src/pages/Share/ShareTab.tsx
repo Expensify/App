@@ -1,5 +1,5 @@
 import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
@@ -49,6 +49,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
+    const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -125,6 +126,8 @@ function ShareTab({ref}: ShareTabProps) {
         text: StringUtils.lineBreaksToSpaces(item.text),
         wrapperStyle: [styles.pr3, styles.pl3],
         keyForList: `${item.reportID}-${index}`,
+        isSelected: item.reportID === selectedReportID,
+        canShowSeveralIndicators: true,
     }));
 
     const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
@@ -137,11 +140,13 @@ function ShareTab({ref}: ShareTabProps) {
             const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
             reportID = optimisticReport.reportID;
 
+            setSelectedReportID(reportID);
             saveReportDraft(reportID, optimisticReport).then(() => {
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
             });
         } else {
             clearUnknownUserDetails();
+            setSelectedReportID(reportID);
             Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
         }
     };

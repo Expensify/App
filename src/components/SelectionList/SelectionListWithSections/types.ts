@@ -52,9 +52,6 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
 
     /** Number of lines to show for title text when multiline is supported */
     titleNumberOfLines?: number;
-
-    /** Whether to show the default right hand side component */
-    shouldUseDefaultRightHandSideComponent?: boolean;
 };
 
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
