@@ -888,10 +888,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: '聊天列表',
         saveTheWorld: '拯救世界',
         tooltip: '从这里开始！',
-        redirectToExpensifyClassicModal: {
-            title: '即将推出',
-            description: '我们正在对新版 Expensify 做最后的一些细节调整，以适配你的特定设置。与此同时，请先前往 Expensify 经典版。',
-        },
     },
     homePage: {
         forYou: '为你',
@@ -1006,6 +1002,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: '自定义会计类别',
             linkCompanyCards: '关联公司卡',
             setupRules: '设置消费规则',
+            inviteAccountant: '邀请你的会计',
         },
     },
     allSettingsScreen: {
@@ -1102,6 +1099,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '随它去',
         dropMessage: '将文件拖放到此处',
         flash: '闪光',
+        flipCamera: '切换相机',
         multiScan: '多重扫描',
         shutter: '快门',
         gallery: '图库',
@@ -1273,6 +1271,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `支付 ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `以企业身份支付 ${formattedAmount}` : `使用公司账户付款`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `将 ${formattedAmount} 标记为已支付` : `标记为已支付`),
+        confirmPaymentReceivedModalTitle: '确认已收到付款',
+        receivedPayment: '已收到付款',
+        receivedPaymentConfirmation: '仅当您已在 Expensify 之外收到付款时才继续。',
+        confirmReceivedPayment: '是的，我已收到付款。',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `使用个人账户 ${last4Digits} 支付了 ${amount}` : `使用个人账户支付`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `已使用商务账户 ${last4Digits} 支付 ${amount}` : `使用公司账户支付`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `通过 ${policyName} 支付 ${formattedAmount}` : `通过 ${policyName} 支付`),
@@ -2648,6 +2650,19 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         subtitle: '通过自定义智能体自动化处理任务。',
         newAgent: '新代理人',
         emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
+        error: {
+            genericAdd: '添加此智能体时出现了问题',
+        },
+    },
+    addAgentPage: {
+        title: '新代理',
+        agentName: '代理名称',
+        instructions: '编写自定义说明',
+        createAgent: '创建代理',
+        switchAvatar: '切换头像',
+        defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
+        defaultPrompt:
+            '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
     },
     expenseRulesPage: {
         title: '报销规则',
@@ -4198,6 +4213,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
         },
+        createdForClient: {
+            title: '您已为客户创建了工作区！',
+            description: '好消息 🎉。如果他们在设置方面需要帮助，请联系我们。',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) => (organizationName ? `已连接到 ${organizationName}` : '在整个组织内自动化管理差旅和外卖餐饮报销。'),
@@ -5548,6 +5567,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 subtitle: '为时间跟踪设置可计费的小时费率。',
                 defaultHourlyRate: '默认时薪',
             },
+            hrWarningModal: {disconnectText: '若要禁用人力资源功能，请先将 Gusto 与此工作区断开连接。'},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6265,7 +6285,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             updateToUSD: '更新为 USD',
             updateWorkspaceCurrency: '更新工作区货币',
             workspaceCurrencyNotSupported: '不支持工作区货币',
-            yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">支持的货币列表</a>。`,
+            yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
         },
         changeOwner: {
@@ -6565,6 +6585,7 @@ ${reportName}
                 gambling: '赌博',
                 tobacco: '烟草',
                 adultEntertainment: '成人娱乐',
+                handwrittenReceipt: '手写收据',
                 requireCompanyCard: '所有消费均需使用公司卡',
                 requireCompanyCardDescription: '标记所有现金支出，包括里程和每日津贴报销。',
                 requireCompanyCardDisabledTooltip: '启用“公司卡”（位于“更多功能”下）以解锁。',
@@ -6778,10 +6799,6 @@ ${reportName}
                     label: '控制',
                     description: '适用于具有高级需求的组织。',
                 },
-                submit2026: {
-                    label: '提交',
-                    description: '适用于希望向雇主提交费用的员工。',
-                },
             },
             description: '选择适合您的方案。要查看详细的功能和价格列表，请访问我们的',
             subscriptionLink: '方案类型和价格帮助页面',
@@ -6814,6 +6831,17 @@ ${reportName}
                 title: 'Gusto',
                 approvalMode: '审批模式',
                 finalApprover: '最终审批人',
+                notSet: '未设置',
+                approvalModeDescription: '成员和管理员已设置为与 Gusto 同步。',
+                approvalModeWarningTitle: '更改审批模式？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 Gusto 启用的工作流模式的信息。`,
+                approvalModeWarningConfirm: '更改审批模式',
+                approvalModes: {
+                    basic: {label: '基础审批', description: '所有用户都提交给同一个人进行处理和审批。'},
+                    manager: {label: '经理审批', description: '员工会将报销单提交给在 Gusto 中配置的直属经理。'},
+                    custom: {label: '自定义审批', description: '我将在 Expensify 中手动设置审批工作流程。'},
+                },
                 connect: '连接',
                 connectionDescription: '连接 Gusto，以在您的工作区中同步员工审批。',
                 syncNow: '立即同步',
@@ -7543,6 +7571,7 @@ ${reportName}
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify 卡',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '集中开票',
             },
             is: '是',
             action: {
@@ -7987,13 +8016,9 @@ ${reportName}
         stopped: '已停止',
         start: '开始',
         stop: '停止',
+        save: '保存',
+        resume: '简历',
         discard: '丢弃',
-        stopGpsTrackingModal: {
-            title: '停止 GPS 跟踪',
-            prompt: '你确定吗？这将结束你当前的流程。',
-            cancel: '恢复跟踪',
-            confirm: '停止 GPS 跟踪',
-        },
         discardDistanceTrackingModal: {
             title: '放弃距离跟踪',
             prompt: '确定要继续吗？这将放弃你当前的行程，且无法撤销。',
@@ -8044,7 +8069,7 @@ ${reportName}
             prompt: '请在设备设置中允许访问位置信息，以开始使用 GPS 距离跟踪。',
         },
         gpsFloatingPillText: '正在进行 GPS 跟踪…',
-        liveActivity: {subtitle: '跟踪距离', button: '查看进度'},
+        liveActivity: {subtitle: '跟踪距离', button: '查看进度', lockScreenBadgeText: '距离', lockScreenTrackingText: '正在跟踪…'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成绩单遗失或损坏',
@@ -8163,6 +8188,8 @@ ${reportName}
                         return `成人娱乐`;
                     case 'hotelIncidentals':
                         return `酒店杂费`;
+                    case 'handwrittenReceipt':
+                        return `手写收据`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -8936,6 +8963,11 @@ ${reportName}
             noWorkspacesMessage: '此域上没有工作区。启用此限制需要一个工作区。',
             restrictDefaultLoginSelection: '限制默认登录选择',
             restrictDefaultLoginSelectionDescription: '防止成员将登录邮箱更改为公司域名以外的地址，以规避政策限制。',
+            expensifyCardPreferredWorkspace: 'Expensify Card 首选工作区',
+            expensifyCardPreferredWorkspaceDescription:
+                '所有 Expensify Card 交易将在 Expensify Card 首选工作区中创建，而不是在首选工作区中创建。启用此功能将仅覆盖 Expensify Card 交易的首选工作区设置。',
+            expensifyCardPreferredWorkspaceDisabledMessage: '要使用此设置，必须启用首选工作区，并且域必须已设置 Expensify Card。',
+            findGroup: '查找群组',
         },
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
