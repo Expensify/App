@@ -10,7 +10,6 @@ type UseSubBackButtonResult = {
     onPress: () => void;
     onFocus: () => void;
     focused: boolean;
-    /** Caller render-gates on this — `<Sub.BackButton>` only shows when its enclosing `<Sub>` is the active level. */
     isAtActiveLevel: boolean;
 };
 

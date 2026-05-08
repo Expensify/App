@@ -355,7 +355,7 @@ describe('PopoverMenu V2', () => {
     });
 
     describe('Trigger', () => {
-        // RN's View ref in the test renderer exposes `measureInWindow` but not `getBoundingClientRect`. Production paths (Fabric + react-native-web) have it; we stub here so the press path can complete.
+        // RN's View ref in jest exposes `measureInWindow` but not `getBoundingClientRect` (production paths have it); stub for the press path.
         let originalGetBoundingClientRect: ((this: unknown) => DOMRect) | undefined;
         beforeAll(() => {
             const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
@@ -1358,11 +1358,7 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('B item')).toBeUndefined();
         });
 
-        // Protects the `currentSubIDRef` ref-mirror in `useSubNavigation` (load-bearing per plan §11):
-        // when a nested sub unmounts while its parent stays mounted, `unregisterSub`'s cleanup
-        // closure must read the *committed* level (`B`) — not a stale closure capture from when the
-        // cleanup was registered (when level may have been `A` or `null`). The pop should land at
-        // the parent (`A`), not collapse to root.
+        // Mutation-tested: swap `currentSubIDRef.current` for `currentSubID` in `useSubNavigation` and this test fails.
         it('pops to parent when only the nested <Sub> unmounts (parent stays mounted)', () => {
             const captured: Array<string | null> = [];
             function NavProbe() {
@@ -1404,9 +1400,7 @@ describe('PopoverMenu V2', () => {
             menuItemPropsCapture.current = [];
             tree.rerender(<NestedTree showInner={false} />);
 
-            // The cleanup closure for Sub B fires with subID='B' and must see currentSubIDRef.current === 'B'.
-            // Cascade walks parentLinks to find the nearest still-mounted ancestor: A is still mounted.
-            // currentSubID lands at 'A', NOT null.
+            // Cascade walks parentLinks to the nearest still-mounted ancestor (A), NOT to root.
             expect(captured.at(-1)).toBe('A');
         });
 

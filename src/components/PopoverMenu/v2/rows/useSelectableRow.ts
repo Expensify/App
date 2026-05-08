@@ -25,7 +25,6 @@ type UseSelectableRowResult = {
     onPress: () => void;
     onFocus: () => void;
     focused: boolean;
-    /** Caller render-gates on this — selectable rows are hidden outside the active sub-level. */
     isAtActiveLevel: boolean;
 };
 

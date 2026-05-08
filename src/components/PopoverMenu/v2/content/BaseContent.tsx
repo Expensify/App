@@ -21,12 +21,11 @@ type BasePopoverProps = {
     children: ReactNode;
     anchorAlignment?: AnchorAlignment;
     containerStyles?: StyleProp<ViewStyle>;
-    /** Replaces the modal's default `paddingVertical: 0` — include it in your override to keep it. */
+    /** Replaces the default `paddingVertical: 0` — include it in your override to keep it. */
     innerContainerStyle?: ViewStyle;
     onLayout?: (e: LayoutChangeEvent) => void;
     onModalShow?: () => void;
     onModalHide?: () => void;
-    /** Focus-restore strategy when the menu closes. */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
     testID?: string;
 };

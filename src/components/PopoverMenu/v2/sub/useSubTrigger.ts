@@ -10,7 +10,6 @@ type UseSubTriggerResult = {
     onPress: () => void;
     onFocus: () => void;
     focused: boolean;
-    /** Caller render-gates on this — `<Sub.Trigger>` is hidden when its parent isn't the active level. */
     isAtParentLevel: boolean;
 };
 

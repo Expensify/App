@@ -23,7 +23,6 @@ function SubContent({children, backButtonText}: SubContentProps): React.ReactEle
         return null;
     }
 
-    // If the consumer renders <Sub.BackButton> explicitly, skip the auto-render — they're choosing placement themselves.
     const hasExplicitBackButton = React.Children.toArray(children).some((child) => React.isValidElement(child) && child.type === SubBackButton);
 
     return (

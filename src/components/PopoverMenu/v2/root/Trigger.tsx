@@ -12,7 +12,7 @@ type TriggerProps = WithSentryLabel & {
     disabled?: boolean;
     role?: Role;
     testID?: string;
-    /** Runs before the popover opens. For analytics or pre-press setup; cannot gate opening — drop to `usePopoverTrigger()` if you need conditional opening. */
+    /** Runs before the popover opens; cannot gate opening (drop to the hook for that). */
     onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 

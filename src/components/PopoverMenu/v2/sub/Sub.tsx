@@ -6,7 +6,6 @@ import type {SubContextValue} from './SubContext';
 
 type SubProps = {
     children: ReactNode;
-    /** Useful for tests/analytics; falls back to a generated id. */
     id?: string;
 };
 
