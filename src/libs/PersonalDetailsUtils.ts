@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -133,6 +133,43 @@ function getPersonalDetailsByIDs({
             return detail;
         });
 
+    return result;
+}
+
+function newGetPersonalDetailsByIDs(params: {
+    accountIDs: number[];
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    shouldChangeUserDisplayName: true;
+    currentUserAccountID: number | undefined;
+    translate: LocalizedTranslate;
+}): PersonalDetails[];
+function newGetPersonalDetailsByIDs(params: {accountIDs: number[]; personalDetails: OnyxEntry<PersonalDetailsList>; shouldChangeUserDisplayName?: false}): PersonalDetails[];
+function newGetPersonalDetailsByIDs({
+    accountIDs,
+    personalDetails,
+    currentUserAccountID,
+    shouldChangeUserDisplayName = false,
+    translate,
+}: {
+    accountIDs: number[];
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    currentUserAccountID?: number;
+    shouldChangeUserDisplayName?: boolean;
+    translate?: LocalizedTranslate;
+}): PersonalDetails[] {
+    const result: PersonalDetails[] = [];
+    for (const accountID of accountIDs) {
+        const detail = personalDetails?.[accountID];
+        if (!detail) {
+            continue;
+        }
+
+        if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID && translate) {
+            result.push({...detail, displayName: translate('common.you')});
+        } else {
+            result.push(detail);
+        }
+    }
     return result;
 }
 
@@ -458,6 +495,7 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
+    newGetPersonalDetailsByIDs,
     getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,

@@ -2,9 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedEmojiName} from '@libs/EmojiUtils';
-import {getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsWithCustomNameSelector} from '@src/selectors/PersonalDetails';
 
 type ReactionTooltipContentProps = {
     /**
@@ -31,13 +33,16 @@ type ReactionTooltipContentProps = {
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const users = getPersonalDetailsByIDs({accountIDs, currentUserAccountID, shouldChangeUserDisplayName: true});
+    const [users] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsWithCustomNameSelector({accountIDs, shouldChangeUserDisplayName: true, currentUserAccountID, translate}),
+    });
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
-    const namesString = users
-        .map((user) => user?.displayName)
-        .filter((name) => name)
-        .join(', ');
+    const namesString =
+        users
+            ?.map((user) => user?.displayName)
+            .filter((name) => name)
+            .join(', ') ?? '';
 
     return (
         <View style={[styles.alignItemsCenter, styles.ph2]}>
