@@ -36,7 +36,7 @@ type AmountInputProps = {
 };
 
 function getBackendAmount(amount: string) {
-    return convertToBackendAmount(Number(amount)).toString();
+    return amount ? convertToBackendAmount(Number(amount)).toString() : '';
 }
 
 function getFrontendAmount(amount: string | undefined) {
