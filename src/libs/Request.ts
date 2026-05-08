@@ -1,11 +1,11 @@
 import type {OnyxKey} from 'react-native-onyx';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import {WRITE_COMMANDS} from './API/types';
 import HttpUtils from './HttpUtils';
 import type Middleware from './Middleware/types';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
+import PrefetchQueries from './PrefetchQueries';
 
 let middlewares: Middleware[] = [];
 
@@ -17,12 +17,13 @@ function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response
 }
 
 function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isFromSequentialQueue = false): Promise<Response<TKey> | void> {
-    const isPrefetchQuery = request.command === WRITE_COMMANDS.OPEN_APP || request.command === WRITE_COMMANDS.RECONNECT_APP;
-    const prefetchKey = isPrefetchQuery ? request.command : undefined;
+    const prefetchKey = PrefetchQueries.has(request.command) ? request.command : undefined;
 
-    const finalRequest = prefetchKey ? {...request, headers: prefetchKey ? {...request.headers, prefetchKey} : undefined} : request;
+    if (prefetchKey) {
+        request.headers = {...request.headers, prefetchKey};
+    }
 
-    return middlewares.reduce((last, middleware) => middleware(last, finalRequest, isFromSequentialQueue), makeXHR(finalRequest));
+    return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
 }
 
 function addMiddleware(middleware: Middleware) {
