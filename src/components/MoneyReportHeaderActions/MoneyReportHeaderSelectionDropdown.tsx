@@ -159,19 +159,14 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         startApprovedAnimation,
         startAnimation,
         startSubmittingAnimation,
-<<<<<<< HEAD
-        onHoldMenuOpen: () => openHoldMenu({onConfirm: () => clearSelectedTransactions(true)}),
-=======
-        onHoldMenuOpen: (requestType, onConfirm, paymentType) =>
+        onHoldMenuOpen: (onConfirm, paymentType) =>
             openHoldMenu({
-                requestType,
                 onConfirm: () => {
                     onConfirm?.();
                     clearSelectedTransactions(true);
                 },
                 paymentType,
             }),
->>>>>>> main
     });
 
     const {
