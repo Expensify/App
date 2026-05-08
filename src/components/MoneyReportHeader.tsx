@@ -14,7 +14,6 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -36,14 +35,9 @@ type MoneyReportHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
-
-    /** Set of archived report ID keys, used by secondary actions to check archive status */
-    archivedReportsIDSet?: ArchivedReportsIDSet;
 };
 
-type MoneyReportHeaderContentProps = Omit<MoneyReportHeaderProps, 'archivedReportsIDSet'>;
-
-function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress, archivedReportsIDSet}: MoneyReportHeaderProps) {
+function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     return (
         <MoneyReportHeaderModals reportID={reportID}>
             <PaymentAnimationsProvider>
@@ -57,7 +51,7 @@ function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackBut
     );
 }
 
-function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderContentProps) {
+function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     const {clearSelectedTransactions} = useSearchActionsContext();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);

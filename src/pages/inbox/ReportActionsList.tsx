@@ -9,7 +9,6 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ReportActionsView from './report/ReportActionsView';
 
@@ -27,7 +26,7 @@ const defaultReportLoadingState = {
  * or MoneyRequestReportActionsList. Only subscribes to what the branching
  * conditions need — heavy data derivation is pushed into each child.
  */
-function ReportActionsList({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedReportsIDSet}) {
+function ReportActionsList() {
     const route = useRoute();
     const routeParams = route.params as {reportID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
@@ -53,12 +52,7 @@ function ReportActionsList({archivedReportsIDSet}: {archivedReportsIDSet: Archiv
         return <MoneyRequestReportActionsList />;
     }
 
-    return (
-        <ReportActionsView
-            reportID={reportIDFromRoute}
-            archivedReportsIDSet={archivedReportsIDSet}
-        />
-    );
+    return <ReportActionsView reportID={reportIDFromRoute} />;
 }
 
 export default ReportActionsList;

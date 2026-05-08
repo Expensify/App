@@ -13,7 +13,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getReportOfflinePendingActionAndErrors, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -23,9 +22,9 @@ import HeaderView from './HeaderView';
 
 /**
  * Owns header variant selection, back button logic, and OfflineWithFeedback wrapper.
- * Subscribes to report type internally.
+ * Subscribes to report type internally — ReportScreen passes nothing.
  */
-function ReportHeader({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedReportsIDSet}) {
+function ReportHeader() {
     const route = useRoute();
     const routeParams = route.params as {reportID?: string; backTo?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
@@ -98,7 +97,6 @@ function ReportHeader({archivedReportsIDSet}: {archivedReportsIDSet: ArchivedRep
                 <MoneyReportHeader
                     reportID={reportIDFromRoute}
                     onBackButtonPress={onBackButtonPress}
-                    archivedReportsIDSet={archivedReportsIDSet}
                 />
             </OfflineWithFeedback>
         );

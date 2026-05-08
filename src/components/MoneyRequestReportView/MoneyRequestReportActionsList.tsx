@@ -8,7 +8,6 @@ import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import FlatListWithScrollKey from '@components/FlatList/FlatListWithScrollKey';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -88,7 +87,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
     const reportScrollManager = useReportScrollManager();
     const lastMessageTime = useRef<string | null>(null);
     const didLayout = useRef(false);
@@ -584,7 +582,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                     reportNameValuePairsOrigin={reportNameValuePairs?.origin}
                     reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
-                    archivedReportsIDSet={archivedReportsIDSet}
                 />
             );
         },
@@ -604,7 +601,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
-            archivedReportsIDSet,
         ],
     );
 

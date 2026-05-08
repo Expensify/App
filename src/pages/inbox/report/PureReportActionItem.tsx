@@ -99,7 +99,6 @@ import {
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
@@ -143,8 +142,6 @@ import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
 import WhisperBanner from './WhisperBanner';
-
-const EMPTY_ARCHIVED_REPORTS_ID_SET = new Set<string>();
 
 type PureReportActionItemProps = {
     /** Report for this action */
@@ -242,9 +239,6 @@ type PureReportActionItemProps = {
 
     /** Report name value pairs originalID */
     reportNameValuePairsOriginalID?: string;
-
-    /** Set of archived report ID keys */
-    archivedReportsIDSet?: ArchivedReportsIDSet;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -285,7 +279,6 @@ function PureReportActionItem({
     isTryNewDotNVPDismissed = false,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
-    archivedReportsIDSet = EMPTY_ARCHIVED_REPORTS_ID_SET,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -1007,10 +1000,9 @@ function PureReportActionItem({
                 transactionID={transactionID}
                 draftMessage={draftMessage}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                archivedReportsIDSet={archivedReportsIDSet}
             />
         );
-    }, [contextMenuStateValue, contextMenuActionsValue, parentReportAction, draftMessage, shouldHideThreadDividerLine, archivedReportsIDSet, parentReportActionForTransactionThread]);
+    }, [contextMenuStateValue, contextMenuActionsValue, parentReportAction, draftMessage, shouldHideThreadDividerLine, parentReportActionForTransactionThread]);
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !isHarvestCreatedExpenseReport) {
         return createdActionContent;
@@ -1200,7 +1192,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
-        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID &&
-        prevProps.archivedReportsIDSet === nextProps.archivedReportsIDSet
+        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID
     );
 });

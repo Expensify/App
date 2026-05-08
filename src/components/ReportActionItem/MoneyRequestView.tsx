@@ -80,7 +80,6 @@ import {
     isTrackExpenseReportNew,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
 import {
     getAttendeesListDisplayString,
@@ -149,9 +148,6 @@ type MoneyRequestViewProps = {
 
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
-
-    /** Set of archived report ID keys */
-    archivedReportsIDSet: ArchivedReportsIDSet;
 };
 
 const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => {
@@ -174,7 +170,6 @@ function MoneyRequestView({
     updatedTransaction,
     isFromReviewDuplicates = false,
     mergeTransactionID,
-    archivedReportsIDSet,
 }: MoneyRequestViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase']);
     const styles = useThemeStyles();
@@ -329,6 +324,7 @@ function MoneyRequestView({
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const pendingAction = transaction?.pendingAction;
     const shouldShowPaid = isSettled && transactionReimbursable && !pendingAction;
+
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(transactionThreadReport?.reportID);
@@ -399,7 +395,6 @@ function MoneyRequestView({
             transaction,
             report: moneyRequestReport,
             policy,
-            archivedReportsIDSet,
         }) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 

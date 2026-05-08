@@ -10,7 +10,6 @@ import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
@@ -40,7 +39,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const {transactionID, isOnSearch, backTo} = route.params;
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -144,7 +142,6 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                         readonly
                         updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
                         mergeTransactionID={transactionID}
-                        archivedReportsIDSet={archivedReportsIDSet}
                     />
                 </ScrollView>
                 <FixedFooter style={styles.ph5}>

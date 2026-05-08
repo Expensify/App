@@ -7,7 +7,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -57,7 +56,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const viewportOffsetTop = useViewportOffsetTop();
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-    const archivedReportsIDSet = useArchivedReportsIDSet();
 
     const shouldDeferNonEssentials = useDeferNonEssentials(reportIDFromRoute);
 
@@ -108,7 +106,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 <ReportDragAndDropProvider>
                                     {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
                                     <CollapsibleHeaderOnKeyboard>
-                                        <ReportHeader archivedReportsIDSet={archivedReportsIDSet} />
+                                        <ReportHeader />
                                         {!shouldDeferNonEssentials && <AccountManagerBanner reportID={reportIDFromRoute} />}
                                     </CollapsibleHeaderOnKeyboard>
                                     <OfflineWithFeedback
@@ -128,7 +126,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                                         style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                                         testID="report-actions-view-wrapper"
                                                     >
-                                                        <ReportActionsList archivedReportsIDSet={archivedReportsIDSet} />
+                                                        <ReportActionsList />
                                                         {shouldDeferNonEssentials ? <ReportActionComposePlaceholder /> : <ReportFooter />}
                                                     </View>
                                                 </ConciergeDraftProvider>
