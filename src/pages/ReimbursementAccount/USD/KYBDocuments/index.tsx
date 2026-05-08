@@ -77,7 +77,7 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
             inputID: 'nameChangeDocument',
             title: 'documentsStep.nameChangeDocument',
             description: 'documentsStep.nameChangeDocumentDescription',
-            required: (reimbursementAccountData?.lexisNexisInstantIDResult?.status !== undefined && reimbursementAccountData?.lexisNexisInstantIDResult?.status) !== 'pass',
+            required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== undefined && reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
         },
         {
             inputID: 'companyAddressVerification',
