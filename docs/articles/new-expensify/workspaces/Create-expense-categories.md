@@ -1,7 +1,7 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding]
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline]
 internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes. Does not cover personal expense rules or accounting integration setup.
 ---
 
@@ -28,6 +28,18 @@ To delete a category:
 1. Click the category from the list.
 2. Click the **three-dot menu** in the top-right corner.
 3. Select **Delete category**.
+
+---
+
+## How to add a category from the expense category selector
+
+Workspace Admins whose workspace is not connected to an accounting integration can create a new category directly from the category selector while creating or editing an expense.
+
+1. Open an expense and click **Category**.
+2. Click the **+** button in the top-right corner.
+3. Enter a category name and click **Save**.
+
+The new category is created in your workspace and automatically applied to the expense.
 
 ---
 
@@ -133,6 +145,10 @@ Yes, until an expense is approved or reimbursed. Approvers can also edit categor
 ## Can I see an audit trail of category changes?
 
 Yes. When a category is manually edited, the change is logged in the related expense chat.
+
+## Why don't I see the option to add a category from the expense category selector?
+
+This option is only available to Workspace Admins whose workspace is not connected to an accounting integration. If your workspace is connected to an accounting system such as QuickBooks, Xero, NetSuite, or Sage Intacct, categories are managed through the integration and cannot be created from the expense category selector.
 
 ## What happens if a category is disabled in my accounting system?
 
