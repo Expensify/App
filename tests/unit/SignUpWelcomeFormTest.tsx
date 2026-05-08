@@ -41,6 +41,10 @@ jest.mock('@userActions/HybridApp', () => ({
     setReadyToShowAuthScreens: jest.fn(),
 }));
 
+jest.mock('@pages/signin/Terms', () => () => null);
+
+jest.mock('@pages/signin/ChangeExpensifyLoginLink', () => () => null);
+
 const PHONE_LOGIN = '+15555550100@expensify.sms';
 const EMAIL_LOGIN = 'test@expensify.com';
 
