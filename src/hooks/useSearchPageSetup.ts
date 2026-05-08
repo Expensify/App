@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {useEffect} from 'react';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
+import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
 import {hasDeferredWrite, waitForDeferredFlush} from '@libs/deferredLayoutWrite';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
@@ -54,13 +55,28 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         if (isSnapshotDataLoaded || isSnapshotSearchLoading) {
             return;
         }
-        const fireSearch = () => search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: false});
+        let ignore = false;
+        const fireSearch = () => {
+            search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: false});
+
+            // Save query context so SearchTabButton can restore the last search when
+            // the user returns to the Search tab. This is the explicit replacement for
+            // the old implicit save-on-every-search() default.
+            saveLastSearchParams({queryJSON, offset: 0, searchKey: currentSearchKey, hasMoreResults: false, allowPostSearchRecount: false});
+        };
 
         // A deferred SEARCH write has not entered the sequential queue yet, so waitForWrites
         // cannot see it. Wait for the flush first, then let waitForWrites block on its response.
         if (hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
-            waitForDeferredFlush(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH).then(fireSearch);
-            return;
+            waitForDeferredFlush(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH).then(() => {
+                if (ignore) {
+                    return;
+                }
+                fireSearch();
+            });
+            return () => {
+                ignore = true;
+            };
         }
         fireSearch();
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);

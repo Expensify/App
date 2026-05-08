@@ -183,6 +183,7 @@ const translations = {
         members: 'Members',
         invite: 'Invite',
         here: 'here',
+        avatar: 'Avatar',
         date: 'Date',
         dob: 'Date of birth',
         currentYear: 'Current year',
@@ -1192,6 +1193,7 @@ const translations = {
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
+        flipCamera: 'Flip camera',
         multiScan: 'multi-scan',
         shutter: 'shutter',
         gallery: 'gallery',
@@ -1363,6 +1365,10 @@ const translations = {
         settlePayment: (formattedAmount: string) => `Pay ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} as a business` : `Pay with business account`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
+        confirmPaymentReceivedModalTitle: 'Confirm payment received',
+        receivedPayment: 'Received payment',
+        receivedPaymentConfirmation: "Please proceed only if you've already received payment outside of Expensify.",
+        confirmReceivedPayment: "Yes, I've received payment",
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with personal account ${last4Digits}` : `Paid with personal account`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `paid ${amount} with business account ${last4Digits}` : `Paid with business account`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
@@ -2271,6 +2277,12 @@ const translations = {
         yourAccountIsLocked: 'Your account is locked',
         chatToConciergeToUnlock: 'Chat with Concierge to resolve security concerns and unlock your account.',
         chatWithConcierge: 'Chat with Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Device management',
+        description: 'Manage all the devices that you have logged into with your Expensify Account.',
+        revoke: 'Revoke',
+        unknownDevice: 'Unknown Device',
     },
     twoFactorAuth: {
         headerTitle: 'Two-factor authentication',
@@ -5731,6 +5743,9 @@ const translations = {
                 description: 'Are you sure you want to disconnect this integration?',
                 confirmText: 'Got it',
             },
+            hrWarningModal: {
+                disconnectText: 'To disable HR, please disconnect Gusto from this workspace first.',
+            },
             workflowWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
                 featureEnabledText:
@@ -6829,6 +6844,7 @@ const translations = {
                 gambling: 'Gambling',
                 tobacco: 'Tobacco',
                 adultEntertainment: 'Adult entertainment',
+                handwrittenReceipt: 'Handwritten receipts',
                 requireCompanyCard: 'Require company cards for all purchases',
                 requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
                 requireCompanyCardDisabledTooltip: 'Enable Company cards (under More features) to unlock.',
@@ -8248,13 +8264,9 @@ const translations = {
         stopped: 'Stopped',
         start: 'Start',
         stop: 'Stop',
+        save: 'Save',
+        resume: 'Resume',
         discard: 'Discard',
-        stopGpsTrackingModal: {
-            title: 'Stop GPS tracking',
-            prompt: 'Are you sure? This will end your current journey.',
-            cancel: 'Resume tracking',
-            confirm: 'Stop GPS tracking',
-        },
         discardDistanceTrackingModal: {
             title: 'Discard distance tracking',
             prompt: "Are you sure? This will discard your current journey and can't be undone.",
@@ -8441,6 +8453,8 @@ const translations = {
                         return `adult entertainment`;
                     case 'hotelIncidentals':
                         return `hotel incidentals`;
+                    case 'handwrittenReceipt':
+                        return `handwritten receipts`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
