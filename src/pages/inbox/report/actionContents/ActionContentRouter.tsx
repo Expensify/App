@@ -1,7 +1,6 @@
 import React from 'react';
 import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import RenderHTML from '@components/RenderHTML';
 import CreatedReportForUnapprovedTransactionsAction from '@components/ReportActionItem/CreatedReportForUnapprovedTransactionsAction';
 import CreateHarvestReportAction from '@components/ReportActionItem/CreateHarvestReportAction';
@@ -103,9 +102,6 @@ type ActionContentRouterProps = {
     /** Whether the message is moderation-hidden */
     isHidden: boolean;
 
-    /** The latest moderation decision for the action */
-    moderationDecision: OnyxTypes.DecisionName;
-
     /** Toggle the hidden state of the message */
     updateHiddenState: (isHiddenValue: boolean) => void;
 
@@ -165,26 +161,6 @@ type ActionContentRouterProps = {
 
     /** Open the context menu, transitioning the action sheet first */
     handleShowContextMenu: (callback: () => void) => void;
-
-    /** Function to resolve actionable mention whisper */
-    resolveActionableMentionWhisper: (
-        report: OnyxEntry<OnyxTypes.Report>,
-        reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
-        isReportArchived: boolean,
-        parentReport?: OnyxEntry<OnyxTypes.Report>,
-    ) => void;
-
-    /** Function to resolve actionable report mention whisper */
-    resolveActionableReportMentionWhisper: (
-        report: OnyxEntry<OnyxTypes.Report>,
-        reportAction: OnyxEntry<OnyxTypes.ReportAction>,
-        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
-        isReportArchived?: boolean,
-    ) => void;
-
-    /** Whether the search context provides a hash for attachment context (search-page only) */
-    currentSearchHash: number | undefined;
 };
 
 function ActionContentRouter({
@@ -199,7 +175,6 @@ function ActionContentRouter({
     isWhisper,
     hovered,
     isHidden,
-    moderationDecision,
     updateHiddenState,
     isArchivedRoom,
     isReportArchived,
@@ -220,9 +195,6 @@ function ActionContentRouter({
     setIsPaymentMethodPopoverActive,
     toggleContextMenuFromActiveReportAction,
     handleShowContextMenu,
-    resolveActionableMentionWhisper,
-    resolveActionableReportMentionWhisper,
-    currentSearchHash,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -468,7 +440,6 @@ function ActionContentRouter({
                 report={report}
                 originalReport={originalReport}
                 originalReportID={originalReportID}
-                resolveActionableMentionWhisper={resolveActionableMentionWhisper}
             />
         );
     }
@@ -480,7 +451,6 @@ function ActionContentRouter({
                 report={report}
                 originalReport={originalReport}
                 isReportArchived={isReportArchived}
-                resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
             />
         );
     }
@@ -510,7 +480,12 @@ function ActionContentRouter({
         return <CardBrokenConnectionContent action={action} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
-        return <ExportIntegration action={action} />;
+        return (
+            <ExportIntegration
+                action={action}
+                originalReport={originalReport}
+            />
+        );
     }
     if (isRenamedAction(action)) {
         return <ReportActionItemBasicMessage message={getRenamedAction(translate, action, isExpenseReport(report))} />;
@@ -572,12 +547,10 @@ function ActionContentRouter({
             draftMessage={draftMessage}
             index={index}
             isHidden={isHidden}
-            moderationDecision={moderationDecision}
             updateHiddenState={updateHiddenState}
             isArchivedRoom={isArchivedRoom}
             composerTextInputRef={composerTextInputRef}
             isOnSearch={isOnSearch}
-            currentSearchHash={currentSearchHash}
             contextMenuStateValue={contextMenuStateValue}
             contextMenuActionsValue={contextMenuActionsValue}
             userBillingFundID={userBillingFundID}

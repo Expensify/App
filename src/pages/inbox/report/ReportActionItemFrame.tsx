@@ -1,8 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPendingRemove} from '@libs/ReportActionsUtils';
-import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
@@ -38,24 +36,9 @@ type ReportActionItemFrameProps = {
 
     /** Whether the report action is currently active (linked, not occluded by context menu) */
     isActive: boolean;
-
-    /** Latest moderation decision used to compute hasBeenFlagged */
-    moderationDecision: OnyxTypes.DecisionName;
 };
 
-function ReportActionItemFrame({
-    children,
-    action,
-    report,
-    iouReport,
-    displayAsGroup,
-    hasDraft,
-    isWhisper,
-    isOnSearch,
-    hovered,
-    isActive,
-    moderationDecision,
-}: ReportActionItemFrameProps): React.JSX.Element {
+function ReportActionItemFrame({children, action, report, iouReport, displayAsGroup, hasDraft, isWhisper, isOnSearch, hovered, isActive}: ReportActionItemFrameProps): React.JSX.Element {
     const styles = useThemeStyles();
 
     if (hasDraft) {
@@ -75,9 +58,6 @@ function ReportActionItemFrame({
                 iouReport={iouReport}
                 isHovered={hovered}
                 isActive={isActive}
-                hasBeenFlagged={
-                    ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
-                }
             >
                 {children}
             </ReportActionItemSingle>

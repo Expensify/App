@@ -82,6 +82,10 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                                     firstAdminPolicy?.id && {
                                         restrictedPrimaryPolicyID: firstAdminPolicy?.id,
                                     }),
+                                ...(!enabled &&
+                                    group?.overridePreferredPolicyWithCardPolicy && {
+                                        overridePreferredPolicyWithCardPolicy: false,
+                                    }),
                             },
                             'enableRestrictedPrimaryPolicy',
                         );
