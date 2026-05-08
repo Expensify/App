@@ -347,8 +347,8 @@ function BaseSelectionList<TItem extends ListItem>({
     };
 
     const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
-        const isItemDisabled = isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
+        const isItemDisabled = isDisabled || (!!item.isDisabled && !selected);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
         const isItemVisuallyFocused = isItemFocused && (shouldHighlightInitiallyFocusedItem || isKeyboardNavigating);
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList);

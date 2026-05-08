@@ -2,7 +2,6 @@ import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections, doesSearchItemMatchSort} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +67,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
@@ -112,7 +110,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 savedSearches,
                 isOffline,
                 defaultExpensifyCard,
-                shouldRedirectToExpensifyClassic,
                 draftTransactionIDs,
                 isTrackIntentUser: isTrackIntentUser ?? false,
             }),
@@ -125,7 +122,6 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
             allPolicies,
             savedSearches,
             isOffline,
-            shouldRedirectToExpensifyClassic,
             draftTransactionIDs,
             isTrackIntentUser,
         ],

@@ -132,7 +132,7 @@ No, members must remove themselves.
 Yes, an “edited” label will appear.
 
 ## Why can’t I message in some rooms?
-Rooms may have restricted posting permissions for Admins only.
+Rooms may have restricted posting permissions for Admins only. In other cases, the conversation may be read-only, and you’ll see a "This conversation is read-only" banner at the bottom of the chat.
 
 ## What happens when I flag a message?
 The moderation team reviews it, may hide or delete the message, and can restrict the sender’s account.
