@@ -197,8 +197,8 @@ function KYBDocuments({onBackButtonPress, onSubmit}: KYBDocumentsProps) {
                             onUpload={(files) => handleSelectFile(files, document.inputID)}
                             onRemove={(fileName) => handleRemoveFile(fileName, document.inputID)}
                             setError={(error) => setUploadError(error, document.inputID)}
-                            fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                            acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                            fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                            acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                             value={uploadedFiles[document.inputID]}
                             inputID={document.inputID}
                         />
