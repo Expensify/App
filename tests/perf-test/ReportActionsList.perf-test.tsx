@@ -22,8 +22,6 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-const REPORT_ACTIONS_LIST_ID = 'perf-test-list';
-
 type LazyLoadLHNTestUtils = {
     fakePersonalDetails: PersonalDetailsList;
 };
@@ -118,14 +116,9 @@ function ReportActionsListWrapper() {
                             report={report}
                             onLayout={mockOnLayout}
                             onScroll={mockOnScroll}
-                            listID={REPORT_ACTIONS_LIST_ID}
+                            listID={1}
                             loadOlderChats={mockLoadChats}
                             loadNewerChats={mockLoadChats}
-                            hasNewerActions={false}
-                            sortedAllReportActionsForPagination={reportActions}
-                            reportActionPages={undefined}
-                            treatAsNoPaginationAnchor={false}
-                            setTreatAsNoPaginationAnchor={() => {}}
                             transactionThreadReport={report}
                         />
                     </ActionListContext.Provider>

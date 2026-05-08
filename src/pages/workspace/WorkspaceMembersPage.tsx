@@ -1003,7 +1003,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onSelectAll={displayedFilteredData.length > 0 ? () => toggleAllUsers(displayedFilteredData) : undefined}
                         style={{
                             listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
-                            contentContainerStyle: shouldShowRoleFilterEmptyState ? [styles.flex1, styles.mh100] : undefined,
+                            contentContainerStyle: shouldShowRoleFilterEmptyState ? styles.flexGrow1 : undefined,
                             listFooterContentStyle: shouldShowRoleFilterEmptyState ? styles.flex1 : undefined,
                         }}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
