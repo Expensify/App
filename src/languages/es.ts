@@ -5844,6 +5844,13 @@ ${amount} para ${merchant} - ${date}`,
         copyPolicySettings: {
             error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Inténtalo de nuevo.',
         },
+        copySettings: {
+            title: 'Copiar configuración',
+            selectWorkspaces: 'Selecciona espacios de trabajo',
+            whichWorkspaces: '¿A qué espacios de trabajo quieres copiar esta configuración?',
+            searchPlaceholder: 'Buscar espacios de trabajo',
+            selectAll: 'Seleccionar todo',
+        },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
             subtitle: 'Crea un espacio de trabajo para gestionar tus gastos, reembolsos y tarjetas de empresa.',

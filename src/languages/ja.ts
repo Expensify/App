@@ -5890,6 +5890,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         copyPolicySettings: {
             error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。',
         },
+        copySettings: {
+            title: '設定をコピー',
+            selectWorkspaces: 'ワークスペースを選択',
+            whichWorkspaces: 'どのワークスペースに設定をコピーしますか？',
+            searchPlaceholder: 'ワークスペースを検索',
+            selectAll: 'すべて選択',
+        },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
             subtitle: '領収書を管理し、経費を精算し、出張を管理し、請求書を送信するなど、さまざまなことができます。',

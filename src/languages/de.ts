@@ -5967,6 +5967,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
         copyPolicySettings: {
             error: 'Beim Kopieren der Arbeitsbereich-Einstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.',
         },
+        copySettings: {
+            title: 'Einstellungen kopieren',
+            selectWorkspaces: 'Arbeitsbereiche auswählen',
+            whichWorkspaces: 'In welche Arbeitsbereiche möchtest du diese Einstellungen kopieren?',
+            searchPlaceholder: 'Arbeitsbereiche suchen',
+            selectAll: 'Alle auswählen',
+        },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',
             subtitle: 'Belege erfassen, Auslagen erstatten, Reisen verwalten, Rechnungen versenden und mehr.',

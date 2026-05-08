@@ -5937,6 +5937,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         copyPolicySettings: {
             error: 'Er is een fout opgetreden bij het kopiëren van de werkruimte-instellingen. Probeer het opnieuw.',
         },
+        copySettings: {
+            title: 'Instellingen kopiëren',
+            selectWorkspaces: 'Werkruimtes selecteren',
+            whichWorkspaces: 'Naar welke werkruimtes wil je deze instellingen kopiëren?',
+            searchPlaceholder: 'Werkruimtes zoeken',
+            selectAll: 'Alles selecteren',
+        },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
             subtitle: 'Volg bonnen, vergoed uitgaven, beheer reizen, verstuur facturen en meer.',

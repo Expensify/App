@@ -5792,6 +5792,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         copyPolicySettings: {
             error: '复制工作区设置时发生错误。请重试。',
         },
+        copySettings: {
+            title: '复制设置',
+            selectWorkspaces: '选择工作区',
+            whichWorkspaces: '您想将这些设置复制到哪些工作区？',
+            searchPlaceholder: '搜索工作区',
+            selectAll: '全选',
+        },
         emptyWorkspace: {
             title: '你还没有工作区',
             subtitle: '跟踪收据、报销费用、管理差旅、发送发票等。',

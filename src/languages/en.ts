@@ -5980,6 +5980,13 @@ const translations = {
         copyPolicySettings: {
             error: 'An error occurred while copying workspace settings. Please try again.',
         },
+        copySettings: {
+            title: 'Copy settings',
+            selectWorkspaces: 'Select workspaces',
+            whichWorkspaces: 'Which workspaces do you want to copy these settings to?',
+            searchPlaceholder: 'Search workspaces',
+            selectAll: 'Select all',
+        },
         emptyWorkspace: {
             title: 'No workspaces yet',
             subtitle: 'Create a workspace to manage your expenses, reimbursements, and company cards.',

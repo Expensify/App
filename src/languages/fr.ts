@@ -5987,6 +5987,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         copyPolicySettings: {
             error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.',
         },
+        copySettings: {
+            title: 'Copier les paramètres',
+            selectWorkspaces: 'Sélectionner des espaces de travail',
+            whichWorkspaces: 'Vers quels espaces de travail voulez-vous copier ces paramètres?',
+            searchPlaceholder: 'Rechercher des espaces de travail',
+            selectAll: 'Tout sélectionner',
+        },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',
             subtitle: 'Suivez les reçus, remboursez les dépenses, gérez les voyages, envoyez des factures, et plus encore.',

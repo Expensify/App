@@ -5931,6 +5931,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
         copyPolicySettings: {
             error: 'Wystąpił błąd podczas kopiowania ustawień przestrzeni roboczej. Spróbuj ponownie.',
         },
+        copySettings: {
+            title: 'Kopiuj ustawienia',
+            selectWorkspaces: 'Wybierz przestrzenie robocze',
+            whichWorkspaces: 'Do których przestrzeni roboczych chcesz skopiować te ustawienia?',
+            searchPlaceholder: 'Wyszukaj przestrzenie robocze',
+            selectAll: 'Zaznacz wszystkie',
+        },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',
             subtitle: 'Śledź paragony, rozliczaj wydatki, zarządzaj podróżami, wysyłaj faktury i wiele więcej.',
