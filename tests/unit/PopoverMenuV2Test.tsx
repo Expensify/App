@@ -1358,6 +1358,58 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('B item')).toBeUndefined();
         });
 
+        // Protects the `currentSubIDRef` ref-mirror in `useSubNavigation` (load-bearing per plan §11):
+        // when a nested sub unmounts while its parent stays mounted, `unregisterSub`'s cleanup
+        // closure must read the *committed* level (`B`) — not a stale closure capture from when the
+        // cleanup was registered (when level may have been `A` or `null`). The pop should land at
+        // the parent (`A`), not collapse to root.
+        it('pops to parent when only the nested <Sub> unmounts (parent stays mounted)', () => {
+            const captured: Array<string | null> = [];
+            function NavProbe() {
+                const {currentSubID} = useContentNavigation('NavProbe');
+                captured.push(currentSubID);
+                return null;
+            }
+            function NestedTree({showInner}: {showInner: boolean}) {
+                return (
+                    <Harness initialOpen>
+                        <PopoverMenu.Content>
+                            <NavProbe />
+                            <PopoverMenu.Sub id="A">
+                                <PopoverMenu.Sub.Trigger text="Open A" />
+                                <PopoverMenu.Sub.Content backButtonText="Back to root">
+                                    {showInner && (
+                                        <PopoverMenu.Sub id="B">
+                                            <PopoverMenu.Sub.Trigger text="Open B" />
+                                            <PopoverMenu.Sub.Content backButtonText="Back to A">
+                                                <PopoverMenu.Item
+                                                    text="B item"
+                                                    onSelect={() => {}}
+                                                />
+                                            </PopoverMenu.Sub.Content>
+                                        </PopoverMenu.Sub>
+                                    )}
+                                </PopoverMenu.Sub.Content>
+                            </PopoverMenu.Sub>
+                        </PopoverMenu.Content>
+                    </Harness>
+                );
+            }
+
+            const tree = render(<NestedTree showInner />);
+            press('Open A');
+            press('Open B');
+            expect(captured.at(-1)).toBe('B');
+
+            menuItemPropsCapture.current = [];
+            tree.rerender(<NestedTree showInner={false} />);
+
+            // The cleanup closure for Sub B fires with subID='B' and must see currentSubIDRef.current === 'B'.
+            // Cascade walks parentLinks to find the nearest still-mounted ancestor: A is still mounted.
+            // currentSubID lands at 'A', NOT null.
+            expect(captured.at(-1)).toBe('A');
+        });
+
         it('keeps custom non-primitive children gated to the active level', () => {
             const renderSpy = jest.fn();
             function CustomRow() {
