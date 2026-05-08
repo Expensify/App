@@ -88,7 +88,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            dismissModalAndNavigate(policyID);
+            Navigation.dismissModal();
             return;
         }
         downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled);
