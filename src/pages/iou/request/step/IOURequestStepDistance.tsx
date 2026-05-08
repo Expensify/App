@@ -752,8 +752,8 @@ function IOURequestStepDistance({
     );
 
     // Temporarily disabling tab view & manual edit of waypoint-based expenses
-    const shouldDisableManualWaypointEditting = true;
-    if (!shouldDisableManualWaypointEditting) {
+    const shouldDisableManualWaypointEditing = true;
+    if (!shouldDisableManualWaypointEditing) {
         return (
             <StepScreenWrapper
                 headerTitle={translate('common.distance')}
