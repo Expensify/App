@@ -138,6 +138,9 @@ let prevReportID: string | null = null;
  * random enough to avoid collisions
  */
 function keyExtractor(item: OnyxTypes.ReportAction): string {
+    if (item.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        return CONST.REPORT.ACTIONS.TYPE.CREATED;
+    }
     return item.reportActionID;
 }
 
@@ -233,7 +236,8 @@ function ReportActionsList({
     const hasHeaderRendered = useRef(false);
 
     const lastAction = sortedVisibleReportActions.at(0);
-    const [shouldMaintainVisibleContentPosition, setShouldMaintainVisibleContentPosition] = useState(() => scrollOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    const [hasScrolledOverTreshold, setHasScrolledOverTreshold] = useState(() => scrollOffsetRef.current > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+    const shouldMaintainVisibleContentPosition = hasScrolledOverTreshold || shouldFocusToTopOnMount; // TODO: add additional check for the initial load
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
         () =>
             sortedVisibleReportActions.reduce((actions, action) => {
@@ -374,7 +378,7 @@ function ReportActionsList({
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const offset = event.nativeEvent.contentOffset.y;
             scrollOffsetRef.current = offset;
-            setShouldMaintainVisibleContentPosition(offset > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+            setHasScrolledOverTreshold(offset > CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
             onScroll?.(event);
         },
         hasOnceLoadedReportActions: !!reportLoadingState?.hasOnceLoadedReportActions,
@@ -851,6 +855,7 @@ function ReportActionsList({
                     overrideProps={{isInvertedVirtualizedList: true}}
                     getItemType={(item) => item.actionName}
                     shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
+                    shouldFocusToTopOnMount={shouldFocusToTopOnMount}
                     initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);

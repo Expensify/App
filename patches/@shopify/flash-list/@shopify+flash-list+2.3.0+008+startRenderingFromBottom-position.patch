@@ -1,0 +1,46 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+index 51b6f8c..44ea258 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+@@ -495,8 +495,8 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+         updateScrollOffsetWithCallback,
+     ]);
+     const applyInitialScrollIndex = useCallback(() => {
+-        var _a, _b, _c;
+-        const { horizontal, data, initialScrollIndexParams } = recyclerViewManager.props;
++        var _a, _b, _c, _d;
++        const { horizontal, data, initialScrollIndexParams, maintainVisibleContentPosition, initialScrollIndex: explicitInitialScrollIndex, } = recyclerViewManager.props;
+         const initialScrollIndex = (_a = recyclerViewManager.getInitialScrollIndex()) !== null && _a !== void 0 ? _a : -1;
+         const dataLength = (_b = data === null || data === void 0 ? void 0 : data.length) !== null && _b !== void 0 ? _b : 0;
+         if (initialScrollIndex >= 0 &&
+@@ -510,10 +510,26 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+             }, 100);
+             pauseOffsetCorrection.current = true;
+             const additionalOffset = (_c = initialScrollIndexParams === null || initialScrollIndexParams === void 0 ? void 0 : initialScrollIndexParams.viewOffset) !== null && _c !== void 0 ? _c : 0;
+-            const offset = horizontal
+-                ? recyclerViewManager.getLayout(initialScrollIndex).x + additionalOffset
+-                : recyclerViewManager.getLayout(initialScrollIndex).y +
+-                    additionalOffset;
++            const layout = recyclerViewManager.getLayout(initialScrollIndex);
++            // When startRenderingFromBottom triggers the initial scroll (and the
++            // user did not pass an explicit initialScrollIndex), align the bottom
++            // edge of the targeted item with the viewport's bottom edge. Without
++            // this, the default offset = layout top puts the item's bottom past
++            // the viewport whenever the item is taller than the viewport.
++            const isStartRenderingFromBottom = explicitInitialScrollIndex == null
++                && !!((_d = maintainVisibleContentPosition) === null || _d === void 0 ? void 0 : _d.startRenderingFromBottom);
++            const windowSize = recyclerViewManager.getWindowSize();
++            let offset;
++            if (horizontal) {
++                offset = isStartRenderingFromBottom && layout.width > windowSize.width
++                    ? layout.x + layout.width - windowSize.width + additionalOffset
++                    : layout.x + additionalOffset;
++            }
++            else {
++                offset = isStartRenderingFromBottom && layout.height > windowSize.height
++                    ? layout.y + layout.height - windowSize.height + additionalOffset
++                    : layout.y + additionalOffset;
++            }
+             handlerMethods.scrollToOffset({
+                 offset,
+                 animated: false,
