@@ -89,27 +89,27 @@ function BaseContentInner({
     const anchorPosition = computeAnchorPosition(activeAnchor.rect, anchorAlignment);
 
     return (
-        <ContentNavigationContext.Provider value={navigation}>
-            <ContentFocusContext.Provider value={focus}>
-                <ContentSubActionsContext.Provider value={subActions}>
-                    <ContentItemActionsContext.Provider value={itemActions}>
-                        <ContentCloseContext.Provider value={close}>
-                            <PopoverWithMeasuredContent
-                                anchorPosition={anchorPosition}
-                                anchorRef={activeAnchor.ref}
-                                anchorAlignment={anchorAlignment}
-                                onClose={close}
-                                isVisible={isVisible}
-                                onModalShow={onModalShow}
-                                onModalHide={onModalHide}
-                                disableAnimation
-                                restoreFocusType={restoreFocusType}
-                                innerContainerStyle={innerContainerStyle ?? styles.pv0}
-                                shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
-                                testID={testID}
-                            >
-                                <FocusTrapForModal active={isVisible}>
-                                    <CompactMenuContext.Provider value>
+        <PopoverWithMeasuredContent
+            anchorPosition={anchorPosition}
+            anchorRef={activeAnchor.ref}
+            anchorAlignment={anchorAlignment}
+            onClose={close}
+            isVisible={isVisible}
+            onModalShow={onModalShow}
+            onModalHide={onModalHide}
+            disableAnimation
+            restoreFocusType={restoreFocusType}
+            innerContainerStyle={innerContainerStyle ?? styles.pv0}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
+            testID={testID}
+        >
+            <FocusTrapForModal active={isVisible}>
+                <CompactMenuContext.Provider value>
+                    <ContentNavigationContext.Provider value={navigation}>
+                        <ContentFocusContext.Provider value={focus}>
+                            <ContentSubActionsContext.Provider value={subActions}>
+                                <ContentItemActionsContext.Provider value={itemActions}>
+                                    <ContentCloseContext.Provider value={close}>
                                         <View
                                             onLayout={onLayout}
                                             style={[
@@ -121,14 +121,14 @@ function BaseContentInner({
                                         >
                                             {children}
                                         </View>
-                                    </CompactMenuContext.Provider>
-                                </FocusTrapForModal>
-                            </PopoverWithMeasuredContent>
-                        </ContentCloseContext.Provider>
-                    </ContentItemActionsContext.Provider>
-                </ContentSubActionsContext.Provider>
-            </ContentFocusContext.Provider>
-        </ContentNavigationContext.Provider>
+                                    </ContentCloseContext.Provider>
+                                </ContentItemActionsContext.Provider>
+                            </ContentSubActionsContext.Provider>
+                        </ContentFocusContext.Provider>
+                    </ContentNavigationContext.Provider>
+                </CompactMenuContext.Provider>
+            </FocusTrapForModal>
+        </PopoverWithMeasuredContent>
     );
 }
 
