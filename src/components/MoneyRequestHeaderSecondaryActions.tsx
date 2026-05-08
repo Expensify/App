@@ -270,18 +270,18 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         if (!transaction || !parentReportAction || !parentReport) {
             return [];
         }
-        return getSecondaryTransactionThreadActions(
-            currentUserLogin ?? '',
-            accountID,
+        return getSecondaryTransactionThreadActions({
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID: accountID,
             parentReport,
-            transaction,
-            parentReportAction,
+            reportTransaction: transaction,
+            reportAction: parentReportAction,
             originalTransaction,
             policy,
-            report,
+            transactionThreadReport: report,
             outstandingReportsByPolicyID,
-            isChatIOUReportArchived,
-        );
+            isChatReportArchived: isChatIOUReportArchived,
+        });
     })();
 
     const secondaryActionsImplementation: Partial<
