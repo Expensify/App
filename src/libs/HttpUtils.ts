@@ -67,7 +67,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
-    const init: Parameters<typeof fetch>[1] = {
+    const fetchParams: Parameters<typeof fetch>[1] = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
@@ -82,13 +82,13 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     if (headers.prefetchKey) {
         try {
-            prefetchOnAppStart(url, init);
+            prefetchOnAppStart(url, fetchParams);
         } catch (error) {
             Log.warn('[HttpUtils] prefetchOnAppStart failed', {error});
         }
     }
 
-    return fetch(url, init)
+    return fetch(url, fetchParams)
         .then((response) => {
             // We are calculating the skew to minimize the delay when posting the messages
             const match = url.match(APICommandRegex)?.[1];
