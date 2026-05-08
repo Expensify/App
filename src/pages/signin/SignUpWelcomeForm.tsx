@@ -1,6 +1,8 @@
-import React, {useMemo} from 'react';
+import {Str} from 'expensify-common';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,11 +21,24 @@ function SignUpWelcomeForm() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
+    const isPhoneSignup = Str.isSMSLogin(credentials?.login ?? '');
+    const [marketingSmsConsent, setMarketingSmsConsent] = useState(false);
 
     return (
         <>
+            {isPhoneSignup && (
+                <View style={[styles.mt3]}>
+                    <CheckboxWithLabel
+                        label={translate('welcomeSignUpForm.marketingSMSConsent')}
+                        isChecked={marketingSmsConsent}
+                        onInputChange={(value) => setMarketingSmsConsent(!!value)}
+                        accessibilityLabel={translate('welcomeSignUpForm.marketingSMSConsent')}
+                    />
+                </View>
+            )}
             <View style={[styles.mt3, styles.mb2]}>
                 <Button
                     isDisabled={network.isOffline || !!account?.message}
@@ -32,7 +47,7 @@ function SignUpWelcomeForm() {
                     text={translate('welcomeSignUpForm.join')}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser(preferredLocale);
+                        signUpUser(preferredLocale, isPhoneSignup ? marketingSmsConsent : undefined);
                         setReadyToShowAuthScreens(true);
                     }}
                     pressOnEnter
