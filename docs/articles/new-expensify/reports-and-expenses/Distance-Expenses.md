@@ -129,7 +129,12 @@ The expense amount is automatically calculated by multiplying the distance by th
 
 ## Can I edit a Distance expense after I’ve created it?
 
-Yes! You can edit the expense before it is approved. To learn how to edit an expense, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
+Yes! You can edit the distance on an expense before it is approved. Open the expense, select **Distance**, and choose how to update it:
+
+- **Map** — Edit the start, stop, and any additional waypoints. The distance and amount are recalculated automatically based on the updated route.
+- **Manual** — Type the distance directly in miles or kilometers. The amount is recalculated automatically based on the distance you enter.
+
+To learn more about editing expenses, see [Managing Expenses in a Report](/articles/new-expensify/reports-and-expenses/Managing-Expenses-in-a-Report).
 
 ## Can I update the Distance expense unit or rate?
 
