@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "model": "claude-sonnet-4-6",
+  "testCaseHash": "377c89ecd3182b95",
+  "steps": [
+    {
+      "stepNumber": 1,
+      "stepTextHash": "eefe04289ed44849",
+      "preSignature": "7a4382df9ac727f2",
+      "postSignature": "7a4382df9ac727f2",
+      "actions": [],
+      "expect": "snapshot.contains_text(\"Phone or email\")",
+      "recordedAt": "2026-05-08T12:28:40.823Z",
+      "runId": "25553622590"
+    },
+    {
+      "stepNumber": 2,
+      "stepTextHash": "988a4a6e077e6dc6",
+      "preSignature": "7a4382df9ac727f2",
+      "postSignature": "5303106f4b995b99",
+      "actions": [
+        {
+          "tool": "press",
+          "locator": {
+            "kind": "text-field",
+            "index": 0,
+            "editable": true
+          }
+        }
+      ],
+      "expect": "snapshot.field_with_text(\"rustam.zeinalov@callstack.com\").exists",
+      "recordedAt": "2026-05-08T12:29:43.097Z",
+      "runId": "25553622590"
+    },
+    {
+      "stepNumber": 3,
+      "stepTextHash": "a071b334a6b8c0f4",
+      "preSignature": "5303106f4b995b99",
+      "postSignature": "0235eea0848df345",
+      "actions": [
+        {
+          "tool": "press",
+          "locator": {
+            "kind": "button",
+            "index": 0
+          }
+        },
+        {
+          "tool": "dismiss_keyboard"
+        }
+      ],
+      "expect": "appstate.foreground == \"com.expensify.chat.dev\"",
+      "recordedAt": "2026-05-08T12:30:04.546Z",
+      "runId": "25553622590"
+    },
+    {
+      "stepNumber": 4,
+      "stepTextHash": "a1059919be2f42c9",
+      "preSignature": "0235eea0848df345",
+      "postSignature": "0235eea0848df345",
+      "actions": [
+        {
+          "tool": "wait_for",
+          "predicate": "snapshot.contains_text(\"Magic code\")",
+          "timeoutMs": 60000
+        }
+      ],
+      "expect": "snapshot.contains_text(\"Magic code\")",
+      "recordedAt": "2026-05-08T12:30:21.603Z",
+      "runId": "25553622590"
+    }
+  ]
+}
