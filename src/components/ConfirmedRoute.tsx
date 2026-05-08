@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -8,7 +8,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getWaypointIndex} from '@libs/TransactionUtils';
-import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -80,11 +79,6 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
             markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
         });
     }
-
-    useEffect(() => {
-        initMapboxToken();
-        return stopMapboxToken;
-    }, []);
 
     const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
 

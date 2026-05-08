@@ -482,56 +482,41 @@ function MoneyRequestConfirmationList({
         <View style={isCompactMode ? styles.flex1 : undefined}>
             <MoneyRequestConfirmationListFooter
                 action={action}
-                distanceRateCurrency={currency}
-                didConfirm={!!didConfirm}
-                distance={distance}
-                amount={amountToBeUsed}
-                formattedAmount={formattedAmount}
-                formattedAmountPerAttendee={formattedAmountPerAttendee}
-                formError={formError}
-                hasRoute={hasRoute}
                 iouType={iouType}
-                isCategoryRequired={isCategoryRequired}
-                isDistanceRequest={isDistanceRequest}
-                isManualDistanceRequest={isManualDistanceRequest}
-                isOdometerDistanceRequest={isOdometerDistanceRequest}
-                isLoadingReceipt={isLoadingReceipt}
-                isGPSDistanceRequest={isGPSDistanceRequest}
-                isPerDiemRequest={isPerDiemRequest}
-                isTimeRequest={isTimeRequest}
-                isMerchantRequired={isMerchantRequired}
-                isPolicyExpenseChat={isPolicyExpenseChat}
-                isReadOnly={isReadOnly}
-                isEditingSplitBill={isEditingSplitBill}
-                isTypeInvoice={isTypeInvoice}
-                onToggleBillable={onToggleBillable}
-                policy={policy}
-                policyTags={policyTags}
-                policyTagLists={policyTagLists}
-                rate={rate}
-                distanceRateName={mileageRate.name}
-                receiptFilename={receiptFilename}
-                receiptPath={receiptPath}
-                reportActionID={reportActionID}
-                reportID={reportID}
-                selectedParticipants={selectedParticipantsProp}
-                shouldDisplayFieldError={shouldDisplayFieldError}
-                shouldDisplayReceipt={shouldDisplayReceipt}
-                shouldShowCategories={shouldShowCategories}
-                shouldShowMerchant={shouldShowMerchant}
-                shouldShowSmartScanFields={shouldShowSmartScanFields}
-                shouldShowAmountField={!isPerDiemRequest}
-                shouldShowTax={shouldShowTax}
-                transaction={transaction}
                 transactionID={transactionID}
-                unit={unit}
-                onPDFLoadError={onPDFLoadError}
-                onPDFPassword={onPDFPassword}
-                onToggleReimbursable={onToggleReimbursable}
-                isReceiptEditable={isReceiptEditable}
-                isDescriptionRequired={isDescriptionRequired}
-                showMoreFields={showMoreFields}
-                setShowMoreFields={setShowMoreFields}
+                reportID={reportID}
+                reportActionID={reportActionID}
+                transaction={transaction}
+                policy={policy}
+                selectedParticipants={selectedParticipantsProp}
+                isReadOnly={isReadOnly}
+                didConfirm={!!didConfirm}
+                isEditingSplitBill={isEditingSplitBill}
+                isPolicyExpenseChat={isPolicyExpenseChat}
+                expenseMode={{isDistance: isDistanceRequest, isTime: isTimeRequest, isInvoice: isTypeInvoice, isPerDiem: isPerDiemRequest}}
+                distanceFlags={{isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest}}
+                distanceData={{distance, hasRoute, unit, rate, distanceRateName: mileageRate.name, distanceRateCurrency: currency}}
+                amountDisplay={{amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee}}
+                requiredFlags={{isCategoryRequired, isMerchantRequired, isDescriptionRequired}}
+                visibilityFlags={{
+                    shouldShowSmartScanFields,
+                    shouldShowAmountField: !isPerDiemRequest,
+                    shouldShowMerchant,
+                    shouldShowCategories,
+                    shouldShowTax,
+                }}
+                errorState={{shouldDisplayFieldError, formError}}
+                toggleHandlers={{onToggleReimbursable, onToggleBillable}}
+                receiptOptions={{
+                    receiptFilename,
+                    receiptPath,
+                    isLoadingReceipt,
+                    isReceiptEditable,
+                    shouldDisplayReceipt,
+                    onPDFLoadError,
+                    onPDFPassword,
+                }}
+                compactControls={{showMoreFields, setShowMoreFields}}
             />
         </View>
     );

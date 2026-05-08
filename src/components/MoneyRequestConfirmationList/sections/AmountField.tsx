@@ -1,3 +1,4 @@
+import {accountIDSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -12,7 +13,6 @@ import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCur
 import {calculateAmount} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {shouldEnableNegative} from '@libs/ReportUtils';
-import {isAmountMissing} from '@libs/TransactionUtils';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import {resetSplitShares, setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
@@ -20,6 +20,8 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {amountSliceSelector} from './selectors';
+import useTransactionSelector from './useTransactionSelector';
 
 type AmountFieldProps = {
     action: IOUAction;
@@ -34,7 +36,6 @@ type AmountFieldProps = {
     shouldShowTimeRequestFields: boolean;
     shouldDisplayFieldError: boolean;
     formError: string;
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionID: string | undefined;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
@@ -56,7 +57,6 @@ function AmountField({
     shouldShowTimeRequestFields,
     shouldDisplayFieldError,
     formError,
-    transaction,
     transactionID,
     iouType,
     reportID,
@@ -69,7 +69,12 @@ function AmountField({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+
+    const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
+
+    const transactionForHandlers = transactionSlice as OnyxEntry<OnyxTypes.Transaction>;
+    const amountIsMissing = transactionSlice?.isAmountMissing ?? false;
 
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
@@ -79,7 +84,7 @@ function AmountField({
     const effectiveCurrency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD);
     const decimals = getCurrencyDecimals(effectiveCurrency);
     const transactionAmount = convertToFrontendAmountAsString(amount, decimals);
-    const allowNegative = shouldEnableNegative(report, policy, iouType, transaction?.participants);
+    const allowNegative = shouldEnableNegative(report, policy, iouType, transactionSlice?.participants);
 
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
@@ -111,10 +116,10 @@ function AmountField({
             return;
         }
 
-        const splitShares = splitDraftTransaction?.splitShares ?? transaction?.splitShares;
+        const splitShares = splitDraftTransaction?.splitShares ?? transactionSlice?.splitShares;
         const accountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
         const newAccountIDs = Object.keys(splitShares ?? {}).map((key) => Number(key));
-        const oldAccountIDs = Object.keys(transaction?.splitShares ?? {}).map((key) => Number(key));
+        const oldAccountIDs = Object.keys(transactionSlice?.splitShares ?? {}).map((key) => Number(key));
         const accountIDs = [...new Set<number>([accountID, ...newAccountIDs, ...oldAccountIDs])];
 
         const participantsLength = newAccountIDs.includes(accountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
@@ -168,8 +173,8 @@ function AmountField({
             return;
         }
         // Edits to the amount from the splits page should reset the split shares.
-        if (transaction?.splitShares) {
-            resetSplitShares(transaction, parsedAmount);
+        if (transactionSlice?.splitShares) {
+            resetSplitShares(transactionForHandlers, parsedAmount);
         }
 
         if (isEditingSplitBill) {
@@ -226,8 +231,8 @@ function AmountField({
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
                     disabled={didConfirm}
-                    brickRoadIndicator={shouldDisplayFieldError && isAmountMissing(transaction) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayFieldError && isAmountMissing(transaction) ? translate('common.error.enterAmount') : ''}
+                    brickRoadIndicator={shouldDisplayFieldError && amountIsMissing ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    errorText={shouldDisplayFieldError && amountIsMissing ? translate('common.error.enterAmount') : ''}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
                 />
             )}
