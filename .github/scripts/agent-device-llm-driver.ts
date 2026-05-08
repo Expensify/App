@@ -244,6 +244,25 @@ async function bootApp(): Promise<void> {
     stdio: "inherit",
   });
 
+  // Pre-emptive ANR suppression. On the 2-core ubuntu-latest runner
+  // the Pixel Launcher routinely ANRs under the combined load of
+  // Metro + APK launch + agent-device. The system normally shows a
+  // blocking "isn't responding" dialog that hides our app behind it.
+  // Setting hide_error_dialogs=1 makes the OS suppress those dialogs
+  // (the underlying ANR still happens but the foreground app keeps
+  // running uncovered). Best-effort — if the property doesn't exist
+  // on this Android version, fall through and let the in-loop
+  // recovery handle it.
+  try {
+    execFileSync(
+      "adb",
+      ["shell", "settings", "put", "global", "hide_error_dialogs", "1"],
+      { timeout: 5_000, stdio: "ignore" },
+    );
+  } catch {
+    // best effort
+  }
+
   log("boot: starting Metro");
   const metroLog = fs.openSync(path.join(ARTIFACTS_DIR, "metro.log"), "a");
   const metro = spawn("npm", ["start"], {
@@ -310,6 +329,45 @@ async function bootApp(): Promise<void> {
       );
       return;
     }
+    // ANR-recovery: when the runner is memory-pressured the system
+    // shows a "Pixel Launcher isn't responding" dialog over our app.
+    // The Expensify activity stays in the foreground (per appstate)
+    // but the accessibility tree is captured by the dialog overlay,
+    // so SignIn is hidden until the dialog is dismissed. Press
+    // "Wait", then force-relaunch our activity via `am start` to
+    // ensure we're on top regardless of what the launcher is doing.
+    if (isAnrDialog(snap)) {
+      log("boot: ANR dialog detected — dismissing and relaunching app");
+      try {
+        const waitBtn = snap.nodes.find(
+          (n) => n.kind === "button" && n.text?.toLowerCase() === "wait",
+        );
+        if (waitBtn) {
+          adCli.press(waitBtn.ref);
+        }
+      } catch (e) {
+        log(`boot: dismiss press failed: ${(e as Error).message.slice(0, 80)}`);
+      }
+      try {
+        execFileSync(
+          "adb",
+          [
+            "shell",
+            "am",
+            "start",
+            "-n",
+            `${APP_PACKAGE}/com.expensify.chat.MainActivity`,
+          ],
+          { timeout: 10_000, stdio: "ignore" },
+        );
+      } catch (e) {
+        log(`boot: am start failed: ${(e as Error).message.slice(0, 80)}`);
+      }
+      // Skip this iteration's normal sleep; recheck immediately so
+      // we don't waste 6s waiting on a known-stale state.
+      await sleep(2_000);
+      continue;
+    }
     if (Date.now() - lastProbeAt >= BOOT_PROBE_INTERVAL_MS) {
       const elapsed = Math.round((Date.now() - start) / 1000);
       fs.writeFileSync(
@@ -342,6 +400,23 @@ async function bootApp(): Promise<void> {
     log(`boot: timeout-diagnostics capture failed: ${(e as Error).message}`);
   }
   fail(`SignIn UI not ready within ${SIGNIN_LOAD_TIMEOUT_MS / 1000}s`);
+}
+
+/**
+ * Detects the Android system "isn't responding" dialog. The exact
+ * label varies (Pixel Launcher / com.android.systemui / etc.) so we
+ * match on the structural fingerprint: exactly two button nodes
+ * labelled "Close app" and "Wait".
+ */
+function isAnrDialog(snap: {
+  nodes: Array<{ kind: string; text?: string }>;
+}): boolean {
+  const buttons = snap.nodes.filter((n) => n.kind === "button");
+  if (buttons.length !== 2) {
+    return false;
+  }
+  const labels = buttons.map((b) => b.text?.toLowerCase() ?? "").sort();
+  return labels[0] === "close app" && labels[1] === "wait";
 }
 
 async function waitForMetro(): Promise<void> {
