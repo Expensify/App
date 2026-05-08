@@ -23,7 +23,11 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
         request.headers = {...request.headers, prefetchKey};
     }
 
-    return middlewares.reduce((last, middleware) => middleware(last, request, isFromSequentialQueue), makeXHR(request));
+    let result = makeXHR(request);
+    for (const middleware of middlewares) {
+        result = middleware(result, request, isFromSequentialQueue);
+    }
+    return result;
 }
 
 function addMiddleware(middleware: Middleware) {
