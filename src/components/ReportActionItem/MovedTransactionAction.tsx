@@ -36,8 +36,11 @@ function MovedTransactionAction({action, originalReport}: MovedTransactionAction
     // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
     const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
 
-    // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
-    // making it impossible to retrieve the report name for display
+    // Defensive fallback: when expenses are merged multiple times, the previous fromReportID may reference
+    // a deleted report, making it impossible to retrieve the report name for display.
+    // This case is filtered upstream by shouldReportActionBeVisible (ReportActionsUtils.ts),
+    // so the row never reaches this leaf. This guard covers transient states (e.g., a brief window during
+    // report deletion before the visibleReportActions derivation recomputes).
     // Ref: https://github.com/Expensify/App/issues/70338
     if (!toReport && !hasFromReport) {
         return null;
