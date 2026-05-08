@@ -90,6 +90,7 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-edit');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/gl-code')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-gl-code');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/approver')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-approver');
     });
 
     it('preserves query params when redirecting legacy workspace tag routes', () => {
