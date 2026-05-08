@@ -9,13 +9,11 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setContactMethodAsDefault} from '@libs/actions/User';
 import {getFeedInfo} from '@libs/CardFeedUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -44,13 +42,12 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
     const {policyID, feed} = route.params;
     const primaryContactMethod = usePrimaryContactMethod();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const [loading, setLoading] = useState(false);
     const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
     const feedInfo = getFeedInfo(feed, cardFeedsByPolicy);
 
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [email, setEmail] = React.useState('');
     const emailLoginKey = email ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === email.toLowerCase()) : undefined;
@@ -69,24 +66,31 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed));
                 return;
             }
-            setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
-            if (!feedInfo) {
+            // If the email is already the current primary, no default-login change is needed — skip the magic code step
+            if (primaryContactMethod && primaryContactMethod.toLowerCase() === existingLoginKey.toLowerCase()) {
+                if (!feedInfo) {
+                    setEmail(submittedEmail);
+                    return;
+                }
+                setLoading(true);
+                const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
+                linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber)
+                    .then(() => {
+                        updateSelectedFeed(feedValue, policyID);
+                        Navigation.closeRHPFlow();
+                    })
+                    .catch((error: TranslationPaths) => {
+                        addErrorMessage({}, INPUT_IDS.EMAIL, translate(error));
+                    })
+                    .finally(() => {
+                        setLoading(false);
+                    });
                 setEmail(submittedEmail);
                 return;
             }
-            setLoading(true);
-            const feedValue = getCardFeedWithDomainID(feedInfo.feed, feedInfo.fundID) as CompanyCardFeedWithDomainID;
-            linkCardFeedToPolicy(Number(feedInfo.fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feedInfo?.country, feedInfo.feed as CompanyCardFeedWithNumber)
-                .then(() => {
-                    updateSelectedFeed(feedValue, policyID);
-                    Navigation.closeRHPFlow();
-                })
-                .catch((error: TranslationPaths) => {
-                    addErrorMessage({}, INPUT_IDS.EMAIL, translate(error));
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+            // Navigate to magic code confirmation page before changing default contact method
+            setEmail(submittedEmail);
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD.getRoute(policyID, feed, existingLoginKey));
         } else {
             AddWorkEmail(submittedEmail);
         }

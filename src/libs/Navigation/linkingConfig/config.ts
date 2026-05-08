@@ -852,6 +852,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD.route,
+                        },
                         [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.route,
                         },
@@ -905,6 +908,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.route,

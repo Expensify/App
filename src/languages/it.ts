@@ -5183,6 +5183,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             fromOtherWorkspaces: 'Da altri spazi di lavoro',
             addWorkEmail: 'Aggiungi la tua email di lavoro',
             addWorkEmailDescription: 'Aggiungi la tua email di lavoro per utilizzare i feed esistenti di altri spazi di lavoro.',
+            confirmDefaultContactMethod: "Let's verify it's you",
+            enterMagicCodeDefaultContactMethod: (primaryLogin: string) => `Please enter the magic code sent to ${primaryLogin} to confirm changing your default contact method.`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed della carta',
                 workspaceFeedsCouldNotBeLoadedMessage:

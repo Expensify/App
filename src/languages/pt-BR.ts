@@ -5169,6 +5169,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             fromOtherWorkspaces: 'De outros workspaces',
             addWorkEmail: 'Adicione seu e-mail de trabalho',
             addWorkEmailDescription: 'Adicione seu e-mail de trabalho para usar os feeds existentes de outros workspaces.',
+            confirmDefaultContactMethod: "Let's verify it's you",
+            enterMagicCodeDefaultContactMethod: (primaryLogin: string) => `Please enter the magic code sent to ${primaryLogin} to confirm changing your default contact method.`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Não foi possível carregar os feeds do cartão',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Ocorreu um erro ao carregar os feeds de cartões do workspace. Tente novamente ou contate o seu administrador.',

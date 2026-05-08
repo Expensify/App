@@ -854,6 +854,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.COMPANY_CARDS_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardsVerifyAccountPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardAddWorkEmailPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardConfirmDefaultContactMethodPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssigneeStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardSelectionStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE]: () =>
@@ -889,6 +891,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardAddWorkEmailPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardVerifyWorkAccountPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardConfirmDefaultContactMethodPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardBankAccounts').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardDetailsPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceEditCardNamePage').default,

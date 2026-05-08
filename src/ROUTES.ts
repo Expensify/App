@@ -2757,6 +2757,11 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/:feed/verify-work-email',
         getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/verify-work-email` as const,
     },
+    WORKSPACE_COMPANY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD: {
+        route: 'workspaces/:policyID/company-cards/:feed/confirm-default-contact-method/:email',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID, email: string) =>
+            `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/confirm-default-contact-method/${encodeURIComponent(email)}` as const,
+    },
     WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE: {
         route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/transaction-start-date',
         getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>
@@ -2851,6 +2856,11 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL: {
         route: 'workspaces/:policyID/expensify-card/:fundID/verify-work-email',
         getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/verify-work-email` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD: {
+        route: 'workspaces/:policyID/expensify-card/:fundID/confirm-default-contact-method/:email',
+        getRoute: (policyID: string, fundID: number, email: string) =>
+            `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/confirm-default-contact-method/${encodeURIComponent(email)}` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/expensify-card/settings/frequency',

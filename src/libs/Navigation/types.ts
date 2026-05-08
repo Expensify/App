@@ -1253,6 +1253,11 @@ type SettingsNavigatorParamList = {
         policyID: string;
         fundID: number;
     };
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD]: {
+        policyID: string;
+        fundID: number;
+        email: string;
+    };
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: {
         policyID: string;
     };
@@ -1295,6 +1300,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL]: {
         policyID: string;
         feed: CompanyCardFeedWithDomainID;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+        email: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
         policyID: string;

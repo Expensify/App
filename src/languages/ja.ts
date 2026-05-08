@@ -5137,6 +5137,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             fromOtherWorkspaces: '他のワークスペースから',
             addWorkEmail: 'あなたの勤務用メールアドレスを追加',
             addWorkEmailDescription: '他のワークスペースの既存フィードを使用するには、勤務用メールアドレスを追加してください。',
+            confirmDefaultContactMethod: "Let's verify it's you",
+            enterMagicCodeDefaultContactMethod: (primaryLogin: string) => `Please enter the magic code sent to ${primaryLogin} to confirm changing your default contact method.`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',

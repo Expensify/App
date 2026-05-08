@@ -8,14 +8,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
-import {setContactMethodAsDefault} from '@libs/actions/User';
 import {addErrorMessage, getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -40,11 +38,10 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
     const {policyID, fundID} = route.params;
     const primaryContactMethod = usePrimaryContactMethod();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
     const [loading, setLoading] = useState(false);
 
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [email, setEmail] = useState('');
     const emailLoginKey = email ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === email.toLowerCase()) : undefined;
@@ -63,21 +60,28 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                 Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, fundID));
                 return;
             }
-            setContactMethodAsDefault(currentUserPersonalDetails, existingLoginKey, formatPhoneNumber, undefined, true, '');
-            setLoading(true);
-            linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
-                .then(() => {
-                    updateSelectedExpensifyCardFeed(Number(fundID), policyID);
-                    Navigation.closeRHPFlow();
-                })
-                .catch((error: TranslationPaths) => {
-                    setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
-                        [INPUT_IDS.EMAIL]: getMicroSecondOnyxErrorWithMessage(translate(error)),
+            // If the email is already the current primary, no default-login change is needed — skip the magic code step
+            if (primaryContactMethod && primaryContactMethod.toLowerCase() === existingLoginKey.toLowerCase()) {
+                setLoading(true);
+                linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
+                    .then(() => {
+                        updateSelectedExpensifyCardFeed(Number(fundID), policyID);
+                        Navigation.closeRHPFlow();
+                    })
+                    .catch((error: TranslationPaths) => {
+                        setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
+                            [INPUT_IDS.EMAIL]: getMicroSecondOnyxErrorWithMessage(translate(error)),
+                        });
+                    })
+                    .finally(() => {
+                        setLoading(false);
                     });
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
+                setEmail(submittedEmail);
+                return;
+            }
+            // Navigate to magic code confirmation page before changing default contact method
+            setEmail(submittedEmail);
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_CONFIRM_DEFAULT_CONTACT_METHOD.getRoute(policyID, fundID, existingLoginKey));
         } else {
             AddWorkEmail(submittedEmail);
         }

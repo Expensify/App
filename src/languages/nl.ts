@@ -5175,6 +5175,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             fromOtherWorkspaces: 'Uit andere workspaces',
             addWorkEmail: 'Voeg je werkmail toe',
             addWorkEmailDescription: 'Voeg je werkmail toe om bestaande feeds van andere workspaces te gebruiken.',
+            confirmDefaultContactMethod: "Let's verify it's you",
+            enterMagicCodeDefaultContactMethod: (primaryLogin: string) => `Please enter the magic code sent to ${primaryLogin} to confirm changing your default contact method.`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kaartfeeds konden niet worden geladen',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van workspacekaartfeeds. Probeer het opnieuw of neem contact op met je beheerder.',

@@ -5167,6 +5167,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             fromOtherWorkspaces: 'Z innych przestrzeni roboczych',
             addWorkEmail: 'Dodaj swój służbowy e-mail',
             addWorkEmailDescription: 'Dodaj swój służbowy e-mail, aby korzystać z istniejących kanałów z innych przestrzeni roboczych.',
+            confirmDefaultContactMethod: "Let's verify it's you",
+            enterMagicCodeDefaultContactMethod: (primaryLogin: string) => `Please enter the magic code sent to ${primaryLogin} to confirm changing your default contact method.`,
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Nie można wczytać kanałów kart',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Wystąpił błąd podczas ładowania kanałów kart w przestrzeni roboczej. Spróbuj ponownie lub skontaktuj się ze swoim administratorem.',
