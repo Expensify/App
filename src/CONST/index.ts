@@ -738,10 +738,13 @@ const CONST = {
             PERSONAL: 'PERSONAL',
         },
     },
-    NON_USD_BANK_ACCOUNT: {
+    CORPAY_DOCUMENT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
         FILE_LIMIT: 1,
+        MAX_FILE_SIZE: 2097152,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
+    },
+    NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
         CORPAY_UNDEFINED_OPTION_VALUE: 'Undefined',
@@ -1892,6 +1895,7 @@ const CONST = {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
+        MAX_LINES_LANDSCAPE_MODE: 2,
         MAX_LINES_FULL: -1,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
@@ -8611,6 +8615,7 @@ const CONST = {
         HAS_POLICY_ADMIN_CARD_FEED_ERRORS: 'hasPolicyAdminCardFeedErrors',
         HAS_DOMAIN_ERRORS: 'hasDomainErrors',
         HAS_LOCKED_BANK_ACCOUNT: 'hasLockedBankAccount',
+        HAS_DEVICE_MANAGEMENT_ERROR: 'hasDeviceManagementError',
     },
 
     DEBUG: {
@@ -9632,6 +9637,7 @@ const CONST = {
             REVOKE_MFA: 'SettingsSecurity-RevokeMFA',
             MERGE_ACCOUNTS: 'SettingsSecurity-MergeAccounts',
             LOCK_UNLOCK_ACCOUNT: 'SettingsSecurity-LockUnlockAccount',
+            DEVICE_MANAGEMENT: 'SettingsSecurity-DeviceManagement',
             CLOSE_ACCOUNT: 'SettingsSecurity-CloseAccount',
             ADD_COPILOT: 'SettingsSecurity-AddCopilot',
             DELEGATE_ITEM: 'SettingsSecurity-DelegateItem',
@@ -9762,6 +9768,12 @@ const CONST = {
         USER_LOCATION: 'user-location',
         ROUTE_SOURCE: 'route-source',
         ROUTE_FILL: 'route-fill',
+    },
+
+    PARTNER_ID: {
+        IPHONE: 14,
+        ANDROID: 16,
+        NEWDOT: 83,
     },
 } as const;
 

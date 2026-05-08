@@ -2184,6 +2184,12 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'セキュリティに関する懸念を解決し、アカウントのロックを解除するには、Concierge とチャットしてください。',
         chatWithConcierge: 'Conciergeとチャット',
     },
+    deviceManagementPage: {
+        title: 'デバイス管理',
+        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
+        revoke: '取り消す',
+        unknownDevice: '不明なデバイス',
+    },
     twoFactorAuth: {
         headerTitle: '2要素認証',
         twoFactorAuthEnabled: '2要素認証が有効になりました',

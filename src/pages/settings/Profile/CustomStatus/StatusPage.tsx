@@ -52,7 +52,7 @@ function StatusPage() {
     // distinguish between large and small screens, so we rely on isSmallScreenWidth
     // to accurately detect the screen size.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const [draftStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
     const [formState] = useOnyx(ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM);
@@ -183,6 +183,22 @@ function StatusPage() {
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
+    const saveButton = useMemo(
+        () => (
+            <Button
+                success
+                large
+                style={styles.w100}
+                text={translate('statusPage.save')}
+                onPress={() => formRef.current?.submit()}
+                pressOnEnter
+                enterKeyEventListenerPriority={1}
+                isLoading={isFormLoading}
+            />
+        ),
+        [translate, isFormLoading, styles.w100],
+    );
+
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
@@ -275,20 +291,11 @@ function StatusPage() {
                         </>
                     )}
                 </View>
+
+                {isInLandscapeMode && saveButton}
             </FormProvider>
 
-            <FixedFooter style={[styles.mtAuto]}>
-                <Button
-                    success
-                    large
-                    style={styles.w100}
-                    text={translate('statusPage.save')}
-                    onPress={() => formRef.current?.submit()}
-                    pressOnEnter
-                    enterKeyEventListenerPriority={1}
-                    isLoading={isFormLoading}
-                />
-            </FixedFooter>
+            {!isInLandscapeMode && <FixedFooter style={[styles.mtAuto]}>{saveButton}</FixedFooter>}
         </ScreenWrapper>
     );
 }
