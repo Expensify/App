@@ -354,4 +354,43 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.autocompleteID).toBe('policyC');
         expect(result.current.at(0)?.text).toBe('Test Workspace');
     });
+
+    describe('withdrawal-status autocomplete', () => {
+        it('returns all three settlement statuses when value is empty', () => {
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS, value: ''},
+                ranges: [],
+            });
+
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'withdrawal-status:'}));
+
+            const values = result.current.map((item) => item.text).sort();
+            expect(values).toEqual(['cleared', 'failed', 'pending']);
+            expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS);
+        });
+
+        it('narrows to matching prefix', () => {
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS, value: 'pe'},
+                ranges: [],
+            });
+
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'withdrawal-status:pe'}));
+
+            expect(result.current).toHaveLength(1);
+            expect(result.current.at(0)?.text).toBe('pending');
+        });
+
+        it('excludes already-selected values', () => {
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS, value: ''},
+                ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS, length: 7, start: 18, value: 'pending'}],
+            });
+
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'withdrawal-status:pending,'}));
+
+            const values = result.current.map((item) => item.text).sort();
+            expect(values).toEqual(['cleared', 'failed']);
+        });
+    });
 });

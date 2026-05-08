@@ -2447,6 +2447,15 @@ const ROUTES = {
             return `workspaces/${policyID}/hr/gusto/approval-mode` as const;
         },
     },
+    WORKSPACE_HR_GUSTO_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/hr/gusto/final-approver',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_GUSTO_FINAL_APPROVER route');
+            }
+            return `workspaces/${policyID}/hr/gusto/final-approver` as const;
+        },
+    },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',
         getRoute: (policyID: string | undefined) => {

@@ -1135,6 +1135,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Odpuść to',
         dropMessage: 'Upuść tutaj plik',
         flash: 'błysk',
+        flipCamera: 'Przełącz kamerę',
         multiScan: 'wielokrotne skanowanie',
         shutter: 'migawka',
         gallery: 'galeria',
@@ -1309,6 +1310,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Zapłać ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Zapłać ${formattedAmount} jako firma` : `Zapłać z konta firmowego`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Oznacz ${formattedAmount} jako zapłaconą` : `Oznacz jako zapłacone`),
+        confirmPaymentReceivedModalTitle: 'Potwierdź otrzymanie płatności',
+        receivedPayment: 'Otrzymana płatność',
+        receivedPaymentConfirmation: 'Kontynuuj tylko, jeśli płatność została już otrzymana poza Expensify.',
+        confirmReceivedPayment: 'Tak, otrzymałem(-am) płatność.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z konta osobistego ${last4Digits}` : `Zapłacono z konta osobistego`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z firmowego konta ${last4Digits}` : `Zapłacono z konta firmowego`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Zapłać ${formattedAmount} przez ${policyName}` : `Zapłać przez ${policyName}`),
@@ -5701,6 +5706,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 subtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
                 defaultHourlyRate: 'Domyślna stawka godzinowa',
             },
+            hrWarningModal: {disconnectText: 'Aby wyłączyć HR, najpierw odłącz Gusto od tego miejsca pracy.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -6743,6 +6749,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 gambling: 'Hazard',
                 tobacco: 'Tytoń',
                 adultEntertainment: 'Rozrywka dla dorosłych',
+                handwrittenReceipt: 'Odręczne paragony',
                 requireCompanyCard: 'Wymagaj kart służbowych dla wszystkich zakupów',
                 requireCompanyCardDescription: 'Oznacz wszystkie wydatki gotówkowe, w tym koszty za przejechane kilometry i ryczałty dzienne.',
                 requireCompanyCardDisabledTooltip: 'Włącz karty firmowe (w sekcji Więcej funkcji), aby odblokować.',
@@ -8208,13 +8215,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         stopped: 'Zatrzymano',
         start: 'Start',
         stop: 'Zatrzymaj',
+        save: 'Zapisz',
+        resume: 'Wznów',
         discard: 'Odrzuć',
-        stopGpsTrackingModal: {
-            title: 'Zatrzymaj śledzenie GPS',
-            prompt: 'Na pewno? Spowoduje to zakończenie Twojej obecnej ścieżki.',
-            cancel: 'Wznów śledzenie',
-            confirm: 'Zatrzymaj śledzenie GPS',
-        },
         discardDistanceTrackingModal: {
             title: 'Odrzuć śledzenie dystansu',
             prompt: 'Na pewno? Spowoduje to porzucenie Twojej bieżącej ścieżki i nie będzie można tego cofnąć.',
@@ -8389,6 +8392,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                         return `rozrywka dla dorosłych`;
                     case 'hotelIncidentals':
                         return `dodatkowe opłaty hotelowe`;
+                    case 'handwrittenReceipt':
+                        return `odręczne paragony`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }

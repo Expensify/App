@@ -933,6 +933,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.LOCK.UNLOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/LockAccount/UnlockAccountPage').default,
     [SCREENS.SETTINGS.LOCK.FAILED_TO_LOCK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/LockAccount/FailedToLockAccountPage').default,
     [SCREENS.WORKSPACE.HR_GUSTO_APPROVAL_MODE]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/gusto/GustoApprovalModePage').default,
+    [SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/hr/gusto/GustoFinalApproverPage').default,
     [SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE]: () => require<ReactComponentModule>('../../../../pages/workspace/reports/ReportsDefaultTitle').default,
     [SCREENS.WORKSPACE.RULES_AUTO_APPROVE_REPORTS_UNDER]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesAutoApproveReportsUnderPage').default,
     [SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/RulesRandomReportAuditPage').default,
@@ -1107,6 +1108,8 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_TAX_RATE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersTaxRatePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_EXPENSE_TYPE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersExpenseTypePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWAL_TYPE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersWithdrawalTypePage').default,
+    [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWAL_STATUS_RHP]: () =>
+        require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersWithdrawalStatusPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_IS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersIsPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_TAG_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersTagPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_HAS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersHasPage').default,
