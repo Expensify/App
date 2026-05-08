@@ -5611,6 +5611,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             delete: '删除发票字段',
             deleteConfirmation: '确定要删除此发票字段吗？',
             existingInvoiceFieldNameError: '已存在同名发票字段',
+            invoiceFieldNameRequiredError: '请输入发票字段名称',
+            invoiceFieldTypeRequiredError: '请选择发票字段类型',
+            addField: '添加字段',
         },
         tags: {
             tagName: '标签名称',
@@ -6316,6 +6319,12 @@ ${reportName}
                 description: `报表字段可用于指定报表级别的头部信息，与适用于各单笔报销项目的标签不同。这些详情可以包括特定项目名称、出差信息、地点等。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>报表字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
+            },
+            invoiceFields: {
+                title: '发票字段',
+                description: `发票字段可用于在发票上包含额外的发票级别详情。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>发票字段仅在 Control 方案中提供，起价为 <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `每位成员每月。` : `每位活跃成员每月。`}</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',

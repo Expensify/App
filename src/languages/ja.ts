@@ -5709,6 +5709,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             delete: '請求書フィールドを削除',
             deleteConfirmation: 'この請求書フィールドを削除してもよろしいですか？',
             existingInvoiceFieldNameError: 'この名前の請求書フィールドは既に存在します',
+            invoiceFieldNameRequiredError: '請求書フィールド名を入力してください',
+            invoiceFieldTypeRequiredError: '請求書フィールドの種類を選択してください',
+            addField: 'フィールドを追加',
         },
         tags: {
             tagName: 'タグ名',
@@ -6428,6 +6431,12 @@ ${reportName}
                 description: `レポートフィールドを使うと、各明細行の経費に関連するタグとは異なる、ヘッダー（レポート全体）レベルの詳細を指定できます。これらの詳細には、特定のプロジェクト名、出張情報、所在地などを含めることができます。`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>レポートフィールドは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からのControlプランでのみ利用できます</muted-text>`,
+            },
+            invoiceFields: {
+                title: '請求書項目',
+                description: `請求書フィールドを使うと、請求書レベルの追加情報を請求書に含めることができます。`,
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>請求書フィールドは、<strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `メンバー1人あたり月額` : `アクティブメンバー1人あたり月額`}からのControlプランでのみ利用できます</muted-text>`,
             },
             [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                 title: 'NetSuite',

@@ -85,7 +85,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
             if (!isRequiredFulfilled(name)) {
-                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.reportFieldNameRequiredError');
+                errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.invoiceFieldNameRequiredError' : 'workspace.reportFields.reportFieldNameRequiredError');
             } else if (isReportFieldNameExisting(policy?.fieldList, name, fieldTarget)) {
                 errors[INPUT_IDS.NAME] = translate(isInvoiceField ? 'workspace.invoiceFields.existingInvoiceFieldNameError' : 'workspace.reportFields.existingReportFieldNameError');
             } else if ([...name].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
@@ -93,7 +93,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, fe
             }
 
             if (!isRequiredFulfilled(type)) {
-                errors[INPUT_IDS.TYPE] = translate('workspace.reportFields.reportFieldTypeRequiredError');
+                errors[INPUT_IDS.TYPE] = translate(isInvoiceField ? 'workspace.invoiceFields.invoiceFieldTypeRequiredError' : 'workspace.reportFields.reportFieldTypeRequiredError');
             }
 
             if (type === CONST.REPORT_FIELD_TYPES.TEXT && !!formInitialValue && formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {

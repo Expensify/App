@@ -153,7 +153,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
 
                         if (!isControlPolicy(policy)) {
                             Navigation.navigate(
-                                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.alias, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)),
+                                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoiceFields.alias, ROUTES.WORKSPACE_INVOICES.getRoute(policyID)),
                             );
                             return;
                         }
@@ -178,7 +178,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                                 {!hasAccountingConnections && (
                                     <MenuItem
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.getRoute(policyID))}
-                                        title={translate('workspace.reportFields.addField')}
+                                        title={translate('workspace.invoiceFields.addField')}
                                         icon={icons.Plus}
                                         style={[styles.sectionMenuItemTopDescription]}
                                     />
