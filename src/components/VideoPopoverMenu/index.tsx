@@ -32,7 +32,8 @@ function VideoPopoverMenu() {
                     text={playbackSpeedLabel}
                     icon={icons.Meter}
                 />
-                <Sub.Content backButtonText={playbackSpeedLabel}>
+                <Sub.Content>
+                    <Sub.BackButton text={playbackSpeedLabel} />
                     {CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => (
                         <CheckmarkItem
                             key={speed}

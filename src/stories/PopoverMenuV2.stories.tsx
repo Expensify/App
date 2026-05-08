@@ -126,7 +126,8 @@ function WithSubmenu() {
                             text="Cards"
                             icon={icons.CreditCard}
                         />
-                        <PopoverMenu.Sub.Content backButtonText="Cards">
+                        <PopoverMenu.Sub.Content>
+                            <PopoverMenu.Sub.BackButton text="Cards" />
                             <PopoverMenu.Item
                                 text="Debit card"
                                 icon={icons.CreditCard}

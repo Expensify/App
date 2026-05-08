@@ -13,7 +13,7 @@ type SubBackButtonProps = {
     text?: string;
 };
 
-/** Auto-rendered by `<Sub.Content>` at the active level when no explicit `<Sub.BackButton>` is among its children; pops one sub on press. */
+/** For non-`MenuItem` shapes, call `useSubBackButton()` directly. */
 function SubBackButton({text}: SubBackButtonProps): React.ReactElement | null {
     // Re-resolve so the wrapper's hierarchy throw uses its component name. Sub wins over also-true "outside <Content>".
     useSubContext(SubBackButton.displayName);

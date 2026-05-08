@@ -355,7 +355,7 @@ describe('PopoverMenu V2', () => {
     });
 
     describe('Trigger', () => {
-        // RN's View ref in the test renderer exposes `measureInWindow` but not `getBoundingClientRect`. Production paths (Fabric + react-native-web) have it; we stub here so the press path can complete.
+        // RN's View ref in jest exposes `measureInWindow` but not `getBoundingClientRect` (production paths have it); stub for the press path.
         let originalGetBoundingClientRect: ((this: unknown) => DOMRect) | undefined;
         beforeAll(() => {
             const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
@@ -623,33 +623,6 @@ describe('PopoverMenu V2', () => {
             expect(navigationCaptured.at(-1)?.currentSubID).toBe('speed-sub');
             act(() => captured.at(-1)?.onPress());
             expect(navigationCaptured.at(-1)?.currentSubID).toBeNull();
-        });
-    });
-
-    describe('Sub.BackButton', () => {
-        it('skips the auto-render when an explicit Sub.BackButton is among children', () => {
-            menuItemPropsCapture.current = [];
-            render(
-                <Harness initialOpen>
-                    <PopoverMenu.Content>
-                        <PopoverMenu.Sub id="explicit-sub">
-                            <PopoverMenu.Sub.Trigger text="Open" />
-                            <PopoverMenu.Sub.Content backButtonText="Auto">
-                                <PopoverMenu.Sub.BackButton text="Custom" />
-                                <PopoverMenu.Item
-                                    text="Inner"
-                                    onSelect={() => {}}
-                                />
-                            </PopoverMenu.Sub.Content>
-                        </PopoverMenu.Sub>
-                    </PopoverMenu.Content>
-                </Harness>,
-            );
-            press('Open');
-            const customCount = menuItemPropsCapture.current.filter((p) => p.title === 'Custom').length;
-            const autoCount = menuItemPropsCapture.current.filter((p) => p.title === 'Auto').length;
-            expect(customCount).toBeGreaterThanOrEqual(1);
-            expect(autoCount).toBe(0);
         });
     });
 
@@ -1047,7 +1020,8 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Header>Pick a payment</PopoverMenu.Header>
                         <PopoverMenu.Sub>
                             <PopoverMenu.Sub.Trigger text="Pay as business" />
-                            <PopoverMenu.Sub.Content backButtonText="Business">
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Business" />
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
@@ -1073,7 +1047,8 @@ describe('PopoverMenu V2', () => {
                     />
                     <PopoverMenu.Sub>
                         <PopoverMenu.Sub.Trigger text="Pay as business" />
-                        <PopoverMenu.Sub.Content backButtonText="Business">
+                        <PopoverMenu.Sub.Content>
+                            <PopoverMenu.Sub.BackButton text="Business" />
                             <PopoverMenu.Item
                                 text="Sub option"
                                 onSelect={() => {}}
@@ -1152,7 +1127,8 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Content>
                             <PopoverMenu.Sub id="A">
                                 <PopoverMenu.Sub.Trigger text="Open Sub" />
-                                <PopoverMenu.Sub.Content backButtonText="Back">
+                                <PopoverMenu.Sub.Content>
+                                    <PopoverMenu.Sub.BackButton text="Back" />
                                     <PopoverMenu.Item
                                         text="Choose"
                                         onSelect={() => {}}
@@ -1188,7 +1164,8 @@ describe('PopoverMenu V2', () => {
                         <NavProbe />
                         <PopoverMenu.Sub id="A">
                             <PopoverMenu.Sub.Trigger text="Open Sub" />
-                            <PopoverMenu.Sub.Content backButtonText="Back">
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back" />
                                 <PopoverMenu.Item
                                     text="Choose"
                                     onSelect={() => {}}
@@ -1218,7 +1195,8 @@ describe('PopoverMenu V2', () => {
                         <NavProbe />
                         <PopoverMenu.Sub id="A">
                             <PopoverMenu.Sub.Trigger text="Open Sub" />
-                            <PopoverMenu.Sub.Content backButtonText="Back">
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back" />
                                 <PopoverMenu.Item
                                     text="Choose"
                                     onSelect={() => {}}
@@ -1241,14 +1219,16 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="A">
                             <PopoverMenu.Sub.Trigger text="Open A" />
-                            <PopoverMenu.Sub.Content backButtonText="Back to root">
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back to root" />
                                 <PopoverMenu.Item
                                     text="A item"
                                     onSelect={() => {}}
                                 />
                                 <PopoverMenu.Sub id="B">
                                     <PopoverMenu.Sub.Trigger text="Open B" />
-                                    <PopoverMenu.Sub.Content backButtonText="Back to A">
+                                    <PopoverMenu.Sub.Content>
+                                        <PopoverMenu.Sub.BackButton text="Back to A" />
                                         <PopoverMenu.Item
                                             text="B item"
                                             onSelect={() => {}}
@@ -1329,10 +1309,12 @@ describe('PopoverMenu V2', () => {
                             {showSubs && (
                                 <PopoverMenu.Sub id="A">
                                     <PopoverMenu.Sub.Trigger text="Open A" />
-                                    <PopoverMenu.Sub.Content backButtonText="Back to root">
+                                    <PopoverMenu.Sub.Content>
+                                        <PopoverMenu.Sub.BackButton text="Back to root" />
                                         <PopoverMenu.Sub id="B">
                                             <PopoverMenu.Sub.Trigger text="Open B" />
-                                            <PopoverMenu.Sub.Content backButtonText="Back to A">
+                                            <PopoverMenu.Sub.Content>
+                                                <PopoverMenu.Sub.BackButton text="Back to A" />
                                                 <PopoverMenu.Item
                                                     text="B item"
                                                     onSelect={() => {}}
@@ -1358,11 +1340,7 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('B item')).toBeUndefined();
         });
 
-        // Protects the `currentSubIDRef` ref-mirror in `useSubNavigation` (load-bearing per plan §11):
-        // when a nested sub unmounts while its parent stays mounted, `unregisterSub`'s cleanup
-        // closure must read the *committed* level (`B`) — not a stale closure capture from when the
-        // cleanup was registered (when level may have been `A` or `null`). The pop should land at
-        // the parent (`A`), not collapse to root.
+        // Mutation-tested: swap `currentSubIDRef.current` for `currentSubID` in `useSubNavigation` and this test fails.
         it('pops to parent when only the nested <Sub> unmounts (parent stays mounted)', () => {
             const captured: Array<string | null> = [];
             function NavProbe() {
@@ -1377,11 +1355,13 @@ describe('PopoverMenu V2', () => {
                             <NavProbe />
                             <PopoverMenu.Sub id="A">
                                 <PopoverMenu.Sub.Trigger text="Open A" />
-                                <PopoverMenu.Sub.Content backButtonText="Back to root">
+                                <PopoverMenu.Sub.Content>
+                                    <PopoverMenu.Sub.BackButton text="Back to root" />
                                     {showInner && (
                                         <PopoverMenu.Sub id="B">
                                             <PopoverMenu.Sub.Trigger text="Open B" />
-                                            <PopoverMenu.Sub.Content backButtonText="Back to A">
+                                            <PopoverMenu.Sub.Content>
+                                                <PopoverMenu.Sub.BackButton text="Back to A" />
                                                 <PopoverMenu.Item
                                                     text="B item"
                                                     onSelect={() => {}}
@@ -1404,9 +1384,7 @@ describe('PopoverMenu V2', () => {
             menuItemPropsCapture.current = [];
             tree.rerender(<NestedTree showInner={false} />);
 
-            // The cleanup closure for Sub B fires with subID='B' and must see currentSubIDRef.current === 'B'.
-            // Cascade walks parentLinks to find the nearest still-mounted ancestor: A is still mounted.
-            // currentSubID lands at 'A', NOT null.
+            // Cascade walks parentLinks to the nearest still-mounted ancestor (A), NOT to root.
             expect(captured.at(-1)).toBe('A');
         });
 
@@ -1422,7 +1400,8 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub>
                             <PopoverMenu.Sub.Trigger text="Trigger" />
-                            <PopoverMenu.Sub.Content backButtonText="Back">
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back" />
                                 <CustomRow />
                                 <PopoverMenu.Item
                                     text="Inner"
@@ -1497,10 +1476,12 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="outer">
                             <PopoverMenu.Sub.Trigger text="Open outer" />
-                            <PopoverMenu.Sub.Content backButtonText="Back to root">
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back to root" />
                                 <PopoverMenu.Sub id="inner">
                                     <PopoverMenu.Sub.Trigger text="Open inner" />
-                                    <PopoverMenu.Sub.Content backButtonText="Back to outer">
+                                    <PopoverMenu.Sub.Content>
+                                        <PopoverMenu.Sub.BackButton text="Back to outer" />
                                         <InnerCustomRow />
                                         <PopoverMenu.Item
                                             text="Innermost"
@@ -1532,7 +1513,8 @@ describe('PopoverMenu V2', () => {
                         />
                         <PopoverMenu.Sub>
                             <PopoverMenu.Sub.Trigger text="Trigger" />
-                            <PopoverMenu.Sub.Content backButtonText="Back">
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back" />
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
@@ -1557,7 +1539,8 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="sub">
                             <PopoverMenu.Sub.Trigger text="Open" />
-                            <PopoverMenu.Sub.Content backButtonText="Back">
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back" />
                                 <PopoverMenu.Item
                                     text="First"
                                     onSelect={() => {}}

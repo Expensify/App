@@ -6,7 +6,7 @@ type UsePopoverTriggerResult = {
     onPress: () => void;
 };
 
-/** Hook rather than a `<Trigger>` slot — React Compiler rejects refs passed through `cloneElement`. */
+/** Escape hatch from `<Trigger>` for non-`PressableWithFeedback` shapes; returns `{ref, onPress}` to attach to any pressable. */
 function usePopoverTrigger(): UsePopoverTriggerResult {
     const {ref, open} = useAnchorOpener('usePopoverTrigger');
     return {ref, onPress: open};
