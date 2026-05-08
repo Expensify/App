@@ -28,6 +28,7 @@ import {
     getClearedPendingFields,
     getMerchant,
     getUpdatedTransaction,
+    hasSubmissionBlockingViolation,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
     isOnHold,
@@ -1386,7 +1387,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED))
         ) {
             const currentNextStep = iouReportNextStep ?? {};
-            const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+            const shouldFixViolations = Array.isArray(violationsOnyxData.value) && hasSubmissionBlockingViolation(violationsOnyxData.value);
             const moneyRequestReport = updatedMoneyRequestReport ?? iouReport ?? undefined;
             const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, getAllTransactionViolations(), currentUserAccountIDParam, currentUserEmailParam);
             const optimisticNextStep = buildOptimisticNextStep({

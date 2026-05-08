@@ -41,7 +41,15 @@ import {
     hasViolations as hasViolationsReportUtils,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {hasPendingRTERViolation, isDeletedTransaction, isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {
+    hasPendingRTERViolation,
+    hasSubmissionBlockingViolation,
+    isDeletedTransaction,
+    isManagedCardTransaction,
+    isOnHold,
+    shouldClearConvertedAmount,
+    waypointHasValidAddress,
+} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -94,11 +102,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
     callback: (val) => (allTransactionViolations = val ?? []),
 });
-
-// Helper to safely check for a string 'name' property
-function isViolationWithName(violation: unknown): violation is {name: string} {
-    return !!(violation && typeof violation === 'object' && typeof (violation as {name?: unknown}).name === 'string');
-}
 
 type SaveWaypointProps = {
     transactionID: string;
@@ -1165,16 +1168,7 @@ function changeTransactionsReport({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                 value: allTransactionViolation?.[transaction.transactionID] ?? null,
             });
-            const transactionHasViolations = Array.isArray(violationData.value) && violationData.value.length > 0;
-            const hasOtherViolationsBesideDuplicates =
-                Array.isArray(violationData.value) &&
-                !violationData.value.every((violation) => {
-                    if (!isViolationWithName(violation)) {
-                        return false;
-                    }
-                    return violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION;
-                });
-            if (transactionHasViolations && hasOtherViolationsBesideDuplicates) {
+            if (Array.isArray(violationData.value) && hasSubmissionBlockingViolation(violationData.value)) {
                 shouldFixViolations = true;
             }
             if (policy?.disabledFields?.reimbursable) {
@@ -1562,15 +1556,7 @@ function changeTransactionsReport({
             policyHasDependentTags,
             false,
         );
-        const hasOtherViolationsBesideDuplicates =
-            Array.isArray(violationData.value) &&
-            !violationData.value.every((violation) => {
-                if (!isViolationWithName(violation)) {
-                    return false;
-                }
-                return violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION;
-            });
-        if (Array.isArray(violationData.value) && violationData.value.length > 0 && hasOtherViolationsBesideDuplicates) {
+        if (Array.isArray(violationData.value) && hasSubmissionBlockingViolation(violationData.value)) {
             shouldFixViolations = true;
         }
     }

@@ -45,6 +45,7 @@ import {
     buildOptimisticTransaction,
     getAmount,
     getCurrency,
+    hasSubmissionBlockingViolation,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -1002,7 +1003,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     );
 
     if (violationsOnyxData) {
-        const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+        const shouldFixViolations = Array.isArray(violationsOnyxData.value) && hasSubmissionBlockingViolation(violationsOnyxData.value);
         const optimisticNextStep = buildOptimisticNextStep({
             report: iou.report,
             predictedNextStatus: iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN,

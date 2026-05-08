@@ -2775,6 +2775,20 @@ function isExpenseUnreported(transaction?: Transaction): transaction is Unreport
 }
 
 /**
+ * Returns true if the violation should block report submission.
+ */
+function isSubmissionBlockingViolation(violation: TransactionViolation): boolean {
+    return violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED || violation.name === CONST.VIOLATIONS.NO_ROUTE;
+}
+
+/**
+ * Returns true if the transaction has at least one violation that should block report submission.
+ */
+function hasSubmissionBlockingViolation(violations: TransactionViolation[] | null | undefined): boolean {
+    return !!violations?.some(isSubmissionBlockingViolation);
+}
+
+/**
  * Returns true if a transaction have violations that should block report submission.
  */
 function hasSubmissionBlockingViolations(
@@ -2786,7 +2800,7 @@ function hasSubmissionBlockingViolations(
     policy: OnyxEntry<Policy>,
 ): boolean {
     const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
-    return !!violations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED || violation.name === CONST.VIOLATIONS.NO_ROUTE);
+    return hasSubmissionBlockingViolation(violations);
 }
 
 /**
@@ -2911,6 +2925,7 @@ export {
     hasReservationList,
     hasViolation,
     hasDuplicateTransactions,
+    hasSubmissionBlockingViolation,
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,
