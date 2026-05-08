@@ -10,7 +10,7 @@ type UseSubTriggerResult = {
     onPress: () => void;
     onFocus: () => void;
     focused: boolean;
-    isAtParentLevel: boolean;
+    isAtActiveLevel: boolean;
 };
 
 /** Sub-level analogue of `usePopoverTrigger()`; opens the enclosing `<Sub>`. `<Sub.Trigger>` is the opinionated `MenuItem` shape. */
@@ -25,11 +25,11 @@ function useSubTrigger({disabled = false}: {disabled?: boolean} = {}): UseSubTri
         throw new Error('useSubTrigger() must be called inside <PopoverMenu.Content>.');
     }
 
-    const isAtParentLevel = navigation.currentSubID === subContext.parentSubID;
+    const isAtActiveLevel = navigation.currentSubID === subContext.parentSubID;
 
     const row = useFocusableRow({
         componentName: 'useSubTrigger',
-        visible: isAtParentLevel,
+        visible: isAtActiveLevel,
         isDisabled: disabled,
         onActivate: () => {
             if (disabled) {
@@ -39,7 +39,7 @@ function useSubTrigger({disabled = false}: {disabled?: boolean} = {}): UseSubTri
         },
     });
 
-    return {...row, isAtParentLevel};
+    return {...row, isAtActiveLevel};
 }
 
 export default useSubTrigger;

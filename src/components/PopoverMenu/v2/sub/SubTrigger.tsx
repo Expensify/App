@@ -24,10 +24,10 @@ function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconH
     useSubContext(SubTrigger.displayName);
     useContentSubActions(SubTrigger.displayName);
 
-    const {ref, focused, onPress, onFocus, isAtParentLevel} = useSubTrigger({disabled});
+    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubTrigger({disabled});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    if (!isAtParentLevel) {
+    if (!isAtActiveLevel) {
         return null;
     }
 

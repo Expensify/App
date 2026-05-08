@@ -505,7 +505,7 @@ describe('PopoverMenu V2', () => {
     });
 
     describe('useSubTrigger', () => {
-        it('returns the trigger shape and reports parent-level visibility', () => {
+        it('returns the trigger shape and reports active-level visibility', () => {
             const captured: PopoverMenu.UseSubTriggerResult[] = [];
             function ProbeHook() {
                 captured.push(PopoverMenu.useSubTrigger());
@@ -531,7 +531,7 @@ describe('PopoverMenu V2', () => {
             expect(typeof result?.onPress).toBe('function');
             expect(typeof result?.onFocus).toBe('function');
             expect(typeof result?.focused).toBe('boolean');
-            expect(result?.isAtParentLevel).toBe(true);
+            expect(result?.isAtActiveLevel).toBe(true);
         });
 
         it('drills into the enclosing Sub on onPress', () => {
