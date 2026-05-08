@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
@@ -10,22 +9,20 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearXeroErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {updateXeroExportExporter} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type CardListItem = ListItem & {
     value: string;
 };
 
-function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicXeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const {config} = policy?.connections?.xero ?? {};
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -34,12 +31,9 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const policyID = policy?.id;
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT_PREFERRED_EXPORTER_SELECT>>();
-    const backTo = route.params?.backTo;
-
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)));
-    }, [policyID, backTo]);
+        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
+    }, [policyID]);
 
     const data: CardListItem[] = useMemo(() => {
         if (!isEmpty(policyOwner) && isEmpty(exporters)) {
@@ -98,7 +92,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="XeroPreferredExporterSelectPage"
+            displayName="DynamicXeroPreferredExporterSelectPage"
             data={data}
             headerContent={headerContent}
             onSelectRow={selectExporter}
@@ -114,4 +108,4 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(XeroPreferredExporterSelectPage);
+export default withPolicyConnections(DynamicXeroPreferredExporterSelectPage);

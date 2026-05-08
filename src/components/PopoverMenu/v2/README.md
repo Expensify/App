@@ -76,7 +76,7 @@ Reads `Root`'s `isVisible` for descendants that want to render trigger UI based 
 
 ### Programmatic close — `useClosePopover()`
 
-Returns `() => void` for descendants that need to close the popover from custom logic (async work completion, deep-link change, app-backgrounding, etc.). Throws if called outside `<Content>`. Item selection's built-in close already routes through this — only reach for the hook when no item-press triggered the close.
+Returns `() => void` for descendants that need to close the popover from custom logic (async work completion, deep-link change, app entering background, etc.). Throws if called outside `<Content>`. Item selection's built-in close already routes through this — only reach for the hook when no item-press triggered the close.
 
 ### Lifecycle closes (built into `<Root>`)
 
