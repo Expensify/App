@@ -1,0 +1,24 @@
+# Phase-1 LLM-driven Android smoke — SignIn flow.
+#
+# Each step is plain English the LLM reads to decide what UI actions to
+# take. The optional `expect:` line is a machine-checked postcondition
+# evaluated by the runner (NOT the LLM) after the step's tool calls
+# complete; it is what gives the canary a hard pass/fail signal
+# independent of the LLM's self-assessment.
+#
+# Expect predicates supported (see .github/scripts/agent-device-expect.ts):
+#   snapshot.contains_text("...")
+#   snapshot.field_with_text("...").exists
+#   appstate.foreground == "..."
+
+1. Wait for the app to fully load and the SignIn screen to appear.
+   expect: snapshot.contains_text("Phone or email")
+
+2. Enter "rustam.zeinalov@callstack.com" into the email/phone field.
+   expect: snapshot.field_with_text("rustam.zeinalov@callstack.com").exists
+
+3. Press the Continue button.
+   expect: appstate.foreground == "com.expensify.chat.dev"
+
+4. Wait for the magic-code screen to appear.
+   expect: snapshot.contains_text("Magic code")
