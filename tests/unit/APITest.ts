@@ -1,6 +1,5 @@
 import MockedOnyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {initReconnect} from '@libs/actions/Reconnect';
 import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';
 import CONST from '@src/CONST';
@@ -27,7 +26,6 @@ jest.mock('@src/libs/Log');
 Onyx.init({
     keys: ONYXKEYS,
 });
-initReconnect();
 
 type Response = {
     ok?: boolean;
