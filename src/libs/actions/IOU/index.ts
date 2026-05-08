@@ -1010,6 +1010,14 @@ function getSearchOnyxUpdate({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
                 value: {
+                    search: {
+                        type: currentSearchQueryJSON.type,
+                        status: currentSearchQueryJSON.status,
+                        offset: 0,
+                        hasMoreResults: false,
+                        hasResults: true,
+                        isLoading: false,
+                    },
                     data: optimisticSnapshotData,
                 },
             },
