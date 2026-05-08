@@ -13,6 +13,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import Log from './Log';
+import {PREFETCH_HEADER_KEY} from './PrefetchQueries';
 import prepareRequestPayload from './prepareRequestPayload';
 
 let shouldFailAllRequests = false;
@@ -80,7 +81,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
         credentials: 'omit',
     };
 
-    if (headers.prefetchKey) {
+    // Prefetch the request on next app start if the prefetch key is present in the headers
+    // This allows to fetch the request natively before the JS bundle is loaded. Once the request with this prefetch key is made, it will already be cached and served from the cache.
+    if (headers[PREFETCH_HEADER_KEY]) {
         try {
             prefetchOnAppStart(url, fetchParams);
         } catch (error) {
