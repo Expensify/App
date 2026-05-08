@@ -374,7 +374,11 @@ function Search({
         (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => {
             const chatReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const moneyRequestReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
-            const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, item.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false);
+            const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(
+                moneyRequestReport,
+                item.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false,
+                item.transactions,
+            );
             setHoldMenuParams({
                 chatReport,
                 moneyRequestReport,
