@@ -1,4 +1,4 @@
-export {Content, ScrollableContent} from './content';
+export {Content, ScrollableContent, useClosePopover} from './content';
 export type {ContentProps, ScrollableContentProps} from './content';
 
 export {Root, SecondaryInteractionTrigger, Trigger, useIsPopoverVisible, usePopoverTrigger, useSecondaryInteractionTrigger} from './root';

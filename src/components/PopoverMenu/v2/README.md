@@ -73,6 +73,10 @@ function MoreMenuTrigger({videoPlayerRef, url}) {
 
 Reads `Root`'s `isVisible` for descendants that want to render trigger UI based on popover state (active-state icon color, video controls staying visible while menu is open, etc.). Throws if called outside `<Root>`.
 
+### Programmatic close — `useClosePopover()`
+
+Returns `() => void` for descendants that need to close the popover from custom logic (async work completion, deep-link change, app-backgrounding, etc.). Throws if called outside `<Content>`. Item selection's built-in close already routes through this — only reach for the hook when no item-press triggered the close.
+
 ### Lifecycle closes (built into `<Root>`)
 
 - **Screen blur** — subscribes via `navigation.addListener('blur', …)` (per [react-navigation guidance](https://reactnavigation.org/docs/use-focus-effect/)) so navigating away never leaves a stranded menu.
@@ -116,7 +120,7 @@ These are enforced at runtime — not just by convention.
 |---|---|
 | `Trigger`, `SecondaryInteractionTrigger`, `usePopoverTrigger`, `useSecondaryInteractionTrigger`, `useIsPopoverVisible` | `Root` |
 | `Content`, `ScrollableContent` | `Root` |
-| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub`, `useSelectableRow` | `Content` or `ScrollableContent` (transitively, including inside `<Sub.Content>`) |
+| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub`, `useSelectableRow`, `useClosePopover` | `Content` or `ScrollableContent` (transitively, including inside `<Sub.Content>`) |
 | `Sub.Trigger`, `Sub.Content`, `useSubTrigger` | `Sub` |
 
 Violating any of these throws synchronously during render. The exception isn't `__DEV__`-gated, so a slip past local dev fails loudly on staging instead of silently corrupting layout.

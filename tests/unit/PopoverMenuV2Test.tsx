@@ -392,6 +392,32 @@ describe('PopoverMenu V2', () => {
             fireEvent.press(screen.getByTestId('trigger'));
             expect(onOpenChange).toHaveBeenCalledWith(true);
         });
+
+        it('runs the consumer-supplied onPress before opening', () => {
+            const order: string[] = [];
+            const onOpenChange = jest.fn(() => order.push('open'));
+            const consumerOnPress = jest.fn(() => order.push('consumer'));
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger
+                            accessibilityLabel="Open menu"
+                            sentryLabel="TriggerTest"
+                            testID="trigger"
+                            onPress={consumerOnPress}
+                        >
+                            <View testID="trigger-icon" />
+                        </PopoverMenu.Trigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            order.length = 0;
+            onOpenChange.mockClear();
+            fireEvent.press(screen.getByTestId('trigger'));
+            expect(consumerOnPress).toHaveBeenCalledTimes(1);
+            expect(order).toEqual(['consumer', 'open']);
+        });
     });
 
     describe('SecondaryInteractionTrigger', () => {
@@ -430,6 +456,32 @@ describe('PopoverMenu V2', () => {
             onOpenChange.mockClear();
             fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', {preventDefault: () => {}});
             expect(onOpenChange).toHaveBeenCalledWith(true);
+        });
+
+        it('runs the consumer-supplied onSecondaryInteraction before opening', () => {
+            const order: string[] = [];
+            const onOpenChange = jest.fn(() => order.push('open'));
+            const consumerOnSecondary = jest.fn(() => order.push('consumer'));
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.SecondaryInteractionTrigger
+                            accessibilityLabel="Long-press me"
+                            sentryLabel="SecondaryTriggerTest"
+                            testID="secondary-trigger"
+                            onSecondaryInteraction={consumerOnSecondary}
+                        >
+                            <View testID="secondary-icon" />
+                        </PopoverMenu.SecondaryInteractionTrigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            order.length = 0;
+            onOpenChange.mockClear();
+            fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', {preventDefault: () => {}});
+            expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
+            expect(order).toEqual(['consumer', 'open']);
         });
     });
 
@@ -609,6 +661,30 @@ describe('PopoverMenu V2', () => {
                 </Harness>,
             );
             expect(captured.at(-1)).toBe(false);
+        });
+    });
+
+    describe('useClosePopover', () => {
+        it('closes the popover when called', () => {
+            const onOpenChange = jest.fn();
+            const captured: Array<() => void> = [];
+            function Probe() {
+                captured.push(PopoverMenu.useClosePopover());
+                return null;
+            }
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <Probe />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            onOpenChange.mockClear();
+            act(() => captured.at(-1)?.());
+            expect(onOpenChange).toHaveBeenCalledWith(false);
         });
     });
 
@@ -1640,6 +1716,20 @@ describe('PopoverMenu V2', () => {
                     </Harness>,
                 ),
             ).toThrow(/useSelectableRow\(\) must be called inside <PopoverMenu\.Content>/);
+        });
+
+        it('throws when useClosePopover is called outside Content', () => {
+            function CallClosePopoverHook() {
+                PopoverMenu.useClosePopover();
+                return null;
+            }
+            expect(() =>
+                render(
+                    <Harness initialOpen>
+                        <CallClosePopoverHook />
+                    </Harness>,
+                ),
+            ).toThrow(/useClosePopover\(\) must be called inside <PopoverMenu\.Content>/);
         });
 
         it('throws when useSubTrigger is called outside Sub', () => {
