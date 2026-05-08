@@ -1543,6 +1543,50 @@ describe('MoneyRequest', () => {
             await waitForBatchedUpdates();
             expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
         });
+
+        it('should pass reportDrafts to getMoneyRequestParticipantOptions and mark participant as disabled', async () => {
+            const reportDrafts = {
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${fakeReport.reportID}`]: fakeReport,
+            };
+
+            let capturedParticipants: Participant[] = [];
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                shouldSkipConfirmation: false,
+                isArchivedExpenseReport: false,
+                draftTransactionIDs: [baseParams.transactionID],
+                reportDrafts,
+                setDistanceRequestData: (participants) => {
+                    capturedParticipants = participants;
+                },
+            });
+
+            await waitForBatchedUpdates();
+            expect(capturedParticipants.length).toBeGreaterThan(0);
+            expect(capturedParticipants.at(0)).toMatchObject({isDisabled: true});
+        });
+
+        it('should not mark participant as disabled when reportDrafts does not include the report', async () => {
+            const reportDrafts = {};
+
+            let capturedParticipants: Participant[] = [];
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                shouldSkipConfirmation: false,
+                isArchivedExpenseReport: false,
+                draftTransactionIDs: [baseParams.transactionID],
+                reportDrafts,
+                setDistanceRequestData: (participants) => {
+                    capturedParticipants = participants;
+                },
+            });
+
+            await waitForBatchedUpdates();
+            expect(capturedParticipants.length).toBeGreaterThan(0);
+            expect(capturedParticipants.at(0)).toMatchObject({isDisabled: false});
+        });
     });
 
     describe('getMoneyRequestParticipantOptions', () => {
@@ -1595,6 +1639,33 @@ describe('MoneyRequest', () => {
             };
             const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined);
             expect(Array.isArray(participants)).toBe(true);
+        });
+
+        it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
+            const reportDrafts = {
+                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${fakeReport.reportID}`]: fakeReport,
+            };
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, reportDrafts);
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+            expect(participants.at(0)).toMatchObject({isDisabled: true});
+        });
+
+        it('should not mark participant as disabled when reportDrafts does not contain the report', () => {
+            const reportDrafts = {};
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, reportDrafts);
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+            expect(participants.at(0)).toMatchObject({isDisabled: false});
+        });
+
+        it('should not mark participant as disabled when reportDrafts is undefined', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+            // When reportDrafts is undefined, isDraftReport is called which checks Onyx directly
+            // and since no draft is set, isDisabled should be false
+            expect(participants.at(0)).toMatchObject({isDisabled: false});
         });
     });
 
