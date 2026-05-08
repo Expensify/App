@@ -23,6 +23,7 @@ type SearchSingleSelectionPickerProps = {
     backToRoute?: Route;
     shouldAutoSave?: boolean;
     shouldShowTextInput?: boolean;
+    allowNoneOption?: boolean;
 };
 
 function SearchSingleSelectionPicker({
@@ -33,6 +34,7 @@ function SearchSingleSelectionPicker({
     backToRoute,
     shouldAutoSave,
     shouldShowTextInput = true,
+    allowNoneOption = false,
 }: SearchSingleSelectionPickerProps) {
     const {translate, localeCompare} = useLocalize();
 
@@ -42,6 +44,18 @@ function SearchSingleSelectionPicker({
     useEffect(() => {
         setSelectedItem(initiallySelectedItem);
     }, [initiallySelectedItem]);
+
+    const noneItem =
+        allowNoneOption && translate('common.none').toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
+            ? [
+                  {
+                      text: translate('common.none'),
+                      keyForList: '__none_option__',
+                      isSelected: !selectedItem?.value,
+                      value: '',
+                  },
+              ]
+            : [];
 
     const initiallySelectedItemSection = initiallySelectedItem?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase())
         ? [
@@ -64,14 +78,14 @@ function SearchSingleSelectionPicker({
             value: item.value,
         }));
 
-    const noResultsFound = !initiallySelectedItemSection.length && !remainingItemsSection.length;
+    const noResultsFound = !noneItem.length && !initiallySelectedItemSection.length && !remainingItemsSection.length;
 
     const sections = noResultsFound
         ? []
         : [
               {
                   title: undefined,
-                  data: initiallySelectedItemSection,
+                  data: [...noneItem, ...initiallySelectedItemSection],
                   sectionIndex: 0,
               },
               {
@@ -82,7 +96,7 @@ function SearchSingleSelectionPicker({
           ];
 
     const onSelectItem = (item: Partial<OptionData & SearchSingleSelectionPickerItem>) => {
-        if (!item.text || !item.keyForList || !item.value) {
+        if (!item.text || !item.keyForList || item.value === undefined) {
             return;
         }
         if (shouldAutoSave) {
