@@ -129,6 +129,7 @@ export type {default as ReadNewestActionParams} from './ReadNewestActionParams';
 export type {default as ImportPlaidAccountsParams} from './ImportPlaidAccountsParams';
 export type {default as MarkAllMessagesAsReadParams} from './MarkAllMessagesAsReadParams';
 export type {default as MarkAsUnreadParams} from './MarkAsUnreadParams';
+export type {default as MarkReportPaymentReceivedParams} from './MarkReportPaymentReceivedParams';
 export type {default as TogglePinnedChatParams} from './TogglePinnedChatParams';
 export type {default as DeleteCommentParams} from './DeleteCommentParams';
 export type {default as UpdateCommentParams} from './UpdateCommentParams';
