@@ -577,7 +577,7 @@ describe('ReportUtils', () => {
             prepareOnboardingOnyxData({
                 introSelected: undefined,
                 betas: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.SUBMIT,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
@@ -590,7 +590,7 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                companySize: undefined,
             });
 
             expect(title).toHaveBeenCalledWith(
@@ -607,7 +607,7 @@ describe('ReportUtils', () => {
             prepareOnboardingOnyxData({
                 introSelected: undefined,
                 betas: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.SUBMIT,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
@@ -620,7 +620,7 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                companySize: undefined,
             });
 
             expect(description).toHaveBeenCalledWith(
@@ -878,7 +878,7 @@ describe('ReportUtils', () => {
             prepareOnboardingOnyxData({
                 introSelected: undefined,
                 betas: undefined,
-                engagementChoice: CONST.ONBOARDING_CHOICES.SUBMIT,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
                     tasks: [
@@ -891,18 +891,18 @@ describe('ReportUtils', () => {
                     ],
                 },
                 adminsChatReportID: '1',
-                companySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                companySize: undefined,
             });
 
             expect(title).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
-                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                    onboardingCompanySize: undefined,
                 }),
             );
 
             expect(description).toHaveBeenCalledWith(
                 expect.objectContaining<OnboardingTaskLinks>({
-                    onboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                    onboardingCompanySize: undefined,
                 }),
             );
         });
