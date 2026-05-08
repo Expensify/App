@@ -1,7 +1,7 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import {useAssertInsideContent} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 
 type GroupProps = {
     children: ReactNode;
@@ -9,7 +9,7 @@ type GroupProps = {
 
 /** Transparent ARIA `role="group"` wrapper; children self-gate to the active level. */
 function Group({children}: GroupProps): React.ReactElement {
-    useAssertInsideContent(Group.displayName);
+    useContentSubActions(Group.displayName);
     return <View role="group">{children}</View>;
 }
 

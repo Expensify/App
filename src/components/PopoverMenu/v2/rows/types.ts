@@ -15,7 +15,6 @@ type MenuItemForwardProps = DistributiveOmit<
     | 'onFocus'
     | 'iconRight'
     | 'shouldShowRightIcon'
-    | 'shouldShowSelectedItemCheck'
     | 'isSelected'
     | 'disabled'
     | 'pendingAction'

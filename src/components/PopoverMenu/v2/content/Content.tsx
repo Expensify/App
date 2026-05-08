@@ -1,6 +1,5 @@
 import React from 'react';
 import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
-import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
 import useSuppressSpaceScroll from '@hooks/useSuppressSpaceScroll';
 import BaseContent from './BaseContent';
 import type {BasePopoverProps} from './BaseContent';
@@ -31,4 +30,3 @@ Content.displayName = 'PopoverMenu.Content';
 
 export default Content;
 export type {ContentProps};
-export type {AnchorRef};

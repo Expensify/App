@@ -1,5 +1,3 @@
-// Named re-exports + `sideEffects: false` keep `import *` tree-shakeable on webpack today and Metro when Expo's flags flip on.
-
 export {Content, ScrollableContent} from './content';
 export type {ContentProps, ScrollableContentProps} from './content';
 

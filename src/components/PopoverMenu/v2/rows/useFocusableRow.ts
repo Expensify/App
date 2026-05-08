@@ -28,7 +28,6 @@ function useFocusableRow({componentName, visible, onActivate, isDisabled = false
         if (!visible) {
             return;
         }
-        // Parameterless by design — rows construct their own synthetic `ItemSelectEvent` (see `useSelectableRow`).
         registerItem(id, {ref, isDisabled, onActivate: () => onActivateRef.current()});
         return () => unregisterItem(id);
     }, [visible, id, registerItem, unregisterItem, isDisabled]);

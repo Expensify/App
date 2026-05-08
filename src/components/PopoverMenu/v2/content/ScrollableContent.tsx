@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useAssertInsideRoot} from '@components/PopoverMenu/v2/root/RootContext';
+import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
 import ScrollView from '@components/ScrollView';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -18,7 +18,7 @@ const VIRTUALIZATION_RECOMMENDED_THRESHOLD = 50;
 
 /** Popover surface that wraps children in a `<ScrollView>` for unbounded row counts. */
 function ScrollableContent({contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
-    useAssertInsideRoot(ScrollableContent.displayName);
+    useRootState(ScrollableContent.displayName);
     if (__DEV__) {
         const childCount = React.Children.count(children);
         if (childCount > VIRTUALIZATION_RECOMMENDED_THRESHOLD) {

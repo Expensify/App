@@ -48,10 +48,5 @@ function useRootActions(componentName: string): RootActions {
     return value;
 }
 
-/** Hierarchy throw for passthrough components that touch no Root state. */
-function useAssertInsideRoot(componentName: string): void {
-    useRootState(componentName);
-}
-
-export {RootStateContext, RootActionsContext, useRootState, useRootActions, useAssertInsideRoot};
+export {RootStateContext, RootActionsContext, useRootState, useRootActions};
 export type {ActiveAnchor, AnchorRect, AnchorRef, RootState, RootActions};

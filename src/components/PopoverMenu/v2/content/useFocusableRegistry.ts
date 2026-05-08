@@ -55,12 +55,12 @@ function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRe
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
-        (event) => {
+        () => {
             const item = focusedID ? registry.get(focusedID) : undefined;
             if (!item || item.isDisabled) {
                 return;
             }
-            item.onActivate(event);
+            item.onActivate();
         },
         {isActive: isVisible},
     );

@@ -1,20 +1,20 @@
 import type {View} from 'react-native';
 import type {FocusableItem} from './ContentContext';
 
-// Inlined from `Node.compareDocumentPosition` — neither RN nor the test renderer exposes `Node`.
+// W3C DOM `compareDocumentPosition` bit flags.
 const DOCUMENT_POSITION_PRECEDING = 0x02;
 const DOCUMENT_POSITION_FOLLOWING = 0x04;
 
-/** Falls back to insertion order when refs haven't flushed (e.g. `react-test-renderer`). */
+/** Sorts the registry by DOM order so keyboard navigation matches visual order regardless of registration order. */
 function useOrderedIDs(registry: Map<string, FocusableItem>): string[] {
     return [...registry.entries()].sort(([, a], [, b]) => compareNodes(a.ref.current, b.ref.current)).map(([id]) => id);
 }
 
 function compareNodes(a: View | null, b: View | null): number {
-    if (!hasComparePosition(a) || !hasComparePosition(b)) {
+    // Refs may not have attached on the first commit after registration; preserve insertion order via stable sort.
+    if (a === null || b === null) {
         return 0;
     }
-    // Leaves only — strict equality covers every case (no CONTAINS/CONTAINED_BY).
     const position = a.compareDocumentPosition(b);
     if (position === DOCUMENT_POSITION_FOLLOWING) {
         return -1;
@@ -23,10 +23,6 @@ function compareNodes(a: View | null, b: View | null): number {
         return 1;
     }
     return 0;
-}
-
-function hasComparePosition(value: View | null): value is View {
-    return value !== null && 'compareDocumentPosition' in value && typeof value.compareDocumentPosition === 'function';
 }
 
 export default useOrderedIDs;

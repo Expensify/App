@@ -1,11 +1,11 @@
 import {createContext, use} from 'react';
 import type {RefObject} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+import type {View} from 'react-native';
 
 type FocusableItem = {
     ref: RefObject<View | null>;
     isDisabled: boolean;
-    onActivate: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onActivate: () => void;
 };
 
 type ContentNavigation = {
@@ -91,11 +91,6 @@ function useContentClose(componentName: string): ContentClose {
     return value;
 }
 
-/** Hierarchy throw for passthrough components that touch no Content state. */
-function useAssertInsideContent(componentName: string): void {
-    useContentSubActions(componentName);
-}
-
 export {
     ContentNavigationContext,
     ContentFocusContext,
@@ -107,6 +102,5 @@ export {
     useContentSubActions,
     useContentItemActions,
     useContentClose,
-    useAssertInsideContent,
 };
 export type {ContentNavigation, ContentFocus, ContentSubActions, ContentItemActions, ContentClose, FocusableItem};
