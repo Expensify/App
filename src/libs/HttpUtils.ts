@@ -1,4 +1,4 @@
-import {prefetchOnAppStart, removeFromAutoPrefetch} from 'react-native-nitro-fetch';
+import {prefetchOnAppStart} from 'react-native-nitro-fetch';
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -12,7 +12,6 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
-import Log from './Log';
 import prepareRequestPayload from './prepareRequestPayload';
 
 let shouldFailAllRequests = false;
