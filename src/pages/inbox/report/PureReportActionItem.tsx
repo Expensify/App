@@ -45,7 +45,6 @@ import {
     getReportActionMessage,
     getReportActionText,
     getWhisperedTo,
-    isActionEmpty,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isMessageDeleted,
@@ -522,7 +521,7 @@ function PureReportActionItem({
     const iouReportID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUReportID ? getOriginalMessage(action)?.IOUReportID?.toString() : undefined;
     const isWhisper = whisperedTo.length > 0 && getTransactionsWithReceipts(iouReportID).length === 0;
 
-    const isEmpty = isActionEmpty(action, report) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses);
+    const isEmpty = !shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses;
     const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
 
     // Calculating accessibilityLabel for chat message with sender, date and time and the message content.

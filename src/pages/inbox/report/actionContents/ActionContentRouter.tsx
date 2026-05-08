@@ -220,7 +220,7 @@ function ActionContentRouter({
                     />
                 );
             }
-            // Empty case is short-circuited at the wrapper via isActionEmpty; this is a defensive fallback
+            // No per-action preview in non-self-DM chats — the preview lives in the linked expense report.
             return null;
         }
 

@@ -1748,36 +1748,11 @@ function isIOURequestReportAction(reportAction: OnyxInputOrEntry<ReportAction>):
 /**
  * Whether a money request action should render the split-bill chat preview
  * (the per-action ChatTransactionPreview row in CHAT-type reports).
- *
- * Shared by ActionContentRouter (to choose ChatTransactionPreview vs MoneyRequestAction)
- * and isActionEmpty (to decide whether the row would render empty).
  */
 function isSplitBillPreview(originalMessage: OriginalMessageIOU | undefined): boolean {
     const isSplitBill = originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
     const isSplitScanWithNoAmount = isSplitBill && originalMessage?.amount === 0;
     return isSplitBill || isSplitScanWithNoAmount;
-}
-
-/**
- * Whether the action's content would render empty inside a row.
- *
- * Currently catches the IOU-in-regular-chat case: an IOU request action posted to a CHAT-type
- * report that is not a self-DM and not a split bill / split scan with no amount. In that case
- * the per-action transaction preview should not render in the chat (the preview lives in the
- * expense report itself).
- *
- * Wrappers consult this to skip rendering the row's frame entirely when the action would be empty,
- * avoiding blank avatar/header chrome around no content.
- */
-function isActionEmpty(reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxEntry<Report>): boolean {
-    if (!isIOURequestReportAction(reportAction)) {
-        return false;
-    }
-    if (report?.type !== CONST.REPORT.TYPE.CHAT) {
-        return false;
-    }
-    const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
-    return !(report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || isSplitBillPreview(originalMessage));
 }
 
 function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
@@ -4665,7 +4640,6 @@ export {
     isResolvedConciergeDescriptionOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
-    isActionEmpty,
     isIOURequestReportAction,
     isNewerReportAction,
     isClosedAction,
