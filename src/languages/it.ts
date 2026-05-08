@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Il prossimo mese',
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -2204,6 +2205,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Il tuo account è bloccato',
         chatToConciergeToUnlock: 'Chatta con Concierge per risolvere i problemi di sicurezza e sbloccare il tuo account.',
         chatWithConcierge: 'Chatta con Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gestione dei dispositivi',
+        description: `Gestisci tutti i dispositivi su cui hai effettuato l'accesso con il tuo account Expensify.`,
+        revoke: 'Revoca',
+        unknownDevice: 'Dispositivo Sconosciuto',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticazione a due fattori',
