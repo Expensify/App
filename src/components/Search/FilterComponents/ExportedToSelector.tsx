@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import Icon from '@components/Icon';
-import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,13 +15,14 @@ import {getIntegrationIcon} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {filterPolicyIDSelector} from '@src/selectors/Search';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {MultiSelectItem} from './MultiSelectPopup';
+import MultiSelect from './MultiSelect';
 
-type ExportedToSelectPopupProps = {
-    closeOverlay: () => void;
-    updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
+type ExportedToSelectorProps = {
+    value: string[] | undefined;
+    onChange: (exportedTo: string[]) => void;
 };
 
 const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
@@ -30,11 +30,7 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
 };
 
-function filterExportedToSelector(searchAdvancedFiltersForm: SearchAdvancedFiltersForm | undefined) {
-    return searchAdvancedFiltersForm?.exportedTo;
-}
-
-function ExportedToSelectPopup({closeOverlay, updateFilterForm}: ExportedToSelectPopupProps) {
+function ExportedToSelector({value = [], onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -50,11 +46,9 @@ function ExportedToSelectPopup({closeOverlay, updateFilterForm}: ExportedToSelec
         'Table',
         'TablePencil',
     ]);
-    const [exportedTo] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterExportedToSelector});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
+    const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const connectedIntegrationNames = getConnectedIntegrationNamesForPolicies(policies, policyIDs.length > 0 ? policyIDs : undefined);
@@ -135,22 +129,16 @@ function ExportedToSelectPopup({closeOverlay, updateFilterForm}: ExportedToSelec
 
         return [...connectedIntegrationPickerItems, ...standardAndIntegrationCustomTemplatePickerItems];
     })();
-    const selectedExportedTo = exportedToPickerOptions.filter((option) => exportedTo?.includes(option.value));
-
-    const updateExportedToFilterForm = (items: Array<MultiSelectItem<string>>) => {
-        updateFilterForm({exportedTo: items.map((item) => item.value)});
-    };
+    const selectedExportedTo = exportedToPickerOptions.filter((option) => value.includes(option.value));
 
     return (
-        <MultiSelectFilterPopup
-            closeOverlay={closeOverlay}
-            translationKey="search.exportedTo"
-            items={exportedToPickerOptions}
+        <MultiSelect
             value={selectedExportedTo}
+            items={exportedToPickerOptions}
             isSearchable={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-            onChangeCallback={updateExportedToFilterForm}
+            onChange={(exportedTo) => onChange(exportedTo.map((e) => e.value))}
         />
     );
 }
 
-export default ExportedToSelectPopup;
+export default ExportedToSelector;

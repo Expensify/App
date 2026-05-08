@@ -22,6 +22,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import {initReconnect} from '@src/libs/actions/Reconnect';
 import * as Report from '@src/libs/actions/Report';
 import * as User from '@src/libs/actions/User';
 import DateUtils from '@src/libs/DateUtils';
@@ -173,6 +174,7 @@ jest.mock('react-native-blob-util', () => ({
 
 const originalXHR = HttpUtils.xhr;
 OnyxUpdateManager();
+initReconnect();
 
 // Define introSelected to use across all openReport tests
 const TEST_INTRO_SELECTED: OnyxTypes.IntroSelected = {
