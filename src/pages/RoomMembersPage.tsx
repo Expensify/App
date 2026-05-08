@@ -14,8 +14,6 @@ import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -61,7 +59,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
+type RoomMembersPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
 
 function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
@@ -175,7 +173,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             return;
         }
         removeUsers();
-    }, [showConfirmModal, translate, selectedMembers.length, formatPhoneNumber, firstSelectedMemberDetails, removeUsers]);
+    }, [showConfirmModal, translate, selectedMembers.length, formatPhoneNumber, firstSelectedMemberDetails?.displayName, removeUsers]);
 
     /**
      * Add user from the selectedMembers list
@@ -482,4 +480,4 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     );
 }
 
-export default withReportOrNotFound()(withCurrentUserPersonalDetails(RoomMembersPage));
+export default withReportOrNotFound()(RoomMembersPage);

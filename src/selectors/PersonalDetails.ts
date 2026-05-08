@@ -4,7 +4,7 @@ import {newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 
-const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => accountID ? personalDetailsList?.[accountID] : undefined;
+const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetailsList?.[accountID] : undefined);
 
 function personalDetailsWithCustomNameSelector(params: {
     accountIDs: number[];

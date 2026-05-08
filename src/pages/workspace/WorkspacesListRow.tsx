@@ -14,8 +14,6 @@ import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -33,7 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
+type WorkspacesListRowProps = {
     /** Name of the workspace */
     title: string;
 
@@ -119,7 +117,6 @@ function WorkspacesListRow({
     fallbackWorkspaceIcon,
     ownerAccountID,
     workspaceType,
-    currentUserPersonalDetails,
     layoutWidth = CONST.LAYOUT_WIDTH.NONE,
     rowStyles,
     style,
@@ -373,4 +370,4 @@ function WorkspacesListRow({
     );
 }
 
-export default withCurrentUserPersonalDetails(WorkspacesListRow);
+export default WorkspacesListRow;

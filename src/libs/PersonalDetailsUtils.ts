@@ -19,15 +19,15 @@ type FirstAndLastName = {
     lastName: string;
 };
 
-let personalDetails: Array<PersonalDetails | null> = [];
+let deprecatedPersonalDetails: Array<PersonalDetails | null> = [];
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 let emailToPersonalDetailsCache: Record<string, PersonalDetails> = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        personalDetails = Object.values(val ?? {});
+        deprecatedPersonalDetails = Object.values(val ?? {});
         allPersonalDetails = val;
-        emailToPersonalDetailsCache = personalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
+        emailToPersonalDetailsCache = deprecatedPersonalDetails.reduce((acc: Record<string, PersonalDetails>, detail) => {
             if (detail?.login) {
                 acc[detail.login.toLowerCase()] = detail;
             }
