@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useMemo, useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import SelectionList from '@components/SelectionList';
 import SplitListItem from '@components/SelectionList/ListItem/SplitListItem';
@@ -6,6 +6,7 @@ import type {ListItem, SplitListItemType} from '@components/SelectionList/ListIt
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type CONST from '@src/CONST';
+import useHandleInputFocus from './useHandleInputFocus';
 
 type SplitListProps = {
     /** The split expense sections data. */
@@ -20,6 +21,9 @@ type SplitListProps = {
     /** Footer content to render at the bottom of the list. */
     listFooterContent?: React.JSX.Element | null;
 
+    /** Header content to render at the top of the list. */
+    listHeaderContent?: React.JSX.Element | null;
+
     /** The split mode to use (amount, percentage, or date). */
     mode: ValueOf<typeof CONST.TAB.SPLIT>;
 };
@@ -31,16 +35,11 @@ type SplitListItemProps = React.ComponentProps<typeof SplitListItem>;
  * Renders split items with the appropriate input type based on mode,
  * managing its own scroll/height state.
  */
-function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterContent, mode}: SplitListProps) {
+function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterContent, listHeaderContent, mode}: SplitListProps) {
     const styles = useThemeStyles();
     const listRef = useRef<SelectionListHandle<SplitListItemType>>(null);
 
-    const handleInputFocus = useCallback((item: SplitListItemType) => {
-        if (!listRef.current) {
-            return;
-        }
-        listRef.current?.scrollToFocusedInput(item);
-    }, []);
+    const handleInputFocus = useHandleInputFocus({listRef});
 
     // Create a wrapper component that adds the onInputFocus handler
     const SplitListItemWithInputFocus = useMemo(
@@ -65,6 +64,7 @@ function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterCont
             initiallyFocusedItemKey={initiallyFocusedOptionKey}
             ListItem={SplitListItemWithInputFocus}
             style={{containerStyle: styles.flexBasisAuto}}
+            customListHeaderContent={listHeaderContent}
             listFooterContent={listFooterContent}
             shouldPreventDefaultFocusOnSelectRow
             shouldScrollToFocusedIndex={false}

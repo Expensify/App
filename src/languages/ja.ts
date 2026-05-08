@@ -492,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: '来月',
         previousYear: '前年',
         nextYear: '来年',
+        avatar: 'アバター',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -2183,6 +2184,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'あなたのアカウントはロックされています',
         chatToConciergeToUnlock: 'セキュリティに関する懸念を解決し、アカウントのロックを解除するには、Concierge とチャットしてください。',
         chatWithConcierge: 'Conciergeとチャット',
+    },
+    deviceManagementPage: {
+        title: 'デバイス管理',
+        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
+        revoke: '取り消す',
+        unknownDevice: '不明なデバイス',
     },
     twoFactorAuth: {
         headerTitle: '2要素認証',
@@ -5665,6 +5672,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 subtitle: '時間追跡用の請求可能な時間単価を設定します。',
                 defaultHourlyRate: 'デフォルトの時給率',
             },
+            hrWarningModal: {disconnectText: '人事機能を無効にするには、まずこのワークスペースから Gusto の連携を解除してください。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',

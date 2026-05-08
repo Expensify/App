@@ -1780,6 +1780,45 @@ describe('PureReportActionItem', () => {
 
             expect(screen.getByText(/exported to/i)).toBeOnTheScreen();
         });
+
+        it('EXPORTED_TO_INTEGRATION with reasoning shows Explain link', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, {
+                label: 'NetSuite',
+                automaticAction: true,
+                reasoning: 'Test reasoning',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('EXPORTED_TO_INTEGRATION without reasoning does not show Explain link', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, {
+                label: 'NetSuite',
+                automaticAction: true,
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('EXPORTED_TO_INTEGRATION with reasoning does not produce double period before Explain', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, {
+                label: 'NetSuite',
+                automaticAction: true,
+                reasoning: 'Test reasoning',
+                reimbursableUrls: ['https://system.netsuite.com/'],
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The rendered text must not contain ".." before "Explain"
+            const text = screen.getByText('Explain');
+            expect(text).toBeOnTheScreen();
+            expect(document.body.textContent).not.toMatch(/\.\.\s*Explain/);
+        });
     });
 
     describe('Card freeze/unfreeze actions', () => {

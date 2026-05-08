@@ -120,6 +120,7 @@ const translations: TranslationDeepObject<typeof en> = {
         members: 'Miembros',
         invite: 'Invitar',
         here: 'aquí',
+        avatar: 'Avatar',
         date: 'Fecha',
         dob: 'Fecha de nacimiento',
         currentYear: 'Año actual',
@@ -2110,6 +2111,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Tu cuenta está bloqueada',
         chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad y desbloquear tu cuenta.',
         chatWithConcierge: 'Chatear con Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gestión de dispositivos',
+        description: 'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify.',
+        revoke: 'Revocar',
+        unknownDevice: 'Dispositivo Desconocido',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticación de dos factores',
@@ -5601,6 +5608,9 @@ ${amount} para ${merchant} - ${date}`,
                 disconnectText: 'Para desactivar esta función, desconecta primero la integración de Uber for Business.',
                 description: '¿Está seguro de que desea desconectar esta integración?',
                 confirmText: 'Entendido',
+            },
+            hrWarningModal: {
+                disconnectText: 'Para desactivar HR, primero desconecta Gusto de este espacio de trabajo.',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',

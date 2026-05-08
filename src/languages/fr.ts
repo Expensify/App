@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Le mois prochain',
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -2210,6 +2211,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Votre compte est verrouillé',
         chatToConciergeToUnlock: 'Discutez avec Concierge pour résoudre vos problèmes de sécurité et déverrouiller votre compte.',
         chatWithConcierge: 'Discuter avec Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gestion des appareils',
+        description: 'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify.',
+        revoke: 'Révoquer',
+        unknownDevice: 'Appareil Inconnu',
     },
     twoFactorAuth: {
         headerTitle: 'Authentification à deux facteurs',
@@ -5762,6 +5769,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
+            hrWarningModal: {disconnectText: 'Pour désactiver les RH, veuillez d’abord déconnecter Gusto de cet espace de travail.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',

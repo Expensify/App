@@ -191,6 +191,17 @@ function hasGPSWaypoints(transaction: OnyxEntry<Transaction>) {
     return !!waypoint?.keyForList?.startsWith('gps');
 }
 
+/**
+ * Compare two waypoint collections by their addresses only (ignoring coordinates/names), which is
+ * the meaningful signal for "did the user change the route?". Numeric fields like lat/lng can drift
+ * due to rounding in transaction backups, so they're excluded.
+ */
+function haveWaypointAddressesChanged(oldWaypoints: WaypointCollection | undefined, newWaypoints: WaypointCollection | undefined): boolean {
+    const toAddresses = (collection: WaypointCollection | undefined) =>
+        Object.fromEntries(Object.entries(collection ?? {}).map(([key, waypoint]) => [key, waypoint && 'address' in waypoint ? waypoint.address : undefined]));
+    return !deepEqual(toAddresses(oldWaypoints), toAddresses(newWaypoints));
+}
+
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
@@ -719,16 +730,22 @@ function getUpdatedTransaction({
         }
         shouldStopSmartscan = true;
 
-        if (!transactionChanges.routes?.route0?.geometry?.coordinates) {
+        // A manual-distance edit re-sends unchanged waypoints; when they truly didn't change, leave
+        // `amount`/`modifiedAmount` to the sibling `distance` branch instead of zeroing them here.
+        const waypointsActuallyChanged = !deepEqual(transactionChanges.waypoints, transaction?.comment?.waypoints);
+
+        if (waypointsActuallyChanged && !transactionChanges.routes?.route0?.geometry?.coordinates) {
             // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
             updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
-        } else {
+        } else if (transactionChanges.routes?.route0?.geometry?.coordinates) {
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
             const {unit, rate} = mileageRate;
 
-            const distanceInMeters = getDistanceInMeters(transaction, unit);
+            // Use route distance directly since waypoints changed and the route was recalculated.
+            // getDistanceInMeters prefers quantity which may hold a stale manually-edited value.
+            const distanceInMeters = transactionChanges.routes?.route0?.distance ?? getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
@@ -746,6 +763,13 @@ function getUpdatedTransaction({
             updatedTransaction.amount = updatedAmount;
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
+
+            // Sync `customUnit.quantity` to the new route distance. Without this the prior manual
+            // quantity (set when the user edited distance manually before changing waypoints) would
+            // linger and drive `getDistanceInMeters`, since that helper prefers quantity over routes.
+            if (unit) {
+                lodashSet(updatedTransaction, 'comment.customUnit.quantity', roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit)));
+            }
         }
     }
 
@@ -861,12 +885,23 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'distance') && typeof transactionChanges.distance === 'number') {
         const distance = roundToTwoDecimalPlaces(transactionChanges.distance ?? 0);
+        // Capture before mutating quantity below; needed by the fallback amount computation.
+        const previousDistanceInMeters = getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit);
 
         lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+        lodashSet(updatedTransaction, 'routes.route0.distance', null);
         shouldStopSmartscan = true;
 
         const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
         const {unit, rate} = updatedMileageRate;
+
+        // Sync the stored distanceUnit to the policy's current unit. The user's input on the Manual
+        // tab is already in this unit; without writing it back, the optimistic state carries a stale
+        // unit (e.g. "miles" when the workspace switched to km) and the display stays wrong until the
+        // BE response — which never lands offline.
+        if (unit) {
+            lodashSet(updatedTransaction, 'comment.customUnit.distanceUnit', unit);
+        }
 
         const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
         let amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
@@ -884,9 +919,20 @@ function getUpdatedTransaction({
             isManualDistanceRequest(transaction),
         );
 
-        updatedTransaction.modifiedAmount = amount;
-        updatedTransaction.modifiedMerchant = updatedMerchant;
-        updatedTransaction.modifiedCurrency = updatedCurrency;
+        // No locally resolvable rate (e.g. track expense without policy loaded) → scale the previous
+        // amount by the distance ratio so the optimistic value isn't 0. `modifiedAmount` is `""` for
+        // unedited transactions, so coerce via Number() and fall through to `amount`.
+        const previousAmount = Number(transaction?.modifiedAmount) || transaction?.amount || 0;
+        const useFallback = !rate && !!previousDistanceInMeters && !!previousAmount && !!distanceInMeters;
+        if (useFallback) {
+            updatedTransaction.modifiedAmount = Math.round(previousAmount * (distanceInMeters / previousDistanceInMeters));
+            updatedTransaction.modifiedMerchant = updatedMerchant;
+            // Leave currency alone — without a resolvable rate we don't know the target currency.
+        } else {
+            updatedTransaction.modifiedAmount = amount;
+            updatedTransaction.modifiedMerchant = updatedMerchant;
+            updatedTransaction.modifiedCurrency = updatedCurrency;
+        }
     }
 
     if (Object.hasOwn(transactionChanges, 'odometerStart') && typeof transactionChanges.odometerStart === 'number') {
@@ -2890,6 +2936,7 @@ export {
     isReceiptBeingScanned,
     didReceiptScanSucceed,
     getValidWaypoints,
+    haveWaypointAddressesChanged,
     isDistanceRequest,
     isMapDistanceRequest,
     isGPSDistanceRequest,
