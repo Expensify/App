@@ -567,6 +567,7 @@ function BaseSelectionList<TItem extends ListItem>({
             selectAllTextStyle={style?.listHeaderSelectAllTextStyle}
             shouldShowSelectAllButton={!!onSelectAll}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+            selectionButtonPosition={selectionButtonPosition}
         />
     );
 
