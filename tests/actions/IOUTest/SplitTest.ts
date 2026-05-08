@@ -3,8 +3,8 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMergeCollectionInput} from 'react-native-onyx';
-import {getReportPreviewAction} from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
+import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
@@ -4455,6 +4455,10 @@ describe('updateSplitTransactions', () => {
         expect(remainingTransactionCommentAction?.reportActionID).toBeDefined();
         expect(remainingTransactionHoldAction?.reportActionID).toBeDefined();
 
+        const APIlib = require('@libs/API') as {write: (...args: unknown[]) => Promise<void>};
+        const originalWrite = APIlib.write;
+        const writeSpy = jest.spyOn(APIlib, 'write').mockImplementation((...args) => originalWrite(...args));
+
         const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
         const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
         const policyTags = await getPolicyTags(expenseReport.reportID);
@@ -4491,6 +4495,23 @@ describe('updateSplitTransactions', () => {
         });
         await waitForBatchedUpdates();
 
+        const reverseSplitCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION);
+        expect(reverseSplitCall).toBeDefined();
+        const [, params, requestData] = reverseSplitCall ?? [];
+        expect((params as {copiedComments?: unknown}).copiedComments === undefined || typeof (params as {copiedComments?: unknown}).copiedComments === 'string').toBe(true);
+
+        const isParentMetadataUpdate = (update: {key: string; value?: Record<string, unknown>}) =>
+            update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}` &&
+            Object.values(update.value ?? {}).some((value) => (value as {childVisibleActionCount?: number})?.childVisibleActionCount !== undefined);
+
+        const parentActionOptimisticUpdates = ((requestData as {optimisticData?: Array<{key: string; value?: Record<string, unknown>}>})?.optimisticData ?? []).filter(
+            isParentMetadataUpdate,
+        );
+        const parentActionFailureUpdates = ((requestData as {failureData?: Array<{key: string; value?: Record<string, unknown>}>})?.failureData ?? []).filter(isParentMetadataUpdate);
+        expect(parentActionOptimisticUpdates).toHaveLength(1);
+        expect(parentActionFailureUpdates).toHaveLength(1);
+        writeSpy.mockRestore();
+
         // The reverted transaction should include the comments and hold state from the remaining transaction.
         const revertedThreadReportID = getIOUActionForReportID(expenseReport.reportID, originalTransactionID)?.childReportID;
         const revertedThreadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${revertedThreadReportID}`);
@@ -4502,6 +4523,92 @@ describe('updateSplitTransactions', () => {
         // The report preview must reflect these changes.
         const updatedReportPreviewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID);
         expect(updatedReportPreviewAction?.childVisibleActionCount).toEqual(2);
+    });
+
+    it('should recompute parent child metadata from source comments when reverse split source thread metadata is stale', async () => {
+        const {expenseReport, transactionThreadReportID, originalTransactionID} = await createBaseExpense();
+
+        if (!originalTransactionID || !expenseReport?.reportID || !transactionThreadReportID) {
+            throw new Error('Missing original transaction data');
+        }
+
+        const {splitTransactionID1} = await splitToTwo(expenseReport, originalTransactionID, getIOUActionForReportID(expenseReport?.reportID, originalTransactionID));
+        const splitIOUAction = getIOUActionForReportID(expenseReport.reportID, splitTransactionID1);
+        const splitThreadReportID = splitIOUAction?.childReportID;
+
+        if (!splitThreadReportID || !splitIOUAction?.reportActionID) {
+            throw new Error('Missing split thread data');
+        }
+
+        const {allReports, allReportActions} = await getCollections();
+        const splitThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitThreadReportID}`];
+        const ancestors = getAncestors(splitThreadReport, allReports, {}, allReportActions);
+        addComment({
+            report: splitThreadReport,
+            notifyReportID: splitThreadReportID,
+            ancestors,
+            text: 'Testing a comment',
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID: CARLOS_ACCOUNT_ID,
+            delegateAccountID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        const splitThreadReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitThreadReportID}`);
+        const remainingTransactionCommentAction = Object.values(splitThreadReportActions ?? {}).find((action) => isAddCommentAction(action));
+        expect(remainingTransactionCommentAction?.reportActionID).toBeDefined();
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+            [splitIOUAction.reportActionID]: {
+                childVisibleActionCount: 0,
+                childCommenterCount: 0,
+                childLastVisibleActionCreated: '',
+                childOldestFourAccountIDs: '',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
+        const {allTransactions, allReports: allReports2, allReportNameValuePairs} = await getCollections();
+        const policyTags = await getPolicyTags(expenseReport.reportID);
+        const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+
+        updateSplitTransactions({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports2,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID,
+                splitExpenses: [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}],
+                splitExpensesTotal: undefined,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            policyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+        });
+        await waitForBatchedUpdates();
+
+        const revertedIOUAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+        expect(revertedIOUAction?.childVisibleActionCount).toEqual(1);
+        expect(revertedIOUAction?.childCommenterCount).toEqual(1);
+        expect(revertedIOUAction?.childOldestFourAccountIDs).toEqual(`${remainingTransactionCommentAction?.actorAccountID}`);
+        expect(revertedIOUAction?.childLastVisibleActionCreated).toEqual(remainingTransactionCommentAction?.created);
     });
 
     it('should update the report preview action when deleting a split transaction without reverting', async () => {

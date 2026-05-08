@@ -377,7 +377,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 const targetChatForDuplicate = isSourcePolicyValid ? chatReport : activePolicyExpenseChat;
                 const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyForDuplicate?.id}`] ?? {};
 
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     duplicateReportAction({
                         sourceReport: moneyRequestReport,
@@ -494,7 +493,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                         if (goBackRoute) {
                             navigateOnDeleteExpense(goBackRoute);
                         }
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, false);
                             removeTransaction(transaction.transactionID);
@@ -519,7 +517,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.goBack(backToRoute);
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         deleteAppReport({
                             report: moneyRequestReport,
