@@ -5942,7 +5942,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             selectWorkspaces: 'Selecionar espaços de trabalho',
             whichWorkspaces: 'Para quais espaços de trabalho você quer copiar essas configurações?',
             searchPlaceholder: 'Pesquisar espaços de trabalho',
-            selectAll: 'Selecionar tudo',
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',

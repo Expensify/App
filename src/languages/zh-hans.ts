@@ -5797,7 +5797,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             selectWorkspaces: '选择工作区',
             whichWorkspaces: '您想将这些设置复制到哪些工作区？',
             searchPlaceholder: '搜索工作区',
-            selectAll: '全选',
         },
         emptyWorkspace: {
             title: '你还没有工作区',

@@ -5972,7 +5972,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             selectWorkspaces: 'Arbeitsbereiche auswählen',
             whichWorkspaces: 'In welche Arbeitsbereiche möchtest du diese Einstellungen kopieren?',
             searchPlaceholder: 'Arbeitsbereiche suchen',
-            selectAll: 'Alle auswählen',
         },
         emptyWorkspace: {
             title: 'Du hast keine Arbeitsbereiche',

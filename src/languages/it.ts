@@ -5962,7 +5962,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             selectWorkspaces: 'Seleziona spazi di lavoro',
             whichWorkspaces: 'In quali spazi di lavoro vuoi copiare queste impostazioni?',
             searchPlaceholder: 'Cerca spazi di lavoro',
-            selectAll: 'Seleziona tutto',
         },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',

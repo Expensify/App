@@ -5895,7 +5895,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             selectWorkspaces: 'ワークスペースを選択',
             whichWorkspaces: 'どのワークスペースに設定をコピーしますか？',
             searchPlaceholder: 'ワークスペースを検索',
-            selectAll: 'すべて選択',
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',

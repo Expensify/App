@@ -5936,7 +5936,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             selectWorkspaces: 'Wybierz przestrzenie robocze',
             whichWorkspaces: 'Do których przestrzeni roboczych chcesz skopiować te ustawienia?',
             searchPlaceholder: 'Wyszukaj przestrzenie robocze',
-            selectAll: 'Zaznacz wszystkie',
         },
         emptyWorkspace: {
             title: 'Nie masz żadnych przestrzeni roboczych',

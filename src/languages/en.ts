@@ -5985,7 +5985,6 @@ const translations = {
             selectWorkspaces: 'Select workspaces',
             whichWorkspaces: 'Which workspaces do you want to copy these settings to?',
             searchPlaceholder: 'Search workspaces',
-            selectAll: 'Select all',
         },
         emptyWorkspace: {
             title: 'No workspaces yet',

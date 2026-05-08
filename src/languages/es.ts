@@ -5849,7 +5849,6 @@ ${amount} para ${merchant} - ${date}`,
             selectWorkspaces: 'Selecciona espacios de trabajo',
             whichWorkspaces: '¿A qué espacios de trabajo quieres copiar esta configuración?',
             searchPlaceholder: 'Buscar espacios de trabajo',
-            selectAll: 'Seleccionar todo',
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',

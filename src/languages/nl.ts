@@ -5942,7 +5942,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             selectWorkspaces: 'Werkruimtes selecteren',
             whichWorkspaces: 'Naar welke werkruimtes wil je deze instellingen kopiëren?',
             searchPlaceholder: 'Werkruimtes zoeken',
-            selectAll: 'Alles selecteren',
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',
