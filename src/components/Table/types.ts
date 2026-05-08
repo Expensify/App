@@ -105,6 +105,9 @@ type ToggleSortingCallback<ColumnKey extends string = string> = (columnKey?: Col
  */
 type TableProps<T, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<T> &
     PropsWithChildren<{
+        /** The title for the table when shown on smaller screens */
+        title?: string;
+
         /** Array of data items to display in the table. */
         data: T[] | undefined;
 

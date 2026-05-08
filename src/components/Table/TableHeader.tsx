@@ -50,8 +50,13 @@ type TableHeaderProps = ViewProps & {
  * ```
  */
 function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
-    const {columns, isEmptyResult} = useTableContext<T, ColumnKey>();
+    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout} = useTableContext<T, ColumnKey>();
+
+    if (shouldUseNarrowTableLayout && !title) {
+        return null;
+    }
 
     if (shouldHideHeaderWhenEmptySearch && isEmptyResult) {
         return null;
@@ -78,14 +83,25 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
-            {columns.map((column) => {
-                return (
-                    <TableHeaderColumn
-                        column={column}
-                        key={column.key}
-                    />
-                );
-            })}
+            {shouldUseNarrowTableLayout && (
+                <Text
+                    numberOfLines={1}
+                    color={theme.textSupporting}
+                    style={[styles.lh16, styles.textMicroSupporting, styles.pr1]}
+                >
+                    {title}
+                </Text>
+            )}
+
+            {!shouldUseNarrowTableLayout &&
+                columns.map((column) => {
+                    return (
+                        <TableHeaderColumn
+                            column={column}
+                            key={column.key}
+                        />
+                    );
+                })}
         </View>
     );
 }

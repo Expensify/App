@@ -12,6 +12,9 @@ import type {SharedListProps, TableColumn, TableMethods} from './types';
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
 type TableContextValue<T, ColumnKey extends string = string, FilterKey extends string = string> = {
+    /** The title of the table when shown on smaller screens. */
+    title?: string;
+
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<T> | null>;
 
@@ -50,6 +53,9 @@ type TableContextValue<T, ColumnKey extends string = string, FilterKey extends s
 
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
+
+    /** Whether to use a narrow layout (e.g. on mobile screens). */
+    shouldUseNarrowTableLayout: boolean;
 };
 
 const defaultTableContextValue: TableContextValue<unknown, string> = {
@@ -69,6 +75,7 @@ const defaultTableContextValue: TableContextValue<unknown, string> = {
     hasActiveFilters: false,
     hasSearchString: false,
     isEmptyResult: false,
+    shouldUseNarrowTableLayout: false,
 };
 
 const TableContext = createContext(defaultTableContextValue);

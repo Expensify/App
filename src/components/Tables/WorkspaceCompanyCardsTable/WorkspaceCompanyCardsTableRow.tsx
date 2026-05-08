@@ -166,7 +166,7 @@ function WorkspaceCompanyCardTableRow({
                                 CardFeedIcon
                             )}
 
-                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
                                 <TextWithTooltip
                                     text={memberColumnTitle}
                                     style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter]}

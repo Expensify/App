@@ -190,6 +190,7 @@ function WorkspaceCompanyCardsTable({
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb4,
     });
 
     const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, activeSorting) => {
@@ -301,6 +302,7 @@ function WorkspaceCompanyCardsTable({
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
     const shouldRenderHeaderAsChild = !shouldUseNarrowTableLayout || ((isFeedPending || isLoadingPage) && !showCards);
+
     // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
     // When switching back to wide layout, we want to restore the previous sorting.
     useEffect(() => {
@@ -331,7 +333,7 @@ function WorkspaceCompanyCardsTable({
     });
 
     const headerButtonsComponent = showTableHeaderButtons ? (
-        <View style={shouldUseNarrowTableLayout && styles.mb5}>
+        <View style={styles.mb3}>
             <WorkspaceCompanyCardsTableHeaderButtons
                 isLoading={isLoading}
                 policyID={policyID}
@@ -356,22 +358,30 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
+    const ListHeader = (
+        <>
+            {headerButtonsComponent}
+            {!isLoadingFeed && showCards && <Table.Header />}
+        </>
+    );
+
     return (
         <Table
             ref={tableRef}
             data={cardsData}
             columns={columns}
+            filters={filterConfig}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
-            filters={filterConfig}
             initialSortColumn="member"
+            title={translate('workspace.common.companyCards')}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
-            ListHeaderComponent={shouldUseNarrowTableLayout ? headerButtonsComponent : undefined}
+            ListHeaderComponent={!shouldRenderHeaderAsChild ? ListHeader : undefined}
         >
-            {shouldRenderHeaderAsChild && headerButtonsComponent}
+            {shouldRenderHeaderAsChild && ListHeader}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
                 <ScrollView>
@@ -416,12 +426,7 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {showCards && (
-                <>
-                    {!shouldUseNarrowTableLayout && !isLoadingFeed && <Table.Header />}
-                    <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
-                </>
-            )}
+            {showCards && <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />}
         </Table>
     );
 }

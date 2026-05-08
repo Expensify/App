@@ -40,7 +40,6 @@ export default function TableRow({children, accessible, rowIndex, sentryLabel, i
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const rowCount = processedData.length;
-    const isFirstRow = rowIndex === 0;
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
     const isSmallView = isMediumScreenWidth || shouldUseNarrowLayout;
@@ -55,7 +54,6 @@ export default function TableRow({children, accessible, rowIndex, sentryLabel, i
         isSmallView ? styles.ph4 : styles.ph3,
         isSmallView && !isLoading && styles.pv4,
         !isSmallView && !isLoading && styles.pv3,
-        isSmallView && isFirstRow && styles.tableTopRadius,
         isLastRow ? styles.tableBottomRadius : styles.borderBottom,
         isSmallView ? styles.tableRowHeightCompact : styles.tableRowHeight,
     ];
