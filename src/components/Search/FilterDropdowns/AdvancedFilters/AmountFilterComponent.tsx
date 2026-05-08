@@ -191,7 +191,6 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
                                     filterKey={filterKey}
                                     greaterThanValue={value?.[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]}
                                     lessThanValue={value?.[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]}
-                                    label={label}
                                 />
                             ) : (
                                 <AmountInput

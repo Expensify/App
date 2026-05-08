@@ -14,7 +14,7 @@ import type {FilterPopupButtonProps} from './FilterPopupButton';
 import FilterPopupButton from './FilterPopupButton';
 
 type DropdownButtonProps = WithSentryLabel &
-    Omit<FilterPopupButtonProps, 'ButtonComponent' | 'viewportOffsetTop'> & {
+    Omit<FilterPopupButtonProps, 'renderButton' | 'viewportOffsetTop'> & {
         /** The label to display on the select */
         label: string;
 
