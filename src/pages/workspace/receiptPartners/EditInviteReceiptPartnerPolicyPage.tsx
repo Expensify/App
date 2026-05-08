@@ -125,7 +125,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
 
         const buttonStyles = [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, true, false, false, false, true, false),
+            StyleUtils.getButtonStyleWithIcon(styles, CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL, true, false),
             styles.ml3,
             {minWidth: variables.uberEmployeeInviteButtonWidth},
         ];
