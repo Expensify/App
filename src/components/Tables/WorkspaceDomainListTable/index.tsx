@@ -1,6 +1,6 @@
 import React, {useRef} from 'react';
 import {ValueOf} from 'type-fest';
-import Table, {TableColumn, TableHandle} from '@components/Table';
+import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {AvatarSource} from '@libs/UserUtils';
@@ -10,12 +10,14 @@ import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
 export type WorkspaceRowData = {
-    keyForList: string;
     title: string;
     icon: AvatarSource;
     disabled: boolean;
     policyID: string;
     ownerAccountID: string;
+    ownerName: string;
+    ownerLogin: string;
+    ownerAvatar: AvatarSource;
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
@@ -68,15 +70,39 @@ export default function WorkspaceListTable({domains, workspaces}: WorkspaceListT
         },
     ];
 
+    const compareItems: CompareItemsCallback<WorkspaceRowData, WorkspaceTableColumnKey> = (item1, item2, activeSorting) => {
+        const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+
+        if (activeSorting.columnKey === 'workspaces') {
+            return item1.title.localeCompare(item2.title) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'owner') {
+            return item1.ownerName.localeCompare(item2.ownerName) * orderMultiplier;
+        }
+
+        if (activeSorting.columnKey === 'type') {
+            return item1.type.localeCompare(item2.type) * orderMultiplier;
+        }
+
+        return 0;
+    };
+
+    const isItemInSearch: IsItemInSearchCallback<WorkspaceRowData> = (item, searchValue) => {
+        const searchLowerCase = searchValue.toLowerCase();
+        return item.title.toLowerCase().includes(searchLowerCase);
+    };
+
     return (
         <Table
-            data={[]}
+            data={workspaces}
             columns={columns}
             renderItem={() => <></>}
-            keyExtractor={() => <></>}
-            compareItems={() => {}}
-            isItemInSearch={() => {}}
+            compareItems={compareItems}
+            isItemInSearch={isItemInSearch}
+            keyExtractor={(row) => row.policyID}
             initialSortColumn="workspaces"
+            title={translate('common.workspaces')}
         >
             <>
                 <Table.Header />
