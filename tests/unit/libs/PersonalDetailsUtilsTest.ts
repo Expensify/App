@@ -8,10 +8,11 @@ import {
     getEffectiveDisplayName,
     getPersonalDetailByEmail,
     getPersonalDetailsOnyxDataForOptimisticUsers,
+    newGetPersonalDetailsByIDs,
 } from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
-import {formatPhoneNumber} from '../../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 type PersonalDetailsForDisplayName = Pick<PersonalDetails, 'firstName' | 'lastName'> & {
@@ -700,6 +701,64 @@ describe('PersonalDetailsUtils', () => {
 
             // The second entry should overwrite the first
             expect(result[1]).toEqual({accountID: 1, login: 'second@example.com', displayName: 'Second'});
+        });
+    });
+
+    describe('newGetPersonalDetailsByIDs', () => {
+        const accountID1 = 1;
+        const accountID2 = 2;
+        const personalDetails: PersonalDetailsList = {
+            [accountID1]: {
+                accountID: accountID1,
+                login: 'user1@example.com',
+                displayName: 'User One',
+            },
+            [accountID2]: {
+                accountID: accountID2,
+                login: 'user2@example.com',
+                displayName: 'User Two',
+            },
+        };
+
+        it('should return an empty array if accountIDs is empty', () => {
+            const result = newGetPersonalDetailsByIDs({
+                accountIDs: [],
+                personalDetails,
+            });
+            expect(result).toEqual([]);
+        });
+
+        it('should return personal details for the given accountIDs', () => {
+            const result = newGetPersonalDetailsByIDs({
+                accountIDs: [accountID1, accountID2],
+                personalDetails,
+            });
+            expect(result).toEqual([personalDetails[accountID1], personalDetails[accountID2]]);
+        });
+
+        it('should filter out accountIDs that do not have corresponding personal details', () => {
+            const result = newGetPersonalDetailsByIDs({
+                accountIDs: [accountID1, 999],
+                personalDetails,
+            });
+            expect(result).toEqual([personalDetails[accountID1]]);
+        });
+
+        it("should replace the current user's displayName with 'You' if shouldChangeUserDisplayName is true", () => {
+            const result = newGetPersonalDetailsByIDs({
+                accountIDs: [accountID1, accountID2],
+                personalDetails,
+                shouldChangeUserDisplayName: true,
+                currentUserAccountID: accountID1,
+                translate: translateLocal,
+            });
+            expect(result).toEqual([
+                {
+                    ...personalDetails[accountID1],
+                    displayName: translateLocal('common.you'),
+                },
+                personalDetails[accountID2],
+            ]);
         });
     });
 });
