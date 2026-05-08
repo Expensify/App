@@ -96,6 +96,8 @@ The table displays:
 - Amount
 - Workspace violations (if applicable)
 
+In the default sort (Date, ascending), expenses that need your attention — such as those with violations, on hold, missing required fields, or with receipt errors — appear at the top of the list. When you change the sort column or direction, standard sorting applies.
+
 Clicking a row opens the full expense in a side panel (web) or details screen (mobile).
 
 ---

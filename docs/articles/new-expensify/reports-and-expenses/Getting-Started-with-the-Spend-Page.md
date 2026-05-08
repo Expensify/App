@@ -27,6 +27,8 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
 - **+X more** link if there are over 10 expenses  
 - Action button: Submit, Approve, Pay, etc., depending on the role
 
+Expenses that need your attention — such as those with violations, on hold, missing required fields, or with receipt errors — appear first in the carousel so you can address them without scrolling.
+
 ## Preview Behavior and Updates
 Previews update **in real time** as expenses are added. If a report is deleted, the preview is removed from the workspace chat
 
