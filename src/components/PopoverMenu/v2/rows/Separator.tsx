@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 /** Horizontal divider; auto-hides outside the active sub-level. */
 function Separator(): React.ReactElement | null {
@@ -14,7 +15,7 @@ function Separator(): React.ReactElement | null {
 
     return (
         <View
-            accessibilityRole="none"
+            accessibilityRole={CONST.ROLE.NONE}
             style={[styles.mv2, styles.ph5, styles.borderTop]}
         />
     );

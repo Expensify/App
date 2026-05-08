@@ -4,6 +4,9 @@ import type {StyleProp, TextStyle} from 'react-native';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
+
+const HEADING_LEVEL = 3;
 
 type HeaderProps = {
     children: ReactNode;
@@ -19,7 +22,15 @@ function Header({children, style}: HeaderProps): React.ReactElement | null {
         return null;
     }
 
-    return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, style]}>{children}</Text>;
+    return (
+        <Text
+            role={CONST.ROLE.HEADING}
+            aria-level={HEADING_LEVEL}
+            style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, style]}
+        >
+            {children}
+        </Text>
+    );
 }
 
 Header.displayName = 'PopoverMenu.Header';
