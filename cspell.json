@@ -922,7 +922,10 @@
         "CARDFROZEN",
         "CARDUNFROZEN",
         "backgrounded",
-        "Kolkata"
+        "Kolkata",
+        "NitroFetch",
+        "Prefetch",
+        "Prefetcher"
     ],
     "ignorePaths": [
         ".gitignore",
