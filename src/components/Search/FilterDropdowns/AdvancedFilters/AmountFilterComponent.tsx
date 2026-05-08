@@ -45,7 +45,7 @@ function getFrontendAmount(amount: string | undefined) {
 
 function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps) {
     const styles = useThemeStyles();
-    const [amount, setAmount] = useState(getFrontendAmount(value));
+    const [amount, setAmount] = useState(() => getFrontendAmount(value));
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
@@ -74,14 +74,13 @@ type AmountBetweenInputProps = {
     filterKey: SearchAmountFilterKeys;
     greaterThanValue: string | undefined;
     lessThanValue: string | undefined;
-    label: string;
 };
 
 function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: AmountBetweenInputProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [greaterThanAmount, setGreaterThanAmount] = useState(getFrontendAmount(greaterThanValue));
-    const [lessThanAmount, setLessThanAmount] = useState(getFrontendAmount(lessThanValue));
+    const [greaterThanAmount, setGreaterThanAmount] = useState(() => getFrontendAmount(greaterThanValue));
+    const [lessThanAmount, setLessThanAmount] = useState(() => getFrontendAmount(lessThanValue));
 
     useImperativeHandle(ref, () => ({
         getValue: () => {
@@ -162,7 +161,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
         });
     };
 
-    const modifierConfig: ListItem<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | typeof BETWEEN_MODIFIER>[] = [
+    const modifierConfig: Array<ListItem<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | typeof BETWEEN_MODIFIER>> = [
         {keyForList: CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, text: translate('search.filters.amount.equalTo'), isSelected: selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO},
         {
             keyForList: CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,

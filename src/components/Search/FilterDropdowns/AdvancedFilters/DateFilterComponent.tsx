@@ -49,7 +49,7 @@ function DateFilterComponent({filterKey, value: initialValue, onChange}: DateFil
 
     return (
         <>
-            {selectedDateModifier && (
+            {!!selectedDateModifier && (
                 <HeaderWithBackButton
                     style={[styles.h10]}
                     subtitle={selectedDateModifier ? getDateModifierTitle(selectedDateModifier, '', translate) : ''}
@@ -73,7 +73,7 @@ function DateFilterComponent({filterKey, value: initialValue, onChange}: DateFil
                 onSubmit={onDateChange}
                 shouldShowActionButtons={false}
             />
-            {(selectedDateModifier || fullscreen) && (
+            {(!!selectedDateModifier || fullscreen) && (
                 <Button
                     style={[styles.ph5, styles.pb3]}
                     success

@@ -13,8 +13,8 @@ function isPointInPolygon(point: Point, polygon: Point[]) {
     let isInside = false;
     const length = polygon.length;
     for (let i = 0, j = length - 1; i < length; j = i++) {
-        const [xi, yi] = polygon[i] || [0, 0];
-        const [xj, yj] = polygon[j] || [0, 0];
+        const [xi, yi] = polygon.at(i) ?? [0, 0];
+        const [xj, yj] = polygon.at(j) ?? [0, 0];
         const intersect = yi >= y !== yj >= y && x <= ((xj - xi) * (y - yi)) / (yj - yi) + xi;
         if (intersect) {
             isInside = !isInside;
@@ -23,7 +23,7 @@ function isPointInPolygon(point: Point, polygon: Point[]) {
     return isInside;
 }
 
-type SafeTriangleOverlay = {
+type SafeTriangleOverlayProps = {
     submenuRef: React.RefObject<View | null>;
     containerRef: React.RefObject<View | null>;
 };
@@ -35,7 +35,7 @@ type Rect = {
     height: number;
 };
 
-function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlay) {
+function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProps) {
     const styles = useThemeStyles();
 
     const [points, setPoints] = useState<string | null>(null);
@@ -136,7 +136,7 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlay) {
             container.removeEventListener('mousemove', onMouseMove, true);
             clearTimeout(timeoutRef.current);
         };
-    }, [onMouseMove]);
+    }, [onMouseMove, containerRef]);
 
     if (!points || !svgRect) {
         return null;

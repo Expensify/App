@@ -1,9 +1,9 @@
 import React from 'react';
-import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {PopoverComponentProps} from '../FilterPopupButton';
 import AdvancedFiltersFullscreen from './AdvancedFiltersFullscreen';
 import AdvancedFiltersPopup from './AdvancedFiltersPopup';
+import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
 
 type AdvancedFiltersProps = {
     queryJSON: SearchQueryJSON;

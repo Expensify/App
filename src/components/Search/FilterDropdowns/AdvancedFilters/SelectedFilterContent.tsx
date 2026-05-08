@@ -79,12 +79,12 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
             value={fullscreen ? value : initialValue}
             filterKey={filterKey}
             policyIDQuery={policyIDQuery}
-            onChange={(value) => {
+            onChange={(newValue) => {
                 if (fullscreen) {
-                    setValue(value);
+                    setValue(newValue);
                     return;
                 }
-                onChange({[filterKey]: value} as Partial<SearchAdvancedFiltersForm>);
+                onChange({[filterKey]: newValue} as Partial<SearchAdvancedFiltersForm>);
             }}
         />
     );

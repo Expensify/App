@@ -29,7 +29,7 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
             />
-            {(selectedField || fullscreen) && (
+            {(!!selectedField || fullscreen) && (
                 <Button
                     style={[styles.ph5, styles.pb3]}
                     success

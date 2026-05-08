@@ -2,6 +2,10 @@ import React from 'react';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
+import AdvancedFilters from '@components/Search/FilterDropdowns/AdvancedFilters';
+import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
+import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,10 +15,6 @@ import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import AdvancedFilters from '../FilterDropdowns/AdvancedFilters';
-import useFullscreenAdvancedFilters from '../FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
-import FilterPopupButton from '../FilterDropdowns/FilterPopupButton';
-import type {FilterPopupButtonProps, PopoverComponentProps} from '../FilterDropdowns/FilterPopupButton';
 
 type SearchAdvancedFiltersButtonProp = {
     queryJSON: SearchQueryJSON;
@@ -38,29 +38,27 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     );
 
     if (fullscreen || isMediumScreenWidth) {
-        const ButtonComponent: FilterPopupButtonProps['ButtonComponent'] = ({onPress, ref}) => (
-            <PressableWithFeedback
-                ref={ref}
-                accessibilityLabel={translate('search.filtersHeader')}
-                role={CONST.ROLE.BUTTON}
-                style={[styles.searchActionsBar(fullscreen)]}
-                hoverStyle={styles.buttonHoveredBG}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
-                onPress={onPress}
-            >
-                <Icon
-                    src={expensifyIcons.Filter}
-                    fill={theme.icon}
-                    small={fullscreen}
-                    extraSmall={isMediumScreenWidth}
-                />
-            </PressableWithFeedback>
-        );
-
         return (
             <FilterPopupButton
                 PopoverComponent={filtersPopup}
-                ButtonComponent={ButtonComponent}
+                renderButton={({onPress, ref}) => (
+                    <PressableWithFeedback
+                        ref={ref}
+                        accessibilityLabel={translate('search.filtersHeader')}
+                        role={CONST.ROLE.BUTTON}
+                        style={[styles.searchActionsBar(fullscreen)]}
+                        hoverStyle={styles.buttonHoveredBG}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
+                        onPress={onPress}
+                    >
+                        <Icon
+                            src={expensifyIcons.Filter}
+                            fill={theme.icon}
+                            small={fullscreen}
+                            extraSmall={isMediumScreenWidth}
+                        />
+                    </PressableWithFeedback>
+                )}
                 smallScreenModalType={fullscreen ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT : undefined}
             />
         );
@@ -70,7 +68,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
         <FilterPopupButton
             PopoverComponent={filtersPopup}
             popoverWidth={CONST.ADVANCED_FILTERS_POPOVER_WIDTH}
-            ButtonComponent={({onPress, ref}) => (
+            renderButton={({onPress, ref}) => (
                 <Button
                     ref={ref}
                     small

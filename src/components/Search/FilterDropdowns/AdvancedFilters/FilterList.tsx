@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import ScrollView from '@components/ScrollView';
-import useFullscreenAdvancedFilters from '@components/Search/FilterDropdowns/AdvancedFilters/useFullscreenAdvancedFilters';
 import SpacerView from '@components/SpacerView';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import FilterItem from './FilterItem';
+import useFullscreenAdvancedFilters from './useFullscreenAdvancedFilters';
 
 type FilterListProps = {
     selectedFilter: SearchFilter['key'] | null;

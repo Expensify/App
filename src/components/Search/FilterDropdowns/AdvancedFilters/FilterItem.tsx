@@ -35,6 +35,7 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
             onHoverIn={onHoverIn}
             onFocus={onFocus}
             onPress={onPress}
+            sentryLabel={`Search-Advanced-Filter-${filterKey}`}
         >
             {({pressed}) => (
                 <>

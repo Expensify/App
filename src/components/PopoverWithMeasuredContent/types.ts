@@ -1,4 +1,4 @@
-import BaseModalProps from '@components/Modal/types';
+import type BaseModalProps from '@components/Modal/types';
 import type PopoverProps from '@components/Popover/types';
 import type {AnchorDimensions, AnchorPosition} from '@styles/index';
 

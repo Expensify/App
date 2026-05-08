@@ -6,6 +6,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 
 type SearchFiltersClearButtonProps = {
     onPress: () => void;
@@ -22,6 +23,7 @@ function SearchFiltersClearButton({onPress}: SearchFiltersClearButtonProps) {
             accessibilityLabel={translate('common.clear')}
             onPress={onPress}
             style={[styles.flexRow, styles.gap1, styles.alignItemsCenter, styles.ph2]}
+            sentryLabel={CONST.SENTRY_LABEL.SEARCH.CLEAR_FILTERS_BUTTON}
         >
             <Icon
                 src={expensifyIcons.Close}

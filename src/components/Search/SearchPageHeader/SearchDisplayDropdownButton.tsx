@@ -47,7 +47,7 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
         return (
             <FilterPopupButton
                 PopoverComponent={displayPopup}
-                ButtonComponent={({ref, onPress}) => (
+                renderButton={({ref, onPress}) => (
                     <PressableWithFeedback
                         ref={ref}
                         accessibilityLabel={translate('search.display.label')}

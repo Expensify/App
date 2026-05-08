@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperContainer';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +15,6 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {PopoverComponentProps} from '../FilterPopupButton';
 import FilterList from './FilterList';
 import SelectedFilterContent from './SelectedFilterContent';
 
@@ -60,14 +60,14 @@ function AdvancedFiltersFullscreen({queryJSON, closeOverlay}: AdvancedFiltersFul
                     onFilterSelected={setSelectedFilter}
                 />
             </Activity>
-            {selectedFilter && (
+            {!!selectedFilter && (
                 <View style={[styles.filterContentContainer, styles.pv0]}>
                     <SelectedFilterContent
                         values={values}
                         filterKey={selectedFilter}
                         policyIDQuery={queryJSON.policyID}
-                        onChange={(values) => {
-                            setValues((prevValues) => ({...prevValues, ...values}));
+                        onChange={(newValues) => {
+                            setValues((prevValues) => ({...prevValues, ...newValues}));
                             setSelectedFilter(null);
                         }}
                     />

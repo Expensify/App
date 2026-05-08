@@ -54,7 +54,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {
     BankAccountList,
     Beta,
@@ -1272,7 +1272,7 @@ function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdva
                 acc[filterKey] = CONST.SEARCH.DATA_TYPES.EXPENSE;
             }
         } else if (filterKey !== FILTER_KEYS.COLUMNS) {
-            acc[filterKey] = undefined;
+            acc[filterKey as SearchAdvancedFiltersKey] = undefined;
         }
 
         return acc;

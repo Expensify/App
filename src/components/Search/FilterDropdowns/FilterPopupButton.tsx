@@ -37,7 +37,7 @@ type FilterPopupButtonProps = {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
 
     /** The component to render as the button */
-    ButtonComponent: React.ComponentType<ButtonComponentProps>;
+    renderButton: (props: ButtonComponentProps) => ReactNode;
 
     /** Wrapper style for the outer view */
     wrapperStyle?: StyleProp<ViewStyle>;
@@ -50,7 +50,7 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function FilterPopupButton({viewportOffsetTop, popoverWidth, PopoverComponent, ButtonComponent, wrapperStyle, smallScreenModalType}: FilterPopupButtonProps) {
+function FilterPopupButton({viewportOffsetTop, popoverWidth, PopoverComponent, renderButton, wrapperStyle, smallScreenModalType}: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -105,11 +105,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, PopoverComponent, B
             style={wrapperStyle}
         >
             {/* Dropdown Trigger */}
-            <ButtonComponent
-                ref={triggerRef}
-                onPress={calculatePopoverPositionAndToggleOverlay}
-                isExpanded={isOverlayVisible}
-            />
+            {renderButton({ref: triggerRef, onPress: calculatePopoverPositionAndToggleOverlay, isExpanded: isOverlayVisible})}
 
             {/* Dropdown overlay */}
             <PopoverWithMeasuredContent
