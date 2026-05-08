@@ -3345,6 +3345,7 @@ ${amount} für ${merchant} – ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Beitreten',
+        marketingSMSConsent: 'Ich stimme zu, Marketing-SMS von Expensify zu erhalten',
     },
     detailsPage: {
         localTime: 'Ortszeit',
