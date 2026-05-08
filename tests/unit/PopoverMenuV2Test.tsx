@@ -389,7 +389,7 @@ describe('PopoverMenu V2', () => {
             );
             expect(screen.getByTestId('trigger-icon')).toBeOnTheScreen();
             onOpenChange.mockClear();
-            act(() => fireEvent.press(screen.getByTestId('trigger')));
+            fireEvent.press(screen.getByTestId('trigger'));
             expect(onOpenChange).toHaveBeenCalledWith(true);
         });
     });
@@ -428,7 +428,7 @@ describe('PopoverMenu V2', () => {
             );
             expect(screen.getByTestId('secondary-icon')).toBeOnTheScreen();
             onOpenChange.mockClear();
-            act(() => fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', {preventDefault: () => {}}));
+            fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', {preventDefault: () => {}});
             expect(onOpenChange).toHaveBeenCalledWith(true);
         });
     });
