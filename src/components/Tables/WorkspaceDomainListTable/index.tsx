@@ -9,7 +9,7 @@ import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
-type WorkspaceRowData = {
+export type WorkspaceRowData = {
     keyForList: string;
     title: string;
     icon: AvatarSource;
@@ -24,9 +24,24 @@ type WorkspaceRowData = {
     dismissError: () => void;
 };
 
-type WorkspaceListTableProps = {};
+export type DomainRowData = {
+    domainAccountID: string;
+    title: string;
+    isAdmin: boolean;
+    isValidated: boolean;
+    pendingAction: OnyxCommon.PendingAction;
+    errors: OnyxCommon.Errors | null | undefined;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    action: () => void;
+    dismissError: () => void;
+};
 
-export default function WorkspaceListTable({}: WorkspaceListTableProps) {
+type WorkspaceListTableProps = {
+    domains: DomainRowData[];
+    workspaces: WorkspaceRowData[];
+};
+
+export default function WorkspaceListTable({domains, workspaces}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey>>(null);
