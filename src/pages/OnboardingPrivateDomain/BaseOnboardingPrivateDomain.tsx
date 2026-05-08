@@ -17,6 +17,7 @@ import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common'
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -52,7 +53,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         if (!email) {
             return;
         }
-        resendValidateCode(email, {reasonCode: CONST.VALIDATE_CODE_REASON.VALIDATE_ACCOUNT});
+        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}, email);
     }, [email]);
 
     const handleBackButtonPress = useCallback(() => {

@@ -9735,13 +9735,6 @@ const CONST = {
         ANDROID: 16,
         NEWDOT: 83,
     },
-
-    VALIDATE_CODE_REASON: {
-        SIGN_IN: 'sign_in',
-        ADD_CONTACT_METHOD: 'add_contact_method',
-        VALIDATE_ACCOUNT: 'validate_account',
-        REVEAL_CARD_DETAILS: 'reveal_card_details',
-    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

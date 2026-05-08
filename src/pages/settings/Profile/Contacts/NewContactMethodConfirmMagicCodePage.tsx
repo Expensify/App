@@ -8,7 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';
-import CONST from '@src/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -34,7 +34,7 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
     return (
         <ValidateCodeActionContent
             title={translate('delegate.makeSureItIsYou')}
-            sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.VALIDATE_CODE_REASON.ADD_CONTACT_METHOD})}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.ADD_CONTACT_METHOD})}
             descriptionPrimary={translate('contacts.enterMagicCode', contactMethod)}
             validateCodeActionErrorField="addedLogin"
             validateError={validateCodeError}

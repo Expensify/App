@@ -13,6 +13,7 @@ import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -42,6 +43,8 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
     const isUserValidated = account?.validated ?? false;
 
     useEffect(() => () => clearUnvalidatedNewContactMethodAction(), []);
+
+    const sendValidateCode = () => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT});
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
@@ -99,7 +102,7 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
             descriptionSecondary={translate('contacts.enterMagicCode', contactMethod)}
-            sendValidateCode={requestValidateCodeAction}
+            sendValidateCode={sendValidateCode}
             validateCodeActionErrorField="validateLogin"
             validatePendingAction={loginData?.pendingFields?.validateCodeSent}
             handleSubmitForm={handleSubmitForm}

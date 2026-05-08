@@ -15,6 +15,7 @@ import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -40,7 +41,7 @@ function WorkspaceVerifyWorkAccountPage({route}: WorkspaceVerifyWorkAccountPageP
         if (!workEmail) {
             return;
         }
-        resendValidateCode(workEmail, {reasonCode: CONST.VALIDATE_CODE_REASON.VALIDATE_ACCOUNT});
+        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}, workEmail);
     };
 
     const validateAccountAndMerge = (validateCode: string) => {

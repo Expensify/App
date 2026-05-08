@@ -8,7 +8,7 @@ import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/acti
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTravelInvoicingCard} from '@libs/TravelInvoicingUtils';
-import CONST from '@src/CONST';
+import {CONST} from 'expensify-common';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -63,7 +63,7 @@ function TravelCVVVerifyAccountPage() {
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.VALIDATE_CODE_REASON.REVEAL_CARD_DETAILS, reasonCardID: travelCard.cardID})}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: travelCard.cardID})}
             validateCodeActionErrorField="revealExpensifyCardDetails"
             handleSubmitForm={handleRevealCardDetails}
             validateError={validateError}

@@ -18,6 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
 import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -74,7 +75,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         if (!credentials?.login) {
             return;
         }
-        resendValidateCode(credentials.login);
+        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.VALIDATE_ACCOUNT}, credentials.login);
     };
 
     const validateAccountAndMerge = (validateCode: string) => {

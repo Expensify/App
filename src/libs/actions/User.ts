@@ -15,8 +15,8 @@ import type {
     GetStatementPDFParams,
     PusherPingParams,
     RequestContactMethodValidateCodeParams,
-    RevokeDeviceParams,
     ResendValidateCodeParams,
+    RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
     TogglePlatformMuteParams,
@@ -187,7 +187,7 @@ function closeAccount(reason: string) {
 /**
  * Resend a validation link to a given login
  */
-function resendValidateCode(login: string, reasonParams: ResendValidateCodeParams) {
+function resendValidateCode(reasonParams: ResendValidateCodeParams, login: string) {
     sessionResendValidateCode(reasonParams, login);
 }
 

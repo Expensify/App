@@ -13,6 +13,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearSignInData, resendValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -71,7 +72,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                     text={translate('samlSignIn.useMagicCode')}
                     isLoading={account?.isLoading && account?.loadingForm === (account?.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)}
                     onPress={() => {
-                        resendValidateCode({reasonCode: CONST.VALIDATE_CODE_REASON.SIGN_IN}, credentials?.login);
+                        resendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, credentials?.login);
                         setIsUsingMagicCode(true);
                     }}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.MAGIC_CODE}
