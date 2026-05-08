@@ -1,5 +1,4 @@
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
-import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 
 type EditActionParams = {
     action: OnyxInputOrEntry<ReportAction>;
@@ -65,19 +64,6 @@ type MarkReimbursedFromIntegrationParams = {amount: string; currency: string};
 
 type ShareParams = {to: string};
 
-type ConnectionNameParams = {
-    connectionName: AllConnectionName;
-};
-
-type ExportAgainModalDescriptionParams = {
-    reportName: string;
-    connectionName: ConnectionName;
-};
-
-type IntacctMappingTitleParams = {mappingName: SageIntacctMappingName};
-
-type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
-
 type UnsupportedFormulaValueErrorParams = {
     value: string;
 };
@@ -114,8 +100,6 @@ export type {
     MarkReimbursedFromIntegrationParams,
     ShareParams,
     UnshareParams,
-    ConnectionNameParams,
-    SyncStageNameConnectionsParams,
     UnsupportedFormulaValueErrorParams,
     WorkspaceLockedPlanTypeParams,
 };
