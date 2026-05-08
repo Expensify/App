@@ -52,7 +52,7 @@ function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
     const {dispatch} = useMultifactorAuthenticationActions();
 
     const onClose = () => {
-        dispatch({type: 'RESET'});
+        dispatch({type: 'CLOSE_MODAL'});
     };
 
     const CustomSubtitle = customSubtitle ?? (

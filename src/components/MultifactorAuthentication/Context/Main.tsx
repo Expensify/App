@@ -129,9 +129,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             });
 
             // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself.
-            // Reset the MFA state so the overlay closes immediately.
+            // Close the modal so the overlay plays its exit animation and then resets.
             if (callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN) {
-                dispatch({type: 'RESET'});
+                dispatch({type: 'CLOSE_MODAL'});
                 return;
             }
 
@@ -479,9 +479,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const cancel = useCallback(async () => {
         // When the app is reopened (e.g. page refresh on web), the MFA context resets to its default state
         // and scenario becomes undefined. Without a scenario, the state machine in process() won't run,
-        // so dispatching SET_ERROR would have no effect. In this case we reset directly.
+        // so dispatching SET_ERROR would have no effect. In this case we close directly.
         if (!state.scenario) {
-            dispatch({type: 'RESET'});
+            dispatch({type: 'CLOSE_MODAL'});
             return;
         }
 

@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Action, MultifactorAuthenticationState} from './types';
 
 const DEFAULT_STATE: MultifactorAuthenticationState = {
+    isModalOpen: false,
     error: undefined,
     continuableError: undefined,
     validateCode: undefined,
@@ -75,11 +76,14 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as unknown as MultifactorAuthenticationScenarioConfig;
             return {
                 ...DEFAULT_STATE,
+                isModalOpen: true,
                 scenarioName: action.payload.scenario,
                 scenario,
                 payload: action.payload.payload,
             };
         }
+        case 'CLOSE_MODAL':
+            return {...state, isModalOpen: false};
         case 'RESET':
             return DEFAULT_STATE;
         case 'REREGISTER':

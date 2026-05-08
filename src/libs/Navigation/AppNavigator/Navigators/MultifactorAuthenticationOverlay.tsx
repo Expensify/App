@@ -4,7 +4,7 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {useMultifactorAuthentication, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import {applyPendingNavigation, clearPendingNavigation, INITIAL_SCREEN, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
@@ -52,13 +52,14 @@ const overlayStyles = StyleSheet.create({
 function MultifactorAuthenticationOverlay() {
     const state = useMultifactorAuthenticationState();
     const {cancel} = useMultifactorAuthentication();
+    const {dispatch} = useMultifactorAuthenticationActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const themePreference = useThemePreference();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const isFlowActive = !!state.scenario;
+    const {isModalOpen} = state;
     const [isVisible, setIsVisible] = useState(false);
     const progress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
@@ -74,8 +75,14 @@ function MultifactorAuthenticationOverlay() {
         };
     }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
 
+    const resetState = useCallback(() => {
+        clearPendingNavigation();
+        setIsVisible(false);
+        dispatch({type: 'RESET'});
+    }, [dispatch]);
+
     useEffect(() => {
-        if (isFlowActive) {
+        if (isModalOpen) {
             setIsVisible(true);
             progress.value = withTiming(1, {duration: CONST.ANIMATED_TRANSITION});
         } else if (isVisible) {
@@ -83,13 +90,12 @@ function MultifactorAuthenticationOverlay() {
                 if (!finished) {
                     return;
                 }
-                runOnJS(clearPendingNavigation)();
-                runOnJS(setIsVisible)(false);
+                runOnJS(resetState)();
             });
         }
         // eslint-disable-next-line react-compiler/react-compiler -- shared value is stable
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- only trigger on isFlowActive change
-    }, [isFlowActive]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- only trigger on isModalOpen change
+    }, [isModalOpen]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
         opacity: progress.value * variables.overlayOpacity,

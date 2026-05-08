@@ -9,6 +9,10 @@ import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {AuthTypeInfo} from '@libs/MultifactorAuthentication/shared/types';
 
 type MultifactorAuthenticationState = {
+    /** Whether the MFA modal overlay is open. Separate from scenario lifecycle
+     *  so the close animation can play before state is fully reset. */
+    isModalOpen: boolean;
+
     /** Current error state - stops the flow and navigates to failure outcome */
     error: MFAError | undefined;
 
@@ -73,6 +77,7 @@ type Action =
     | {type: 'SET_SCENARIO_RESPONSE'; payload: MultifactorAuthenticationScenarioResponse | undefined}
     | {type: 'INIT'; payload: InitPayload}
     | {type: 'REREGISTER'}
+    | {type: 'CLOSE_MODAL'}
     | {type: 'RESET'};
 
 /** Context value for state - the current MFA state */
