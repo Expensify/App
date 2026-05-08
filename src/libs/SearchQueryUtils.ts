@@ -70,6 +70,7 @@ const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE)
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
+const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -941,7 +942,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPORTER ||
                     filterKey === FILTER_KEYS.EXPORTED_TO ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
-                    filterKey === FILTER_KEYS.COLUMNS) &&
+                    filterKey === FILTER_KEYS.COLUMNS ||
+                    filterKey === FILTER_KEYS.WITHDRAWAL_STATUS) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -1100,6 +1102,11 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.find((withdrawalType): withdrawalType is SearchWithdrawalType =>
                 VALID_WITHDRAWAL_TYPES.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>),
             );
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS) {
+            filtersForm[key as typeof filterKey] = filterValues.filter((withdrawalStatus) => VALID_WITHDRAWAL_STATUSES.has(withdrawalStatus)) as Array<
+                ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>
+            >;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);

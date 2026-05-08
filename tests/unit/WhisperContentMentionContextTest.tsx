@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -99,7 +98,6 @@ describe('Whisper content components provide MentionReportContext so room mentio
                     report={report}
                     originalReport={undefined}
                     isReportArchived={false}
-                    resolveActionableReportMentionWhisper={jest.fn()}
                 />
             </OnyxListItemProvider>,
         );

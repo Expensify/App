@@ -45,9 +45,7 @@ Onyx.connect({
         if (value ?? true) {
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         hiddenTranslation = translateLocal('common.hidden');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         youTranslation = translateLocal('common.you').toLowerCase();
     },
 });
@@ -128,7 +126,6 @@ function getPersonalDetailsByIDs({
             if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
                 return {
                     ...detail,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     displayName: translateLocal('common.you'),
                 };
             }
