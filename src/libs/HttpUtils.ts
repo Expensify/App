@@ -12,6 +12,7 @@ import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import Log from './Log';
 import prepareRequestPayload from './prepareRequestPayload';
 
 let shouldFailAllRequests = false;
@@ -79,9 +80,12 @@ function processHTTPRequest<TKey extends OnyxKey>(
         credentials: 'omit',
     };
 
-    const shouldPrefetch = !!headers.prefetchKey;
-    if (shouldPrefetch) {
-        prefetchOnAppStart(url, init);
+    if (headers.prefetchKey) {
+        try {
+            prefetchOnAppStart(url, init);
+        } catch (error) {
+            Log.warn('[HttpUtils] prefetchOnAppStart failed', {error});
+        }
     }
 
     return fetch(url, init)
