@@ -47,7 +47,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = !item.reportID ? item.accountID || firstItemIconID : undefined;
 
-    const ListItemWrapper = item.isDisabled ? BaseListItem : SelectableListItem;
+    const ListItemWrapper = item.isDisabled && !item.isSelected ? BaseListItem : SelectableListItem;
 
     return (
         <ListItemWrapper

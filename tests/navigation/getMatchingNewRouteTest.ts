@@ -84,6 +84,19 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
     });
 
+    it('redirects legacy workspace tag routes to new settings dynamic routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit')).toBe('/settings/p123/tags/settings/tag-list-edit/10');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-edit');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/gl-code')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-gl-code');
+    });
+
+    it('preserves query params when redirecting legacy workspace tag routes', () => {
+        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings/tag-list-edit/10?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
+    });
+
     it('redirects legacy QuickBooks Online connections autosync paths to dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/connections/quickbooks-online/advanced/autosync')).toBe(
             '/workspaces/p123/accounting/quickbooks-online/advanced/quickbooks-online-autosync',
