@@ -9,24 +9,18 @@ Compound popover-menu primitives — uncontrolled by design. Inspired by [Radix 
 - **Structural insulation from re-renders.** Triggers don't re-render when content state (sub navigation, focus) changes. Achieved by splitting state into separate contexts (`RootState/Actions`, `ContentNavigation/Focus/Actions`, `Sub`).
 - **Always-on hierarchy assertions.** Misuse fails loud at render time with a descriptive error (`<PopoverMenu.Item> must be rendered inside <PopoverMenu.Content>`), in dev *and* staging. The throws are emitted by the existing context-consumer hooks (`useRootState`, `useContentActions`, `useSubContext`, …) — no separate assertion layer.
 - **No manual memoization.** All files in this folder compile under React Compiler — no `useCallback` / `useMemo` / `React.memo`.
-- **No `<Trigger>` slot via `cloneElement`.** Trigger composition is hook-based (`usePopoverTrigger` returns `{ref, onPress}`) because React Compiler rejects refs passed through `cloneElement`. JSX `ref={ref}` attachment is the only compiler-clean path; it also keeps the consumer's pressable as the trigger element with no wrapper introduced.
+- **Wrapper component plus hook.** Every role with a canonical visual ships as both: the wrapper (`<Trigger>`, `<SecondaryInteractionTrigger>`, `<Sub.Trigger>`, `<Item>`, `<CheckmarkItem>`) for the canonical case, and the hook (`usePopoverTrigger`, `useSecondaryInteractionTrigger`, `useSubTrigger`, `useSelectableRow`) for non-canonical pressable shapes. Mirrors React Aria's primitive-plus-component layering.
+- **No `<Trigger>` slot via `cloneElement` or `asChild`.** Wrappers own their own pressable rather than composing into a child via `cloneElement`. React Compiler rejects refs passed through `cloneElement` ("Cannot access refs during render"); the wrapper-owns-pressable pattern is the only RC-clean path that still ships self-documenting JSX.
 
 ## Public API
 
 ```tsx
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 
-function MyTrigger() {
-    const {ref, onPress} = PopoverMenu.usePopoverTrigger();
-    return (
-        <PressableWithFeedback ref={ref} onPress={onPress} accessibilityLabel="Open menu" sentryLabel="MyTrigger">
-            <Icon />
-        </PressableWithFeedback>
-    );
-}
-
 <PopoverMenu.Root>
-    <MyTrigger />
+    <PopoverMenu.Trigger accessibilityLabel="Open menu" sentryLabel="MyTrigger">
+        <Icon />
+    </PopoverMenu.Trigger>
 
     <PopoverMenu.Content>
         <PopoverMenu.Header>Menu title</PopoverMenu.Header>
@@ -43,21 +37,36 @@ function MyTrigger() {
 </PopoverMenu.Root>
 ```
 
-### Trigger hooks
+### Triggers
 
-- **`usePopoverTrigger()`** — primary trigger. Returns `{ref, onPress}` to attach to any pressable (`PressableWithFeedback`, `Button`, `MenuItem`, custom). Captures the pressable's bounding rect on press and opens the popover.
-- **`useSecondaryInteractionTrigger()`** — same shape with `onSecondaryInteraction` instead of `onPress`. For long-press (native) / right-click (web), e.g. saved-search row navigates on tap, opens overflow on long-press.
-- **`useSubTrigger({disabled?})`** — sub-level analogue. Returns `{ref, onPress, onFocus, focused, isAtParentLevel}` to compose any pressable as the row that opens its enclosing `<Sub>`. The opinionated `MenuItem` shape ships as `<Sub.Trigger>` for the canonical drill-down case; reach for the hook when you need a different shape (a `Button` row, custom layout, etc.).
+The canonical wrappers own a `PressableWithFeedback` (or `PressableWithSecondaryInteraction`); the hooks are escape hatches for non-canonical pressable shapes.
+
+- **`<PopoverMenu.Trigger>` / `usePopoverTrigger()`** — primary trigger. The wrapper takes `{accessibilityLabel, sentryLabel?, style?, disabled?, role?, testID?, children}` and renders a `PressableWithFeedback`; the hook returns `{ref, onPress}` for any pressable. Reach for the hook when the trigger needs a non-`PressableWithFeedback` shape (e.g. an `IconButton` with a tooltip), pre-press validation, or composition with a consumer-side `onPress`.
+- **`<PopoverMenu.SecondaryInteractionTrigger>` / `useSecondaryInteractionTrigger()`** — long-press (native) / right-click (web) variant. The wrapper renders `PressableWithSecondaryInteraction`; the hook returns `{ref, onSecondaryInteraction}`.
+- **`<PopoverMenu.Sub.Trigger>` / `useSubTrigger({disabled?})`** — sub-level analogue. The wrapper renders an opinionated `MenuItem` drill-down row; the hook returns `{ref, onPress, onFocus, focused, isAtParentLevel}` to compose any pressable as a sub trigger.
 
 ### Row composition — `useSelectableRow({onSelect?, disabled?})`
 
 Returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` to compose any pressable as a selectable row inside `<Content>` / `<ScrollableContent>`. The menu closes after `onSelect` fires; call `event.preventDefault()` inside `onSelect` to keep it open. The opinionated `MenuItem` shapes ship as `<Item>` and `<CheckmarkItem>` for the canonical cases; reach for the hook when you need a non-`MenuItem` row (a `Button`-styled option, custom layout, etc.).
 
-If the consumer's pressable already has its own handler, compose explicitly:
+For the canonical case, compose with the wrapper:
 ```tsx
-const trigger = PopoverMenu.usePopoverTrigger();
-const handlePress = (e) => { myWork(e); trigger.onPress(); };
-<PressableWithFeedback ref={trigger.ref} onPress={handlePress} ... />
+<PopoverMenu.Trigger accessibilityLabel="Open" sentryLabel="MyTrigger">
+    <Icon />
+</PopoverMenu.Trigger>
+```
+
+For non-canonical shapes (custom pressable, pre-press work, alternate `onPress` composition), compose with the hook:
+```tsx
+function MoreMenuTrigger({videoPlayerRef, url}) {
+    const {ref, onPress} = PopoverMenu.usePopoverTrigger();
+    const handlePress = () => {
+        if (!videoPlayerRef.current) return;
+        updateSource(url);
+        onPress();
+    };
+    return <IconButton ref={ref} src={ThreeDots} tooltipText="..." onPress={handlePress} />;
+}
 ```
 
 ### Visibility observation — `useIsPopoverVisible()`
@@ -86,7 +95,7 @@ The pressable attached to a trigger hook's `ref` IS the anchor — there is no s
 
 Grouped by feature, not by file type. Each subfolder owns its components, contexts, and hooks, and re-exports its public surface through a barrel (`index.ts`); the top-level [`index.tsx`](./index.tsx) re-exports each barrel.
 
-- **`root/`** — `<Root>` provider, the trigger hooks (`usePopoverTrigger`, `useSecondaryInteractionTrigger`), the visibility hook (`useIsPopoverVisible`), and the shared anchor-opener helper.
+- **`root/`** — `<Root>` provider, the trigger wrappers (`<Trigger>`, `<SecondaryInteractionTrigger>`) and their backing hooks (`usePopoverTrigger`, `useSecondaryInteractionTrigger`), the visibility hook (`useIsPopoverVisible`), and the shared anchor-opener helper.
 - **`content/`** — public surface variants (`<Content>`, `<ScrollableContent>`) plus the internal scaffolding they share.
 - **`rows/`** — leaf rows rendered inside content (`<Item>`, `<CheckmarkItem>`, `<Label>`, `<Header>`, `<Separator>`, `<Group>`).
 - **`sub/`** — `<Sub>` plus its compound members `<Sub.Trigger>` and `<Sub.Content>`.
@@ -105,7 +114,7 @@ These are enforced at runtime — not just by convention.
 
 | Component / Hook | Must be rendered / called inside |
 |---|---|
-| `usePopoverTrigger`, `useSecondaryInteractionTrigger`, `useIsPopoverVisible` | `Root` |
+| `Trigger`, `SecondaryInteractionTrigger`, `usePopoverTrigger`, `useSecondaryInteractionTrigger`, `useIsPopoverVisible` | `Root` |
 | `Content`, `ScrollableContent` | `Root` |
 | `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub`, `useSelectableRow` | `Content` or `ScrollableContent` (transitively, including inside `<Sub.Content>`) |
 | `Sub.Trigger`, `Sub.Content`, `useSubTrigger` | `Sub` |

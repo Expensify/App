@@ -1,6 +1,6 @@
 import {NavigationContext} from '@react-navigation/core';
 import type {NavigationProp, ParamListBase} from '@react-navigation/native';
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
@@ -351,6 +351,85 @@ describe('PopoverMenu V2', () => {
             );
             expect(refs).toHaveLength(2);
             expect(refs.at(0)).not.toBe(refs.at(1));
+        });
+    });
+
+    describe('Trigger', () => {
+        // RN's View ref in the test renderer exposes `measureInWindow` but not `getBoundingClientRect`. Production paths (Fabric + react-native-web) have it; we stub here so the press path can complete.
+        let originalGetBoundingClientRect: ((this: unknown) => DOMRect) | undefined;
+        beforeAll(() => {
+            const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
+            originalGetBoundingClientRect = proto.getBoundingClientRect as typeof originalGetBoundingClientRect;
+            proto.getBoundingClientRect = () => ({x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({})});
+        });
+        afterAll(() => {
+            const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
+            if (originalGetBoundingClientRect) {
+                proto.getBoundingClientRect = originalGetBoundingClientRect;
+            } else {
+                delete proto.getBoundingClientRect;
+            }
+        });
+
+        it('opens the popover when pressed', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger
+                            accessibilityLabel="Open menu"
+                            sentryLabel="TriggerTest"
+                            testID="trigger"
+                        >
+                            <View testID="trigger-icon" />
+                        </PopoverMenu.Trigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            expect(screen.getByTestId('trigger-icon')).toBeOnTheScreen();
+            onOpenChange.mockClear();
+            act(() => fireEvent.press(screen.getByTestId('trigger')));
+            expect(onOpenChange).toHaveBeenCalledWith(true);
+        });
+    });
+
+    describe('SecondaryInteractionTrigger', () => {
+        let originalGetBoundingClientRect: ((this: unknown) => DOMRect) | undefined;
+        beforeAll(() => {
+            const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
+            originalGetBoundingClientRect = proto.getBoundingClientRect as typeof originalGetBoundingClientRect;
+            proto.getBoundingClientRect = () => ({x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({})});
+        });
+        afterAll(() => {
+            const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
+            if (originalGetBoundingClientRect) {
+                proto.getBoundingClientRect = originalGetBoundingClientRect;
+            } else {
+                delete proto.getBoundingClientRect;
+            }
+        });
+
+        it('opens the popover on long-press', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.SecondaryInteractionTrigger
+                            accessibilityLabel="Long-press me"
+                            sentryLabel="SecondaryTriggerTest"
+                            testID="secondary-trigger"
+                        >
+                            <View testID="secondary-icon" />
+                        </PopoverMenu.SecondaryInteractionTrigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            expect(screen.getByTestId('secondary-icon')).toBeOnTheScreen();
+            onOpenChange.mockClear();
+            act(() => fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', {preventDefault: () => {}}));
+            expect(onOpenChange).toHaveBeenCalledWith(true);
         });
     });
 

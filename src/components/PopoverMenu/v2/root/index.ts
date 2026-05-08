@@ -1,5 +1,9 @@
 export {default as Root} from './Root';
 export type {RootProps} from './Root';
+export {default as Trigger} from './Trigger';
+export type {TriggerProps} from './Trigger';
+export {default as SecondaryInteractionTrigger} from './SecondaryInteractionTrigger';
+export type {SecondaryInteractionTriggerProps} from './SecondaryInteractionTrigger';
 export {default as usePopoverTrigger} from './usePopoverTrigger';
 export type {UsePopoverTriggerResult} from './usePopoverTrigger';
 export {default as useSecondaryInteractionTrigger} from './useSecondaryInteractionTrigger';
