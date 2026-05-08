@@ -8,10 +8,10 @@ import SkeletonRect from './SkeletonRect';
 import SkeletonViewContentLoader from './SkeletonViewContentLoader';
 
 type MoneyReportHeaderStatusBarSkeletonProps = {
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function MoneyReportHeaderStatusBarSkeleton({reasonAttributes}: MoneyReportHeaderStatusBarSkeletonProps = {}) {
+function MoneyReportHeaderStatusBarSkeleton({reasonAttributes}: MoneyReportHeaderStatusBarSkeletonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     useSkeletonSpan('MoneyReportHeaderStatusBarSkeleton', reasonAttributes);

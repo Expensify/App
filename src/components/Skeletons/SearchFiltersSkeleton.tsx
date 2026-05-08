@@ -20,7 +20,7 @@ type SearchFiltersSkeletonProps = {
     itemCount?: number;
     width?: number;
     height?: number;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84, height = 28, reasonAttributes}: SearchFiltersSkeletonProps) {
@@ -31,7 +31,7 @@ function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
     const skeletonCount = new Array(itemCount).fill(0);
 
     return (
-        <View style={[styles.mh5, styles.mb4, styles.mt2]}>
+        <View style={[styles.mh5, styles.mb4, styles.mt3]}>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
                 width={width}

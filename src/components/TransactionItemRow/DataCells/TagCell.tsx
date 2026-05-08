@@ -1,5 +1,5 @@
 import React from 'react';
-import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
+import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,8 +20,8 @@ function TagCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem}: Tr
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={getTagForDisplay(transactionItem)}
-            numberOfLines={2}
-            style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter]}
+            numberOfLines={1}
+            style={[styles.lineHeightLarge, styles.justifyContentCenter]}
         />
     );
 }

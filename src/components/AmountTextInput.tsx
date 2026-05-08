@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
@@ -46,6 +46,12 @@ type AmountTextInputProps = {
 
     /** A unique identifier for this text input for testing purposes */
     testID?: string;
+
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
+
+    /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
+    rightHandSideComponent?: React.ReactNode;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'submitBehavior' | 'ref' | 'onFocus' | 'onBlur' | 'disabled' | 'accessibilityLabel'>;
 
 function AmountTextInput({
@@ -64,6 +70,7 @@ function AmountTextInput({
     ref,
     disabled,
     accessibilityLabel,
+    rightHandSideComponent,
     ...rest
 }: AmountTextInputProps) {
     const navigation = useNavigation();
@@ -82,7 +89,7 @@ function AmountTextInput({
             disabled={disabled}
             value={formattedAmount}
             placeholder={placeholder}
-            inputMode={CONST.INPUT_MODE.DECIMAL}
+            inputMode={!rest.keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
             // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
             // See https://github.com/Expensify/App/issues/51868 for more information
             autoCapitalize="words"
@@ -99,6 +106,7 @@ function AmountTextInput({
             disableKeyboardShortcuts
             shouldUseFullInputHeight
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            rightHandSideComponent={rightHandSideComponent}
             navigation={navigation}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}

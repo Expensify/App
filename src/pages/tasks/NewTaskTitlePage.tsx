@@ -17,6 +17,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {NewTaskNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
 import {getCommentLength} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import {setTitleValue} from '@userActions/Task';
 import CONST from '@src/CONST';
@@ -58,7 +59,8 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
     };
 
     if (isLoadingOnyxValue(taskMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'NewTaskTitlePage'};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

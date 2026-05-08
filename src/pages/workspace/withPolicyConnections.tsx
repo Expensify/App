@@ -5,6 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -43,7 +44,12 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         }, [props.policy?.id, isConnectionDataFetchNeeded]);
 
         if ((isFetchingData || isOnyxDataLoading) && shouldBlockView) {
-            return <FullScreenLoadingIndicator />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'withPolicyConnections',
+                isFetchingData,
+                isOnyxDataLoading,
+            };
+            return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
         }
 
         return (

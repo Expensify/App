@@ -67,13 +67,13 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
     WrappedComponent: ComponentType<TProps>,
     shouldIncludeDeprecatedIOUType = false,
 ): React.ComponentType<Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>> {
-    // eslint-disable-next-line rulesdir/no-negated-variables
     function WithWritableReportOrNotFound(props: Omit<TProps, keyof WithWritableReportOrNotFoundOnyxProps>) {
         const {route} = props;
         const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`);
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
         const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
         const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+        const [betas] = useOnyx(ONYXKEYS.BETAS);
         const isReportArchived = useReportIsArchived(report?.reportID);
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
@@ -85,7 +85,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-            openReport({reportID: route.params.reportID, introSelected});
+            openReport({reportID: route.params.reportID, introSelected, betas});
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 

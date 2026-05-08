@@ -44,9 +44,12 @@ type BankConnectionProps = {
 
     /** Route params for add new card flow */
     route?: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION>;
+
+    /** Title of the header */
+    title?: string;
 };
 
-function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnectionProps) {
+function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankConnectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -153,16 +156,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 updateSelectedFeed(newFeed, policyID);
             }
 
-            // Direct feeds (except those added via Plaid) are created with default statement period end date.
-            // Redirect the user to set a custom date.
-            if (policyID && !isPlaid) {
-                setAddNewCompanyCardStepAndData({
-                    step: CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE,
-                });
-            } else {
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-            }
+            Navigation.closeRHPFlow();
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
             return;
         }
         if (!shouldBlockWindowOpen) {
@@ -236,7 +231,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
-                title={headerTitle}
+                title={title ?? headerTitle}
                 onBackButtonPress={handleBackButtonPress}
             />
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>{getContent()}</FullPageOfflineBlockingView>

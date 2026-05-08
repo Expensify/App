@@ -27,7 +27,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const isDeleted = isDeletedNode(tnode);
     const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
 
-    const {report} = useShowContextMenuState();
+    const {report, action} = useShowContextMenuState();
 
     return (
         <AttachmentContext.Consumer>
@@ -49,6 +49,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                         const route = ROUTES.REPORT_ATTACHMENTS.getRoute({
                             attachmentID,
                             reportID: report?.reportID,
+                            reportActionID: action?.reportActionID,
                             type,
                             source: sourceURL,
                             accountID,

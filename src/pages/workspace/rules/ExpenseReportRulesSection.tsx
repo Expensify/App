@@ -2,11 +2,11 @@ import React from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -19,6 +19,7 @@ type ExpenseReportRulesSectionProps = {
 };
 
 function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -55,7 +56,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     return;
                 }
 
-                setPolicyPreventSelfApproval(policyID, isEnabled);
+                setPolicyPreventSelfApproval(policyID, isEnabled, policy?.preventSelfApproval);
             },
         },
         {
@@ -77,7 +78,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     return;
                 }
 
-                enableAutoApprovalOptions(policyID, isEnabled);
+                enableAutoApprovalOptions(policyID, isEnabled, policy?.shouldShowAutoApprovalOptions, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
             },
             subMenuItems: [
                 <OfflineWithFeedback
@@ -123,7 +124,7 @@ function ExpenseReportRulesSection({policyID}: ExpenseReportRulesSectionProps) {
                     return;
                 }
 
-                enablePolicyAutoReimbursementLimit(policyID, isEnabled);
+                enablePolicyAutoReimbursementLimit(policyID, isEnabled, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
             },
             disabled: autoPayApprovedReportsUnavailable,
             showLockIcon: autoPayApprovedReportsUnavailable,

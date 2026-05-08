@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -315,7 +314,7 @@ describe('handleActionButtonPress', () => {
     const snapshotReport = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {};
     const snapshotPolicy = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {};
 
-    test('Should navigate to item when report has one transaction on hold', () => {
+    test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             hash: searchHash,
@@ -325,8 +324,31 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
+            onHoldMenuOpen: jest.fn(),
         });
-        expect(goToItem).toHaveBeenCalledTimes(1);
+        expect(goToItem).not.toHaveBeenCalled();
+    });
+
+    test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
+        const onHoldMenuOpen = jest.fn();
+        handleActionButtonPress({
+            hash: searchHash,
+            item: mockReportItemWithHold,
+            goToItem: jest.fn(),
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+            userBillingGracePeriodEnds: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            onHoldMenuOpen,
+        });
+
+        expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
@@ -339,6 +361,9 @@ describe('handleActionButtonPress', () => {
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -359,7 +384,9 @@ describe('handleBulkPayItemSelected', () => {
         isDelegateAccessRestricted: false,
         showDelegateNoAccessModal: jest.fn(),
         confirmPayment: jest.fn(),
-        userBillingGraceEndPeriods: undefined,
+        userBillingGracePeriodEnds: undefined,
+        businessBankAccountOptions: undefined,
+        ownerBillingGracePeriodEnd: undefined,
     };
 
     beforeEach(async () => {
@@ -389,6 +416,7 @@ describe('handleBulkPayItemSelected', () => {
             ...baseParams,
             policy,
             amountOwed: 100,
+            ownerBillingGracePeriodEnd: pastDate,
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));

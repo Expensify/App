@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -12,7 +12,8 @@ import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
-import type {ButtonOrCheckBoxRoles} from '@components/SelectionList/types';
+import type {InteractiveElementRoles} from '@components/SelectionList/types';
+import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -26,6 +27,7 @@ import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
@@ -70,11 +72,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldScrollToFocusedIndex = true,
+    shouldHighlightInitiallyFocusedItem = false,
+    shouldClearInputOnSelect = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
-    shouldDisableHoverStyle = false,
+    isRowMultilineSupported = false,
+    titleNumberOfLines,
+    shouldHighlightSelectedItem,
+    shouldDisableHoverStyle,
+    selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
-    canShowProductTrainingTooltip,
 }: SelectionListWithSectionsProps<TItem>) {
     const styles = useThemeStyles();
     const isScreenFocused = useIsFocused();
@@ -84,11 +91,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const hasKeyBeenPressed = useRef(false);
+    const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
+    const suppressNextFocusScrollRef = useRef(false);
     const activeElementRole = useActiveElementRole();
     const {isKeyboardShown} = useKeyboardState();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const triggerScrollEvent = useScrollEventEmitter();
-
     const paddingBottomStyle = !isKeyboardShown && !footerContent && safeAreaPaddingBottomStyle;
 
     const {flattenedData, disabledIndexes, itemsCount, selectedItems, initialFocusedIndex, firstFocusableIndex} = useFlattenedSections(sections, initiallyFocusedItemKey);
@@ -98,9 +106,24 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         hasKeyBeenPressed.current = true;
+        setIsKeyboardNavigating(true);
     };
 
-    const scrollToIndex = (index: number) => {
+    // Arrow keys are handled via setHasKeyBeenPressed in useArrowKeyFocusManager.
+    // Tab also needs to trigger the flag so rows highlight when the user tabs into the list.
+    useEffect(() => {
+        const handleTabKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                return;
+            }
+            setHasKeyBeenPressed();
+        };
+
+        addKeyDownPressListener(handleTabKeyDown);
+        return () => removeKeyDownPressListener(handleTabKeyDown);
+    }, []);
+
+    const scrollToIndex = (index: number, animated = true) => {
         if (index < 0 || index >= flattenedData.length || !listRef.current) {
             return;
         }
@@ -109,7 +132,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         try {
-            listRef.current.scrollToIndex({index});
+            listRef.current.scrollToIndex({index, animated});
         } catch (error) {
             // FlashList may throw if layout for this index doesn't exist yet
             // This can happen when data changes rapidly (e.g., during search filtering)
@@ -126,6 +149,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         disabledIndexes,
         isActive: isScreenFocused && itemsCount > 0,
         onFocusedIndexChange: (index: number) => {
+            if (suppressNextFocusScrollRef.current) {
+                suppressNextFocusScrollRef.current = false;
+                return;
+            }
             if (!shouldScrollToFocusedIndex) {
                 return;
             }
@@ -157,11 +184,14 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 scrollToIndex(0);
             }
 
-            if (shouldShowTextInput) {
+            if (shouldShowTextInput && shouldClearInputOnSelect) {
                 textInputOptions?.onChangeText?.('');
             }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+            if (indexToFocus !== focusedIndex) {
+                suppressNextFocusScrollRef.current = true;
+            }
             setFocusedIndex(indexToFocus);
         }
         onSelectRow(item);
@@ -173,7 +203,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const selectFocusedItem = () => {
         const focusedItem = getFocusedItem();
-        if (!focusedItem) {
+        if (!focusedItem || focusedItem.isInteractive === false) {
             return;
         }
         selectRow(focusedItem);
@@ -183,7 +213,14 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         innerTextInputRef.current?.focus();
     };
 
+    const clearInputAfterSelect = () => {
+        textInputOptions?.onChangeText?.('');
+    };
+
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
+        if (!shouldScroll) {
+            suppressNextFocusScrollRef.current = true;
+        }
         setFocusedIndex(index);
         if (shouldScroll) {
             scrollToIndex(index);
@@ -197,15 +234,21 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         isTextInputFocusedRef.current = isTextInputFocused;
     };
 
-    useImperativeHandle(ref, () => ({
-        focusTextInput,
-        updateAndScrollToFocusedIndex,
-        updateExternalTextInputFocus,
-        getFocusedOption: getFocusedItem,
-    }));
+    useImperativeHandle(
+        ref,
+        () => ({
+            focusTextInput,
+            scrollToIndex,
+            clearInputAfterSelect,
+            updateAndScrollToFocusedIndex,
+            updateExternalTextInputFocus,
+            getFocusedOption: getFocusedItem,
+        }),
+        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem],
+    );
 
-    // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
+    // Disable `Enter` shortcut if the active element is a button, checkbox, or switch
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].includes(activeElementRole as InteractiveElementRoles);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedItem, {
         captureOnInputs: true,
@@ -232,10 +275,11 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     );
 
     const textInputKeyPress = (event: TextInputKeyPressEvent) => {
-        const key = event.nativeEvent.key;
-        if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
-            focusedItemRef?.focus();
+        if (event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+            return;
         }
+        setHasKeyBeenPressed();
+        focusedItemRef?.focus();
     };
 
     useSelectedItemFocusSync({
@@ -247,6 +291,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         setFocusedIndex,
     });
 
+    const suppressNextFocusScroll = () => {
+        suppressNextFocusScrollRef.current = true;
+    };
+
     useSearchFocusSync({
         searchValue: textInputOptions?.value,
         data: flattenedData,
@@ -256,7 +304,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
+        focusedIndex,
         firstFocusableIndex,
+        suppressNextFocusScroll,
     });
 
     const textInputComponent = () => {
@@ -272,7 +322,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 accessibilityLabel={textInputOptions?.label}
                 options={textInputOptions}
                 onSubmit={selectFocusedItem}
-                dataLength={flattenedData.length}
+                dataLength={itemsCount}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
@@ -313,7 +363,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
             case CONST.SECTION_LIST_ITEM_TYPE.ROW: {
                 const isItemFocused = index === focusedIndex;
-                const isDisabled = !!item.isDisabled;
+                const isItemVisuallyFocused = isItemFocused && (shouldHighlightInitiallyFocusedItem || isKeyboardNavigating);
+                const isDisabled = !!item.isDisabled && !item.isSelected;
 
                 return (
                     <ListItemRenderer
@@ -324,21 +375,24 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         index={index}
                         normalizedIndex={index}
                         isFocused={isItemFocused}
+                        isFocusVisible={isItemVisuallyFocused}
                         isDisabled={isDisabled}
                         canSelectMultiple={canSelectMultiple}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
-                        canShowProductTrainingTooltip={canShowProductTrainingTooltip}
-                        shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
-                        shouldHighlightSelectedItem
+                        shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                         shouldIgnoreFocus={shouldIgnoreFocus}
                         wrapperStyle={style?.listItemWrapperStyle}
                         titleStyles={style?.listItemTitleStyles}
+                        isMultilineSupported={isRowMultilineSupported}
+                        titleNumberOfLines={titleNumberOfLines}
+                        shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
+                        selectionButtonPosition={selectionButtonPosition}
+                        shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                     />
                 );
             }
@@ -358,6 +412,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <FlashList
+                    role={getListboxRole(canSelectMultiple)}
                     data={flattenedData}
                     renderItem={renderItem}
                     ref={listRef}

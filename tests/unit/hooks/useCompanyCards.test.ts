@@ -733,6 +733,243 @@ describe('useCompanyCards', () => {
             // lastFourPAN resolves both cardName and encryptedCardNumber from cardList
             expect(result.current.companyCardEntries).toEqual([entry('111222XXXX31234', 'v1:NEW_ENCRYPTED', true)]);
         });
+
+        it('should deduplicate when an old-format (4-digit) and new-format card both resolve to the same cardList entry', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
+                },
+                // Old-format card: cardName is just last 4 digits, lastFourPAN is empty
+                '8100': {
+                    cardID: 8100,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '0487',
+                    lastFourPAN: '',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+                // New-format card: full masked name with lastFourPAN
+                '8101': {
+                    cardID: 8101,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '553312XXXXXX0487',
+                    lastFourPAN: '0487',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const entries = result.current.companyCardEntries ?? [];
+
+            // Only one entry should appear — the duplicate is suppressed
+            expect(entries).toHaveLength(1);
+            expect(entries.at(0)).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
+
+            // The canonical (new-format) card with lastFourPAN should be kept as assignedCard
+            expect(entries.at(0)?.assignedCard?.cardID).toBe(8101);
+            expect(entries.at(0)?.assignedCard?.lastFourPAN).toBe('0487');
+        });
+
+        it('should enrich encryptedCardNumber via name match when card has no encryptedCardNumber', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
+                },
+                '8200': {
+                    cardID: 8200,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '553312XXXXXX0487',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            // isLinkedByName enriches the assigned card with encryptedCardNumber from cardList, and Phase 2 skips the cardList entry
+            expect(result.current.companyCardEntries).toEqual([entry('553312XXXXXX0487', 'v1:ENCRYPTED_0487', true)]);
+        });
+
+        it('should use cardName as panSuffix when lastFourPAN is undefined', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
+                },
+                '8300': {
+                    cardID: 8300,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '0487',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            // cardName '0487' is used as panSuffix when lastFourPAN is absent, resolving via suffix match
+            expect(result.current.companyCardEntries).toEqual([entry('553312XXXXXX0487', 'v1:ENCRYPTED_0487', true)]);
+        });
+
+        it('should deduplicate assigned cards but not suppress unrelated accountList entries with old-format names', async () => {
+            const feedWithAccountList: CompanyCardFeedWithDomainID = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#${domainID}` as CompanyCardFeedWithDomainID;
+            const feedData = {
+                [feedWithAccountList]: {
+                    ...mockOAuthFeedData[mockOAuthFeed],
+                    accountList: ['0487', 'SOME OTHER CARD'],
+                },
+            };
+            const cdfCardsList = {
+                cardList: {
+                    '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
+                },
+                '8100': {
+                    cardID: 8100,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '0487',
+                    lastFourPAN: '',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+                '8101': {
+                    cardID: 8101,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '553312XXXXXX0487',
+                    lastFourPAN: '0487',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, feedWithAccountList);
+            mockUseCardFeedsHook(feedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const entries = result.current.companyCardEntries ?? [];
+
+            // Deduplication works for assigned cards: only 1 assigned entry.
+            // coveredNames tracks the resolved name '553312XXXXXX0487', so the accountList entry '0487' passes through as unassigned.
+            expect(entries).toHaveLength(3);
+            expect(entries.at(0)).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
+            expect(entries.at(1)).toMatchObject({cardName: '0487', isAssigned: false});
+            expect(entries.at(2)).toMatchObject({cardName: 'SOME OTHER CARD', isAssigned: false});
+        });
+
+        it('should deduplicate three cards resolving to the same cardList entry', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
+                },
+                // Old-format card
+                '8100': {
+                    cardID: 8100,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '0487',
+                    lastFourPAN: '',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+                // New-format card with lastFourPAN
+                '8101': {
+                    cardID: 8101,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '553312XXXXXX0487',
+                    lastFourPAN: '0487',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+                // Another new-format card with matching encryptedCardNumber
+                '8102': {
+                    cardID: 8102,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '553312XXXXXX0487',
+                    encryptedCardNumber: 'v1:ENCRYPTED_0487',
+                    lastFourPAN: '0487',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const entries = result.current.companyCardEntries ?? [];
+
+            // All three cards resolve to the same cardList entry — only one appears
+            expect(entries).toHaveLength(1);
+            expect(entries.at(0)).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
+        });
+
+        it('should deduplicate correctly when new-format card is processed before old-format card', async () => {
+            const cdfCardsList = {
+                cardList: {
+                    '553312XXXXXX0487': 'v1:ENCRYPTED_0487',
+                },
+                // New-format card has lower numeric key — processed first
+                '8099': {
+                    cardID: 8099,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '553312XXXXXX0487',
+                    lastFourPAN: '0487',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+                // Old-format card processed second
+                '8100': {
+                    cardID: 8100,
+                    accountID: 11,
+                    bank: 'gl1025',
+                    cardName: '0487',
+                    lastFourPAN: '',
+                    domainName: 'expensify-policy://123456',
+                    state: 3,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
+            mockUseCardFeedsHook(mockCustomFeedData);
+            mockUseCardsListHook(cdfCardsList);
+
+            const {result} = renderHook(() => useCompanyCards({policyID: mockPolicyID}));
+
+            const entries = result.current.companyCardEntries ?? [];
+
+            // Same result regardless of iteration order
+            expect(entries).toHaveLength(1);
+            expect(entries.at(0)).toMatchObject({cardName: '553312XXXXXX0487', encryptedCardNumber: 'v1:ENCRYPTED_0487', isAssigned: true});
+
+            // The canonical (new-format) card should be kept as assignedCard regardless of iteration order
+            expect(entries.at(0)?.assignedCard?.cardID).toBe(8099);
+            expect(entries.at(0)?.assignedCard?.lastFourPAN).toBe('0487');
+        });
     });
 
     describe('card ID consistency', () => {

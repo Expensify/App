@@ -1,52 +1,40 @@
-import {useFocusEffect} from '@react-navigation/native';
 import {iouRequestPolicyCollectionSelector} from '@selectors/Policy';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
-import usePrevious from '@hooks/usePrevious';
+import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {dismissProductTraining} from '@libs/actions/Welcome';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
-import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     getPerDiemCustomUnit,
-    hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil,
     isControlPolicy,
     isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {IOURequestType} from '@userActions/IOU';
-import {initMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining, SelectedTabRequest} from '@src/types/onyx';
+import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import IOURequestStepAmount from './step/IOURequestStepAmount';
+import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
 import IOURequestStepDestination from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepHours from './step/IOURequestStepHours';
@@ -59,13 +47,8 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
     defaultSelectedTab: SelectedTabRequest;
 };
 
-const platform = getPlatform(true);
-const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.MOBILE_WEB] as Platform[]).includes(platform);
-
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
-
-const isTestReceiptTooltipDismissedSelector = (nvp: OnyxEntry<DismissedProductTraining>): boolean => !!nvp?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
 
 function IOURequestStartPage({
     route,
@@ -79,9 +62,8 @@ function IOURequestStartPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
-    const personalPolicy = usePersonalPolicy();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`);
     const policy = usePolicy(report?.policyID);
     const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
     // Derive selectedTab directly instead of using state
@@ -93,14 +75,6 @@ function IOURequestStartPage({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: iouRequestPolicyCollectionSelector,
     });
-
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [draftTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
-    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
-    const {isOffline} = useNetwork();
-    const [hasUserSubmittedExpenseOrScannedReceipt] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isTestReceiptTooltipDismissedSelector});
-    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
 
@@ -117,14 +91,12 @@ function IOURequestStartPage({
     };
 
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
-        // We requestAnimationFrame since the function is called in the animate block in the web implementation
-        // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
-        requestAnimationFrame(() => {
-            if (index !== PER_DIEM_TAB_INDEX) {
-                return;
-            }
+        if (index !== PER_DIEM_TAB_INDEX) {
+            return;
+        }
+        setTimeout(() => {
             perDiemInputRef.current?.focus?.();
-        });
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
@@ -146,23 +118,58 @@ function IOURequestStartPage({
     const hasCurrentPolicyPerDiemWithRates = !isFromGlobalCreate && hasCurrentPolicyPerDiemEnabled && hasPolicyPerDiemRates;
     const hasAnyPolicyPerDiemWithRates = (iouType === CONST.IOU.TYPE.TRACK || isFromGlobalCreate) && doesPerDiemPolicyExist;
     const shouldShowPerDiemOption = iouType !== CONST.IOU.TYPE.SPLIT && (hasCurrentPolicyPerDiemWithRates || hasAnyPolicyPerDiemWithRates);
+    const shouldShowTimeOption =
+        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
+        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
+
+    // Mirrors the tabs rendered below so a stale persisted selectedTab that isn't valid for this iouType is rejected.
+    const availableTabs = useMemo<Set<SelectedTabRequest>>(() => {
+        if (!shouldUseTab) {
+            return new Set();
+        }
+        const tabs = new Set<SelectedTabRequest>([CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN]);
+        if (iouType === CONST.IOU.TYPE.SPLIT) {
+            tabs.add(CONST.TAB_REQUEST.DISTANCE);
+        }
+        if (shouldShowPerDiemOption) {
+            tabs.add(CONST.TAB_REQUEST.PER_DIEM);
+        }
+        if (shouldShowTimeOption) {
+            tabs.add(CONST.TAB_REQUEST.TIME);
+        }
+        return tabs;
+    }, [shouldUseTab, iouType, shouldShowPerDiemOption, shouldShowTimeOption]);
+
+    // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
+    // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
+    // by comparing the draft's reportID to the URL's so we don't inherit its stale iouRequestType.
+    const isStaleTransactionDraft = !!transaction?.reportID && transaction.reportID !== reportID;
 
     const transactionRequestType = useMemo(() => {
-        if (!transaction?.iouRequestType) {
-            if (shouldUseTab) {
-                if (selectedTab === CONST.TAB_REQUEST.PER_DIEM && !shouldShowPerDiemOption) {
-                    return undefined;
-                }
-                return selectedTab;
-            }
-
+        if (transaction?.iouRequestType && !isStaleTransactionDraft) {
+            return transaction.iouRequestType;
+        }
+        if (!shouldUseTab) {
             return CONST.IOU.REQUEST_TYPE.MANUAL;
         }
+        // selectedTab must be valid for the currently-rendered tab set; otherwise let
+        // OnyxTabNavigator.onTabSelected initialize from the URL (which is authoritative).
+        if (selectedTab && availableTabs.has(selectedTab)) {
+            return selectedTab;
+        }
+        return undefined;
+    }, [transaction?.iouRequestType, isStaleTransactionDraft, shouldUseTab, selectedTab, availableTabs]);
 
-        return transaction.iouRequestType;
-    }, [transaction?.iouRequestType, shouldUseTab, selectedTab, shouldShowPerDiemOption]);
-
-    const prevTransactionReportID = usePrevious(transaction?.reportID);
+    const resetIOUTypeIfChanged = useResetIOUType({
+        reportID,
+        report,
+        transaction,
+        isLoadingTransaction,
+        isLoadingSelectedTab,
+        transactionRequestType,
+        policy,
+        skipKeyboardDismissForPerDiem: true,
+    });
 
     useEffect(() => {
         // Don't end span for scan flows - it will be ended when camera initializes (or canceled if permission is denied).
@@ -178,73 +185,6 @@ function IOURequestStartPage({
         Navigation.closeRHPFlow();
     };
 
-    const resetIOUTypeIfChanged = useCallback(
-        (newIOUType: IOURequestType) => {
-            Keyboard.dismiss();
-            if (transaction?.iouRequestType === newIOUType) {
-                return;
-            }
-            setIsMultiScanEnabled(false);
-            initMoneyRequest({
-                reportID,
-                policy,
-                personalPolicy,
-                isFromGlobalCreate: transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
-                isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
-                currentIouRequestType: transaction?.iouRequestType,
-                newIouRequestType: newIOUType,
-                report,
-                parentReport,
-                currentDate,
-                lastSelectedDistanceRates,
-                currentUserPersonalDetails,
-                hasOnlyPersonalPolicies,
-                draftTransactions,
-            });
-        },
-        [
-            transaction?.iouRequestType,
-            transaction?.isFromGlobalCreate,
-            transaction?.isFromFloatingActionButton,
-            reportID,
-            policy,
-            personalPolicy,
-            isFromGlobalCreate,
-            report,
-            parentReport,
-            currentDate,
-            lastSelectedDistanceRates,
-            currentUserPersonalDetails,
-            hasOnlyPersonalPolicies,
-            draftTransactions,
-        ],
-    );
-
-    const onTabSelected = useCallback(
-        (newIouType: IOURequestType) => {
-            resetIOUTypeIfChanged(newIouType);
-        },
-        [resetIOUTypeIfChanged],
-    );
-
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
-    useFocusEffect(
-        useCallback(() => {
-            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-            if (
-                transaction?.reportID === reportID ||
-                isLoadingTransaction ||
-                isLoadingSelectedTab ||
-                !transactionRequestType ||
-                prevTransactionReportID !== transaction?.reportID ||
-                !personalPolicy?.id
-            ) {
-                return;
-            }
-            resetIOUTypeIfChanged(transactionRequestType);
-        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID, isLoadingTransaction, personalPolicy?.id]),
-    );
-
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
@@ -252,25 +192,6 @@ function IOURequestStartPage({
     const focusTrapContainerElements = useMemo(() => {
         return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
-
-    const {isBetaEnabled} = usePermissions();
-    const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        // The test receipt image is served via our server on web so it requires internet connection
-        !hasUserSubmittedExpenseOrScannedReceipt && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
-        {
-            onConfirm: () => {
-                setTestReceiptAndNavigateRef?.current?.();
-            },
-            onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
-            },
-        },
-    );
-    const shouldShowTimeOption =
-        (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE) &&
-        ((!isFromGlobalCreate && hasCurrentPolicyTimeTrackingEnabled) || (isFromGlobalCreate && !!policiesWithTimeEnabled.length));
 
     const onBackButtonPress = () => {
         navigateBack();
@@ -287,7 +208,7 @@ function IOURequestStartPage({
             iouType={iouType}
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
-            allPolicies={allPolicies}
+            allPolicies={iouType === CONST.IOU.TYPE.INVOICE ? allPolicies : undefined}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
@@ -312,23 +233,22 @@ function IOURequestStartPage({
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
-                                onTabSelected={onTabSelected}
+                                onTabSelected={resetIOUTypeIfChanged}
                                 onTabSelect={onTabSelectFocusHandler}
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
-                                shouldShowLabelWhenInactive={!shouldShowPerDiemOption}
-                                shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                                renderProductTrainingTooltip={renderProductTrainingTooltip}
                                 lazyLoadEnabled
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
-                                            <IOURequestStepAmount
+                                            <IOURequestStepAmountWithTransactionOnly
                                                 shouldKeepUserInput
                                                 route={route}
                                                 navigation={navigation}
+                                                report={report}
+                                                reportDraft={reportDraft}
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
@@ -337,14 +257,9 @@ function IOURequestStartPage({
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
                                             <IOURequestStepScan
+                                                key={transactionRequestType}
                                                 route={route}
                                                 navigation={navigation}
-                                                onLayout={(setTestReceiptAndNavigate) => {
-                                                    setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
-                                                }}
-                                                isMultiScanEnabled={isMultiScanEnabled}
-                                                setIsMultiScanEnabled={setIsMultiScanEnabled}
-                                                isStartingScan
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
@@ -409,10 +324,12 @@ function IOURequestStartPage({
                                 onContainerElementChanged={setActiveTabContainerElement}
                                 style={[styles.flexColumn, styles.flex1]}
                             >
-                                <IOURequestStepAmount
+                                <IOURequestStepAmountWithTransactionOnly
                                     route={route}
                                     navigation={navigation}
                                     shouldKeepUserInput
+                                    report={report}
+                                    reportDraft={reportDraft}
                                 />
                             </FocusTrapContainerElement>
                         )}

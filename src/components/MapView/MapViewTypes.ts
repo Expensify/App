@@ -39,6 +39,9 @@ type MapViewProps = {
 type DirectionProps = {
     // Coordinates of points that constitute the direction
     coordinates: Coordinate[];
+
+    // ID of the layer to place the line layer below
+    belowLayerID?: string;
 };
 
 type PendingMapViewProps = {

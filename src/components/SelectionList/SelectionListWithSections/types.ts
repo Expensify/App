@@ -47,12 +47,17 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
 
-    /** Whether product training tooltips can be displayed */
-    canShowProductTrainingTooltip?: boolean;
+    /** Whether to wrap long text in rows */
+    isRowMultilineSupported?: boolean;
+
+    /** Number of lines to show for title text when multiline is supported */
+    titleNumberOfLines?: number;
 };
 
 type SelectionListWithSectionsHandle<TItem extends ListItem = ListItem> = {
     focusTextInput: () => void;
+    scrollToIndex: (index: number) => void;
+    clearInputAfterSelect: () => void;
     updateAndScrollToFocusedIndex: (index: number, shouldScroll?: boolean) => void;
     updateExternalTextInputFocus: (isTextInputFocused: boolean) => void;
     getFocusedOption: () => TItem | undefined;

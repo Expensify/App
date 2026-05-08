@@ -1,5 +1,6 @@
 type OpenSearchPageParams = {
-    includePartiallySetupBankAccounts: boolean;
+    includePartiallySetupBankAccounts?: boolean;
+    includeLockedBankAccounts?: boolean;
 };
 
 export default OpenSearchPageParams;

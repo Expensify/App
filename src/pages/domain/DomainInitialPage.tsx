@@ -6,11 +6,13 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,6 +32,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isAdminSelector} from '@src/selectors/Domain';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -55,12 +58,12 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
-
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params?.domainAccountID;
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
-    const [isAdmin, adminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
+    useDocumentTitle(domainName ?? '');
+    const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
     const domainMenuItems: DomainMenuItem[] = [
@@ -101,7 +104,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     useConfirmReadyToOpenApp();
 
-    const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata, adminMetadata);
+    const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
 
     useEffect(() => {
         if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {
@@ -115,14 +118,8 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         <ScreenWrapper
             testID="DomainInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={
-                !shouldDisplayLHB && (
-                    <NavigationTabBar
-                        selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingButtons={false}
-                    />
-                )
-            }
+            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContentStyle={styles.overflowVisible}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}
@@ -138,7 +135,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn]}>
+                <ScrollView contentContainerStyle={styles.flexColumn}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
@@ -152,7 +149,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 icon={item.icon}
                                 onPress={item.action}
                                 brickRoadIndicator={item.brickRoadIndicator}
-                                wrapperStyle={styles.sectionMenuItem}
+                                wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                 highlighted={!!item?.highlighted}
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 badgeText={item.badgeText}
@@ -161,7 +158,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                         ))}
                     </View>
                 </ScrollView>
-                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

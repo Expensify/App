@@ -1,19 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFieldFormValues: values, onNext}: CustomFieldSubStepWithPolicy) {
+function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFieldFormValues: values, onNext}: CustomFieldSubPageWithPolicy) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -23,7 +23,14 @@ function ConfirmCustomSegmentStep({onMove, customSegmentType, netSuiteCustomFiel
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     if (!values.mapping) {
-        return <FullScreenLoadingIndicator />;
+        return (
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={{context: 'ConfirmCustomSegmentStep'}}
+                />
+            </View>
+        );
     }
 
     return (

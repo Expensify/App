@@ -1,7 +1,7 @@
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
+import {isChatThread} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ProtectedCurrentRouteReportID} from './playbackContextReportIDUtils';
@@ -14,29 +14,30 @@ const ContextActions = React.createContext<PlaybackActionsContext | null>(null);
 
 function PlaybackContextProvider({children}: ChildrenProps) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<PlaybackStateContextValues['currentlyPlayingURL']>(null);
+    const currentlyPlayingURLRef = useRef<PlaybackStateContextValues['currentlyPlayingURL']>(null);
     const [sharedElement, setSharedElement] = useState<PlaybackStateContextValues['sharedElement']>(null);
     const [originalParent, setOriginalParent] = useState<OriginalParent>(null);
     const [currentRouteReportID, setCurrentRouteReportID] = useState<ProtectedCurrentRouteReportID>(NO_REPORT_ID);
     const [shareVersion, setShareVersion] = useState(0);
     const mountedVideoPlayersRef = useRef<string[]>([]);
     const playerStatus = useRef<VideoPlayerStatus>('loading');
-
     const resetContextProperties = () => {
         setSharedElement(null);
         setOriginalParent(null);
         setCurrentlyPlayingURL(null);
+        currentlyPlayingURLRef.current = null;
         setCurrentRouteReportID(NO_REPORT_ID);
     };
 
     const video = usePlaybackContextVideoRefs(resetContextProperties);
 
     const updateCurrentURLAndReportID: PlaybackActionsContextValues['updateCurrentURLAndReportID'] = useCallback(
-        (url, reportID) => {
+        (url, report, reportID) => {
             if (!reportID) {
                 return;
             }
 
-            if (currentlyPlayingURL && url !== currentlyPlayingURL) {
+            if (currentlyPlayingURLRef.current && url !== currentlyPlayingURLRef.current) {
                 video.pause();
             }
 
@@ -44,10 +45,10 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             // without triggering the resetPlayerData in useEffect below
             if (!url) {
                 setCurrentlyPlayingURL(reportID);
+                currentlyPlayingURLRef.current = reportID;
                 return;
             }
 
-            const report = getReportOrDraftReport(reportID);
             const isReportAChatThread = isChatThread(report);
             let reportIDtoSet;
             if (isReportAChatThread) {
@@ -62,8 +63,9 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             setCurrentRouteReportID(reportIDtoSet);
 
             setCurrentlyPlayingURL(url);
+            currentlyPlayingURLRef.current = url;
         },
-        [currentlyPlayingURL, video],
+        [video],
     );
 
     const updatePlayerStatus = useCallback((newStatus: VideoPlayerStatus) => {
@@ -188,4 +190,4 @@ function usePlaybackActionsContext() {
     return playbackActionsContext;
 }
 
-export {ContextActions as PlaybackActionsContext, ContextState as PlaybackStateContext, PlaybackContextProvider, usePlaybackStateContext, usePlaybackActionsContext};
+export {PlaybackContextProvider, usePlaybackStateContext, usePlaybackActionsContext};

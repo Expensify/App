@@ -8,6 +8,18 @@ on:
     branches: [main]
 
 jobs:
+  validate:
+    if: ${{ github.event_name == 'pull_request_target' }}
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
   CLA:
+    needs: [validate]
+    if: |
+      always()
+      && (github.event_name == 'issue_comment' || needs.validate.outputs.IS_AUTHORIZED == 'true')
     uses: Expensify/GitHub-Actions/.github/workflows/cla.yml@main
     secrets: inherit

@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -20,8 +21,7 @@ function MultifactorAuthenticationBiometricsTestPage() {
             return;
         }
 
-        // The reason for using it, despite it being deprecated: https://github.com/Expensify/App/pull/79473/files#r2745847379
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        // The reason for using it, despite it being deprecated: https://github.com/Expensify/App/pull/79473#discussion_r2745847379
         InteractionManager.runAfterInteractions(() => executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST));
 
         // This should only fire once - on mount, or if the user switches from offline to online.
@@ -42,7 +42,7 @@ function MultifactorAuthenticationBiometricsTestPage() {
                 />
             )}
             <FullPageOfflineBlockingView>
-                <FullScreenLoadingIndicator />
+                <FullScreenLoadingIndicator reasonAttributes={{context: 'BiometricsTestPage', isOffline}} />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

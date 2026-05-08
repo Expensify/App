@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -20,26 +20,41 @@ function VacationDelegatePage() {
     const {showConfirmModal} = useConfirmModal();
 
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const vacationDelegateRef = useRef(vacationDelegate);
+    useEffect(() => {
+        vacationDelegateRef.current = vacationDelegate;
+    }, [vacationDelegate]);
+
+    const showErrorModal = async (message?: string) => {
+        await showConfirmModal({
+            title: translate('statusPage.addVacationDelegate'),
+            prompt: message ?? translate('statusPage.vacationDelegateError'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+
+        clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
+    };
 
     const showWarningModal = useCallback(
         async (delegateLogin: string) => {
             const result = await showConfirmModal({
                 title: translate('common.headsUp'),
-                prompt: translate('statusPage.vacationDelegateWarning', {nameOrEmail: getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin}),
+                prompt: translate('statusPage.vacationDelegateWarning', getPersonalDetailByEmail(delegateLogin)?.displayName ?? delegateLogin),
                 confirmText: translate('common.confirm'),
                 cancelText: translate('common.cancel'),
                 shouldShowCancelButton: true,
             });
 
             if (result.action === ModalActions.CONFIRM) {
-                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegate?.delegate);
+                await setVacationDelegate(currentUserLogin, delegateLogin, true, vacationDelegateRef.current?.previousDelegate);
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
                 return;
             }
 
-            clearVacationDelegateError(vacationDelegate?.previousDelegate);
+            clearVacationDelegateError(vacationDelegateRef.current?.previousDelegate);
         },
-        [showConfirmModal, translate, currentUserLogin, vacationDelegate?.previousDelegate, vacationDelegate?.delegate],
+        [showConfirmModal, translate, currentUserLogin],
     );
 
     const onSelectRow = useCallback(
@@ -56,6 +71,11 @@ function VacationDelegatePage() {
                     return;
                 }
 
+                if (response.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
+                    showErrorModal(response.message);
+                    return;
+                }
+
                 if (response.jsonCode === CONST.JSON_CODE.POLICY_DIFF_WARNING) {
                     showWarningModal(option?.login ?? '');
                     return;
@@ -64,13 +84,14 @@ function VacationDelegatePage() {
                 Navigation.goBack(ROUTES.SETTINGS_STATUS);
             });
         },
-        [currentUserLogin, vacationDelegate, showWarningModal],
+        [currentUserLogin, vacationDelegate, showWarningModal, showErrorModal],
     );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             testID="VacationDelegatePage"
+            shouldShowOfflineIndicator={false}
         >
             <BaseVacationDelegateSelectionComponent
                 vacationDelegate={vacationDelegate}

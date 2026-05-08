@@ -1,6 +1,6 @@
 ---
-allowed-tools: Bash(gh pr diff:*),Bash(gh pr view:*)
-description: Review a code contribution pull request
+allowed-tools: Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)
+description: Run the coding-standards rule linter on a PR diff. Use when user wants to review their changes against our custom rules.
 ---
 
 Perform a comprehensive PR review using a specialized subagent:

@@ -4,16 +4,18 @@
 import type {EmptyObject, ValueOf} from 'type-fest';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {CancelConfirmModalProps} from '@components/MultifactorAuthentication/components/Modals/createCancelConfirmModal';
+import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {
     AllMultifactorAuthenticationBaseParameters,
     MultifactorAuthenticationActionParams,
-    MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationReason,
     MultifactorAuthenticationScenarioCallback,
-} from '@libs/MultifactorAuthentication/Biometrics/types';
+    RegistrationKeyInfo,
+} from '@libs/MultifactorAuthentication/shared/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {MULTIFACTOR_AUTHENTICATION_PROMPT_UI, MultifactorAuthenticationScenarioPayload} from './index';
 
 /**
@@ -27,10 +29,10 @@ type MultifactorAuthenticationCancelConfirm = {
 };
 
 /**
- * Configuration for multifactor authentication prompt display with animation and translations.
+ * Configuration for multifactor authentication prompt display with illustration and translations.
  */
 type MultifactorAuthenticationPromptConfig = {
-    animation: DotLottieAnimation;
+    illustration: DotLottieAnimation | IconAsset;
     title: TranslationPaths;
     subtitle: TranslationPaths;
 };
@@ -65,7 +67,7 @@ type MultifactorAuthenticationOutcomeScreens = {
  */
 type MultifactorAuthenticationScenarioResponse = {
     httpStatusCode: number | undefined;
-    reason: MultifactorAuthenticationReason;
+    reason: MultifactorAuthenticationReason | undefined;
     message: string | undefined;
 
     /** Optional response body containing scenario-specific data (e.g., {pin: number} for PIN reveal) */
@@ -90,7 +92,7 @@ type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknow
 type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = EmptyObject> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthenticationMethods: Array<ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>>;
-    screen: MultifactorAuthenticationScreen;
+    screen?: MultifactorAuthenticationScreen;
 
     /**
      * Whether the scenario does not require any additional parameters except for the native biometrics data.
@@ -109,12 +111,10 @@ type MultifactorAuthenticationScenarioBase<T extends Record<string, unknown> = E
 
     /**
      * Called when the user cancels the MFA flow. When provided, cancel() awaits this function
-     * and uses the returned reason (and optional payload) to navigate to the appropriate failure screen.
-     * When absent, cancel() falls back to the default behavior (SET_ERROR with GENERIC.CANCELED).
+     * and uses the returned MFAError to navigate to the appropriate failure screen.
+     * When absent, cancel() falls back to the default behavior (SET_ERROR with LOCAL_ERRORS.CANCELED).
      */
-    onCancel?: (
-        payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined,
-    ) => Promise<{reason: MultifactorAuthenticationReason; payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>}>;
+    onCancel?: (payload: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario> | undefined) => Promise<MFAError>;
 };
 
 /**
@@ -170,11 +170,14 @@ type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATI
 /**
  * Parameters required for biometrics registration scenario.
  */
-type RegisterBiometricsParams = MultifactorAuthenticationActionParams<
-    {
-        keyInfo: MultifactorAuthenticationKeyInfo;
-    },
-    'validateCode'
+type RegisterBiometricsParams = Omit<
+    MultifactorAuthenticationActionParams<
+        {
+            keyInfo: RegistrationKeyInfo;
+        },
+        'validateCode'
+    >,
+    'authenticationMethod'
 >;
 
 /**
@@ -195,6 +198,15 @@ type MultifactorAuthenticationScenarioParameters = {
  */
 type MultifactorAuthenticationScenario = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO>;
 
+/**
+ * Converts a scenario's parameters for API use by replacing signedChallenge with its stringified form.
+ * The signedChallenge is validated as a structured object in the action layer, but needs to
+ * JSON.stringify when sent to the API.
+ */
+type MultifactorAuthenticationAPIParams<T extends MultifactorAuthenticationScenario> = Omit<MultifactorAuthenticationScenarioParameters[T], 'signedChallenge'> & {
+    signedChallenge: string;
+};
+
 export type {
     MultifactorAuthenticationPrompt,
     MultifactorAuthenticationModal,
@@ -211,5 +223,6 @@ export type {
     MultifactorAuthenticationDefaultUIConfig,
     MultifactorAuthenticationCancelConfirm,
     MultifactorAuthenticationScenarioCustomConfig,
+    MultifactorAuthenticationAPIParams,
     FailureScreenOverrides,
 };

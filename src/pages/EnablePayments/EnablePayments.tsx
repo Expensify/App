@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {openEnablePaymentsPage} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -18,6 +19,7 @@ import AddBankAccount from './AddBankAccount/AddBankAccount';
 import FailedKYC from './FailedKYC';
 import FeesAndTerms from './FeesAndTerms/FeesAndTerms';
 import PersonalInfo from './PersonalInfo/PersonalInfo';
+import useHasFreshWalletData from './useHasFreshWalletData';
 import VerifyIdentity from './VerifyIdentity/VerifyIdentity';
 
 function EnablePaymentsPage() {
@@ -29,18 +31,23 @@ function EnablePaymentsPage() {
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const paymentCardList = fundList ?? {};
 
+    const hasFreshData = useHasFreshWalletData(isOffline, userWallet?.isLoading);
+
     useEffect(() => {
         if (isOffline) {
             return;
         }
 
-        if (isEmptyObject(userWallet)) {
-            openEnablePaymentsPage();
-        }
-    }, [isOffline, userWallet]);
+        openEnablePaymentsPage();
+    }, [isOffline]);
 
-    if (isEmptyObject(userWallet)) {
-        return <FullScreenLoadingIndicator />;
+    const isUserWalletEmpty = isEmptyObject(userWallet);
+    if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'EnablePaymentsPage',
+            isUserWalletEmpty,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (userWallet?.errorCode === CONST.WALLET.ERROR.KYC) {

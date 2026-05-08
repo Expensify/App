@@ -46,8 +46,17 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
     const hideModal = () => {
         window.removeEventListener('popstate', handlePopState);
         if ((window.history.state as WindowState)?.shouldGoBack && shouldHandleNavigationBack) {
-            window.addEventListener('popstate', onModalHide, {once: true});
-            window.history.back();
+            onModalHide();
+            // Defer history.back() so it runs after any pending navigation
+            // callbacks (from onModalDidClose) have pushed their history entries.
+            // This prevents the popstate from undoing navigations triggered by
+            // menu item selection callbacks.
+            setTimeout(() => {
+                if (!(window.history.state as WindowState)?.shouldGoBack) {
+                    return;
+                }
+                window.history.back();
+            }, 0);
         } else {
             onModalHide();
         }
@@ -55,7 +64,11 @@ function Modal({fullscreen = true, onModalHide = () => {}, type, onModalShow = (
 
     const showModal = () => {
         if (shouldHandleNavigationBack) {
-            window.history.pushState({shouldGoBack: true}, '', null);
+            // Preserve React Navigation's state in the guard entry so that if
+            // popstate fires for this entry, RN recognizes the current route
+            // and does not perform an unexpected back navigation.
+            const currentState = (window.history.state ?? {}) as WindowState;
+            window.history.pushState({...currentState, shouldGoBack: true}, '', null);
             window.addEventListener('popstate', handlePopState);
         }
         onModalShow?.();

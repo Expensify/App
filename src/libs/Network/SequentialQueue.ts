@@ -6,6 +6,8 @@ import {
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
     getCommands,
+    getOngoingRequest as getPersistedOngoingRequest,
+    onCrossTabRequestsMerged as onPersistedRequestsCrossTabMerge,
     onInitialization as onPersistedRequestsInitialization,
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
@@ -16,13 +18,13 @@ import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
 import type {AnyOnyxUpdate, AnyRequest, ConflictData} from '@src/types/onyx/Request';
-import {isOffline, onReconnection} from './NetworkStore';
 
 let shouldFailAllRequests: boolean;
 // Use connectWithoutView since this is for network data and don't affect to any UI
@@ -121,25 +123,28 @@ function getQueueFlushedData() {
  * requests to our backend is evenly distributed and it gradually decreases with time, which helps the servers catch up.
  */
 function process(): Promise<void> {
-    // When the queue is paused, return early. This prevents any new requests from happening. The queue will be flushed again when the queue is unpaused.
+    // When the queue is paused, return early. This prevents any new requests from happening.
+    // The queue will be flushed again when the queue is unpaused.
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to process. Queue is paused.');
         return Promise.resolve();
     }
 
-    if (isOffline()) {
+    if (isOfflineNetwork()) {
         Log.info('[SequentialQueue] Unable to process. We are offline.');
         return Promise.resolve();
     }
 
     const persistedRequests = getAllPersistedRequests();
+    const ongoingRequest = getPersistedOngoingRequest();
 
     Log.info('[SequentialQueue] process() called', false, {
         persistedRequestsLength: persistedRequests.length,
+        hasOngoingRequest: !!ongoingRequest,
         isSequentialQueueRunning,
     });
 
-    if (persistedRequests.length === 0) {
+    if (persistedRequests.length === 0 && !ongoingRequest) {
         Log.info('[SequentialQueue] Unable to process. No requests to process.');
         return Promise.resolve();
     }
@@ -269,9 +274,15 @@ function process(): Promise<void> {
  * so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
  */
 function flush(shouldResetPromise = true) {
-    // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
+    // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when
+    // the queue is unpaused
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to flush. Queue is paused.');
+        return;
+    }
+
+    if (isOfflineNetwork()) {
+        Log.info('[SequentialQueue] Unable to flush. We are offline.');
         return;
     }
 
@@ -281,23 +292,26 @@ function flush(shouldResetPromise = true) {
     }
 
     const currentPersistedRequests = getAllPersistedRequests();
+    const currentOngoingRequest = getPersistedOngoingRequest();
     const persistedRequestsLength = currentPersistedRequests.length;
     const hasOnyxUpdates = !isEmpty();
 
     Log.info('[SequentialQueue] flush() called', false, {
         shouldResetPromise,
         persistedRequestsLength,
+        hasOngoingRequest: !!currentOngoingRequest,
         hasQueuedOnyxUpdates: hasOnyxUpdates,
         isClientTheLeader: isClientTheLeader(),
     });
 
-    if (persistedRequestsLength === 0 && !hasOnyxUpdates) {
+    if (persistedRequestsLength === 0 && !currentOngoingRequest && !hasOnyxUpdates) {
         Log.info('[SequentialQueue] Unable to flush. No requests or queued Onyx updates to process.');
         return;
     }
 
     Log.info('[SequentialQueue] Checking if client is leader', false, {
         persistedRequestsLength,
+        hasOngoingRequest: !!currentOngoingRequest,
         hasOnyxUpdates,
     });
 
@@ -306,12 +320,14 @@ function flush(shouldResetPromise = true) {
     if (!isClientTheLeader()) {
         Log.info('[SequentialQueue] Unable to flush. Client is not the leader.', false, {
             persistedRequestsLength,
+            hasOngoingRequest: !!currentOngoingRequest,
         });
         return;
     }
 
     Log.info('[SequentialQueue] Starting queue processing', false, {
         persistedRequestsLength,
+        hasOngoingRequest: !!currentOngoingRequest,
         persistedCommands: getCommands(currentPersistedRequests),
     });
 
@@ -334,27 +350,34 @@ function flush(shouldResetPromise = true) {
         callback: () => {
             Log.info('[SequentialQueue] PERSISTED_REQUESTS loaded, starting process()', false, {
                 requestsLength: getAllPersistedRequests().length,
+                ongoingCommand: getPersistedOngoingRequest()?.command ?? 'null',
             });
             Onyx.disconnect(connection);
             process().finally(() => {
-                const remainingRequests = getAllPersistedRequests().length;
+                const remainingPersistedRequests = getAllPersistedRequests().length;
+                const hasOngoingRequest = !!getPersistedOngoingRequest();
+                const hasRemainingRequests = remainingPersistedRequests > 0 || hasOngoingRequest;
                 Log.info('[SequentialQueue] Finished processing queue.', false, {
-                    remainingRequests,
-                    isOffline: isOffline(),
-                    willResolvePromise: isOffline() || remainingRequests === 0,
+                    remainingRequests: remainingPersistedRequests,
+                    isOffline: isOfflineNetwork(),
+                    willResolvePromise: isOfflineNetwork() || !hasRemainingRequests,
                 });
 
                 isSequentialQueueRunning = false;
-                if (isOffline() || remainingRequests === 0) {
+                // Use isOfflineNetwork() — not isQueuePaused — to decide whether to resolve isReadyPromise.
+                // isQueuePaused is true for both offline pauses AND shouldPauseQueue (data gap sync).
+                // For shouldPauseQueue, WRITEs are still pending so READs must wait (don't resolve).
+                // For offline, the queue can't process anyway so READs should proceed (resolve).
+                if (isOfflineNetwork() || !hasRemainingRequests) {
                     Log.info('[SequentialQueue] Resolving isReadyPromise', false, {
-                        reason: isOffline() ? 'offline' : 'queue empty',
+                        reason: isOfflineNetwork() ? 'offline' : 'queue empty',
                     });
                     resolveIsReadyPromise?.();
                 }
                 currentRequestPromise = null;
 
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
-                if (remainingRequests === 0) {
+                if (!hasRemainingRequests) {
                     Log.info('[SequentialQueue] Queue is empty, flushing Onyx updates');
                     flushOnyxUpdatesQueue()?.then(() => {
                         const queueFlushedData = getQueueFlushedData();
@@ -374,7 +397,8 @@ function flush(shouldResetPromise = true) {
                     });
                 } else {
                     Log.info('[SequentialQueue] Queue still has requests, NOT flushing Onyx updates', false, {
-                        remainingRequests,
+                        remainingRequests: remainingPersistedRequests,
+                        hasOngoingRequest,
                     });
                 }
             });
@@ -392,26 +416,26 @@ function unpause() {
     }
 
     const currentPersistedRequests = getAllPersistedRequests();
+    const currentOngoingRequest = getPersistedOngoingRequest();
     const numberOfPersistedRequests = currentPersistedRequests.length;
     const persistedCommands = getCommands(currentPersistedRequests);
 
     Log.info('[SequentialQueue] Unpausing the queue', false, {
         numberOfPersistedRequests,
+        hasOngoingRequest: !!currentOngoingRequest,
         persistedCommands,
     });
 
     isQueuePaused = false;
 
     // If there are no persisted requests, we need to flush the Onyx updates queue
-    if (numberOfPersistedRequests === 0) {
+    if (numberOfPersistedRequests === 0 && !currentOngoingRequest) {
         Log.info('[SequentialQueue] No persisted requests, flushing Onyx updates queue');
         flushOnyxUpdatesQueue();
     }
 
-    // When the queue is paused and then unpaused, we call flush which by defaults recreates the isReadyPromise.
-    // After all the WRITE requests are done, the isReadyPromise is resolved, but since it's a new instance of promise,
-    // the pending READ request never received the resolved callback. That's why we don't want to recreate
-    // the promise when unpausing the queue.
+    // We pass shouldResetPromise=false to preserve the existing isReadyPromise so that
+    // pending READ requests (waiting via waitForIdle()) resolve correctly after WRITEs complete.
     Log.info('[SequentialQueue] Calling flush(false) to start processing', false, {
         numberOfPersistedRequests,
     });
@@ -426,17 +450,13 @@ function isPaused(): boolean {
     return isQueuePaused;
 }
 
-function getShouldFailAllRequests(): boolean {
-    return shouldFailAllRequests;
-}
-
-// Flush the queue when the connection resumes
-onReconnection(flush);
-
 // Flush the queue when the persisted requests are initialized
 onPersistedRequestsInitialization(flush);
 
-function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>) {
+// Flush the queue when another tab enqueues new requests
+onPersistedRequestsCrossTabMerge(flush);
+
+async function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictData, newRequest: OnyxRequest<TKey>): Promise<void> {
     Log.info('[SequentialQueue] handleConflictActions', false, {
         conflictType: conflictAction.type,
         newCommand: newRequest.command,
@@ -447,14 +467,14 @@ function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictDat
         Log.info('[SequentialQueue] Conflict resolution: PUSH', false, {
             command: newRequest.command,
         });
-        savePersistedRequest(newRequest);
+        await savePersistedRequest(newRequest);
     } else if (conflictAction.type === 'replace') {
         Log.info('[SequentialQueue] Conflict resolution: REPLACE', false, {
             command: newRequest.command,
             replaceIndex: conflictAction.index,
             replacementRequest: conflictAction.request?.command ?? newRequest.command,
         });
-        updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
+        await updatePersistedRequest(conflictAction.index, conflictAction.request ?? (newRequest as AnyRequest));
     } else if (conflictAction.type === 'delete') {
         Log.info('[SequentialQueue] Conflict resolution: DELETE', false, {
             command: newRequest.command,
@@ -462,19 +482,19 @@ function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictDat
             willPushNewRequest: conflictAction.pushNewRequest ?? false,
             hasNextAction: !!conflictAction.nextAction,
         });
-        deletePersistedRequestsByIndices(conflictAction.indices);
+        await deletePersistedRequestsByIndices(conflictAction.indices);
         if (conflictAction.pushNewRequest) {
             Log.info('[SequentialQueue] Pushing new request after delete', false, {
                 command: newRequest.command,
             });
-            savePersistedRequest(newRequest);
+            await savePersistedRequest(newRequest);
         }
         if (conflictAction.nextAction) {
             Log.info('[SequentialQueue] Processing next conflict action', false, {
                 command: newRequest.command,
                 nextActionType: conflictAction.nextAction.type,
             });
-            handleConflictActions(conflictAction.nextAction, newRequest);
+            await handleConflictActions(conflictAction.nextAction, newRequest);
         }
     } else {
         Log.info('[SequentialQueue] No action performed, request ignored', false, {
@@ -484,15 +504,20 @@ function handleConflictActions<TKey extends OnyxKey>(conflictAction: ConflictDat
     }
 }
 
-function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
+function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>): Promise<void> {
     const currentRequests = getAllPersistedRequests();
     Log.info('[SequentialQueue] push() called', false, {
         command: newRequest.command,
         hasConflictChecker: !!newRequest.checkAndFixConflictingRequest,
         currentQueueLength: currentRequests.length,
-        isOffline: isOffline(),
+        isOffline: isOfflineNetwork(),
         isSequentialQueueRunning,
     });
+
+    // Save the request to the persisted queue. The in-memory update inside save()
+    // happens synchronously, so flush() below will see the new request immediately.
+    // The returned promise resolves when disk persistence completes.
+    let persistencePromise: Promise<void>;
 
     if (newRequest.checkAndFixConflictingRequest) {
         const requests = currentRequests;
@@ -510,22 +535,22 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
         delete newRequest.checkAndFixConflictingRequest;
-        handleConflictActions(conflictAction, newRequest);
+        persistencePromise = handleConflictActions(conflictAction, newRequest);
     } else {
         Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {
             command: newRequest.command,
         });
         // Add request to Persisted Requests so that it can be retried if it fails
-        savePersistedRequest(newRequest);
+        persistencePromise = savePersistedRequest(newRequest);
     }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
-    if (isOffline()) {
-        Log.info('[SequentialQueue] Unable to push request due to offline status', false, {
+    if (isOfflineNetwork()) {
+        Log.info('[SequentialQueue] Request persisted but not flushing — we are offline', false, {
             command: newRequest.command,
             queueLength: getAllPersistedRequests().length,
         });
-        return;
+        return persistencePromise;
     }
 
     // If the queue is running this request will run once it has finished processing the current batch
@@ -539,13 +564,14 @@ function push<TKey extends OnyxKey>(newRequest: OnyxRequest<TKey>) {
             });
             flush(true);
         });
-        return;
+        return persistencePromise;
     }
 
     Log.info('[SequentialQueue] Queue is not running. Flushing the queue.', false, {
         command: newRequest.command,
     });
     flush(true);
+    return persistencePromise;
 }
 
 function getCurrentRequest(): Promise<void> {
@@ -579,11 +605,9 @@ function resetQueue(): void {
 export {
     flush,
     getCurrentRequest,
-    getShouldFailAllRequests,
     isPaused,
     isRunning,
     pause,
-    process,
     push,
     resetQueue,
     sequentialQueueRequestThrottle,

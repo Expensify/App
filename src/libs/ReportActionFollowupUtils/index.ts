@@ -1,7 +1,9 @@
+import render from 'dom-serializer';
 import {DomUtils, parseDocument} from 'htmlparser2';
 import {getReportActionMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
+import tokenizeForReveal from './tokenizeForReveal';
 
 type Followup = {
     text: string;
@@ -53,9 +55,10 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
         const followupTextElement = DomUtils.getElementsByTagName('followup-text', followupEl, true).at(0);
         const followupResponseElement = DomUtils.getElementsByTagName('followup-response', followupEl, true).at(0);
         const text = followupTextElement ? DomUtils.textContent(followupTextElement) : '';
-        const response = followupResponseElement ? DomUtils.textContent(followupResponseElement) : undefined;
+        const response = followupResponseElement ? render(followupResponseElement.children) : undefined;
         return {text, response};
     });
 }
-export {containsActionableFollowUps, parseFollowupsFromHtml};
+
+export {containsActionableFollowUps, parseFollowupsFromHtml, tokenizeForReveal};
 export type {Followup};

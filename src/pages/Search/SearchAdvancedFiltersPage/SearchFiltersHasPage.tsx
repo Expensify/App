@@ -21,6 +21,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {HasFilterValues} from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersHasPage() {
     const styles = useThemeStyles();
@@ -28,7 +29,7 @@ function SearchFiltersHasPage() {
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.HAS_FILTER_NEGATION);
-    const [selectedItems, setSelectedItems] = useState<string[]>(() => {
+    const [selectedItems, setSelectedItems] = useState<HasFilterValues>(() => {
         if (!searchAdvancedFiltersForm?.has) {
             return [];
         }
