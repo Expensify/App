@@ -1,10 +1,12 @@
-import {renderHook} from '@testing-library/react-native';
+/* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
+import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useGettingStartedItems from '@pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
+import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -21,10 +23,19 @@ jest.mock('@hooks/useLocalize', () =>
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: false})));
 
+const useResponsiveLayoutMock = jest.requireMock<jest.Mock>('@hooks/useResponsiveLayout');
+
 jest.mock('@userActions/Policy/Category', () => ({enablePolicyCategories: jest.fn()}));
 jest.mock('@userActions/Policy/Policy', () => ({enableCompanyCards: jest.fn(), enablePolicyConnections: jest.fn(), enablePolicyRules: jest.fn()}));
 
 const POLICY_ID = '1';
+
+// Trial dates relative to today so the 60-day Getting Started window check
+// (isWithinGettingStartedPeriod) doesn't drift out of bounds as wall time
+// passes. The previously-hardcoded values passed at landing time but started
+// failing 60+ days later when the trial cutoff swept past them.
+const RECENT_TRIAL_START = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+const FUTURE_TRIAL_END = new Date(Date.now() + 23 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
 
 function buildPolicy(overrides: Partial<Policy> = {}): Policy {
     return {
@@ -39,6 +50,27 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
         customRules: undefined,
         ...overrides,
     };
+}
+
+async function setupTrackWorkspaceScenario(overrides: {policy?: Partial<Policy>; firstDayTrial?: string; lastDayTrial?: string; intentSource?: 'introSelected' | 'onboardingPurpose'} = {}) {
+    const policy = buildPolicy(overrides.policy);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+
+    if (overrides.intentSource === 'onboardingPurpose') {
+        await Onyx.merge(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+    } else {
+        await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+    }
+
+    await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
+
+    const now = new Date();
+    const firstDay = overrides.firstDayTrial ?? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+    const lastDay = overrides.lastDayTrial ?? new Date(now.getTime() + 23 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+    await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, firstDay);
+    await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, lastDay);
+
+    await waitForBatchedUpdates();
 }
 
 async function setupManageTeamScenario(overrides: {policy?: Partial<Policy>; accounting?: string | null; firstDayTrial?: string; lastDayTrial?: string} = {}) {
@@ -80,11 +112,12 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             const policy = buildPolicy();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
+            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
+            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(false);
             expect(result.current.items).toEqual([]);
@@ -95,11 +128,12 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             const policy = buildPolicy();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
+            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
+            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(false);
         });
@@ -108,6 +142,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(true);
             expect(result.current.items.length).toBeGreaterThan(0);
@@ -118,14 +153,16 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             const policy = buildPolicy();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
+            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
+            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
             await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
-
-            expect(result.current.shouldShowSection).toBe(true);
+            // The hook reads ONBOARDING_PURPOSE_SELECTED via a separate useOnyx
+            // subscription whose callback can land a tick after the others; poll
+            // with waitFor instead of relying on a single batched-updates flush.
+            await waitFor(() => expect(result.current.shouldShowSection).toBe(true));
         });
 
         it('should be hidden after 60 days from NVP_FIRST_DAY_FREE_TRIAL', async () => {
@@ -138,6 +175,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(false);
         });
@@ -152,6 +190,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(true);
         });
@@ -166,6 +205,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(false);
         });
@@ -179,6 +219,7 @@ describe('useGettingStartedItems', () => {
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(false);
         });
@@ -189,6 +230,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
             expect(createWorkspaceItem).toBeDefined();
@@ -198,6 +240,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
             expect(createWorkspaceItem?.isComplete).toBe(true);
@@ -207,6 +250,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.items.at(0)?.key).toBe('createWorkspace');
         });
@@ -215,6 +259,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
             expect(createWorkspaceItem?.route).toBe(ROUTES.WORKSPACE_OVERVIEW.getRoute(POLICY_ID));
@@ -234,6 +279,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: key, policy: {areConnectionsEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem).toBeDefined();
@@ -244,6 +290,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areConnectionsEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem?.route).toBe(ROUTES.WORKSPACE_ACCOUNTING.getRoute(POLICY_ID));
@@ -256,6 +303,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem?.isComplete).toBe(false);
@@ -277,6 +325,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem?.isComplete).toBe(true);
@@ -298,6 +347,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem?.isComplete).toBe(false);
@@ -319,6 +369,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem?.isComplete).toBe(true);
@@ -328,6 +379,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areConnectionsEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem).toBeUndefined();
@@ -348,6 +400,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem).toBeDefined();
@@ -358,6 +411,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem).toBeDefined();
@@ -367,6 +421,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: CONST.POLICY.CONNECTIONS.NAME.QBO, policy: {areConnectionsEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem?.isFeatureEnabled).toBe(true);
@@ -388,6 +443,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem).toBeDefined();
@@ -402,6 +458,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting, policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem).toBeDefined();
@@ -411,6 +468,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem?.isFeatureEnabled).toBe(true);
@@ -420,6 +478,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: false}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem).toBeDefined();
@@ -430,6 +489,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem?.route).toBe(ROUTES.WORKSPACE_CATEGORIES.getRoute(POLICY_ID));
@@ -439,6 +499,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
             expect(connectItem).toBeUndefined();
@@ -448,6 +509,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem?.isComplete).toBe(false);
@@ -455,13 +517,11 @@ describe('useGettingStartedItems', () => {
 
         it('should be completed when workspace has at least one non-default category', async () => {
             const customCategories: PolicyCategories = {
-                // eslint-disable-next-line @typescript-eslint/naming-convention -- PolicyCategories keys use human-readable names matching the backend API shape
                 'Custom Category': {
                     name: 'Custom Category',
                     enabled: true,
                     unencodedName: 'Custom Category',
                     areCommentsRequired: false,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the backend API field name
                     'GL Code': '',
                     externalID: '',
                     origin: '',
@@ -472,6 +532,7 @@ describe('useGettingStartedItems', () => {
             await setupManageTeamScenario({accounting: 'none', policy: {areCategoriesEnabled: true}});
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
             expect(categoriesItem?.isComplete).toBe(true);
@@ -486,6 +547,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
             expect(companyCardsItem).toBeDefined();
@@ -498,6 +560,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
             expect(companyCardsItem?.isFeatureEnabled).toBe(true);
@@ -510,6 +573,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
             expect(companyCardsItem?.isFeatureEnabled).toBe(false);
@@ -522,6 +586,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
             expect(companyCardsItem?.route).toBe(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(POLICY_ID));
@@ -534,6 +599,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const companyCardsItem = result.current.items.find((item) => item.key === 'linkCompanyCards');
             expect(companyCardsItem?.isComplete).toBe(false);
@@ -548,6 +614,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
             expect(rulesItem).toBeDefined();
@@ -560,6 +627,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
             expect(rulesItem).toBeUndefined();
@@ -572,6 +640,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
             expect(rulesItem).toBeUndefined();
@@ -584,6 +653,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
             expect(rulesItem?.route).toBe(ROUTES.WORKSPACE_RULES.getRoute(POLICY_ID));
@@ -596,6 +666,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
             expect(rulesItem?.isComplete).toBe(false);
@@ -619,6 +690,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
             expect(rulesItem?.isComplete).toBe(true);
@@ -634,6 +706,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const rulesItem = result.current.items.find((item) => item.key === 'setupRules');
             expect(rulesItem?.isComplete).toBe(true);
@@ -648,6 +721,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const keys = result.current.items.map((item) => item.key);
             expect(keys).toEqual(['createWorkspace', 'connectAccounting', 'linkCompanyCards', 'setupRules']);
@@ -660,6 +734,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const keys = result.current.items.map((item) => item.key);
             expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'linkCompanyCards', 'setupRules']);
@@ -672,6 +747,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             const keys = result.current.items.map((item) => item.key);
             expect(keys).toEqual(['createWorkspace', 'connectAccounting', 'linkCompanyCards']);
@@ -681,11 +757,12 @@ describe('useGettingStartedItems', () => {
     describe('edge cases', () => {
         it('should be hidden when active policy ID is missing', async () => {
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
-            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
+            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
+            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(false);
             expect(result.current.items).toEqual([]);
@@ -698,6 +775,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(false);
             expect(result.current.items).toEqual([]);
@@ -706,11 +784,12 @@ describe('useGettingStartedItems', () => {
         it('should be hidden when policy data does not exist', async () => {
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, 'nonexistent-policy');
-            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
+            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
+            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(false);
             expect(result.current.items).toEqual([]);
@@ -723,6 +802,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(false);
             expect(result.current.items).toEqual([]);
@@ -735,6 +815,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(true);
             expect(result.current.items.length).toBeGreaterThan(0);
@@ -747,6 +828,7 @@ describe('useGettingStartedItems', () => {
             });
 
             const {result} = renderHook(() => useGettingStartedItems());
+            await waitForBatchedUpdates();
 
             expect(result.current.shouldShowSection).toBe(true);
             expect(result.current.items.length).toBeGreaterThan(0);
@@ -758,14 +840,274 @@ describe('useGettingStartedItems', () => {
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             const policy = buildPolicy();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
-            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
+            await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
+            await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, FUTURE_TRIAL_END);
             await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
             await waitForBatchedUpdates();
 
             const {result} = renderHook(() => useGettingStartedItems());
+            // Same reasoning as the ONBOARDING_PURPOSE_SELECTED fallback test above:
+            // poll until the hook's dependent useOnyx chain settles instead of
+            // relying on a single flush.
+            await waitFor(() => expect(result.current.shouldShowSection).toBe(true));
+        });
+    });
 
-            expect(result.current.shouldShowSection).toBe(true);
+    describe('TRACK_WORKSPACE intent', () => {
+        describe('visibility rules', () => {
+            it('should show the section only when NVP_ACTIVE_POLICY_ID is present', async () => {
+                await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+                const policy = buildPolicy();
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+                await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '');
+                await waitForBatchedUpdates();
+
+                const {result: missingActivePolicy} = renderHook(() => useGettingStartedItems());
+                expect(missingActivePolicy.current.shouldShowSection).toBe(false);
+                expect(missingActivePolicy.current.items).toEqual([]);
+
+                await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
+                await waitForBatchedUpdates();
+
+                const {result: withActivePolicy} = renderHook(() => useGettingStartedItems());
+                expect(withActivePolicy.current.shouldShowSection).toBe(true);
+            });
+
+            it('should show the section only within 60 days of NVP_FIRST_DAY_FREE_TRIAL', async () => {
+                const sixtyOneDaysAgo = new Date(Date.now() - 61 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+                const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+                await setupTrackWorkspaceScenario({firstDayTrial: sixtyOneDaysAgo, lastDayTrial: thirtyDaysAgo});
+
+                const {result: expired} = renderHook(() => useGettingStartedItems());
+                expect(expired.current.shouldShowSection).toBe(false);
+                expect(expired.current.items).toEqual([]);
+
+                const fiftyNineDaysAgo = new Date(Date.now() - 59 * 24 * 60 * 60 * 1000).toISOString().split('T').at(0) ?? '';
+                await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, fiftyNineDaysAgo);
+                await waitForBatchedUpdates();
+
+                const {result: withinWindow} = renderHook(() => useGettingStartedItems());
+                expect(withinWindow.current.shouldShowSection).toBe(true);
+            });
+
+            it('should show the section only when the user is a policy admin', async () => {
+                await setupTrackWorkspaceScenario({policy: {role: CONST.POLICY.ROLE.USER}});
+
+                const {result: nonAdmin} = renderHook(() => useGettingStartedItems());
+                expect(nonAdmin.current.shouldShowSection).toBe(false);
+                expect(nonAdmin.current.items).toEqual([]);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {role: CONST.POLICY.ROLE.ADMIN});
+                await waitForBatchedUpdates();
+
+                const {result: admin} = renderHook(() => useGettingStartedItems());
+                expect(admin.current.shouldShowSection).toBe(true);
+            });
+
+            it('should show the section only when the active policy is a paid group policy', async () => {
+                await setupTrackWorkspaceScenario({policy: {type: CONST.POLICY.TYPE.PERSONAL}});
+
+                const {result: personal} = renderHook(() => useGettingStartedItems());
+                expect(personal.current.shouldShowSection).toBe(false);
+                expect(personal.current.items).toEqual([]);
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {type: CONST.POLICY.TYPE.TEAM});
+                await waitForBatchedUpdates();
+
+                const {result: team} = renderHook(() => useGettingStartedItems());
+                expect(team.current.shouldShowSection).toBe(true);
+            });
+
+            it('should return items when intent is TRACK_WORKSPACE, within 60 days, policy admin on a paid group policy', async () => {
+                await setupTrackWorkspaceScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.length).toBeGreaterThan(0);
+            });
+
+            it('should return items when introSelected.choice is undefined but ONBOARDING_PURPOSE_SELECTED === TRACK_WORKSPACE', async () => {
+                await setupTrackWorkspaceScenario({intentSource: 'onboardingPurpose'});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                expect(result.current.shouldShowSection).toBe(true);
+                expect(result.current.items.length).toBeGreaterThan(0);
+            });
+        });
+
+        describe('items and check states', () => {
+            it('should return exactly three items in order: createWorkspace, customizeCategories, inviteAccountant', async () => {
+                await setupTrackWorkspaceScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const keys = result.current.items.map((item) => item.key);
+                expect(keys).toEqual(['createWorkspace', 'customizeCategories', 'inviteAccountant']);
+            });
+
+            it('should keep createWorkspace isComplete=true even when no workspace-related state exists', async () => {
+                await setupTrackWorkspaceScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
+                expect(createWorkspaceItem?.isComplete).toBe(true);
+            });
+
+            it('should resolve createWorkspace route to WORKSPACE_OVERVIEW on wide layout', async () => {
+                await setupTrackWorkspaceScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
+                expect(createWorkspaceItem?.route).toBe(ROUTES.WORKSPACE_OVERVIEW.getRoute(POLICY_ID));
+            });
+
+            it('should resolve createWorkspace route to WORKSPACE_INITIAL on narrow layout', async () => {
+                useResponsiveLayoutMock.mockReturnValueOnce({shouldUseNarrowLayout: true});
+                await setupTrackWorkspaceScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
+                expect(createWorkspaceItem?.route).toContain(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID).split('?').at(0) ?? '');
+            });
+
+            it('should resolve customizeCategories route to WORKSPACE_CATEGORIES', async () => {
+                await setupTrackWorkspaceScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
+                expect(categoriesItem?.route).toBe(ROUTES.WORKSPACE_CATEGORIES.getRoute(POLICY_ID));
+            });
+
+            it('should have customizeCategories isComplete=false when the workspace only has default categories', async () => {
+                await setupTrackWorkspaceScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
+                expect(categoriesItem?.isComplete).toBe(false);
+            });
+
+            it('should have customizeCategories isComplete=true when the workspace has at least one non-default category', async () => {
+                const customCategories: PolicyCategories = {
+                    'Custom Category': {
+                        name: 'Custom Category',
+                        enabled: true,
+                        unencodedName: 'Custom Category',
+                        areCommentsRequired: false,
+                        'GL Code': '',
+                        externalID: '',
+                        origin: '',
+                        previousCategoryName: undefined,
+                    },
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, customCategories);
+                await setupTrackWorkspaceScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
+                expect(categoriesItem?.isComplete).toBe(true);
+            });
+
+            it('should still render customizeCategories (not connectAccounting) when the policy has an accounting integration connected', async () => {
+                await setupTrackWorkspaceScenario({
+                    policy: {
+                        areConnectionsEnabled: true,
+                        connections: {
+                            [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                                config: {},
+                                data: {},
+                                lastSync: {isConnected: true},
+                            },
+                        } as Policy['connections'],
+                    },
+                });
+                await Onyx.merge(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, CONST.POLICY.CONNECTIONS.NAME.QBO as never);
+                await waitForBatchedUpdates();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const connectItem = result.current.items.find((item) => item.key === 'connectAccounting');
+                expect(connectItem).toBeUndefined();
+                const categoriesItem = result.current.items.find((item) => item.key === 'customizeCategories');
+                expect(categoriesItem).toBeDefined();
+                expect(categoriesItem?.route).toBe(ROUTES.WORKSPACE_CATEGORIES.getRoute(POLICY_ID));
+            });
+
+            it('should resolve inviteAccountant route to WORKSPACE_MEMBERS', async () => {
+                await setupTrackWorkspaceScenario();
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const inviteAccountantItem = result.current.items.find((item) => item.key === 'inviteAccountant');
+                expect(inviteAccountantItem?.route).toBe(ROUTES.WORKSPACE_MEMBERS.getRoute(POLICY_ID));
+            });
+
+            it('should have inviteAccountant isComplete=false when policy has only 1 member in employeeList', async () => {
+                const employeeList: PolicyEmployeeList = {
+                    'owner@test.com': {email: 'owner@test.com', role: CONST.POLICY.ROLE.ADMIN},
+                };
+                await setupTrackWorkspaceScenario({policy: {employeeList}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const inviteAccountantItem = result.current.items.find((item) => item.key === 'inviteAccountant');
+                expect(inviteAccountantItem?.isComplete).toBe(false);
+            });
+
+            it('should have inviteAccountant isComplete=true when policy has at least 2 members in employeeList', async () => {
+                const employeeList: PolicyEmployeeList = {
+                    'owner@test.com': {email: 'owner@test.com', role: CONST.POLICY.ROLE.ADMIN},
+                    'accountant@test.com': {email: 'accountant@test.com', role: CONST.POLICY.ROLE.USER},
+                };
+                await setupTrackWorkspaceScenario({policy: {employeeList}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const inviteAccountantItem = result.current.items.find((item) => item.key === 'inviteAccountant');
+                expect(inviteAccountantItem?.isComplete).toBe(true);
+            });
+
+            it('should ignore employeeList entries with pendingAction===DELETE when counting members', async () => {
+                const employeeList: PolicyEmployeeList = {
+                    'owner@test.com': {email: 'owner@test.com', role: CONST.POLICY.ROLE.ADMIN},
+                    'removed@test.com': {
+                        email: 'removed@test.com',
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                };
+                await setupTrackWorkspaceScenario({policy: {employeeList}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const inviteAccountantItem = result.current.items.find((item) => item.key === 'inviteAccountant');
+                expect(inviteAccountantItem?.isComplete).toBe(false);
+            });
+
+            it('should have inviteAccountant isComplete=true when second member has a failed invite (pendingAction=null + errors), matching WorkspaceMembersPage count', async () => {
+                const employeeList: PolicyEmployeeList = {
+                    'owner@test.com': {email: 'owner@test.com', role: CONST.POLICY.ROLE.ADMIN},
+                    'failed@test.com': {
+                        email: 'failed@test.com',
+                        role: CONST.POLICY.ROLE.USER,
+                        pendingAction: null,
+                        errors: {genericAdd: 'workspace.people.error.genericAdd'},
+                    },
+                };
+                await setupTrackWorkspaceScenario({policy: {employeeList}});
+
+                const {result} = renderHook(() => useGettingStartedItems());
+
+                const inviteAccountantItem = result.current.items.find((item) => item.key === 'inviteAccountant');
+                expect(inviteAccountantItem?.isComplete).toBe(true);
+            });
         });
     });
 });

@@ -56,6 +56,7 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                 <View style={styles.flexRow}>
                     {!!logo && (
                         <Image
+                            accessibilityIgnoresInvertColors
                             style={styles.linkPreviewLogoImage}
                             source={{uri: logo.url}}
                         />
@@ -81,6 +82,7 @@ function LinkPreviewer({linkMetadata = [], maxAmountOfPreviews = -1}: LinkPrevie
                 {!!description && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
                 {!!image?.type && IMAGE_TYPES.has(image.type) && !!image.width && !!image.height && (
                     <Image
+                        accessibilityIgnoresInvertColors
                         style={[
                             styles.linkPreviewImage,
                             {

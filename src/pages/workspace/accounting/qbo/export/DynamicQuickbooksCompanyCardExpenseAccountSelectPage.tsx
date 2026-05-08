@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -102,7 +101,6 @@ function DynamicQuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPoli
                 ) : null
             }
             data={data}
-            listItem={RadioListItem}
             onSelectRow={selectExportAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

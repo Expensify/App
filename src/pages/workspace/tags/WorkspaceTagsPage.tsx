@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
@@ -51,6 +52,7 @@ import {
 } from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -76,7 +78,7 @@ import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -475,7 +477,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [isQuickSettingsFlow, policyID, backTo]);
 
     const navigateToCreateTagPage = () => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_CREATE.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
     };
 
     const navigateToTagSettings = (tag: TagListItem) => {
@@ -485,17 +487,20 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
         if (tag.orderWeight !== undefined) {
             Navigation.navigate(
-                isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight, backTo) : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight),
+                isQuickSettingsFlow
+                    ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(tag.orderWeight))
+                    : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight),
             );
         } else {
-            Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, 0, tag.value, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
+            Navigation.navigate(
+                isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(0, tag.value)) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value),
+            );
         }
     };
 
     const deleteTags = () => {
         deletePolicyTags(policyData, selectedTags);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedTags([]);
             if (isMobileSelectionModeEnabled && selectedTags.length === Object.keys(policyTagLists.at(0)?.tags ?? {}).length) {
@@ -912,11 +917,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             onTurnOnSelectionMode={(item) => item && toggleTag(item)}
                             turnOnSelectionModeOnLongPress={!hasDependentTags}
                             shouldSingleExecuteRowSelect={!canSelectMultiple}
-                            shouldUseDefaultRightHandSideCheckmark={false}
                             customListHeaderContent={headerContent}
                             shouldShowListEmptyContent={false}
                             showScrollIndicator={false}
-                            onCheckboxPress={toggleTag}
+                            onSelectionButtonPress={toggleTag}
                             isSelected={isTagSelected}
                             shouldHeaderBeInsideList
                             shouldShowRightCaret

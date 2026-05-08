@@ -1,4 +1,3 @@
-/* eslint-disable testing-library/no-node-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {act, render, screen, waitFor} from '@testing-library/react-native';
@@ -27,7 +26,6 @@ jest.mock('../../src/components/ConfirmedRoute.tsx');
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
-    /* eslint-disable-next-line @typescript-eslint/naming-convention */
     __esModule: true,
     default: {
         ignoreLogs: jest.fn(),

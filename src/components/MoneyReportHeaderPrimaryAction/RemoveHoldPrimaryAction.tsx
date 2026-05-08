@@ -18,7 +18,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {moneyRequestReport, isOffline, reportActions, transactionThreadReportID, requestParentReportAction} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
 
@@ -40,7 +40,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
                 if (IOUActions.length) {
                     for (const action of IOUActions) {
-                        changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), isOffline);
+                        changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), isOffline, currentUserLogin ?? '', currentUserAccountID);
                     }
                     return;
                 }
@@ -49,7 +49,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 if (!moneyRequestAction) {
                     return;
                 }
-                changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), isOffline);
+                changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), isOffline, currentUserLogin ?? '', currentUserAccountID);
             }}
         />
     );
