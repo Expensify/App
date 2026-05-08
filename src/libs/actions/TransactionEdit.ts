@@ -39,9 +39,7 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,
         callback: (transactionBackup) => {
             Onyx.disconnect(conn);
-            // Treat a backup missing `transactionID` as corrupted (a partial route-fetch shape can
-            // leak in via Pusher) and overwrite it instead of restoring from it.
-            if (transactionBackup?.transactionID) {
+            if (transactionBackup) {
                 // If the transactionBackup exists it means we haven't properly restored original value on unmount
                 // such as on page refresh, so we will just restore the transaction from the transactionBackup here.
                 Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transactionBackup);
