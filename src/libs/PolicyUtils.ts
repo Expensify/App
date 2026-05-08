@@ -52,7 +52,7 @@ import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
-import {isPublicDomain} from './ValidationUtils';
+import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -298,21 +298,41 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
+/**
+ * Pick the rate that the expense flow will treat as default for a distance custom unit's rates
+ * dictionary: filter enabled rates, sort by `index` (treating missing index as CONST.DEFAULT_NUMBER_ID),
+ * and take the first. Mirrors `getDefaultMileageRate`'s selection so optimistic state stays aligned
+ * with the rate the expense flow later picks.
+ */
+function getDefaultDistanceRate(rates: Record<string, Rate> | undefined): Rate | undefined {
+    if (!rates) {
+        return undefined;
+    }
+    return Object.values(rates)
+        .filter((rate) => rate.enabled !== false)
+        .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+        .at(0);
+}
+
 function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, newDefaultRateID?: string): CustomUnit {
     if (newDefaultRateID) {
-        // The server-side DUPLICATE_POLICY assigns newDefaultRateID to the source's default rate.
-        // Mirror getDefaultMileageRate's selection (enabled rates, sorted by index with
-        // CONST.DEFAULT_NUMBER_ID for missing indexes) so the optimistic clone aligns with the
-        // rate the expense flow will later treat as default. Other source rates get fresh server
-        // IDs, so we drop them from the optimistic state to avoid stale duplicates.
-        const defaultRate = Object.values(unit.rates)
-            .filter((rate) => rate.enabled !== false)
-            .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
-            .at(0);
+        // Mirror DUPLICATE_POLICY: rebind the source default to newDefaultRateID, keep other rates
+        // under their source IDs (the server preserves them). Preserve source iteration order so
+        // getDefaultMileageRate's stable sort still picks the original default when rates tie on
+        // index (e.g. a rate with no index falls back to CONST.DEFAULT_NUMBER_ID).
+        const defaultRate = getDefaultDistanceRate(unit.rates);
+        const rates: Record<string, Rate> = {};
+        for (const rate of Object.values(unit.rates)) {
+            if (rate.customUnitRateID === defaultRate?.customUnitRateID) {
+                rates[newDefaultRateID] = {...rate, customUnitRateID: newDefaultRateID};
+            } else {
+                rates[rate.customUnitRateID] = rate;
+            }
+        }
         return {
             ...unit,
             customUnitID: newCustomUnitID,
-            rates: defaultRate ? {[newDefaultRateID]: {...defaultRate, customUnitRateID: newDefaultRateID}} : {},
+            rates,
         };
     }
 
@@ -1270,6 +1290,31 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     }
 
     return getManagerAccountID(policy, expenseReport);
+}
+
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number | undefined {
+    const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const existingManagerID = expenseReport?.managerID;
+    const approvalRules = policy?.rules?.approvalRules;
+    const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport) : '';
+    const submitToAccountID = ruleApprover ? (getAccountIDsByLogins([ruleApprover]).at(0) ?? -1) : getManagerAccountID(policy, expenseReport);
+    const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
+    const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
+    const employeeLogin = getLoginByAccountID(ownerAccountID) ?? '';
+    const hasReliablePolicyRoute =
+        ([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy)) ||
+        !!ruleApprover ||
+        !!policy?.employeeList?.[employeeLogin];
+
+    if (hasReliablePolicyRoute && isValidSubmitToAccountID) {
+        return submitToAccountID;
+    }
+
+    if (!hasReliablePolicyRoute && isValidExistingManagerID) {
+        return existingManagerID;
+    }
+
+    return isValidSubmitToAccountID ? submitToAccountID : existingManagerID;
 }
 
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
@@ -2247,6 +2292,7 @@ export {
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
+    getSubmitReportManagerAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getTagNamesFromTagsLists,
@@ -2268,6 +2314,7 @@ export {
     getManagerAccountID,
     isPreferredExporter,
     getCustomUnitsForDuplication,
+    getDefaultDistanceRate,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     getPolicyRole,

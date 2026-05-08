@@ -34,7 +34,7 @@ import {
     isSearchDatePreset,
     sortOptionsWithEmptyValue,
 } from '@libs/SearchQueryUtils';
-import {getStatusOptions} from '@libs/SearchUIUtils';
+import {getStatusOptions, getWithdrawalStatusDisplayText} from '@libs/SearchUIUtils';
 import {getExpenseTypeTranslationKey} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -166,6 +166,11 @@ const baseFilterConfig = {
         getTitle: getFilterDisplayTitle,
         description: 'search.withdrawalType' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_TYPE),
+    },
+    withdrawalStatus: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.withdrawalStatus' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS),
     },
     withdrawalID: {
         getTitle: getFilterDisplayTitle,
@@ -499,6 +504,10 @@ function getFilterDisplayTitle(
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
         const filterValue = filters[key];
         return filterValue ? translate(`search.filters.withdrawalType.${filterValue}`) : undefined;
+    }
+
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS) {
+        return getWithdrawalStatusDisplayText(filters[key], translate);
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {

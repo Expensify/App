@@ -1092,6 +1092,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
         flash: 'flash',
+        flipCamera: 'Cambiar cámara',
         multiScan: 'escaneo múltiple',
         shutter: 'obturador',
         gallery: 'galería',
@@ -1263,6 +1264,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount) => `Pagar ${formattedAmount}`,
         settleBusiness: (formattedAmount) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pago con cuenta empresarial`),
         payElsewhere: (formattedAmount) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
+        confirmPaymentReceivedModalTitle: 'Confirmar el pago recibido',
+        receivedPayment: 'Pago recibido',
+        receivedPaymentConfirmation: 'Por favor, continúa solo si ya has recibido el pago fuera de Expensify.',
+        confirmReceivedPayment: 'Sí, he recibido el pago.',
         settleInvoicePersonal: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
         settleInvoiceBusiness: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
         payWithPolicy: (policyName, formattedAmount) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
@@ -5597,6 +5602,9 @@ ${amount} para ${merchant} - ${date}`,
                 description: '¿Está seguro de que desea desconectar esta integración?',
                 confirmText: 'Entendido',
             },
+            hrWarningModal: {
+                disconnectText: 'Para desactivar HR, primero desconecta Gusto de este espacio de trabajo.',
+            },
             workflowWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
                 featureEnabledText:
@@ -6720,6 +6728,7 @@ ${amount} para ${merchant} - ${date}`,
                 gambling: 'Juegos de apuestas',
                 tobacco: 'Tabaco',
                 adultEntertainment: 'Entretenimiento para adultos',
+                handwrittenReceipt: 'Recibos escritos a mano',
                 requireCompanyCard: 'Requerir que todas las compras se hagan con la tarjeta de empresa',
                 requireCompanyCardDescription: 'Marca todo gasto en efectivo, incluyendo kilometraje y gastos per diem.',
                 requireCompanyCardDisabledTooltip: 'Habilita las tarjetas de empresa (bajo Más características) para desbloquearlo.',
@@ -8674,6 +8683,8 @@ ${amount} para ${merchant} - ${date}`,
                         return `entretenimiento para adultos`;
                     case 'hotelIncidentals':
                         return `gastos adicionales de hotel`;
+                    case 'handwrittenReceipt':
+                        return `recibos escritos a mano`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -9476,6 +9487,12 @@ ${amount} para ${merchant} - ${date}`,
             noWorkspacesMessage: 'No hay espacios de trabajo en este dominio. Se requiere un espacio de trabajo para habilitar esta restricción.',
             restrictDefaultLoginSelection: 'Restringir el inicio de sesión predeterminado',
             restrictDefaultLoginSelectionDescription: 'Evita que los miembros cambien su correo de inicio de sesión fuera del dominio de la empresa para eludir restricciones de políticas.',
+            expensifyCardPreferredWorkspace: 'Espacio de trabajo preferido para Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Todas las transacciones de Expensify Card se crearán en el espacio de trabajo preferido de Expensify Card en lugar del espacio de trabajo preferido. Al habilitar esta función, la configuración de espacio de trabajo preferido se aplicará solo a las transacciones de Expensify Card.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'Para usar esta configuración, el espacio de trabajo preferido debe estar habilitado y el dominio debe tener Expensify Card configurada.',
+            findGroup: 'Encontrar grupo',
         },
     },
     gps: {
@@ -9487,13 +9504,9 @@ ${amount} para ${merchant} - ${date}`,
         stopped: 'Detenido',
         start: 'Iniciar',
         stop: 'Detener',
+        save: 'Guardar',
+        resume: 'Reanudar',
         discard: 'Descartar',
-        stopGpsTrackingModal: {
-            title: 'Detener seguimiento por GPS',
-            prompt: '¿Estás seguro? Esto finalizará tu trayecto actual.',
-            cancel: 'Reanudar seguimiento',
-            confirm: 'Detener seguimiento por GPS',
-        },
         discardDistanceTrackingModal: {
             title: 'Descartar seguimiento de distancia',
             prompt: '¿Estás seguro? Esto descartará tu trayecto actual y no se puede deshacer.',

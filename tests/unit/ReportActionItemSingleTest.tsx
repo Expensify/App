@@ -1,9 +1,13 @@
 import {act, screen, waitFor} from '@testing-library/react-native';
+import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
+import Text from '@components/Text';
 import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -87,6 +91,78 @@ describe('ReportActionItemSingle', () => {
                 await waitFor(() => {
                     expect(screen.getByText(expectedPerson.text ?? '')).toBeOnTheScreen();
                 });
+            });
+        });
+    });
+
+    describe('moderation flagging', () => {
+        const CHILD_TEST_ID = 'children-under-flagged-wrapper';
+
+        function makeActionWithHiddenDecision(actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT | typeof CONST.REPORT.ACTIONS.TYPE.IOU): ReportAction {
+            return {
+                ...LHNTestUtils.getFakeAdvancedReportAction(actionName),
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'message',
+                        text: 'message',
+                        moderationDecision: {decision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN},
+                    },
+                ],
+            } as ReportAction;
+        }
+
+        async function setupReportActionItemSingle(action: ReportAction, report: Report) {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {},
+                    [ONYXKEYS.COLLECTION.REPORT]: {
+                        [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                    },
+                });
+                await waitForBatchedUpdatesWithAct();
+            });
+            LHNTestUtils.getDefaultRenderedReportActionItemSingle(report, action, <Text testID={CHILD_TEST_ID}>child</Text>);
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        type Ancestor = {props: {style?: unknown}; parent: Ancestor | null};
+        function findFlaggedAncestor(start: Ancestor | null): Ancestor | null {
+            let cursor = start;
+            while (cursor) {
+                const flat = StyleSheet.flatten(cursor.props.style as StyleProp<ViewStyle>);
+                if (flat?.borderLeftWidth !== undefined) {
+                    return cursor;
+                }
+                cursor = cursor.parent;
+            }
+            return null;
+        }
+
+        it('does not apply blockquote styling for non-ADD_COMMENT actions even when the message carries a hidden decision', async () => {
+            const fakeReport = LHNTestUtils.getFakeReportWithPolicy([1, 2]);
+            const action = makeActionWithHiddenDecision(CONST.REPORT.ACTIONS.TYPE.IOU);
+
+            await setupReportActionItemSingle(action, fakeReport);
+
+            await waitFor(() => {
+                const child = screen.getByTestId(CHILD_TEST_ID);
+                expect(findFlaggedAncestor(child.parent)).toBeNull();
+            });
+        });
+
+        it('applies blockquote styling for ADD_COMMENT actions when the message carries a hidden decision', async () => {
+            const fakeReport = LHNTestUtils.getFakeReportWithPolicy([1, 2]);
+            const action = makeActionWithHiddenDecision(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
+
+            await setupReportActionItemSingle(action, fakeReport);
+
+            await waitFor(() => {
+                const child = screen.getByTestId(CHILD_TEST_ID);
+                const wrapper = findFlaggedAncestor(child.parent);
+                expect(wrapper).not.toBeNull();
+                expect(wrapper).toHaveStyle({borderLeftWidth: 4});
             });
         });
     });

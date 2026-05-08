@@ -92,6 +92,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Hint text to display below the TextInput */
         hint?: string;
 
+        /** Whether the hint should be rendered as HTML */
+        shouldRenderHintAsHTML?: boolean;
+
         /** Prefix character */
         prefixCharacter?: string;
 
