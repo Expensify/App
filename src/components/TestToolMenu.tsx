@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {Platform, View} from 'react-native';
-import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBiometricRegistrationStatus';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
@@ -16,6 +15,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import Button from './Button';
+import {useMultifactorAuthentication} from './MultifactorAuthentication/Context';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
 import Switch from './Switch';
 import TestCrash from './TestCrash';

@@ -120,11 +120,13 @@ function MultifactorAuthenticationValidateCodePage() {
         clearAccountMessages();
     }, [account?.errors]);
 
-    // Reset formError when hasError changes
+    // Clear client-side formError when a backend error arrives so both don't show simultaneously.
+    // Clearing state (not just hiding) avoids stale errors if hasError later becomes false without user input.
     useEffect(() => {
         if (!hasError) {
             return;
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- derived-state reset; no cascading render risk (guarded by early return)
         setFormError({});
     }, [hasError]);
 

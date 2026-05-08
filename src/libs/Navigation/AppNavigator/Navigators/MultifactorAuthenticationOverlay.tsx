@@ -3,7 +3,8 @@ import {DarkTheme, DefaultTheme} from '@react-navigation/native';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import {applyPendingNavigation, clearPendingNavigation, INITIAL_SCREEN, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -83,27 +84,29 @@ function MultifactorAuthenticationOverlay() {
 
     useEffect(() => {
         if (isModalOpen) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect -- isVisible is not derivable from isModalOpen; it stays true during the close animation
             setIsVisible(true);
-            progress.value = withTiming(1, {duration: CONST.ANIMATED_TRANSITION});
+            progress.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
         } else if (isVisible) {
             // Pop the current screen so the Stack plays its slide-out animation,
             // and fade the backdrop simultaneously. Both run for ANIMATED_TRANSITION.
             if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
                 mfaNavigationRef.goBack();
             }
-            progress.value = withTiming(0, {duration: CONST.ANIMATED_TRANSITION}, (finished) => {
-                if (!finished) {
-                    return;
-                }
-                runOnJS(resetState)();
-            });
+            progress.set(
+                withTiming(0, {duration: CONST.ANIMATED_TRANSITION}, (finished) => {
+                    if (!finished) {
+                        return;
+                    }
+                    scheduleOnRN(resetState);
+                }),
+            );
         }
-        // eslint-disable-next-line react-compiler/react-compiler -- shared value is stable
         // eslint-disable-next-line react-hooks/exhaustive-deps -- only trigger on isModalOpen change
     }, [isModalOpen]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: progress.value * variables.overlayOpacity,
+        opacity: progress.get() * variables.overlayOpacity,
     }));
 
     if (!isVisible) {
@@ -118,6 +121,7 @@ function MultifactorAuthenticationOverlay() {
             {!shouldUseNarrowLayout && (
                 <Animated.View style={[StyleSheet.absoluteFill, styles.overlayBackground, backdropAnimatedStyle]}>
                     <PressableWithoutFeedback
+                        sentryLabel={CONST.SENTRY_LABEL.MFA_OVERLAY.BACKDROP}
                         style={StyleSheet.absoluteFill}
                         onPress={cancel}
                         accessibilityLabel={translate('common.close')}

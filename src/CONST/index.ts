@@ -9682,6 +9682,9 @@ const CONST = {
         SAFE_AREA: {
             DISMISS_KEYBOARD_LANDSCAPE_MODE: 'SafeArea-DismissKeyboardLandscapeMode',
         },
+        MFA_OVERLAY: {
+            BACKDROP: 'MfaOverlay-Backdrop',
+        },
     },
 
     DOMAIN: {
