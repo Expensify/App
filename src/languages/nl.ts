@@ -1136,7 +1136,6 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laat het los',
         dropMessage: 'Zet je bestand hier neer',
         flash: 'flits',
-        flipCamera: 'Camera wisselen',
         multiScan: 'meerscannen',
         shutter: 'sluiter',
         gallery: 'galerij',
