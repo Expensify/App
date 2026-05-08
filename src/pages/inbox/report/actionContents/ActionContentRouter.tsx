@@ -42,7 +42,6 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
-    isSplitBillPreview,
     isTaskAction,
     isTripPreview,
 } from '@libs/ReportActionsUtils';
@@ -205,7 +204,9 @@ function ActionContentRouter({
         const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
 
         if (report?.type === CONST.REPORT.TYPE.CHAT) {
-            const shouldShowSplitPreview = isSplitBillPreview(moneyRequestOriginalMessage);
+            const isSplitBill = moneyRequestOriginalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+            const isSplitScanWithNoAmount = isSplitBill && moneyRequestOriginalMessage?.amount === 0;
+            const shouldShowSplitPreview = isSplitBill || isSplitScanWithNoAmount;
             if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM || shouldShowSplitPreview) {
                 return (
                     <ChatTransactionPreview

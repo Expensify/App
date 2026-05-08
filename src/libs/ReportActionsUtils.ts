@@ -1745,16 +1745,6 @@ function isIOURequestReportAction(reportAction: OnyxInputOrEntry<ReportAction>):
     return !!type && iouRequestTypes.includes(type);
 }
 
-/**
- * Whether a money request action should render the split-bill chat preview
- * (the per-action ChatTransactionPreview row in CHAT-type reports).
- */
-function isSplitBillPreview(originalMessage: OriginalMessageIOU | undefined): boolean {
-    const isSplitBill = originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
-    const isSplitScanWithNoAmount = isSplitBill && originalMessage?.amount === 0;
-    return isSplitBill || isSplitScanWithNoAmount;
-}
-
 function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
@@ -4674,7 +4664,6 @@ export {
     isRoomChangeLogAction,
     isSentMoneyReportAction,
     isSplitBillAction,
-    isSplitBillPreview,
     isTaskAction,
     isMovedAction,
     isThreadParentMessage,
