@@ -1,6 +1,6 @@
 import React from 'react';
 import type {ReactNode} from 'react';
-import type {Role, StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, Role, StyleProp, ViewStyle} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import usePopoverTrigger from './usePopoverTrigger';
@@ -12,15 +12,21 @@ type TriggerProps = WithSentryLabel & {
     disabled?: boolean;
     role?: Role;
     testID?: string;
+    /** Runs before the popover opens. For analytics or pre-press setup; cannot gate opening — drop to `usePopoverTrigger()` if you need conditional opening. */
+    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 };
 
 /** For non-`PressableWithFeedback` shapes (e.g. `IconButton`), call `usePopoverTrigger()` directly. */
-function Trigger({children, accessibilityLabel, sentryLabel, style, disabled, role, testID}: TriggerProps): React.ReactElement {
-    const {ref, onPress} = usePopoverTrigger();
+function Trigger({children, accessibilityLabel, sentryLabel, style, disabled, role, testID, onPress: consumerOnPress}: TriggerProps): React.ReactElement {
+    const {ref, onPress: triggerOnPress} = usePopoverTrigger();
+    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
+        consumerOnPress?.(event);
+        triggerOnPress();
+    };
     return (
         <PressableWithFeedback
             ref={ref}
-            onPress={onPress}
+            onPress={handlePress}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={sentryLabel}
             style={style}
