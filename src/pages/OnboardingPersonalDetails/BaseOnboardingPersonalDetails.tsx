@@ -63,6 +63,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const {isBetaEnabled} = usePermissions();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_DETAILS);
 
@@ -124,6 +125,10 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
     const handleSubmit = useCallback(
         (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+            if (isLoading) {
+                return;
+            }
+
             const firstName = values.firstName.trim();
             const lastName = values.lastName.trim();
 
@@ -136,6 +141,8 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
                 return;
             }
+
+            setIsLoading(true);
 
             if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -152,6 +159,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             completeOnboarding(firstName, lastName);
         },
         [
+            isLoading,
             formatPhoneNumber,
             session?.accountID,
             session?.email,
@@ -231,6 +239,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 validate={validate}
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.continue')}
+                isLoading={isLoading}
                 enabledWhenOffline
                 submitFlexEnabled
                 shouldValidateOnBlur={false}

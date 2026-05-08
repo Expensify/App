@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -100,12 +100,20 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         },
     ];
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const completeOnboarding = useCallback(
         (overrides?: {engagementChoice?: OnboardingPurpose; adminsChatReportID?: string; policyID?: string}) => {
+            if (isLoading) {
+                return;
+            }
+
             const engagementChoice = overrides?.engagementChoice ?? onboardingPurposeSelected;
             if (!engagementChoice) {
                 return;
             }
+
+            setIsLoading(true);
 
             const resolvedAdminsChatReportID = overrides?.adminsChatReportID ?? onboardingAdminsChatReportID;
             const resolvedPolicyID = overrides?.policyID ?? onboardingPolicyID;
@@ -136,6 +144,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             );
         },
         [
+            isLoading,
             onboardingPurposeSelected,
             currentUserPersonalDetails.firstName,
             currentUserPersonalDetails.lastName,
@@ -154,9 +163,11 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     );
 
     const createWorkspaceAndCompleteOnboarding = useCallback(() => {
-        if (!onboardingPurposeSelected) {
+        if (!onboardingPurposeSelected || isLoading) {
             return;
         }
+
+        setIsLoading(true);
 
         const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
         const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
@@ -191,6 +202,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             policyID,
         });
     }, [
+        isLoading,
         onboardingPurposeSelected,
         allPolicies,
         session?.email,
@@ -266,6 +278,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                         large
                         text={translate('common.skip')}
                         onPress={() => completeOnboarding()}
+                        isLoading={isLoading}
                         sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                     />
                 </View>
@@ -275,6 +288,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                             success
                             large
                             text={translate('onboarding.workspace.createWorkspace')}
+                            isLoading={isLoading}
                             onPress={() => {
                                 setOnboardingErrorMessage(null);
                                 if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
