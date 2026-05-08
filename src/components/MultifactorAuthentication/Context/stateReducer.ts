@@ -71,7 +71,8 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, scenarioResponse: action.payload};
         case 'INIT': {
             // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves.
-            const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- each scenario config satisfies MultifactorAuthenticationScenarioConfig at definition; the union prevents direct assertion
+            const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as unknown as MultifactorAuthenticationScenarioConfig;
             return {
                 ...DEFAULT_STATE,
                 scenarioName: action.payload.scenario,

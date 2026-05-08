@@ -22,7 +22,6 @@ import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {isValidValidateCode} from '@libs/ValidationUtils';
-import Navigation from '@navigation/Navigation';
 import {clearAccountMessages} from '@userActions/Session';
 import {clearValidateCodeActionError, requestValidateCodeAction} from '@userActions/User';
 import CONST from '@src/CONST';
@@ -202,7 +201,7 @@ function MultifactorAuthenticationValidateCodePage() {
 
     const showCancelModal = () => {
         if (isOffline) {
-            Navigation.closeRHPFlow();
+            cancel();
         } else {
             setCancelModalVisibility(true);
         }

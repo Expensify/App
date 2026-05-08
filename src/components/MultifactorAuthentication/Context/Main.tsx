@@ -5,6 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {AuthorizeResult, RegisterResult} from '@components/MultifactorAuthentication/biometrics/shared/types';
 import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from '@components/MultifactorAuthentication/config/types';
+import {navigate as mfaNavigate} from '@components/MultifactorAuthentication/mfaNavigation';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
@@ -17,11 +18,10 @@ import getPlatform from '@libs/getPlatform';
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
-import Navigation from '@navigation/Navigation';
 import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
 import {processRegistration, processScenarioAction} from '@userActions/MultifactorAuthentication/processing';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {DeviceBiometrics} from '@src/types/onyx';
 import {useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from './State';
 
@@ -128,16 +128,17 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 endState,
             });
 
-            // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself
+            // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself.
+            // Reset the MFA state so the overlay closes immediately.
             if (callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN) {
-                dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+                dispatch({type: 'RESET'});
                 return;
             }
 
             if (isSuccessful) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME_SUCCESS, {forceReplace: true});
+                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS);
             } else {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_OUTCOME_FAILURE, {forceReplace: true});
+                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
             }
 
             dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
@@ -221,7 +222,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             if (!validateCode) {
                 addMFABreadcrumb('Validate code requested');
                 requestValidateCodeAction();
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_MAGIC_CODE, {forceReplace: true});
+                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE);
                 return;
             }
 
@@ -244,7 +245,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // Check if a soft prompt is needed
             if (!softPromptApproved) {
                 addMFABreadcrumb('Soft prompt shown', {context: 'registration'});
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
+                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType});
                 return;
             }
 
@@ -282,15 +283,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         // prompt first.
         if (!deviceBiometricsState?.hasAcceptedSoftPrompt && !softPromptApproved) {
             addMFABreadcrumb('Soft prompt shown', {context: 'authorization-reinstall'});
-            Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
+            mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType});
             return;
         }
 
         // 4. Authorize the user if that has not already been done
         if (!isAuthorizationComplete) {
-            if (!Navigation.isActiveRoute(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType))) {
-                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_PROMPT.getRoute(promptType), {forceReplace: true});
-            }
+            mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT, {promptType});
 
             // Request authorization challenge if not already fetched
             if (!authorizationChallenge) {
@@ -480,9 +479,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const cancel = useCallback(async () => {
         // When the app is reopened (e.g. page refresh on web), the MFA context resets to its default state
         // and scenario becomes undefined. Without a scenario, the state machine in process() won't run,
-        // so dispatching SET_ERROR would have no effect. In this case we dismiss the modal directly.
+        // so dispatching SET_ERROR would have no effect. In this case we reset directly.
         if (!state.scenario) {
-            Navigation.dismissModal();
+            dispatch({type: 'RESET'});
             return;
         }
 

@@ -3255,16 +3255,20 @@ type TestToolsModalModalNavigatorParamList = {
 };
 
 type MultifactorAuthenticationParamList = {
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION]: {
+        transactionID: string;
+    };
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.REVOKE]: undefined;
+};
+
+type MultifactorAuthenticationOverlayParamList = {
     [SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE]: undefined;
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE]: undefined;
     [SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT]: {
         promptType: MultifactorAuthenticationPromptType;
     };
-    [SCREENS.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION]: {
-        transactionID: string;
-    };
+    [SCREENS.MULTIFACTOR_AUTHENTICATION.NOT_FOUND]: undefined;
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & SearchFullscreenNavigatorParamList;
@@ -3391,4 +3395,5 @@ export type {
     DomainScreenName,
     SearchColumnsParamList,
     MultifactorAuthenticationParamList,
+    MultifactorAuthenticationOverlayParamList,
 };
