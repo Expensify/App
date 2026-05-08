@@ -22,8 +22,9 @@ function useAskConcierge() {
     const delegateAccountID = useDelegateAccountID();
 
     return (searchQuery: string) => {
+        const trimmedQuery = searchQuery.trim();
         openConciergeAnywhere();
-        if (!targetReport || !targetReportID) {
+        if (!trimmedQuery || !targetReport || !targetReportID) {
             return;
         }
         setConciergeThinkingKickoff();
@@ -31,7 +32,7 @@ function useAskConcierge() {
             report: targetReport,
             notifyReportID: targetReportID,
             ancestors: [],
-            text: searchQuery,
+            text: trimmedQuery,
             timezoneParam: timezone ?? CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID,
             shouldPlaySound: true,
