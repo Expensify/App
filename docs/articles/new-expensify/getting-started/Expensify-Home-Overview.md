@@ -48,6 +48,7 @@ The **Time-sensitive alerts** section appears only when there is something that 
 
 These alerts appear when:
 - A workflow is blocked, such as a broken bank or accounting connection due to expired or invalid credentials
+- A bank account is locked, such as a business or personal bank account that has been locked due to a failed debit or bank-side restriction
 - There is potential risk, such as suspected Expensify Card fraud
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 
@@ -113,9 +114,11 @@ This section helps you stay informed about what’s new or recently changed in N
 
 ## How the Assigned cards section works on Home
 
-The **Assigned cards** section shows all Expensify Cards assigned to you, along with the available spending limit for each card.
+The **Assigned cards** section shows your active Expensify Cards along with the available spending limit for each card.
 
 Use this section to quickly check how much you can spend before making a purchase. The available limit updates automatically as transactions are made.
+
+Cards with a custom spending limit of $0 are not shown in this section.
 
 ---
 
@@ -157,5 +160,5 @@ The **Getting started** section only appears if you selected the **manage my tea
 
 The **Assigned cards** section only appears if you have an active **Expensify Card** assigned to you.
 
-If you don’t have an Expensify Card assigned, or your assigned card isn’t active, the **Assigned cards** section won’t be visible.
+If you don’t have an Expensify Card assigned, your assigned card isn’t active, or your card has a custom spending limit of $0, the **Assigned cards** section won’t be visible.
 

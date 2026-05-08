@@ -47,6 +47,7 @@ import type {
     SearchQueryJSON,
     SearchStatus,
     SearchView,
+    SearchWithdrawalStatus,
     SearchWithdrawalType,
     SelectedReports,
     SelectedTransactionInfo,
@@ -91,15 +92,14 @@ import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
-import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from './actions/isOpenConfirmNavigateExpensifyClassicModal';
 import {createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
+import {convertAttendeesToArray} from './AttendeeUtils';
 import type {CardFeedForDisplay} from './CardFeedUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
-import {convertToDisplayStringWithoutCurrency} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import interceptAnonymousUser from './interceptAnonymousUser';
 import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -412,6 +412,23 @@ function formatBadgeText(count: number): string {
         return '';
     }
     return count > CONST.SEARCH.TODO_BADGE_MAX_COUNT ? `${CONST.SEARCH.TODO_BADGE_MAX_COUNT}+` : count.toString();
+}
+
+function getSectionBadgeText(sectionTranslationPath: TranslationPaths, reportCounts: Record<string, number>): string | undefined {
+    if (
+        sectionTranslationPath === 'search.tabs.expenseReports' &&
+        (CONST.SEARCH.SEARCH_KEYS.SUBMIT in reportCounts || CONST.SEARCH.SEARCH_KEYS.APPROVE in reportCounts || CONST.SEARCH.SEARCH_KEYS.PAY in reportCounts)
+    ) {
+        return formatBadgeText(
+            (reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT] ?? 0) + (reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE] ?? 0) + (reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY] ?? 0),
+        );
+    }
+
+    if (sectionTranslationPath === 'search.tabs.accounting' && CONST.SEARCH.SEARCH_KEYS.EXPORT in reportCounts) {
+        return formatBadgeText(reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT]);
+    }
+
+    return undefined;
 }
 
 function getItemBadgeText(itemKey: string, reportCounts: Record<string, number>): string | undefined {
@@ -2330,8 +2347,19 @@ function getActions(
             : undefined;
 
     const chatReport = getChatReport(data, report);
-    const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
-    const canOnlyBePaidElsewhere = canIOUBePaid(report, chatReport, policy, bankAccountList, allReportTransactions, true, chatReportRNVP, invoiceReceiverPolicy);
+    const canBePaid = canIOUBePaid(report, chatReport, policy, bankAccountList, currentUserLogin, currentUserAccountID, allReportTransactions, false, chatReportRNVP, invoiceReceiverPolicy);
+    const canOnlyBePaidElsewhere = canIOUBePaid(
+        report,
+        chatReport,
+        policy,
+        bankAccountList,
+        currentUserLogin,
+        currentUserAccountID,
+        allReportTransactions,
+        true,
+        chatReportRNVP,
+        invoiceReceiverPolicy,
+    );
     const shouldOnlyShowElsewhere = !canBePaid && canOnlyBePaidElsewhere;
 
     // We're not supporting pay partial amount on search page now.
@@ -2353,12 +2381,7 @@ function getActions(
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
     // We're not supporting approve partial amount on search page now
-    if (
-        canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) &&
-        isAllowedToApproveExpenseReport &&
-        !hasOnlyPendingCardOrScanningTransactions &&
-        !hasHeldExpenses(report.reportID, allReportTransactions)
-    ) {
+    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
@@ -2439,7 +2462,6 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived, conciergeReportID});
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
@@ -2580,7 +2602,6 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     ...reportAction,
                     reportID,
                     from,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, isReportArchived}),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
@@ -3512,9 +3533,9 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
 };
 
 const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchColumnType[]>> = {
-    [CONST.SEARCH.GROUP_BY.FROM]: [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM],
-    [CONST.SEARCH.GROUP_BY.CARD]: [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD],
-    [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID],
+    [CONST.SEARCH.GROUP_BY.FROM]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM],
+    [CONST.SEARCH.GROUP_BY.CARD]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD],
+    [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID],
     [CONST.SEARCH.GROUP_BY.CATEGORY]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY],
     [CONST.SEARCH.GROUP_BY.MERCHANT]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT],
     [CONST.SEARCH.GROUP_BY.TAG]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG],
@@ -3708,15 +3729,15 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ATTENDEES) {
         return data.sort((a, b) => {
-            const aValue = a.comment?.attendees?.length ?? 0;
-            const bValue = b.comment?.attendees?.length ?? 0;
+            const aValue = convertAttendeesToArray(a.comment?.attendees).length;
+            const bValue = convertAttendeesToArray(b.comment?.attendees).length;
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
         const getTotalPerAttendee = (t: TransactionListItemType) => {
-            const attendeesCount = t.comment?.attendees?.length ?? 0;
+            const attendeesCount = convertAttendeesToArray(t.comment?.attendees).length;
             if (!attendeesCount) {
                 return 0;
             }
@@ -4021,6 +4042,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
 
 function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPaths {
     switch (column) {
+        case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
+            return 'common.avatar';
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
             return 'common.date';
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
@@ -4196,25 +4219,13 @@ type TypeMenuSectionsParams = {
     savedSearches: OnyxEntry<OnyxTypes.SaveSearch>;
     isOffline: boolean;
     defaultExpensifyCard: CardFeedForDisplay | undefined;
-    shouldRedirectToExpensifyClassic: boolean;
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
-    const {
-        currentUserEmail,
-        currentUserAccountID,
-        cardFeedsByPolicy,
-        defaultCardFeed,
-        policies,
-        savedSearches,
-        isOffline,
-        defaultExpensifyCard,
-        shouldRedirectToExpensifyClassic,
-        draftTransactionIDs,
-        isTrackIntentUser,
-    } = params;
+    const {currentUserEmail, currentUserAccountID, cardFeedsByPolicy, defaultCardFeed, policies, savedSearches, isOffline, defaultExpensifyCard, draftTransactionIDs, isTrackIntentUser} =
+        params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
     const {
@@ -4252,11 +4263,6 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                                       buttonText: 'report.newReport.createExpense',
                                       buttonAction: () => {
                                           interceptAnonymousUser(() => {
-                                              if (shouldRedirectToExpensifyClassic) {
-                                                  setIsOpenConfirmNavigateExpensifyClassicModalOpen(true);
-                                                  return;
-                                              }
-
                                               startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN);
                                           });
                                       },
@@ -4765,6 +4771,7 @@ const FILTER_LABEL_MAP: Partial<Record<SearchAdvancedFiltersKey, TranslationPath
     [FILTER_KEYS.TITLE]: 'common.title',
     [FILTER_KEYS.WITHDRAWAL_ID]: 'common.withdrawalID',
     [FILTER_KEYS.WITHDRAWAL_TYPE]: 'search.withdrawalType',
+    [FILTER_KEYS.WITHDRAWAL_STATUS]: 'common.withdrawalStatus',
 };
 
 function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string {
@@ -4796,7 +4803,12 @@ function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<Sear
     return parts.join(', ');
 }
 
-function getAmountDisplayValue(syntaxKey: SearchAmountFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate): string | undefined {
+function getAmountDisplayValue(
+    syntaxKey: SearchAmountFilterKeys,
+    form: Partial<SearchAdvancedFiltersForm>,
+    translate: LocalizedTranslate,
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
+): string | undefined {
     const lessThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`];
     const greaterThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
     const equalTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
@@ -4912,6 +4924,10 @@ function getDisplayValue(
         return withdrawalType ? translate(`search.filters.withdrawalType.${withdrawalType}`) : undefined;
     }
 
+    if (key === FILTER_KEYS.WITHDRAWAL_STATUS) {
+        return getWithdrawalStatusDisplayText(form[key], translate);
+    }
+
     if (key === FILTER_KEYS.STATUS) {
         const status = form[key];
         if (!status?.length) {
@@ -4960,6 +4976,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
     mapper?: (filterKey: SearchAdvancedFiltersKey) => T,
 ): Array<SearchFilter & T> {
     const filters: Array<SearchFilter & T> = [];
@@ -4982,7 +4999,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             }
 
             const displayValue = isAmountFilterKey(groupConfig.syntax)
-                ? getAmountDisplayValue(groupConfig.syntax, searchAdvancedFiltersForm, translate)
+                ? getAmountDisplayValue(groupConfig.syntax, searchAdvancedFiltersForm, translate, convertToDisplayStringWithoutCurrency)
                 : getDateDisplayValue(groupConfig.syntax, searchAdvancedFiltersForm, translate);
 
             if (displayValue) {
@@ -5050,11 +5067,29 @@ function getMultiSelectFilterOptions(filterKey: SearchAdvancedFiltersKey, type: 
         return type ? getStatusOptions(translate, type) : [];
     }
 
+    if (filterKey === FILTER_KEYS.WITHDRAWAL_STATUS) {
+        return getWithdrawalStatusOptions(translate);
+    }
+
     return [];
 }
 
 function getWithdrawalTypeOptions(translate: LocaleContextProps['translate']) {
     return Object.values(CONST.SEARCH.WITHDRAWAL_TYPE).map<SingleSelectItem<SearchWithdrawalType>>((value) => ({text: translate(`search.filters.withdrawalType.${value}`), value}));
+}
+
+function getWithdrawalStatusOptions(translate: LocaleContextProps['translate']) {
+    return Object.values(CONST.SEARCH.SETTLEMENT_STATUS).map((value) => ({text: translate(`settlement.status.${value}`), value}));
+}
+
+function getWithdrawalStatusDisplayText(value: SearchWithdrawalStatus | undefined, translate: LocaleContextProps['translate']): string | undefined {
+    if (!value?.length) {
+        return undefined;
+    }
+    return getWithdrawalStatusOptions(translate)
+        .filter((option) => value.includes(option.value))
+        .map((option) => option.text)
+        .join(', ');
 }
 
 /**
@@ -5112,7 +5147,7 @@ function getColumnsToShow({
         }
 
         // If the user has set custom columns, use their order then add required columns
-        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
         const result: SearchColumnType[] = [];
 
         for (const col of requiredColumns) {
@@ -5274,9 +5309,7 @@ function getColumnsToShow({
             // Don't return early — fall through to updateColumns to detect empty columns
             customResult = result;
         } else {
-            // Search page: prepend AVATAR, TYPE
-            result.push(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
-            addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
+            // Search page: prepend TYPE
             result.push(CONST.SEARCH.TABLE_COLUMNS.TYPE);
             addedColumns.add(CONST.SEARCH.TABLE_COLUMNS.TYPE);
 
@@ -5330,9 +5363,11 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.CARD] = true;
             }
 
-            // If the transaction has any tax info (code, value, or amount),
-            // show both TAX_RATE and TAX_AMOUNT columns. Zero is valid tax data.
-            const hasTaxInfo = !!transaction.taxCode || transaction.taxAmount != null || (transaction.taxValue !== undefined && transaction.taxValue !== '');
+            // Show both TAX_RATE and TAX_AMOUNT when the transaction has a meaningful tax signal.
+            // Use truthy checks so default/no-tax values (0, null, '', undefined) don't trigger
+            // false positives — buildOptimisticTransaction seeds taxAmount: 0 on every new draft,
+            // which would otherwise flash tax columns on for offline-pending transactions.
+            const hasTaxInfo = !!transaction.taxCode || !!transaction.taxAmount || !!transaction.taxValue;
             if (hasTaxInfo) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
@@ -5766,6 +5801,24 @@ function applySelectionToItem(
     return {originalItem: item, itemWithSelection: {...item, isSelected, transactions}, isSelected};
 }
 
+const FLEX_COLUMNS = new Set<string>([
+    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+    CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+    CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+    CONST.SEARCH.TABLE_COLUMNS.TAG,
+    CONST.SEARCH.TABLE_COLUMNS.TAX_RATE,
+    CONST.SEARCH.TABLE_COLUMNS.CARD,
+    CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+]);
+
+/**
+ * Returns true when another flex column exists that can fill the remaining space,
+ * making it safe to remove flex from total columns.
+ */
+function hasFlexColumn(columns?: SearchColumnType[]): boolean {
+    return !!columns?.some((col) => FLEX_COLUMNS.has(col));
+}
+
 export {
     getSearchBulkEditPolicyID,
     getSuggestedSearches,
@@ -5794,6 +5847,7 @@ export {
     getActions,
     createTypeMenuSections,
     formatBadgeText,
+    getSectionBadgeText,
     getItemBadgeText,
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,
@@ -5814,6 +5868,8 @@ export {
     getDatePresets,
     createAndOpenSearchTransactionThread,
     getWithdrawalTypeOptions,
+    getWithdrawalStatusOptions,
+    getWithdrawalStatusDisplayText,
     getColumnsToShow,
     getHasOptions,
     getSettlementStatus,
@@ -5842,6 +5898,7 @@ export {
     FILTER_LABEL_MAP,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
+    hasFlexColumn,
 };
 export type {
     SavedSearchMenuItem,

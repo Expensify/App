@@ -1,9 +1,7 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectCircle from '@components/SelectCircle';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -11,18 +9,23 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
+import SelectableListItem from './SelectableListItem';
 import type {InviteMemberListItemProps, ListItem} from './types';
 
+/**
+ * A user row with avatar, name, and subtitle used for person selection and invitation. Adds
+ * secondary-login footers and product training tooltips on top of the standard user row layout.
+ */
 function InviteMemberListItem<TItem extends ListItem>({
     item,
     isFocused,
+    isFocusVisible,
     showTooltip,
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onDismissError,
     rightHandSideComponent,
     onFocus,
@@ -36,29 +39,22 @@ function InviteMemberListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
+    const subscriptAvatarBorderColor = isFocusVisible ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    const shouldShowCheckBox = canSelectMultiple && !item.isDisabled;
-
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
 
     const firstItemIconID = Number(item?.icons?.at(0)?.id);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = !item.reportID ? item.accountID || firstItemIconID : undefined;
 
+    const ListItemWrapper = item.isDisabled && !item.isSelected ? BaseListItem : SelectableListItem;
+
     return (
-        <BaseListItem
+        <ListItemWrapper
             item={item}
             wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.peopleRow, wrapperStyle]}
             isFocused={isFocused}
+            isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
@@ -75,19 +71,20 @@ function InviteMemberListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            shouldDisplayRBR={!shouldShowCheckBox}
+            shouldDisplayRBR={!(canSelectMultiple && !item.isDisabled)}
+            onSelectionButtonPress={onSelectionButtonPress}
             testID={item.text}
         >
             {(hovered?: boolean) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
                         <ReportActionAvatars
-                            subscriptAvatarBorderColor={hovered && !isFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                            subscriptAvatarBorderColor={hovered && !isFocusVisible ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                             shouldShowTooltip={showTooltip}
                             secondaryAvatarContainerStyle={[
                                 StyleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-                                isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
-                                hovered && !isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
+                                isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
+                                hovered && !isFocusVisible ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                             ]}
                             fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                             singleAvatarContainerStyle={[styles.actionAvatar, styles.mr3]}
@@ -103,7 +100,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 numberOfLines={isMultilineSupported ? 2 : 1}
                                 style={[
                                     styles.optionDisplayName,
-                                    isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                                    isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                                     item.isBold !== false && styles.sidebarLinkTextBold,
                                     isMultilineSupported ? styles.preWrap : styles.pre,
                                     item.alternateText ? styles.mb1 : null,
@@ -119,24 +116,9 @@ function InviteMemberListItem<TItem extends ListItem>({
                         )}
                     </View>
                     {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
-                    {!!shouldShowCheckBox && (
-                        <PressableWithFeedback
-                            onPress={handleCheckboxPress}
-                            disabled={isDisabled}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={item.text ?? ''}
-                            style={[styles.ml2, styles.optionSelectCircle]}
-                            sentryLabel={CONST.SENTRY_LABEL.LIST_ITEM.INVITE_MEMBER_CHECKBOX}
-                        >
-                            <SelectCircle
-                                isChecked={item.isSelected ?? false}
-                                selectCircleStyles={styles.ml0}
-                            />
-                        </PressableWithFeedback>
-                    )}
                 </View>
             )}
-        </BaseListItem>
+        </ListItemWrapper>
     );
 }
 

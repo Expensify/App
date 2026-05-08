@@ -1,5 +1,5 @@
 import type {Ref} from 'react';
-import React from 'react';
+import React, {useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {clearMoneyRequest} from '@libs/actions/IOU';
@@ -24,10 +24,12 @@ type InputFocusRef = {
 function ShareTabParticipantsSelectorComponent({detailsPageRouteObject, ref}: ShareTabParticipantsSelectorProps) {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     return (
         <MoneyRequestParticipantsSelector
             ref={ref}
             iouType={CONST.IOU.TYPE.SUBMIT}
+            initiallySelectedReportID={typeof selectedReportID === 'string' ? selectedReportID : undefined}
             onParticipantsAdded={(value) => {
                 // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
                 clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs);
@@ -40,10 +42,12 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject, ref}: Sh
                     const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
                     reportID = optimisticReport.reportID;
 
+                    setSelectedReportID(reportID);
                     saveReportDraft(reportID, optimisticReport).then(() => {
                         Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                     });
                 } else {
+                    setSelectedReportID(reportID);
                     Navigation.navigate(detailsPageRouteObject.getRoute(reportID.toString()));
                 }
             }}

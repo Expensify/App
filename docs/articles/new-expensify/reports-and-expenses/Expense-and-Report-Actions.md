@@ -40,7 +40,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 
 | **Action** | **When It Appears** | **Who Can See It** | **What It Does** |
 |------------|---------------------|---------------------|------------------|
-| **Hold** | On draft, submitted, or approved reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
+| **Hold** | On draft or submitted reports | Submitter, Approver, Admin | Marks individual expenses that aren’t yet ready for approval or payment |
 | **Change workspace** | Before report is exported | Submitter, Approver, Admin | Moves the report to a different workspace |
 | **Change approver** | On submitted reports, before the report is final-approved | Admin | "Add Approver" allows an extra approver to be inserted into the approval workflow at the current point. "Bypass Approver" allows an admin to take control of the report approval and final approve |
 | **Delete** | Only on draft/unsubmitted reports | Submitter | Permanently removes the report |
