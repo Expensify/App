@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {AnchorPosition} from '@styles/index';
@@ -61,21 +60,18 @@ function usePopoverPosition() {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const calculatePopoverPosition = useCallback(
-        (anchorRef: MeasurableRef, anchorAlignment: AnchorAlignment = defaultAnchorAlignment) => {
-            const element = anchorRef.current;
-            if (isSmallScreenWidth || element === null || typeof element.measureInWindow !== 'function') {
-                return Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0});
-            }
-            return new Promise<AnchorPosition & Dimensions>((resolve) => {
-                element.measureInWindow((x, y, width, height) => {
-                    const {horizontal, vertical} = computeAnchorPosition({x, y, width, height}, anchorAlignment);
-                    resolve({horizontal, vertical, width, height});
-                });
+    const calculatePopoverPosition = (anchorRef: MeasurableRef, anchorAlignment: AnchorAlignment = defaultAnchorAlignment) => {
+        const element = anchorRef.current;
+        if (isSmallScreenWidth || element === null || typeof element.measureInWindow !== 'function') {
+            return Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0});
+        }
+        return new Promise<AnchorPosition & Dimensions>((resolve) => {
+            element.measureInWindow((x, y, width, height) => {
+                const {horizontal, vertical} = computeAnchorPosition({x, y, width, height}, anchorAlignment);
+                resolve({horizontal, vertical, width, height});
             });
-        },
-        [isSmallScreenWidth],
-    );
+        });
+    };
 
     return {calculatePopoverPosition};
 }
