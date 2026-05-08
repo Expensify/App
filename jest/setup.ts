@@ -310,7 +310,6 @@ jest.mock('react-native-nitro-sqlite', () => ({
 }));
 
 jest.mock('react-native-nitro-fetch', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args),
 }));
