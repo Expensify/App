@@ -1,6 +1,6 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import mapValues from 'lodash/mapValues';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,7 +9,6 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
@@ -71,6 +70,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -112,6 +112,13 @@ const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
 
 const receiptFieldViolationNames = new Set<OnyxTypes.ViolationName>([CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE]);
 
+const findConciergePersonalDetail = (list: OnyxEntry<OnyxTypes.PersonalDetailsList>): OnyxEntry<PersonalDetails> => {
+    if (!list) {
+        return undefined;
+    }
+    return Object.values(list).find((detail): detail is PersonalDetails => detail?.login === CONST.EMAIL.CONCIERGE);
+};
+
 function MoneyRequestReceiptView({
     report,
     readonly = false,
@@ -134,7 +141,17 @@ function MoneyRequestReceiptView({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const personalDetails = usePersonalDetails();
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: findConciergePersonalDetail});
+    const reportOwnerSelector = useCallback(
+        (list: OnyxEntry<OnyxTypes.PersonalDetailsList>): OnyxEntry<PersonalDetails> => (report?.ownerAccountID ? (list?.[report.ownerAccountID] ?? undefined) : undefined),
+        [report?.ownerAccountID],
+    );
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
+    const chatReportOwnerSelector = useCallback(
+        (list: OnyxEntry<OnyxTypes.PersonalDetailsList>): OnyxEntry<PersonalDetails> => (chatReport?.ownerAccountID ? (list?.[chatReport.ownerAccountID] ?? undefined) : undefined),
+        [chatReport?.ownerAccountID],
+    );
+    const [chatReportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: chatReportOwnerSelector}, [chatReportOwnerSelector]);
     const delegateAccountID = useDelegateAccountID();
 
     const [isLoading, setIsLoading] = useState(true);
@@ -163,7 +180,8 @@ function MoneyRequestReceiptView({
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, accountID: currentUserAccountID, timezone: currentUserTimezone} = currentUserPersonalDetail;
     const theme = useTheme();
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
@@ -368,7 +386,19 @@ function MoneyRequestReceiptView({
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails, true, true);
+                navigateToConciergeChatAndDeleteReport(
+                    chatReport.reportID,
+                    conciergeReportID,
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed,
+                    betas,
+                    chatReportOwnerPersonalDetail,
+                    currentUserPersonalDetail,
+                    conciergePersonalDetail,
+                    true,
+                    true,
+                );
                 return;
             }
             if (parentReportAction) {
@@ -405,7 +435,19 @@ function MoneyRequestReceiptView({
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails, true, true);
+            navigateToConciergeChatAndDeleteReport(
+                report.reportID,
+                conciergeReportID,
+                currentUserAccountID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                reportOwnerPersonalDetail,
+                currentUserPersonalDetail,
+                conciergePersonalDetail,
+                true,
+                true,
+            );
         }
     };
 

@@ -21,6 +21,7 @@ import {
     shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
@@ -94,7 +95,9 @@ function ReportActionItemParentAction({
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = currentUserPersonalDetail;
+    const conciergePersonalDetail = personalDetails ? Object.values(personalDetails).find((detail) => detail?.login === CONST.EMAIL.CONCIERGE) : undefined;
 
     const getLinkedTransactionRouteError = useCallback((transaction: OnyxEntry<Transaction>) => {
         return transaction?.errorFields?.route;
@@ -184,7 +187,9 @@ function ReportActionItemParentAction({
                         introSelected,
                         isSelfTourViewed,
                         allBetas,
-                        personalDetails,
+                        report?.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined,
+                        currentUserPersonalDetail,
+                        conciergePersonalDetail ?? undefined,
                         undefined,
                         true,
                     )
@@ -220,7 +225,9 @@ function ReportActionItemParentAction({
                                     introSelected,
                                     isSelfTourViewed,
                                     allBetas,
-                                    personalDetails,
+                                    ancestorReport.ownerAccountID ? (personalDetails?.[ancestorReport.ownerAccountID] ?? undefined) : undefined,
+                                    currentUserPersonalDetail,
+                                    conciergePersonalDetail ?? undefined,
                                     undefined,
                                     undefined,
                                 )

@@ -1,8 +1,8 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {memo} from 'react';
+import React, {memo, useCallback} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportWelcomeText from '@components/ReportWelcomeText';
@@ -16,7 +16,16 @@ import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDet
 import {clearCreateChatError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
+
+const findConciergePersonalDetail = (list: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> => {
+    if (!list) {
+        return undefined;
+    }
+    return Object.values(list).find((detail): detail is PersonalDetails => detail?.login === CONST.EMAIL.CONCIERGE);
+};
 
 type ReportActionItemCreatedProps = {
     /** The id of the report */
@@ -37,8 +46,14 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const personalDetails = usePersonalDetails();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID} = currentUserPersonalDetail;
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: findConciergePersonalDetail});
+    const reportOwnerSelector = useCallback(
+        (list: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> => (report?.ownerAccountID ? (list?.[report.ownerAccountID] ?? undefined) : undefined),
+        [report?.ownerAccountID],
+    );
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
 
     if (!isChatReport(report)) {
         return null;
@@ -51,7 +66,19 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => clearCreateChatError(report, conciergeReportID, introSelected, currentUserAccountID, betas, isSelfTourViewed, personalDetails)}
+            onClose={() =>
+                clearCreateChatError(
+                    report,
+                    conciergeReportID,
+                    introSelected,
+                    currentUserAccountID,
+                    betas,
+                    isSelfTourViewed,
+                    reportOwnerPersonalDetail,
+                    currentUserPersonalDetail,
+                    conciergePersonalDetail,
+                )
+            }
         >
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />

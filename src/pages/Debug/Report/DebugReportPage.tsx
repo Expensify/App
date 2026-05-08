@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -33,8 +32,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import DebugReportActions from './DebugReportActions';
+
+const findConciergePersonalDetail = (list: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> => {
+    if (!list) {
+        return undefined;
+    }
+    return Object.values(list).find((detail): detail is PersonalDetails => detail?.login === CONST.EMAIL.CONCIERGE);
+};
 
 type DebugReportPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;
 
@@ -77,8 +84,14 @@ function DebugReportPage({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const personalDetails = usePersonalDetails();
-    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: findConciergePersonalDetail});
+    const reportOwnerSelector = useCallback(
+        (list: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> => (report?.ownerAccountID ? (list?.[report.ownerAccountID] ?? undefined) : undefined),
+        [report?.ownerAccountID],
+    );
+    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -187,7 +200,19 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails, true, true);
+                    navigateToConciergeChatAndDeleteReport(
+                        reportID,
+                        conciergeReportID,
+                        currentUserAccountID,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        reportOwnerPersonalDetail,
+                        currentUserPersonalDetail,
+                        conciergePersonalDetail,
+                        true,
+                        true,
+                    );
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
@@ -246,7 +271,6 @@ function DebugReportPage({
             styles.textSupporting,
             theme.cardBG,
             transactionID,
-            personalDetails,
             translate,
             icons.Eye,
             currentUserAccountID,
@@ -254,6 +278,9 @@ function DebugReportPage({
             introSelected,
             isSelfTourViewed,
             betas,
+            reportOwnerPersonalDetail,
+            currentUserPersonalDetail,
+            conciergePersonalDetail,
         ],
     );
 
