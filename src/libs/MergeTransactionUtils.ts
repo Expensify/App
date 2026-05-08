@@ -390,10 +390,6 @@ function getTargetTransactionThreadReportIDForSelection(
     return isValidTargetTransactionThreadReportID(computedThreadReportID) ? computedThreadReportID : undefined;
 }
 
-function getTargetTransactionThreadReportIDForSearchSelection(transaction: OnyxEntry<Transaction>, selectedTransaction?: TargetTransactionThreadReportIDSource) {
-    return getTargetTransactionThreadReportIDForSelection(transaction, selectedTransaction);
-}
-
 /**
  * Build the merged transaction data for display by combining target transaction with merge transaction updates
  * @param targetTransaction - The target transaction to merge into
@@ -747,7 +743,6 @@ export {
     DERIVED_MERGE_FIELDS,
     getRateFromMerchant,
     getTargetTransactionThreadReportIDForSelection,
-    getTargetTransactionThreadReportIDForSearchSelection,
     getTransactionsAndReportsFromSearch,
 };
 

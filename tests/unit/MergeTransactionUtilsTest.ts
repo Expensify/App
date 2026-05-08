@@ -10,7 +10,7 @@ import {
     getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getRateFromMerchant,
-    getTargetTransactionThreadReportIDForSearchSelection,
+    getTargetTransactionThreadReportIDForSelection,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
@@ -96,7 +96,7 @@ describe('MergeTransactionUtils', () => {
         });
     });
 
-    describe('getTargetTransactionThreadReportIDForSearchSelection', () => {
+    describe('getTargetTransactionThreadReportIDForSelection', () => {
         it('should prefer selected report action childReportID', () => {
             const transaction = {
                 ...createRandomTransaction(0),
@@ -106,7 +106,7 @@ describe('MergeTransactionUtils', () => {
             reportAction.reportActionID = 'report-action-id';
             reportAction.childReportID = 'child-report-id';
 
-            const result = getTargetTransactionThreadReportIDForSearchSelection(transaction, {
+            const result = getTargetTransactionThreadReportIDForSelection(transaction, {
                 isSelected: true,
                 canReject: false,
                 canHold: false,
@@ -132,7 +132,7 @@ describe('MergeTransactionUtils', () => {
                 transactionThreadReportID: 'snapshot-thread-report-id',
             };
 
-            const result = getTargetTransactionThreadReportIDForSearchSelection(transaction, {
+            const result = getTargetTransactionThreadReportIDForSelection(transaction, {
                 isSelected: true,
                 canReject: false,
                 canHold: false,
@@ -162,7 +162,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
 
-            const result = getTargetTransactionThreadReportIDForSearchSelection(transaction, {
+            const result = getTargetTransactionThreadReportIDForSelection(transaction, {
                 isSelected: true,
                 canReject: false,
                 canHold: false,
