@@ -1,4 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {conciergePersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -32,16 +33,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import DebugReportActions from './DebugReportActions';
-
-const findConciergePersonalDetail = (list: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> => {
-    if (!list) {
-        return undefined;
-    }
-    return Object.values(list).find((detail): detail is PersonalDetails => detail?.login === CONST.EMAIL.CONCIERGE);
-};
 
 type DebugReportPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;
 
@@ -86,11 +79,8 @@ function DebugReportPage({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: findConciergePersonalDetail});
-    const reportOwnerSelector = useCallback(
-        (list: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> => (report?.ownerAccountID ? (list?.[report.ownerAccountID] ?? undefined) : undefined),
-        [report?.ownerAccountID],
-    );
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
+    const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);

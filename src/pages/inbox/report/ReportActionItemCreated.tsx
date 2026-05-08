@@ -1,7 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {memo, useCallback} from 'react';
+import {conciergePersonalDetailSelector, personalDetailByAccountIDSelector} from '@selectors/PersonalDetails';
+import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -16,16 +16,7 @@ import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDet
 import {clearCreateChatError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
-import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
-
-const findConciergePersonalDetail = (list: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> => {
-    if (!list) {
-        return undefined;
-    }
-    return Object.values(list).find((detail): detail is PersonalDetails => detail?.login === CONST.EMAIL.CONCIERGE);
-};
 
 type ReportActionItemCreatedProps = {
     /** The id of the report */
@@ -48,11 +39,8 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: findConciergePersonalDetail});
-    const reportOwnerSelector = useCallback(
-        (list: OnyxEntry<PersonalDetailsList>): OnyxEntry<PersonalDetails> => (report?.ownerAccountID ? (list?.[report.ownerAccountID] ?? undefined) : undefined),
-        [report?.ownerAccountID],
-    );
+    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
+    const reportOwnerSelector = useMemo(() => personalDetailByAccountIDSelector(report?.ownerAccountID), [report?.ownerAccountID]);
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
 
     if (!isChatReport(report)) {
