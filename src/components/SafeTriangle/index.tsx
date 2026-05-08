@@ -8,6 +8,21 @@ import type SafeTriangleProps from './type';
 
 type Point = [number, number];
 
+type SafeTriangleOverlayProps = {
+    submenuRef: React.RefObject<View | null>;
+    containerRef: React.RefObject<View | null>;
+};
+
+type Rect = {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+};
+
+/** Time in ms before the safe triangle is cleared after cursor stops moving toward submenu */
+const SAFE_TRIANGLE_CLEAR_DELAY_MS = 50;
+
 function isPointInPolygon(point: Point, polygon: Point[]) {
     const [x, y] = point;
     let isInside = false;
@@ -22,18 +37,6 @@ function isPointInPolygon(point: Point, polygon: Point[]) {
     }
     return isInside;
 }
-
-type SafeTriangleOverlayProps = {
-    submenuRef: React.RefObject<View | null>;
-    containerRef: React.RefObject<View | null>;
-};
-
-type Rect = {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-};
 
 function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProps) {
     const styles = useThemeStyles();
@@ -118,7 +121,7 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
                 height: rect.height,
                 width: rect.left - x + 2,
             });
-            timeoutRef.current = setTimeout(clearTriangle, 50);
+            timeoutRef.current = setTimeout(clearTriangle, SAFE_TRIANGLE_CLEAR_DELAY_MS);
         } else {
             clearTriangle();
         }
