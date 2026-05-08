@@ -76,6 +76,24 @@ describe('SearchAutocompleteUtils', () => {
             expect(result).toEqual([]);
         });
 
+        it('should highlight WITHDRAWAL_STATUS filter with a valid settlement status value', () => {
+            const input = 'withdrawal-status:pending';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([
+                {start: 18, type: 'mention-user', length: 7}, // withdrawal-status:pending
+            ]);
+        });
+
+        it('should not highlight WITHDRAWAL_STATUS filter with invalid value', () => {
+            const input = 'withdrawal-status:invalid';
+
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            expect(result).toEqual([]);
+        });
+
         it('should not highlight WITHDRAWAL_ID filter with valid ID because it is not in autocomplete parser', () => {
             const input = 'withdrawalID:12345';
 
