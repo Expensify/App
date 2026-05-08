@@ -25,7 +25,6 @@ function setCodesAreCopied() {
 
 function quitAndNavigateBack(backTo?: Route) {
     Navigation.goBack(backTo);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(clearTwoFactorAuthData);
 }
 

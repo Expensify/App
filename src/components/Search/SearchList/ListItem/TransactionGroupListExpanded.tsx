@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -25,20 +26,21 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getTransactionViolations, isDeletedTransaction} from '@libs/TransactionUtils';
+import {getTransactionViolations, isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
     transactionsQueryJSON,
     showTooltip,
     canSelectMultiple,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onSelectRow,
     columns,
     groupBy,
@@ -74,6 +76,31 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
 
+    const neededReportIDs = useMemo(() => {
+        const ids = new Set<string>();
+        for (const transaction of visibleTransactions) {
+            if (transaction.reportID) {
+                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
+            }
+            if (transaction.reportAction?.childReportID) {
+                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+            }
+        }
+        return ids;
+    }, [visibleTransactions]);
+
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => {
+            const result: OnyxCollection<OnyxTypes.Report> = {};
+            for (const key of Object.keys(reports ?? {})) {
+                if (neededReportIDs.has(key)) {
+                    result[key] = reports?.[key];
+                }
+            }
+            return result;
+        },
+    });
+
     const isLastTransaction = (index: number) => {
         return index === visibleTransactions.length - 1;
     };
@@ -108,8 +135,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const selectRow = onSelectRow as (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
-        const parentReport = getReportOrDraftReport(transactionItem?.reportID);
-        const transactionThreadReport = getReportOrDraftReport(transactionItem?.reportAction?.childReportID);
+        const parentReport = getReportOrDraftReport(transactionItem?.reportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]);
+        const transactionThreadReport = getReportOrDraftReport(
+            transactionItem?.reportAction?.childReportID,
+            undefined,
+            undefined,
+            undefined,
+            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`],
+        );
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem?.transactionID)}`];
 
         return {
@@ -187,7 +220,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 
     const handleOnPress = (transaction: TransactionListItemType) => {
         if (isMobileSelectionModeEnabled) {
-            onCheckboxPress?.(transaction as unknown as TItem);
+            onSelectionButtonPress?.(transaction as unknown as TItem);
             return;
         }
         openReportInRHP(transaction);
@@ -232,59 +265,66 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
             {visibleTransactions.map((transaction, index) => {
                 const shouldShowBottomBorder = !isLastTransaction(index);
                 const exportedReportActions = Object.values(transactionsSnapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`] ?? {});
+                const isDeletedOrPendingDelete = isDeletedTransaction(transaction) || isTransactionPendingDelete(transaction);
 
-                const transactionRow = (
-                    <TransactionItemRow
-                        report={transaction.report}
-                        policy={transaction.policy}
-                        transactionItem={transaction}
-                        violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, transaction.report, transaction.policy)}
-                        isSelected={!!transaction.isSelected}
-                        dateColumnSize={dateColumnSize}
-                        amountColumnSize={amountColumnSize}
-                        taxAmountColumnSize={taxAmountColumnSize}
-                        shouldShowTooltip={showTooltip}
-                        shouldUseNarrowLayout={!isLargeScreenWidth}
-                        shouldShowCheckbox={!!canSelectMultiple}
-                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
-                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                        columns={currentColumns}
-                        onButtonPress={() => handleButtonPress(transaction)}
-                        style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.searchTableRowHeight] : styles.p4, styles.flex1]}
-                        isReportItemChild
-                        isInSingleTransactionReport={isInSingleTransactionReport}
-                        shouldShowBottomBorder={shouldShowBottomBorder}
-                        onArrowRightPress={isDeletedTransaction(transaction) ? undefined : () => openReportInRHP(transaction)}
-                        shouldShowArrowRightOnNarrowLayout
-                        reportActions={exportedReportActions}
-                        policyForMovingExpenses={policyForMovingExpenses}
-                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        isActionColumnWide={isActionColumnWide}
-                    />
-                );
                 return (
                     <OfflineWithFeedback
                         pendingAction={transaction.pendingAction}
                         key={transaction.transactionID}
                     >
-                        {!isLargeScreenWidth ? (
-                            <PressableWithFeedback
-                                onPress={() => handleOnPress(transaction)}
-                                onLongPress={() => onLongPress?.(transaction)}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={transaction.text ?? ''}
-                                isNested
-                                onMouseDown={(e) => e.preventDefault()}
-                                hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}
-                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
-                                id={transaction.transactionID}
-                                sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
-                            >
-                                {transactionRow}
-                            </PressableWithFeedback>
-                        ) : (
-                            transactionRow
-                        )}
+                        <PressableWithFeedback
+                            onPress={isDeletedOrPendingDelete && !canSelectMultiple ? undefined : () => handleOnPress(transaction)}
+                            disabled={isDeletedOrPendingDelete && !transaction.isSelected}
+                            onLongPress={() => onLongPress?.(transaction)}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={transaction.text ?? ''}
+                            isNested
+                            onMouseDown={(e) => e.preventDefault()}
+                            hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG, transaction.isSelected && styles.activeComponentBG]}
+                            wrapperStyle={isDeletedOrPendingDelete ? styles.cursorDisabled : undefined}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                            id={transaction.transactionID}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW}
+                        >
+                            {({hovered}) => (
+                                <TransactionItemRow
+                                    report={transaction.report}
+                                    policy={transaction.policy}
+                                    transactionItem={transaction}
+                                    violations={getTransactionViolations(
+                                        transaction,
+                                        violations,
+                                        currentUserDetails.email ?? '',
+                                        currentUserDetails.accountID,
+                                        transaction.report,
+                                        transaction.policy,
+                                    )}
+                                    isSelected={!!transaction.isSelected}
+                                    isDisabled={isTransactionPendingDelete(transaction)}
+                                    dateColumnSize={dateColumnSize}
+                                    amountColumnSize={amountColumnSize}
+                                    taxAmountColumnSize={taxAmountColumnSize}
+                                    shouldShowTooltip={showTooltip}
+                                    shouldUseNarrowLayout={!isLargeScreenWidth}
+                                    shouldShowCheckbox={!!canSelectMultiple}
+                                    checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPANDED_TRANSACTION_ROW_CHECKBOX}
+                                    onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
+                                    columns={currentColumns}
+                                    onButtonPress={() => handleButtonPress(transaction)}
+                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.searchTableRowHeight] : styles.p4, styles.flex1]}
+                                    isReportItemChild
+                                    isInSingleTransactionReport={isInSingleTransactionReport}
+                                    shouldShowBottomBorder={shouldShowBottomBorder}
+                                    onArrowRightPress={isDeletedOrPendingDelete ? undefined : () => openReportInRHP(transaction)}
+                                    shouldShowArrowRightOnNarrowLayout
+                                    reportActions={exportedReportActions}
+                                    policyForMovingExpenses={policyForMovingExpenses}
+                                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                                    isActionColumnWide={isActionColumnWide}
+                                    isHover={hovered}
+                                />
+                            )}
+                        </PressableWithFeedback>
                     </OfflineWithFeedback>
                 );
             })}
