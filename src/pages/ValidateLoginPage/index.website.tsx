@@ -7,7 +7,7 @@ import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidValidateCode} from '@libs/ValidationUtils';
-import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode} from '@userActions/Session';
+import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode, waitForUserSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session as SessionType} from '@src/types/onyx';
@@ -44,9 +44,13 @@ function ValidateLoginPage({
         setHasInitialized(true);
 
         if (isUserClickedSignIn) {
-            // The user clicked the option to sign in the current tab
-            Navigation.isNavigationReady().then(() => {
-                Navigation.goBack();
+            // The user clicked "Just sign in here" (e.g. in an incognito window).
+            // Wait for protected routes to be ready, then dismiss the validate login
+            // overlay so the user lands in the main app.
+            waitForUserSignIn().then(() => {
+                Navigation.waitForProtectedRoutes().then(() => {
+                    Navigation.dismissModal();
+                });
             });
             return;
         }
@@ -85,7 +89,7 @@ function ValidateLoginPage({
             {(autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED) && is2FARequired && !isSignedIn && !!login && (
                 <JustSignedInModal is2FARequired />
             )}
-            {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && <JustSignedInModal is2FARequired={false} />}
+            {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && !!login && <JustSignedInModal is2FARequired={false} />}
             {/* If session.autoAuthState isn't available yet, we use shouldStartSignInWithValidateCode to conditionally render the component instead of local autoAuthState which contains a default value of NOT_STARTED */}
             {(!effectiveAutoAuthState ? !shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isNavigatingToExitTo) && (
                 <ValidateCodeModal
