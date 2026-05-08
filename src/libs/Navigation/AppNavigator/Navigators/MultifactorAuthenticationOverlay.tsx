@@ -4,7 +4,6 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import {applyPendingNavigation, clearPendingNavigation, INITIAL_SCREEN, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -99,18 +98,13 @@ function MultifactorAuthenticationOverlay() {
         if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
             mfaNavigationRef.goBack();
         }
-        progress.set(
-            withTiming(0, {duration: CONST.ANIMATED_TRANSITION}, (finished) => {
-                if (!finished) {
-                    return;
-                }
-                scheduleOnRN(() => {
-                    clearPendingNavigation();
-                    setIsClosing(false);
-                    dispatch({type: 'RESET'});
-                });
-            }),
-        );
+        progress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
+        const cleanupTimer = setTimeout(() => {
+            clearPendingNavigation();
+            setIsClosing(false);
+            dispatch({type: 'RESET'});
+        }, CONST.ANIMATED_TRANSITION);
+        return () => clearTimeout(cleanupTimer);
     }, [isModalOpen, isClosing, progress, dispatch]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
@@ -161,7 +155,11 @@ function MultifactorAuthenticationOverlay() {
                             <Stack.Screen
                                 name={INITIAL_SCREEN}
                                 component={TransparentScreen}
-                                options={{animation: Animations.NONE}}
+                                options={{
+                                    animation: Animations.NONE,
+                                    native: {contentStyle: {backgroundColor: 'transparent'}},
+                                    web: {cardStyle: {backgroundColor: 'transparent'}},
+                                }}
                             />
                             <Stack.Screen
                                 name={SCREENS.MULTIFACTOR_AUTHENTICATION.MAGIC_CODE}

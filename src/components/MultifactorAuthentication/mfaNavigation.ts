@@ -8,6 +8,12 @@ type MfaOverlayInternalParamList = MultifactorAuthenticationOverlayParamList & R
 const mfaNavigationRef = createNavigationContainerRef<MfaOverlayInternalParamList>();
 
 let pendingNavigation: {screen: string; params?: Record<string, unknown>} | undefined;
+// True once the placeholder INITIAL_SCREEN has laid out at least once. On iOS
+// native-stack, INITIAL.onLayout fires synchronously on mount — before
+// process() reaches navigate() — so the buffer is empty when applyPending runs
+// and the buffered push never fires. With this flag, navigate() pushes
+// directly when INITIAL is already laid out.
+let hasInitialLaidOut = false;
 
 function navigate<T extends keyof MultifactorAuthenticationOverlayParamList>(
     screen: T,
@@ -28,6 +34,10 @@ function navigate<T extends keyof MultifactorAuthenticationOverlayParamList>(
     }
 
     if (currentRoute?.name === INITIAL_SCREEN) {
+        if (hasInitialLaidOut) {
+            mfaNavigationRef.dispatch(StackActions.push(screen as string, params));
+            return;
+        }
         pendingNavigation = {screen: screen as string, params};
         return;
     }
@@ -36,6 +46,7 @@ function navigate<T extends keyof MultifactorAuthenticationOverlayParamList>(
 }
 
 function applyPendingNavigation() {
+    hasInitialLaidOut = true;
     if (!pendingNavigation || !mfaNavigationRef.isReady()) {
         return;
     }
