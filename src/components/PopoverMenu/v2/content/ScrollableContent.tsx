@@ -16,6 +16,7 @@ type ScrollableContentProps = BasePopoverProps & {
 
 const VIRTUALIZATION_RECOMMENDED_THRESHOLD = 50;
 
+/** Popover surface for bounded-but-tall menus; wraps children in a `<ScrollView>` capped at window height. */
 function ScrollableContent({contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
     useRootState(ScrollableContent.displayName);
     if (__DEV__) {

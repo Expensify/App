@@ -7,6 +7,7 @@ type GroupProps = {
     children: ReactNode;
 };
 
+/** Transparent ARIA `role="group"` wrapper for related rows. */
 function Group({children}: GroupProps): React.ReactElement {
     useContentSubActions(Group.displayName);
     return <View role="group">{children}</View>;

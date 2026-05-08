@@ -14,6 +14,7 @@ type SubBackButtonProps = {
     backButtonText?: string;
 };
 
+/** Auto-rendered by `<Sub.Content>` at the active level; pops one sub on press. */
 function SubBackButton({backButtonText}: SubBackButtonProps): React.ReactElement {
     const {exitSub} = useContentSubActions(SubBackButton.displayName);
     const subContext = useSubContext(SubBackButton.displayName);

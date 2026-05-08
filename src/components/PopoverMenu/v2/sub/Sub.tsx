@@ -10,6 +10,7 @@ type SubProps = {
     id?: string;
 };
 
+/** One nested submenu level; pairs with `<Sub.Trigger>` + `<Sub.Content>`. */
 function Sub({children, id}: SubProps): React.ReactElement {
     const fallbackID = useId();
     const subID = id ?? fallbackID;

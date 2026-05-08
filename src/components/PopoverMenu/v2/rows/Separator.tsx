@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+/** Horizontal divider; auto-hides outside the active sub-level. */
 function Separator(): React.ReactElement | null {
     const isAtActiveLevel = useIsAtActiveLevel(Separator.displayName);
     const styles = useThemeStyles();

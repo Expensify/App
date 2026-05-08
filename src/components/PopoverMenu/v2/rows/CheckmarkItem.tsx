@@ -26,6 +26,7 @@ type CheckmarkItemOwnProps = {
 
 type CheckmarkItemProps = CheckmarkItemOwnProps & MenuItemForwardProps;
 
+/** Selectable row with a radio indicator; pass `rightIcon` to replace the indicator. */
 function CheckmarkItem({
     text,
     isSelected = false,
