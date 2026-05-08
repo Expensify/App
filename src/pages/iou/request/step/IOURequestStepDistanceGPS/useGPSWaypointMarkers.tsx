@@ -1,13 +1,13 @@
 import type {ReactNode} from 'react';
-import {useCallback, useMemo} from 'react';
 import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
-import {getGpsPoints, getGPSWaypoints, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
+import {getGPSWaypoints, isTripStopped as isTripStoppedUtil} from '@libs/GPSDraftDetailsUtils';
 import CONST from '@src/CONST';
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type UseGPSWaypointMarkersProps = {
     gpsDraftDetails: GpsDraftDetails | undefined;
@@ -20,72 +20,47 @@ function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPoin
     const trimmedEndPoint = trimmedEndPointProp ?? gpsDraftDetails?.trimmedEndPoint;
 
     const isTripStopped = isTripStoppedUtil(gpsDraftDetails);
-    const gpsWaypoints = getGPSWaypoints(gpsDraftDetails, trimmedEndPoint);
 
     const {DotIndicatorUnfilled, Location, DotIndicator} = useMemoizedLazyExpensifyIcons(['DotIndicatorUnfilled', 'Location', 'DotIndicator']);
 
     // Stable component references per icon type so React doesn't see a new component type on every render,
     // which would cause MarkerView children to unmount/remount and flash on Android.
-    const DotIndicatorUnfilledMarker = useCallback(
-        (): ReactNode => (
-            <ImageSVG
-                src={DotIndicatorUnfilled}
-                width={CONST.MAP_MARKER_SIZE}
-                height={CONST.MAP_MARKER_SIZE}
-                fill={theme.icon}
-            />
-        ),
-        [DotIndicatorUnfilled, theme.icon],
+    const getMarkerComponent = (icon: IconAsset): ReactNode => (
+        <ImageSVG
+            src={icon}
+            width={CONST.MAP_MARKER_SIZE}
+            height={CONST.MAP_MARKER_SIZE}
+            fill={theme.icon}
+        />
     );
 
-    const DotIndicatorMarker = useCallback(
-        (): ReactNode => (
-            <ImageSVG
-                src={DotIndicator}
-                width={CONST.MAP_MARKER_SIZE}
-                height={CONST.MAP_MARKER_SIZE}
-                fill={theme.icon}
-            />
-        ),
-        [DotIndicator, theme.icon],
-    );
+    const gpsWaypoints = getGPSWaypoints(gpsDraftDetails, trimmedEndPoint);
+    const waypointEntries = Object.entries(gpsWaypoints);
+    const lastIndex = waypointEntries.length - 1;
 
-    const LocationMarker = useCallback(
-        (): ReactNode => (
-            <ImageSVG
-                src={Location}
-                width={CONST.MAP_MARKER_SIZE}
-                height={CONST.MAP_MARKER_SIZE}
-                fill={theme.icon}
-            />
-        ),
-        [Location, theme.icon],
-    );
+    return waypointEntries.flatMap(([key, waypoint], index): WayPoint[] => {
+        const isStart = index === 0;
+        const isEnd = index === lastIndex;
 
-    return useMemo((): WayPoint[] => {
-        const waypointMarkers = Object.entries(gpsWaypoints).map(([key, waypoint], index): WayPoint | null => {
-            const tripSegmentsCount = trimmedEndPoint?.segmentIndex !== undefined ? trimmedEndPoint.segmentIndex + 1 : getGpsPoints(gpsDraftDetails).length;
+        if (isEnd && !isTripStopped) {
+            return [];
+        }
 
-            if (index === tripSegmentsCount * 2 - 1) {
-                if (!isTripStopped) {
-                    return null;
-                }
-                return {
-                    id: key,
-                    coordinate: [waypoint.lng, waypoint.lat],
-                    markerComponent: LocationMarker,
-                };
-            }
+        let icon = DotIndicator;
+        if (isStart) {
+            icon = DotIndicatorUnfilled;
+        } else if (isEnd) {
+            icon = Location;
+        }
 
-            return {
+        return [
+            {
                 id: key,
                 coordinate: [waypoint.lng, waypoint.lat],
-                markerComponent: index === 0 ? DotIndicatorUnfilledMarker : DotIndicatorMarker,
-            };
-        });
-
-        return waypointMarkers.filter((waypoint): waypoint is WayPoint => !!waypoint);
-    }, [gpsWaypoints, gpsDraftDetails, isTripStopped, trimmedEndPoint?.segmentIndex, DotIndicatorUnfilledMarker, DotIndicatorMarker, LocationMarker]);
+                markerComponent: (): ReactNode => getMarkerComponent(icon),
+            },
+        ];
+    });
 }
 
 export default useGPSWaypointMarkers;

@@ -1,9 +1,9 @@
 import type {LngLat} from 'react-map-gl';
-import getArrayDepth from '@libs/getArrayDepth';
+import is2dArray from '@libs/is2dArray';
 import type {Coordinate} from './MapViewTypes';
 
 function isSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): directionCoordinates is Coordinate[] {
-    return getArrayDepth(directionCoordinates) === 2;
+    return is2dArray(directionCoordinates);
 }
 
 function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Coordinate[]): {southWest: Coordinate; northEast: Coordinate} {

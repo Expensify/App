@@ -27,7 +27,7 @@ function GPSTripStateChecker() {
 
     const reportID = gpsDraftDetails?.reportID ?? generateReportID();
 
-    useUpdateGpsTripOnReconnect();
+    useUpdateGpsTripOnReconnect({gpsPoints: getGpsPoints(gpsDraftDetails)});
     useUpdateGpsNotification();
 
     useEffect(() => {

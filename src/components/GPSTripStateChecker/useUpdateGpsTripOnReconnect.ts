@@ -1,21 +1,12 @@
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import {updateGpsPoints} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, getGpsPoints} from '@libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
-function useUpdateGpsTripOnReconnect() {
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-
+function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
     const updateAddressesToHumanReadable = async () => {
-        if (!gpsDraftDetails) {
-            return;
-        }
-
-        const gpsPoints = getGpsPoints(gpsDraftDetails);
-
         const waypointUpdates: Array<Promise<{point: GPSPoint; segmentIndex: number; type: 'start' | 'end'}>> = [];
 
         for (const [segmentIndex, tripSegment] of gpsPoints.entries()) {
@@ -49,9 +40,9 @@ function useUpdateGpsTripOnReconnect() {
 
         // To avoid race conditions, we need to get the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
         const gpsDraftDetailsPromiseResult = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined);
-        const latestGpsDraftDetails = gpsDraftDetailsPromiseResult ?? gpsDraftDetails;
+        const latestGpsDraftDetails = gpsDraftDetailsPromiseResult;
 
-        const latestGpsPoints = getGpsPoints(latestGpsDraftDetails);
+        const latestGpsPoints = getGpsPoints(latestGpsDraftDetails) ?? gpsPoints;
         const newGpsPoints = [...latestGpsPoints];
 
         for (const {point, segmentIndex, type} of waypointAddresses) {
