@@ -1,10 +1,13 @@
 import React, {useCallback} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
@@ -14,17 +17,19 @@ import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
-type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.SUCCESS>;
+type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS>;
 
 function SuccessPage({route}: SuccessPageProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path);
+    const dynamicForwardPath = useDynamicForwardPath();
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
@@ -32,8 +37,8 @@ function SuccessPage({route}: SuccessPageProps) {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
     const goBack = useCallback(() => {
-        quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
-    }, [route.params?.backTo]);
+        quitAndNavigateBack(dynamicBackPath ?? ROUTES.SETTINGS_SECURITY);
+    }, [dynamicBackPath]);
 
     return (
         <TwoFactorAuthWrapper
@@ -57,8 +62,11 @@ function SuccessPage({route}: SuccessPageProps) {
                         return;
                     }
                     goBack();
-                    if (route.params?.forwardTo) {
-                        openLink(route.params.forwardTo, environmentURL);
+                    if (dynamicForwardPath) {
+                        const policyID = route.params?.policyID;
+                        if (policyID) {
+                            openLink(getXeroSetupLink(policyID), environmentURL);
+                        }
                     }
                 }}
                 containerStyle={styles.flex1}

@@ -8,13 +8,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
 import {quitAndNavigateBack} from '@libs/actions/TwoFactorAuthActions';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type TwoFactorAuthWrapperProps = ChildrenProps & {
@@ -65,8 +63,8 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
         }
     }, [account, stepName]);
 
-    const route = useRoute<PlatformStackRouteProp<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.ROOT>>();
-    const backTo = route.params?.backTo;
+    const route = useRoute();
+    const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
     const defaultGoBack = () => quitAndNavigateBack(backTo ?? ROUTES.SETTINGS_SECURITY);
 
     return (

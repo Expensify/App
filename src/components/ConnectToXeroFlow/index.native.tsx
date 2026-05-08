@@ -12,10 +12,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
 import getUAForWebView from '@libs/getUAForWebView';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ConnectToXeroFlowProps} from './types';
 
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
@@ -56,18 +57,11 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                     onSubmit={() => {
                         setIsRequire2FAModalOpen(false);
                         close(() => {
-                            const backTo = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
-                            const validatedUserForwardTo = getXeroSetupLink(policyID);
                             if (isUserValidated) {
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(backTo, validatedUserForwardTo));
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path));
                                 return;
                             }
-                            Navigation.navigate(
-                                ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({
-                                    backTo,
-                                    forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute(backTo, validatedUserForwardTo),
-                                }),
-                            );
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path));
                         });
                     }}
                     onCancel={() => setIsRequire2FAModalOpen(false)}

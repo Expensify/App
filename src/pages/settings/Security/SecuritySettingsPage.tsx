@@ -32,6 +32,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegateErrorsByField, openSecuritySettingsPage, removeDelegate} from '@libs/actions/Delegate';
 import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -41,7 +42,7 @@ import {close as modalClose} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Delegate} from '@src/types/onyx/Account';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -158,10 +159,10 @@ function SecuritySettingsPage() {
                         return;
                     }
                     if (!isUserValidated) {
-                        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path));
                         return;
                     }
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute());
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path));
                 },
             },
         ];

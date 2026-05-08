@@ -13,10 +13,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 import {navigateToConciergeChat} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 function Finish() {
     const styles = useThemeStyles();
@@ -74,7 +75,7 @@ function Finish() {
                         {
                             title: translate('finishStep.secure'),
                             onPress: () => {
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID})));
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID})));
                             },
                             icon: icons.Shield,
                             shouldShowRightIcon: true,

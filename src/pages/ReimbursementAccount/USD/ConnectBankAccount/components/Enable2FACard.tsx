@@ -8,8 +8,9 @@ import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLaz
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type Enable2FACardProps = {
     policyID?: string | undefined;
@@ -32,7 +33,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
                 {
                     title: translate('connectBankAccountStep.secureYourAccount'),
                     // Assuming user is validated here, validation is checked at the beginning of ConnectBank Flow
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID}))),
+                    onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID}))),
                     icon: icons.Shield,
                     shouldShowRightIcon: true,
                     outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,

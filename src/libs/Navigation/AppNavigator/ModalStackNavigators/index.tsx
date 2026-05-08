@@ -47,6 +47,7 @@ import type {
     TeachersUniteNavigatorParamList,
     TransactionDuplicateNavigatorParamList,
     TravelNavigatorParamList,
+    TwoFactorAuthNavigatorParamList,
     WalletStatementNavigatorParamList,
     WorkspaceConfirmationNavigatorParamList,
     WorkspaceDuplicateNavigatorParamList,
@@ -410,7 +411,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodConfirmMagicCodePage').default,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/SetDefaultContactMethodConfirmMagicCodePage').default,
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/VerifyAccountPage').default,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PriorityModePage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/LanguagePage').default,
@@ -977,13 +977,13 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.GROUP_EDIT_NAME]: () => require<ReactComponentModule>('../../../../pages/domain/Groups/DomainGroupEditNamePage').default,
 });
 
-const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
-    [SCREENS.TWO_FACTOR_AUTH.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default,
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyPage').default,
-    [SCREENS.TWO_FACTOR_AUTH.VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyAccountPage').default,
+const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<TwoFactorAuthNavigatorParamList>({
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthVerifyAccountPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisablePage').default,
-    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default,
     [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyOldPage').default,
     [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_NEW]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyNewPage').default,
 });

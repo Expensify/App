@@ -13,11 +13,12 @@ import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 
@@ -55,10 +56,10 @@ function RequireTwoFactorAuthenticationOverlay() {
 
     const handleOnPress = useCallback(() => {
         if (isUserValidated) {
-            Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path));
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute(), backTo: Navigation.getActiveRoute()}));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path));
     }, [isUserValidated]);
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {

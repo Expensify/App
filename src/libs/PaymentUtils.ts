@@ -9,9 +9,10 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
@@ -197,7 +198,7 @@ const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
     const reportID = iouReport?.reportID;
     if (!reportID) {
         // Technically possible but should never happen in real life
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
         return;
     }
 

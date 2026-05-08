@@ -13,6 +13,7 @@ const oldRoutes: Record<string, string> = {
         '/workspaces/$1/accounting/quickbooks-online/advanced/quickbooks-online-autosync/quickbooks-online-accounting-method',
     '/workspaces/*/connections/quickbooks-online/advanced/autosync': '/workspaces/$1/accounting/quickbooks-online/advanced/quickbooks-online-autosync',
     '/flag/*/*': '/r/$1/flag/$1/$2',
+    '/settings/profile/contact-methods/verify': '/settings/profile/contact-methods/verify-account',
     '/home-page': '/home',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
