@@ -185,14 +185,19 @@ function MoneyRequestReceiptView({
         }
     }, [isLoading, hoverBind]);
 
-    const prevSource = usePrevious(transaction?.receipt?.source);
+    // Track the actually-displayed image source. ReportActionItemImage prefers `localSource` over
+    // `source` when both are set, so resetting `isLoading` on every `source` change spuriously
+    // re-enters the loading state when the backend swaps in a server URL but `localSource` (the
+    // preserved client-side blob) keeps rendering — the underlying <Image> never re-fires onLoad.
+    const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
+    const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
     useEffect(() => {
-        if (!transaction?.receipt?.source || prevSource === transaction?.receipt?.source) {
+        if (!displayedReceiptSource || prevDisplayedReceiptSource === displayedReceiptSource) {
             return;
         }
         setIsLoading(true);
-    }, [transaction?.receipt?.source, prevSource]);
+    }, [displayedReceiptSource, prevDisplayedReceiptSource]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
