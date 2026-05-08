@@ -76,7 +76,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
         <SingleSelectPopup
             label={translate('common.group')}
             items={groupOptions}
-            value={selectedGroup ?? groupOptions.at(0) ?? null}
+            value={selectedGroup ?? groupOptions.at(0)}
             closeOverlay={closeOverlay}
             onChange={handleGroupChange}
             defaultValue={groupOptions.at(0)?.value}
