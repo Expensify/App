@@ -20,7 +20,9 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     const prefetchKey = PrefetchQueries.has(request.command) ? request.command : undefined;
 
     if (prefetchKey) {
-        request.headers = {...request.headers, prefetchKey};
+        const headers = request.headers ?? {};
+        headers.prefetchKey = prefetchKey;
+        request.headers = headers;
     }
 
     let result = makeXHR(request);
