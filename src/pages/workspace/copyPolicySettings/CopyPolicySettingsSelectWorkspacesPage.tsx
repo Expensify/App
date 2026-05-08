@@ -5,10 +5,9 @@ import Checkbox from '@components/Checkbox';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
-import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
+import type {ConfirmButtonOptions, ListItem, TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -137,6 +136,16 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         [translate, onConfirm, selectedTargetIDs.length],
     );
 
+    const textInputOptions: TextInputOptions = useMemo(
+        () => ({
+            label: translate('workspace.copySettings.searchPlaceholder'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+            headerMessage: filteredPolicies.length === 0 && searchValue.length > 0 ? translate('common.noResultsFound') : undefined,
+        }),
+        [translate, searchValue, setSearchValue, filteredPolicies.length],
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={sourcePolicyID}
@@ -155,16 +164,6 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                     <Text style={[styles.textHeadline]}>{translate('workspace.copySettings.selectWorkspaces')}</Text>
                     <Text style={[styles.textSupporting]}>{translate('workspace.copySettings.whichWorkspaces')}</Text>
                 </View>
-                {shouldShowSearch && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <SearchBar
-                            label={translate('workspace.copySettings.searchPlaceholder')}
-                            inputValue={searchValue}
-                            onChangeText={setSearchValue}
-                            shouldShowEmptyState={filteredPolicies.length === 0 && searchValue.length > 0}
-                        />
-                    </View>
-                )}
                 <View style={[styles.flex1]}>
                     <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <PressableWithFeedback
@@ -194,6 +193,8 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                         shouldSingleExecuteRowSelect
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}
+                        shouldShowTextInput={shouldShowSearch}
+                        textInputOptions={shouldShowSearch ? textInputOptions : undefined}
                     />
                 </View>
             </ScreenWrapper>
