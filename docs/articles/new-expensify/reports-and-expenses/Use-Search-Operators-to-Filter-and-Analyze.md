@@ -80,6 +80,7 @@ You can use the following operators to filter reports:
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
 - `withdrawal-type:` – reimbursement or expensify-card
+- `withdrawal-status:` – pending, cleared, or failed
 - `action:` – blocking report action, e.g. `action:approve`
 
 **Example query:**
