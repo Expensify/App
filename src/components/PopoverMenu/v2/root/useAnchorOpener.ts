@@ -1,6 +1,5 @@
 import {use, useRef} from 'react';
 import type {View} from 'react-native';
-import Log from '@libs/Log';
 import {RootActionsContext} from './RootContext';
 import type {AnchorRef} from './RootContext';
 
@@ -23,22 +22,9 @@ function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
         if (!node) {
             return;
         }
-        // Fabric: sync `getBoundingClientRect`. Old Arch / Paper / test renderer: async `measureInWindow`.
-        if (typeof node.getBoundingClientRect === 'function') {
-            const {x, y, width, height} = node.getBoundingClientRect();
-            setActiveAnchor({ref: ownRef, rect: {x, y, width, height}});
-            setIsVisible(true);
-            return;
-        }
-        if (typeof node.measureInWindow === 'function') {
-            node.measureInWindow((x, y, width, height) => {
-                setActiveAnchor({ref: ownRef, rect: {x, y, width, height}});
-                setIsVisible(true);
-            });
-            return;
-        }
-        // Unreachable in real runtimes (Fabric, Paper, web all expose at least one).
-        Log.warn(`[${callerName}] anchor node exposes neither getBoundingClientRect nor measureInWindow`);
+        const {x, y, width, height} = node.getBoundingClientRect();
+        setActiveAnchor({ref: ownRef, rect: {x, y, width, height}});
+        setIsVisible(true);
     };
 
     return {ref: ownRef, open};
