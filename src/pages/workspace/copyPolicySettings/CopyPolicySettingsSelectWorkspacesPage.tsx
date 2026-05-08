@@ -166,15 +166,7 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                     </View>
                 )}
                 <View style={[styles.flex1]}>
-                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter]}>
-                        <Checkbox
-                            accessibilityLabel={translate('workspace.copySettings.selectAll')}
-                            isChecked={isSelectAllChecked}
-                            isIndeterminate={isIndeterminate}
-                            onPress={toggleAll}
-                            disabled={eligiblePolicies.length === 0}
-                            shouldSelectOnPressEnter
-                        />
+                    <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={toggleAll}
@@ -184,8 +176,16 @@ function CopyPolicySettingsSelectWorkspacesPage() {
                             tabIndex={-1}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_SELECT_WORKSPACES_SELECT_ALL}
                         >
-                            <Text style={[styles.textLabelSupporting, styles.ph3]}>{translate('workspace.copySettings.selectAll')}</Text>
+                            <Text style={[styles.textLabelSupporting]}>{translate('workspace.copySettings.selectAll')}</Text>
                         </PressableWithFeedback>
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.copySettings.selectAll')}
+                            isChecked={isSelectAllChecked}
+                            isIndeterminate={isIndeterminate}
+                            onPress={toggleAll}
+                            disabled={eligiblePolicies.length === 0}
+                            shouldSelectOnPressEnter
+                        />
                     </View>
                     <SelectionList
                         data={listItems}
