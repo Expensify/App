@@ -16,7 +16,6 @@ function ValueSelectionList({
     isVisible,
 }: ValueSelectionListProps) {
     const initialSelectedValue = useInitialSelection(selectedItem?.value ? selectedItem.value : undefined, isVisible === undefined ? {resetOnFocus: true} : {isVisible});
-    const initiallyFocusedItemKey = initialSelectedValue;
 
     const options = useMemo(() => {
         const mappedOptions = items.map((item) => ({value: item.value ?? '', alternateText: item.description, text: item.label ?? '', keyForList: item.value ?? ''}));
@@ -29,7 +28,7 @@ function ValueSelectionList({
         <SelectionList
             data={options}
             onSelectRow={(item) => onItemSelected?.(item)}
-            initiallyFocusedItemKey={initiallyFocusedItemKey}
+            initiallyFocusedItemKey={initialSelectedValue}
             shouldStopPropagation
             shouldShowTooltips={shouldShowTooltips}
             shouldScrollToFocusedIndex={false}

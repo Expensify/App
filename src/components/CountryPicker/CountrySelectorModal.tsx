@@ -40,7 +40,6 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const initialSelectedValue = useInitialSelection(currentCountry || undefined, {isVisible});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
-    const initiallyFocusedCountry = initialSelectedValue;
 
     const countries = useMemo(
         () =>
@@ -97,7 +96,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                     searchValueForFocusSync={debouncedSearchValue}
                     onSelectRow={onCountrySelected}
                     ListItem={SingleSelectListItem}
-                    initiallyFocusedItemKey={initiallyFocusedCountry}
+                    initiallyFocusedItemKey={initialSelectedValue}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
                 />

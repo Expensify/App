@@ -43,7 +43,6 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     const styles = useThemeStyles();
     const initialSelectedValue = useInitialSelection(currentState || undefined, {isVisible});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
-    const initiallyFocusedState = initialSelectedValue;
 
     const countryStates = useMemo(
         () =>
@@ -100,7 +99,7 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
                     onSelectRow={onStateSelected}
                     textInputOptions={textInputOptions}
                     searchValueForFocusSync={debouncedSearchValue}
-                    initiallyFocusedItemKey={initiallyFocusedState}
+                    initiallyFocusedItemKey={initialSelectedValue}
                     disableMaintainingScrollPosition
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation

@@ -46,7 +46,6 @@ function SelectCountryStep({policyID}: CountryStepProps) {
     const currentCountry = selectedCountry ?? addNewCard?.data?.selectedCountry ?? getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
     const initialSelectedValue = useInitialSelection(currentCountry || undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
-    const initiallyFocusedCountry = initialSelectedValue;
 
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
@@ -129,7 +128,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 textInputOptions={textInputOptions}
                 searchValueForFocusSync={debouncedSearchValue}
                 confirmButtonOptions={confirmButtonOptions}
-                initiallyFocusedItemKey={initiallyFocusedCountry}
+                initiallyFocusedItemKey={initialSelectedValue}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex

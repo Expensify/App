@@ -48,7 +48,6 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const initialSelectedValue = useInitialSelection(selectedOption || undefined, {isVisible});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
-    const initiallyFocusedOption = initialSelectedValue;
 
     const options = useMemo(
         () =>
@@ -110,7 +109,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                     onSelectRow={handleSelectRow}
                     textInputOptions={textInputOptions}
                     searchValueForFocusSync={debouncedSearchValue}
-                    initiallyFocusedItemKey={initiallyFocusedOption}
+                    initiallyFocusedItemKey={initialSelectedValue}
                     disableMaintainingScrollPosition
                     shouldShowTooltips={false}
                     showScrollIndicator
