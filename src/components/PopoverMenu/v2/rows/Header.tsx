@@ -10,7 +10,7 @@ type HeaderProps = {
     style?: StyleProp<TextStyle>;
 };
 
-/** Hides on sub entry. To title a sub, render inside `<SubContent>` instead. */
+/** To title a sub, render inside `<SubContent>` instead. */
 function Header({children, style}: HeaderProps): React.ReactElement | null {
     const styles = useThemeStyles();
     const isAtActiveLevel = useIsAtActiveLevel(Header.displayName);

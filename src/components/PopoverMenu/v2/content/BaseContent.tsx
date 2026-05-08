@@ -17,7 +17,6 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentCloseContext, ContentFocusContext, ContentItemActionsContext, ContentNavigationContext, ContentSubActionsContext} from './ContentContext';
 import useContentController from './useContentController';
 
-/** Props exposed to callers of `<Content>` and `<ScrollableContent>`. */
 type BasePopoverProps = {
     children: ReactNode;
     anchorAlignment?: AnchorAlignment;
@@ -32,7 +31,6 @@ type BasePopoverProps = {
     testID?: string;
 };
 
-/** Adds internal-only layout props that each variant sets, not the caller. */
 type BaseContentProps = BasePopoverProps & {
     maxHeightStyle?: ViewStyle;
     /** Set to `false` by `<ScrollableContent>` since it wraps children in a `<ScrollView>` itself. */

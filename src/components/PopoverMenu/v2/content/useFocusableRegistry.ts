@@ -17,7 +17,6 @@ type UseFocusableRegistryResult = {
     resetFocus: () => void;
 };
 
-/** Item registry, focus index, and Enter shortcut for focusable rows. */
 function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRegistryResult {
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
     const orderedIDs = useOrderedIDs(registry);

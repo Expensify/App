@@ -2,7 +2,6 @@ import type {ViewStyle} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 
-/** Landscape opts out; small-screen caps at `POPOVER_MENU_MAX_HEIGHT_MOBILE`; desktop = caller's `desktopFallback` (or fit-content if none). */
 function useMaxHeightStyle({desktopFallback}: {desktopFallback?: ViewStyle} = {}): ViewStyle | undefined {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();

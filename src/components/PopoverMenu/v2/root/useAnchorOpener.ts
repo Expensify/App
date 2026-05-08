@@ -8,7 +8,6 @@ type UseAnchorOpenerResult = {
     open: () => void;
 };
 
-/** Shared core of `usePopoverTrigger` / `useSecondaryInteractionTrigger` — anchor ref + measure-and-open. */
 function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
     const actions = use(RootActionsContext);
     if (!actions) {

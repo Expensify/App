@@ -5,7 +5,6 @@ import type {ActiveAnchor, RootActions, RootState} from './RootContext';
 
 type RootProps = {
     children: ReactNode;
-    /** Initial visibility — production callers open via `usePopoverTrigger()`. */
     defaultOpen?: boolean;
 };
 

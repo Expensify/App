@@ -1,6 +1,7 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -21,9 +22,10 @@ type ItemOwnProps = {
 
 type ItemProps = ItemOwnProps & MenuItemForwardProps;
 
-/** Standard selectable menu row — Radix's `DropdownMenu.Item` analogue. */
 function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: ItemProps): React.ReactElement | null {
-    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({componentName: Item.displayName, onSelect, disabled});
+    // Re-resolve so the wrapper's hierarchy throw uses its component name, not `useSelectableRow`'s.
+    useContentClose(Item.displayName);
+    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled});
 
     if (!isAtActiveLevel) {
         return null;

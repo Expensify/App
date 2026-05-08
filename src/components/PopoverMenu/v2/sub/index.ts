@@ -9,3 +9,5 @@ export type {SubProps} from './Sub';
 export type {SubTriggerProps} from './SubTrigger';
 export type {SubContentProps} from './SubContent';
 export {useIsAtActiveLevel} from './SubContext';
+export {default as useSubTrigger} from './useSubTrigger';
+export type {UseSubTriggerResult} from './useSubTrigger';

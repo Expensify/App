@@ -146,11 +146,7 @@ function focus(title: string): void {
     }
 }
 
-/**
- * Helper rendered as a child of `<Root>` that publishes `activeAnchor` on mount, mimicking what a
- * `<Trigger>` press would do. Stays mounted so the anchor persists across open/close cycles. Rect
- * is fabricated since the mocked `<PopoverWithMeasuredContent>` doesn't read it.
- */
+/** Publishes `activeAnchor` synthetically; stays mounted across open/close. Rect is fabricated — the mock ignores it. */
 function AutoSetAnchor() {
     const {setActiveAnchor} = useRootActions('AutoSetAnchor');
     const ref: AnchorRef = useRef<RNViewType>(null);
@@ -168,7 +164,7 @@ function VisibilityObserver({onChange}: {onChange: (open: boolean) => void}) {
     return null;
 }
 
-/** `onOpenChange` here is a test-side observer of `useIsPopoverVisible`, not a prop on Root (v2 is uncontrolled-only). */
+/** Test-side observer; `<Root>` has no `onOpenChange` prop. */
 function Harness({initialOpen = false, onOpenChange, children}: PropsWithChildren<{initialOpen?: boolean; onOpenChange?: (open: boolean) => void}>) {
     return (
         <NavigationContext.Provider value={mockNavigation}>
@@ -341,7 +337,6 @@ describe('PopoverMenu V2', () => {
             expect(result?.ref).toMatchObject({current: null});
         });
 
-        // Each call returns a fresh ref — pressing one trigger publishes its own ref to activeAnchor; React's setState semantics ensure a later press overwrites.
         it('returns a separate ref per call', () => {
             const refs: Array<PopoverMenu.UsePopoverTriggerResult['ref']> = [];
             function ProbeHook() {
@@ -375,6 +370,136 @@ describe('PopoverMenu V2', () => {
             expect(result).toBeDefined();
             expect(typeof result?.onSecondaryInteraction).toBe('function');
             expect(result?.ref).toMatchObject({current: null});
+        });
+    });
+
+    describe('useSubTrigger', () => {
+        it('returns the trigger shape and reports parent-level visibility', () => {
+            const captured: PopoverMenu.UseSubTriggerResult[] = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.useSubTrigger());
+                return null;
+            }
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub>
+                            <ProbeHook />
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Item
+                                    text="X"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            const result = captured.at(-1);
+            expect(result).toBeDefined();
+            expect(typeof result?.onPress).toBe('function');
+            expect(typeof result?.onFocus).toBe('function');
+            expect(typeof result?.focused).toBe('boolean');
+            expect(result?.isAtParentLevel).toBe(true);
+        });
+
+        it('drills into the enclosing Sub on onPress', () => {
+            const captured: PopoverMenu.UseSubTriggerResult[] = [];
+            const navigationCaptured: Array<ReturnType<typeof useContentNavigation>> = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.useSubTrigger());
+                return null;
+            }
+            function NavigationProbe() {
+                navigationCaptured.push(useContentNavigation('NavigationProbe'));
+                return null;
+            }
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <NavigationProbe />
+                        <PopoverMenu.Sub id="speed-sub">
+                            <ProbeHook />
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Item
+                                    text="Fast"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            expect(navigationCaptured.at(-1)?.currentSubID).toBeNull();
+            act(() => captured.at(-1)?.onPress());
+            expect(navigationCaptured.at(-1)?.currentSubID).toBe('speed-sub');
+        });
+    });
+
+    describe('useSelectableRow', () => {
+        it('returns the row shape and reports active-level visibility', () => {
+            const captured: PopoverMenu.UseSelectableRowResult[] = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.useSelectableRow());
+                return null;
+            }
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <ProbeHook />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            const result = captured.at(-1);
+            expect(result).toBeDefined();
+            expect(typeof result?.onPress).toBe('function');
+            expect(typeof result?.onFocus).toBe('function');
+            expect(typeof result?.focused).toBe('boolean');
+            expect(result?.isAtActiveLevel).toBe(true);
+        });
+
+        it('closes the popover after onPress', () => {
+            const onOpenChange = jest.fn();
+            const captured: PopoverMenu.UseSelectableRowResult[] = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.useSelectableRow({onSelect: jest.fn()}));
+                return null;
+            }
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <ProbeHook />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            onOpenChange.mockClear();
+            act(() => captured.at(-1)?.onPress());
+            expect(onOpenChange).toHaveBeenCalledWith(false);
+        });
+
+        it('keeps the popover open when onSelect calls event.preventDefault()', () => {
+            const onOpenChange = jest.fn();
+            const captured: PopoverMenu.UseSelectableRowResult[] = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.useSelectableRow({onSelect: (event) => event.preventDefault()}));
+                return null;
+            }
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <ProbeHook />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            onOpenChange.mockClear();
+            act(() => captured.at(-1)?.onPress());
+            expect(onOpenChange).not.toHaveBeenCalledWith(false);
         });
     });
 
@@ -1422,6 +1547,36 @@ describe('PopoverMenu V2', () => {
                     </Harness>,
                 ),
             ).toThrow(/<PopoverMenu\.SubTrigger> must be rendered inside <PopoverMenu\.Sub>/);
+        });
+
+        it('throws when useSelectableRow is called outside Content', () => {
+            function CallSelectableRowHook() {
+                PopoverMenu.useSelectableRow();
+                return null;
+            }
+            expect(() =>
+                render(
+                    <Harness initialOpen>
+                        <CallSelectableRowHook />
+                    </Harness>,
+                ),
+            ).toThrow(/useSelectableRow\(\) must be called inside <PopoverMenu\.Content>/);
+        });
+
+        it('throws when useSubTrigger is called outside Sub', () => {
+            function CallSubTriggerHook() {
+                PopoverMenu.useSubTrigger();
+                return null;
+            }
+            expect(() =>
+                render(
+                    <Harness initialOpen>
+                        <PopoverMenu.Content>
+                            <CallSubTriggerHook />
+                        </PopoverMenu.Content>
+                    </Harness>,
+                ),
+            ).toThrow(/useSubTrigger\(\) must be called inside <PopoverMenu\.Sub>/);
         });
 
         it('throws when Sub.Content is rendered outside Sub', () => {

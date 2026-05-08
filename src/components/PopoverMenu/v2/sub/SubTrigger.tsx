@@ -1,8 +1,7 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
-import {useContentNavigation, useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
-import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
+import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
@@ -10,6 +9,7 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {useSubContext} from './SubContext';
+import useSubTrigger from './useSubTrigger';
 
 type SubTriggerProps = {
     text: string;
@@ -25,29 +25,16 @@ type SubTriggerProps = {
     testID?: string;
 };
 
-/** Row that opens its enclosing `<Sub>` on press; only visible at the parent level. */
+/** For non-`MenuItem` shapes, call `useSubTrigger()` directly. */
 function SubTrigger({text, description, icon, iconWidth, iconHeight, iconFill, disabled = false, rightIcon, titleStyle, wrapperStyle, testID}: SubTriggerProps): React.ReactElement | null {
-    // Resolve Sub first — closer-neighbor error wins over the also-true "outside <Content>".
-    const subContext = useSubContext(SubTrigger.displayName);
-    const {currentSubID} = useContentNavigation(SubTrigger.displayName);
-    const {enterSub} = useContentSubActions(SubTrigger.displayName);
+    // Re-resolve so the wrapper's hierarchy throw uses its component name. Sub wins over also-true "outside <Content>".
+    useSubContext(SubTrigger.displayName);
+    useContentSubActions(SubTrigger.displayName);
+
+    const {ref, focused, onPress, onFocus, isAtParentLevel} = useSubTrigger({disabled});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const isVisible = currentSubID === subContext.parentSubID;
-
-    const {ref, focused, onPress, onFocus} = useFocusableRow({
-        componentName: SubTrigger.displayName,
-        visible: isVisible,
-        isDisabled: disabled,
-        onActivate: () => {
-            if (disabled) {
-                return;
-            }
-            enterSub(subContext.subID);
-        },
-    });
-
-    if (!isVisible) {
+    if (!isAtParentLevel) {
         return null;
     }
 

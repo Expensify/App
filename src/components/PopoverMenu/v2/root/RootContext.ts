@@ -16,7 +16,6 @@ type ActiveAnchor = {
 type RootState = {
     state: {isVisible: boolean};
     meta: {
-        /** Set by `usePopoverTrigger` / `useSecondaryInteractionTrigger` on press. */
         activeAnchor: ActiveAnchor | null;
     };
 };

@@ -47,6 +47,11 @@ function MyTrigger() {
 
 - **`usePopoverTrigger()`** — primary trigger. Returns `{ref, onPress}` to attach to any pressable (`PressableWithFeedback`, `Button`, `MenuItem`, custom). Captures the pressable's bounding rect on press and opens the popover.
 - **`useSecondaryInteractionTrigger()`** — same shape with `onSecondaryInteraction` instead of `onPress`. For long-press (native) / right-click (web), e.g. saved-search row navigates on tap, opens overflow on long-press.
+- **`useSubTrigger({disabled?})`** — sub-level analogue. Returns `{ref, onPress, onFocus, focused, isAtParentLevel}` to compose any pressable as the row that opens its enclosing `<Sub>`. The opinionated `MenuItem` shape ships as `<Sub.Trigger>` for the canonical drill-down case; reach for the hook when you need a different shape (a `Button` row, custom layout, etc.).
+
+### Row composition — `useSelectableRow({onSelect?, disabled?})`
+
+Returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` to compose any pressable as a selectable row inside `<Content>` / `<ScrollableContent>`. The menu closes after `onSelect` fires; call `event.preventDefault()` inside `onSelect` to keep it open. The opinionated `MenuItem` shapes ship as `<Item>` and `<CheckmarkItem>` for the canonical cases; reach for the hook when you need a non-`MenuItem` row (a `Button`-styled option, custom layout, etc.).
 
 If the consumer's pressable already has its own handler, compose explicitly:
 ```tsx
@@ -102,7 +107,7 @@ These are enforced at runtime — not just by convention.
 |---|---|
 | `usePopoverTrigger`, `useSecondaryInteractionTrigger`, `useIsPopoverVisible` | `Root` |
 | `Content`, `ScrollableContent` | `Root` |
-| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub` | `Content` or `ScrollableContent` (transitively, including inside `<Sub.Content>`) |
-| `Sub.Trigger`, `Sub.Content` | `Sub` |
+| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub`, `useSelectableRow` | `Content` or `ScrollableContent` (transitively, including inside `<Sub.Content>`) |
+| `Sub.Trigger`, `Sub.Content`, `useSubTrigger` | `Sub` |
 
 Violating any of these throws synchronously during render. The exception isn't `__DEV__`-gated, so a slip past local dev fails loudly on staging instead of silently corrupting layout.

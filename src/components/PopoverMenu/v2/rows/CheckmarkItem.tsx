@@ -1,6 +1,7 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import variables from '@styles/variables';
@@ -25,7 +26,6 @@ type CheckmarkItemOwnProps = {
 
 type CheckmarkItemProps = CheckmarkItemOwnProps & MenuItemForwardProps;
 
-/** Selectable row with a radio-style selection indicator (green badge with white check when selected). */
 function CheckmarkItem({
     text,
     isSelected = false,
@@ -40,7 +40,9 @@ function CheckmarkItem({
 }: CheckmarkItemProps): React.ReactElement | null {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({componentName: CheckmarkItem.displayName, onSelect, disabled});
+    // Re-resolve so the wrapper's hierarchy throw uses its component name, not `useSelectableRow`'s.
+    useContentClose(CheckmarkItem.displayName);
+    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled});
 
     if (!isAtActiveLevel) {
         return null;
@@ -61,7 +63,7 @@ function CheckmarkItem({
                 disabled={disabled}
                 interactive
                 isSelected={isSelected}
-                // Skip the row tint when the radio indicator is the visual cue (matches main).
+                // Skip the row tint when the radio indicator is the visual cue.
                 wrapperStyle={StyleUtils.getItemBackgroundColorStyle(!!rightIcon && isSelected, focused, disabled, theme.activeComponentBG, theme.hoverComponentBG)}
                 shouldRemoveHoverBackground={isSelected}
                 onPress={onPress}

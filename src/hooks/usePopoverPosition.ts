@@ -11,11 +11,7 @@ const defaultAnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-/**
- * Popover anchor ref. Typed as `View` for the contract; the hook accepts any element with `measureInWindow`
- * at runtime — web Pressables resolve to `HTMLDivElement`, and some callers use `as`-casts to bypass typing.
- * Non-measurable elements fall back to zero dimensions.
- */
+/** Some callers use `as`-casts to pass non-`View` refs; the runtime `measureInWindow` check guards that. */
 type MeasurableRef = RefObject<View | null>;
 
 type Rect = {x: number; y: number} & Dimensions;

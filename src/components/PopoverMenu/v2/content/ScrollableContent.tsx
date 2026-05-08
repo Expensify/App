@@ -16,7 +16,6 @@ type ScrollableContentProps = BasePopoverProps & {
 
 const VIRTUALIZATION_RECOMMENDED_THRESHOLD = 50;
 
-/** Popover surface that wraps children in a `<ScrollView>` for unbounded row counts. */
 function ScrollableContent({contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
     useRootState(ScrollableContent.displayName);
     if (__DEV__) {

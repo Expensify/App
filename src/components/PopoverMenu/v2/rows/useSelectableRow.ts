@@ -1,7 +1,9 @@
-import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
+import {use} from 'react';
+import type {RefObject} from 'react';
+import type {View} from 'react-native';
+import {ContentCloseContext} from '@components/PopoverMenu/v2/content/ContentContext';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import useFocusableRow from './useFocusableRow';
-import type {FocusableRow} from './useFocusableRow';
 
 type ItemSelectEvent = {
     defaultPrevented: boolean;
@@ -18,14 +20,25 @@ function createSelectEvent(): ItemSelectEvent {
     return event;
 }
 
-type SelectableRow = FocusableRow & {isAtActiveLevel: boolean};
+type UseSelectableRowResult = {
+    ref: RefObject<View | null>;
+    onPress: () => void;
+    onFocus: () => void;
+    focused: boolean;
+    /** Caller render-gates on this — selectable rows are hidden outside the active sub-level. */
+    isAtActiveLevel: boolean;
+};
 
-function useSelectableRow({componentName, onSelect, disabled}: {componentName: string; onSelect?: (event: ItemSelectEvent) => void; disabled: boolean}): SelectableRow {
-    const close = useContentClose(componentName);
-    const isAtActiveLevel = useIsAtActiveLevel(componentName);
+/** Closes after `onSelect`; call `event.preventDefault()` inside `onSelect` to keep the menu open. */
+function useSelectableRow({onSelect, disabled = false}: {onSelect?: (event: ItemSelectEvent) => void; disabled?: boolean} = {}): UseSelectableRowResult {
+    const close = use(ContentCloseContext);
+    if (close === null) {
+        throw new Error('useSelectableRow() must be called inside <PopoverMenu.Content>.');
+    }
+    const isAtActiveLevel = useIsAtActiveLevel('useSelectableRow');
 
     const row = useFocusableRow({
-        componentName,
+        componentName: 'useSelectableRow',
         visible: isAtActiveLevel,
         isDisabled: disabled,
         onActivate: () => {
@@ -45,4 +58,4 @@ function useSelectableRow({componentName, onSelect, disabled}: {componentName: s
 }
 
 export default useSelectableRow;
-export type {ItemSelectEvent, SelectableRow};
+export type {ItemSelectEvent, UseSelectableRowResult};

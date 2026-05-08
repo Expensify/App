@@ -7,7 +7,6 @@ type GroupProps = {
     children: ReactNode;
 };
 
-/** Transparent ARIA `role="group"` wrapper; children self-gate to the active level. */
 function Group({children}: GroupProps): React.ReactElement {
     useContentSubActions(Group.displayName);
     return <View role="group">{children}</View>;

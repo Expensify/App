@@ -21,7 +21,7 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
     const parentLinks = useRef<Map<string, string | null>>(new Map());
     const mountedSubs = useRef<Set<string>>(new Set());
 
-    // Mirror so `unregisterSub`'s cascade-pop check reads the committed level synchronously, not a stale closure from when the cleanup effect captured the action.
+    // Mirror so `unregisterSub`'s cascade-pop check reads the committed level, not a stale closure.
     const currentSubIDRef = useRef(currentSubID);
     useLayoutEffect(() => {
         currentSubIDRef.current = currentSubID;

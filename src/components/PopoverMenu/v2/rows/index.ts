@@ -9,3 +9,5 @@ export type {ItemProps, ItemSelectEvent} from './Item';
 export {default as Label} from './Label';
 export type {LabelProps} from './Label';
 export {default as Separator} from './Separator';
+export {default as useSelectableRow} from './useSelectableRow';
+export type {UseSelectableRowResult} from './useSelectableRow';

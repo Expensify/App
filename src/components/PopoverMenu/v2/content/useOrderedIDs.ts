@@ -5,7 +5,7 @@ import type {FocusableItem} from './ContentContext';
 const DOCUMENT_POSITION_PRECEDING = 0x02;
 const DOCUMENT_POSITION_FOLLOWING = 0x04;
 
-/** Sorts the registry by DOM order so keyboard navigation matches visual order regardless of registration order. */
+/** Keyboard navigation follows visual order regardless of registration order. */
 function useOrderedIDs(registry: Map<string, FocusableItem>): string[] {
     return [...registry.entries()].sort(([, a], [, b]) => compareNodes(a.ref.current, b.ref.current)).map(([id]) => id);
 }
