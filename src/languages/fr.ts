@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Le mois prochain',
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -1316,6 +1317,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Payer ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Payer ${formattedAmount} en tant qu’entreprise` : `Payer avec le compte professionnel`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Marquer ${formattedAmount} comme payé` : `Marquer comme payé`),
+        confirmPaymentReceivedModalTitle: 'Confirmer la réception du paiement',
+        receivedPayment: 'Paiement reçu',
+        receivedPaymentConfirmation: 'Veuillez continuer uniquement si vous avez déjà reçu le paiement en dehors d’Expensify.',
+        confirmReceivedPayment: 'Oui, j’ai reçu le paiement.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte personnel ${last4Digits}` : `Payé avec un compte personnel`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `a payé ${amount} avec le compte professionnel ${last4Digits}` : `Payé avec le compte professionnel`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Payer ${formattedAmount} via ${policyName}` : `Payer via ${policyName}`),
@@ -2206,6 +2211,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Votre compte est verrouillé',
         chatToConciergeToUnlock: 'Discutez avec Concierge pour résoudre vos problèmes de sécurité et déverrouiller votre compte.',
         chatWithConcierge: 'Discuter avec Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gestion des appareils',
+        description: 'Gérez tous les appareils sur lesquels vous vous êtes connecté avec votre compte Expensify.',
+        revoke: 'Révoquer',
+        unknownDevice: 'Appareil Inconnu',
     },
     twoFactorAuth: {
         headerTitle: 'Authentification à deux facteurs',
@@ -5758,6 +5769,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
+            hrWarningModal: {disconnectText: 'Pour désactiver les RH, veuillez d’abord déconnecter Gusto de cet espace de travail.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -6908,6 +6920,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             customRules: {
                 title: 'Politique de dépenses',
                 cardSubtitle: 'C’est ici que se trouve la politique de dépenses de votre équipe, pour que tout le monde soit d’accord sur ce qui est couvert.',
+                policyDocument: 'Document de politique',
+                policyText: 'Texte de politique',
             },
             spendRules: {
                 title: 'Dépenser',

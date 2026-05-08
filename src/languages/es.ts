@@ -120,6 +120,7 @@ const translations: TranslationDeepObject<typeof en> = {
         members: 'Miembros',
         invite: 'Invitar',
         here: 'aquí',
+        avatar: 'Avatar',
         date: 'Fecha',
         dob: 'Fecha de nacimiento',
         currentYear: 'Año actual',
@@ -1264,6 +1265,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount) => `Pagar ${formattedAmount}`,
         settleBusiness: (formattedAmount) => (formattedAmount ? `Pagar ${formattedAmount} como negocio` : `Pago con cuenta empresarial`),
         payElsewhere: (formattedAmount) => (formattedAmount ? `Marcar ${formattedAmount} como pagado` : `Marcar como pagado`),
+        confirmPaymentReceivedModalTitle: 'Confirmar el pago recibido',
+        receivedPayment: 'Pago recibido',
+        receivedPaymentConfirmation: 'Por favor, continúa solo si ya has recibido el pago fuera de Expensify.',
+        confirmReceivedPayment: 'Sí, he recibido el pago.',
         settleInvoicePersonal: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta personal ${last4Digits}` : `Pagado con cuenta personal`),
         settleInvoiceBusiness: (amount, last4Digits) => (amount ? `pagado ${amount} con cuenta de empresa ${last4Digits}` : `Pagado con cuenta de empresa`),
         payWithPolicy: (policyName, formattedAmount) => (formattedAmount ? `Pay ${formattedAmount} via ${policyName}` : `Pay via ${policyName}`),
@@ -2106,6 +2111,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Tu cuenta está bloqueada',
         chatToConciergeToUnlock: 'Chatea con Concierge para resolver los problemas de seguridad y desbloquear tu cuenta.',
         chatWithConcierge: 'Chatear con Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gestión de dispositivos',
+        description: 'Gestiona todos los dispositivos en los que has iniciado sesión con tu cuenta de Expensify.',
+        revoke: 'Revocar',
+        unknownDevice: 'Dispositivo Desconocido',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticación de dos factores',
@@ -5598,6 +5609,9 @@ ${amount} para ${merchant} - ${date}`,
                 description: '¿Está seguro de que desea desconectar esta integración?',
                 confirmText: 'Entendido',
             },
+            hrWarningModal: {
+                disconnectText: 'Para desactivar HR, primero desconecta Gusto de este espacio de trabajo.',
+            },
             workflowWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
                 featureEnabledText:
@@ -6820,6 +6834,8 @@ ${amount} para ${merchant} - ${date}`,
             customRules: {
                 title: 'Reglas personalizadas',
                 cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
+                policyDocument: 'Documento de política',
+                policyText: 'Texto de política',
             },
             spendRules: {
                 title: 'Gastos',

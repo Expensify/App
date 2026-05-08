@@ -58,3 +58,4 @@ class RenderTaskQueue {
 }
 
 export default RenderTaskQueue;
+export type {RenderInfo};
