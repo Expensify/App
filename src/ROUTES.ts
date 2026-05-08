@@ -419,7 +419,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
     },
     WORKSPACE_TAG_CREATE: {
-        path: 'tag-new',
+        path: 'workspace-tag-new',
         entryScreens: [SCREENS.WORKSPACE.TAGS],
     },
     SETTINGS_TAGS_EDIT: {

@@ -7,7 +7,7 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
-    '/workspaces/*/tags/new': '/workspaces/$1/tags/tag-new',
+    '/workspaces/*/tags/new': '/workspaces/$1/tags/workspace-tag-new',
     '/workspaces/*/tags/*/edit': '/settings/$1/tags/settings/tag-list-edit/$2',
     '/workspaces/*/tag/*/*/edit': '/settings/$1/tags/tag-settings/$2/$3/tag-edit',
     '/workspaces/*/tag/*/*/gl-code': '/settings/$1/tags/tag-settings/$2/$3/tag-gl-code',

@@ -86,7 +86,7 @@ describe('getBestMatchingPath', () => {
 
     it('redirects legacy workspace tag routes to new settings dynamic routes', () => {
         expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit')).toBe('/settings/p123/tags/settings/tag-list-edit/10');
-        expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
+        expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/workspaces/p123/tags/workspace-tag-new');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-edit');
         expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/gl-code')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-gl-code');
@@ -110,10 +110,10 @@ describe('getBestMatchingPath', () => {
     });
 
     it('redirects old workspace tags new path to the new dynamic suffix shape', () => {
-        expect(getMatchingNewRoute('/workspaces/abc/tags/new')).toBe('/workspaces/abc/tags/tag-new');
+        expect(getMatchingNewRoute('/workspaces/abc/tags/new')).toBe('/workspaces/abc/tags/workspace-tag-new');
     });
 
     it('preserves query params when redirecting old workspace tags new path', () => {
-        expect(getMatchingNewRoute('/workspaces/abc/tags/new?backTo=/home')).toBe('/workspaces/abc/tags/tag-new?backTo=/home');
+        expect(getMatchingNewRoute('/workspaces/abc/tags/new?backTo=/home')).toBe('/workspaces/abc/tags/workspace-tag-new?backTo=/home');
     });
 });
