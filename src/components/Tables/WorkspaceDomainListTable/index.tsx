@@ -1,11 +1,28 @@
 import React, {useRef} from 'react';
+import {ValueOf} from 'type-fest';
 import Table, {TableColumn, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {AvatarSource} from '@libs/UserUtils';
+import CONST from '@src/CONST';
+import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
-type WorkspaceRowData = {};
+type WorkspaceRowData = {
+    keyForList: string;
+    title: string;
+    icon: AvatarSource;
+    disabled: boolean;
+    policyID: string;
+    ownerAccountID: string;
+    type: ValueOf<typeof CONST.POLICY.TYPE>;
+    role: ValueOf<typeof CONST.POLICY.ROLE>;
+    iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
+    errors?: OnyxCommon.Errors | undefined;
+    action: () => void;
+    dismissError: () => void;
+};
 
 type WorkspaceListTableProps = {};
 
