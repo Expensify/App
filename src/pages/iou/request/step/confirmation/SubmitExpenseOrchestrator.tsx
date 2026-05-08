@@ -1,31 +1,29 @@
 import React, {useEffect, useRef, useState} from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import DateUtils from '@libs/DateUtils';
-import {flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
+import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
-import {endSubmitFollowUpActionSpan, setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
+import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
+import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
 type SubmitExpenseOrchestratorRenderProps = {
     onConfirm: (participants: Participant[]) => void;
@@ -219,62 +217,6 @@ function SubmitExpenseOrchestrator({
         });
     };
 
-    const dismissOnly = (runAfterDismiss: () => void) => {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-        Navigation.dismissModal({
-            afterTransition: () => {
-                endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-                runAfterDismiss();
-            },
-        });
-    };
-
-    // Flush ordering: The DISMISS_MODAL deferred-write channel is flushed by
-    // ReportScreen.useFocusEffect (on focus gain) or InteractionManager (wide layout
-    // fallback). createTransaction (via runAfterDismiss) calls deferOrExecuteWrite
-    // which either registers the write on the channel or executes immediately:
-    //   - Focus fires first -> flushRequested is set -> deferOrExecuteWrite executes immediately
-    //   - TransitionTracker fires first -> write is registered -> focus flush executes it later
-    // Both orderings are correct. The 5s safety timeout in deferredLayoutWrite covers
-    // edge cases where neither trigger fires (e.g. ReportScreen never mounts).
-    const dismissNarrowWithReport = (reportID: string, runAfterDismiss: () => void) => {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
-        Navigation.dismissModalWithReport({reportID}, undefined, {
-            onBeforeNavigate: (willOpenReport) => {
-                setPendingSubmitFollowUpAction(
-                    willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
-                    reportID,
-                );
-            },
-        });
-        TransitionTracker.runAfterTransitions({
-            callback: runAfterDismiss,
-            waitForUpcomingTransition: true,
-        });
-    };
-
-    const dismissWideToSameReport = (reportID: string, runAfterDismiss: () => void) => {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
-        Navigation.dismissModal({
-            afterTransition: () => {
-                endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
-                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-                runAfterDismiss();
-            },
-        });
-    };
-
-    const dismissWideToNewReport = (reportID: string, runAfterDismiss: () => void) => {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
-        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {
-            afterTransition: () => {
-                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-                runAfterDismiss();
-            },
-        });
-    };
-
     const handleDismissModalFastPath = (listOfParticipants: Participant[]) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
@@ -284,32 +226,12 @@ function SubmitExpenseOrchestrator({
             setIsConfirming(false);
         };
 
-        if (isSearchTopmostFullScreenRoute() || !destinationReportID) {
+        if (isSearchTopmostFullScreenRoute()) {
             dismissOnly(runAfterDismiss);
             return;
         }
 
-        if (getIsNarrowLayout()) {
-            dismissNarrowWithReport(destinationReportID, runAfterDismiss);
-            return;
-        }
-
-        const currentReportID = getTopmostReportParams(navigationRef.getRootState())?.reportID;
-        if (currentReportID === destinationReportID) {
-            dismissWideToSameReport(destinationReportID, runAfterDismiss);
-            return;
-        }
-
-        dismissWideToNewReport(destinationReportID, runAfterDismiss);
-    };
-
-    // Wide layout: swap the visible Search tab to the correct type while the
-    // modal slides away, so the user never sees the wrong tab underneath.
-    const dismissWideToNewSearchType = (searchType: SearchDataTypes, runAfterDismiss: () => void) => {
-        const queryString = buildCannedSearchQuery({type: searchType});
-        Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {
-            afterTransition: runAfterDismiss,
-        });
+        executeDismissModalStrategy(destinationReportID, runAfterDismiss);
     };
 
     // Primary wide-layout handler and narrow-layout fallback for global-create
@@ -340,51 +262,9 @@ function SubmitExpenseOrchestrator({
                 runAfterDismiss();
                 // Narrow fallback: pre-insert timer didn't fire, navigate after dismiss.
                 if (!isSameType) {
-                    const queryString = buildCannedSearchQuery({type: searchType});
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: true});
                 }
             },
-        });
-    };
-
-    const dismissSuperWideRHP = (runAfterDismiss: () => void) => {
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, destinationReportID);
-        Navigation.dismissToPreviousRHP({
-            afterTransition: runAfterDismiss,
-        });
-    };
-
-    const dismissRHPToReport = (reportID: string, runAfterDismiss: () => void) => {
-        const report = getReportOrDraftReport(reportID);
-        const hasExistingTransactions = isMoneyRequestReport(report) && report?.transactionCount !== 0;
-
-        if (!hasExistingTransactions) {
-            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
-            const rootState = navigationRef.getRootState();
-            const rhpKey = rootState?.routes?.at(-1)?.state?.key;
-            if (rhpKey) {
-                Navigation.pop(rhpKey);
-            }
-            TransitionTracker.runAfterTransitions({
-                callback: runAfterDismiss,
-                waitForUpcomingTransition: true,
-            });
-            return;
-        }
-
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
-        const isNarrowLayout = getIsNarrowLayout();
-        if (isNarrowLayout) {
-            Navigation.dismissModal();
-        } else {
-            Navigation.dismissToPreviousRHP();
-        }
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}), {forceReplace: !isNarrowLayout});
-        });
-        TransitionTracker.runAfterTransitions({
-            callback: runAfterDismiss,
-            waitForUpcomingTransition: true,
         });
     };
 
@@ -411,7 +291,7 @@ function SubmitExpenseOrchestrator({
         };
 
         if (isReportOpenInSuperWideRHP(rootState)) {
-            dismissSuperWideRHP(runAfterDismiss);
+            dismissSuperWideRHP(destinationReportID, runAfterDismiss);
             return;
         }
 

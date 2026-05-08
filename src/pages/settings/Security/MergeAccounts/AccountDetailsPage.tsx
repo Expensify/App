@@ -2,6 +2,7 @@ import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native'
 import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -83,7 +84,6 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!validateCodeSent || !email) {
                     return;
@@ -98,7 +98,6 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (!errorKey || !email) {
                     return;
@@ -112,7 +111,6 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const task = InteractionManager.runAfterInteractions(() => {
                 if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                     return;

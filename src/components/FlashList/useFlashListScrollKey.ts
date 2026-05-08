@@ -13,9 +13,12 @@ type FlashListScrollKeyProps<T> = {
 
     /** Callback invoked when the user scrolls close to the start of the list. */
     onStartReached: FlashListProps<T>['onStartReached'];
+
+    /** Whether the list should handle `maintainVisibleContentPosition` */
+    shouldMaintainVisibleContentPosition?: boolean;
 };
 
-export default function useFlashListScrollKey<T>({data, keyExtractor, initialScrollKey, onStartReached}: FlashListScrollKeyProps<T>) {
+export default function useFlashListScrollKey<T>({data, keyExtractor, initialScrollKey, onStartReached, shouldMaintainVisibleContentPosition}: FlashListScrollKeyProps<T>) {
     const [isInitialRender, setIsInitialRender] = useState(true);
     const [hasLinkingSettled, setHasLinkingSettled] = useState(!initialScrollKey);
 
@@ -33,9 +36,7 @@ export default function useFlashListScrollKey<T>({data, keyExtractor, initialScr
         });
     }, [isInitialRender, initialScrollKey]);
 
-    // `undefined` = leave FlashList's default (MVCP enabled) while we're still pinning the linked item.
-    // `{disabled: true}` once that's done so MVCP can't interfere afterward.
-    const maintainVisibleContentPosition: FlashListProps<T>['maintainVisibleContentPosition'] = hasLinkingSettled ? {disabled: true} : undefined;
+    const maintainVisibleContentPosition: FlashListProps<T>['maintainVisibleContentPosition'] = {disabled: !shouldMaintainVisibleContentPosition && hasLinkingSettled};
 
     if (!isInitialRender || !initialScrollKey) {
         return {displayedData: data, onStartReached, maintainVisibleContentPosition};

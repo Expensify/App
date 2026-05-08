@@ -2,7 +2,6 @@ import getClipboardText from '@libs/Clipboard/getClipboardText';
 import Parser from '@libs/Parser';
 
 jest.mock('@libs/Parser', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         htmlToText: jest.fn(),

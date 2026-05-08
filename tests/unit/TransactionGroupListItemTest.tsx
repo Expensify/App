@@ -48,6 +48,8 @@ jest.mock('@react-navigation/core', () => ({
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
 
+jest.mock('@hooks/useResponsiveLayout');
+
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,
     chatReportID: '4735435600700077',
@@ -423,7 +425,7 @@ describe('Empty Report Selection', () => {
         item: mockEmptyReport,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
-        onCheckboxPress: mockOnCheckboxPress,
+        onSelectionButtonPress: mockOnCheckboxPress,
         searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
         keyForList: '1',
