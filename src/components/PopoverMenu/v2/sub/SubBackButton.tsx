@@ -1,36 +1,34 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
-import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
-import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import {useSubContext} from './SubContext';
+import useSubBackButton from './useSubBackButton';
 
 type SubBackButtonProps = {
     /** Defaults to a localized "Go back". */
-    backButtonText?: string;
+    text?: string;
 };
 
-/** Auto-rendered by `<Sub.Content>` at the active level; pops one sub on press. */
-function SubBackButton({backButtonText}: SubBackButtonProps): React.ReactElement {
-    const {exitSub} = useContentSubActions(SubBackButton.displayName);
-    const subContext = useSubContext(SubBackButton.displayName);
-    const {parentSubID} = subContext;
+/** Auto-rendered by `<Sub.Content>` at the active level when no explicit `<Sub.BackButton>` is among its children; pops one sub on press. */
+function SubBackButton({text}: SubBackButtonProps): React.ReactElement | null {
+    // Re-resolve so the wrapper's hierarchy throw uses its component name. Sub wins over also-true "outside <Content>".
+    useSubContext(SubBackButton.displayName);
+
+    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubBackButton();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
 
-    const labelText = backButtonText ?? translate('common.goBack');
+    if (!isAtActiveLevel) {
+        return null;
+    }
 
-    const {ref, focused, onPress, onFocus} = useFocusableRow({
-        componentName: SubBackButton.displayName,
-        visible: true,
-        onActivate: () => exitSub(parentSubID),
-    });
+    const labelText = text ?? translate('common.goBack');
 
     return (
         <MenuItem

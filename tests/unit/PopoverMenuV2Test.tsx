@@ -567,6 +567,92 @@ describe('PopoverMenu V2', () => {
         });
     });
 
+    describe('useSubBackButton', () => {
+        it('returns the back-button shape and reports active-level visibility', () => {
+            const captured: PopoverMenu.UseSubBackButtonResult[] = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.useSubBackButton());
+                return null;
+            }
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub id="probe-sub">
+                            <PopoverMenu.Sub.Trigger text="Open" />
+                            <PopoverMenu.Sub.Content>
+                                <ProbeHook />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            press('Open');
+            const result = captured.at(-1);
+            expect(result).toBeDefined();
+            expect(typeof result?.onPress).toBe('function');
+            expect(typeof result?.onFocus).toBe('function');
+            expect(typeof result?.focused).toBe('boolean');
+            expect(result?.isAtActiveLevel).toBe(true);
+        });
+
+        it('exits to the parent level on onPress', () => {
+            const captured: PopoverMenu.UseSubBackButtonResult[] = [];
+            const navigationCaptured: Array<ReturnType<typeof useContentNavigation>> = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.useSubBackButton());
+                return null;
+            }
+            function NavigationProbe() {
+                navigationCaptured.push(useContentNavigation('NavigationProbe'));
+                return null;
+            }
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <NavigationProbe />
+                        <PopoverMenu.Sub id="speed-sub">
+                            <PopoverMenu.Sub.Trigger text="Open" />
+                            <PopoverMenu.Sub.Content>
+                                <ProbeHook />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            press('Open');
+            expect(navigationCaptured.at(-1)?.currentSubID).toBe('speed-sub');
+            act(() => captured.at(-1)?.onPress());
+            expect(navigationCaptured.at(-1)?.currentSubID).toBeNull();
+        });
+    });
+
+    describe('Sub.BackButton', () => {
+        it('skips the auto-render when an explicit Sub.BackButton is among children', () => {
+            menuItemPropsCapture.current = [];
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub id="explicit-sub">
+                            <PopoverMenu.Sub.Trigger text="Open" />
+                            <PopoverMenu.Sub.Content backButtonText="Auto">
+                                <PopoverMenu.Sub.BackButton text="Custom" />
+                                <PopoverMenu.Item
+                                    text="Inner"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            press('Open');
+            const customCount = menuItemPropsCapture.current.filter((p) => p.title === 'Custom').length;
+            const autoCount = menuItemPropsCapture.current.filter((p) => p.title === 'Auto').length;
+            expect(customCount).toBeGreaterThanOrEqual(1);
+            expect(autoCount).toBe(0);
+        });
+    });
+
     describe('useSelectableRow', () => {
         it('returns the row shape and reports active-level visibility', () => {
             const captured: PopoverMenu.UseSelectableRowResult[] = [];
@@ -1730,6 +1816,22 @@ describe('PopoverMenu V2', () => {
                     </Harness>,
                 ),
             ).toThrow(/useClosePopover\(\) must be called inside <PopoverMenu\.Content>/);
+        });
+
+        it('throws when useSubBackButton is called outside Sub', () => {
+            function CallSubBackButtonHook() {
+                PopoverMenu.useSubBackButton();
+                return null;
+            }
+            expect(() =>
+                render(
+                    <Harness initialOpen>
+                        <PopoverMenu.Content>
+                            <CallSubBackButtonHook />
+                        </PopoverMenu.Content>
+                    </Harness>,
+                ),
+            ).toThrow(/useSubBackButton\(\) must be called inside <PopoverMenu\.Sub>/);
         });
 
         it('throws when useSubTrigger is called outside Sub', () => {

@@ -44,6 +44,7 @@ The canonical wrappers own a `PressableWithFeedback` (or `PressableWithSecondary
 - **`<PopoverMenu.Trigger>` / `usePopoverTrigger()`** — primary trigger. The wrapper takes `{accessibilityLabel, sentryLabel?, style?, disabled?, role?, testID?, onPress?, children}` and renders a `PressableWithFeedback`; the hook returns `{ref, onPress}` for any pressable. The wrapper's optional `onPress` runs *before* the popover opens (analytics or pre-press setup). Reach for the hook when the trigger needs a non-`PressableWithFeedback` shape (e.g. an `IconButton` with a tooltip), pre-press validation that gates opening, or programmatic ref composition.
 - **`<PopoverMenu.SecondaryInteractionTrigger>` / `useSecondaryInteractionTrigger()`** — long-press (native) / right-click (web) variant. Same shape: optional `onSecondaryInteraction` runs *before* the popover opens.
 - **`<PopoverMenu.Sub.Trigger>` / `useSubTrigger({disabled?})`** — sub-level analogue. The wrapper renders an opinionated `MenuItem` drill-down row; the hook returns `{ref, onPress, onFocus, focused, isAtParentLevel}` to compose any pressable as a sub trigger.
+- **`<PopoverMenu.Sub.BackButton>` / `useSubBackButton()`** — sub-level back button. Auto-rendered by `<Sub.Content>` at the active level; opt out by rendering `<Sub.BackButton>` explicitly among `<Sub.Content>`'s children (your placement and shape win, the auto-render is skipped). Hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
 
 ### Row composition — `useSelectableRow({onSelect?, disabled?})`
 
@@ -121,6 +122,6 @@ These are enforced at runtime — not just by convention.
 | `Trigger`, `SecondaryInteractionTrigger`, `usePopoverTrigger`, `useSecondaryInteractionTrigger`, `useIsPopoverVisible` | `Root` |
 | `Content`, `ScrollableContent` | `Root` |
 | `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub`, `useSelectableRow`, `useClosePopover` | `Content` or `ScrollableContent` (transitively, including inside `<Sub.Content>`) |
-| `Sub.Trigger`, `Sub.Content`, `useSubTrigger` | `Sub` |
+| `Sub.Trigger`, `Sub.Content`, `Sub.BackButton`, `useSubTrigger`, `useSubBackButton` | `Sub` |
 
 Violating any of these throws synchronously during render. The exception isn't `__DEV__`-gated, so a slip past local dev fails loudly on staging instead of silently corrupting layout.

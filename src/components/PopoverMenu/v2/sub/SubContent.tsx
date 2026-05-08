@@ -6,6 +6,7 @@ import {useSubContext} from './SubContext';
 
 type SubContentProps = {
     children: ReactNode;
+    /** Auto-rendered back-button text. Ignored when an explicit `<Sub.BackButton>` is among children. */
     backButtonText?: string;
 };
 
@@ -22,9 +23,12 @@ function SubContent({children, backButtonText}: SubContentProps): React.ReactEle
         return null;
     }
 
+    // If the consumer renders <Sub.BackButton> explicitly, skip the auto-render — they're choosing placement themselves.
+    const hasExplicitBackButton = React.Children.toArray(children).some((child) => React.isValidElement(child) && child.type === SubBackButton);
+
     return (
         <>
-            {isActiveLevel && <SubBackButton backButtonText={backButtonText} />}
+            {isActiveLevel && !hasExplicitBackButton && <SubBackButton text={backButtonText} />}
             {children}
         </>
     );
