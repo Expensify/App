@@ -33,13 +33,15 @@ import {setMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
+import {clearOdometerDraft, isOdometerDraftPendingHydration, saveOdometerDraft, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
 import {createBackupTransaction, removeBackupTransactionWithImageCleanup, restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -105,6 +107,7 @@ function IOURequestStepDistanceOdometer({
     const didSaveEditingConfirmationRef = useRef(false);
     const shouldBypassDiscardConfirmationRef = useRef(false);
     const backupHandledManually = useRef(false);
+    const userHasUnsavedTypingRef = useRef(false);
 
     const isArchived = useReportIsArchived(report?.reportID);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -113,7 +116,6 @@ function IOURequestStepDistanceOdometer({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -168,12 +170,18 @@ function IOURequestStepDistanceOdometer({
         initialEndReadingRef.current = '';
         initialStartImageRef.current = undefined;
         initialEndImageRef.current = undefined;
+        hasInitializedRefs.current = false;
+        userHasUnsavedTypingRef.current = false;
     };
 
-    useRestartOnOdometerImagesFailure(transaction, reportID, iouType, backToReport, () => {
-        resetOdometerLocalState();
+    const {hasVerifiedBlobs} = useRestartOnOdometerImagesFailure(transaction, reportID, iouType, backToReport, ({shouldResetLocalState}) => {
+        if (shouldResetLocalState) {
+            resetOdometerLocalState();
+        }
         backupHandledManually.current = true;
     });
+
+    const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
 
     // Get odometer images from transaction (only for display, not for initialization)
     const odometerStartImage = transaction?.comment?.odometerStartImage;
@@ -202,6 +210,22 @@ function IOURequestStepDistanceOdometer({
         if (hasInitializedRefs.current) {
             return;
         }
+        // Skip until we have meaningful odometer data to snapshot.
+        const isOdometerTransaction = currentTransaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+        if (!isEditing && !isOdometerTransaction) {
+            return;
+        }
+        // Wait for blob verification - otherwise Cmd+R would snapshot a stale blob URI before
+        // useRestartOnOdometerImagesFailure swaps in a fresh one, and the diff would look like an edit.
+        if (!hasVerifiedBlobs) {
+            return;
+        }
+        // Wait for the save-for-later draft to hydrate into the transaction so post-hydration values
+        // don't look like unsaved changes. Skip on the edit-from-confirmation screen, where the
+        // comment is already the latest value and a stale draft would otherwise block initialization.
+        if (!isEditingConfirmation && isOdometerDraftPendingHydration(odometerDraft, currentTransaction?.comment)) {
+            return;
+        }
         const currentStart = currentTransaction?.comment?.odometerStart;
         const currentEnd = currentTransaction?.comment?.odometerEnd;
         const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
@@ -212,10 +236,16 @@ function IOURequestStepDistanceOdometer({
         initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
         hasInitializedRefs.current = true;
     }, [
+        currentTransaction?.iouRequestType,
+        currentTransaction?.comment,
         currentTransaction?.comment?.odometerStart,
         currentTransaction?.comment?.odometerEnd,
         currentTransaction?.comment?.odometerStartImage,
         currentTransaction?.comment?.odometerEndImage,
+        isEditing,
+        isEditingConfirmation,
+        hasVerifiedBlobs,
+        odometerDraft,
     ]);
 
     // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
@@ -224,28 +254,40 @@ function IOURequestStepDistanceOdometer({
         const currentStart = currentTransaction?.comment?.odometerStart;
         const currentEnd = currentTransaction?.comment?.odometerEnd;
 
+        const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
+        const hasLocalState = startReadingRef.current || endReadingRef.current;
+        const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
+        const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
+
+        // External resync: txn was edited elsewhere with no in-flight typing here, making it the new baseline.
+        const isExternalResync =
+            hasTransactionData && hasInitializedRefs.current && !userHasUnsavedTypingRef.current && (startValue !== startReadingRef.current || endValue !== endReadingRef.current);
+
         // Only initialize if:
         // 1. We haven't initialized yet AND transaction has data, OR
         // 2. We're editing and transaction has data (to load existing values), OR
-        // 3. Transaction has data but local state is empty (user navigated back from another page)
-        const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
-        const hasLocalState = startReadingRef.current || endReadingRef.current;
-
+        // 3. Transaction has data but local state is empty (user navigated back from another page), OR
+        // 4. An external resync arrived - the typing-flag inside isExternalResync avoids clobbering
+        //    in-progress keystrokes here.
         const shouldInitialize =
             (!hasInitializedRefs.current && hasTransactionData) ||
             (isEditing && hasTransactionData && !hasLocalState) ||
-            (hasTransactionData && !hasLocalState && hasInitializedRefs.current);
+            (hasTransactionData && !hasLocalState && hasInitializedRefs.current) ||
+            isExternalResync;
 
         if (shouldInitialize) {
-            const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
-            const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
-
             if (startValue || endValue) {
                 setStartReading(startValue);
                 setEndReading(endValue);
                 startReadingRef.current = startValue;
                 endReadingRef.current = endValue;
             }
+        }
+
+        // Slide the discard-changes baseline up so leaving doesn't flag the externally-saved value as unsaved
+        if (isExternalResync) {
+            initialStartReadingRef.current = startValue;
+            initialEndReadingRef.current = endValue;
         }
     }, [currentTransaction?.comment?.odometerStart, currentTransaction?.comment?.odometerEnd, isEditing]);
 
@@ -350,6 +392,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setStartReading(textForDisplay);
         startReadingRef.current = textForDisplay;
+        userHasUnsavedTypingRef.current = true;
         if (formError) {
             setFormError('');
         }
@@ -362,6 +405,7 @@ function IOURequestStepDistanceOdometer({
         const textForDisplay = DistanceRequestUtils.prepareTextForDisplay(text);
         setEndReading(textForDisplay);
         endReadingRef.current = textForDisplay;
+        userHasUnsavedTypingRef.current = true;
         if (formError) {
             setFormError('');
         }
@@ -418,6 +462,8 @@ function IOURequestStepDistanceOdometer({
         const distance = end - start;
         const calculatedDistance = roundToTwoDecimalPlaces(distance);
         setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
+        // Local state has just been persisted to the transaction thus the resync guard can be lowered
+        userHasUnsavedTypingRef.current = false;
 
         if (isEditing) {
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -469,6 +515,16 @@ function IOURequestStepDistanceOdometer({
 
         if (isEditingConfirmation) {
             didSaveEditingConfirmationRef.current = true;
+            // Sync the existing save-for-later draft with the just-edited values
+            // Gated so we don't promote a non-save-for-later flow into one
+            if (odometerDraft) {
+                saveOdometerDraft({
+                    startReading: Number.isNaN(start) ? undefined : start,
+                    endReading: Number.isNaN(end) ? undefined : end,
+                    startImage: transaction?.comment?.odometerStartImage,
+                    endImage: transaction?.comment?.odometerEndImage,
+                }).catch((error: unknown) => Log.warn('Failed to update odometer draft after edit-from-confirmation', {error}));
+            }
             Navigation.goBack(confirmationRoute);
             return;
         }
@@ -510,13 +566,13 @@ function IOURequestStepDistanceOdometer({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            activePolicyID,
             privateIsArchived: isArchived,
             selfDMReport,
             policyForMovingExpenses,
             odometerStart: start,
             odometerEnd: end,
             odometerDistance: calculatedDistance,
+            previousOdometerDraft: odometerDraft,
             betas,
             recentWaypoints,
             unit,
@@ -567,19 +623,60 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     };
 
+    const handleSaveForLater = useCallback(async () => {
+        shouldBypassDiscardConfirmationRef.current = true;
+
+        const normalizedStart = DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit);
+        const normalizedEnd = DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit);
+        const parsedStart = startReading ? parseFloat(normalizedStart) : undefined;
+        const parsedEnd = endReading ? parseFloat(normalizedEnd) : undefined;
+        const startReadingValue = parsedStart !== undefined && !Number.isNaN(parsedStart) ? parsedStart : undefined;
+        const endReadingValue = parsedEnd !== undefined && !Number.isNaN(parsedEnd) ? parsedEnd : undefined;
+        const hasAnyInput = startReadingValue !== undefined || endReadingValue !== undefined || !!odometerStartImage || !!odometerEndImage;
+
+        if (!hasAnyInput) {
+            await clearOdometerDraft();
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        try {
+            await saveOdometerDraft({
+                startReading: startReadingValue,
+                endReading: endReadingValue,
+                startImage: odometerStartImage,
+                endImage: odometerEndImage,
+            });
+        } catch (error) {
+            Log.warn('Failed to persist odometer draft for "Save for later"', {error});
+            shouldBypassDiscardConfirmationRef.current = false;
+            setFormError(translate('iou.error.failedToSaveOdometerDraft'));
+            return;
+        }
+        Navigation.closeRHPFlow();
+    }, [fromLocaleDigit, startReading, endReading, odometerStartImage, odometerEndImage, translate]);
+
     useDiscardChangesConfirmation({
         onCancel: () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 lastFocusedInputRef.current?.focus();
             });
         },
         getHasUnsavedChanges: () => {
-            if (!isFocused || isEditing || shouldBypassDiscardConfirmationRef.current || didSaveEditingConfirmationRef.current || backupHandledManually.current) {
+            if (
+                !isFocused ||
+                isEditing ||
+                shouldBypassDiscardConfirmationRef.current ||
+                didSaveEditingConfirmationRef.current ||
+                !hasInitializedRefs.current ||
+                backupHandledManually.current
+            ) {
                 return false;
             }
             const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
-            const hasImageChanges = transaction?.comment?.odometerStartImage !== initialStartImageRef.current || transaction?.comment?.odometerEndImage !== initialEndImageRef.current;
+            const hasImageChanges =
+                getOdometerImageUri(transaction?.comment?.odometerStartImage) !== getOdometerImageUri(initialStartImageRef.current) ||
+                getOdometerImageUri(transaction?.comment?.odometerEndImage) !== getOdometerImageUri(initialEndImageRef.current);
             return hasReadingChanges || hasImageChanges;
         },
         onConfirm: isEditingConfirmation
@@ -710,7 +807,19 @@ function IOURequestStepDistanceOdometer({
                             message={formError}
                         />
                     )}
-
+                    {/* Save for later Button */}
+                    {isCreatingNewRequest && (
+                        <Button
+                            allowBubble
+                            medium={isExtraSmallScreenHeight}
+                            large={!isExtraSmallScreenHeight}
+                            style={[styles.w100, styles.mb3]}
+                            onPress={handleSaveForLater}
+                            text={translate('distance.odometer.saveForLater')}
+                            testID="save-for-later-button"
+                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_ODOMETER_SAVE_FOR_LATER_BUTTON}
+                        />
+                    )}
                     {/* Next/Save Button */}
                     <Button
                         success

@@ -88,7 +88,7 @@ Let Expensify automatically import and match card transactions to SmartScanned r
 1. Go to **Workspaces** in the navigation tabs (on the left on web, and at the bottom on mobile).
 2. Click **[Workspace Name] > More features > Enable Workflows**.
 3. From the left-hand menu, click **Workflows**.
-4. Enable **Make or track payments**.
+4. Enable **Payments**.
 5. Click **Connect bank account**.
 
 🏦 For more details on connecting a bank account, check out this guide: [Connect a Business Bank Account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Connect-a-Business-Bank-Account).
