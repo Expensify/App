@@ -135,6 +135,8 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 shouldUpdateFocusedIndex
                 shouldScrollToFocusedIndex={false}
                 shouldScrollToFocusedIndexOnMount={false}
+                shouldHighlightInitiallyFocusedItem
+                shouldHighlightSelectedItem
                 addBottomSafeAreaPadding
                 shouldStopPropagation
             >
