@@ -104,20 +104,10 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import type {BuildOnyxDataForMoneyRequestKeys, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from './index';
-import {
-    buildMinimalTransactionForFormula,
-    getAllReports,
-    getAllTransactionDrafts,
-    getAllTransactions,
-    getAllTransactionViolations,
-    getMoneyRequestInformation,
-    getMoneyRequestPolicyTags,
-    getReceiptError,
-    getReportPreviewAction,
-    getSearchOnyxUpdate,
-    getTransactionWithPreservedLocalReceiptSource,
-} from './index';
+import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
+import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags, getSearchOnyxUpdate} from './index';
+import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
+import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
@@ -878,7 +868,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
         const selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmailParam, currentTime);
+        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailParam, created: currentTime});
         optimisticReportID = selfDMReport.reportID;
         optimisticReportActionID = selfDMCreatedReportAction.reportActionID;
         chatReport = selfDMReport;
@@ -1658,7 +1648,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         participantParams,
         policyParams: {
             ...policyParams,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             policyTagList: getMoneyRequestPolicyTags({
                 existingIOUReport,
                 moneyRequestReportID,
@@ -2026,7 +2015,6 @@ function convertBulkTrackedExpensesToIOU({
             personalDetails,
             betas,
             policyParams: {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 policyTagList: getMoneyRequestPolicyTags({
                     moneyRequestReportID: iouReportID,
                     parentChatReport: chatReport,

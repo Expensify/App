@@ -186,6 +186,11 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'bullet-item',
                 contentModel: HTMLContentModel.block,
             }),
+            ul: HTMLElementModel.fromCustomModel({
+                tagName: 'ul',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: styles.mv3,
+            }),
             'sparkles-icon': HTMLElementModel.fromCustomModel({
                 tagName: 'sparkles-icon',
                 contentModel: HTMLContentModel.mixed,
@@ -195,6 +200,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.taskTitleMenuItem,
             styles.formError,
             styles.mb0,
+            styles.mv3,
             styles.colorMuted,
             styles.mutedNormalTextLabel,
             styles.productTrainingTooltipText,

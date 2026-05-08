@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import DateUtils from '@libs/DateUtils';
-import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
+import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
@@ -10,7 +10,7 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
@@ -278,28 +278,14 @@ function SubmitExpenseOrchestrator({
         });
     };
 
-    // The createTransaction call runs inside runAfterDismiss (after the transition completes).
-    // When the destination report is empty we reserve a DISMISS_MODAL deferred-write channel
-    // so that MoneyRequestReportActionsList can show a loading skeleton instead of the
-    // "no expenses" empty state while the dismiss animation plays.
+    // Unlike handleDismissModalFastPath, this handler does NOT call reserveDeferredWriteChannel.
+    // The createTransaction call runs inside runAfterDismiss (after the transition completes),
+    // so there is no animation to protect - the write can execute immediately via deferOrExecuteWrite.
     const handleReportInRHPDismiss = (listOfParticipants: Participant[]) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
 
-        const report = destinationReportID ? getReportOrDraftReport(destinationReportID) : undefined;
-        const isDestinationEmpty = !!report && isMoneyRequestReport(report) && report.transactionCount === 0;
-        if (isDestinationEmpty) {
-            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-        }
-
         const runAfterDismiss = () => {
-            // Flush signals readiness on the reserved channel. Since no real write was
-            // registered, the channel transitions to flushRequested. When createTransaction
-            // below calls deferOrExecuteWrite, it sees the flushed channel and executes
-            // the write immediately instead of deferring.
-            if (isDestinationEmpty) {
-                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            }
             createTransaction(listOfParticipants, false, false);
             setIsConfirming(false);
         };
@@ -315,9 +301,6 @@ function SubmitExpenseOrchestrator({
         }
 
         Log.warn('[SubmitExpenseOrchestrator] handleReportInRHPDismiss reached without destinationReportID - falling back to default submit');
-        if (isDestinationEmpty) {
-            cancelDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-        }
         handleDefaultSubmit(listOfParticipants);
     };
 
