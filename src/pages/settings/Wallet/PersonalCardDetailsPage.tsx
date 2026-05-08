@@ -24,7 +24,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
-import {clearCardErrorField, syncCard, unassignCard} from '@userActions/Card';
+import {clearCardErrorField, deletePersonalCard, syncCard, unassignCard} from '@userActions/Card';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,6 +41,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [isUnassignModalVisible, setIsUnassignModalVisible] = useState(false);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
@@ -51,6 +52,9 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
 
     const card = cardList?.[cardID];
     const cardBank = card?.bank ?? '';
@@ -82,6 +86,17 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
             return;
         }
         syncCard(card.cardID, card.lastScrapeResult, true);
+    };
+
+    const confirmDeleteCard = () => {
+        setIsDeleteModalVisible(false);
+        if (!card) {
+            Navigation.goBack();
+            return;
+        }
+        const savedColumnLayout = savedColumnLayouts?.[card.cardID];
+        deletePersonalCard({cardID: card.cardID, card, allTransactions, allReports, savedColumnLayout});
+        Navigation.goBack();
     };
 
     // Show "Break connection" only when Mock Bank requests target non-production APIs.
@@ -169,6 +184,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                         onUpdateCard={updateCard}
                         onBreakConnection={breakConnection}
                         onUnassignCard={() => setIsUnassignModalVisible(true)}
+                        onImportSpreadsheet={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(cardID)))}
+                        onDeleteCard={() => setIsDeleteModalVisible(true)}
                     />
                 )}
                 <ConfirmModal
@@ -179,6 +196,17 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
                     shouldSetModalVisibility={false}
                     prompt={translate('workspace.moreFeatures.companyCards.removeCardDescription')}
                     confirmText={translate('workspace.moreFeatures.companyCards.remove')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                <ConfirmModal
+                    title={translate('walletPage.deleteCard')}
+                    isVisible={isDeleteModalVisible}
+                    onConfirm={confirmDeleteCard}
+                    onCancel={() => setIsDeleteModalVisible(false)}
+                    shouldSetModalVisibility={false}
+                    prompt={translate('walletPage.deleteCardConfirmation')}
+                    confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
                 />

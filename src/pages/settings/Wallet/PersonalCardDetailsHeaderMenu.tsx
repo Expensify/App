@@ -33,6 +33,8 @@ type PersonalCardDetailsHeaderMenuProps = {
     onUpdateCard: () => void;
     onBreakConnection: () => void;
     onUnassignCard: () => void;
+    onImportSpreadsheet?: () => void;
+    onDeleteCard?: () => void;
 };
 
 function PersonalCardDetailsHeaderMenu({
@@ -49,10 +51,12 @@ function PersonalCardDetailsHeaderMenu({
     onUpdateCard,
     onBreakConnection,
     onUnassignCard,
+    onImportSpreadsheet,
+    onDeleteCard,
 }: PersonalCardDetailsHeaderMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Table', 'Trashcan']);
     const isLoadingLastUpdatedReasonAttributes: SkeletonSpanReasonAttributes = {context: 'PersonalCardDetailsHeaderMenu', isLoadingLastUpdated: !!card?.isLoadingLastUpdated};
 
     return (
@@ -135,6 +139,13 @@ function PersonalCardDetailsHeaderMenu({
                     );
                 }}
             />
+            {isCSVImportedPersonalCard && (
+                <MenuItem
+                    icon={icons.Table}
+                    title={translate('spreadsheet.importSpreadsheet')}
+                    onPress={onImportSpreadsheet}
+                />
+            )}
             {!isCSVImportedPersonalCard && (
                 <OfflineWithFeedback
                     pendingAction={card?.pendingFields?.lastScrape}
@@ -164,12 +175,21 @@ function PersonalCardDetailsHeaderMenu({
                     onPress={onBreakConnection}
                 />
             )}
-            <MenuItem
-                icon={expensifyIcons.RemoveMembers}
-                title={translate('workspace.moreFeatures.companyCards.removeCard')}
-                style={styles.mb1}
-                onPress={onUnassignCard}
-            />
+            {isCSVImportedPersonalCard ? (
+                <MenuItem
+                    icon={icons.Trashcan}
+                    title={translate('common.delete')}
+                    style={styles.mb1}
+                    onPress={onDeleteCard}
+                />
+            ) : (
+                <MenuItem
+                    icon={expensifyIcons.RemoveMembers}
+                    title={translate('workspace.moreFeatures.companyCards.removeCard')}
+                    style={styles.mb1}
+                    onPress={onUnassignCard}
+                />
+            )}
         </>
     );
 }
