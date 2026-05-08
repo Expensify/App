@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,11 +21,13 @@ import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import type {ReservationData} from '@libs/TripReservationUtils';
 import {formatCancelledDescription, getReservationsFromTripReport, getTripReservationIcon, getTripTotal} from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
@@ -32,12 +35,6 @@ import type {Reservation} from '@src/types/onyx/Transaction';
 type TripRoomPreviewProps = {
     /** All the data of the action */
     action: ReportAction;
-
-    /** The associated chatReport */
-    chatReport: OnyxEntry<Report>;
-
-    /** The associated iouReport */
-    iouReport: OnyxEntry<Report>;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
@@ -57,6 +54,8 @@ type TripRoomPreviewProps = {
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
 };
+
+const selectCurrency = (report: OnyxEntry<Report>) => report?.currency;
 
 type ReservationViewProps = {
     reservation: Reservation;
@@ -129,8 +128,6 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
 function TripRoomPreview({
     action,
-    chatReport,
-    iouReport,
     containerStyles,
     contextMenuAnchor,
     isHovered = false,
@@ -141,6 +138,12 @@ function TripRoomPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
+
+    const originalMessage = getOriginalMessage(action);
+    const linkedReportID = originalMessage && 'linkedReportID' in originalMessage ? originalMessage.linkedReportID : undefined;
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`);
+    const [iouReportCurrency] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {selector: selectCurrency});
+
     const chatReportID = chatReport?.reportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
@@ -149,7 +152,7 @@ function TripRoomPreview({
         chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
             ? DateUtils.getFormattedDateRange(translate, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
             : '';
-    const reportCurrency = iouReport?.currency ?? chatReport?.currency;
+    const reportCurrency = iouReportCurrency ?? chatReport?.currency;
 
     const {totalDisplaySpend = 0, currency = reportCurrency} = chatReport ? getTripTotal(chatReport) : {};
 
@@ -206,7 +209,8 @@ function TripRoomPreview({
                         {reservationsData.length > 0 && (
                             <FlatList
                                 data={reservationsData}
-                                style={[styles.gap4, styles.border, styles.borderRadiusComponentLarge, styles.p4]}
+                                style={[styles.border, styles.borderRadiusComponentLarge, styles.p4, styles.flexGrow0]}
+                                contentContainerStyle={styles.gap4}
                                 renderItem={renderItem}
                             />
                         )}

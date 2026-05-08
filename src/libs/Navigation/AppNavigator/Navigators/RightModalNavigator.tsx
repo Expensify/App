@@ -30,9 +30,9 @@ import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateRece
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import createRightModalNavigator from '@navigation/AppNavigator/createRightModalNavigator';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import variables from '@styles/variables';
@@ -45,7 +45,7 @@ import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
-const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
+const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
@@ -108,7 +108,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const containerRef = useRef(null);
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
@@ -133,7 +133,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     // Animation should be disabled when we open the wide rhp from the narrow one.
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
-    const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || isSmallScreenWidth;
+    const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || isSmallScreenWidth;
 
     const animatedWidth = expandedRHPProgress.interpolate({
         inputRange: [0, 1, 2],
@@ -160,7 +160,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                 }
                 // Delay clearing review duplicate data till the RHP is completely closed
                 // to avoid not found showing briefly in confirmation page when RHP is closing
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     abandonReviewDuplicateTransactions();
                 });
@@ -229,6 +228,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     >
                         <DialogLabelProvider containerRef={containerRef}>
                             <Stack.Navigator
+                                parentRoute={route}
                                 screenOptions={screenOptions}
                                 screenListeners={screenListeners}
                                 id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
@@ -242,7 +242,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
                                     listeners={{
                                         beforeRemove: () => {
-                                            // eslint-disable-next-line @typescript-eslint/no-deprecated
                                             InteractionManager.runAfterInteractions(() => clearTwoFactorAuthData(true));
                                         },
                                     }}
@@ -332,6 +331,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={ModalStackNavigators.WorkspaceDuplicateModalStackNavigator}
                                 />
                                 <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.POLICY_COPY_SETTINGS}
+                                    component={ModalStackNavigators.PolicyCopySettingsModalStackNavigator}
+                                />
+                                <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.NEW_TASK}
                                     component={ModalStackNavigators.NewTaskModalStackNavigator}
                                 />
@@ -417,8 +420,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={MissingPersonalDetailsWithPINContext}
                                 />
                                 <Stack.Screen
-                                    name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}
-                                    component={ModalStackNavigators.AddUnreportedExpenseModalStackNavigator}
+                                    name={SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE}
+                                    component={ModalStackNavigators.AddExistingExpenseModalStackNavigator}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}

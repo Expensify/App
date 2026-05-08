@@ -1,6 +1,7 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
@@ -288,7 +289,6 @@ function ReportActionItemMessageEdit({
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
             // Wait for report action compose re-mounting on mWeb
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
@@ -544,7 +544,6 @@ function ReportActionItemMessageEdit({
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
                                 startScrollBlock();
-                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);

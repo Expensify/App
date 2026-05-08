@@ -19,6 +19,7 @@ import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
 import type {CardFilterItem} from '@libs/CardFeedUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -39,7 +40,8 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
     const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const [areCardsLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
     const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -185,31 +187,44 @@ function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelec
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_CARD}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_CARD}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- we want to fallback to 1 when it's 0
-            style={styles.getCardSelectionListPopoverHeight(itemCount || 1, sectionHeaderCount, windowHeight, shouldUseNarrowLayout, isInLandscapeMode, shouldShowSearchInput)}
         >
-            {!!shouldShowLoadingState && (
-                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ActivityIndicator
-                        color={theme.spinner}
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.pl3]}
-                        reasonAttributes={reasonAttributes}
+            <View
+                style={[
+                    styles.getSelectionListPopoverHeight({
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- we want to fallback to 1 when it's 0
+                        itemCount: itemCount || 1,
+                        itemHeight: variables.optionRowHeight,
+                        windowHeight,
+                        isInLandscapeMode,
+                        hasTitle: isSmallScreenWidth,
+                        isSearchable: shouldShowSearchInput,
+                        extraHeight: 28 * sectionHeaderCount,
+                    }),
+                ]}
+            >
+                {!!shouldShowLoadingState && (
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <ActivityIndicator
+                            color={theme.spinner}
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.pl3]}
+                            reasonAttributes={reasonAttributes}
+                        />
+                    </View>
+                )}
+                {!shouldShowLoadingState && (
+                    <SelectionListWithSections<CardFilterItem>
+                        sections={sections}
+                        ListItem={CardListItem}
+                        onSelectRow={updateNewCards}
+                        shouldPreventDefaultFocusOnSelectRow={false}
+                        shouldShowTextInput={shouldShowSearchInput}
+                        textInputOptions={textInputOptions}
+                        shouldStopPropagation
+                        canSelectMultiple
                     />
-                </View>
-            )}
-            {!shouldShowLoadingState && (
-                <SelectionListWithSections<CardFilterItem>
-                    sections={sections}
-                    ListItem={CardListItem}
-                    onSelectRow={updateNewCards}
-                    shouldPreventDefaultFocusOnSelectRow={false}
-                    shouldShowTextInput={shouldShowSearchInput}
-                    textInputOptions={textInputOptions}
-                    shouldStopPropagation
-                    canSelectMultiple
-                />
-            )}
+                )}
+            </View>
         </BasePopup>
     );
 }

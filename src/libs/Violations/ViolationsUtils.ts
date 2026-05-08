@@ -4,7 +4,7 @@ import reject from 'lodash/reject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
@@ -460,7 +460,6 @@ const ViolationsUtils = {
         const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
@@ -526,7 +525,7 @@ const ViolationsUtils = {
         const shouldShowMissingComment =
             !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
-        const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
+        const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         const ownerAccountID = iouReport?.ownerAccountID;
@@ -748,7 +747,7 @@ const ViolationsUtils = {
             case 'missingAttendees':
                 return translate('violations.missingAttendees');
             case 'missingTag':
-                return translate('violations.missingTag', {tagName});
+                return translate('violations.missingTag', tagName);
             case 'modifiedAmount':
                 return translate('violations.modifiedAmount', {type, displayPercentVariance: violation.data?.displayPercentVariance});
             case 'modifiedDate':
@@ -836,18 +835,31 @@ const ViolationsUtils = {
         return Number(violation.data?.formattedLimit?.replace(CONST.VIOLATION_LIMIT_REGEX, ''));
     },
 
-    getRBRMessages(
-        transaction: Transaction,
-        transactionViolations: TransactionViolation[],
-        translate: LocaleContextProps['translate'],
-        missingFieldError?: string,
-        transactionThreadActions?: ReportAction[],
-        tags?: PolicyTagLists,
-        companyCardPageURL?: string,
-        connectionLink?: string,
-        cardList?: CardList,
-        isMarkAsCash?: boolean,
-    ): string {
+    getRBRMessages({
+        transaction,
+        transactionViolations,
+        translate,
+        missingFieldError,
+        transactionThreadActions,
+        tags,
+        companyCardPageURL,
+        connectionLink,
+        cardList,
+        isMarkAsCash,
+        canEdit = true,
+    }: {
+        transaction: Transaction;
+        transactionViolations: TransactionViolation[];
+        translate: LocaleContextProps['translate'];
+        missingFieldError?: string;
+        transactionThreadActions?: ReportAction[];
+        tags?: PolicyTagLists;
+        companyCardPageURL?: string;
+        connectionLink?: string;
+        cardList?: CardList;
+        isMarkAsCash?: boolean;
+        canEdit?: boolean;
+    }): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
 
@@ -862,6 +874,7 @@ const ViolationsUtils = {
                 const message = ViolationsUtils.getViolationTranslation({
                     violation,
                     translate,
+                    canEdit,
                     tags,
                     companyCardPageURL,
                     connectionLink,

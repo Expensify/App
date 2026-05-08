@@ -353,5 +353,5 @@ function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
     });
 }
 
-export {getTagsOptions, getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, shouldShowDependentTagList, getEnabledTags};
+export {getTagListSections, hasEnabledTags, sortTags, getTagVisibility, hasMatchingTag, getUpdatedTransactionTag, shouldShowDependentTagList, getEnabledTags};
 export type {SelectedTagOption, TagVisibility, TagOption};

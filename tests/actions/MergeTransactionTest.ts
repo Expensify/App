@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {getReportPreviewAction} from '@libs/actions/IOU';
+import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -980,7 +980,7 @@ describe('mergeTransactionRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {[previewAction.reportActionID]: previewAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
 
-            const thread = buildTransactionThread(sourceIOUAction, sourceReport);
+            const thread = buildTransactionThread(sourceIOUAction, sourceReport, TEST_ACCOUNT_ID);
 
             expect(thread.participants).toEqual({
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
@@ -1037,6 +1037,7 @@ describe('mergeTransactionRequest', () => {
                 text: 'test comment',
                 timezoneParam: CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: TEST_ACCOUNT_ID,
+                delegateAccountID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1162,7 +1163,7 @@ describe('mergeTransactionRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, {[sourceIOUAction.reportActionID]: sourceIOUAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
 
-            const thread = buildTransactionThread(sourceIOUAction, selfDMReport);
+            const thread = buildTransactionThread(sourceIOUAction, selfDMReport, TEST_ACCOUNT_ID);
 
             expect(thread.participants).toEqual({
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
