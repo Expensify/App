@@ -67,7 +67,12 @@ const CACHE_PATH =
   process.env.LLM_CACHE_PATH ?? deriveCachePath(TEST_CASE_PATH);
 const APK_GLOB = "android/app/build/outputs/apk/development/debug";
 const METRO_READY_TIMEOUT_MS = 120_000;
-const SIGNIN_LOAD_TIMEOUT_MS = 360_000;
+// 600s gives ~2× margin over Phase 0's observed 294s (warm AVD). The
+// first run on a fresh AVD-cache key is closer to a cold boot since
+// the prime+run happens in two separate emulator-runner invocations
+// and the snapshot-load overhead lands inside this budget.
+const SIGNIN_LOAD_TIMEOUT_MS = 600_000;
+const BOOT_PROBE_INTERVAL_MS = 30_000;
 const STEP_WALL_CLOCK_BUDGET_MS = 60_000;
 const MAX_STATE_CHANGING_ACTIONS = 4;
 const SCREENSHOT_BUDGET_PER_RUN = 2;
@@ -273,13 +278,30 @@ async function bootApp(): Promise<void> {
   );
 
   // Bounded wait for the SignIn UI to hydrate. The LLM can technically
-  // poll for it itself in step 1, but on slow runners (~290s observed)
-  // that would burn LLM budget on what's effectively boot-blocking
-  // emulator wait time. Better to gate the LLM on a known-ready UI.
+  // poll for it itself in step 1, but on slow runners that would burn
+  // LLM budget on what's effectively boot-blocking emulator wait time.
+  // We dump a probe snapshot every 30s during the wait so post-mortem
+  // can see *what* the app was showing if the wait times out — the
+  // first run of this workflow had no such artifacts and the failure
+  // was undebuggable from the upload.
   log("boot: waiting for SignIn UI");
   const start = Date.now();
+  let probeIdx = 0;
+  let lastProbeAt = 0;
   while (Date.now() - start < SIGNIN_LOAD_TIMEOUT_MS) {
-    const snap = adCli.snapshot();
+    let snap;
+    try {
+      snap = adCli.snapshot();
+    } catch (e) {
+      // Don't let a single transient snapshot timeout kill the wait —
+      // the emulator may be under heavy load and the next poll will
+      // probably succeed.
+      log(
+        `boot: snapshot threw (${(e as Error).message.slice(0, 80)}); retrying`,
+      );
+      await sleep(2_000);
+      continue;
+    }
     if (
       snap.nodes.some((n) => n.text?.toLowerCase().includes("phone or email"))
     ) {
@@ -288,7 +310,36 @@ async function bootApp(): Promise<void> {
       );
       return;
     }
+    if (Date.now() - lastProbeAt >= BOOT_PROBE_INTERVAL_MS) {
+      const elapsed = Math.round((Date.now() - start) / 1000);
+      fs.writeFileSync(
+        path.join(
+          ARTIFACTS_DIR,
+          `boot-probe-${String(probeIdx).padStart(2, "0")}-t${elapsed}s.txt`,
+        ),
+        snap.raw,
+      );
+      probeIdx++;
+      lastProbeAt = Date.now();
+    }
     await sleep(6_000);
+  }
+  // Capture as much state as we can BEFORE failing so a re-run isn't
+  // required to debug. The cleanup trap will still write logcat after.
+  try {
+    const snap = adCli.snapshot();
+    fs.writeFileSync(
+      path.join(ARTIFACTS_DIR, "boot-timeout-snapshot.txt"),
+      snap.raw,
+    );
+    const app = adCli.appstate();
+    fs.writeFileSync(
+      path.join(ARTIFACTS_DIR, "boot-timeout-appstate.txt"),
+      app.raw,
+    );
+    adCli.screenshotBase64(path.join(ARTIFACTS_DIR, "boot-timeout.png"));
+  } catch (e) {
+    log(`boot: timeout-diagnostics capture failed: ${(e as Error).message}`);
   }
   fail(`SignIn UI not ready within ${SIGNIN_LOAD_TIMEOUT_MS / 1000}s`);
 }
