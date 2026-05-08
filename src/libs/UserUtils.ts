@@ -3,8 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {LoginList, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
-import type Login from '@src/types/onyx/Login';
+import type {LoginList, Logins, NewLogin, PrivatePersonalDetails, VacationDelegate} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import hashCode from './hashCode';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -44,6 +43,29 @@ function hasLoginListError(loginList: OnyxEntry<LoginList>): boolean {
  */
 function hasLoginListInfo(loginList: OnyxEntry<LoginList>, email: string | undefined): boolean {
     return Object.values(loginList ?? {}).some((login) => login.partnerUserID && email !== login.partnerUserID && !login.validatedDate);
+}
+
+function getLoginKey(login: NewLogin) {
+    return `${login.partnerID}_${login.partnerUserID}`;
+}
+
+function getLastLogin(login: NewLogin) {
+    // If we have not re-authenticated, then lastLogin will still be the default 2008-01-01 value. So the created time stamp will be more accurate in that case.
+    return login.lastLogin > login.created ? login.lastLogin : login.created;
+}
+
+const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT]);
+
+function isDeviceLogin(login: NewLogin) {
+    return DEVICE_PARTNER_IDS.has(login.partnerID) && (!login.additionalData?.infiniteLoginRoot || login.additionalData.infiniteLoginRoot === login.partnerUserID);
+}
+
+function getDeviceLogins(logins: OnyxEntry<Logins>) {
+    return Object.values(logins ?? {})?.filter(isDeviceLogin);
+}
+
+function hasDeviceManagementError(logins: OnyxEntry<Logins>) {
+    return Object.values(logins ?? {})?.some((login) => isDeviceLogin(login) && !!login.errorFields?.revoke);
 }
 
 /**
@@ -105,14 +127,6 @@ function hashText(text: string, range: number): number {
  */
 function generateAccountID(searchValue: string): number {
     return hashText(searchValue, 2 ** 32);
-}
-
-/**
- * Gets the secondary phone login number
- */
-function getSecondaryPhoneLogin(loginList: OnyxEntry<Login>): string | undefined {
-    const parsedLoginList = Object.keys(loginList ?? {}).map((login) => Str.removeSMSDomain(login));
-    return parsedLoginList.find((login) => Str.isValidE164Phone(login));
 }
 
 /**
@@ -178,12 +192,15 @@ export {
     generateAccountID,
     getLoginListBrickRoadIndicator,
     getProfilePageBrickRoadIndicator,
-    getSecondaryPhoneLogin,
     hasLoginListError,
     hasLoginListInfo,
     hashText,
     getContactMethod,
     isCurrentUserValidated,
     getContactMethodsOptions,
+    getLoginKey,
+    getLastLogin,
+    getDeviceLogins,
+    hasDeviceManagementError,
 };
 export type {AvatarSource};

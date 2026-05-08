@@ -15,6 +15,4 @@ type LocationPermissionModalProps = {
     onInitialGetLocationCompleted?: () => void;
 };
 
-export default {};
-
-export type {LocationPermissionModalProps};
+export default LocationPermissionModalProps;

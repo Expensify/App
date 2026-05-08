@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,7 +20,7 @@ import TextInput from './TextInput';
 
 type FeedbackSurveyProps = {
     /** A unique Onyx key identifying the form */
-    formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM;
+    formID: typeof ONYXKEYS.FORMS.DISABLE_AUTO_RENEW_SURVEY_FORM | typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM;
 
     /** Title of the survey */
     title: string;
@@ -31,9 +30,6 @@ type FeedbackSurveyProps = {
 
     /** Callback to be called when the survey is submitted */
     onSubmit: (reason: FeedbackSurveyOptionID, note?: string) => void;
-
-    /** Styles for the option row element */
-    optionRowStyles?: StyleProp<ViewStyle>;
 
     /** Optional text to render over the submit button */
     footerText?: React.ReactNode;
@@ -48,7 +44,7 @@ type FeedbackSurveyProps = {
     enabledWhenOffline?: boolean;
 };
 
-function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
+function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequired, isLoading, formID, enabledWhenOffline = true}: FeedbackSurveyProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [draft, draftResults] = useOnyx(`${formID}Draft`);
@@ -108,19 +104,20 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
             isSubmitButtonVisible={false}
             enabledWhenOffline={enabledWhenOffline}
         >
-            <View style={styles.mh5}>
-                <Text style={styles.textHeadline}>{title}</Text>
-                <Text style={[styles.mt1, styles.mb3, styles.textNormalThemeText]}>{description}</Text>
+            <View>
+                <View style={styles.mh5}>
+                    <Text style={styles.textHeadline}>{title}</Text>
+                    <Text style={[styles.mt1, styles.textNormalThemeText]}>{description}</Text>
+                </View>
                 <InputWrapper
                     InputComponent={RadioButtons}
                     inputID={INPUT_IDS.REASON}
                     items={options}
-                    radioButtonStyle={[styles.mb7, optionRowStyles]}
-                    onPress={handleOptionSelect}
+                    onSelect={handleOptionSelect}
                     shouldSaveDraft
                 />
                 {!!reason && (
-                    <>
+                    <View style={[styles.mh5, styles.mt4]}>
                         <Text style={[styles.textNormalThemeText, styles.mb3]}>{translate('feedbackSurvey.additionalInfoTitle')}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
@@ -131,7 +128,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                             onChangeText={handleSetNote}
                             shouldSaveDraft
                         />
-                    </>
+                    </View>
                 )}
             </View>
             <FixedFooter style={styles.pb0}>

@@ -1,6 +1,6 @@
 import React, {Activity, useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem, SelectionListStyle} from '@components/SelectionList/types';
@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BasePopup from './BasePopup';
 
@@ -26,6 +27,8 @@ type SingleSelectPopupProps<T> = {
 
     /** The currently selected item */
     value: SingleSelectItem<T> | null;
+
+    onBackButtonPress?: () => void;
 
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
@@ -55,6 +58,7 @@ function SingleSelectPopup<T extends string>({
     label,
     value,
     items,
+    onBackButtonPress,
     closeOverlay,
     onChange,
     isSearchable,
@@ -131,18 +135,31 @@ function SingleSelectPopup<T extends string>({
         [searchTerm, isSearchable, searchPlaceholder, translate, setSearchTerm, noResultsFound],
     );
 
-    const shouldShowLabel = isSmallScreenWidth && !!label;
+    const hasTitle = isSmallScreenWidth && !!label && !onBackButtonPress;
 
     return (
         <BasePopup
             label={label}
             onReset={resetChanges}
             onApply={applyChanges}
+            onBackButtonPress={onBackButtonPress}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_SINGLE_SELECT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_SINGLE_SELECT}
-            style={style}
+            style={[style]}
         >
-            <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false, isInLandscapeMode, shouldShowLabel)]}>
+            <View
+                style={[
+                    styles.getSelectionListPopoverHeight({
+                        itemCount: options.length || 1,
+                        itemHeight: variables.optionRowHeight,
+                        windowHeight,
+                        isInLandscapeMode,
+                        hasTitle,
+                        hasHeader: !!onBackButtonPress,
+                        isSearchable: isSearchable ?? false,
+                    }),
+                ]}
+            >
                 <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                     <SelectionList
                         data={options}

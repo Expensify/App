@@ -1,7 +1,6 @@
 import {getReportChatType} from '@selectors/Report';
 import agentZeroProcessingIndicatorSelector from '@selectors/ReportNameValuePairs';
 import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
-import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {getReportChannelName} from '@libs/actions/Report';
@@ -17,7 +16,7 @@ type ReasoningEntry = {
 };
 
 type AgentZeroStatusState = {
-    /** Whether AgentZero is actively working — true when the server sent a processing label or we're optimistically waiting */
+    /** Whether AgentZero is actively working — true when the server has sent a processing label */
     isProcessing: boolean;
 
     /** Chronological list of reasoning steps streamed via Pusher during the current processing request */
@@ -27,23 +26,13 @@ type AgentZeroStatusState = {
     statusLabel: string;
 };
 
-type AgentZeroStatusActions = {
-    /** Sets optimistic "thinking" state immediately after the user sends a message, before the server responds */
-    kickoffWaitingIndicator: () => void;
-};
-
 const defaultState: AgentZeroStatusState = {
     isProcessing: false,
     reasoningHistory: [],
     statusLabel: '',
 };
 
-const defaultActions: AgentZeroStatusActions = {
-    kickoffWaitingIndicator: () => {},
-};
-
 const AgentZeroStatusStateContext = createContext<AgentZeroStatusState>(defaultState);
-const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defaultActions);
 
 /**
  * Cheap outer guard — only subscribes to the scalar CONCIERGE_REPORT_ID.
@@ -77,25 +66,24 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
 const MIN_DISPLAY_TIME = 300; // ms
 // Debounce delay for server label updates
 const DEBOUNCE_DELAY = 150; // ms
-const OPTIMISTIC_TIMEOUT = 120000; // 2 minutes
 
 /**
- * Inner gate — all Pusher, reasoning, label, and processing state.
- * Only mounted when reportID matches the Concierge report.
+ * Inner gate — all Pusher, reasoning, and label state.
+ * Only mounted for AgentZero chats (Concierge DMs or policy #admins rooms).
  * Remounted via key prop when reportID changes, so all state resets automatically.
  */
 function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
     // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
+    // Backend only writes this when AgentZero is actually handling the chat — the client no longer
+    // sets an optimistic label on send, so if AZ short-circuits (chat job exists, human responded
+    // within R2LR_TIME) nothing renders.
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
 
-    // Timestamp set when the user sends a message, before the server label arrives — shows "Concierge is thinking..."
-    const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
     // Debounced label shown to the user — smooths rapid server label changes
     const displayedLabelRef = useRef<string>('');
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
     // Chronological list of reasoning steps streamed via Pusher during a single processing request
     const [reasoningHistory, setReasoningHistory] = useState<ReasoningEntry[]>([]);
-    const {translate} = useLocalize();
     // Timer for debounced label updates — ensures a minimum display time before switching
     const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
     // Timestamp of the last label update — used to enforce MIN_DISPLAY_TIME
@@ -104,20 +92,6 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
 
     // Tracks the current agentZeroRequestID so the Pusher callback can detect new requests
     const agentZeroRequestIDRef = useRef('');
-
-    // Clear optimistic state once server label arrives — the server has taken over
-    if (serverLabel && optimisticStartTime) {
-        setOptimisticStartTime(null);
-    }
-
-    // Clear optimistic state when coming back online — stale optimism from offline
-    const [prevIsOffline, setPrevIsOffline] = useState(isOffline);
-    if (prevIsOffline !== isOffline) {
-        setPrevIsOffline(isOffline);
-        if (!isOffline && optimisticStartTime) {
-            setOptimisticStartTime(null);
-        }
-    }
 
     // Clear reasoning when processing ends (server label transitions from truthy → falsy)
     const [prevServerLabel, setPrevServerLabel] = useState(serverLabel);
@@ -179,12 +153,7 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
     // Synchronize the displayed label with debounce and minimum display time.
     // displayedLabelRef mirrors state so the effect can check the current value without depending on displayedLabel.
     useEffect(() => {
-        let targetLabel = '';
-        if (serverLabel) {
-            targetLabel = serverLabel;
-        } else if (optimisticStartTime) {
-            targetLabel = translate('common.thinking');
-        }
+        const targetLabel = serverLabel ?? '';
 
         if (displayedLabelRef.current === targetLabel) {
             return;
@@ -202,7 +171,6 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         // Immediate update when enough time has passed or when clearing the label
         if (remainingMinTime === 0 || targetLabel === '') {
             displayedLabelRef.current = targetLabel;
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- guarded by displayedLabelRef check above; fires once per serverLabel/optimistic transition
             setDisplayedLabel(targetLabel);
             lastUpdateTimeRef.current = now;
         } else {
@@ -222,27 +190,10 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
             }
             clearTimeout(updateTimerRef.current);
         };
-    }, [serverLabel, optimisticStartTime, translate]);
+    }, [serverLabel]);
 
-    // Pusher updates carrying the server label can be silently dropped, leaving the optimistic indicator stuck forever.
-    useEffect(() => {
-        if (!optimisticStartTime) {
-            return;
-        }
-        const elapsed = Date.now() - optimisticStartTime;
-        const remaining = Math.max(0, OPTIMISTIC_TIMEOUT - elapsed);
-        const timer = setTimeout(() => {
-            setOptimisticStartTime(null);
-        }, remaining);
-        return () => clearTimeout(timer);
-    }, [optimisticStartTime]);
-
-    const kickoffWaitingIndicator = () => {
-        setOptimisticStartTime(Date.now());
-    };
-
-    // True when AgentZero is actively working — either the server sent a label or we're optimistically waiting
-    const isProcessing = !isOffline && (!!serverLabel || !!optimisticStartTime);
+    // True when AgentZero is actively working — the server has sent a label
+    const isProcessing = !isOffline && !!serverLabel;
 
     const stateValue: AgentZeroStatusState = {
         isProcessing,
@@ -250,24 +201,12 @@ function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{repo
         statusLabel: displayedLabel,
     };
 
-    const actionsValue: AgentZeroStatusActions = {
-        kickoffWaitingIndicator,
-    };
-
-    return (
-        <AgentZeroStatusActionsContext.Provider value={actionsValue}>
-            <AgentZeroStatusStateContext.Provider value={stateValue}>{children}</AgentZeroStatusStateContext.Provider>
-        </AgentZeroStatusActionsContext.Provider>
-    );
+    return <AgentZeroStatusStateContext.Provider value={stateValue}>{children}</AgentZeroStatusStateContext.Provider>;
 }
 
 function useAgentZeroStatus(): AgentZeroStatusState {
     return useContext(AgentZeroStatusStateContext);
 }
 
-function useAgentZeroStatusActions(): AgentZeroStatusActions {
-    return useContext(AgentZeroStatusActionsContext);
-}
-
-export {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions};
-export type {AgentZeroStatusState, AgentZeroStatusActions, ReasoningEntry};
+export {AgentZeroStatusProvider, useAgentZeroStatus};
+export type {AgentZeroStatusState, ReasoningEntry};
