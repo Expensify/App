@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 
 let failureCount = 0;
 let firstFailureTimestamp = 0;
+let lastSuccessTimestamp = 0;
 const sustainedFailureListeners = new Set<(active: boolean) => void>();
 
 /**
@@ -18,6 +19,7 @@ function onSustainedFailureChange(listener: (active: boolean) => void): () => vo
  * Resets the failure tracker — one success proves connectivity.
  */
 function recordSuccess() {
+    lastSuccessTimestamp = Date.now();
     if (failureCount === 0) {
         return;
     }
@@ -75,4 +77,8 @@ function getFailureCount(): number {
     return failureCount;
 }
 
-export {recordSuccess, recordFailure, reset, getFailureCount, onSustainedFailureChange};
+function getLastSuccessTimestamp(): number {
+    return lastSuccessTimestamp;
+}
+
+export {recordSuccess, recordFailure, reset, getFailureCount, getLastSuccessTimestamp, onSustainedFailureChange};

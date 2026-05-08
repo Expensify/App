@@ -3,7 +3,8 @@ import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
+import * as Browser from '@libs/Browser';
+import * as FailureTracker from './FailureTracker';
 import Log from './Log';
 
 let hasRadio = true;
@@ -26,7 +27,6 @@ let suppressNextReachabilityRestored = false;
 const listeners = new Set<() => void>();
 const reconnectListeners = new Set<() => void>();
 
-// Wire FailureTracker → NetworkState so sustained failures trigger offline state.
 onSustainedFailureChange((active) => setSustainedFailures(active));
 
 function getIsOffline(): boolean {
@@ -177,7 +177,7 @@ function setFailAllRequests(failAll: boolean) {
 
     if (!failAll && sustainedFailuresActive) {
         sustainedFailuresActive = false;
-        resetFailureCounters();
+        FailureTracker.reset();
         updateState();
 
         prevIsInternetReachable = null;
@@ -194,7 +194,7 @@ function onReachabilityRestored() {
     hasRadio = true;
     internetUnreachable = false;
     sustainedFailuresActive = false;
-    resetFailureCounters();
+    FailureTracker.reset();
     updateState();
 
     // Notify reconnect listeners (Reconnect.ts will handle app data sync)
@@ -288,17 +288,43 @@ function configureAndSubscribe() {
     }
 
     if (!CONFIG.IS_USING_LOCAL_WEB) {
+        const isSafari = Browser.isSafari();
         NetInfo.configure({
-            reachabilityUrl: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
+            // For Safari, we disable the internal fetch by providing an empty URL
+            // and perform our own cache-busted fetch in reachabilityTest to bypass
+            // the WebKit HTTP/3 deadlock bug (FB22476701).
+            reachabilityUrl: isSafari ? '' : `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}`,
             reachabilityMethod: 'GET',
-            reachabilityTest: (response) => {
-                if (!response.ok) {
-                    return Promise.resolve(false);
+            reachabilityTest: async (response) => {
+                // If we had a successful request recently, we don't need to check reachability.
+                // This reduces network traffic as requested by Rory.
+                const lastSuccess = FailureTracker.getLastSuccessTimestamp();
+                if (Date.now() - lastSuccess < 60000) {
+                    return true;
+                }
+
+                if (isSafari) {
+                    const url = `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/Ping?accountID=${accountID ?? 'unknown'}&_cb=${Date.now()}`;
+                    try {
+                        const fetchResponse = await fetch(url, {cache: 'no-store'});
+                        if (!fetchResponse.ok) {
+                            return false;
+                        }
+                        const json = await fetchResponse.json();
+                        return json.jsonCode === 200;
+                    } catch (error) {
+                        Log.debug(`[NetworkState] Safari reachability fetch failed: ${error}`);
+                        return false;
+                    }
+                }
+
+                if (!response || !response.ok) {
+                    return false;
                 }
                 return response
                     .json()
-                    .then((json: {jsonCode: number}) => Promise.resolve(json.jsonCode === 200))
-                    .catch(() => Promise.resolve(false));
+                    .then((json: {jsonCode: number}) => json.jsonCode === 200)
+                    .catch(() => false);
             },
             reachabilityRequestTimeout: CONST.NETWORK.MAX_PENDING_TIME_MS,
             // Use JS fetch polling (api/Ping) on all platforms instead of native OS reachability.
