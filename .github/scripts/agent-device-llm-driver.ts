@@ -77,6 +77,11 @@ const STEP_WALL_CLOCK_BUDGET_MS = 60_000;
 const MAX_STATE_CHANGING_ACTIONS = 4;
 const SCREENSHOT_BUDGET_PER_RUN = 2;
 const TEXT_LENGTH_CAP = 200;
+// DEBUG_LLM=1 makes both the LLM client (request/response bodies)
+// and the runner (per-tool-dispatch entries) emit verbose entries to
+// llm-trace.jsonl + stdout. Off by default to keep normal-run
+// artifacts and CI stdout slim.
+const DEBUG_LLM = process.env.DEBUG_LLM === "1";
 
 // ---- types ------------------------------------------------------------
 
@@ -1107,14 +1112,33 @@ async function dispatchTool(
       const node = ctx.snap.nodes.find((n) => n.ref === ref);
       if (!node) {
         ctx.onPhantom();
+        if (DEBUG_LLM) {
+          log(
+            `::debug::dispatch.fill phantom ref=${ref} text="${text.slice(0, 30)}…"`,
+          );
+        }
         return {
           content: `phantom ref ${ref} not in current snapshot`,
           isError: true,
         };
       }
       ctx.resetPhantom();
-      adCli.fill(ref, text);
+      try {
+        adCli.fill(ref, text);
+      } catch (e) {
+        if (DEBUG_LLM) {
+          log(
+            `::debug::dispatch.fill THREW ref=${ref} text="${text.slice(0, 30)}…" err=${(e as Error).message.slice(0, 100)}`,
+          );
+        }
+        throw e;
+      }
       const loc = refToLocator(ctx.snap, ref);
+      if (DEBUG_LLM) {
+        log(
+          `::debug::dispatch.fill ok ref=${ref} kind=${node.kind} loc=${JSON.stringify(loc)} text="${text.slice(0, 30)}…" executed_len_after=${ctx.executed.length + (loc ? 1 : 0)}`,
+        );
+      }
       if (loc) {
         ctx.executed.push({ tool: "fill", locator: loc, text, ref });
       }
@@ -1125,14 +1149,31 @@ async function dispatchTool(
       const node = ctx.snap.nodes.find((n) => n.ref === ref);
       if (!node) {
         ctx.onPhantom();
+        if (DEBUG_LLM) {
+          log(`::debug::dispatch.press phantom ref=${ref}`);
+        }
         return {
           content: `phantom ref ${ref} not in current snapshot`,
           isError: true,
         };
       }
       ctx.resetPhantom();
-      adCli.press(ref);
+      try {
+        adCli.press(ref);
+      } catch (e) {
+        if (DEBUG_LLM) {
+          log(
+            `::debug::dispatch.press THREW ref=${ref} err=${(e as Error).message.slice(0, 100)}`,
+          );
+        }
+        throw e;
+      }
       const loc = refToLocator(ctx.snap, ref);
+      if (DEBUG_LLM) {
+        log(
+          `::debug::dispatch.press ok ref=${ref} kind=${node.kind} loc=${JSON.stringify(loc)} executed_len_after=${ctx.executed.length + (loc ? 1 : 0)}`,
+        );
+      }
       if (loc) {
         ctx.executed.push({ tool: "press", locator: loc, ref });
       }

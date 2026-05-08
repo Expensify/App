@@ -138,17 +138,63 @@ export class AnthropicClient {
       messages: args.messages,
     };
 
+    // Verbose diagnostic mode: capture the full message thread + tool_use
+    // calls in the trace. Trade-off is artifact size and a small risk
+    // of leaking content the user typed; disabled unless DEBUG_LLM=1.
+    const verbose = (process.env.DEBUG_LLM ?? "") === "1";
+    if (verbose) {
+      const lastUser = args.messages
+        .slice()
+        .reverse()
+        .find((m) => m.role === "user");
+      const lastText = lastUser?.content.find(
+        (c): c is { type: "text"; text: string } => c.type === "text",
+      );
+      this.opts.traceWriter?.({
+        type: "request",
+        message_count: args.messages.length,
+        last_user_text: lastText?.text.slice(0, 1500) ?? null,
+        tool_uses_in_thread: args.messages.flatMap((m) =>
+          m.content
+            .filter(
+              (
+                c,
+              ): c is {
+                type: "tool_use";
+                id: string;
+                name: string;
+                input: Record<string, unknown>;
+              } => c.type === "tool_use",
+            )
+            .map((c) => ({ id: c.id, name: c.name, input: c.input })),
+        ),
+      });
+    }
+
     let lastError: Error | undefined;
     for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
       try {
         const response = await this.callOnce(body);
         this.accountForUsage(response.usage);
-        this.opts.traceWriter?.({
+        const baseEntry = {
           type: "response",
           attempt,
           stop_reason: response.stop_reason,
           usage: response.usage,
-        });
+        } as Record<string, unknown>;
+        if (verbose) {
+          baseEntry.tool_uses = response.content
+            .filter((c) => c.type === "tool_use")
+            .map((c) => ({
+              id: (c as { id: string }).id,
+              name: (c as { name: string }).name,
+              input: (c as { input: unknown }).input,
+            }));
+          baseEntry.text_preview = response.content
+            .filter((c) => c.type === "text")
+            .map((c) => (c as { text: string }).text.slice(0, 800));
+        }
+        this.opts.traceWriter?.(baseEntry);
         return response;
       } catch (e) {
         lastError = e as Error;
