@@ -114,6 +114,7 @@ Available options:
 - **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
+- **Description hint** – Provide a hint that appears in the description field when members create an expense with this category. This hint reminds employees to include specific information. Supports markdown formatting.
 - **Require fields** - Require specific fields be completed for this category. The options are:
    - **Require description** - Force members to enter a reason when using the category.
    - **Require attendees** - Force members to add additional attendees when using the category.

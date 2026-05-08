@@ -1,7 +1,7 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding]
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, description hint, category description hint]
 internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes. Does not cover personal expense rules or accounting integration setup.
 ---
 
@@ -94,6 +94,7 @@ Available Category Rule options include:
 - **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
+- **Description hint** – Provide a hint that appears in the description field when members create an expense with this category. This hint reminds employees to include specific information. Supports markdown formatting for bold, italic, links, and lists.
 - **Require fields** - Require specific fields be completed for this category. The options are:
    - **Require description** - Force members to enter a reason when using the category.
    - **Require attendees** - Force members to add additional attendees when using the category.
