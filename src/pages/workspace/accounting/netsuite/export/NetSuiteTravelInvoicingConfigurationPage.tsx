@@ -62,6 +62,13 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
         >
+            <MenuItemWithTopDescription
+                title={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`)}
+                description={translate('workspace.accounting.exportAs')}
+                helperText={translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.travelDescription`)}
+                shouldParseHelperText
+                shouldShowRightIcon={false}
+            />
             {sections.map((section) => (
                 <OfflineWithFeedback
                     pendingAction={section.pendingAction}

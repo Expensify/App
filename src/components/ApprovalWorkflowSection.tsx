@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
@@ -34,6 +35,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const personalDetailsByEmail = usePersonalDetailsByEmail();
 
@@ -130,7 +132,7 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                                     />
                                 </View>
                             }
-                            helperText={getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail})}
+                            helperText={getApprovalLimitDescription({approver, currency, translate, convertToDisplayString, personalDetailsByEmail})}
                             helperTextStyle={styles.workflowApprovalLimitText}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                         />

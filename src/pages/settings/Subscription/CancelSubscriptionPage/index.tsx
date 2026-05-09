@@ -128,7 +128,6 @@ function CancelSubscriptionPage() {
                                 title={translate('subscription.subscriptionSettings.helpUsImprove')}
                                 description={translate('subscription.cancelSubscription.subtitle')}
                                 onSubmit={handleSubmit}
-                                optionRowStyles={styles.flex1}
                                 footerText={
                                     <Text style={[styles.mb2, styles.mt4]}>
                                         <RenderHTML html={translate('subscription.cancelSubscription.acknowledgement')} />

@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -83,7 +82,6 @@ function DynamicQuickbooksPreferredExporterConfigurationPage({policy}: WithPolic
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksPreferredExporterConfigurationPage"
             data={data}
-            listItem={RadioListItem}
             headerContent={headerContent}
             onBackButtonPress={goBack}
             onSelectRow={selectExporter}

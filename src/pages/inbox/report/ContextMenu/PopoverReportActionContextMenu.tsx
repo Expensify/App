@@ -1,6 +1,5 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-/* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
@@ -411,7 +410,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteReportComment(
                     report,

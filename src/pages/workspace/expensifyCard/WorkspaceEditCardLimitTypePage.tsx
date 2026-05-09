@@ -16,6 +16,7 @@ import ValuePicker from '@components/ValuePicker';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -32,28 +33,25 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitTypeForm';
 import type {CardLimitType} from '@src/types/onyx/Card';
 
 type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE
+    typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE
 >;
 
 function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
     const {policyID, cardID, backTo} = route.params;
-
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
     const formRef = useRef<FormRef | null>(null);
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
-
     const card = cardsList?.[cardID];
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
@@ -66,29 +64,31 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [expirationToggle, setExpirationToggle] = useState(!!card?.nameValuePairs?.validFrom);
-
     const currency = useCurrencyForExpensifyCard({policyID});
-    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT_TYPE;
-
+    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE;
     const personalDetails = usePersonalDetails();
-
     const assigneePersonalDetails = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
-
     const minDate = assigneeTimeZone ? toZonedTime(new Date(), assigneeTimeZone) : new Date();
-
     const validFrom = card?.nameValuePairs?.validFrom;
     const validFromDefaultValue = validFrom ? DateUtils.formatUTCDateTimeToDateInTimezone(validFrom, assigneeTimeZone) : format(minDate, CONST.DATE.FNS_FORMAT_STRING);
 
     const validThru = card?.nameValuePairs?.validThru;
     const validThruDefaultValue = validThru ? DateUtils.formatUTCDateTimeToDateInTimezone(validThru, assigneeTimeZone) : undefined;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.path);
 
     const goBack = () => {
+        if (isWorkspaceRhp) {
+            Navigation.goBack(backPath);
+            return;
+        }
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
+
+        Navigation.goBack(ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
     };
 
     const fetchCardLimitTypeData = () => {

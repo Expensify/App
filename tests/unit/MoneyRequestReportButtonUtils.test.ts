@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -45,15 +46,15 @@ describe('ReportButtonUtils', () => {
         });
 
         it('returns total reimbursable spend for PAY & total value for other buttons', () => {
-            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, [])).toBe(`$50.00`);
-            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE, [])).toBe(`$100.00`);
-            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT, [])).toBe(`$100.00`);
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, [], convertToDisplayString)).toBe(`$50.00`);
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE, [], convertToDisplayString)).toBe(`$100.00`);
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT, [], convertToDisplayString)).toBe(`$100.00`);
         });
 
         it('returns total display spend for PAY when report has only non-reimbursable transactions', () => {
             jest.mocked(hasOnlyNonReimbursableTransactions).mockReturnValueOnce(true);
 
-            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, [])).toBe(`$100.00`);
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, [], convertToDisplayString)).toBe(`$100.00`);
         });
     });
 });

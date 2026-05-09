@@ -1,6 +1,7 @@
-import {findFocusedRoute} from '@react-navigation/native';
+import {findFocusedRoute, StackActions} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
@@ -11,6 +12,7 @@ import SCREENS from '@src/SCREENS';
 import type {Domain, Policy} from '@src/types/onyx';
 import getActiveTabName from './getActiveTabName';
 import getPathFromState from './getPathFromState';
+import {getTabState} from './tabNavigatorUtils';
 
 type RouteType = NavigationState['routes'][number] | PartialState<NavigationState>['routes'][number];
 
@@ -49,6 +51,29 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
     if (!topmostFullScreenRoute || isOnWorkspacesList) {
         // Not in a main workspace navigation context or the workspaces list page is already displayed, so do nothing.
         return;
+    }
+
+    // Pop to the older TAB_NAVIGATOR holding the workspace state. Target the root stack
+    // explicitly so POP bypasses SearchFullscreenNavigator's PUSH_PARAMS interceptor.
+    // https://github.com/Expensify/App/issues/89009
+    if (rootState) {
+        const topRootIndex = rootState.index ?? rootState.routes.length - 1;
+        const olderTabIdx = rootState.routes.findLastIndex((route, idx) => {
+            if (idx >= topRootIndex || route.name !== NAVIGATORS.TAB_NAVIGATOR) {
+                return false;
+            }
+            const tabState = getTabState(route as Parameters<typeof getTabState>[0]);
+            const focusedTab = tabState?.routes?.at(tabState.index ?? 0);
+            if (focusedTab?.name !== NAVIGATORS.WORKSPACE_NAVIGATOR) {
+                return false;
+            }
+            const wsState = focusedTab.state ?? (focusedTab.key ? getPreservedNavigatorState(focusedTab.key) : undefined);
+            return !!wsState?.routes?.length;
+        });
+        if (olderTabIdx !== -1) {
+            navigationRef.dispatch({...StackActions.pop(topRootIndex - olderTabIdx), target: rootState.key});
+            return;
+        }
     }
 
     // Check if user is already on a workspace or domain inside WORKSPACE_NAVIGATOR (within TabNavigator)

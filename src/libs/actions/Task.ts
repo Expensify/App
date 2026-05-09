@@ -138,7 +138,7 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     let assigneeChatReportOnyxData;
 
     // Parent ReportAction indicating that a task has been created
-    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
+    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmail});
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeAccountID, `task for ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
@@ -374,7 +374,6 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
     API.write(WRITE_COMMANDS.CREATE_TASK, parameters, {optimisticData, successData, failureData});
 
     if (!isCreatedUsingMarkdown) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearOutTaskInfo();
         });
@@ -510,6 +509,7 @@ function completeTask(
     parentReportAction: OnyxEntry<ReportAction> | undefined,
     delegateEmail: string | undefined,
     reportIDFromAction?: string,
+    shouldPlaySound = true,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
@@ -526,7 +526,9 @@ function completeTask(
         delegateEmail,
     );
 
-    playSound(SOUNDS.SUCCESS);
+    if (shouldPlaySound) {
+        playSound(SOUNDS.SUCCESS);
+    }
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
     return {optimisticData, successData, failureData};
 }
@@ -1451,7 +1453,7 @@ function getFinishOnboardingTaskOnyxData(
     if (taskReport && canActionTask(taskReport, parentReportAction, currentUserAccountID, taskParentReport, isParentReportArchived)) {
         if (taskReport) {
             if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
+                return completeTask(taskReport, taskParentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, undefined, false);
             }
         }
     }

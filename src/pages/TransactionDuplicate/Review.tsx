@@ -90,7 +90,7 @@ function TransactionDuplicateReview() {
         (!reportAction?.reportActionID && !hasLoadedParentReportActions && !wasParentActionDeleted && !isThreadReportDeletedForReview);
     const isDeleteNavigateBackToThisReview = doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview(deleteTransactionNavigateBackUrl, route.params.threadReportID);
     const isNavigatingBackToDeletedReview = !!deleteTransactionNavigateBackUrl && !(isDeleteNavigateBackToThisReview && wasTransactionDeleted);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFound = !isNavigatingBackToDeletedReview && (wasTransactionDeleted || (!isLoadingPage && !transactionID));
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {
