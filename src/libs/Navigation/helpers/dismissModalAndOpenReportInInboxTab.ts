@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -62,7 +63,6 @@ function dismissModalAndOpenReportInInboxTab(reportID: string | undefined, isInv
         }
         Navigation.dismissModal();
         if (hasActiveTracking) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- we need to wait for the modal to be dismissed before marking the span
             InteractionManager.runAfterInteractions(() => {
                 endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
             });

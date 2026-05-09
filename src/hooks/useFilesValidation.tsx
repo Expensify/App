@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
@@ -108,15 +108,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
 
     const hideModalAndReset = () => {
         setIsErrorModalVisible(false);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             reset();
         });
-    };
-
-    const setErrorAndOpenModal = (error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>) => {
-        setFileError({error, isValidatingMultipleFiles});
-        setIsErrorModalVisible(true);
     };
 
     const checkIfAllValidatedAndProceed = () => {
@@ -265,9 +259,9 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                 } else {
                     const errorMessage = result.reason instanceof Error ? result.reason.message : undefined;
                     if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
-                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE, isValidatingMultipleFiles});
+                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE, isValidatingMultipleFiles: validationState.isValidatingMultipleFiles});
                     } else {
-                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED, isValidatingMultipleFiles});
+                        collectedErrors.current.push({error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED, isValidatingMultipleFiles: validationState.isValidatingMultipleFiles});
                     }
                 }
             }
@@ -347,7 +341,8 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             if (items) {
                 dataTransferItemList.current = items.slice(0, CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT);
             }
-            setErrorAndOpenModal(CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED);
+            setFileError({error: CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED, isValidatingMultipleFiles: validationState.isValidatingMultipleFiles});
+            setIsErrorModalVisible(true);
         } else {
             validateAndResizeFiles(files, items ?? [], validationState);
         }
@@ -382,7 +377,6 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         // the error modal is dismissed before opening the attachment modal
         if (isValidatingReceipts === false && fileError) {
             setIsErrorModalVisible(false);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (sortedFiles.length !== 0) {
                     onFilesValidated(sortedFiles, dataTransferItemList.current);

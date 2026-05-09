@@ -5,7 +5,6 @@ import type {AnyDeferredUpdatesDictionary, AnyDetectGapAndSplitResult} from '@us
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {applyUpdates} from './applyUpdates';
-// eslint-disable-next-line import/no-cycle
 import {clear, enqueue, getUpdates} from './DeferredOnyxUpdates';
 
 let lastUpdateIDAppliedToClient: number = CONST.DEFAULT_NUMBER_ID;
