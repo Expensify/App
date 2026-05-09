@@ -1064,7 +1064,7 @@ function PureReportActionItem({
     const hasErrors = !isEmptyValueObject(action.errors);
     const whisperedTo = getWhisperedTo(action);
 
-    const iouReportID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUReportID ? (getOriginalMessage(action)?.IOUReportID?.toString() ?? action?.reportID) : undefined;
+    const iouReportID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUReportID ? (getOriginalMessage(action)?.IOUReportID ?? action?.reportID) : undefined;
     const isWhisper = whisperedTo.length > 0 && getTransactionsWithReceipts(iouReportID).length === 0;
 
     // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
