@@ -13,7 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
-import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -1254,6 +1254,7 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.units?.rate).toEqual(HOURLY_RATE);
             expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
             expect(duplicatedTransaction?.comment?.type).toBe('time');
+            expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
         });
 
         it('should create a duplicate expense successfully (previously with transaction drafts)', async () => {
@@ -1429,6 +1430,7 @@ describe('actions/Duplicate', () => {
             expect(duplicatedTransaction?.comment?.units?.rate).toEqual(HOURLY_RATE);
             expect(duplicatedTransaction?.comment?.units?.unit).toBe('h');
             expect(duplicatedTransaction?.comment?.type).toBe('time');
+            expect(isTimeRequest(duplicatedTransaction)).toBeTruthy();
         });
 
         it('should return early when transaction is undefined', async () => {
