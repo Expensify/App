@@ -1392,7 +1392,7 @@ describe('actions/IOU/TrackExpense', () => {
             mockFetch?.succeed?.();
         });
 
-        it('should not include existingTransaction in retryParams persisted on receipt errors', async () => {
+        it('should preserve iouRequestType in retryParams without leaking the full existingTransaction', async () => {
             // Given a selfDM report and an existing SCAN transaction (carrying state that would bloat the retry payload)
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -1418,7 +1418,7 @@ describe('actions/IOU/TrackExpense', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
-            // Then the retryParams stored on the receipt error must not carry the full existingTransaction
+            // Then the retryParams stored on the receipt error must preserve iouRequestType but not the bulky source state
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -1435,7 +1435,12 @@ describe('actions/IOU/TrackExpense', () => {
             );
             expect(receiptError).toBeDefined();
             const parsedRetryParams = JSON.parse(receiptError?.retryParams as unknown as string) as Record<string, unknown>;
-            expect(parsedRetryParams.existingTransaction).toBeUndefined();
+            const persistedExistingTransaction = parsedRetryParams.existingTransaction as Partial<Transaction> | undefined;
+            expect(persistedExistingTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+            // Source-state fields like comment/receipt/cardNumber must not survive into the persisted retry payload
+            expect(persistedExistingTransaction?.comment).toBeUndefined();
+            expect(persistedExistingTransaction?.receipt).toBeUndefined();
+            expect(persistedExistingTransaction?.cardNumber).toBeUndefined();
 
             mockFetch?.succeed?.();
         });
@@ -1764,7 +1769,7 @@ describe('actions/IOU/TrackExpense', () => {
     });
 
     describe('requestMoney', () => {
-        it('should not include existingTransaction in retryParams persisted on receipt errors', async () => {
+        it('should preserve iouRequestType in retryParams without leaking the full existingTransaction', async () => {
             // Given a 1:1 chat report and an existing SCAN transaction (carrying state that would bloat the retry payload)
             const chatReport: Report = {
                 ...createRandomReport(2, undefined),
@@ -1819,7 +1824,7 @@ describe('actions/IOU/TrackExpense', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
-            // Then the retryParams stored on the receipt error must not carry the full existingTransaction
+            // Then the retryParams stored on the receipt error must preserve iouRequestType but not the bulky source state
             let transactions: OnyxCollection<Transaction>;
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -1836,7 +1841,11 @@ describe('actions/IOU/TrackExpense', () => {
             );
             expect(receiptError).toBeDefined();
             const parsedRetryParams = JSON.parse(receiptError?.retryParams as unknown as string) as Record<string, unknown>;
-            expect(parsedRetryParams.existingTransaction).toBeUndefined();
+            const persistedExistingTransaction = parsedRetryParams.existingTransaction as Partial<Transaction> | undefined;
+            expect(persistedExistingTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+            expect(persistedExistingTransaction?.comment).toBeUndefined();
+            expect(persistedExistingTransaction?.receipt).toBeUndefined();
+            expect(persistedExistingTransaction?.cardNumber).toBeUndefined();
 
             mockFetch?.succeed?.();
         });
