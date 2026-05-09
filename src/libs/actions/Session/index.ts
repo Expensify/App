@@ -62,7 +62,7 @@ import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
@@ -1446,7 +1446,12 @@ const canAnonymousUserAccessRoute = (route: string) => {
     if (route.startsWith('/')) {
         routeRemovedReportId = routeRemovedReportId.slice(1);
     }
-    const routesAccessibleByAnonymousUser = [ROUTES.SIGN_IN_MODAL, `${ROUTES.REPORT}/:reportID/details`, `${ROUTES.REPORT}/:reportID/details/shareCode`, ROUTES.CONCIERGE];
+    const routesAccessibleByAnonymousUser = [
+        ROUTES.SIGN_IN_MODAL,
+        `${ROUTES.REPORT}/:reportID/${DYNAMIC_ROUTES.REPORT_DETAILS.path}`,
+        `${ROUTES.REPORT}/:reportID/${DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path}`,
+        ROUTES.CONCIERGE,
+    ];
     const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
 
     if (routesAccessibleByAnonymousUser.includes(routeRemovedReportId) || isMagicLink) {
