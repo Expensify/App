@@ -32,6 +32,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
@@ -51,7 +52,9 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                     large
                     style={[styles.mv3]}
                     text={translate('samlSignIn.useSingleSignOn')}
-                    isLoading={account?.isLoading}
+                    // `signedInWithSAML` is set optimistically and preserved through `finallyData` of
+                    // `signInWithShortLivedAuthToken`, so it bridges the gap until `AuthScreens` mounts.
+                    isLoading={!!account?.isLoading || !!session?.signedInWithSAML}
                     onPress={() => {
                         Navigation.navigate(ROUTES.SAML_SIGN_IN);
                     }}
