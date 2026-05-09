@@ -14,7 +14,7 @@ type ComposerEmojiPickerProps = {
 
 function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
     const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {focus} = useComposerActions();
     const {composerRef} = useComposerMeta();

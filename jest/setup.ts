@@ -1,4 +1,3 @@
-/* eslint-disable max-classes-per-file */
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
@@ -13,6 +12,7 @@ import type Animated from 'react-native-reanimated';
 import 'setimmediate';
 import {TextDecoder, TextEncoder} from 'util';
 import '@src/polyfills/PromiseWithResolvers';
+import '@src/polyfills/requestIdleCallback';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
 
@@ -76,7 +76,6 @@ jest.mock('expo-location', () => ({
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         ignoreLogs: jest.fn(),
@@ -149,7 +148,6 @@ jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
 });
 
 jest.mock('@src/setup/telemetry', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
     navigationIntegration: {
@@ -280,7 +278,6 @@ jest.mock(
 );
 
 jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn((command: string, data: Record<string, unknown>) => {
         const formData = new FormData();
@@ -303,7 +300,6 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
 jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => jest.fn()), // Return a function that returns a function
 }));
@@ -367,17 +363,14 @@ jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatLi
 // in triggerUnreadUpdate (also timer-based), this creates excessive timer churn that causes
 // heavy integration tests like SessionTest to exceed their timeout.
 jest.mock('@src/hooks/useDocumentTitle', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 jest.mock('@src/hooks/useWorkspaceDocumentTitle', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));

@@ -6,7 +6,6 @@ import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         accountID: 12345,
@@ -14,7 +13,6 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         translate: (key: string) => `translated_${key}`,
@@ -24,7 +22,6 @@ jest.mock('@hooks/useLocalize', () => ({
 let mockMultifactorAuthenticationPublicKeyIDs: string[] | undefined = [];
 
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => [mockMultifactorAuthenticationPublicKeyIDs],
 }));
@@ -285,7 +282,6 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: true,
-                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
                     keyInfo: expect.objectContaining({
                         rawId: 'abc-def_ghi',
                         type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
@@ -328,7 +324,7 @@ describe('useNativeBiometricsHSM hook', () => {
             const keyAlias = '12345_HSM_KEY';
             mockGetAllKeys.mockResolvedValue({keys: [{alias: keyAlias, publicKey: 'abc+def/ghi='}]});
             mockSha256.mockResolvedValue({hash: Buffer.alloc(32).toString('base64')});
-            mockSignWithOptions.mockResolvedValue({success: true, signature: 'c2lnbmF0dXJl', authType: AuthType.FaceID});
+            mockSignWithOptions.mockResolvedValue({success: true, signature: 'dGVzdC1zaWduYXR1cmU=', authType: AuthType.FaceID});
         });
 
         it('should sign challenge and return success', async () => {
@@ -345,7 +341,6 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: true,
-                    reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
                     signedChallenge: expect.objectContaining({
                         type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
                     }),
@@ -409,15 +404,15 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    reason: VALUES.REASON.HSM.CANCELED,
+                    error: expect.objectContaining({reason: VALUES.REASON.LOCAL_ERRORS.HSM.CANCELED}),
                 }),
             );
         });
 
-        it('should delete local keys and return KEY_NOT_FOUND when local credential is not in allowCredentials', async () => {
+        it('should delete local keys and return NO_MATCHING_LOCAL_CREDENTIAL when local credential is not in allowCredentials', async () => {
             // Given a local HSM key exists but its credential ID does not match any ID in the challenge's allowCredentials list
             // When the authorize flow checks for a matching credential
-            // Then it should delete the orphaned local key and return KEY_NOT_FOUND so the app can prompt re-registration
+            // Then it should delete the orphaned local key and return NO_MATCHING_LOCAL_CREDENTIAL so the app can prompt re-registration
             const keyAlias = '12345_HSM_KEY';
             mockGetAllKeys.mockResolvedValue({keys: [{alias: keyAlias, publicKey: 'abc+def/ghi='}]});
 
@@ -437,17 +432,17 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    reason: VALUES.REASON.HSM.KEY_NOT_FOUND,
+                    error: expect.objectContaining({reason: VALUES.REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL}),
                 }),
             );
             expect(mockSignWithOptions).not.toHaveBeenCalled();
         });
 
-        it('should return BAD_REQUEST when mapAuthTypeNumber returns undefined', async () => {
+        it('should return UNRECOGNIZED_AUTH_TYPE when mapAuthTypeNumber returns undefined', async () => {
             // Given the biometric sign operation succeeds but returns an unrecognized authType number
             // When mapAuthTypeNumber cannot map the authType to a known value and returns undefined
-            // Then onResult should receive a failure with BAD_REQUEST because the response cannot be trusted without a valid auth type
-            mockSignWithOptions.mockResolvedValue({success: true, signature: 'c2lnbmF0dXJl', authType: 999});
+            // Then onResult should receive a failure with UNRECOGNIZED_AUTH_TYPE because the response cannot be trusted without a valid auth type
+            mockSignWithOptions.mockResolvedValue({success: true, signature: 'dGVzdC1zaWduYXR1cmU=', authType: 999});
 
             const {result} = renderHook(() => useNativeBiometricsHSM());
             const onResult = jest.fn();
@@ -459,7 +454,7 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    reason: VALUES.REASON.GENERIC.BAD_REQUEST,
+                    error: expect.objectContaining({reason: VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED_AUTH_TYPE}),
                 }),
             );
         });
@@ -480,7 +475,7 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    reason: VALUES.REASON.HSM.GENERIC,
+                    error: expect.objectContaining({reason: VALUES.REASON.LOCAL_ERRORS.HSM.UNRECOGNIZED}),
                 }),
             );
         });

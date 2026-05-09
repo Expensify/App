@@ -60,13 +60,6 @@ Onyx.connect({
     },
 });
 
-let deprecatedAllPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (value) => (deprecatedAllPolicies = value),
-    waitForCollectionCallback: true,
-});
-
 /**
  * @returns Whether the workspace owner's grace period is overdue.
  */
@@ -452,16 +445,49 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 }
 
 /**
+ * Whether the user is eligible to cancel their subscription.
+ * Annual subscribers who have committed to a subscription can cancel.
+ * Excludes: non-annual users, active trial users, pre-trial users, and expired trial users who never subscribed.
+ */
+function canCancelSubscription(
+    subscriptionType: SubscriptionType | undefined,
+    firstDayFreeTrial: string | undefined,
+    lastDayFreeTrial: string | undefined,
+    userBillingFundID: number | undefined,
+    hasPurchases: boolean | undefined,
+): boolean {
+    if (subscriptionType !== CONST.SUBSCRIPTION.TYPE.ANNUAL) {
+        return false;
+    }
+
+    // User is currently on a free trial
+    if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
+        return false;
+    }
+
+    // User is in pre-trial state (trial dates exist but trial hasn't started yet)
+    if (firstDayFreeTrial && !hasUserFreeTrialEnded(lastDayFreeTrial)) {
+        return false;
+    }
+
+    // User's trial ended — only allow cancellation if they have a card or have been billed before
+    if (hasUserFreeTrialEnded(lastDayFreeTrial) && !doesUserHavePaymentCardAdded(userBillingFundID) && !hasPurchases) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
-    policyIDOrPolicy: string | OnyxEntry<Policy>,
+    policy: OnyxEntry<Policy>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
     currentUserAccountID: number = deprecatedCurrentUserAccountID,
 ): boolean {
-    const policy = typeof policyIDOrPolicy === 'string' ? deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDOrPolicy}`] : policyIDOrPolicy;
     const currentDate = new Date();
 
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
@@ -495,8 +521,8 @@ function shouldRestrictUserBillableActions(
     return false;
 }
 
-function shouldCalculateBillNewDot(canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
-    return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, deprecatedCurrentUserAccountID).length === 1;
+function shouldCalculateBillNewDot(currentUserAccountID: number, canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
+    return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, currentUserAccountID).length === 1;
 }
 
 function getSubscriptionPrice(
@@ -514,6 +540,10 @@ function getSubscriptionPrice(
     }
 
     return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];
+}
+
+function shouldUseSimplifiedCollectSubscriptionUI(plan: PersonalPolicyTypeExcludedProps | null, hasTeam2025Pricing: boolean): boolean {
+    return plan === CONST.POLICY.TYPE.TEAM && hasTeam2025Pricing;
 }
 
 function getSubscriptionPlanInfo(
@@ -610,6 +640,7 @@ function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType
 
 export {
     calculateRemainingFreeTrialDays,
+    canCancelSubscription,
     doesUserHavePaymentCardAdded,
     getCardForSubscriptionBilling,
     getFreeTrialText,
@@ -617,7 +648,6 @@ export {
     hasCardAuthenticatedError,
     hasCardExpiredError,
     hasGracePeriodOverdue,
-    hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,
     hasUserFreeTrialEnded,
@@ -630,6 +660,7 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    shouldUseSimplifiedCollectSubscriptionUI,
     shouldShowTrialEndedUI,
     isSubscriptionTypeOfInvoicing,
     hasInsufficientFundsError,

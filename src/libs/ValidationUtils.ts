@@ -131,7 +131,7 @@ function getFieldRequiredErrors<TFormID extends OnyxFormKey>(
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
             continue;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
+
         errors[fieldKey] = translate('common.error.fieldRequired');
     }
 
@@ -220,7 +220,6 @@ function getAgeRequirementError(translate: LocalizedTranslate, date: string, min
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('common.error.dateInvalid');
     }
 
@@ -232,10 +231,9 @@ function getAgeRequirementError(translate: LocalizedTranslate, date: string, min
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('privatePersonalDetails.error.dateShouldBeBefore', format(maximalDate, CONST.DATE.FNS_FORMAT_STRING));
     }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     return translate('privatePersonalDetails.error.dateShouldBeAfter', format(minimalDate, CONST.DATE.FNS_FORMAT_STRING));
 }
 
@@ -248,7 +246,6 @@ function getDatePassedError(translate: LocalizedTranslate, inputDate: string): s
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('common.error.dateInvalid');
     }
 
@@ -256,7 +253,6 @@ function getDatePassedError(translate: LocalizedTranslate, inputDate: string): s
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translate('common.error.dateInvalid');
     }
 
@@ -274,40 +270,6 @@ function isValidWebsite(url: string): boolean {
 /** Checks if the domain is public */
 function isPublicDomain(domain: string): boolean {
     return PUBLIC_DOMAINS_SET.has(domain.toLowerCase());
-}
-
-function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
-    const errors: Record<string, boolean> = {};
-
-    // Check that all required fields are filled
-    for (const fieldName of requiredFields) {
-        if (isRequiredFulfilled(identity[fieldName])) {
-            continue;
-        }
-        errors[fieldName] = true;
-    }
-
-    if (!isValidAddress(identity.street)) {
-        errors.street = true;
-    }
-
-    if (!isValidZipCode(identity.zipCode)) {
-        errors.zipCode = true;
-    }
-
-    // dob field has multiple validations/errors, we are handling it temporarily like this.
-    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
-        errors.dob = true;
-    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
-        errors.dobAge = true;
-    }
-
-    if (!isValidSSNLastFour(identity.ssnLast4)) {
-        errors.ssnLast4 = true;
-    }
-
-    return errors;
 }
 
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
@@ -823,7 +785,6 @@ export {
     isValidUSPhone,
     isValidPhoneNumber,
     isValidWebsite,
-    validateIdentity,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidRoutingNumber,

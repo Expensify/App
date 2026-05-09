@@ -1,5 +1,6 @@
 import MockedOnyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {initReconnect} from '@libs/actions/Reconnect';
 import type {EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import type {ApiRequestCommandParameters, ReadCommand, WriteCommand} from '@libs/API/types';
 import CONST from '@src/CONST';
@@ -26,6 +27,7 @@ jest.mock('@src/libs/Log');
 Onyx.init({
     keys: ONYXKEYS,
 });
+initReconnect();
 
 type Response = {
     ok?: boolean;
@@ -874,8 +876,8 @@ describe('API.write() persistence guarantees', () => {
             let requestPersistedBeforeOptimistic = false;
 
             const updateMock = jest.spyOn(Onyx, 'update').mockImplementation((data) => {
-                // We use ONYXKEYS.IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
-                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
+                // We use ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM as a sample key to identify the marker
+                const hasMarker = data.some((entry) => entry.key === ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
                 if (hasMarker) {
                     optimisticDataApplied = true;
                     requestPersistedBeforeOptimistic = PersistedRequests.getAll().some((r) => r.command === 'MockCommand');
@@ -888,7 +890,7 @@ describe('API.write() persistence guarantees', () => {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.SET,
-                            key: ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+                            key: ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
                             value: true,
                         },
                     ],
