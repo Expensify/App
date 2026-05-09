@@ -41,6 +41,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
         return (
             <FilterPopupButton
                 PopoverComponent={filtersPopup}
+                popoverWidth={CONST.ADVANCED_FILTERS_POPOVER_WIDTH}
                 renderButton={({onPress, ref}) => (
                     <PressableWithFeedback
                         ref={ref}
