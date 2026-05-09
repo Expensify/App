@@ -1052,6 +1052,7 @@ function changeTransactionsReport({
         const actionType = isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE;
         const newIOUAction = {
             ...oldIOUAction,
+            reportID,
             originalMessage: {
                 ...originalMessage,
                 IOUTransactionID: originalMessage?.IOUTransactionID ?? transaction.transactionID,
