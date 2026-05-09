@@ -1513,6 +1513,36 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
 
+    it('does not include RECEIVED_PAYMENT option when payments are disabled', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            total: -100,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.USER,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+        } as unknown as Policy;
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            bankAccountList: {},
+            policy,
+            reportActions: [],
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+    });
+
     it('does not include RECEIVED_PAYMENT option when a bank payment action exists', () => {
         const report = {
             reportID: REPORT_ID,
