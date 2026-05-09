@@ -1102,6 +1102,7 @@ function updateSplitTransactions({
                         IOUTransactionID: null,
                     },
                     errors: null,
+                    childReportID: null,
                 },
             };
 
@@ -1121,6 +1122,15 @@ function updateSplitTransactions({
             });
 
             onyxData.successData?.push(...successData);
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [firstIOU.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            });
 
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
