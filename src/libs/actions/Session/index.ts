@@ -1427,6 +1427,11 @@ function signInWithValidateCodeAndNavigate(accountID: number, validateCode: stri
     }
 }
 
+/** Normalized path prefix `r/:reportID/…` for allowlist comparison after replacing real IDs with `:reportID`. */
+function getAnonymousAccessibleReportPath(dynamicSuffix: string) {
+    return `${ROUTES.REPORT}/:reportID/${dynamicSuffix}`;
+}
+
 /**
  * check if the route can be accessed by anonymous user
  *
@@ -1448,8 +1453,8 @@ const canAnonymousUserAccessRoute = (route: string) => {
     }
     const routesAccessibleByAnonymousUser = [
         ROUTES.SIGN_IN_MODAL,
-        `${ROUTES.REPORT}/:reportID/${DYNAMIC_ROUTES.REPORT_DETAILS.path}`,
-        `${ROUTES.REPORT}/:reportID/${DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path}`,
+        getAnonymousAccessibleReportPath(DYNAMIC_ROUTES.REPORT_DETAILS.path),
+        getAnonymousAccessibleReportPath(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path),
         ROUTES.CONCIERGE,
     ];
     const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
