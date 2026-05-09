@@ -10,11 +10,13 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, requestResetBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
 import Enable2FACard from './Enable2FACard';
 
@@ -80,6 +82,13 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
                         setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL).then(() => {
                             setUSDBankAccountStep?.(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
+                            Navigation.navigate(
+                                ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({
+                                    policyID,
+                                    page: CONST.BANK_ACCOUNT.PAGE_NAMES.REQUESTOR,
+                                    subPage: CONST.BANK_ACCOUNT.PERSONAL_INFO_STEP.SUB_PAGE_NAMES.FULL_NAME,
+                                }),
+                            );
                         });
                     }}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
