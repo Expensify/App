@@ -236,10 +236,11 @@ describe('mergeTransactionRequest', () => {
 
     it('should preserve target iouRequestType when merging a distance request without an iouRequestType in the merge transaction', async () => {
         // Given a distance target transaction with a sub-type and a merge transaction that omits iouRequestType
+        const targetReportID = 'target-report';
         const targetTransaction: Transaction = {
             ...createRandomDistanceRequestTransaction(1),
             transactionID: 'target-distance',
-            reportID: 'target-report',
+            reportID: targetReportID,
             iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
         };
         const sourceExpenseReport = {
@@ -255,7 +256,7 @@ describe('mergeTransactionRequest', () => {
             ...createRandomMergeTransaction(1),
             targetTransactionID: targetTransaction.transactionID,
             sourceTransactionID: sourceTransaction.transactionID,
-            reportID: targetTransaction.reportID,
+            reportID: targetReportID,
             // Intentionally no iouRequestType
         };
         const mergeTransactionID = 'merge-distance';
@@ -273,7 +274,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
-            targetTransactionThreadReport: {reportID: targetTransaction.reportID},
+            targetTransactionThreadReport: {reportID: targetReportID},
             targetTransactionThreadParentReport: undefined,
             targetTransactionThreadParentReportNextStep: undefined,
             allTransactionViolations: createAllTransactionViolations(targetTransaction.transactionID, sourceTransaction.transactionID),

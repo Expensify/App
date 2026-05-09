@@ -1430,9 +1430,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             const failedTransaction = Object.values(transactions ?? {}).find((t) => !!t?.errors);
             expect(failedTransaction).toBeDefined();
-            const receiptError = Object.values(failedTransaction?.errors ?? {}).find(
-                (err): err is ReceiptError => typeof err === 'object' && err !== null && 'error' in err && err.error === CONST.IOU.RECEIPT_ERROR,
-            );
+            const errors = (failedTransaction?.errors ?? {}) as Record<string, ReceiptError | undefined>;
+            const receiptError = Object.values(errors).find((err) => err?.error === CONST.IOU.RECEIPT_ERROR);
             expect(receiptError).toBeDefined();
             const parsedRetryParams = JSON.parse(receiptError?.retryParams as unknown as string) as Record<string, unknown>;
             const persistedExistingTransaction = parsedRetryParams.existingTransaction as Partial<Transaction> | undefined;
@@ -1836,9 +1835,8 @@ describe('actions/IOU/TrackExpense', () => {
 
             const failedTransaction = Object.values(transactions ?? {}).find((t) => !!t?.errors);
             expect(failedTransaction).toBeDefined();
-            const receiptError = Object.values(failedTransaction?.errors ?? {}).find(
-                (err): err is ReceiptError => typeof err === 'object' && err !== null && 'error' in err && err.error === CONST.IOU.RECEIPT_ERROR,
-            );
+            const errors = (failedTransaction?.errors ?? {}) as Record<string, ReceiptError | undefined>;
+            const receiptError = Object.values(errors).find((err) => err?.error === CONST.IOU.RECEIPT_ERROR);
             expect(receiptError).toBeDefined();
             const parsedRetryParams = JSON.parse(receiptError?.retryParams as unknown as string) as Record<string, unknown>;
             const persistedExistingTransaction = parsedRetryParams.existingTransaction as Partial<Transaction> | undefined;
