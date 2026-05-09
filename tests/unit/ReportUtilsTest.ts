@@ -17615,7 +17615,7 @@ describe('ReportUtils', () => {
 
         it('uses the freshly tracked reimbursableTotal for an expense report', () => {
             const expenseReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 total: -10000,
                 nonReimbursableTotal: -3000,
@@ -17629,7 +17629,7 @@ describe('ReportUtils', () => {
 
         it('falls back to total minus nonReimbursableTotal when reimbursableTotal is missing', () => {
             const expenseReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 total: -10000,
                 nonReimbursableTotal: -3000,
@@ -17642,7 +17642,7 @@ describe('ReportUtils', () => {
 
         it('returns 0 reimbursableSpend (not -0) for an all-non-reimbursable expense report', () => {
             const expenseReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 total: -4000,
                 nonReimbursableTotal: -4000,
@@ -17657,7 +17657,7 @@ describe('ReportUtils', () => {
 
         it('uses Math.abs for an IOU report so values are positive', () => {
             const iouReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.IOU,
                 total: 5000,
                 nonReimbursableTotal: 0,
@@ -17673,7 +17673,7 @@ describe('ReportUtils', () => {
     describe('getNonHeldAndFullAmount', () => {
         it('uses the freshly tracked unheldReimbursableTotal when shouldExcludeNonReimbursables is true', () => {
             const expenseReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 currency: CONST.CURRENCY.USD,
                 total: -10000,
@@ -17691,7 +17691,7 @@ describe('ReportUtils', () => {
 
         it('uses the full reimbursable plus non-reimbursable when shouldExcludeNonReimbursables is false', () => {
             const expenseReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 currency: CONST.CURRENCY.USD,
                 total: -10000,
@@ -17708,7 +17708,7 @@ describe('ReportUtils', () => {
 
         it('falls back to legacy unheldTotal minus unheldNonReimbursableTotal when unheldReimbursableTotal is missing', () => {
             const expenseReport: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
                 currency: CONST.CURRENCY.USD,
                 total: -10000,
