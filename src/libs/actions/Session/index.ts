@@ -1449,7 +1449,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
     const routesAccessibleByAnonymousUser = [ROUTES.SIGN_IN_MODAL, `${ROUTES.REPORT}/:reportID/details`, `${ROUTES.REPORT}/:reportID/details/shareCode`, ROUTES.CONCIERGE];
     const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
 
-    if ((routesAccessibleByAnonymousUser as string[]).includes(routeRemovedReportId) || isMagicLink) {
+    if (routesAccessibleByAnonymousUser.includes(routeRemovedReportId) || isMagicLink) {
         return true;
     }
     return false;
