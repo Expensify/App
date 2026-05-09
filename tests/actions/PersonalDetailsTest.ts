@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax */
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';

@@ -1,6 +1,5 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import CategorySelectorModal from '@components/CategorySelector/CategorySelectorModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -11,6 +10,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -21,29 +21,26 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
-import {clearPolicyErrorField, setWorkspaceDefaultSpendCategory} from '@userActions/Policy/Policy';
+import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import KeyboardUtils from '@src/utils/keyboard';
 
 type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
     (
-        | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS>
+        | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS>
         | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS>
     );
 
 function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
-    const {policyID, backTo} = route.params;
+    const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);
-    const [isSelectorModalVisible, setIsSelectorModalVisible] = useState(false);
-    const [categoryID, setCategoryID] = useState<string>();
-    const [groupID, setGroupID] = useState<string>();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS;
+    const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
     const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', currentConnectionName) : undefined;
 
     const updateWorkspaceRequiresCategory = useCallback(
@@ -72,27 +69,12 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
 
-    const setNewCategory = (selectedCategory: ListItem, currentGroupID: string) => {
-        if (!selectedCategory.keyForList) {
-            return;
-        }
-        if (categoryID !== selectedCategory.keyForList) {
-            setWorkspaceDefaultSpendCategory(policyID, currentGroupID, selectedCategory.keyForList, policy?.mccGroup);
-        }
-
-        KeyboardUtils.dismiss({
-            afterTransition: () => setIsSelectorModalVisible(false),
-        });
-    };
-
     const onSelectItem = (item: ListItem) => {
-        if (!item.groupID || !item.categoryID) {
+        if (!item.groupID) {
             return;
         }
 
-        setIsSelectorModalVisible(true);
-        setCategoryID(item.categoryID);
-        setGroupID(item.groupID);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPEND_CATEGORY_SELECTOR.getRoute(item.groupID)));
     };
 
     const selectionListHeaderContent = (
@@ -149,16 +131,6 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
                         )}
                     </View>
                 </ScrollView>
-                {!!categoryID && !!groupID && (
-                    <CategorySelectorModal
-                        policyID={policyID}
-                        isVisible={isSelectorModalVisible}
-                        currentCategory={categoryID}
-                        onClose={() => setIsSelectorModalVisible(false)}
-                        onCategorySelected={(selectedCategory) => setNewCategory(selectedCategory, groupID)}
-                        label={groupID[0].toUpperCase() + groupID.slice(1)}
-                    />
-                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
