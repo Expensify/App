@@ -120,9 +120,10 @@ Below are some example queries you can use depending on your role:
 
 # How to save a search
 
-1. Run a search with filters or search commands.
-2. Click **Save search**.
-3. Enter a name, or use the suggested one.
+1. On the **Spend** page, apply filters or operators to search. 
+2. Click **Save**
+3. Enter a nickname for the saved search.
+4. Click **Save search**
 
 To view saved searches:
 
