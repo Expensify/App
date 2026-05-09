@@ -444,7 +444,7 @@ function isReceivedPaymentAction(report: Report, reportActions: ReportAction[] =
         return false;
     }
 
-    if (policy?.role === CONST.POLICY.ROLE.ADMIN || report.isWaitingOnBankAccount) {
+    if (!arePaymentsEnabledUtils(policy) || policy?.role === CONST.POLICY.ROLE.ADMIN || report.isWaitingOnBankAccount) {
         return false;
     }
 
