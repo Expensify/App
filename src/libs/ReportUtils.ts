@@ -11541,8 +11541,8 @@ function getOutstandingReportsForUser(
         typeof reportsOrReportNameValuePairs === 'boolean' ? allReportNameValuePair : ((reportsOrReportNameValuePairs as OnyxCollection<ReportNameValuePairs>) ?? allReportNameValuePair);
     const archivedReportsIDSet = isUsingArchivedReportsIDSet ? archivedReportsIDSetOrReports : buildArchivedReportsIDSet(reportNameValuePairs);
     const reports = isUsingArchivedReportsIDSet
-        ? ((typeof reportsOrReportNameValuePairs === 'boolean' ? undefined : reportsOrReportNameValuePairs) as OnyxCollection<Report>) || deprecatedAllReports
-        : (archivedReportsIDSetOrReports as OnyxCollection<Report>) || deprecatedAllReports;
+        ? (((typeof reportsOrReportNameValuePairs === 'boolean' ? undefined : reportsOrReportNameValuePairs) as OnyxCollection<Report>) ?? deprecatedAllReports)
+        : ((archivedReportsIDSetOrReports as OnyxCollection<Report>) ?? deprecatedAllReports);
     const shouldAllowSubmitted = typeof reportsOrReportNameValuePairs === 'boolean' ? reportsOrReportNameValuePairs : allowSubmitted;
 
     if (!reports) {
