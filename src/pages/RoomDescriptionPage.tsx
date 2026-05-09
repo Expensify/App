@@ -16,6 +16,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
@@ -26,7 +27,7 @@ import variables from '@styles/variables';
 import {updateDescription} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReportDescriptionForm';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -55,7 +56,9 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
     }, []);
 
     const goBack = useCallback(() => {
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(backTo ?? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID)));
+        Navigation.setNavigationActionToMicrotaskQueue(() =>
+            Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID))),
+        );
     }, [report.reportID, backTo]);
 
     const submitForm = useCallback(() => {

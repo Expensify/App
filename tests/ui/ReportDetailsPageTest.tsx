@@ -77,12 +77,12 @@ describe('ReportDetailsPage', () => {
                     <ReportDetailsPage
                         betas={[]}
                         isLoadingReportData={false}
-                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['navigation']}
+                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']}
                         policy={undefined}
                         report={trackExpenseReport}
                         reportMetadata={undefined}
                         reportLoadingState={undefined}
-                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
+                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
@@ -112,12 +112,12 @@ describe('ReportDetailsPage', () => {
                     <ReportDetailsPage
                         betas={[]}
                         isLoadingReportData={false}
-                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['navigation']}
+                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']}
                         policy={undefined}
                         report={movedTrackExpenseReport}
                         reportMetadata={undefined}
                         reportLoadingState={undefined}
-                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
+                        route={{params: {reportID: trackExpenseReportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,

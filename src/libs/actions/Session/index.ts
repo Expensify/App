@@ -1446,7 +1446,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
     if (route.startsWith('/')) {
         routeRemovedReportId = routeRemovedReportId.slice(1);
     }
-    const routesAccessibleByAnonymousUser = [ROUTES.SIGN_IN_MODAL, ROUTES.REPORT_WITH_ID_DETAILS.route, ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.route, ROUTES.CONCIERGE];
+    const routesAccessibleByAnonymousUser = [ROUTES.SIGN_IN_MODAL, `${ROUTES.REPORT}/:reportID/details`, `${ROUTES.REPORT}/:reportID/details/shareCode`, ROUTES.CONCIERGE];
     const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
 
     if ((routesAccessibleByAnonymousUser as string[]).includes(routeRemovedReportId) || isMagicLink) {

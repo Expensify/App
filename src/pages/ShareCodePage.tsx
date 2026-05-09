@@ -40,6 +40,7 @@ import addTrailingForwardSlash from '@libs/UrlUtils';
 import {getAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route as AppRoute} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
@@ -51,7 +52,11 @@ type ShareCodePageOnyxProps = {
     policy?: OnyxEntry<Policy>;
 };
 
-type ShareCodePageProps = ShareCodePageOnyxProps & BackToParams;
+type ShareCodePageProps = ShareCodePageOnyxProps &
+    BackToParams & {
+        /** When presented from Report Details Share Code modal, restores back without legacy `backTo` URLs */
+        reportNavigateBackRoute?: AppRoute;
+    };
 
 /**
  * When sharing a policy (workspace) only return user avatar that is user defined. Default ws avatars have separate logic.
@@ -70,7 +75,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
     return policy.avatarURL as ImageSourcePropType;
 }
 
-function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
+function ShareCodePage({report, policy, backTo, reportNavigateBackRoute}: ShareCodePageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Cash', 'Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -132,7 +137,14 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         <ScreenWrapper testID="ShareCodePage">
             <HeaderWithBackButton
                 title={translate('common.shareCode')}
-                onBackButtonPress={() => Navigation.goBack(isReport ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report?.reportID, backTo) : undefined)}
+                onBackButtonPress={() => {
+                    if (!isReport) {
+                        Navigation.goBack(backTo);
+                        return;
+                    }
+
+                    Navigation.goBack(reportNavigateBackRoute ?? ROUTES.HOME);
+                }}
                 shouldShowBackButton
             />
             <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>

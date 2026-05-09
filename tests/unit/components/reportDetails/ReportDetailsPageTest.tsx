@@ -77,12 +77,12 @@ describe('ReportDetailsPage', () => {
                     <ReportDetailsPage
                         betas={[]}
                         isLoadingReportData={false}
-                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['navigation']}
+                        navigation={{} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']}
                         policy={undefined}
                         report={report}
                         reportMetadata={undefined}
                         reportLoadingState={undefined}
-                        route={{params: {reportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>['route']}
+                        route={{params: {reportID}} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']}
                     />
                 </LocaleContextProvider>
             </OnyxListItemProvider>,

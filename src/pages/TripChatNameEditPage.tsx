@@ -9,6 +9,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
@@ -17,7 +18,7 @@ import StringUtils from '@libs/StringUtils';
 import {updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewChatNameForm';
 import type {Report} from '@src/types/onyx';
@@ -57,7 +58,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
             updateChatName(reportID, report.reportName, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.TRIP_ROOM);
         }
 
-        return Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
+        return Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID))));
     };
 
     return (
@@ -69,7 +70,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('newRoomPage.roomName')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID))}
+                onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(reportID)))}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM}

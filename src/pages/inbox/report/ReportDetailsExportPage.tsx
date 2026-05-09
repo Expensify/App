@@ -8,6 +8,7 @@ import SingleSelectWithAvatarListItem from '@components/SelectionList/ListItem/S
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,10 +20,10 @@ import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {canBeExported as canBeExportedUtil, getIntegrationIcon, isExported as isExportedUtil} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
-type ReportDetailsExportPageProps = PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.EXPORT>;
+type ReportDetailsExportPageProps = PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT>;
 
 type ExportType = ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
@@ -31,7 +32,7 @@ type ExportSelectorType = SelectorType<ExportType>;
 function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const connectionName = route?.params?.connectionName;
     const reportID = route.params.reportID;
-    const backTo = route.params.backTo;
+    const navigateBackFromExportPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS_EXPORT.path);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const policyID = report?.policyID;
@@ -105,7 +106,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             <ScreenWrapper testID="ReportDetailsExportPage">
                 <HeaderWithBackButton
                     title={translate('common.export')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
+                    onBackButtonPress={() => Navigation.goBack(navigateBackFromExportPath)}
                 />
                 <ConfirmationPage
                     illustration={lazyIllustrations.LaptopWithSecondScreenAndHourglass}
@@ -130,7 +131,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
             data={exportSelectorOptions}
             ListItem={SingleSelectWithAvatarListItem}
             shouldBeBlocked={false}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
+            onBackButtonPress={() => Navigation.goBack(navigateBackFromExportPath)}
             title="common.export"
             connectionName={connectionName}
             onSelectRow={({value}) => {

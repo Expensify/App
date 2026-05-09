@@ -32,6 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {openRoomMembersPage, removeFromGroupChat, updateGroupChatMemberRoles} from '@libs/actions/Report';
 import {clearUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
@@ -54,7 +55,7 @@ import {
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -142,7 +143,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             }
 
             setSearchValue('');
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
         },
     });
 
@@ -333,7 +334,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
                         if (report) {
                             setSearchValue('');
-                            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+                            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID)));
                         }
                     }}
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}

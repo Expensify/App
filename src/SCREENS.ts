@@ -519,13 +519,13 @@ const SCREENS = {
     },
 
     REPORT_DETAILS: {
-        ROOT: 'Report_Details_Root',
-        SHARE_CODE: 'Report_Details_Share_Code',
-        EXPORT: 'Report_Details_Export',
+        DYNAMIC_ROOT: 'Dynamic_Report_Details_Root',
+        DYNAMIC_SHARE_CODE: 'Dynamic_Report_Details_Share_Code',
+        DYNAMIC_EXPORT: 'Dynamic_Report_Details_Export',
     },
 
     REPORT_CHANGE_WORKSPACE: {
-        ROOT: 'ReportChangeWorkspace_Root',
+        DYNAMIC_ROOT: 'Dynamic_Report_Change_Workspace_Root',
     },
 
     WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root', OWNER_SELECTOR: 'Workspace_Confirmation_Owner_Selector', SUCCESS: 'Workspace_Confirmation_Success'},
