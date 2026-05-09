@@ -45,6 +45,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {IOURequestType} from '.';
 import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getMoneyRequestParticipantsFromReport} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import type {RequestMoneyInformation} from './MoneyRequestBuilder';
@@ -614,6 +615,15 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
 }
 
 /**
+ * Returns the request type the duplicate should be created with. SCAN sources become MANUAL because
+ * `buildDuplicateTransactionParams` strips the receipt — without one, the duplicate cannot be a scan request.
+ */
+function getDuplicateRequestType(transaction: OnyxTypes.Transaction): IOURequestType {
+    const sourceRequestType = getRequestType(transaction);
+    return sourceRequestType === CONST.IOU.REQUEST_TYPE.SCAN ? CONST.IOU.REQUEST_TYPE.MANUAL : sourceRequestType;
+}
+
+/**
  * Routes a duplicate expense to the correct creation function based on transaction type.
  * Shared between duplicateExpenseTransaction and duplicateReport.
  */
@@ -787,8 +797,11 @@ function duplicateExpenseTransaction({
         quickAction,
         existingTransactionDraft,
         existingTransaction: {
-            ...(transactionParams ?? {}),
-            iouRequestType: getRequestType(transaction),
+            iouRequestType: getDuplicateRequestType(transaction),
+            amount: 0,
+            currency: '',
+            created: '',
+            merchant: '',
             modifiedCreated: '',
             reportID: '1',
             transactionID: '1',
@@ -987,8 +1000,11 @@ function duplicateReport({
             policyRecentlyUsedCurrencies,
             existingTransactionDraft: undefined,
             existingTransaction: {
-                ...(transactionParams ?? {}),
-                iouRequestType: getRequestType(transaction),
+                iouRequestType: getDuplicateRequestType(transaction),
+                amount: 0,
+                currency: '',
+                created: '',
+                merchant: '',
                 modifiedCreated: '',
                 reportID: '1',
                 transactionID: '1',
