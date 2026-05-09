@@ -1630,6 +1630,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             ...requestMoneyInformation.transactionParams,
             receipt: undefined,
         },
+        existingTransaction: undefined,
     };
 
     const {
@@ -2359,6 +2360,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         },
         quickAction,
         isSelfTourViewed,
+        existingTransaction: undefined,
     };
 
     const {
