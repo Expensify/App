@@ -359,6 +359,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 policyRecentlyUsedCurrencies,
                 quickAction,
                 existingTransactionDraft,
+                existingTransaction: item,
                 draftTransactionIDs,
                 isSelfTourViewed,
                 betas,
@@ -523,6 +524,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 accountantParams: {
                     accountant: item.accountant,
                 },
+                existingTransaction: item,
                 shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
