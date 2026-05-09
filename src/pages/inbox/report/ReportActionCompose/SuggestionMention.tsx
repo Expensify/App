@@ -186,6 +186,50 @@ function SuggestionMention({
      */
     const insertSelectedMention = useCallback(
         (highlightedMentionIndexInner: number) => {
+            const isPrivateDomainShortMention = (token: string): boolean => {
+                if (!token.startsWith('@')) {
+                    return false;
+                }
+                const currentLogin = currentUserPersonalDetails.login ?? '';
+                return Object.values(personalDetails ?? {}).some(
+                    (detail) =>
+                        !!detail?.login &&
+                        areEmailsFromSamePrivateDomain(detail.login, currentLogin) &&
+                        `@${formatLoginPrivateDomain(detail.login, detail.login)}`.toLowerCase() === token.toLowerCase(),
+                );
+            };
+
+            const isCompleteAtMention = (token: string): boolean => {
+                if (!token.startsWith('@')) {
+                    return false;
+                }
+                const withoutAt = token.slice(1);
+                return (
+                    Str.isValidEmail(withoutAt) ||
+                    token.toLowerCase() === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.toLowerCase() ||
+                    Str.isValidPhoneFormat(withoutAt) ||
+                    isPrivateDomainShortMention(token)
+                );
+            };
+
+            const findTrailingMentionIndex = (scannedMention: string, minIndex: number): number => {
+                for (let i = scannedMention.length - 1; i >= minIndex; i--) {
+                    const trigger = scannedMention[i];
+                    if (trigger !== '@' && trigger !== '#') {
+                        continue;
+                    }
+
+                    const token = scannedMention.slice(i);
+                    if (trigger === '@' && isCompleteAtMention(token)) {
+                        return i;
+                    }
+                    if (trigger === '#' && isValidRoomName(token)) {
+                        return i;
+                    }
+                }
+                return -1;
+            };
+
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
             const mentionObject = suggestionValues.suggestedMentions.at(highlightedMentionIndexInner);
             if (!mentionObject || highlightedMentionIndexInner === -1) {
@@ -193,7 +237,16 @@ function SuggestionMention({
             }
 
             const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
-            const originalMention = getOriginalMentionText(value, suggestionValues.atSignIndex, StringUtils.countWhiteSpaces(suggestionValues.mentionPrefix));
+            const scannedMention = getOriginalMentionText(value, suggestionValues.atSignIndex, StringUtils.countWhiteSpaces(suggestionValues.mentionPrefix));
+            const typedMentionLength = suggestionValues.prefixType.length + suggestionValues.mentionPrefix.length;
+
+            let originalMention = scannedMention;
+            if (scannedMention.length > typedMentionLength) {
+                const trailingStart = findTrailingMentionIndex(scannedMention, typedMentionLength);
+                if (trailingStart !== -1) {
+                    originalMention = scannedMention.slice(0, trailingStart);
+                }
+            }
 
             // We split trailing dot from the mention token so selecting `@a.` can become `@adam.`
             // (preserve sentence punctuation) instead of consuming the `.` into the replacement.
@@ -230,7 +283,19 @@ function SuggestionMention({
                 shouldShowSuggestionMenu: false,
             }));
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.prefixType, getMentionCode, updateComment, setSelection, suggestionValues.mentionPrefix],
+        [
+            value,
+            suggestionValues.atSignIndex,
+            suggestionValues.suggestedMentions,
+            suggestionValues.prefixType,
+            getMentionCode,
+            updateComment,
+            setSelection,
+            suggestionValues.mentionPrefix,
+            currentUserPersonalDetails.login,
+            personalDetails,
+            formatLoginPrivateDomain,
+        ],
     );
 
     /**

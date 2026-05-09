@@ -28,6 +28,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getModerationFlagState,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
@@ -53,7 +54,7 @@ import {
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import shouldDisplayNewMarkerOnReportAction from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
-import type {Card, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -5107,6 +5108,78 @@ describe('ReportActionsUtils', () => {
         it('returns undefined when the agent firstName is only whitespace so the generic fallback can be used', () => {
             const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
             expect(getHumanAgentFirstName(action, makePersonalDetails('   '))).toBeUndefined();
+        });
+    });
+
+    describe('getModerationFlagState', () => {
+        function makeActionWithDecision(decision: DecisionName | undefined): ReportAction {
+            return {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hello',
+                        text: 'hello',
+                        moderationDecision: decision ? {decision} : undefined,
+                    },
+                ],
+            } as ReportAction;
+        }
+
+        it('returns undefined and not flagged when the action is null', () => {
+            expect(getModerationFlagState(null)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+
+        it('returns undefined and not flagged when the action is undefined', () => {
+            expect(getModerationFlagState(undefined)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+
+        it('returns undefined and not flagged when the message has no moderation decision', () => {
+            expect(getModerationFlagState(makeActionWithDecision(undefined))).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+
+        it('returns approved and not flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_APPROVED))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_APPROVED,
+                hasBeenFlagged: false,
+            });
+        });
+
+        it('returns pending and not flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_PENDING))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
+                hasBeenFlagged: false,
+            });
+        });
+
+        it('returns pendingRemove and not flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                hasBeenFlagged: false,
+            });
+        });
+
+        it('returns pendingHide and flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+                hasBeenFlagged: true,
+            });
+        });
+
+        it('returns hidden and flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_HIDDEN))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN,
+                hasBeenFlagged: true,
+            });
+        });
+
+        it('returns the safe default for non-ADD_COMMENT actions even when the message carries a flagged decision', () => {
+            const action = {
+                ...makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_HIDDEN),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            } as ReportAction;
+            expect(getModerationFlagState(action)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
         });
     });
 });

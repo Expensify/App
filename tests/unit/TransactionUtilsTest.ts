@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
+import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -3202,6 +3203,95 @@ describe('TransactionUtils', () => {
             });
 
             expect(TransactionUtils.getExchangeRate(transaction, 'EUR')).toBe('');
+        });
+    });
+
+    describe('mergeProhibitedViolations', () => {
+        it('should preserve showInReview as true when at least one source violation has showInReview: true', () => {
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'alcohol'},
+                    showInReview: true,
+                },
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'gambling'},
+                    showInReview: false,
+                },
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'tobacco'},
+                },
+            ];
+
+            const result = TransactionUtils.mergeProhibitedViolations(violations);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.name).toBe(CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+            expect(result.at(0)?.data?.prohibitedExpenseRule).toEqual(['alcohol', 'gambling', 'tobacco']);
+            expect(result.at(0)?.showInReview).toBe(true);
+        });
+
+        it('should set showInReview to false when no source violation has showInReview: true', () => {
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'alcohol'},
+                    showInReview: false,
+                },
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'gambling'},
+                },
+            ];
+
+            const result = TransactionUtils.mergeProhibitedViolations(violations);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.showInReview).toBeFalsy();
+        });
+
+        it('should not modify non-prohibited violations', () => {
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+                {
+                    name: CONST.VIOLATIONS.PROHIBITED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    data: {prohibitedExpenseRule: 'alcohol'},
+                    showInReview: true,
+                },
+            ];
+
+            const result = TransactionUtils.mergeProhibitedViolations(violations);
+
+            expect(result).toHaveLength(2);
+            const duplicateViolation = result.find((v) => v.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+            const prohibitedViolation = result.find((v) => v.name === CONST.VIOLATIONS.PROHIBITED_EXPENSE);
+            expect(duplicateViolation).toBeDefined();
+            expect(prohibitedViolation?.showInReview).toBe(true);
+            expect(prohibitedViolation?.data?.prohibitedExpenseRule).toEqual(['alcohol']);
+        });
+
+        it('should return violations unchanged when there are no prohibited violations', () => {
+            const violations: TransactionViolation[] = [
+                {
+                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ];
+
+            const result = TransactionUtils.mergeProhibitedViolations(violations);
+
+            expect(result).toEqual(violations);
         });
     });
 

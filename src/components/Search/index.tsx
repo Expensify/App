@@ -27,6 +27,7 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import {flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
@@ -1202,6 +1203,16 @@ function Search({
                     unmarkReportIDAsMultiTransactionExpense(reportID);
                 }
 
+                // Persist the current search context so prev/next navigation arrows
+                // in the report RHP can reference the correct result set.
+                saveLastSearchParams({
+                    queryJSON,
+                    offset,
+                    searchKey: currentSearchKey,
+                    hasMoreResults: !!searchResults?.search?.hasMoreResults,
+                    allowPostSearchRecount: true,
+                });
+
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
@@ -1242,6 +1253,9 @@ function Search({
             betas,
             email,
             accountID,
+            queryJSON,
+            offset,
+            searchResults?.search?.hasMoreResults,
         ],
     );
 
