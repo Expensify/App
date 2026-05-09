@@ -53,8 +53,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                     large
                     style={[styles.mv3]}
                     text={translate('samlSignIn.useSingleSignOn')}
-                    // `signedInWithSAML` is set optimistically and preserved through `finallyData` of
-                    // `signInWithShortLivedAuthToken`, so it bridges the gap until `AuthScreens` mounts.
+                    // `signedInWithSAML` keeps the spinner visible until AuthScreens mounts.
                     isLoading={!!account?.isLoading || !!signedInWithSAML}
                     onPress={() => {
                         Navigation.navigate(ROUTES.SAML_SIGN_IN);

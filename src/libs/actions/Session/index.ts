@@ -195,8 +195,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
         },
     ];
 
-    // Reset 'signedInWithSAML' on failure so the SSO button can recover; on success the
-    // optimistic value is preserved (consumed by the sign-out flow).
+    // Reset `signedInWithSAML` on failure so the SSO button can recover.
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | typeof ONYXKEYS.SESSION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
