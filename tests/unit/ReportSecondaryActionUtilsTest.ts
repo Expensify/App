@@ -1593,7 +1593,9 @@ describe('getSecondaryAction', () => {
             role: CONST.POLICY.ROLE.USER,
         } as unknown as Policy;
         const heldTransaction = {
-            isHeld: true,
+            comment: {
+                hold: '2026-05-09 00:00:00',
+            },
         } as unknown as Transaction;
 
         const result = getSecondaryReportActions({
