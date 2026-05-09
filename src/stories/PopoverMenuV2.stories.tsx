@@ -30,23 +30,23 @@ const triggerStyle = {
 } as const;
 
 function StoryTrigger({iconSrc, label, accessibilityLabel}: {iconSrc: React.ComponentProps<typeof Icon>['src']; label: string; accessibilityLabel: string}) {
-    const {ref, onPress} = PopoverMenu.usePopoverTrigger();
     return (
-        <PressableWithFeedback
-            ref={ref}
-            onPress={onPress}
-            style={triggerStyle}
-            role={CONST.ROLE.BUTTON}
-            accessibilityLabel={accessibilityLabel}
-            sentryLabel="PopoverMenuV2.Story.Trigger"
-        >
-            <Icon
-                src={iconSrc}
-                width={variables.iconSizeSmall}
-                height={variables.iconSizeSmall}
-            />
-            <Text>{label}</Text>
-        </PressableWithFeedback>
+        <PopoverMenu.Trigger>
+            <PressableWithFeedback
+                onPress={() => {}}
+                style={triggerStyle}
+                role={CONST.ROLE.BUTTON}
+                accessibilityLabel={accessibilityLabel}
+                sentryLabel="PopoverMenuV2.Story.Trigger"
+            >
+                <Icon
+                    src={iconSrc}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
+                />
+                <Text>{label}</Text>
+            </PressableWithFeedback>
+        </PopoverMenu.Trigger>
     );
 }
 

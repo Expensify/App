@@ -1,55 +1,50 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import type {GestureResponderEvent, Role, StyleProp, ViewStyle} from 'react-native';
-import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import useSecondaryInteractionTrigger from './useSecondaryInteractionTrigger';
+import React, {Children, Fragment, isValidElement} from 'react';
+import type {ReactElement, Ref} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
+import mergeRefs from '@libs/mergeRefs';
+import useAnchorOpener from './useAnchorOpener';
 
-type SecondaryInteractionTriggerProps = WithSentryLabel & {
-    children: ReactNode;
-    accessibilityLabel: string;
-    style?: StyleProp<ViewStyle>;
-    disabled?: boolean;
-    role?: Role;
-    testID?: string;
-    /** Runs before the popover opens; cannot gate opening (drop to the hook for that). */
-    onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
+type SecondaryInteractionHandler = (event: GestureResponderEvent | MouseEvent) => void;
+
+/** Minimum props a `<SecondaryInteractionTrigger>` child must support so the menu can attach an anchor ref and open on long-press / right-click. */
+type SecondaryInteractionTriggerSlotProps = {
+    ref?: Ref<View>;
+    onSecondaryInteraction: SecondaryInteractionHandler;
 };
 
-/** Long-press / right-click variant of `<Trigger>`. For non-`PressableWithSecondaryInteraction` shapes, call `useSecondaryInteractionTrigger()` directly. */
-function SecondaryInteractionTrigger({
-    children,
-    accessibilityLabel,
-    sentryLabel,
-    style,
-    disabled,
-    role,
-    testID,
-    onSecondaryInteraction: consumerOnSecondaryInteraction,
-}: SecondaryInteractionTriggerProps): React.ReactElement {
-    const {ref, onSecondaryInteraction: triggerOnSecondaryInteraction} = useSecondaryInteractionTrigger();
-    const handleSecondaryInteraction = (event: GestureResponderEvent | MouseEvent) => {
-        consumerOnSecondaryInteraction?.(event);
-        triggerOnSecondaryInteraction();
+type SecondaryInteractionTriggerProps = {
+    children: ReactElement<SecondaryInteractionTriggerSlotProps>;
+};
+
+/** Long-press (native) / right-click (web) variant of `<Trigger>`. Consumer can call `event.preventDefault()` to gate the open. */
+function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProps): React.ReactElement {
+    const {ref, open} = useAnchorOpener(SecondaryInteractionTrigger.displayName);
+
+    const onlyChild = Children.only(children);
+
+    if (!isValidElement<SecondaryInteractionTriggerSlotProps>(onlyChild)) {
+        throw new Error(`<${SecondaryInteractionTrigger.displayName}> must receive a single React element as its child (got a non-element node).`);
+    }
+
+    if (onlyChild.type === Fragment) {
+        throw new Error(`<${SecondaryInteractionTrigger.displayName}> cannot wrap a Fragment; pass one pressable element (e.g. <PressableWithSecondaryInteraction>).`);
+    }
+
+    const handleSecondaryInteraction: SecondaryInteractionHandler = (event) => {
+        onlyChild.props.onSecondaryInteraction(event);
+        if (event.defaultPrevented) {
+            return;
+        }
+        open();
     };
 
-    return (
-        <PressableWithSecondaryInteraction
-            ref={ref}
-            onSecondaryInteraction={handleSecondaryInteraction}
-            accessibilityLabel={accessibilityLabel}
-            sentryLabel={sentryLabel}
-            style={style}
-            disabled={disabled}
-            role={role}
-            testID={testID}
-        >
-            {children}
-        </PressableWithSecondaryInteraction>
-    );
+    return React.cloneElement(onlyChild as React.ReactElement<Partial<SecondaryInteractionTriggerSlotProps>>, {
+        ref: mergeRefs(ref, onlyChild.props.ref),
+        onSecondaryInteraction: handleSecondaryInteraction,
+    });
 }
 
 SecondaryInteractionTrigger.displayName = 'PopoverMenu.SecondaryInteractionTrigger';
 
 export default SecondaryInteractionTrigger;
-export type {SecondaryInteractionTriggerProps};
+export type {SecondaryInteractionTriggerProps, SecondaryInteractionTriggerSlotProps};

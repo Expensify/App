@@ -10,6 +10,8 @@ import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentCo
 // Test-only: harness publishes `activeAnchor` synthetically so we don't need a real measurable trigger.
 import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
 import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 
 const {useIsAtActiveLevel} = PopoverMenu;
 
@@ -319,41 +321,6 @@ describe('PopoverMenu V2', () => {
         });
     });
 
-    describe('usePopoverTrigger', () => {
-        it('returns a ref and an onPress callback', () => {
-            const captured: PopoverMenu.UsePopoverTriggerResult[] = [];
-            function ProbeHook() {
-                captured.push(PopoverMenu.usePopoverTrigger());
-                return null;
-            }
-            render(
-                <PopoverMenu.Root>
-                    <ProbeHook />
-                </PopoverMenu.Root>,
-            );
-            const result = captured.at(-1);
-            expect(result).toBeDefined();
-            expect(typeof result?.onPress).toBe('function');
-            expect(result?.ref).toMatchObject({current: null});
-        });
-
-        it('returns a separate ref per call', () => {
-            const refs: Array<PopoverMenu.UsePopoverTriggerResult['ref']> = [];
-            function ProbeHook() {
-                refs.push(PopoverMenu.usePopoverTrigger().ref);
-                return null;
-            }
-            render(
-                <PopoverMenu.Root>
-                    <ProbeHook />
-                    <ProbeHook />
-                </PopoverMenu.Root>,
-            );
-            expect(refs).toHaveLength(2);
-            expect(refs.at(0)).not.toBe(refs.at(1));
-        });
-    });
-
     describe('Trigger', () => {
         // RN's View ref in jest exposes `measureInWindow` but not `getBoundingClientRect` (production paths have it); stub for the press path.
         let originalGetBoundingClientRect: ((this: unknown) => DOMRect) | undefined;
@@ -371,17 +338,20 @@ describe('PopoverMenu V2', () => {
             }
         });
 
-        it('opens the popover when pressed', () => {
+        it('opens the popover when the slotted child is pressed', () => {
             const onOpenChange = jest.fn();
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger
-                            accessibilityLabel="Open menu"
-                            sentryLabel="TriggerTest"
-                            testID="trigger"
-                        >
-                            <View testID="trigger-icon" />
+                        <PopoverMenu.Trigger>
+                            <PressableWithFeedback
+                                onPress={() => {}}
+                                accessibilityLabel="Open menu"
+                                sentryLabel="TriggerTest"
+                                testID="trigger"
+                            >
+                                <View testID="trigger-icon" />
+                            </PressableWithFeedback>
                         </PopoverMenu.Trigger>
                         <VisibilityObserver onChange={onOpenChange} />
                     </PopoverMenu.Root>
@@ -393,20 +363,24 @@ describe('PopoverMenu V2', () => {
             expect(onOpenChange).toHaveBeenCalledWith(true);
         });
 
-        it('runs the consumer-supplied onPress before opening', () => {
+        it("runs the slotted child's onPress before opening", () => {
             const order: string[] = [];
             const onOpenChange = jest.fn(() => order.push('open'));
-            const consumerOnPress = jest.fn(() => order.push('consumer'));
+            const consumerOnPress = jest.fn(() => {
+                order.push('consumer');
+            });
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger
-                            accessibilityLabel="Open menu"
-                            sentryLabel="TriggerTest"
-                            testID="trigger"
-                            onPress={consumerOnPress}
-                        >
-                            <View testID="trigger-icon" />
+                        <PopoverMenu.Trigger>
+                            <PressableWithFeedback
+                                onPress={consumerOnPress}
+                                accessibilityLabel="Open menu"
+                                sentryLabel="TriggerTest"
+                                testID="trigger"
+                            >
+                                <View testID="trigger-icon" />
+                            </PressableWithFeedback>
                         </PopoverMenu.Trigger>
                         <VisibilityObserver onChange={onOpenChange} />
                     </PopoverMenu.Root>
@@ -417,6 +391,53 @@ describe('PopoverMenu V2', () => {
             fireEvent.press(screen.getByTestId('trigger'));
             expect(consumerOnPress).toHaveBeenCalledTimes(1);
             expect(order).toEqual(['consumer', 'open']);
+        });
+
+        it('skips opening when the slotted child calls event.preventDefault()', () => {
+            const onOpenChange = jest.fn();
+            const consumerOnPress = jest.fn((event?: {preventDefault?: () => void}) => event?.preventDefault?.());
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger>
+                            <PressableWithFeedback
+                                onPress={consumerOnPress}
+                                accessibilityLabel="Open menu"
+                                sentryLabel="TriggerTest"
+                                testID="trigger"
+                            >
+                                <View testID="trigger-icon" />
+                            </PressableWithFeedback>
+                        </PopoverMenu.Trigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            onOpenChange.mockClear();
+            const pressEvent = {
+                defaultPrevented: false,
+                preventDefault() {
+                    pressEvent.defaultPrevented = true;
+                },
+            };
+            fireEvent.press(screen.getByTestId('trigger'), pressEvent);
+            expect(consumerOnPress).toHaveBeenCalledTimes(1);
+            expect(pressEvent.defaultPrevented).toBe(true);
+            expect(onOpenChange).not.toHaveBeenCalledWith(true);
+        });
+
+        it('throws when the child is not a single React element', () => {
+            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+            expect(() =>
+                render(
+                    <NavigationContext.Provider value={mockNavigation}>
+                        <PopoverMenu.Root>
+                            <PopoverMenu.Trigger>{'plain text' as unknown as React.ReactElement<PopoverMenu.TriggerSlotProps>}</PopoverMenu.Trigger>
+                        </PopoverMenu.Root>
+                    </NavigationContext.Provider>,
+                ),
+            ).toThrow(/<PopoverMenu\.Trigger> must receive a single React element/);
+            consoleError.mockRestore();
         });
     });
 
@@ -436,17 +457,19 @@ describe('PopoverMenu V2', () => {
             }
         });
 
-        it('opens the popover on long-press', () => {
+        it('opens the popover when the slotted child receives a long-press', () => {
             const onOpenChange = jest.fn();
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.SecondaryInteractionTrigger
-                            accessibilityLabel="Long-press me"
-                            sentryLabel="SecondaryTriggerTest"
-                            testID="secondary-trigger"
-                        >
-                            <View testID="secondary-icon" />
+                        <PopoverMenu.SecondaryInteractionTrigger>
+                            <PressableWithSecondaryInteraction
+                                onSecondaryInteraction={() => {}}
+                                accessibilityLabel="Long-press me"
+                                testID="secondary-trigger"
+                            >
+                                <View testID="secondary-icon" />
+                            </PressableWithSecondaryInteraction>
                         </PopoverMenu.SecondaryInteractionTrigger>
                         <VisibilityObserver onChange={onOpenChange} />
                     </PopoverMenu.Root>
@@ -458,20 +481,21 @@ describe('PopoverMenu V2', () => {
             expect(onOpenChange).toHaveBeenCalledWith(true);
         });
 
-        it('runs the consumer-supplied onSecondaryInteraction before opening', () => {
+        it("runs the slotted child's onSecondaryInteraction before opening", () => {
             const order: string[] = [];
             const onOpenChange = jest.fn(() => order.push('open'));
             const consumerOnSecondary = jest.fn(() => order.push('consumer'));
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.SecondaryInteractionTrigger
-                            accessibilityLabel="Long-press me"
-                            sentryLabel="SecondaryTriggerTest"
-                            testID="secondary-trigger"
-                            onSecondaryInteraction={consumerOnSecondary}
-                        >
-                            <View testID="secondary-icon" />
+                        <PopoverMenu.SecondaryInteractionTrigger>
+                            <PressableWithSecondaryInteraction
+                                onSecondaryInteraction={consumerOnSecondary}
+                                accessibilityLabel="Long-press me"
+                                testID="secondary-trigger"
+                            >
+                                <View testID="secondary-icon" />
+                            </PressableWithSecondaryInteraction>
                         </PopoverMenu.SecondaryInteractionTrigger>
                         <VisibilityObserver onChange={onOpenChange} />
                     </PopoverMenu.Root>
@@ -483,24 +507,37 @@ describe('PopoverMenu V2', () => {
             expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
             expect(order).toEqual(['consumer', 'open']);
         });
-    });
 
-    describe('useSecondaryInteractionTrigger', () => {
-        it('returns a ref and an onSecondaryInteraction callback', () => {
-            const captured: PopoverMenu.UseSecondaryInteractionTriggerResult[] = [];
-            function ProbeHook() {
-                captured.push(PopoverMenu.useSecondaryInteractionTrigger());
-                return null;
-            }
+        it('skips opening when the slotted child calls event.preventDefault()', () => {
+            const onOpenChange = jest.fn();
+            const consumerOnSecondary = jest.fn((event: {preventDefault: () => void}) => event.preventDefault());
             render(
-                <PopoverMenu.Root>
-                    <ProbeHook />
-                </PopoverMenu.Root>,
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.SecondaryInteractionTrigger>
+                            <PressableWithSecondaryInteraction
+                                onSecondaryInteraction={consumerOnSecondary}
+                                accessibilityLabel="Long-press me"
+                                testID="secondary-trigger"
+                            >
+                                <View testID="secondary-icon" />
+                            </PressableWithSecondaryInteraction>
+                        </PopoverMenu.SecondaryInteractionTrigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
             );
-            const result = captured.at(-1);
-            expect(result).toBeDefined();
-            expect(typeof result?.onSecondaryInteraction).toBe('function');
-            expect(result?.ref).toMatchObject({current: null});
+            onOpenChange.mockClear();
+            const longPressEvent = {
+                defaultPrevented: false,
+                preventDefault() {
+                    longPressEvent.defaultPrevented = true;
+                },
+            };
+            fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', longPressEvent);
+            expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
+            expect(longPressEvent.defaultPrevented).toBe(true);
+            expect(onOpenChange).not.toHaveBeenCalledWith(true);
         });
     });
 
@@ -1739,20 +1776,35 @@ describe('PopoverMenu V2', () => {
             consoleErrorSpy.mockRestore();
         });
 
-        it('throws when usePopoverTrigger is called outside Root', () => {
-            function CallTriggerHook() {
-                PopoverMenu.usePopoverTrigger();
-                return null;
-            }
-            expect(() => render(<CallTriggerHook />)).toThrow(/usePopoverTrigger\(\) must be called inside <PopoverMenu\.Root>/);
+        it('throws when Trigger is rendered outside Root', () => {
+            expect(() =>
+                render(
+                    <PopoverMenu.Trigger>
+                        <PressableWithFeedback
+                            onPress={() => {}}
+                            accessibilityLabel="X"
+                            sentryLabel="X"
+                        >
+                            <View />
+                        </PressableWithFeedback>
+                    </PopoverMenu.Trigger>,
+                ),
+            ).toThrow(/PopoverMenu\.Trigger\(\) must be called inside <PopoverMenu\.Root>/);
         });
 
-        it('throws when useSecondaryInteractionTrigger is called outside Root', () => {
-            function CallSecondaryHook() {
-                PopoverMenu.useSecondaryInteractionTrigger();
-                return null;
-            }
-            expect(() => render(<CallSecondaryHook />)).toThrow(/useSecondaryInteractionTrigger\(\) must be called inside <PopoverMenu\.Root>/);
+        it('throws when SecondaryInteractionTrigger is rendered outside Root', () => {
+            expect(() =>
+                render(
+                    <PopoverMenu.SecondaryInteractionTrigger>
+                        <PressableWithSecondaryInteraction
+                            onSecondaryInteraction={() => {}}
+                            accessibilityLabel="X"
+                        >
+                            <View />
+                        </PressableWithSecondaryInteraction>
+                    </PopoverMenu.SecondaryInteractionTrigger>,
+                ),
+            ).toThrow(/PopoverMenu\.SecondaryInteractionTrigger\(\) must be called inside <PopoverMenu\.Root>/);
         });
 
         it('throws when useIsPopoverVisible is called outside Root', () => {

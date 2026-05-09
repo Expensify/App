@@ -1,45 +1,49 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import type {GestureResponderEvent, Role, StyleProp, ViewStyle} from 'react-native';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import usePopoverTrigger from './usePopoverTrigger';
+import React, {Children, Fragment, isValidElement} from 'react';
+import type {ReactElement, Ref} from 'react';
+import type {View} from 'react-native';
+import type PressableProps from '@components/Pressable/GenericPressable/types';
+import mergeRefs from '@libs/mergeRefs';
+import useAnchorOpener from './useAnchorOpener';
 
-type TriggerProps = WithSentryLabel & {
-    children: ReactNode;
-    accessibilityLabel: string;
-    style?: StyleProp<ViewStyle>;
-    disabled?: boolean;
-    role?: Role;
-    testID?: string;
-    /** Runs before the popover opens; cannot gate opening (drop to the hook for that). */
-    onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+/** Minimum props a `<Trigger>` child must support so the menu can attach an anchor ref and open on press. */
+type TriggerSlotProps = {
+    ref?: Ref<View>;
+    onPress: NonNullable<PressableProps['onPress']>;
 };
 
-/** For non-`PressableWithFeedback` shapes (e.g. `IconButton`), call `usePopoverTrigger()` directly. */
-function Trigger({children, accessibilityLabel, sentryLabel, style, disabled, role, testID, onPress: consumerOnPress}: TriggerProps): React.ReactElement {
-    const {ref, onPress: triggerOnPress} = usePopoverTrigger();
-    const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
-        consumerOnPress?.(event);
-        triggerOnPress();
+type TriggerProps = {
+    children: ReactElement<TriggerSlotProps>;
+};
+
+/** Slot wrapper: clones its single child with a merged ref + composed `onPress` (consumer first, then open). Consumer can call `event.preventDefault()` to gate the open. */
+function Trigger({children}: TriggerProps): React.ReactElement {
+    const {ref, open} = useAnchorOpener(Trigger.displayName);
+
+    const onlyChild = Children.only(children);
+
+    if (!isValidElement<TriggerSlotProps>(onlyChild)) {
+        throw new Error(`<${Trigger.displayName}> must receive a single React element as its child (got a non-element node).`);
+    }
+
+    if (onlyChild.type === Fragment) {
+        throw new Error(`<${Trigger.displayName}> cannot wrap a Fragment; pass one pressable element (e.g. <PressableWithFeedback>).`);
+    }
+
+    const handlePress: NonNullable<PressableProps['onPress']> = (event) => {
+        onlyChild.props.onPress(event);
+        if (event?.defaultPrevented) {
+            return;
+        }
+        open();
     };
-    return (
-        <PressableWithFeedback
-            ref={ref}
-            onPress={handlePress}
-            accessibilityLabel={accessibilityLabel}
-            sentryLabel={sentryLabel}
-            style={style}
-            disabled={disabled}
-            role={role}
-            testID={testID}
-        >
-            {children}
-        </PressableWithFeedback>
-    );
+
+    return React.cloneElement(onlyChild as React.ReactElement<Partial<PressableProps>>, {
+        ref: mergeRefs(ref, onlyChild.props.ref) as PressableProps['ref'],
+        onPress: handlePress,
+    });
 }
 
 Trigger.displayName = 'PopoverMenu.Trigger';
 
 export default Trigger;
-export type {TriggerProps};
+export type {TriggerProps, TriggerSlotProps};
