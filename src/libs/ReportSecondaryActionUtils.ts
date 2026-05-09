@@ -54,6 +54,7 @@ import {
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
     hasExportError as hasExportErrorUtils,
+    hasHeldExpensesFromTransactions,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
@@ -439,12 +440,12 @@ function isCancelPaymentAction(
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isReceivedPaymentAction(report: Report, reportActions: ReportAction[] = [], policy?: Policy): boolean {
+function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
     if (!isExpenseReportUtils(report) || !isCurrentUserSubmitter(report)) {
         return false;
     }
 
-    if (!arePaymentsEnabledUtils(policy) || policy?.role === CONST.POLICY.ROLE.ADMIN || report.isWaitingOnBankAccount) {
+    if (!arePaymentsEnabledUtils(policy) || policy?.role === CONST.POLICY.ROLE.ADMIN || report.isWaitingOnBankAccount || hasHeldExpensesFromTransactions(reportTransactions)) {
         return false;
     }
 
@@ -960,7 +961,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     }
 
-    if (isReceivedPaymentAction(report, reportActions, policy)) {
+    if (isReceivedPaymentAction(report, reportTransactions, reportActions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT);
     }
 
