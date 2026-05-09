@@ -64,6 +64,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
 import * as CollectionUtils from '@libs/CollectionUtils';
+import ConciergeReasoningStore from '@libs/ConciergeReasoningStore';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -88,7 +89,6 @@ import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import capturePageHTML from '@libs/PageHTMLCapture';
-import PaginationUtils from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -212,7 +212,6 @@ import type {
     Onboarding,
     OnboardingPurpose,
     OnboardingRHPVariant,
-    Pages,
     PersonalDetailsList,
     Policy,
     PolicyEmployee,
@@ -432,6 +431,10 @@ Onyx.connect({
 
 const typingWatchTimers: Record<string, NodeJS.Timeout> = {};
 
+// Track subscriptions to conciergeReasoning Pusher events to avoid duplicates.
+// Maps reportID to the PusherSubscription handle for proper per-callback cleanup.
+const reasoningSubscriptions = new Map<string, ReturnType<typeof Pusher.subscribe>>();
+
 let reportIDDeeplinkedFromOldDot: string | undefined;
 Linking.getInitialURL().then((url) => {
     reportIDDeeplinkedFromOldDot = processReportIDDeeplink(url ?? '');
@@ -607,6 +610,64 @@ function unsubscribeFromLeavingRoomReportChannel(reportID: string | undefined) {
     const pusherChannelName = getReportChannelName(reportID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportID}`, false);
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_LEAVING_ROOM);
+}
+
+/**
+ * Subscribe to conciergeReasoning Pusher events for a report.
+ * Tracks subscriptions to avoid duplicates and updates ConciergeReasoningStore with reasoning data.
+ */
+function subscribeToReportReasoningEvents(reportID: string) {
+    if (!reportID || reasoningSubscriptions.has(reportID)) {
+        return;
+    }
+
+    const pusherChannelName = getReportChannelName(reportID);
+
+    const handle = Pusher.subscribe(pusherChannelName, Pusher.TYPE.CONCIERGE_REASONING, (data: Record<string, unknown>) => {
+        const eventData = data as {reasoning: string; agentZeroRequestID: string; loopCount: number};
+
+        ConciergeReasoningStore.addReasoning(reportID, {
+            reasoning: eventData.reasoning,
+            agentZeroRequestID: eventData.agentZeroRequestID,
+            loopCount: eventData.loopCount,
+        });
+    });
+
+    // Store the handle immediately to prevent duplicate subscriptions
+    reasoningSubscriptions.set(reportID, handle);
+
+    handle.catch((error: ReportError) => {
+        Log.hmmm('[Report] Failed to subscribe to Pusher concierge reasoning events', {errorType: error.type, pusherChannelName, reportID});
+        // Remove from subscriptions if subscription failed
+        reasoningSubscriptions.delete(reportID);
+    });
+}
+
+/**
+ * Unsubscribe from conciergeReasoning Pusher events for a report.
+ * Clears reasoning state and removes from subscription tracking.
+ */
+function unsubscribeFromReportReasoningChannel(reportID: string) {
+    const handle = reasoningSubscriptions.get(reportID);
+    if (!reportID || !handle) {
+        return;
+    }
+
+    // Use the per-callback handle for precise cleanup instead of the global
+    // Pusher.unsubscribe which removes ALL callbacks for the event on the channel.
+    handle.unsubscribe();
+    ConciergeReasoningStore.clearReasoning(reportID);
+    reasoningSubscriptions.delete(reportID);
+}
+
+/**
+ * Clear the AgentZero processing indicator for a report.
+ * Used by the safety timeout (lease pattern) and network reconnect handler
+ * to auto-clear stale indicators when the CLEAR update was missed.
+ */
+function clearAgentZeroProcessingIndicator(reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: null});
+    ConciergeReasoningStore.clearReasoning(reportID);
 }
 
 // New action subscriber array for report pages
@@ -1719,18 +1780,6 @@ function openReport(params: OpenReportActionParams) {
             checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
         });
     }
-}
-
-/**
- * Drops stale mid-chat pagination rows after the list shows the live tail and scroll completed.
- */
-function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sortedReportActions: ReportAction[], pages: Pages | undefined) {
-    if (!reportID || !pages?.length || pages.length <= 1) {
-        return;
-    }
-
-    const pruned = PaginationUtils.prunePagesToNewestWindow(sortedReportActions, pages, (action) => action.reportActionID);
-    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`, pruned);
 }
 
 /**
@@ -7612,6 +7661,14 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
+function setConciergeThinkingKickoff() {
+    Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, true);
+}
+
+function clearConciergeThinkingKickoff() {
+    Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, null);
+}
+
 export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams, ParticipantInfo};
 
 export {
@@ -7693,6 +7750,11 @@ export {
     startNewChat,
     subscribeToNewActionEvent,
     subscribeToReportLeavingEvents,
+    clearAgentZeroProcessingIndicator,
+    clearConciergeThinkingKickoff,
+    setConciergeThinkingKickoff,
+    subscribeToReportReasoningEvents,
+    unsubscribeFromReportReasoningChannel,
     subscribeToReportTypingEvents,
     toggleEmojiReaction,
     togglePinnedState,
@@ -7728,7 +7790,6 @@ export {
     optimisticReportLastData,
     setOptimisticTransactionThread,
     prepareOnyxDataForCleanUpOptimisticParticipants,
-    pruneReportActionPagesToNewestWindow,
     getGuidedSetupDataForOpenReport,
     getReportChannelName,
 };

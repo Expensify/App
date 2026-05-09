@@ -21,6 +21,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -205,8 +206,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {isBetaEnabled} = usePermissions();
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [pendingRulesDocumentFile, setPendingRulesDocumentFile] = useState<FileObject | undefined>();
-    const [isProtectedRulesDocumentVisible, setIsProtectedRulesDocumentVisible] = useState(false);
-    const [isCorruptedRulesDocumentVisible, setIsCorruptedRulesDocumentVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
     const rulesDocumentSourceURL = useMemo(
@@ -649,32 +649,24 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                     }}
                     onPassword={() => {
                         setPendingRulesDocumentFile(undefined);
-                        setIsProtectedRulesDocumentVisible(true);
+                        showConfirmModal({
+                            title: translate('attachmentPicker.attachmentError'),
+                            prompt: translate('attachmentPicker.protectedPDFNotSupported'),
+                            confirmText: translate('common.close'),
+                            shouldShowCancelButton: false,
+                        });
                     }}
                     onLoadError={() => {
                         setPendingRulesDocumentFile(undefined);
-                        setIsCorruptedRulesDocumentVisible(true);
+                        showConfirmModal({
+                            title: translate('attachmentPicker.attachmentError'),
+                            prompt: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+                            confirmText: translate('common.close'),
+                            shouldShowCancelButton: false,
+                        });
                     }}
                 />
             )}
-            <ConfirmModal
-                title={translate('attachmentPicker.attachmentError')}
-                isVisible={isProtectedRulesDocumentVisible}
-                onConfirm={() => setIsProtectedRulesDocumentVisible(false)}
-                onCancel={() => setIsProtectedRulesDocumentVisible(false)}
-                prompt={translate('attachmentPicker.protectedPDFNotSupported')}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
-            />
-            <ConfirmModal
-                title={translate('attachmentPicker.attachmentError')}
-                isVisible={isCorruptedRulesDocumentVisible}
-                onConfirm={() => setIsCorruptedRulesDocumentVisible(false)}
-                onCancel={() => setIsCorruptedRulesDocumentVisible(false)}
-                prompt={translate('attachmentPicker.errorWhileSelectingCorruptedAttachment')}
-                confirmText={translate('common.close')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
     return (

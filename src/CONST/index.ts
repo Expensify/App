@@ -3662,6 +3662,7 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
+            SYNC_WITH_GUSTO: 'syncWithGusto',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',

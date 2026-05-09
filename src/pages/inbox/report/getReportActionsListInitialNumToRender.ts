@@ -1,6 +1,6 @@
 type GetReportActionsListInitialNumToRenderParams = {
     numToRender: number;
-    initialScrollKey?: string;
+    linkedReportActionID?: string;
     shouldScrollToEndAfterLayout: boolean;
     hasCreatedActionAdded?: boolean;
     sortedVisibleReportActionsLength: number;
@@ -10,20 +10,20 @@ type GetReportActionsListInitialNumToRenderParams = {
 
 export default function getReportActionsListInitialNumToRender({
     numToRender,
-    initialScrollKey,
+    linkedReportActionID,
     shouldScrollToEndAfterLayout,
     hasCreatedActionAdded,
     sortedVisibleReportActionsLength,
     isOffline,
     getInitialNumToRender,
-}: GetReportActionsListInitialNumToRenderParams): number {
+}: GetReportActionsListInitialNumToRenderParams): number | undefined {
     if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
         return sortedVisibleReportActionsLength;
     }
 
-    if (initialScrollKey) {
+    if (linkedReportActionID) {
         return getInitialNumToRender(numToRender);
     }
 
-    return numToRender;
+    return numToRender || undefined;
 }
