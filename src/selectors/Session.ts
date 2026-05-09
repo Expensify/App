@@ -9,4 +9,6 @@ const sessionEmailAndAccountIDSelector = (session: OnyxEntry<Session>) => ({emai
 
 const authTokenSelector = (session: OnyxEntry<Session>) => session?.authToken;
 
-export {emailSelector, accountIDSelector, sessionEmailAndAccountIDSelector, authTokenSelector};
+const signedInWithSAMLSelector = (session: OnyxEntry<Session>) => session?.signedInWithSAML;
+
+export {emailSelector, accountIDSelector, sessionEmailAndAccountIDSelector, authTokenSelector, signedInWithSAMLSelector};
