@@ -12,7 +12,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {BulkPaySelectionData, PaymentData, SearchQueryJSON} from '@components/Search/types';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
-import {deleteAppReport, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
+import {deleteAppReport, exportReportToPDF, markAsManuallyExported, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
     bulkDeleteReports,
@@ -246,6 +246,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
+    const [pdfReportID, setPDFReportID] = useState<string>();
     const {showConfirmModal} = useConfirmModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
@@ -260,6 +262,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Export',
+        'Download',
         'Table',
         'TablePencil',
         'DocumentMerge',
@@ -527,6 +530,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hash,
         selectAllMatchingItems,
     ]);
+
+    const handleDownloadReportPDF = useCallback(() => {
+        if (isOffline) {
+            setIsOfflineModalVisible(true);
+            return;
+        }
+
+        const reportID = selectedReportIDs.at(0);
+        if (!reportID) {
+            return;
+        }
+
+        setPDFReportID(reportID);
+        setIsPDFModalVisible(true);
+        exportReportToPDF({reportID});
+    }, [isOffline, selectedReportIDs]);
 
     const handleApproveWithDEWCheck = useCallback(async () => {
         if (isOffline) {
@@ -1059,6 +1078,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
 
             if (!allSelectedAreDeleted) {
+                if (isReportsTab && selectedReportIDs.length === 1 && includeReportLevelExport) {
+                    exportOptions.push({
+                        text: translate('common.downloadAsPDF'),
+                        icon: expensifyIcons.Download,
+                        onSelected: handleDownloadReportPDF,
+                        shouldCloseModalOnSelect: true,
+                        shouldCallAfterModalHide: true,
+                    });
+                }
+
                 for (const template of exportTemplates) {
                     const isStandardTemplate =
                         template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
@@ -1513,6 +1542,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showConfirmModal,
         clearSelectedTransactions,
         handleBasicExport,
+        handleDownloadReportPDF,
         beginExportWithTemplate,
         handleApproveWithDEWCheck,
         allTransactionViolations,
@@ -1556,6 +1586,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         setIsDownloadErrorModalVisible(false);
     }, [setIsDownloadErrorModalVisible]);
 
+    const handlePDFModalClose = useCallback(() => {
+        setIsPDFModalVisible(false);
+    }, []);
+
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
@@ -1586,11 +1620,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         confirmPayment: stableOnBulkPaySelected,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
+        isPDFModalVisible,
+        pdfReportID,
         isHoldEducationalModalVisible,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
+        handlePDFModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
         isDuplicateOptionVisible,
