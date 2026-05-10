@@ -23,9 +23,10 @@ type ReportPDFDownloadModalProps = {
     reportID: string | undefined;
     isVisible: boolean;
     onClose: () => void;
+    onModalHide?: () => void;
 };
 
-function ReportPDFDownloadModal({reportID, isVisible, onClose}: ReportPDFDownloadModalProps) {
+function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide}: ReportPDFDownloadModalProps) {
     const shouldAutoDownloadPDF = useRef(false);
 
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${reportID}`);
@@ -76,6 +77,7 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose}: ReportPDFDownloa
     return (
         <Modal
             onClose={onClose}
+            onModalHide={onModalHide}
             isVisible={isVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
