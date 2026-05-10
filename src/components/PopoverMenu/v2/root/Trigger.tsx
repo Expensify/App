@@ -1,14 +1,17 @@
 import React, {Children, Fragment, isValidElement} from 'react';
 import type {ReactElement, Ref} from 'react';
-import type {View} from 'react-native';
+import type {AccessibilityState, View} from 'react-native';
+import composeEventHandlers from '@components/PopoverMenu/v2/composeEventHandlers';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import mergeRefs from '@libs/mergeRefs';
+import {useRootState} from './RootContext';
 import useAnchorOpener from './useAnchorOpener';
 
 /** Minimum props a `<Trigger>` child must support so the menu can attach an anchor ref and open on press. */
 type TriggerSlotProps = {
     ref?: Ref<View>;
     onPress: NonNullable<PressableProps['onPress']>;
+    accessibilityState?: AccessibilityState;
 };
 
 type TriggerProps = {
@@ -18,6 +21,9 @@ type TriggerProps = {
 /** Slot wrapper: clones its single child with a merged ref + composed `onPress` (consumer first, then open). Consumer can call `event.preventDefault()` to gate the open. */
 function Trigger({children}: TriggerProps): React.ReactElement {
     const {ref, open} = useAnchorOpener(Trigger.displayName);
+    const {
+        state: {isVisible},
+    } = useRootState(Trigger.displayName);
 
     const onlyChild = Children.only(children);
 
@@ -29,17 +35,14 @@ function Trigger({children}: TriggerProps): React.ReactElement {
         throw new Error(`<${Trigger.displayName}> cannot wrap a Fragment; pass one pressable element (e.g. <PressableWithFeedback>).`);
     }
 
-    const handlePress: NonNullable<PressableProps['onPress']> = (event) => {
-        onlyChild.props.onPress?.(event);
-        if (event?.defaultPrevented) {
-            return;
-        }
+    const handlePress = composeEventHandlers(onlyChild.props.onPress, () => {
         open();
-    };
+    });
 
     return React.cloneElement(onlyChild as React.ReactElement<Partial<PressableProps>>, {
         ref: mergeRefs(ref, onlyChild.props.ref) as PressableProps['ref'],
         onPress: handlePress,
+        accessibilityState: {...onlyChild.props.accessibilityState, expanded: isVisible},
     });
 }
 

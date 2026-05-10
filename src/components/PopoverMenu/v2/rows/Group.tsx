@@ -8,7 +8,7 @@ type GroupProps = {
     children: ReactNode;
 };
 
-/** Transparent ARIA `role="group"` wrapper for related rows. */
+/** Stays mounted across sub-navigation so `<Sub>` descendants don't unmount. */
 function Group({children}: GroupProps): React.ReactElement {
     useContentSubActions(Group.displayName);
     return <View role={CONST.ROLE.GROUP}>{children}</View>;

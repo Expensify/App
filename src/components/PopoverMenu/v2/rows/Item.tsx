@@ -49,7 +49,7 @@ function Item({text, onSelect, disabled = false, pendingAction, testID, rightIco
                 onFocus={onFocus}
                 focused={focused}
                 shouldCheckActionAllowedOnPress={false}
-                role={CONST.ROLE.BUTTON}
+                role={CONST.ROLE.MENUITEM}
                 pressableTestID={testID ?? `PopoverMenu.Item-${text}`}
             />
         </OfflineWithFeedback>

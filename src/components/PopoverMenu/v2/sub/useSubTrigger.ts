@@ -5,6 +5,8 @@ import {ContentNavigationContext, ContentSubActionsContext} from '@components/Po
 import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
 import {SubContext} from './SubContext';
 
+const HOOK_NAME = 'useSubTrigger';
+
 type UseSubTriggerResult = {
     ref: RefObject<View | null>;
     onPress: () => void;
@@ -17,18 +19,21 @@ type UseSubTriggerResult = {
 function useSubTrigger({disabled = false}: {disabled?: boolean} = {}): UseSubTriggerResult {
     const subContext = use(SubContext);
     if (!subContext) {
-        throw new Error('useSubTrigger() must be called inside <PopoverMenu.Sub>.');
+        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Sub>.`);
     }
     const navigation = use(ContentNavigationContext);
+    if (!navigation) {
+        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Content>.`);
+    }
     const subActions = use(ContentSubActionsContext);
-    if (!navigation || !subActions) {
-        throw new Error('useSubTrigger() must be called inside <PopoverMenu.Content>.');
+    if (!subActions) {
+        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Content>.`);
     }
 
     const isAtActiveLevel = navigation.currentSubID === subContext.parentSubID;
 
     const row = useFocusableRow({
-        componentName: 'useSubTrigger',
+        componentName: HOOK_NAME,
         visible: isAtActiveLevel,
         isDisabled: disabled,
         onActivate: () => {

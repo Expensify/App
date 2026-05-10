@@ -1,7 +1,9 @@
 import React, {Children, Fragment, isValidElement} from 'react';
 import type {ReactElement, Ref} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, View} from 'react-native';
+import composeEventHandlers from '@components/PopoverMenu/v2/composeEventHandlers';
 import mergeRefs from '@libs/mergeRefs';
+import {useRootState} from './RootContext';
 import useAnchorOpener from './useAnchorOpener';
 
 type SecondaryInteractionHandler = (event: GestureResponderEvent | MouseEvent) => void;
@@ -10,6 +12,7 @@ type SecondaryInteractionHandler = (event: GestureResponderEvent | MouseEvent) =
 type SecondaryInteractionTriggerSlotProps = {
     ref?: Ref<View>;
     onSecondaryInteraction: SecondaryInteractionHandler;
+    accessibilityState?: AccessibilityState;
 };
 
 type SecondaryInteractionTriggerProps = {
@@ -19,6 +22,9 @@ type SecondaryInteractionTriggerProps = {
 /** Long-press (native) / right-click (web) variant of `<Trigger>`. Consumer can call `event.preventDefault()` to gate the open. */
 function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProps): React.ReactElement {
     const {ref, open} = useAnchorOpener(SecondaryInteractionTrigger.displayName);
+    const {
+        state: {isVisible},
+    } = useRootState(SecondaryInteractionTrigger.displayName);
 
     const onlyChild = Children.only(children);
 
@@ -30,17 +36,14 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
         throw new Error(`<${SecondaryInteractionTrigger.displayName}> cannot wrap a Fragment; pass one pressable element (e.g. <PressableWithSecondaryInteraction>).`);
     }
 
-    const handleSecondaryInteraction: SecondaryInteractionHandler = (event) => {
-        onlyChild.props.onSecondaryInteraction?.(event);
-        if (event.defaultPrevented) {
-            return;
-        }
+    const handleSecondaryInteraction = composeEventHandlers<GestureResponderEvent | MouseEvent>(onlyChild.props.onSecondaryInteraction, () => {
         open();
-    };
+    });
 
     return React.cloneElement(onlyChild as React.ReactElement<Partial<SecondaryInteractionTriggerSlotProps>>, {
         ref: mergeRefs(ref, onlyChild.props.ref),
         onSecondaryInteraction: handleSecondaryInteraction,
+        accessibilityState: {...onlyChild.props.accessibilityState, expanded: isVisible},
     });
 }
 

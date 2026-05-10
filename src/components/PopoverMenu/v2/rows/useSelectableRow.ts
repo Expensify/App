@@ -1,9 +1,12 @@
 import {use} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
+import composeEventHandlers from '@components/PopoverMenu/v2/composeEventHandlers';
 import {ContentCloseContext} from '@components/PopoverMenu/v2/content/ContentContext';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import useFocusableRow from './useFocusableRow';
+
+const HOOK_NAME = 'useSelectableRow';
 
 type ItemSelectEvent = {
     defaultPrevented: boolean;
@@ -32,12 +35,12 @@ type UseSelectableRowResult = {
 function useSelectableRow({onSelect, disabled = false}: {onSelect?: (event: ItemSelectEvent) => void; disabled?: boolean} = {}): UseSelectableRowResult {
     const close = use(ContentCloseContext);
     if (close === null) {
-        throw new Error('useSelectableRow() must be called inside <PopoverMenu.Content>.');
+        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Content>.`);
     }
-    const isAtActiveLevel = useIsAtActiveLevel('useSelectableRow');
+    const isAtActiveLevel = useIsAtActiveLevel(HOOK_NAME);
 
     const row = useFocusableRow({
-        componentName: 'useSelectableRow',
+        componentName: HOOK_NAME,
         visible: isAtActiveLevel,
         isDisabled: disabled,
         onActivate: () => {
@@ -45,11 +48,8 @@ function useSelectableRow({onSelect, disabled = false}: {onSelect?: (event: Item
                 return;
             }
             const event = createSelectEvent();
-            onSelect?.(event);
-            if (event.defaultPrevented) {
-                return;
-            }
-            close();
+            const handleSelect = composeEventHandlers<ItemSelectEvent>(onSelect, () => close());
+            handleSelect(event);
         },
     });
 

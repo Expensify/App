@@ -71,7 +71,7 @@ function CheckmarkItem({
                 onFocus={onFocus}
                 focused={focused}
                 shouldCheckActionAllowedOnPress={false}
-                role={CONST.ROLE.BUTTON}
+                role={CONST.ROLE.MENUITEM}
                 pressableTestID={testID ?? `PopoverMenu.CheckmarkItem-${text}`}
             />
         </OfflineWithFeedback>

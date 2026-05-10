@@ -1,4 +1,3 @@
-// Split state and actions across two contexts so trigger renders don't react to visibility changes.
 import {createContext, use} from 'react';
 import type {Dispatch, RefObject, SetStateAction} from 'react';
 import type {View} from 'react-native';

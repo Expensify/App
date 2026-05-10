@@ -5,6 +5,8 @@ import {ContentNavigationContext, ContentSubActionsContext} from '@components/Po
 import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
 import {SubContext} from './SubContext';
 
+const HOOK_NAME = 'useSubBackButton';
+
 type UseSubBackButtonResult = {
     ref: RefObject<View | null>;
     onPress: () => void;
@@ -17,18 +19,21 @@ type UseSubBackButtonResult = {
 function useSubBackButton(): UseSubBackButtonResult {
     const subContext = use(SubContext);
     if (!subContext) {
-        throw new Error('useSubBackButton() must be called inside <PopoverMenu.Sub>.');
+        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Sub>.`);
     }
     const navigation = use(ContentNavigationContext);
+    if (!navigation) {
+        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Content>.`);
+    }
     const subActions = use(ContentSubActionsContext);
-    if (!navigation || !subActions) {
-        throw new Error('useSubBackButton() must be called inside <PopoverMenu.Content>.');
+    if (!subActions) {
+        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Content>.`);
     }
 
     const isAtActiveLevel = navigation.currentSubID === subContext.subID;
 
     const row = useFocusableRow({
-        componentName: 'useSubBackButton',
+        componentName: HOOK_NAME,
         visible: isAtActiveLevel,
         onActivate: () => subActions.exitSub(subContext.parentSubID),
     });

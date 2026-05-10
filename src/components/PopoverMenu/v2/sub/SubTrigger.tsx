@@ -47,13 +47,13 @@ function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconH
             onFocus={onFocus}
             focused={focused}
             shouldCheckActionAllowedOnPress={false}
-            role={CONST.ROLE.BUTTON}
-            pressableTestID={testID ?? `PopoverMenu.SubTrigger-${text}`}
+            role={CONST.ROLE.MENUITEM}
+            pressableTestID={testID ?? `PopoverMenu.Sub.Trigger-${text}`}
         />
     );
 }
 
-SubTrigger.displayName = 'PopoverMenu.SubTrigger';
+SubTrigger.displayName = 'PopoverMenu.Sub.Trigger';
 
 export default SubTrigger;
 export type {SubTriggerProps};

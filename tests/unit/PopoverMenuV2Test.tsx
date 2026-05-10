@@ -2000,7 +2000,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.SubTrigger> must be rendered inside <PopoverMenu\.Sub>/);
+            ).toThrow(/<PopoverMenu\.Sub\.Trigger> must be rendered inside <PopoverMenu\.Sub>/);
         });
 
         it('throws when useSelectableRow is called outside Content', () => {
@@ -2077,7 +2077,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.SubContent> must be rendered inside <PopoverMenu\.Sub>/);
+            ).toThrow(/<PopoverMenu\.Sub\.Content> must be rendered inside <PopoverMenu\.Sub>/);
         });
     });
 });
