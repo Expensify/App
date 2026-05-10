@@ -101,7 +101,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             }
             return;
         }
-        
+
         // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         if (isExpenseReport(report) && isPolicyAdmin(policy) && submitterLogin && !isPolicyMember(policy, submitterLogin)) {
             const employeeList = policy?.employeeList;
