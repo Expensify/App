@@ -12,12 +12,12 @@ type RootProps = {
 function Root({children, defaultOpen = false}: RootProps): React.ReactElement {
     const [isVisible, setIsVisible] = useState(defaultOpen);
     const [activeAnchor, setActiveAnchor] = useState<ActiveAnchor | null>(null);
-    const triggerId = useId();
-    const contentId = useId();
+    const triggerID = useId();
+    const contentID = useId();
 
     const stateValue: RootState = {
         state: {isVisible},
-        meta: {activeAnchor, triggerId, contentId},
+        meta: {activeAnchor, triggerID, contentID},
     };
     const actions: RootActions = {setIsVisible, setActiveAnchor};
 

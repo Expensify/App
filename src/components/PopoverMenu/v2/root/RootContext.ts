@@ -17,9 +17,9 @@ type RootState = {
     meta: {
         activeAnchor: ActiveAnchor | null;
         /** Stable id linking Trigger ↔ Content for `accessibilityLabelledBy` / `aria-controls`. */
-        triggerId: string;
+        triggerID: string;
         /** Stable id on Content's surface so triggers can advertise `aria-controls`. */
-        contentId: string;
+        contentID: string;
     };
 };
 

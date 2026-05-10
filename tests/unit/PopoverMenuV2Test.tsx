@@ -2079,5 +2079,73 @@ describe('PopoverMenu V2', () => {
                 ),
             ).toThrow(/<PopoverMenu\.Sub\.Content> must be rendered inside <PopoverMenu\.Sub>/);
         });
+
+        it('throws when Header is rendered outside Content', () => {
+            expect(() =>
+                render(
+                    <Harness initialOpen>
+                        <PopoverMenu.Header>Title</PopoverMenu.Header>
+                    </Harness>,
+                ),
+            ).toThrow(/<PopoverMenu\.Header> must be rendered inside <PopoverMenu\.Content>/);
+        });
+
+        it('throws when Label is rendered outside Content', () => {
+            expect(() =>
+                render(
+                    <Harness initialOpen>
+                        <PopoverMenu.Label text="Label" />
+                    </Harness>,
+                ),
+            ).toThrow(/<PopoverMenu\.Label> must be rendered inside <PopoverMenu\.Content>/);
+        });
+
+        it('throws when CheckmarkItem is rendered outside Content', () => {
+            expect(() =>
+                render(
+                    <Harness initialOpen>
+                        <PopoverMenu.CheckmarkItem
+                            text="X"
+                            onSelect={() => {}}
+                        />
+                    </Harness>,
+                ),
+            ).toThrow(/<PopoverMenu\.CheckmarkItem> must be rendered inside <PopoverMenu\.Content>/);
+        });
+
+        it('throws when Separator is rendered outside Content', () => {
+            expect(() =>
+                render(
+                    <Harness initialOpen>
+                        <PopoverMenu.Separator />
+                    </Harness>,
+                ),
+            ).toThrow(/<PopoverMenu\.Separator> must be rendered inside <PopoverMenu\.Content>/);
+        });
+
+        it('throws when Sub.BackButton is rendered outside Sub', () => {
+            expect(() =>
+                render(
+                    <Harness initialOpen>
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Sub.BackButton text="Back" />
+                        </PopoverMenu.Content>
+                    </Harness>,
+                ),
+            ).toThrow(/<PopoverMenu\.Sub\.BackButton> must be rendered inside <PopoverMenu\.Sub>/);
+        });
+
+        it('throws when ScrollableContent is rendered outside Root', () => {
+            expect(() =>
+                render(
+                    <PopoverMenu.ScrollableContent>
+                        <PopoverMenu.Item
+                            text="X"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.ScrollableContent>,
+                ),
+            ).toThrow(/<PopoverMenu\.ScrollableContent> must be rendered inside <PopoverMenu\.Root>/);
+        });
     });
 });

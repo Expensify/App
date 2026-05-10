@@ -25,7 +25,7 @@ function Trigger({children}: TriggerProps): React.ReactElement {
     const {ref, open} = useAnchorOpener(Trigger.displayName);
     const {
         state: {isVisible},
-        meta: {triggerId, contentId},
+        meta: {triggerID, contentID},
     } = useRootState(Trigger.displayName);
 
     const onlyChild = Children.only(children);
@@ -46,8 +46,8 @@ function Trigger({children}: TriggerProps): React.ReactElement {
         ref: mergeRefs(ref, onlyChild.props.ref),
         onPress: handlePress,
         accessibilityState: {...onlyChild.props.accessibilityState, expanded: isVisible},
-        nativeID: triggerId,
-        accessibilityControls: isVisible ? contentId : undefined,
+        nativeID: triggerID,
+        accessibilityControls: isVisible ? contentID : undefined,
     });
 }
 

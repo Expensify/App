@@ -35,7 +35,7 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
     const {ref, open} = useAnchorOpener(SecondaryInteractionTrigger.displayName);
     const {
         state: {isVisible},
-        meta: {triggerId, contentId},
+        meta: {triggerID, contentID},
     } = useRootState(SecondaryInteractionTrigger.displayName);
 
     const onlyChild = Children.only(children);
@@ -56,8 +56,8 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
         ref: mergeRefs(ref, onlyChild.props.ref),
         onSecondaryInteraction: handleSecondaryInteraction,
         accessibilityState: {...onlyChild.props.accessibilityState, expanded: isVisible},
-        nativeID: triggerId,
-        accessibilityControls: isVisible ? contentId : undefined,
+        nativeID: triggerID,
+        accessibilityControls: isVisible ? contentID : undefined,
     });
 }
 
