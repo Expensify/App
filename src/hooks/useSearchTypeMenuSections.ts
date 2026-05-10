@@ -53,6 +53,57 @@ type UseSearchTypeMenuSectionsParams = {
     type?: string;
 };
 
+type GetActiveItemIndexParams = {
+    typeMenuSections: ReturnType<typeof createTypeMenuSections>;
+    savedSearches: OnyxEntry<Record<string, unknown>>;
+    hash?: number;
+    similarSearchHash?: number;
+    sortBy?: string;
+    sortOrder?: string;
+    type?: string;
+};
+
+function getActiveItemIndex({typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type}: GetActiveItemIndexParams): number {
+    const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
+
+    if (isSavedSearchActive) {
+        return -1;
+    }
+
+    let index = 0;
+    for (const section of typeMenuSections) {
+        const found = section.menuItems.findIndex((item) => {
+            if (item.similarSearchHash !== similarSearchHash) {
+                return false;
+            }
+            return doesSearchItemMatchSort(item.key, item.searchQueryJSON?.sortBy, item.searchQueryJSON?.sortOrder, sortBy, sortOrder);
+        });
+        if (found !== -1) {
+            return index + found;
+        }
+        index += section.menuItems.length;
+    }
+
+    // Fallback: if no exact match found, select the generic search key matching the type
+    const typeToGenericKey: Record<string, string> = {
+        [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+        [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
+    };
+    const fallbackKey = type ? typeToGenericKey[type] : undefined;
+    if (fallbackKey) {
+        let fallbackIndex = 0;
+        for (const section of typeMenuSections) {
+            const found = section.menuItems.findIndex((item) => item.key === fallbackKey);
+            if (found !== -1) {
+                return fallbackIndex + found;
+            }
+            fallbackIndex += section.menuItems.length;
+        }
+    }
+
+    return -1;
+}
+
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
@@ -127,51 +178,29 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
         ],
     );
 
-    const activeItemIndex = useMemo(() => {
-        const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
+    const activeItemIndex = useMemo(
+        () =>
+            getActiveItemIndex({
+                typeMenuSections,
+                savedSearches: savedSearches as OnyxEntry<Record<string, unknown>>,
+                hash,
+                similarSearchHash,
+                sortBy,
+                sortOrder,
+                type,
+            }),
+        [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type],
+    );
 
-        if (isSavedSearchActive) {
-            return -1;
-        }
-
-        let index = 0;
-        for (const section of typeMenuSections) {
-            const found = section.menuItems.findIndex((item) => {
-                if (item.similarSearchHash !== similarSearchHash) {
-                    return false;
-                }
-                return doesSearchItemMatchSort(item.key, item.searchQueryJSON?.sortBy, item.searchQueryJSON?.sortOrder, sortBy, sortOrder);
-            });
-            if (found !== -1) {
-                return index + found;
-            }
-            index += section.menuItems.length;
-        }
-
-        // Fallback: if no exact match found, select the generic search key matching the type
-        const typeToGenericKey: Record<string, string> = {
-            [CONST.SEARCH.DATA_TYPES.EXPENSE]: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-            [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: CONST.SEARCH.SEARCH_KEYS.REPORTS,
-        };
-        const fallbackKey = type ? typeToGenericKey[type] : undefined;
-        if (fallbackKey) {
-            let fallbackIndex = 0;
-            for (const section of typeMenuSections) {
-                const found = section.menuItems.findIndex((item) => item.key === fallbackKey);
-                if (found !== -1) {
-                    return fallbackIndex + found;
-                }
-                fallbackIndex += section.menuItems.length;
-            }
-        }
-
-        return -1;
-    }, [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type]);
+    const flattenedTypeMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
+    const activeItemKey = useMemo(() => flattenedTypeMenuItems.at(activeItemIndex)?.key, [flattenedTypeMenuItems, activeItemIndex]);
 
     return {
         typeMenuSections,
         activeItemIndex,
+        activeItemKey,
     };
 };
 
+export {getActiveItemIndex};
 export default useSearchTypeMenuSections;

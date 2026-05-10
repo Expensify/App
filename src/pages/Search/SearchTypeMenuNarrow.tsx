@@ -48,6 +48,10 @@ type SearchTypeMenuNarrowContentProps = {
     children?: React.ReactNode;
 };
 
+function getNarrowActiveTabKey(activeSavedSearchKey: string, activeItemKey?: string): string {
+    return activeSavedSearchKey || activeItemKey || '';
+}
+
 function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchTypeMenuNarrowContentProps) {
     const styles = useThemeStyles();
 
@@ -74,7 +78,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryJSON ?? {};
+    const {typeMenuSections, activeItemKey} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
     const personalDetails = usePersonalDetails();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
@@ -132,7 +137,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const queryMap = new Map<string, {query: string; name?: string}>();
     const tabItems: TabSelectorBaseItem[] = [];
     const savedSearchesPopoverMenuItems: Record<string, PopoverMenuItem[]> = {};
-    let activeKey = '';
+    let activeSavedSearchKey = '';
 
     const savedSearchesTabItems: TabSelectorBaseItem[] = savedSearches
         ? Object.entries(savedSearches)
@@ -149,7 +154,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                   );
 
                   if (Number(key) === queryJSON?.hash) {
-                      activeKey = key;
+                      activeSavedSearchKey = key;
                   }
 
                   return {
@@ -178,12 +183,10 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     badgeText,
                 });
                 queryMap.set(item.key, {query: item.searchQuery});
-                if (item.similarSearchHash === queryJSON?.similarSearchHash) {
-                    activeKey = item.key;
-                }
             }
         }
     }
+    const activeKey = getNarrowActiveTabKey(activeSavedSearchKey, activeItemKey);
 
     const popoverMenuItems = savedSearchToModifyKey ? savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] : [];
     const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
@@ -253,6 +256,6 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     );
 }
 
-export {SearchTypeMenuNarrowContent};
+export {getNarrowActiveTabKey, SearchTypeMenuNarrowContent};
 export default SearchTypeMenuNarrow;
 export type {SearchTypeMenuNarrowProps};
