@@ -18,6 +18,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
@@ -51,6 +52,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const {translate} = useLocalize();
     const insets = useSafeAreaInsets();
     const StyleUtils = useStyleUtils();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip', 'Close']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
 
@@ -68,7 +70,9 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        {videoResolution: {width: windowHeight, height: windowWidth}},
     ]);
+    const fps = format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30;
     const hasFlash = !!device?.hasFlash;
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = useMemo(() => (format ? format.photoHeight / format.photoWidth : undefined), [format]);
@@ -241,6 +245,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                                         ref={cameraRef}
                                         device={device}
                                         format={format ?? undefined}
+                                        fps={fps}
                                         style={styles.flex1}
                                         zoom={device.neutralZoom}
                                         photo
