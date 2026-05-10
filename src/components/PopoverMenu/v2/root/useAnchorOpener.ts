@@ -2,11 +2,11 @@ import {use, useRef} from 'react';
 import type {View} from 'react-native';
 import Log from '@libs/Log';
 import {RootActionsContext} from './RootContext';
-import type {AnchorRef} from './RootContext';
+import type {AnchorRect, AnchorRef} from './RootContext';
 
 type UseAnchorOpenerResult = {
     ref: AnchorRef;
-    open: () => void;
+    open: (overrideRect?: AnchorRect) => void;
 };
 
 function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
@@ -17,7 +17,12 @@ function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
     const {setIsVisible, setActiveAnchor} = actions;
     const ownRef: AnchorRef = useRef<View | null>(null);
 
-    const open = () => {
+    const open = (overrideRect?: AnchorRect) => {
+        if (overrideRect) {
+            setActiveAnchor({ref: ownRef, rect: overrideRect});
+            setIsVisible(true);
+            return;
+        }
         const node = ownRef.current;
         if (!node) {
             if (__DEV__) {
