@@ -426,17 +426,31 @@ describe('PopoverMenu V2', () => {
             expect(onOpenChange).not.toHaveBeenCalledWith(true);
         });
 
-        it('throws when the child is not a single React element', () => {
+        it('throws when the child is a Fragment', () => {
             const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
             expect(() =>
                 render(
                     <NavigationContext.Provider value={mockNavigation}>
                         <PopoverMenu.Root>
-                            <PopoverMenu.Trigger>{'plain text' as unknown as React.ReactElement<PopoverMenu.TriggerSlotProps>}</PopoverMenu.Trigger>
+                            <PopoverMenu.Trigger>
+                                {
+                                    (
+                                        <>
+                                            <PressableWithFeedback
+                                                onPress={() => {}}
+                                                accessibilityLabel="X"
+                                                sentryLabel="X"
+                                            >
+                                                <View />
+                                            </PressableWithFeedback>
+                                        </>
+                                    ) as unknown as React.ReactElement<PopoverMenu.TriggerSlotProps>
+                                }
+                            </PopoverMenu.Trigger>
                         </PopoverMenu.Root>
                     </NavigationContext.Provider>,
                 ),
-            ).toThrow(/<PopoverMenu\.Trigger> must receive a single React element/);
+            ).toThrow(/<PopoverMenu\.Trigger> cannot wrap a Fragment/);
             consoleError.mockRestore();
         });
     });
