@@ -38,6 +38,7 @@ function resetUSDBankAccount(
         | typeof ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN
         | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
         | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+        | typeof ONYXKEYS.BANK_ACCOUNT_LIST
     > = {
         optimisticData: [
             {
@@ -56,6 +57,11 @@ function resetUSDBankAccount(
                 value: {
                     achAccount: null,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
             },
         ],
         successData: [
@@ -128,6 +134,11 @@ function resetUSDBankAccount(
                     [INPUT_IDS.AMOUNT3]: '',
                 },
             },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: null},
+            },
         ],
         failureData: [
             {
@@ -141,6 +152,11 @@ function resetUSDBankAccount(
                 value: {
                     achAccount,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {pendingAction: null}},
             },
         ],
     };
