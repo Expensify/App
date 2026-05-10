@@ -247,6 +247,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
+    const [pdfReportID, setPDFReportID] = useState<string | undefined>(undefined);
     const {showConfirmModal} = useConfirmModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
@@ -1299,8 +1300,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (!reportIDForPDF) {
                         return;
                     }
+                    setPDFReportID(reportIDForPDF);
                     setIsPDFModalVisible(true);
                     exportReportToPDF({reportID: reportIDForPDF});
+                    clearSelectedTransactions();
                 },
             });
         }
@@ -1582,9 +1585,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const handlePDFModalClose = useCallback(() => {
         setIsPDFModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
-            clearSelectedTransactions();
+            setPDFReportID(undefined);
         });
-    }, [clearSelectedTransactions]);
+    }, []);
 
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
@@ -1622,6 +1625,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
         isPDFModalVisible,
+        pdfReportID,
         handlePDFModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
