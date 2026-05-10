@@ -21,6 +21,7 @@ function Content(props: ContentProps): React.ReactElement | null {
         <BaseContent
             // eslint-disable-next-line react/jsx-props-no-spreading -- forwarding the variant's caller props
             {...props}
+            componentName={Content.displayName}
             maxHeightStyle={maxHeightStyle}
         />
     );

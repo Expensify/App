@@ -1,11 +1,12 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
+import useHierarchyAssertion from '@components/PopoverMenu/v2/useHierarchyAssertion';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import {useSubContext} from './SubContext';
+import {SubContext} from './SubContext';
 import useSubBackButton from './useSubBackButton';
 
 type SubBackButtonProps = {
@@ -15,8 +16,7 @@ type SubBackButtonProps = {
 
 /** For non-`MenuItem` shapes, call `useSubBackButton()` directly. */
 function SubBackButton({text}: SubBackButtonProps): React.ReactElement | null {
-    // Re-resolve so the wrapper's hierarchy throw uses its component name. Sub wins over also-true "outside <Content>".
-    useSubContext(SubBackButton.displayName);
+    useHierarchyAssertion(SubBackButton.displayName, SubContext, 'Sub');
 
     const {translate} = useLocalize();
     const labelText = text ?? translate('common.goBack');

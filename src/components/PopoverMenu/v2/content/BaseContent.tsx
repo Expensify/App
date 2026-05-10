@@ -31,6 +31,7 @@ type BasePopoverProps = {
 };
 
 type BaseContentProps = BasePopoverProps & {
+    componentName: string;
     maxHeightStyle?: ViewStyle;
     /** Set to `false` by `<ScrollableContent>` since it wraps children in a `<ScrollView>` itself. */
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
@@ -45,7 +46,7 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
 function BaseContent(props: BaseContentProps): React.ReactElement | null {
     const {
         meta: {activeAnchor},
-    } = useRootState(BaseContent.displayName);
+    } = useRootState(props.componentName);
     if (!activeAnchor) {
         return null;
     }
@@ -58,10 +59,9 @@ function BaseContent(props: BaseContentProps): React.ReactElement | null {
     );
 }
 
-BaseContent.displayName = 'PopoverMenu.BaseContent';
-
 function BaseContentInner({
     children,
+    componentName,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     containerStyles,
     innerContainerStyle,
@@ -78,11 +78,11 @@ function BaseContentInner({
     const {
         state: {isVisible},
         meta: {triggerId, contentId},
-    } = useRootState(BaseContent.displayName);
+    } = useRootState(componentName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const {navigation, focus, subActions, itemActions, close} = useContentController(BaseContent.displayName);
+    const {navigation, focus, subActions, itemActions, close} = useContentController(componentName);
 
     const anchorPosition = computeAnchorPosition(activeAnchor.rect, anchorAlignment);
 

@@ -86,7 +86,7 @@ function useContentItemActions(componentName: string): ContentItemActions {
 
 function useContentClose(componentName: string): ContentClose {
     const value = use(ContentCloseContext);
-    if (value === null) {
+    if (!value) {
         throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
     }
     return value;

@@ -1,7 +1,8 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
+import {ContentCloseContext} from '@components/PopoverMenu/v2/content/ContentContext';
+import useHierarchyAssertion from '@components/PopoverMenu/v2/useHierarchyAssertion';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import variables from '@styles/variables';
@@ -41,8 +42,7 @@ function CheckmarkItem({
 }: CheckmarkItemProps): React.ReactElement | null {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    // Re-resolve so the wrapper's hierarchy throw uses its component name, not `useSelectableRow`'s.
-    useContentClose(CheckmarkItem.displayName);
+    useHierarchyAssertion(CheckmarkItem.displayName, ContentCloseContext, 'Content');
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled, text});
 
     if (!isAtActiveLevel) {

@@ -1,7 +1,8 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
+import {ContentCloseContext} from '@components/PopoverMenu/v2/content/ContentContext';
+import useHierarchyAssertion from '@components/PopoverMenu/v2/useHierarchyAssertion';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -24,8 +25,7 @@ type ItemProps = ItemOwnProps & MenuItemForwardProps;
 
 /** Standard selectable menu row. */
 function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: ItemProps): React.ReactElement | null {
-    // Re-resolve so the wrapper's hierarchy throw uses its component name, not `useSelectableRow`'s.
-    useContentClose(Item.displayName);
+    useHierarchyAssertion(Item.displayName, ContentCloseContext, 'Content');
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled, text});
 
     if (!isAtActiveLevel) {

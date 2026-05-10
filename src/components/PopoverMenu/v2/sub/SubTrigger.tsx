@@ -1,12 +1,13 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
-import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
+import {ContentSubActionsContext} from '@components/PopoverMenu/v2/content/ContentContext';
 import type {MenuItemForwardProps} from '@components/PopoverMenu/v2/rows/types';
+import useHierarchyAssertion from '@components/PopoverMenu/v2/useHierarchyAssertion';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useSubContext} from './SubContext';
+import {SubContext} from './SubContext';
 import useSubTrigger from './useSubTrigger';
 
 type SubTriggerOwnProps = {
@@ -20,9 +21,8 @@ type SubTriggerProps = SubTriggerOwnProps & MenuItemForwardProps;
 
 /** For non-`MenuItem` shapes, call `useSubTrigger()` directly. */
 function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconHeight, ...rest}: SubTriggerProps): React.ReactElement | null {
-    // Re-resolve so the wrapper's hierarchy throw uses its component name. Sub wins over also-true "outside <Content>".
-    useSubContext(SubTrigger.displayName);
-    useContentSubActions(SubTrigger.displayName);
+    useHierarchyAssertion(SubTrigger.displayName, SubContext, 'Sub');
+    useHierarchyAssertion(SubTrigger.displayName, ContentSubActionsContext, 'Content');
 
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubTrigger({disabled, text});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
