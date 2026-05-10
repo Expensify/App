@@ -1,6 +1,5 @@
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -21,42 +20,17 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getSortedReportActions} from '@libs/ReportActionsUtils';
 import variables from '@styles/variables';
 import {rejectExpenseReport} from '@userActions/IOU/RejectMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/ReportRejectForm';
-import type {ReportActions} from '@src/types/onyx';
 
 type RejectExpenseReportPageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.REPORT_REJECT>;
 
-function lastForwardedActorAccountIDSelector(reportActions: OnyxEntry<ReportActions>) {
-    if (!reportActions) {
-        return undefined;
-    }
-
-    const sortedActions = getSortedReportActions(Object.values(reportActions), true);
-
-    // Walk reverse chronologically. A SUBMITTED action marks the start of the current
-    // approval cycle — any FORWARDED actions older than that are stale (from a prior
-    // submit→approve→reject→resubmit cycle) and must be ignored.
-    let lastForwardedActorAccountID: number | undefined;
-    for (const action of sortedActions) {
-        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
-            break;
-        }
-        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED && action.actorAccountID) {
-            lastForwardedActorAccountID = action.actorAccountID;
-            break;
-        }
-    }
-
-    return lastForwardedActorAccountID;
-}
 function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const {reportID} = route.params;
     const {translate} = useLocalize();
@@ -65,19 +39,46 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
-    const [lastForwardedActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: lastForwardedActorAccountIDSelector});
-    const [submitterEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
-    const [lastForwardedActorEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(lastForwardedActorAccountID)});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [selectedTargetAccountID, setSelectedTargetAccountID] = useState<string>('');
     const [selectionError, setSelectionError] = useState<string>('');
     const isSubmitAttempt = useRef(false);
 
-    const lastForwardedActorDetails = getPersonalDetailByEmail(lastForwardedActorEmail);
-    const previousApprover = !lastForwardedActorDetails?.accountID
-        ? null
-        : {accountID: lastForwardedActorDetails.accountID, displayName: getDisplayNameOrDefault(lastForwardedActorDetails), email: lastForwardedActorEmail};
+    const previousApprover = useMemo(() => {
+        if (!reportActions) {
+            return null;
+        }
+
+        const sortedActions = getSortedReportActions(Object.values(reportActions), true);
+
+        // Walk reverse chronologically. A SUBMITTED action marks the start of the current
+        // approval cycle — any FORWARDED actions older than that are stale (from a prior
+        // submit→approve→reject→resubmit cycle) and must be ignored.
+        let lastForwardedActorAccountID: number | undefined;
+        for (const action of sortedActions) {
+            if (action.actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED) {
+                break;
+            }
+            if (action.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED && action.actorAccountID) {
+                lastForwardedActorAccountID = action.actorAccountID;
+                break;
+            }
+        }
+
+        if (!lastForwardedActorAccountID) {
+            return null;
+        }
+
+        const email = getLoginByAccountID(lastForwardedActorAccountID) ?? '';
+        const details = getPersonalDetailByEmail(email);
+        if (!details?.accountID) {
+            return null;
+        }
+
+        return {accountID: details.accountID, displayName: getDisplayNameOrDefault(details), email};
+    }, [reportActions]);
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPreviousApprover = previousApprover !== null && previousApprover.accountID !== currentUserPersonalDetails?.accountID && previousApprover.accountID !== submitterAccountID;
@@ -94,6 +95,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         });
     }
 
+    const submitterEmail = getLoginByAccountID(submitterAccountID) ?? '';
     const submitterName = getDisplayNameOrDefault(getPersonalDetailByEmail(submitterEmail));
     options.push({
         text: `${submitterName} (${translate('iou.rejectReport.submitter')})`,
@@ -103,24 +105,27 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         isSelected: selectedTargetAccountID === String(submitterAccountID),
     });
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> = {};
-        if (!values[INPUT_IDS.COMMENT]) {
-            errors[INPUT_IDS.COMMENT] = translate('common.error.fieldRequired');
-        }
-        if (isSubmitAttempt.current && hasPreviousApprover && !selectedTargetAccountID) {
-            setSelectionError(translate('iou.rejectReport.selectMemberError'));
-            errors[INPUT_IDS.COMMENT] = errors[INPUT_IDS.COMMENT] ?? undefined;
-        } else if (isSubmitAttempt.current) {
-            setSelectionError('');
-        }
-        isSubmitAttempt.current = false;
-        return errors;
-    };
+    const validate = useCallback(
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM> = {};
+            if (!values[INPUT_IDS.COMMENT]) {
+                errors[INPUT_IDS.COMMENT] = translate('common.error.fieldRequired');
+            }
+            if (isSubmitAttempt.current && hasPreviousApprover && !selectedTargetAccountID) {
+                setSelectionError(translate('iou.rejectReport.selectMemberError'));
+                errors[INPUT_IDS.COMMENT] = errors[INPUT_IDS.COMMENT] ?? undefined;
+            } else if (isSubmitAttempt.current) {
+                setSelectionError('');
+            }
+            isSubmitAttempt.current = false;
+            return errors;
+        },
+        [translate, hasPreviousApprover, selectedTargetAccountID],
+    );
 
-    const handleBeforeSubmit = () => {
+    const handleBeforeSubmit = useCallback(() => {
         isSubmitAttempt.current = true;
-    };
+    }, []);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
