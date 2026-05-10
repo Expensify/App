@@ -8264,6 +8264,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         discard: 'Scarta',
         edit: 'Modifica',
         editStop: 'Modifica fermata',
+        totalDistance: 'Distanza totale',
         discardDistanceTrackingModal: {
             title: 'Annulla rilevamento distanza',
             prompt: 'Sei sicuro? Questo eliminerà il tuo percorso attuale e non potrà essere annullato.',

@@ -8230,6 +8230,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         discard: 'Descartar',
         edit: 'Editar',
         editStop: 'Editar parada',
+        totalDistance: 'Distância total',
         discardDistanceTrackingModal: {
             title: 'Descartar rastreamento de distância',
             prompt: 'Tem certeza? Isso vai descartar sua jornada atual e não poderá ser desfeito.',

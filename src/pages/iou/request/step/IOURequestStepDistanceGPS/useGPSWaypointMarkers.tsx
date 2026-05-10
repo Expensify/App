@@ -23,8 +23,6 @@ function useGPSWaypointMarkers({gpsDraftDetails, trimmedEndPoint: trimmedEndPoin
 
     const {DotIndicatorUnfilled, Location, DotIndicator} = useMemoizedLazyExpensifyIcons(['DotIndicatorUnfilled', 'Location', 'DotIndicator']);
 
-    // Stable component references per icon type so React doesn't see a new component type on every render,
-    // which would cause MarkerView children to unmount/remount and flash on Android.
     const getMarkerComponent = (icon: IconAsset): ReactNode => (
         <ImageSVG
             src={icon}

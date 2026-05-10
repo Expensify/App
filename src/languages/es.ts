@@ -9516,6 +9516,7 @@ ${amount} para ${merchant} - ${date}`,
         discard: 'Descartar',
         edit: 'Editar',
         editStop: 'Editar parada',
+        totalDistance: 'Distancia total',
         discardDistanceTrackingModal: {
             title: 'Descartar seguimiento de distancia',
             prompt: '¿Estás seguro? Esto descartará tu trayecto actual y no se puede deshacer.',

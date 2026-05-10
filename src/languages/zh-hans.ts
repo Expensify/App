@@ -8028,6 +8028,7 @@ ${reportName}
         discard: '丢弃',
         edit: '编辑',
         editStop: '编辑停止点',
+        totalDistance: '总距离',
         discardDistanceTrackingModal: {
             title: '放弃距离跟踪',
             prompt: '确定要继续吗？这将放弃你当前的行程，且无法撤销。',

@@ -23,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import Slider from './Slider';
 
-type IOURequestStepGPSTripEditProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
+type IOURequestStepGPSTripEditProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT>;
 
 function IOURequestStepGPSTripEdit({
     route: {
@@ -145,7 +145,7 @@ function IOURequestStepGPSTripEdit({
                         <Slider onSliderRatioChange={updateTrimmedRoute} />
 
                         <View style={[styles.pv3, styles.gap2]}>
-                            <Text style={[styles.textLabelSupporting]}>Total distance</Text>
+                            <Text style={[styles.textLabelSupporting]}>{translate('gps.totalDistance')}</Text>
                             <Text style={[styles.textNormal]}>
                                 {displayDistance} {unit}
                             </Text>

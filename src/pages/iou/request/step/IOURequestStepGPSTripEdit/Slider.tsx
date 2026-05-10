@@ -5,8 +5,8 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import {scheduleOnRN} from 'react-native-worklets';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {GPS_DISTANCE_INTERVAL_METERS} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {GPS_DISTANCE_INTERVAL_METERS} from '../IOURequestStepDistanceGPS/const';
 
 type SliderProps = {
     onSliderRatioChange: (ratio: number) => void;
@@ -20,7 +20,7 @@ function Slider({onSliderRatioChange}: SliderProps) {
     const totalDistanceMeters = gpsDraftDetails?.distanceInMeters ?? 0;
 
     // If the user already trimmed and came back to edit again, restore the previous trim position
-    const initialRatio = totalDistanceMeters > 0 && gpsDraftDetails?.modifiedDistance !== undefined ? gpsDraftDetails.modifiedDistance / totalDistanceMeters : 1;
+    const initialRatio = totalDistanceMeters > 0 && !!gpsDraftDetails?.modifiedDistance ? gpsDraftDetails.modifiedDistance / totalDistanceMeters : 1;
 
     const minRatio = totalDistanceMeters > 0 ? GPS_DISTANCE_INTERVAL_METERS / totalDistanceMeters : 0;
 

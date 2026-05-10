@@ -177,8 +177,6 @@ function IOURequestStepDistanceGPS({
         points.map(({lat, long}) => [long, lat]),
     );
 
-    console.log({gpsWaypointMarkers});
-
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}

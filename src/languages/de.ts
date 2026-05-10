@@ -8273,6 +8273,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         discard: 'Verwerfen',
         edit: 'Bearbeiten',
         editStop: 'Haltepunkt bearbeiten',
+        totalDistance: 'Gesamtdistanz',
         discardDistanceTrackingModal: {
             title: 'Entfernungsverfolgung verwerfen',
             prompt: 'Bist du sicher? Dadurch wird dein aktueller Ablauf verworfen und das kann nicht rückgängig gemacht werden.',

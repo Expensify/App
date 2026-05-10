@@ -8237,6 +8237,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         discard: 'Weggooien',
         edit: 'Bewerken',
         editStop: 'Stop bewerken',
+        totalDistance: 'Totale afstand',
         discardDistanceTrackingModal: {
             title: 'Afstandsregistratie negeren',
             prompt: 'Weet je het zeker? Hiermee wordt je huidige proces afgebroken en dit kan niet ongedaan worden gemaakt.',
