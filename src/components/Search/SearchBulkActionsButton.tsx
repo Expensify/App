@@ -254,11 +254,13 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 isVisible={isDownloadErrorModalVisible}
                 onClose={handleDownloadErrorModalClose}
             />
-            <ReportPDFDownloadModal
-                reportID={selectedReportIDs.at(0)}
-                isVisible={isPDFModalVisible}
-                onClose={handlePDFModalClose}
-            />
+            {isPDFModalVisible && (
+                <ReportPDFDownloadModal
+                    reportID={selectedReportIDs.at(0)}
+                    isVisible={isPDFModalVisible}
+                    onClose={handlePDFModalClose}
+                />
+            )}
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal
                     onClose={dismissRejectModalBasedOnAction}
