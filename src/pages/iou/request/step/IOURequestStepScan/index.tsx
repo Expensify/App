@@ -199,8 +199,10 @@ function IOURequestStepScan({
                     startPermissionFlow={startLocationPermissionFlow}
                     resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                     onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
-                    onDeny={() => {
-                        updateLastLocationPermissionPrompt();
+                    onDeny={(wasUserInitiated) => {
+                        if (wasUserInitiated) {
+                            updateLastLocationPermissionPrompt();
+                        }
                         navigateToConfirmationStep(receiptFiles, false);
                     }}
                 />

@@ -26,7 +26,6 @@ import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import CameraPermissionPrompt from './components/CameraPermissionPrompt';
@@ -117,7 +116,7 @@ function IOURequestStepScan({
             const hasLostNavigationsState = reportsSplitNavigator && !reportsSplitNavigator.state;
             if (hasLostNavigationsState) {
                 if (backTo) {
-                    Navigation.navigate(backTo as Route);
+                    Navigation.navigate(backTo);
                 } else {
                     Navigation.navigate(ROUTES.INBOX);
                 }
@@ -295,8 +294,10 @@ function IOURequestStepScan({
                         startPermissionFlow={startLocationPermissionFlow}
                         resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                         onGrant={() => navigateToConfirmationStep(receiptFiles, true)}
-                        onDeny={() => {
-                            updateLastLocationPermissionPrompt();
+                        onDeny={(wasUserInitiated) => {
+                            if (wasUserInitiated) {
+                                updateLastLocationPermissionPrompt();
+                            }
                             navigateToConfirmationStep(receiptFiles, false);
                         }}
                     />
