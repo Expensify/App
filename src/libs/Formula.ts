@@ -366,9 +366,10 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'type':
             return formatType(report.type);
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID, context), format);
+            // Fall back to today when no valid date — otherwise '' bubbles up and shows the raw formula token in the title.
+            return formatDate(getOldestTransactionDate(report.reportID, context) ?? new Date().toISOString(), format);
         case 'enddate':
-            return formatDate(getNewestTransactionDate(report.reportID, context), format);
+            return formatDate(getNewestTransactionDate(report.reportID, context) ?? new Date().toISOString(), format);
         case 'total': {
             const formattedAmount = formatAmount(report.total, report.currency, format);
             // Return empty string when conversion needed (formatAmount returns null for unavailable conversions)
@@ -653,28 +654,37 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
     const transactions = [...getReportTransactions(reportID)];
     const contextTransaction = context?.transaction;
 
-    // Merge optimistic transactions not yet in Onyx, passed via FormulaContext.allTransactions.
+    // O(1) lookups instead of repeated findIndex scans.
+    const indexByTransactionID = new Map<string, number>();
+    transactions.forEach((transaction, i) => {
+        if (transaction?.transactionID) {
+            indexByTransactionID.set(transaction.transactionID, i);
+        }
+    });
+
+    const upsert = (transaction: Transaction) => {
+        const existingIndex = indexByTransactionID.get(transaction.transactionID);
+        if (existingIndex !== undefined) {
+            transactions[existingIndex] = transaction;
+        } else {
+            indexByTransactionID.set(transaction.transactionID, transactions.length);
+            transactions.push(transaction);
+        }
+    };
+
+    // Optimistic transactions live in context until they reach Onyx.
     if (context?.allTransactions) {
         for (const ctxTransaction of Object.values(context.allTransactions)) {
             if (!ctxTransaction?.transactionID || ctxTransaction.reportID !== reportID) {
                 continue;
             }
-            const existingIndex = transactions.findIndex((t) => t?.transactionID === ctxTransaction.transactionID);
-            if (existingIndex >= 0) {
-                transactions[existingIndex] = ctxTransaction;
-            } else {
-                transactions.push(ctxTransaction);
-            }
+            upsert(ctxTransaction);
         }
     }
 
+    // context.transaction takes precedence over allTransactions on ID collision.
     if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
-        const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
-        if (transactionIndex >= 0) {
-            transactions[transactionIndex] = contextTransaction;
-        } else {
-            transactions.push(contextTransaction);
-        }
+        upsert(contextTransaction);
     }
 
     return transactions;
@@ -713,8 +723,7 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
         oldestDate = created;
     }
 
-    // Fall back to current date when all transactions were skipped (e.g. partial/scanning).
-    return oldestDate ?? new Date().toISOString();
+    return oldestDate;
 }
 
 /**
@@ -833,7 +842,6 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
         }
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
-            // For trip-based, use oldest transaction as start and newest transaction as end
             const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
             const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
             startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
@@ -884,8 +892,7 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
         newestDate = created;
     }
 
-    // Fall back to current date when all transactions were skipped (e.g. partial/scanning).
-    return newestDate ?? new Date().toISOString();
+    return newestDate;
 }
 
 /**

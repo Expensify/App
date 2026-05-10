@@ -667,20 +667,17 @@ describe('CustomFormula', () => {
         });
 
         test('should use context.transaction for trip end date when adding a new expense to existing report', () => {
-            // First transaction already in Onyx (oldest expense, dated Jan 8)
             mockReportUtils.getReportTransactions.mockReturnValue([
                 {transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
             ]);
 
             const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
-            // Second transaction passed via context (newest expense, dated Jan 14 — not in Onyx yet)
             const context: FormulaContext = {
                 report: mockReport,
                 policy,
                 transaction: {transactionID: 'optimistic1', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000} as Transaction,
             };
 
-            // Start should be oldest (Jan 8 from Onyx), end should be newest (Jan 14 from context)
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-08');
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
         });
@@ -720,15 +717,83 @@ describe('CustomFormula', () => {
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
         });
 
-        test('should fallback to current date for trip frequency when no transactions', () => {
+        test('should fall back to current date for trip frequency when no transactions', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
 
             const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
             const context = createMockContext(policy);
 
-            // Should fall back to current date (2025-01-19 from jest.setSystemTime)
             expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+        });
+
+        test('should prefer context.transaction over context.allTransactions when transactionIDs match', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    sharedTxn: {transactionID: 'sharedTxn', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Stale', amount: 1000} as Transaction,
+                },
+                transaction: {transactionID: 'sharedTxn', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Fresh', amount: 2000} as Transaction,
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-14');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
+        });
+
+        test('should ignore context.allTransactions for transactions belonging to other reports', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    inThisReport: {transactionID: 'inThisReport', reportID: '123', created: '2025-01-10T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
+                    otherReport: {transactionID: 'otherReport', reportID: '999', created: '2025-01-01T12:00:00Z', merchant: 'Different report', amount: 9999} as Transaction,
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-10');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-10');
+        });
+
+        test('should let context.allTransactions override existing Onyx transactions with the same transactionID', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([
+                {transactionID: 'shared1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Old Hotel', amount: 5000} as Transaction,
+            ]);
+
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    shared1: {transactionID: 'shared1', reportID: '123', created: '2025-01-12T12:00:00Z', merchant: 'Updated Hotel', amount: 7000} as Transaction,
+                },
+            };
+
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-12');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-12');
+        });
+
+        test('should pass context through to startdate/enddate via allTransactions', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const context: FormulaContext = {
+                report: mockReport,
+                policy,
+                allTransactions: {
+                    trans1: {transactionID: 'trans1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000} as Transaction,
+                    trans2: {transactionID: 'trans2', reportID: '123', created: '2025-01-14T16:00:00Z', merchant: 'Restaurant', amount: 3000} as Transaction,
+                },
+            };
+
+            expect(compute('{report:startdate}', context)).toBe('2025-01-08');
+            expect(compute('{report:enddate}', context)).toBe('2025-01-14');
         });
 
         test('should apply custom date formats', () => {

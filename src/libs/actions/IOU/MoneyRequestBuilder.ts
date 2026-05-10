@@ -1078,7 +1078,6 @@ function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: On
         return undefined;
     }
 
-    // Gather existing transactions + the optimistic one not yet in Onyx.
     const existingTransactions = getReportTransactions(iouReport.reportID);
     const transactionsRecord: Record<string, OnyxTypes.Transaction> = {};
     for (const transaction of existingTransactions) {
@@ -1099,7 +1098,7 @@ function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, polic
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const titleField = reportNameValuePairs?.expensify_text_title;
 
-    // Fall back to policy.fieldList when reportNameValuePairs doesn't exist yet (optimistic reports).
+    // reportNameValuePairs is backend-only, so optimistic reports must fall back to policy.fieldList.
     const isFormulaTitle = reportNameValuePairs
         ? titleField?.type === CONST.REPORT_FIELD_TYPES.FORMULA
         : policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
@@ -1393,7 +1392,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         }
     }
 
-    // Recalculate report name after STEP 3 so the optimistic transaction is included in formula computation.
+    // Must run after STEP 3 so the optimistic transaction is part of the formula context.
     if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat) {
         iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, optimisticTransaction);
     }
@@ -1607,8 +1606,8 @@ function getUpdatedMoneyRequestReportData(
                 updatedMoneyRequestReport.unheldNonReimbursableTotal += updatedTransaction.reimbursable ? -updatedTransaction.amount : updatedTransaction.amount;
             }
         }
-        if (transactionChanges && 'reimbursable' in transactionChanges) {
-            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy);
+        if (transactionChanges) {
+            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy, (updatedTransaction ?? undefined) as OnyxTypes.Transaction | undefined);
         }
     } else {
         updatedMoneyRequestReport = updateIOUOwnerAndTotal(iouReport, actorAccountID ?? CONST.DEFAULT_NUMBER_ID, diff, getCurrency(transaction), false, true, isTransactionOnHold);
