@@ -68,7 +68,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
         isPDFModalVisible,
-        pdfReportID,
         handlePDFModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
@@ -256,7 +255,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 onClose={handleDownloadErrorModalClose}
             />
             <ReportPDFDownloadModal
-                reportID={pdfReportID}
+                reportID={selectedReportIDs.at(0)}
                 isVisible={isPDFModalVisible}
                 onClose={handlePDFModalClose}
             />
