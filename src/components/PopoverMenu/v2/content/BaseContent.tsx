@@ -77,6 +77,7 @@ function BaseContentInner({
     const styles = useThemeStyles();
     const {
         state: {isVisible},
+        meta: {triggerId, contentId},
     } = useRootState(BaseContent.displayName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -108,6 +109,9 @@ function BaseContentInner({
                                 <ContentItemActionsContext.Provider value={itemActions}>
                                     <ContentCloseContext.Provider value={close}>
                                         <View
+                                            role={CONST.ROLE.MENU}
+                                            nativeID={contentId}
+                                            accessibilityLabelledBy={triggerId}
                                             onLayout={onLayout}
                                             style={[
                                                 isSmallScreenWidth ? undefined : {width: variables.compactPopoverMenuWidth},

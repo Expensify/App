@@ -12,6 +12,8 @@ type TriggerSlotProps = {
     ref?: Ref<View>;
     onPress: NonNullable<PressableProps['onPress']>;
     accessibilityState?: AccessibilityState;
+    nativeID?: string;
+    accessibilityControls?: string;
 };
 
 type TriggerProps = {
@@ -23,6 +25,7 @@ function Trigger({children}: TriggerProps): React.ReactElement {
     const {ref, open} = useAnchorOpener(Trigger.displayName);
     const {
         state: {isVisible},
+        meta: {triggerId, contentId},
     } = useRootState(Trigger.displayName);
 
     const onlyChild = Children.only(children);
@@ -39,10 +42,12 @@ function Trigger({children}: TriggerProps): React.ReactElement {
         open();
     });
 
-    return React.cloneElement(onlyChild as React.ReactElement<Partial<PressableProps>>, {
-        ref: mergeRefs(ref, onlyChild.props.ref) as PressableProps['ref'],
+    return React.cloneElement(onlyChild as React.ReactElement<Partial<TriggerSlotProps>>, {
+        ref: mergeRefs(ref, onlyChild.props.ref),
         onPress: handlePress,
         accessibilityState: {...onlyChild.props.accessibilityState, expanded: isVisible},
+        nativeID: triggerId,
+        accessibilityControls: isVisible ? contentId : undefined,
     });
 }
 

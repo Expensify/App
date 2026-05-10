@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useId, useState} from 'react';
 import type {ReactNode} from 'react';
 import {RootActionsContext, RootStateContext} from './RootContext';
 import type {ActiveAnchor, RootActions, RootState} from './RootContext';
@@ -12,10 +12,12 @@ type RootProps = {
 function Root({children, defaultOpen = false}: RootProps): React.ReactElement {
     const [isVisible, setIsVisible] = useState(defaultOpen);
     const [activeAnchor, setActiveAnchor] = useState<ActiveAnchor | null>(null);
+    const triggerId = useId();
+    const contentId = useId();
 
     const stateValue: RootState = {
         state: {isVisible},
-        meta: {activeAnchor},
+        meta: {activeAnchor, triggerId, contentId},
     };
     const actions: RootActions = {setIsVisible, setActiveAnchor};
 

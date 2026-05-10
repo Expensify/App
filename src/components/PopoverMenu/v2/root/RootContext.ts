@@ -16,6 +16,10 @@ type RootState = {
     state: {isVisible: boolean};
     meta: {
         activeAnchor: ActiveAnchor | null;
+        /** Stable id linking Trigger ↔ Content for `accessibilityLabelledBy` / `aria-controls`. */
+        triggerId: string;
+        /** Stable id on Content's surface so triggers can advertise `aria-controls`. */
+        contentId: string;
     };
 };
 
