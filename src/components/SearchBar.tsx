@@ -24,7 +24,7 @@ type SearchBarProps = {
 
 function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditing, shouldShowEmptyState, emptyStateContainerStyle}: SearchBarProps) {
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
@@ -34,7 +34,7 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
 
     return (
         <>
-            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowLayout), style]}>
+            <View style={[styles.searchBarMargin, styles.searchBarWidth(shouldUseNarrowLayout && !isInLandscapeMode), style]}>
                 <TextInput
                     label={label}
                     accessibilityLabel={label}

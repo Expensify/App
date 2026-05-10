@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Nächster Monat',
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -918,11 +919,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: 'Chatliste',
         saveTheWorld: 'Rette die Welt',
         tooltip: 'Starte hier!',
-        redirectToExpensifyClassicModal: {
-            title: 'Bald verfügbar',
-            description:
-                'Wir nehmen noch ein paar letzte Anpassungen an New Expensify vor, damit alles zu deiner speziellen Einrichtung passt. In der Zwischenzeit kannst du Expensify Classic verwenden.',
-        },
     },
     homePage: {
         forYou: 'Für dich',
@@ -1027,6 +1023,7 @@ const translations: TranslationDeepObject<typeof en> = {
             customizeCategories: 'Buchhaltungskategorien anpassen',
             linkCompanyCards: 'Firmenkarten verknüpfen',
             setupRules: 'Ausgabelimits einrichten',
+            inviteAccountant: 'Lade deine:n Steuerberater:in ein',
         },
         freeTrialSection: {
             title: ({days}: {days: number}) => `Kostenlose Testversion: Noch ${days} ${days === 1 ? 'Tag' : 'Tage'}!`,
@@ -1141,6 +1138,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Lass es los',
         dropMessage: 'Datei hierher ziehen',
         flash: 'Blitz',
+        flipCamera: 'Kamera wechseln',
         multiScan: 'Mehrfachscan',
         shutter: 'Verschluss',
         gallery: 'Galerie',
@@ -1315,6 +1313,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `${formattedAmount} bezahlen`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} als Unternehmen bezahlen` : `Mit Geschäftskonto bezahlen`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} als bezahlt markieren` : `Als bezahlt markieren`),
+        confirmPaymentReceivedModalTitle: 'Zahlungseingang bestätigen',
+        receivedPayment: 'Zahlung erhalten',
+        receivedPaymentConfirmation: 'Bitte fahren Sie nur fort, wenn Sie die Zahlung bereits außerhalb von Expensify erhalten haben.',
+        confirmReceivedPayment: 'Ja, ich habe die Zahlung erhalten.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit persönlichem Konto ${last4Digits} bezahlt` : `Mit Privatkonto bezahlt`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Bezahle ${formattedAmount} über ${policyName}` : `Bezahlen über ${policyName}`),
@@ -1463,6 +1465,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Die maximale Anzahl zulässiger Aufteilungen beträgt ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
+            failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler schließt, wird deine hochgeladene Quittung vollständig entfernt. Bist du sicher?',
@@ -2735,6 +2738,19 @@ ${amount} für ${merchant} – ${date}`,
         subtitle: 'Erstelle Agents, die deinen Workflow übernehmen. Spare dir die manuelle Arbeit und gewinne stundenweise Zeit im Alltag zurück.',
         newAgent: 'Neue:r Agent:in',
         emptyAgents: {title: 'Keine Agenten erstellt', subtitle: 'Hör auf, Dinge manuell zu erledigen. Weise stattdessen eine:n Agent:in an und spare dir eine Menge Zeit.'},
+        error: {
+            genericAdd: 'Beim Hinzufügen dieses Agenten ist ein Problem aufgetreten',
+        },
+    },
+    addAgentPage: {
+        title: 'Neue Kontaktperson',
+        agentName: 'Name der Ansprechperson',
+        instructions: 'Eigene Anweisungen schreiben',
+        createAgent: 'Agent erstellen',
+        switchAvatar: 'Profilbild wechseln',
+        defaultAgentName: (displayName: string) => `Agent*in von ${displayName}`,
+        defaultPrompt:
+            'Lehne Ausgaben ab, die für Glücksspiele, Kinobesuche oder andere offensichtlich nicht geschäftliche Zwecke sind.\n\nErinnere den:die Nutzer:in daran, immer ein Belegfoto beizufügen, auf dem das Trinkgeld klar erkennbar ist.\n\nGenehmige den Bericht, wenn er früheren Berichten derselben Person sehr ähnlich ist.\n\nLehne Berichte mit mehr als 500 $ an Reisekosten ab.',
     },
     expenseRulesPage: {
         title: 'Ausgabenregeln',
@@ -4318,6 +4334,10 @@ ${amount} für ${merchant} – ${date}`,
             travelInvoicingPayableAccount: 'Reiseverbindlichkeitskonto',
             hr: 'Personalwesen',
         },
+        createdForClient: {
+            title: 'Du hast einen Workspace für deinen Kunden erstellt!',
+            description: 'Großartige Neuigkeiten 🎉. Kontaktiere uns, wenn sie Hilfe bei der Einrichtung benötigen.',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) =>
@@ -5387,6 +5407,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settlementFrequencyDescription: 'Wählen Sie, wie oft Sie den Saldo Ihrer Expensify Karte begleichen.',
             settlementFrequencyInfo:
                 'Wenn du zur monatlichen Abrechnung wechseln möchtest, musst du dein Bankkonto über Plaid verbinden und eine positive Kontohistorie der letzten 90 Tage haben.',
+            applyCashbackToBill: 'Cashback auf meine Expensify-Rechnung anwenden',
+            applyCashbackToBillDescription: 'Das Cashback von der Expensify-Karte wird zur Begleichung deiner Expensify-Rechnung verwendet.',
             frequency: {
                 daily: 'Täglich',
                 monthly: 'Monatlich',
@@ -5727,6 +5749,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 subtitle: 'Legen Sie einen abrechnungsfähigen Stundensatz für die Zeiterfassung fest.',
                 defaultHourlyRate: 'Standardstundensatz',
             },
+            hrWarningModal: {disconnectText: 'Um HR zu deaktivieren, trenne bitte zuerst die Verbindung von Gusto mit diesem Workspace.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -6019,6 +6042,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
             emptyRoleFilter: {title: 'Keine Mitglieder entsprechen diesem Filter', subtitle: 'Laden Sie ein Mitglied ein oder ändern Sie den Filter oben.'},
+            configureGustoSync: 'Gusto-Synchronisierung konfigurieren.',
+            syncWithGusto: 'Mit Gusto synchronisieren',
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -6459,7 +6484,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             updateToUSD: 'Auf USD aktualisieren',
             updateWorkspaceCurrency: 'Arbeitsbereichswährung aktualisieren',
             workspaceCurrencyNotSupported: 'Workspace-Währung wird nicht unterstützt',
-            yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
+            yourWorkspace: `Dein Arbeitsbereich ist auf eine nicht unterstützte Währung eingestellt. Sieh dir die <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">Liste der unterstützten Währungen</a> an.`,
             chooseAnExisting: 'Wähle ein bestehendes Bankkonto zum Bezahlen von Ausgaben oder füge ein neues hinzu.',
         },
         changeOwner: {
@@ -6775,6 +6800,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 gambling: 'Glücksspiel',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Erwachsenenunterhaltung',
+                handwrittenReceipt: 'Handschriftliche Belege',
                 requireCompanyCard: 'Firmenkarten für alle Käufe vorschreiben',
                 requireCompanyCardDescription: 'Kennzeichne alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
                 requireCompanyCardDisabledTooltip: 'Aktiviere Firmenkarten (unter Weitere Funktionen), um dies freizuschalten.',
@@ -6874,6 +6900,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             customRules: {
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier ist die Spesenrichtlinie deines Teams hinterlegt, damit alle denselben Stand haben, was abgedeckt ist.',
+                policyDocument: 'Richtliniendokument',
+                policyText: 'Richtlinientext',
             },
             spendRules: {
                 title: 'Ausgaben',
@@ -7006,16 +7034,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             settingsTitle: 'Gusto-Einstellungen',
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
-                    case 'startingImportGusto':
-                        return 'Gusto-Daten werden importiert';
-                    case 'gustoSyncLoadCompany':
-                        return 'Gusto-Unternehmensdaten werden geladen';
-                    case 'gustoSyncImportEmployees':
-                        return 'Mitarbeitende importieren';
-                    case 'gustoSyncBuildApprovalChains':
-                        return 'Genehmigungsketten erstellen';
-                    case 'gustoSyncFinalize':
-                        return 'Synchronisierung wird abgeschlossen';
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Warten auf das Laden der importierten Daten';
                     default: {
@@ -7027,8 +7051,25 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title: 'Gusto',
                 approvalMode: 'Genehmigungsmodus',
                 finalApprover: 'Endgültige:r Genehmiger:in',
+                notSet: 'Nicht festgelegt',
+                approvalModeDescription: 'Mitglieder und Manager sind für die Synchronisation mit Gusto eingerichtet.',
+                approvalModeWarningTitle: 'Genehmigungsmodus ändern?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Möchten Sie den Genehmigungsmodus für diesen Workspace wirklich ändern? Erfahren Sie mehr über die verschiedenen Gusto-aktivierten Workflow-Modi auf unserer <a href="${helpSiteURL}">Hilfeseite</a>.`,
+                approvalModeWarningConfirm: 'Genehmigungsmodus ändern',
+                approvalModes: {
+                    basic: {label: 'Einfache Genehmigung', description: 'Alle Benutzer reichen zur Bearbeitung und Genehmigung bei einer einzigen Person ein.'},
+                    manager: {label: 'Managergenehmigung', description: 'Mitarbeitende reichen Berichte bei ihrer in Gusto hinterlegten direkten Führungskraft ein.'},
+                    custom: {label: 'Benutzerdefinierte Genehmigung', description: 'Ich richte Genehmigungs-Workflows in Expensify manuell ein.'},
+                },
                 connect: 'Verbinden',
                 connectionDescription: 'Verbinde Gusto, um Mitarbeitergenehmigungen mit deinem Workspace zu synchronisieren.',
+                syncNow: 'Jetzt synchronisieren',
+                disconnect: 'Trennen',
+                lastSync: (relativeDate: string) => `Zuletzt synchronisiert ${relativeDate}`,
+                syncError: 'Verbindung zu Gusto nicht möglich',
+                disconnectTitle: 'Gusto trennen',
+                disconnectPrompt: 'Bist du sicher, dass du Gusto trennen möchtest?',
             },
         },
     },
@@ -7770,8 +7811,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
             feed: 'Feed',
             withdrawalType: {
-                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Karte',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Rückerstattung',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Zentrale Rechnungsstellung',
             },
             is: 'Ist',
             action: {
@@ -7958,6 +8000,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     reimburseableLink: 'Auslagen',
                     nonReimbursableLink: 'Firmenkarten-Ausgaben',
                     pending: (label: string) => `hat begonnen, diesen Bericht nach ${label} zu exportieren...`,
+                    travelCardLink: 'Reisespesen mit Firmenkarte',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `Fehler beim Exportieren dieses Berichts nach ${label} („${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}“)`,
@@ -8230,13 +8273,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         stopped: 'Angehalten',
         start: 'Start',
         stop: 'Stopp',
+        save: 'Speichern',
+        resume: 'Fortsetzen',
         discard: 'Verwerfen',
-        stopGpsTrackingModal: {
-            title: 'GPS-Tracking stoppen',
-            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Sitzung beendet.',
-            cancel: 'Tracking fortsetzen',
-            confirm: 'GPS-Tracking stoppen',
-        },
         discardDistanceTrackingModal: {
             title: 'Entfernungsverfolgung verwerfen',
             prompt: 'Bist du sicher? Dadurch wird dein aktueller Ablauf verworfen und das kann nicht rückgängig gemacht werden.',
@@ -8295,7 +8334,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
         },
         gpsFloatingPillText: 'GPS-Verfolgung läuft...',
-        liveActivity: {subtitle: 'Entfernungserfassung', button: 'Fortschritt anzeigen'},
+        liveActivity: {subtitle: 'Entfernungserfassung', button: 'Fortschritt anzeigen', lockScreenBadgeText: 'Entfernung', lockScreenTrackingText: 'Verfolge …'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Zeugnis verloren oder beschädigt',
@@ -8415,6 +8454,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                         return `Erwachsenenunterhaltung`;
                     case 'hotelIncidentals':
                         return `Nebenkosten im Hotel`;
+                    case 'handwrittenReceipt':
+                        return `handschriftliche Belege`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -9209,6 +9250,15 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             preferredWorkspaceDescription: (enabled: boolean) => `Alle neuen Berichte und Ausgaben werden im ${enabled ? 'ausgewählten bevorzugten' : 'diesem'} Arbeitsbereich erstellt.`,
             preferredWorkspaceSelectDescription: 'Alle neuen Ausgaben und Berichte werden in diesem Arbeitsbereich erstellt.',
             noWorkspacesMessage: 'Es gibt keine Arbeitsbereiche in dieser Domain. Ein Arbeitsbereich ist erforderlich, um diese Einschränkung zu aktivieren.',
+            restrictDefaultLoginSelection: 'Standard-Login-Auswahl einschränken',
+            restrictDefaultLoginSelectionDescription:
+                'Verhindert, dass Mitglieder ihre Login-E-Mail-Adresse außerhalb der Unternehmensdomäne ändern, um Richtlinienbeschränkungen zu umgehen.',
+            expensifyCardPreferredWorkspace: 'Bevorzugter Workspace für die Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Alle Expensify-Card-Transaktionen werden im bevorzugten Workspace für die Expensify Card statt im bevorzugten Workspace erstellt. Die Aktivierung dieser Funktion überschreibt die Einstellung des bevorzugten Workspace ausschließlich für Expensify-Card-Transaktionen.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'Um diese Einstellung zu verwenden, muss der bevorzugte Workspace aktiviert und für die Domain die Expensify Card eingerichtet sein.',
+            findGroup: 'Gruppe suchen',
         },
     },
     proactiveAppReview: {

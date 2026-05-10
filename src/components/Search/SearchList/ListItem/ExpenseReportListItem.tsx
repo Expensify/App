@@ -49,6 +49,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    onHoldMenuOpen,
     onSelectionButtonPress,
     lastPaymentMethod,
     personalPolicyID,
@@ -143,12 +144,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
+            policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            onHoldMenuOpen,
             ownerBillingGracePeriodEnd,
             amountOwed,
         });
@@ -158,12 +161,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
         onSelectRow,
         snapshotReport,
         snapshotPolicy,
+        parentPolicy,
         lastPaymentMethod,
         userBillingGracePeriodEnds,
         personalPolicyID,
         currentSearchKey,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        onHoldMenuOpen,
         ownerBillingGracePeriodEnd,
         amountOwed,
     ]);
@@ -202,7 +207,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
@@ -286,7 +291,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.searchTableTopRadius,
                 !isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
-                !isLargeScreenWidth && !isLastItem && styles.borderBottom,
+                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
             ]}
             accessible={false}
             shouldShowRightCaret={false}
@@ -301,6 +306,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                             shouldShowUserInfo={!!reportItem?.from}
                             stateNum={reportItem.stateNum}
                             statusNum={reportItem.statusNum}
+                            isSelected={!!reportItem.isSelected}
                         />
                     )}
                     {!isLargeScreenWidth && (
