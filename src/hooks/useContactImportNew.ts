@@ -1,14 +1,13 @@
-import {useCallback, useState} from 'react';
+import {useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import contactImport from '@libs/ContactImport';
 import type {ContactImportResult} from '@libs/ContactImport/types';
 import useContactPermissions from '@libs/ContactPermission/useContactPermissions';
-import {getContactsExtended} from '@libs/ContactUtils';
-import type {SearchOption} from '@libs/OptionsListUtils';
+import {getContacts} from '@libs/ContactUtils';
+import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -16,7 +15,7 @@ import useOnyx from './useOnyx';
  * Return type of the useContactImport hook.
  */
 type UseContactImportResult = {
-    contacts: Array<SearchOption<PersonalDetails>>;
+    contacts: OptionData[];
     contactPermissionState: PermissionStatus;
     importAndSaveContacts: () => void;
     setContactPermissionState: React.Dispatch<React.SetStateAction<PermissionStatus>>;
@@ -29,18 +28,18 @@ type UseContactImportResult = {
  */
 function useContactImport(): UseContactImportResult {
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
-    const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
+    const [contacts, setContacts] = useState<OptionData[]>([]);
     const {localeCompare, formatPhoneNumber} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
-    const importAndSaveContacts = useCallback(() => {
+    const importAndSaveContacts = () => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContactsExtended(contactList, localeCompare, formatPhoneNumber, countryCode, loginList);
+            const usersFromContact = getContacts(contactList, localeCompare, formatPhoneNumber, countryCode, loginList);
             setContacts(usersFromContact);
         });
-    }, [localeCompare, formatPhoneNumber, countryCode, loginList]);
+    };
 
     useContactPermissions({
         importAndSaveContacts,
