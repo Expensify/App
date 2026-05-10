@@ -1577,8 +1577,11 @@ function clearShareBankAccount() {
     Onyx.set(ONYXKEYS.SHARE_BANK_ACCOUNT, null);
 }
 
-function clearShareBankAccountErrors() {
+function clearShareBankAccountErrors(bankAccountID?: number) {
     Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {errors: null});
+    if (bankAccountID) {
+        Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {errors: null}});
+    }
 }
 
 function setShareBankAccountAdmins(admins?: MemberForList[]) {
@@ -1591,7 +1594,9 @@ function shareBankAccount(bankAccountID: number, emailList: string[]) {
         emailList,
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.SHARE_BANK_ACCOUNT> = {
+    const currentSharees = bankAccountList?.[bankAccountID]?.accountData?.sharees ?? [];
+
+    const onyxData: OnyxData<typeof ONYXKEYS.SHARE_BANK_ACCOUNT | typeof ONYXKEYS.BANK_ACCOUNT_LIST> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1611,6 +1616,17 @@ function shareBankAccount(bankAccountID: number, emailList: string[]) {
                     errors: null,
                     admins: null,
                     shouldShowSuccess: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {
+                    [bankAccountID]: {
+                        accountData: {
+                            sharees: [...currentSharees, ...emailList],
+                        },
+                    },
                 },
             },
         ],

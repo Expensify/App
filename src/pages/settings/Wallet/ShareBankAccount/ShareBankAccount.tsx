@@ -70,11 +70,13 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     };
     useEffect(() => {
         return () => {
+            clearShareBankAccountErrors(Number(bankAccountID));
             if (!shouldShowSuccess) {
                 return;
             }
             clearShareBankAccount();
         };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShowSuccess]);
 
     useEffect(() => {
@@ -212,7 +214,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                                     <ErrorMessageRow
                                         errors={sharedBankAccountData?.errors}
                                         errorRowStyles={[styles.mv3]}
-                                        onDismiss={clearShareBankAccountErrors}
+                                        onDismiss={() => clearShareBankAccountErrors(Number(bankAccountID))}
                                     />
                                 }
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
