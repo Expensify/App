@@ -162,14 +162,8 @@ function getAccountIDsByLogins(logins: string[]): number[] {
     }, []);
 }
 
-/**
- * Given an accountID, find the associated personal detail and return related login.
- *
- * @param accountID User accountID
- * @returns Login according to passed accountID
- */
-function getLoginByAccountID(accountID: number): string | undefined {
-    return allPersonalDetails?.[accountID]?.login;
+function getLoginByAccountID(accountID: number | undefined, personalDetails: OnyxEntry<PersonalDetailsList> = allPersonalDetails): string | undefined {
+    return accountID ? personalDetails?.[accountID]?.login : undefined;
 }
 
 /**

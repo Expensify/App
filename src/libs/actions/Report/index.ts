@@ -6504,6 +6504,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: OnyxCollection<ReportActions>,
     currentUserAccountID: number,
+    submitterLogin: string | undefined,
     reportTransactions: Transaction[] = [],
 ): {policyExpenseChatReportID?: string} | undefined {
     if (!policy || !iouReport) {
@@ -6513,12 +6514,18 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const reportID = iouReport.reportID;
     const isPolicyAdmin = isPolicyAdminPolicyUtils(policy);
     const submitterAccountID = iouReport.ownerAccountID;
-    const submitterEmail = PersonalDetailsUtils.getLoginByAccountID(submitterAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const submitterLogin = PhoneNumber.addSMSDomainIfPhoneNumber(submitterEmail);
+    const submitterLoginWithSMSDomain = PhoneNumber.addSMSDomainIfPhoneNumber(submitterLogin);
     const policyID = policy.id;
 
     // This flow only works for admins moving an IOU report to a policy where the submitter is NOT yet a member of the policy
-    if (!isPolicyAdmin || !isIOUReportUsingReport(iouReport) || !submitterAccountID || !submitterEmail || isPolicyMember(policy, submitterLogin)) {
+    if (
+        !isPolicyAdmin ||
+        !isIOUReportUsingReport(iouReport) ||
+        !submitterAccountID ||
+        !submitterLogin ||
+        !submitterLoginWithSMSDomain ||
+        isPolicyMember(policy, submitterLoginWithSMSDomain)
+    ) {
         return;
     }
 
@@ -6564,14 +6571,14 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     // Optimistically add the submitter to the workspace and create a expense chat for them
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
     const invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs = {
-        [submitterEmail]: submitterAccountID,
+        [submitterLogin]: submitterAccountID,
     };
 
     // Set up new member optimistic data
     const role = CONST.POLICY.ROLE.USER;
 
     // Get personal details onyx data (similar to addMembersToWorkspace)
-    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins([submitterLogin], [submitterAccountID]);
+    const {newAccountIDs, newLogins} = PersonalDetailsUtils.getNewAccountIDsAndLogins([submitterLoginWithSMSDomain], [submitterAccountID]);
     const newPersonalDetailsOnyxData = PersonalDetailsUtils.getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
 
     // Build announce room members data for the new member
@@ -6579,12 +6586,12 @@ function moveIOUReportToPolicyAndInviteSubmitter(
 
     // Create policy expense chat for the submitter
     const policyExpenseChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, currentUserAccountID, reportActions);
-    const optimisticPolicyExpenseChatReportID = policyExpenseChats.reportCreationData[submitterEmail].reportID;
-    const optimisticPolicyExpenseChatCreatedReportActionID = policyExpenseChats.reportCreationData[submitterEmail].reportActionID;
+    const optimisticPolicyExpenseChatReportID = policyExpenseChats.reportCreationData[submitterLoginWithSMSDomain].reportID;
+    const optimisticPolicyExpenseChatCreatedReportActionID = policyExpenseChats.reportCreationData[submitterLoginWithSMSDomain].reportActionID;
 
     // Set up optimistic member state
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
-        [submitterLogin]: {
+        [submitterLoginWithSMSDomain]: {
             role,
             email: submitterLogin,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -6593,11 +6600,11 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     };
 
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
-        [submitterLogin]: {pendingAction: null},
+        [submitterLoginWithSMSDomain]: {pendingAction: null},
     };
 
     const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {
-        [submitterLogin]: {
+        [submitterLoginWithSMSDomain]: {
             errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd'),
         },
     };
@@ -6920,18 +6927,31 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) 
     });
 }
 
-function buildOptimisticChangePolicyData(
-    report: Report,
-    parentReport: OnyxEntry<Report>,
-    policy: Policy,
-    currentUserAccountID: number,
-    email: string,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    isReportLastVisibleArchived: boolean | undefined,
-    reportNextStep?: ReportNextStepDeprecated,
-    optimisticPolicyExpenseChatReport?: Report,
-) {
+function buildOptimisticChangePolicyData({
+    report,
+    parentReport,
+    policy,
+    currentUserAccountID,
+    email,
+    managerLogin,
+    hasViolationsParam,
+    isASAPSubmitBetaEnabled,
+    isReportLastVisibleArchived,
+    reportNextStep,
+    optimisticPolicyExpenseChatReport,
+}: {
+    report: Report;
+    parentReport: OnyxEntry<Report>;
+    policy: Policy;
+    currentUserAccountID: number;
+    email: string;
+    managerLogin: string | undefined;
+    hasViolationsParam: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    isReportLastVisibleArchived: boolean | undefined;
+    reportNextStep?: ReportNextStepDeprecated;
+    optimisticPolicyExpenseChatReport?: Report;
+}) {
     const optimisticData: Array<
         OnyxUpdate<
             | typeof ONYXKEYS.COLLECTION.REPORT
@@ -6960,9 +6980,8 @@ function buildOptimisticChangePolicyData(
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    const managerLogin = PersonalDetailsUtils.getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID);
     const newManagerAccountID = getSubmitToAccountID(policy, report);
-    const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && isPolicyMember(policy, managerLogin);
+    const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && managerLogin && isPolicyMember(policy, managerLogin);
     if (shouldResetApprovalChain) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -7405,33 +7424,47 @@ function buildOptimisticChangePolicyData(
 /**
  * Changes the policy of a report and all its child reports, and moves the report to the new policy's expense chat.
  */
-function changeReportPolicy(
-    report: Report,
-    parentReport: OnyxEntry<Report>,
-    policy: Policy,
-    accountID: number,
-    email: string,
-    hasViolationsParam: boolean,
-    isChangePolicyTrainingModalDismissed: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    reportNextStep?: ReportNextStepDeprecated,
+function changeReportPolicy({
+    report,
+    parentReport,
+    policy,
+    currentUserAccountID,
+    email,
+    managerLogin,
+    hasViolationsParam,
+    isChangePolicyTrainingModalDismissed,
+    isASAPSubmitBetaEnabled,
+    reportNextStep,
     isReportLastVisibleArchived = false,
-) {
+}: {
+    report: Report;
+    parentReport: OnyxEntry<Report>;
+    policy: Policy;
+    currentUserAccountID: number;
+    email: string;
+    managerLogin: string | undefined;
+    hasViolationsParam: boolean;
+    isChangePolicyTrainingModalDismissed: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    reportNextStep?: ReportNextStepDeprecated;
+    isReportLastVisibleArchived?: boolean;
+}) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report)) {
         return;
     }
 
-    const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData(
+    const {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction} = buildOptimisticChangePolicyData({
         report,
         parentReport,
         policy,
-        accountID,
+        currentUserAccountID,
         email,
+        managerLogin,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
         reportNextStep,
-    );
+    });
 
     const params = {
         reportID: report.reportID,
@@ -7455,6 +7488,8 @@ function changeReportPolicyAndInviteSubmitter({
     policy,
     currentUserAccountID,
     email,
+    submitterLogin,
+    managerLogin,
     hasViolationsParam,
     isChangePolicyTrainingModalDismissed,
     isASAPSubmitBetaEnabled,
@@ -7469,6 +7504,8 @@ function changeReportPolicyAndInviteSubmitter({
     policy: Policy;
     currentUserAccountID: number;
     email: string;
+    submitterLogin: string | undefined;
+    managerLogin: string | undefined;
     hasViolationsParam: boolean;
     isChangePolicyTrainingModalDismissed: boolean;
     isASAPSubmitBetaEnabled: boolean;
@@ -7479,15 +7516,10 @@ function changeReportPolicyAndInviteSubmitter({
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>;
 }) {
-    if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID) {
+    if (!report.reportID || !policy?.id || report.policyID === policy.id || !isExpenseReport(report) || !report.ownerAccountID || !submitterLogin) {
         return;
     }
 
-    const submitterEmail = PersonalDetailsUtils.getLoginByAccountID(report.ownerAccountID);
-
-    if (!submitterEmail) {
-        return;
-    }
     const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(employeeList, false, false));
     const {
         optimisticData: optimisticAddMembersData,
@@ -7495,7 +7527,7 @@ function changeReportPolicyAndInviteSubmitter({
         failureData: failureAddMembersData,
         membersChats,
     } = buildAddMembersToWorkspaceOnyxData(
-        {[submitterEmail]: report.ownerAccountID},
+        {[submitterLogin]: report.ownerAccountID},
         policy,
         policyMemberAccountIDs,
         CONST.POLICY.ROLE.USER,
@@ -7505,8 +7537,8 @@ function changeReportPolicyAndInviteSubmitter({
         CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
         reportActionsList,
     );
-    const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterEmail].reportID;
-    const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterEmail].reportActionID;
+    const optimisticPolicyExpenseChatReportID = membersChats.reportCreationData[submitterLogin].reportID;
+    const optimisticPolicyExpenseChatCreatedReportActionID = membersChats.reportCreationData[submitterLogin].reportActionID;
 
     if (!optimisticPolicyExpenseChatReportID) {
         return;
@@ -7518,18 +7550,19 @@ function changeReportPolicyAndInviteSubmitter({
         failureData: failureChangePolicyData,
         optimisticReportPreviewAction,
         optimisticMovedReportAction,
-    } = buildOptimisticChangePolicyData(
+    } = buildOptimisticChangePolicyData({
         report,
         parentReport,
         policy,
         currentUserAccountID,
         email,
+        managerLogin,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
         isReportLastVisibleArchived,
         reportNextStep,
-        membersChats.reportCreationData[submitterEmail],
-    );
+        optimisticPolicyExpenseChatReport: membersChats.reportCreationData[submitterLogin],
+    });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];
     const successData = [...successAddMembersData, ...successChangePolicyData];
