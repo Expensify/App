@@ -18,17 +18,16 @@ function SubBackButton({text}: SubBackButtonProps): React.ReactElement | null {
     // Re-resolve so the wrapper's hierarchy throw uses its component name. Sub wins over also-true "outside <Content>".
     useSubContext(SubBackButton.displayName);
 
-    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubBackButton();
+    const {translate} = useLocalize();
+    const labelText = text ?? translate('common.goBack');
+    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubBackButton({text: labelText});
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
 
     if (!isAtActiveLevel) {
         return null;
     }
-
-    const labelText = text ?? translate('common.goBack');
 
     return (
         <MenuItem

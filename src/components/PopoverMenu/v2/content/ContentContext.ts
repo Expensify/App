@@ -6,6 +6,7 @@ type FocusableItem = {
     ref: RefObject<View | null>;
     isDisabled: boolean;
     onActivate: () => void;
+    text?: string;
 };
 
 type ContentNavigation = {

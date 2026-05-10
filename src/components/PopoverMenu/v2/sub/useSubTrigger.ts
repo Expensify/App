@@ -16,7 +16,7 @@ type UseSubTriggerResult = {
 };
 
 /** Sub-level trigger hook; opens the enclosing `<Sub>`. `<Sub.Trigger>` is the opinionated `MenuItem` shape. */
-function useSubTrigger({disabled = false}: {disabled?: boolean} = {}): UseSubTriggerResult {
+function useSubTrigger({disabled = false, text}: {disabled?: boolean; text?: string} = {}): UseSubTriggerResult {
     const subContext = use(SubContext);
     if (!subContext) {
         throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Sub>.`);
@@ -36,6 +36,7 @@ function useSubTrigger({disabled = false}: {disabled?: boolean} = {}): UseSubTri
         componentName: HOOK_NAME,
         visible: isAtActiveLevel,
         isDisabled: disabled,
+        text,
         onActivate: () => {
             if (disabled) {
                 return;

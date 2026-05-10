@@ -32,7 +32,7 @@ type UseSelectableRowResult = {
 };
 
 /** Closes after `onSelect`; call `event.preventDefault()` inside `onSelect` to keep the menu open. */
-function useSelectableRow({onSelect, disabled = false}: {onSelect?: (event: ItemSelectEvent) => void; disabled?: boolean} = {}): UseSelectableRowResult {
+function useSelectableRow({onSelect, disabled = false, text}: {onSelect?: (event: ItemSelectEvent) => void; disabled?: boolean; text?: string} = {}): UseSelectableRowResult {
     const close = use(ContentCloseContext);
     if (close === null) {
         throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Content>.`);
@@ -43,6 +43,7 @@ function useSelectableRow({onSelect, disabled = false}: {onSelect?: (event: Item
         componentName: HOOK_NAME,
         visible: isAtActiveLevel,
         isDisabled: disabled,
+        text,
         onActivate: () => {
             if (disabled) {
                 return;

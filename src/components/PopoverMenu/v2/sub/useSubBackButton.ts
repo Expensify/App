@@ -16,7 +16,7 @@ type UseSubBackButtonResult = {
 };
 
 /** Sub-level back-button hook; pops one sub on press. `<Sub.BackButton>` is the opinionated `MenuItem` shape. */
-function useSubBackButton(): UseSubBackButtonResult {
+function useSubBackButton({text}: {text?: string} = {}): UseSubBackButtonResult {
     const subContext = use(SubContext);
     if (!subContext) {
         throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Sub>.`);
@@ -35,6 +35,7 @@ function useSubBackButton(): UseSubBackButtonResult {
     const row = useFocusableRow({
         componentName: HOOK_NAME,
         visible: isAtActiveLevel,
+        text,
         onActivate: () => subActions.exitSub(subContext.parentSubID),
     });
 

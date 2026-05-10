@@ -43,7 +43,7 @@ function CheckmarkItem({
     const StyleUtils = useStyleUtils();
     // Re-resolve so the wrapper's hierarchy throw uses its component name, not `useSelectableRow`'s.
     useContentClose(CheckmarkItem.displayName);
-    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled});
+    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled, text});
 
     if (!isAtActiveLevel) {
         return null;

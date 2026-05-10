@@ -12,7 +12,19 @@ type FocusableRow = {
 };
 
 /** For close-on-select rows, prefer `useSelectableRow`. */
-function useFocusableRow({componentName, visible, onActivate, isDisabled = false}: {componentName: string; visible: boolean; onActivate: () => void; isDisabled?: boolean}): FocusableRow {
+function useFocusableRow({
+    componentName,
+    visible,
+    onActivate,
+    isDisabled = false,
+    text,
+}: {
+    componentName: string;
+    visible: boolean;
+    onActivate: () => void;
+    isDisabled?: boolean;
+    text?: string;
+}): FocusableRow {
     const id = useId();
     const ref = useRef<View>(null);
     const {focusedID} = useContentFocus(componentName);
@@ -28,9 +40,9 @@ function useFocusableRow({componentName, visible, onActivate, isDisabled = false
         if (!visible) {
             return;
         }
-        registerItem(id, {ref, isDisabled, onActivate: () => onActivateRef.current()});
+        registerItem(id, {ref, isDisabled, onActivate: () => onActivateRef.current(), text});
         return () => unregisterItem(id);
-    }, [visible, id, registerItem, unregisterItem, isDisabled]);
+    }, [visible, id, registerItem, unregisterItem, isDisabled, text]);
 
     const focused = focusedID === id;
     useSyncFocus(ref, focused);
