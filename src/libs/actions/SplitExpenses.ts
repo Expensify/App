@@ -13,7 +13,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
-import {initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/Split';
+import {initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
 
 // We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
 // this avoids unnecessary re-rendering for components when any transaction changes. This data should ONLY

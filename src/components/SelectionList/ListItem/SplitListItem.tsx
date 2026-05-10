@@ -7,12 +7,12 @@ import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -21,6 +21,10 @@ import SplitAmountDisplay from './SplitListItem/SplitAmountDisplay';
 import SplitListItemInput from './SplitListItem/SplitListItemInput';
 import type {SplitListItemProps, SplitListItemType} from './types';
 
+/**
+ * A rich row showing merchant, date, category/tags, and an editable amount or percentage input.
+ * Used in split expense flows to allocate amounts across participants.
+ */
 function SplitListItem<TItem extends ListItem>({
     item,
     isFocused,
@@ -37,6 +41,7 @@ function SplitListItem<TItem extends ListItem>({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const splitItem = item as unknown as SplitListItemType;
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
@@ -107,8 +112,6 @@ function SplitListItem<TItem extends ListItem>({
             onSelectRow={onSelectRow}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
-            shouldUseDefaultRightHandSideCheckmark={false}
-            shouldHighlightSelectedItem={false}
             keyForList={item.keyForList}
             onFocus={onFocus}
             pendingAction={item.pendingAction}

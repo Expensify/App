@@ -76,6 +76,7 @@ function ReviewCategory() {
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setCategory}
+                selectedValue={reviewDuplicates?.category}
             />
         </ScreenWrapper>
     );

@@ -175,7 +175,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
 
     await waitForBatchedUpdates();
 
@@ -775,7 +775,6 @@ describe('Unread Indicators', () => {
             currentUserAccountIDParam: USER_A_ACCOUNT_ID,
             currentUserEmailParam: USER_A_EMAIL,
             introSelected: undefined,
-            activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
