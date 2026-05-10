@@ -1773,7 +1773,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
+            submitterLogin: EMPLOYEE_EMAIL,
             report,
             chatReport,
             reportTransactions: [],
@@ -1834,7 +1834,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
+            submitterLogin: EMPLOYEE_EMAIL,
             report,
             chatReport,
             reportTransactions: [],
@@ -1895,7 +1895,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
+            submitterLogin: EMPLOYEE_EMAIL,
             report,
             chatReport,
             reportTransactions: [],
@@ -1956,7 +1956,7 @@ describe('getSecondaryAction', () => {
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
+            submitterLogin: EMPLOYEE_EMAIL,
             report,
             chatReport,
             reportTransactions: [],
