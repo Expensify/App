@@ -31,7 +31,7 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
     }
 
     const handleSecondaryInteraction: SecondaryInteractionHandler = (event) => {
-        onlyChild.props.onSecondaryInteraction(event);
+        onlyChild.props.onSecondaryInteraction?.(event);
         if (event.defaultPrevented) {
             return;
         }

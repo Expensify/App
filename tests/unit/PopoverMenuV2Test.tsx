@@ -434,7 +434,6 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Root>
                             <PopoverMenu.Trigger>
                                 {
-                                    // Construct the Fragment via createElement so the test's intent (a Fragment-typed child) survives lint without a `react/jsx-no-useless-fragment` exception.
                                     React.createElement(
                                         React.Fragment,
                                         null,
@@ -453,6 +452,91 @@ describe('PopoverMenu V2', () => {
                 ),
             ).toThrow(/<PopoverMenu\.Trigger> cannot wrap a Fragment/);
             consoleError.mockRestore();
+        });
+
+        it('does not crash when the slotted child omits onPress at runtime', () => {
+            // PressableWithFeedback marks onPress optional → typechecks against the slot's required onPress → wrapper must guard at runtime.
+            const onOpenChange = jest.fn();
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger>
+                            <PressableWithFeedback
+                                accessibilityLabel="X"
+                                sentryLabel="X"
+                                testID="trigger"
+                            >
+                                <View />
+                            </PressableWithFeedback>
+                        </PopoverMenu.Trigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            expect(() => fireEvent.press(screen.getByTestId('trigger'))).not.toThrow();
+            expect(onOpenChange).toHaveBeenLastCalledWith(true);
+        });
+
+        it('merges the consumer ref with the internal anchor ref', () => {
+            const consumerRef = React.createRef<RNViewType>();
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger>
+                            <PressableWithFeedback
+                                ref={consumerRef}
+                                onPress={() => {}}
+                                accessibilityLabel="Open menu"
+                                sentryLabel="TriggerTest"
+                                testID="trigger"
+                            >
+                                <View testID="trigger-icon" />
+                            </PressableWithFeedback>
+                        </PopoverMenu.Trigger>
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            expect(consumerRef.current).not.toBeNull();
+        });
+
+        it('handles two Triggers as independent instances (multi-instance composition)', () => {
+            const consumerOnPressA = jest.fn();
+            const consumerOnPressB = jest.fn();
+            const refA = React.createRef<RNViewType>();
+            const refB = React.createRef<RNViewType>();
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger>
+                            <PressableWithFeedback
+                                ref={refA}
+                                onPress={consumerOnPressA}
+                                accessibilityLabel="Open A"
+                                sentryLabel="A"
+                                testID="trigger-a"
+                            >
+                                <View />
+                            </PressableWithFeedback>
+                        </PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger>
+                            <PressableWithFeedback
+                                ref={refB}
+                                onPress={consumerOnPressB}
+                                accessibilityLabel="Open B"
+                                sentryLabel="B"
+                                testID="trigger-b"
+                            >
+                                <View />
+                            </PressableWithFeedback>
+                        </PopoverMenu.Trigger>
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            expect(refA.current).not.toBe(refB.current);
+            fireEvent.press(screen.getByTestId('trigger-a'));
+            fireEvent.press(screen.getByTestId('trigger-b'));
+            expect(consumerOnPressA).toHaveBeenCalledTimes(1);
+            expect(consumerOnPressB).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -553,6 +637,33 @@ describe('PopoverMenu V2', () => {
             expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
             expect(longPressEvent.defaultPrevented).toBe(true);
             expect(onOpenChange).not.toHaveBeenCalledWith(true);
+        });
+
+        it('throws when the child is a Fragment', () => {
+            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+            expect(() =>
+                render(
+                    <NavigationContext.Provider value={mockNavigation}>
+                        <PopoverMenu.Root>
+                            <PopoverMenu.SecondaryInteractionTrigger>
+                                {
+                                    React.createElement(
+                                        React.Fragment,
+                                        null,
+                                        <PressableWithSecondaryInteraction
+                                            onSecondaryInteraction={() => {}}
+                                            accessibilityLabel="X"
+                                        >
+                                            <View />
+                                        </PressableWithSecondaryInteraction>,
+                                    ) as unknown as React.ReactElement<PopoverMenu.SecondaryInteractionTriggerSlotProps>
+                                }
+                            </PopoverMenu.SecondaryInteractionTrigger>
+                        </PopoverMenu.Root>
+                    </NavigationContext.Provider>,
+                ),
+            ).toThrow(/<PopoverMenu\.SecondaryInteractionTrigger> cannot wrap a Fragment/);
+            consoleError.mockRestore();
         });
     });
 

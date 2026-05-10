@@ -30,7 +30,7 @@ function Trigger({children}: TriggerProps): React.ReactElement {
     }
 
     const handlePress: NonNullable<PressableProps['onPress']> = (event) => {
-        onlyChild.props.onPress(event);
+        onlyChild.props.onPress?.(event);
         if (event?.defaultPrevented) {
             return;
         }
