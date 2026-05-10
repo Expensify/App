@@ -216,7 +216,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             count: selectedEmployees.length,
             memberName: formatPhoneNumber(newGetPersonalDetailsByIDs({accountIDs: [firstSelectedEmployeeAccountID], personalDetails}).at(0)?.displayName ?? ''),
         });
-    }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, currentUserAccountID, personalDetails]);
+    }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
     /**
      * Get members for the current workspace
      */
