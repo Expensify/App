@@ -434,16 +434,17 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Root>
                             <PopoverMenu.Trigger>
                                 {
-                                    (
-                                        <>
-                                            <PressableWithFeedback
-                                                onPress={() => {}}
-                                                accessibilityLabel="X"
-                                                sentryLabel="X"
-                                            >
-                                                <View />
-                                            </PressableWithFeedback>
-                                        </>
+                                    // Construct the Fragment via createElement so the test's intent (a Fragment-typed child) survives lint without a `react/jsx-no-useless-fragment` exception.
+                                    React.createElement(
+                                        React.Fragment,
+                                        null,
+                                        <PressableWithFeedback
+                                            onPress={() => {}}
+                                            accessibilityLabel="X"
+                                            sentryLabel="X"
+                                        >
+                                            <View />
+                                        </PressableWithFeedback>,
                                     ) as unknown as React.ReactElement<PopoverMenu.TriggerSlotProps>
                                 }
                             </PopoverMenu.Trigger>
