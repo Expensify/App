@@ -83,7 +83,6 @@ function SubscriptionSettings() {
     const {isSecretPromoCode, promoDiscountValue} = getPrivatePromoDiscountInfo(privatePromoDiscount, isAnnual);
 
     const isExpensifyCodeApplied = !!privatePromoCode;
-    const shouldShowExpensifyCodeSection = !isSecretPromoCode;
     const shouldShowExpensifyCodeHintText = isExpensifyCodeApplied && promoDiscountValue !== undefined;
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
@@ -317,22 +316,20 @@ function SubscriptionSettings() {
                         ) : null}
                     </>
                 )}
-                {shouldShowExpensifyCodeSection && (
-                    <MenuItemWithTopDescription
-                        description={translate('subscription.expensifyCode.title')}
-                        shouldShowRightIcon={!isExpensifyCodeApplied}
-                        onPress={onExpensifyCodePress}
-                        interactive={!isExpensifyCodeApplied}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                        style={styles.mt5}
-                        title={privatePromoCode}
-                        hintText={
-                            shouldShowExpensifyCodeHintText
-                                ? translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)
-                                : undefined
-                        }
-                    />
-                )}
+                <MenuItemWithTopDescription
+                    description={translate('subscription.expensifyCode.title')}
+                    shouldShowRightIcon={!isExpensifyCodeApplied}
+                    onPress={onExpensifyCodePress}
+                    interactive={!isExpensifyCodeApplied}
+                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                    style={styles.mt5}
+                    title={isSecretPromoCode ? '' : privatePromoCode}
+                    hintText={
+                        shouldShowExpensifyCodeHintText
+                            ? translate('subscription.expensifyCode.discountMessage', `${promoDiscountValue ?? ''}`, `${privatePromoCodeValidBillingCycles ?? ''}`)
+                            : undefined
+                    }
+                />
                 {!!freebieCredits && freebieCredits > 0 && (
                     <MenuItemWithTopDescription
                         description={translate('subscription.details.creditBalance')}
