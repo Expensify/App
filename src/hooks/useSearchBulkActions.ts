@@ -1301,7 +1301,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
                     setPDFReportID(reportIDForPDF);
                     exportReportToPDF({reportID: reportIDForPDF});
-                    clearSelectedTransactions();
                 },
             });
         }
@@ -1582,7 +1581,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const handlePDFModalClose = useCallback(() => {
         setPDFReportID(undefined);
-    }, []);
+        InteractionManager.runAfterInteractions(() => {
+            clearSelectedTransactions();
+        });
+    }, [clearSelectedTransactions]);
 
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
