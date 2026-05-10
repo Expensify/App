@@ -232,7 +232,7 @@
 "../../src/hooks/useProactiveAppReview.ts"	"react-hooks/purity"	1
 "../../src/hooks/useRestoreInputFocus/index.android.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useReviewDuplicatesNavigation.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	5
+"../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	6
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/exhaustive-deps"	1
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/preserve-manual-memoization"	2
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/refs"	1
