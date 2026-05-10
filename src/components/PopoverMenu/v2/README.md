@@ -61,7 +61,7 @@ Returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` to compose any press
 
 The slot wrapper calls the consumer's `onPress` first, then opens — unless the consumer called `event.preventDefault()`. Mirrors `<Item onSelect>`'s existing pattern.
 
-> **`preventDefault()` must be called synchronously**, before any `await`. The wrapper checks `event.defaultPrevented` immediately after the consumer's `onPress` returns; a deferred call (after `await`, in a microtask, or in a promise callback) lands too late and the popover will already be open. Same constraint as Radix's `composeEventHandlers`. For async pre-press validation, gate at the layer above the trigger (e.g., short-circuit the press handler before reaching `<Trigger>`).
+> **`preventDefault()` must be called synchronously**, before any `await`. The wrapper checks `event.defaultPrevented` immediately after the consumer's `onPress` returns; a deferred call (after `await` or in a promise callback) lands too late and the popover will already be open. Same constraint as Radix's `composeEventHandlers`. For async pre-press validation, gate at the layer above the trigger (e.g., short-circuit the press handler before reaching `<Trigger>`).
 
 ```tsx
 function MoreMenuTrigger({videoPlayerRef, url}) {
