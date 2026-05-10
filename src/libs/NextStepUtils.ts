@@ -357,6 +357,7 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
 
 function getReportNextStep(
     currentNextStep: ReportNextStepDeprecated | undefined,
+    reportNextStep: ReportNextStep | null | undefined,
     moneyRequestReport: OnyxEntry<Report>,
     transactions: Array<OnyxEntry<Transaction>>,
     policy: OnyxEntry<Policy>,
@@ -400,7 +401,7 @@ function getReportNextStep(
         });
     }
 
-    return currentNextStep;
+    return reportNextStep ?? currentNextStep;
 }
 function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string) {
     const optimisticNextStep: ReportNextStepDeprecated = {

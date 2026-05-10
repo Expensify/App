@@ -1052,6 +1052,48 @@ describe('libs/NextStepUtils', () => {
         });
     });
 
+    describe('getReportNextStep', () => {
+        const currentUserEmail = 'current-user@expensify.com';
+        const currentUserAccountID = 37;
+        const policy = {
+            id: '1',
+            owner: currentUserEmail,
+            harvesting: {enabled: false},
+            name: 'Policy',
+            role: 'admin',
+            type: 'team',
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+        } as Policy;
+        const report = buildOptimisticExpenseReport({
+            chatReportID: 'fake-chat-report-id-report-next-step',
+            policyID: policy.id,
+            payeeAccountID: currentUserAccountID,
+            total: -500,
+            currency: CONST.CURRENCY.USD,
+            betas: [CONST.BETAS.ALL],
+        }) as Report;
+        const deprecatedNextStep: ReportNextStepDeprecated = {
+            type: 'neutral',
+            icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+            message: [{text: 'Waiting for '}, {text: currentUserEmail, type: 'strong'}, {text: ' to '}, {text: 'add'}, {text: ' %expenses.'}],
+        };
+        const reportNextStep = {
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+            icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+            actorAccountID: currentUserAccountID,
+        };
+
+        test('prefers the translatable report next step when no optimistic override is needed', () => {
+            expect(getReportNextStep(deprecatedNextStep, reportNextStep, report, [], policy, {}, currentUserEmail, currentUserAccountID)).toBe(reportNextStep);
+        });
+
+        test('falls back to the deprecated next step when the report next step is unavailable', () => {
+            expect(getReportNextStep(deprecatedNextStep, undefined, report, [], policy, {}, currentUserEmail, currentUserAccountID)).toBe(deprecatedNextStep);
+        });
+    });
+
     describe('buildOptimisticNextStepForStrictPolicyRuleViolations', () => {
         test('returns correct next step message for strict policy rule violations', () => {
             const result = buildOptimisticNextStepForStrictPolicyRuleViolations();
@@ -1129,7 +1171,7 @@ describe('libs/NextStepUtils', () => {
                 message: [{text: 'Current next step'}],
             };
 
-            const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(currentNextStep, undefined, report, [], undefined, {}, currentUserEmail, currentUserAccountID);
             expect(result).toBe(currentNextStep);
         });
 
@@ -1166,7 +1208,16 @@ describe('libs/NextStepUtils', () => {
                 ],
             };
 
-            const result = getReportNextStep(undefined, report, [transaction] as Array<OnyxEntry<Transaction>>, undefined, transactionViolations, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(
+                undefined,
+                undefined,
+                report,
+                [transaction] as Array<OnyxEntry<Transaction>>,
+                undefined,
+                transactionViolations,
+                currentUserEmail,
+                currentUserAccountID,
+            );
 
             expect(result).toEqual({
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -1216,7 +1267,7 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, [], policy, {}, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(undefined, undefined, report, [], policy, {}, currentUserEmail, currentUserAccountID);
             expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
 
@@ -1277,7 +1328,16 @@ describe('libs/NextStepUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await waitForBatchedUpdates();
 
-            const result = getReportNextStep(undefined, report, [transaction] as Array<OnyxEntry<Transaction>>, policy, transactionViolations, currentUserEmail, currentUserAccountID);
+            const result = getReportNextStep(
+                undefined,
+                undefined,
+                report,
+                [transaction] as Array<OnyxEntry<Transaction>>,
+                policy,
+                transactionViolations,
+                currentUserEmail,
+                currentUserAccountID,
+            );
 
             expect(result).toEqual({
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
