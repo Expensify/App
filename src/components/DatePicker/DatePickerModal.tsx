@@ -32,7 +32,7 @@ function DatePickerModal({
     onClose,
     anchorPosition,
     onSelected,
-    shouldCloseWhenBrowserNavigationChanged = false,
+    shouldCloseWhenBrowserNavigationChanged = true,
     shouldPositionFromTop = false,
     forwardedFSClass,
 }: DatePickerProps) {
