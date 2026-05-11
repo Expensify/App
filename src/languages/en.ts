@@ -6505,6 +6505,7 @@ const translations = {
                 one: 'Are you sure you want to delete this rate?',
                 other: 'Are you sure you want to delete these rates?',
             }),
+            amountPerUnit: (unit: string) => `Amount per ${unit}`,
             startDate: 'Start date',
             endDate: 'End date',
             errors: {

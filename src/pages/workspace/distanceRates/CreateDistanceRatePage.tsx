@@ -1,12 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import AmountForm from '@components/AmountForm';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import TextInput from '@components/TextInput';
@@ -16,7 +16,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU';
-import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {validateCreateDistanceRateForm} from '@libs/PolicyDistanceRatesUtils';
@@ -41,11 +40,13 @@ function CreateDistanceRatePage({
     },
 }: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, preferredLocale} = useLocalize();
+    const {translate, toLocaleDigit} = useLocalize();
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
+    const distanceUnit = customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const unitLabel = translate(`common.${distanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? 'mile' : 'kilometer'}`);
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
@@ -128,15 +129,17 @@ function CreateDistanceRatePage({
                                     role={CONST.ROLE.PRESENTATION}
                                 />
                             </View>
-                            <InputWrapper
-                                InputComponent={NumberWithSymbolForm}
-                                inputID={INPUT_IDS.RATE}
-                                decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                                currency={currency}
-                                symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
-                                symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
-                                isSymbolPressable={false}
-                            />
+                            <View style={[styles.mh5, styles.mt4]}>
+                                <InputWrapper
+                                    InputComponent={AmountForm}
+                                    inputID={INPUT_IDS.RATE}
+                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                    currency={currency}
+                                    isCurrencyPressable={false}
+                                    displayAsTextInput
+                                    label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
+                                />
+                            </View>
                             <View style={[styles.mh5, styles.mt4]}>
                                 <InputWrapper
                                     InputComponent={DatePicker}

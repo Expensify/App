@@ -6371,6 +6371,7 @@ ${amount} para ${merchant} - ${date}`,
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',
                 other: '¿Estás seguro de que quieres eliminar estas tasas?',
             }),
+            amountPerUnit: (unit: string) => `Monto por ${unit}`,
             startDate: 'Fecha de inicio',
             endDate: 'Fecha de fin',
             errors: {
