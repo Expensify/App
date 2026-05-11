@@ -116,7 +116,14 @@ function BaseSelectionList<TItem extends ListItem>({
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
 
     const isItemSelected = useCallback(
-        (item: TItem) => item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList)) && canSelectMultiple),
+        // FlashList v2's recycler can occasionally call into derived state with an `undefined` cell during rapid data swaps
+        // (e.g. type/clear/retype in a search bar). Guard against that here instead of crashing.
+        (item: TItem | undefined) => {
+            if (!item) {
+                return false;
+            }
+            return item.isSelected ?? ((isSelected?.(item) ?? selectedItems.includes(item.keyForList)) && canSelectMultiple);
+        },
         [isSelected, selectedItems, canSelectMultiple],
     );
 
@@ -347,6 +354,11 @@ function BaseSelectionList<TItem extends ListItem>({
     };
 
     const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
+        // FlashList can hand us an undefined cell during rapid data changes (recycler holding a stale index).
+        // Returning null keeps the page alive until the next render reconciles the layout cache.
+        if (!item) {
+            return null;
+        }
         const selected = isItemSelected(item);
         const isItemDisabled = isDisabled || (!!item.isDisabled && !selected);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;

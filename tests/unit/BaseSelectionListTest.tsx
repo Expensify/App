@@ -12,6 +12,9 @@ import CONST from '@src/CONST';
 // Captures scrollToIndex calls so tests can assert on scroll behaviour
 const mockScrollToIndex = jest.fn();
 
+// Captures the latest renderItem prop that BaseSelectionList hands to FlashList so tests can drive it directly.
+const lastFlashListRenderItemRef: {current: ((info: {item: unknown; index: number; target: string}) => React.ReactNode) | null} = {current: null};
+
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
@@ -51,6 +54,7 @@ jest.mock('@shopify/flash-list', () => {
             ref,
         ) => {
             ReactLocal.useImperativeHandle(ref, () => ({scrollToIndex: mockScrollToIndex}));
+            lastFlashListRenderItemRef.current = renderItem ?? null;
 
             return ReactLocal.createElement(
                 RN.ScrollView,
@@ -314,5 +318,24 @@ describe('BaseSelectionList', () => {
         );
 
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeNull();
+    });
+
+    // Regression test for https://github.com/Expensify/App/issues/XXXXX (Categories search crash).
+    // FlashList v2's recycler can call renderItem with {item: undefined} during rapid data swaps
+    // (e.g. type/clear/retype). renderItem must return null instead of dereferencing item.isSelected.
+    it('renders null when FlashList hands renderItem an undefined cell', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        render(
+            <SelectionListRenderer
+                data={mockItems}
+                canSelectMultiple
+            />,
+        );
+
+        const renderItem = lastFlashListRenderItemRef.current;
+        expect(renderItem).not.toBeNull();
+
+        expect(() => renderItem?.({item: undefined, index: 99, target: 'Cell'})).not.toThrow();
+        expect(renderItem?.({item: undefined, index: 99, target: 'Cell'})).toBeNull();
     });
 });

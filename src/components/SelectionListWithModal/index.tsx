@@ -57,12 +57,17 @@ function SelectionListWithModal<TItem extends ListItem>({
     // This gives FlashList time to properly update its layout cache when searching/filtering
     const [, debouncedData, setDataState] = useDebouncedState<TItem[]>(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
-    // Determine if this is changed by filtering (to limit multiple rerenders)
-    const isFiltering = filteredData.length < debouncedData.length;
-
     useEffect(() => {
         setDataState(filteredData);
     }, [filteredData, setDataState]);
+
+    // debouncedData is only a safe "stable larger view" of the current filter when it is a strict superset of filteredData
+    // (i.e. it was produced from a less-filtered version of the same query). If the user cleared the search and re-typed a
+    // different query inside the debounce window, debouncedData holds keys that no longer match - using it then would hand
+    // FlashList an inconsistent array and crash renderItem with an undefined cell.
+    const debouncedKeySet = useMemo(() => new Set(debouncedData.map((item) => item.keyForList)), [debouncedData]);
+    const isDebouncedDataSupersetOfFiltered = useMemo(() => filteredData.every((item) => debouncedKeySet.has(item.keyForList)), [filteredData, debouncedKeySet]);
+    const isFiltering = isDebouncedDataSupersetOfFiltered && filteredData.length < debouncedData.length;
 
     const displayData = isFiltering ? debouncedData : filteredData;
 
