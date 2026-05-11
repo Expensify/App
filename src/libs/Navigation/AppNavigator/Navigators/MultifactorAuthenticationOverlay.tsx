@@ -46,7 +46,7 @@ function TransparentScreen() {
 
 const overlayStyles = StyleSheet.create({
     root: {
-        zIndex: 1000,
+        zIndex: variables.mfaOverlayZIndex,
     },
 });
 

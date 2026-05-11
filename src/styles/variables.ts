@@ -250,6 +250,7 @@ export default {
     sidePanelZIndex: 9998,
     modalRightDockedZIndex: 9997,
     modalLowestZIndex: 9996,
+    mfaOverlayZIndex: 1000,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
