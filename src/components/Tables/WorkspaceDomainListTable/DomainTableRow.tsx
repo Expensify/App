@@ -68,6 +68,7 @@ export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayo
                 interactive
                 rowIndex={rowIndex}
                 skeletonReasonAttributes={{context: 'domainTableRow'}}
+                onPress={item.action}
             >
                 {({hovered}) => (
                     <>

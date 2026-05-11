@@ -1,8 +1,7 @@
 import React from 'react';
-import {View} from 'react-native';
+import {StyleProp, TextStyle, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import {useTableContext} from './TableContext';
 
 /**
@@ -32,8 +31,12 @@ import {useTableContext} from './TableContext';
  * </Table>
  * ```
  */
-function TableSearchBar() {
-    const {translate} = useLocalize();
+type TableSearchBarProps = {
+    label: string;
+    style?: StyleProp<TextStyle>;
+};
+
+function TableSearchBar({label, style}: TableSearchBarProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const {
         activeSearchString,
@@ -43,8 +46,8 @@ function TableSearchBar() {
     return (
         <View>
             <TextInput
-                label={translate('workspace.companyCards.findCard')}
-                accessibilityLabel={translate('workspace.companyCards.findCard')}
+                label={label}
+                accessibilityLabel={label}
                 value={activeSearchString}
                 onChangeText={(text) => updateSearchString(text)}
                 icon={activeSearchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
@@ -55,6 +58,7 @@ function TableSearchBar() {
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
+                style={style}
             />
         </View>
     );

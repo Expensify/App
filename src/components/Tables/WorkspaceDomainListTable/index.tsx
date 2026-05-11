@@ -1,5 +1,6 @@
 import {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
+import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {PopoverMenuItem} from '@components/PopoverMenu';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
@@ -132,34 +133,38 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
         );
     };
 
-    return (
-        <Table
-            data={domains}
-            columns={domainTableColumns}
-            renderItem={renderDomainItem}
-            compareItems={compareDomainItems}
-            isItemInSearch={isDomainItemInSearch}
-            keyExtractor={(row) => row.domainAccountID.toString()}
-            title={translate('common.domains')}
-        >
-            <Table.Header />
-            <Table.Body />
-        </Table>
-    );
-
-    // return (
-    //     <Table
-    //         data={workspaces}
-    //         columns={workspaceTableColumns}
-    //         renderItem={renderWorkspaceItem}
-    //         compareItems={compareWorkspaceItems}
-    //         isItemInSearch={isWorkspaceItemInSearch}
-    //         keyExtractor={(row) => row.policyID}
-    //         initialSortColumn="workspaces"
-    //         title={translate('common.workspaces')}
+    // <Table
+    //         data={domains}
+    //         columns={domainTableColumns}
+    //         renderItem={renderDomainItem}
+    //         compareItems={compareDomainItems}
+    //         isItemInSearch={isDomainItemInSearch}
+    //         keyExtractor={(row) => row.domainAccountID.toString()}
+    //         title={translate('common.domains')}
     //     >
     //         <Table.Header />
     //         <Table.Body />
     //     </Table>
-    // );
+
+    return (
+        <>
+            <Table
+                data={workspaces}
+                columns={workspaceTableColumns}
+                renderItem={renderWorkspaceItem}
+                compareItems={compareWorkspaceItems}
+                isItemInSearch={isWorkspaceItemInSearch}
+                keyExtractor={(row) => row.policyID}
+                initialSortColumn="workspaces"
+                title={translate('common.workspaces')}
+            >
+                <View style={[styles.mb4, styles.ph5, styles.mnw200, styles.flexGrow0, styles.alignSelfStart]}>
+                    <Table.SearchBar label={translate('workspace.common.findWorkspace')} />
+                </View>
+
+                <Table.Header />
+                <Table.Body />
+            </Table>
+        </>
+    );
 }
