@@ -1,5 +1,17 @@
-type WorkspaceRowProps = {};
+import Table from '@components/Table';
+import {WorkspaceRowData} from '.';
 
-export default function WorkspaceRow({}: WorkspaceRowProps) {
-    return <></>;
+type WorkspaceRowProps = {
+    item: WorkspaceRowData;
+
+    rowIndex: number;
+};
+
+export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
+    return (
+        <Table.Row
+            interactive
+            rowIndex={rowIndex}
+        ></Table.Row>
+    );
 }

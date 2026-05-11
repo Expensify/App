@@ -104,10 +104,8 @@ export default function WorkspaceListTable({domains, workspaces}: WorkspaceListT
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
         >
-            <>
-                <Table.Header />
-                <Table.Body />
-            </>
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }
