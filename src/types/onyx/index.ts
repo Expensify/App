@@ -37,6 +37,7 @@ import type {
 } from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type CodingRuleMatchingTransaction from './CodingRuleMatchingTransaction';
+import type CopyPolicySettings from './CopyPolicySettings';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
 import type Credentials from './Credentials';
@@ -91,6 +92,8 @@ import type {PasskeyCredential, PasskeyTransport} from './LocalPasskeyCredential
 import type LockAccountDetails from './LockAccountDetails';
 import type {LoginList} from './Login';
 import type Login from './Login';
+import type {Login as NewLogin} from './Logins';
+import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
@@ -219,6 +222,7 @@ export type {
     Domain,
     Download,
     DuplicateWorkspace,
+    CopyPolicySettings,
     WorkspaceCardsList,
     ExpenseRule,
     ExpensifyCardSettings,
@@ -247,6 +251,8 @@ export type {
     LockAccountDetails,
     Login,
     LoginList,
+    NewLogin,
+    Logins,
     PasskeyCredential,
     PasskeyTransport,
     PendingContactAction,
