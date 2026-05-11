@@ -971,10 +971,8 @@ type SettingsNavigatorParamList = {
         subPage?: string;
         action?: 'edit';
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_PREFERRED_EXPORTER_SELECT]: {
         policyID: string;
