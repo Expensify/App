@@ -19,7 +19,15 @@ import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTr
 import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
-import {createTransactionThreadReport, openReport, readNewestAction, subscribeToReportLeavingEvents, unsubscribeFromLeavingRoomReportChannel, updateLastVisitTime} from '@userActions/Report';
+import {
+    clearStaleDMRecoveryTargetByTargetReportID,
+    createTransactionThreadReport,
+    openReport,
+    readNewestAction,
+    subscribeToReportLeavingEvents,
+    unsubscribeFromLeavingRoomReportChannel,
+    updateLastVisitTime,
+} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -268,13 +276,14 @@ function ReportFetchHandler() {
     }, [isFocused, prevIsFocused]);
 
     useEffect(() => {
-        if (!isValidReportIDFromPath(reportIDFromRoute)) {
+        if (!reportIDFromRoute || !isValidReportIDFromPath(reportIDFromRoute)) {
             return;
         }
         // Ensures the optimistic report is created successfully
         if (reportIDFromRoute !== report?.reportID || report?.pendingFields?.createChat) {
             return;
         }
+        clearStaleDMRecoveryTargetByTargetReportID(reportIDFromRoute);
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
