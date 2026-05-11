@@ -150,7 +150,7 @@ function DistanceRequestStartPage({
                     return;
                 }
                 const targetRoute = state.routes.find((tabRoute) => tabRoute.key === event.target);
-                if (!targetRoute) {
+                if (!targetRoute || targetRoute.name === currentRouteName) {
                     return;
                 }
                 event.preventDefault();
