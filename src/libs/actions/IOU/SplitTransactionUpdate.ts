@@ -1346,6 +1346,7 @@ function updateSplitTransactions({
                         IOUTransactionID: null,
                     },
                     errors: null,
+                    childReportID: null,
                 },
                 ...(whisperActionID && {
                     [whisperActionID]: {
@@ -1372,15 +1373,15 @@ function updateSplitTransactions({
             });
 
             onyxData.successData?.push(...successData);
-            if (isOriginalTransactionInSelfDM) {
-                onyxData.successData?.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalSelfDMReportID}`,
-                    value: {
-                        [firstIOU.reportActionID]: {pendingAction: null},
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${isOriginalTransactionInSelfDM ? originalSelfDMReportID : iouReport?.reportID}`,
+                value: {
+                    [firstIOU.reportActionID]: {
+                        pendingAction: null,
                     },
-                });
-            }
+                },
+            });
 
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,

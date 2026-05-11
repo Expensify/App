@@ -98,7 +98,6 @@ describe('Whisper content components provide MentionReportContext so room mentio
                     report={report}
                     originalReport={undefined}
                     isReportArchived={false}
-                    resolveActionableReportMentionWhisper={jest.fn()}
                 />
             </OnyxListItemProvider>,
         );
