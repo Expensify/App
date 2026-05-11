@@ -137,6 +137,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
     const prevReportActionID = usePrevious(reportActionID);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
     const didLayout = useRef(false);
@@ -281,6 +282,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         transactionThreadReport,
         hasOlderActions,
         hasNewerActions,
+        newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
     });
 
     const {

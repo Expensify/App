@@ -242,8 +242,11 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
         return {data: sortedItems, hasNextPage: false, hasPreviousPage: false, resourceItem};
     }
 
+    // For the default newest chain, include known newer items that sit before the first fetched page.
+    const startIndex = id ? page.firstIndex : 0;
+
     return {
-        data: sortedItems.slice(page.firstIndex, page.lastIndex + 1),
+        data: sortedItems.slice(startIndex, page.lastIndex + 1),
         hasNextPage: page.lastID !== CONST.PAGINATION_END_ID,
         hasPreviousPage: page.firstID !== CONST.PAGINATION_START_ID,
         resourceItem,
