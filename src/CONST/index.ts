@@ -6384,11 +6384,13 @@ const CONST = {
             LINKED: 'ReceiptPartnersLinkedTab',
             OUTSTANDING: 'ReceiptPartnersOutstandingTab',
         },
+        // Mirrors `BackBehavior` from `@react-navigation/routers`.
         BACK_BEHAVIOR: {
             INITIAL_ROUTE: 'initialRoute',
             FIRST_ROUTE: 'firstRoute',
             ORDER: 'order',
             HISTORY: 'history',
+            FULL_HISTORY: 'fullHistory',
             NONE: 'none',
         },
     },
