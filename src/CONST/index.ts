@@ -738,10 +738,13 @@ const CONST = {
             PERSONAL: 'PERSONAL',
         },
     },
-    NON_USD_BANK_ACCOUNT: {
+    CORPAY_DOCUMENT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
         FILE_LIMIT: 1,
+        MAX_FILE_SIZE: 2097152,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
+    },
+    NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
         CORPAY_UNDEFINED_OPTION_VALUE: 'Undefined',
@@ -1379,7 +1382,6 @@ const CONST = {
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
-            RECEIVED_PAYMENT: 'receivedPayment',
             REMOVE_HOLD: 'removeHold',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
@@ -1892,6 +1894,7 @@ const CONST = {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
+        MAX_LINES_LANDSCAPE_MODE: 2,
         MAX_LINES_FULL: -1,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
@@ -2091,6 +2094,7 @@ const CONST = {
         ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
+        ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
@@ -3656,6 +3660,7 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
+            SYNC_WITH_GUSTO: 'syncWithGusto',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -7577,6 +7582,7 @@ const CONST = {
 
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
+
     NEW_EXPENSIFY_PATH: '/New Expensify',
     RECEIPTS_UPLOAD_PATH: '/Receipts-Upload',
 
@@ -7713,6 +7719,7 @@ const CONST = {
                     WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
                 },
                 EXPENSE_REPORT: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
                     DATE: this.TABLE_COLUMNS.DATE,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
@@ -7758,17 +7765,20 @@ const CONST = {
         get GROUP_CUSTOM_COLUMNS() {
             return {
                 FROM: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
                     FROM: this.TABLE_COLUMNS.GROUP_FROM,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
                 CARD: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
                     CARD: this.TABLE_COLUMNS.GROUP_CARD,
                     FEED: this.TABLE_COLUMNS.GROUP_FEED,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
                 WITHDRAWAL_ID: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
                     WITHDRAWN: this.TABLE_COLUMNS.GROUP_WITHDRAWN,
                     WITHDRAWAL_STATUS: this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
                     BANK_ACCOUNT: this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
@@ -7826,6 +7836,7 @@ const CONST = {
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
                 ],
                 EXPENSE_REPORT: [
+                    this.TABLE_COLUMNS.AVATAR,
                     this.TABLE_COLUMNS.DATE,
                     this.TABLE_COLUMNS.STATUS,
                     this.TABLE_COLUMNS.TITLE,
@@ -7842,9 +7853,10 @@ const CONST = {
         },
         get GROUP_DEFAULT_COLUMNS() {
             return {
-                FROM: [this.TABLE_COLUMNS.GROUP_FROM, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
-                CARD: [this.TABLE_COLUMNS.GROUP_CARD, this.TABLE_COLUMNS.GROUP_FEED, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                FROM: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_FROM, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                CARD: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_CARD, this.TABLE_COLUMNS.GROUP_FEED, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WITHDRAWAL_ID: [
+                    this.TABLE_COLUMNS.AVATAR,
                     this.TABLE_COLUMNS.GROUP_WITHDRAWN,
                     this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
                     this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
@@ -9003,17 +9015,10 @@ const CONST = {
             FILTER_POPUP_APPLY_TEXT_INPUT: 'Search-FilterPopupApplyTextInput',
             FILTER_POPUP_RESET_AMOUNT: 'Search-FilterPopupResetAmount',
             FILTER_POPUP_APPLY_AMOUNT: 'Search-FilterPopupApplyAmount',
-            FILTER_POPUP_SAVE_AMOUNT: 'Search-FilterPopupSaveAmount',
             FILTER_POPUP_RESET_DATE: 'Search-FilterPopupResetDate',
             FILTER_POPUP_APPLY_DATE: 'Search-FilterPopupApplyDate',
-            FILTER_POPUP_RESET_USER: 'Search-FilterPopupResetUser',
-            FILTER_POPUP_APPLY_USER: 'Search-FilterPopupApplyUser',
-            FILTER_POPUP_RESET_REPORT: 'Search-FilterPopupResetReport',
-            FILTER_POPUP_APPLY_REPORT: 'Search-FilterPopupApplyReport',
             FILTER_POPUP_RESET_REPORT_FIELD: 'Search-FilterPopupResetReportField',
             FILTER_POPUP_APPLY_REPORT_FIELD: 'Search-FilterPopupApplyReportField',
-            FILTER_POPUP_RESET_CARD: 'Search-FilterPopupResetCard',
-            FILTER_POPUP_APPLY_CARD: 'Search-FilterPopupApplyCard',
             TRANSACTION_LIST_ITEM_CHECKBOX: 'Search-TransactionListItemCheckbox',
             EXPANDED_TRANSACTION_ROW: 'Search-ExpandedTransactionRow',
             EXPANDED_TRANSACTION_ROW_CHECKBOX: 'Search-ExpandedTransactionRowCheckbox',
@@ -9126,7 +9131,6 @@ const CONST = {
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
-            RECEIVED_PAYMENT: 'MoreMenu-ReceivedPayment',
             UNAPPROVE: 'MoreMenu-Unapprove',
             CANCEL_PAYMENT: 'MoreMenu-CancelPayment',
             HOLD: 'MoreMenu-Hold',
@@ -9407,6 +9411,7 @@ const CONST = {
                 PLAN_TYPE: 'WorkspaceOverview-PlanType',
                 SHARE: 'WorkspaceOverview-Share',
                 CUSTOM_RULES: 'WorkspaceOverview-CustomRules',
+                RULES_DOCUMENT: 'WorkspaceOverview-RulesDocument',
                 INVITE_BUTTON: 'WorkspaceOverview-InviteButton',
                 MORE_DROPDOWN: 'WorkspaceOverview-MoreDropdown',
             },
