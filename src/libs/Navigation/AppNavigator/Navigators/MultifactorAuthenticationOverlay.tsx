@@ -2,7 +2,7 @@ import {BaseNavigationContainer, NavigationIndependentTree} from '@react-navigat
 import {DarkTheme, DefaultTheme} from '@react-navigation/native';
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
@@ -33,13 +33,10 @@ const loadPromptPage = () => require<ReactComponentModule>('../../../../pages/Mu
 // Placeholder rendered as the initial route. onLayout triggers the deferred
 // push so the card-style interpolator has a measured width for the slide.
 function TransparentScreen() {
-    const handleLayout = useCallback(() => {
-        applyPendingNavigation();
-    }, []);
     return (
         <View
             style={StyleSheet.absoluteFill}
-            onLayout={handleLayout}
+            onLayout={applyPendingNavigation}
         />
     );
 }
@@ -75,16 +72,14 @@ function MultifactorAuthenticationOverlay() {
 
     const isVisible = isModalOpen || isClosing;
 
-    const navigationTheme = useMemo(() => {
-        const base = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
-        return {
-            ...base,
-            colors: {
-                ...base.colors,
-                background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
-            },
-        };
-    }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
+    const navigationThemeBase = themePreference === CONST.THEME.DARK ? DarkTheme : DefaultTheme;
+    const navigationTheme = {
+        ...navigationThemeBase,
+        colors: {
+            ...navigationThemeBase.colors,
+            background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
+        },
+    };
 
     useEffect(() => {
         if (isModalOpen) {
