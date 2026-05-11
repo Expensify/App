@@ -1,4 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
+import isEmpty from '@types/lodash/isEmpty';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -537,6 +538,28 @@ function WorkspacesListPage() {
     const domainRows: DomainRowData[] = [];
     const workspaceRows: WorkspaceRowData[] = [];
 
+    if (!isEmptyObject(allDomains)) {
+        for (const [index, domain] of Object.values(allDomains).entries()) {
+            if (!domain?.accountID || !domain.email) {
+                continue;
+            }
+
+            const isDomainAdmin = isAdminSelector(currentUserPersonalDetails?.accountID)(domain);
+            const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
+
+            domainRows.push({
+                isAdmin: isDomainAdmin,
+                isValidated: domain.validated,
+                domainAccountID: domain.accountID,
+                title: Str.extractEmailDomain(domain.email),
+                errors: domainErrors?.errors,
+                pendingAction: domain.pendingAction,
+                brickRoadIndicator: hasDomainErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin: isDomainAdmin}),
+            });
+        }
+    }
+
     if (!isEmptyObject(policies)) {
         const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
@@ -555,10 +578,9 @@ function WorkspacesListPage() {
                 }
 
                 const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
-                const indicator = reimbursementAccountBrickRoadIndicator ?? receiptUberBrickRoadIndicator;
 
                 if (receiptUberBrickRoadIndicator) {
-                    return indicator;
+                    return receiptUberBrickRoadIndicator;
                 }
 
                 if (policiesWithCardFeedErrors.find((p) => p.id === policy.id)) {
@@ -808,7 +830,7 @@ function WorkspacesListPage() {
                     </View>
                 ) : (
                     <WorkspaceDomainListTable
-                        domains={[]}
+                        domains={domainRows}
                         workspaces={workspaceRows}
                     />
                 )}

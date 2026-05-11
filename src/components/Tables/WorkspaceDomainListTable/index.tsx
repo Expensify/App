@@ -37,15 +37,14 @@ export type WorkspaceRowData = {
 };
 
 export type DomainRowData = {
-    domainAccountID: string;
+    domainAccountID: number;
     title: string;
     isAdmin: boolean;
     isValidated: boolean;
-    pendingAction: OnyxCommon.PendingAction;
-    errors: OnyxCommon.Errors | null | undefined;
+    pendingAction?: OnyxCommon.PendingAction;
+    errors?: OnyxCommon.Errors;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: () => void;
-    dismissError: () => void;
 };
 
 type WorkspaceListTableProps = {
