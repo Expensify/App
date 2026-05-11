@@ -146,6 +146,7 @@ function MultifactorAuthenticationOverlay() {
                                 headerShown: false,
                                 animationTypeForReplace: 'push',
                                 animation: Animations.SLIDE_FROM_RIGHT,
+                                gestureEnabled: false,
                                 native: {contentStyle: styles.navigationScreenCardStyle},
                                 web: {
                                     presentation: Presentation.TRANSPARENT_MODAL,
