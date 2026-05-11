@@ -143,9 +143,6 @@ type ActionContentRouterProps = {
     /** Popover context menu anchor ref, read by switch-arm consumers inside their event handlers */
     contextMenuAnchorRef: React.RefObject<Exclude<ContextMenuAnchor, TextInput>>;
 
-    /** Composer text input ref forwarded to ReportActionItemMessageEdit */
-    composerTextInputRef: React.RefObject<TextInput | HTMLTextAreaElement | null>;
-
     /** Memoized state value for ShowContextMenuStateContext */
     contextMenuStateValue: ShowContextMenuStateContextType;
 
@@ -188,7 +185,6 @@ function ActionContentRouter({
     userBillingFundID,
     index,
     contextMenuAnchorRef,
-    composerTextInputRef,
     contextMenuStateValue,
     contextMenuActionsValue,
     setIsPaymentMethodPopoverActive,
@@ -550,7 +546,6 @@ function ActionContentRouter({
             isHidden={isHidden}
             updateHiddenState={updateHiddenState}
             isArchivedRoom={isArchivedRoom}
-            composerTextInputRef={composerTextInputRef}
             isOnSearch={isOnSearch}
             contextMenuStateValue={contextMenuStateValue}
             contextMenuActionsValue={contextMenuActionsValue}
