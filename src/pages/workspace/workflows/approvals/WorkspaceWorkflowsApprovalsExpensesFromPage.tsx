@@ -359,7 +359,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else if (route.params.backTo) {
-            Navigation.navigate(route.params.backTo as Route);
+            // Use goBack so we return to the existing parent (e.g. the workflow edit page) in the stack
+            // instead of pushing a new instance. A fresh mount of the edit page would re-derive members
+            // from policy.employeeList via its useEffect and overwrite the selection we just saved.
+            Navigation.goBack(route.params.backTo as Route);
         } else {
             goBack();
         }
