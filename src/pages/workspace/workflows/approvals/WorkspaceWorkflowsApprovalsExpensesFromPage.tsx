@@ -423,21 +423,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 }
                 setWorkspaceInviteMembersDraft(route.params.policyID, nextDraft);
                 setApprovalWorkflowMembers(workflowMembers);
-
-                setSelectedMembers((prevSelected) => {
-                    // In edit mode, members already saved on the workflow must survive a transient
-                    // deselect caused by Onyx re-syncing (e.g. policy employeeList lags behind a fresh
-                    // invite). Only the originally-saved set is force-kept so that the user can still
-                    // intentionally remove any other policy member from the workflow.
-                    // In create mode, any member including Owner can be deselected (Test 5).
-                    if (approvalWorkflow?.action !== CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-                        return nextMembers;
-                    }
-                    const originalWorkflowEmails = new Set((approvalWorkflow?.members ?? []).map((m) => m.email));
-                    const alreadyInNewSelection = new Set(nextMembers.map((m) => m.login));
-                    const membersToKeep = prevSelected.filter((m) => !!m.login && originalWorkflowEmails.has(m.login) && !alreadyInNewSelection.has(m.login));
-                    return [...nextMembers, ...membersToKeep];
-                });
+                setSelectedMembers(nextMembers);
             };
 
             // Only show warning when creating a new workflow and a member is being added (not removed)
@@ -467,18 +453,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
             applySelection(members);
         },
-        [
-            approvalWorkflow?.action,
-            approvalWorkflow?.members,
-            policy?.employeeList,
-            invitedEmailsToAccountIDsDraft,
-            route.params.policyID,
-            isCreateAction,
-            selectedMembers,
-            membersInExistingWorkflows,
-            showConfirmModal,
-            translate,
-        ],
+        [policy?.employeeList, invitedEmailsToAccountIDsDraft, route.params.policyID, isCreateAction, selectedMembers, membersInExistingWorkflows, showConfirmModal, translate],
     );
 
     return (
