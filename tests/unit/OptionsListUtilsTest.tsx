@@ -4425,6 +4425,41 @@ describe('OptionsListUtils', () => {
                 expect(lastMessage).toBe('');
             });
 
+            it('should return an empty preview when only a created action is visible after expense deletion', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    reportID: 'expense-report-deleted',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    transactionCount: 1,
+                    lastMessageText: '-$25.00 for Deleted expense',
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(16),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                });
+                await waitForBatchedUpdates();
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    lastAction: createdAction,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe('');
+            });
+
             it('should fall back to the report currency when the canonical money request is missing currency', async () => {
                 const report: Report = {
                     ...createRandomReport(0, undefined),

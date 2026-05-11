@@ -983,12 +983,15 @@ function getLastMessageTextForReport({
                 deprecatedAllSortedReportActions[reportID],
                 visibleReportActionsDataParam,
             );
-            lastMessageTextFromReport =
-                (isExpenseReport(report) && latestVisibleMoneyRequestAction
+            if (latestVisibleMoneyRequestAction) {
+                lastMessageTextFromReport = isExpenseReport(report)
                     ? getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate)
-                    : formatReportLastMessageText(
-                          Parser.htmlToText(getReportPreviewMessage(report, conciergeReportID, latestVisibleMoneyRequestAction ?? lastReportAction, true, false, null, true)),
-                      )) || lastVisibleMessage?.lastMessageText;
+                    : formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, conciergeReportID, latestVisibleMoneyRequestAction, true, false, null, true)));
+            } else if (!isCreatedAction(lastReportAction)) {
+                lastMessageTextFromReport =
+                    formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, conciergeReportID, lastReportAction, true, false, null, true))) ||
+                    lastVisibleMessage?.lastMessageText;
+            }
         } else if (report?.transactionCount === 0) {
             lastMessageTextFromReport = translate('report.noActivityYet');
         }
