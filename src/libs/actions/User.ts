@@ -55,8 +55,7 @@ import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Ne
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
-import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
-import type {Status} from '@src/types/onyx/PersonalDetails';
+import type {CurrentUserPersonalDetails, Status} from '@src/types/onyx/PersonalDetails';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -68,13 +67,11 @@ import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 
-let currentUserAccountID = -1;
-let currentEmail = '';
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        currentEmail = value?.email ?? '';
     },
 });
 
@@ -678,6 +675,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 function triggerNotifications<TKey extends OnyxKey>(
     onyxUpdates: Array<OnyxServerUpdate<TKey>>,
     currentUserAccountIDParam: number,
+    currentUserEmail: string,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     for (const update of onyxUpdates) {
@@ -690,28 +688,28 @@ function triggerNotifications<TKey extends OnyxKey>(
 
         for (const action of reportActions) {
             if (action) {
-                // They aren't connected to a UI anywhere, it's OK to use currentEmail
-                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail, reportAttributes);
+                // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentUserEmail, reportAttributes);
             }
         }
     }
 }
 
-const isChannelMuted = (reportId: string) =>
+const isChannelMuted = (reportId: string, currentUserAccountIDParam: number) =>
     new Promise((resolve) => {
         // We use `connectWithoutView` here since this connection is non-reactive in nature.
         const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
                 Onyx.disconnect(connection);
-                const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
+                const notificationPreference = report?.participants?.[currentUserAccountIDParam]?.notificationPreference;
 
                 resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenForCurrentUser(notificationPreference));
             },
         });
     });
 
-function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServerUpdate<TKey>>) {
+function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number, currentUserEmail: string) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
@@ -722,7 +720,7 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
         return;
     }
 
-    isChannelMuted(reportID).then((isSoundMuted) => {
+    isChannelMuted(reportID, currentUserAccountIDParam).then((isSoundMuted) => {
         if (isSoundMuted) {
             return;
         }
@@ -758,7 +756,7 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
                 }
 
                 // mention user
-                if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentEmail}</mention-user>`)) {
+                if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentUserEmail}</mention-user>`)) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
@@ -801,13 +799,13 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
 let pongHasBeenMissed = false;
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
-function subscribeToPusherPong() {
+function subscribeToPusherPong(currentUserAccountIDParam: number) {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
-    if (currentUserAccountID === -1) {
+    if (!currentUserAccountIDParam) {
         return;
     }
 
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountIDParam.toString(), (pushJSON) => {
         Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
         lastPongReceivedTimestamp = Date.now();
 
@@ -881,7 +879,7 @@ function checkForLatePongReplies() {
 
 let pingPusherIntervalID: ReturnType<typeof setInterval>;
 let checkForLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
-function initializePusherPingPong() {
+function initializePusherPingPong(currentUserAccountIDParam: number) {
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
@@ -892,7 +890,7 @@ function initializePusherPingPong() {
 
     // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
     // so there could be a little delay before the client is actually listening to this event.
-    subscribeToPusherPong();
+    subscribeToPusherPong(currentUserAccountIDParam);
 
     // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
     if (pingPusherIntervalID) {
@@ -918,7 +916,7 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function subscribeToUserEvents(currentUserAccountIDParam: number, currentUserEmail: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountIDParam) {
         return;
@@ -951,7 +949,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
     // See https://github.com/Expensify/App/issues/57961 for more details
     const debouncedPlaySoundForMessageType = debounce(
         (pushJSONMessage: AnyOnyxServerUpdate[]) => {
-            playSoundForMessageType(pushJSONMessage);
+            playSoundForMessageType(pushJSONMessage, currentUserAccountIDParam, currentUserEmail);
         },
         CONST.TIMING.PLAY_SOUND_MESSAGE_DEBOUNCE_TIME,
         {trailing: true},
@@ -964,7 +962,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
         return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) or this is not the
             // main client we don't want to update Onyx with data from Pusher
-            if (currentUserAccountIDParam === -1) {
+            if (!currentUserAccountIDParam) {
                 return;
             }
             if (!ActiveClientManager.isClientTheLeader()) {
@@ -973,7 +971,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam, getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountIDParam, currentUserEmail, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -989,7 +987,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
         return Promise.resolve();
     });
 
-    initializePusherPingPong();
+    initializePusherPingPong(currentUserAccountIDParam);
 }
 
 /**
@@ -1115,7 +1113,7 @@ function generateStatementPDF(period: string) {
  * @param skipNavigation - When true, do not navigate (caller handles navigation, e.g. via useEffect when primaryContactMethod updates).
  */
 function setContactMethodAsDefault(
-    currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
+    currentUserPersonalDetails: CurrentUserPersonalDetails,
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     backTo: string | undefined,
@@ -1171,7 +1169,7 @@ function setContactMethodAsDefault(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserPersonalDetails.accountID]: {
                     login: newDefaultContactMethod,
                     displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
                 },
@@ -1234,13 +1232,13 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
 /**
  * Sets a custom status
  */
-function updateCustomStatus(status: Status) {
+function updateCustomStatus(currentUserAccountIDParam: number, status: Status) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserAccountIDParam]: {
                     status,
                 },
             },
@@ -1257,13 +1255,13 @@ function updateCustomStatus(status: Status) {
 /**
  * Clears the custom status
  */
-function clearCustomStatus() {
+function clearCustomStatus(currentUserAccountIDParam: number) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserAccountIDParam]: {
                     status: null, // Clearing the field
                 },
             },
@@ -1510,9 +1508,9 @@ function lockAccount(accountID?: number, domainAccountID?: number, domainName?: 
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
-function requestUnlockAccount(accountID?: number) {
+function requestUnlockAccount(accountID: number) {
     const params: LockAccountParams = {
-        accountID: accountID ?? currentUserAccountID,
+        accountID,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
@@ -1886,6 +1884,14 @@ function clearDraftSpendRule() {
     Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM, null);
 }
 
+function updateSpendRuleFormDraft(draftData: Partial<SpendRuleForm>) {
+    Onyx.merge(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT, draftData);
+}
+
+function clearSpendRuleFormDraft() {
+    Onyx.set(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT, null);
+}
+
 export {
     revokeDevice,
     clearRevokeError,
@@ -1943,6 +1949,8 @@ export {
     setDraftSpendRule,
     updateDraftSpendRule,
     clearDraftSpendRule,
+    updateSpendRuleFormDraft,
+    clearSpendRuleFormDraft,
     openTroubleshootSettingsPage,
     openMultifactorAuthenticationRevokePage,
 };

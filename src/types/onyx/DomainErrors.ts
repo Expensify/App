@@ -74,6 +74,16 @@ type DomainSecurityGroupErrors = {
      * Errors related to changing the preferred workspace ID
      */
     restrictedPrimaryPolicyIDErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the restricted default login selection
+     */
+    enableRestrictedPrimaryLoginErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the override preferred policy with card policy setting
+     */
+    overridePreferredPolicyWithCardPolicyErrors?: OnyxCommon.Errors;
 };
 
 /**

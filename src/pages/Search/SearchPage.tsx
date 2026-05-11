@@ -5,6 +5,7 @@ import type {SearchParams} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
@@ -44,6 +45,11 @@ function SearchPage({route}: SearchPageProps) {
     useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
 
+    // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
+    // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
+    // commit one stale render before catching up. The reference equality check
+    // (`currentSearchResults !== lastNonEmptySearchResults`) bounds the re-render loop to a single
+    // extra pass — see https://react.dev/reference/react/useState#storing-information-from-previous-renders.
     if (currentSearchResults?.data && !shouldUseLiveData && currentSearchResults !== lastNonEmptySearchResults) {
         setLastNonEmptySearchResults(currentSearchResults);
     }
@@ -137,6 +143,7 @@ function SearchPage({route}: SearchPageProps) {
     }, []);
 
     const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
+    const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
     const {searchOverlayContent, onSearchContentReady, isOverlayActive} = useSearchOverlay({
         searchResults,
         queryJSON: currentSearchQueryJSON,
@@ -144,6 +151,7 @@ function SearchPage({route}: SearchPageProps) {
         isMobileSelectionModeEnabled,
         currentSearchKey,
         contentContainerStyle: overlayContentContainerStyle,
+        onDestinationVisible: overlayEndSubmitSpans,
     });
 
     return (

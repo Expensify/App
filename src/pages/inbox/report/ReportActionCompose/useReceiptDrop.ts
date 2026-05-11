@@ -37,6 +37,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
     const [hasOnlyPersonalPolicies = true] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
 
     const onFilesValidated = (files: FileObject[]) => {
         if (files.length === 0) {
@@ -45,7 +46,14 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
 
         if (shouldAddOrReplaceReceipt && transactionID) {
             const source = URL.createObjectURL(files.at(0) as Blob);
-            replaceReceipt({transactionID, file: files.at(0) as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+            replaceReceipt({
+                transactionID,
+                file: files.at(0) as File,
+                source,
+                transactionPolicy: policy,
+                transactionPolicyCategories: policyCategories,
+                transactionPolicyTagList: policyTagList,
+            });
             return;
         }
 

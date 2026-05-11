@@ -98,12 +98,14 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
+
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });
@@ -135,12 +137,13 @@ describe('SearchAutocompleteList', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         };
 
+        const reportData = {
+            reportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+        };
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                parentReportID,
-                parentReportActionID: parentActionID,
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, reportData);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                 [parentActionID]: parentReportAction,
             });
