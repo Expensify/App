@@ -1382,6 +1382,7 @@ const CONST = {
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            RECEIVED_PAYMENT: 'receivedPayment',
             REMOVE_HOLD: 'removeHold',
             UNAPPROVE: 'unapprove',
             CANCEL_PAYMENT: 'cancelPayment',
@@ -9131,6 +9132,7 @@ const CONST = {
             CLOSE_PDF_MODAL: 'MoreMenu-ClosePDFModal',
             SUBMIT: 'MoreMenu-Submit',
             APPROVE: 'MoreMenu-Approve',
+            RECEIVED_PAYMENT: 'MoreMenu-ReceivedPayment',
             UNAPPROVE: 'MoreMenu-Unapprove',
             CANCEL_PAYMENT: 'MoreMenu-CancelPayment',
             HOLD: 'MoreMenu-Hold',
