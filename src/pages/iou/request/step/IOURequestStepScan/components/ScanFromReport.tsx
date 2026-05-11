@@ -32,12 +32,6 @@ type ScanFromReportProps = WithCurrentUserPersonalDetailsProps & {
     backToReport: string | undefined;
 };
 
-const preloadConfirmation = () => {
-    // Preload the confirmation screen module so its JS is parsed and ready by the time
-    // we navigate after capture — avoids a cold-start module load on slower devices.
-    require('../../IOURequestStepConfirmation');
-};
-
 /**
  * ScanFromReport — initiated from a report's (+) button.
  * Sets participants from the report and navigates to the confirmation page.
@@ -99,7 +93,6 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
                     pregenerateThumbnail(source).then(() => processReceipts([file]));
                 }}
                 onPicked={validateFiles}
-                onCameraInitialized={preloadConfirmation}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 shouldAcceptMultipleFiles
             />

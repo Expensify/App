@@ -1,24 +1,13 @@
-import React, {useEffect, useRef} from 'react';
-import {Alert, StyleSheet, View} from 'react-native';
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import {GestureDetector} from 'react-native-gesture-handler';
+import React, {useRef} from 'react';
+import {Alert, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import Animated, {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
+import {useAnimatedStyle, useSharedValue, withSequence, withTiming} from 'react-native-reanimated';
 import type {PhotoFile} from 'react-native-vision-camera';
 import {useCameraFormat} from 'react-native-vision-camera';
 import ActivityIndicator from '@components/ActivityIndicator';
-import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
-import Icon from '@components/Icon';
-import ImageSVG from '@components/ImageSVG';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -28,10 +17,12 @@ import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
+import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
+import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
-import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
+import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
-import variables from '@styles/variables';
+import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {CameraProps} from './types';
@@ -46,12 +37,9 @@ const BLINK_DURATION_MS = 80;
 function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onCameraInitialized, onAttachmentPickerStatusChange}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const lazyIllustrations = useMemoizedLazyIllustrations(['Hand', 'Shutter']);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
     const {isMultiScanEnabled, canUseMultiScan} = useMultiScanState();
     const {toggleMultiScan} = useMultiScanActions();
 
@@ -97,10 +85,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     const cameraAspectRatio = getCameraAspectRatio(format, isInLandscapeMode);
     const fps = format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30;
 
-    // Track camera init telemetry
-    const cameraInitSpanStarted = useRef(false);
-    const cameraInitialized = useRef(false);
-
     // Blink animation for shutter feedback
     const blinkOpacity = useSharedValue(0);
     const blinkStyle = useAnimatedStyle(() => ({
@@ -112,87 +96,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         HapticFeedback.press();
     };
 
-    // End entry-to-scan navigation span and start entry-to-scan-ready on mount
-    useEffect(() => {
-        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
-        const entryParentSpan = getSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
-        if (entryParentSpan) {
-            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY, {
-                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
-                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY,
-                parentSpan: entryParentSpan,
-            });
-        }
-    }, []);
-
-    // Start camera init span when permission is granted and camera is ready
-    useEffect(() => {
-        if (cameraInitSpanStarted.current || cameraPermissionStatus !== RESULTS.GRANTED || device == null) {
-            return;
-        }
-        startSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT, {
-            name: CONST.TELEMETRY.SPAN_CAMERA_INIT,
-            op: CONST.TELEMETRY.SPAN_CAMERA_INIT,
-        });
-        cameraInitSpanStarted.current = true;
-    }, [cameraPermissionStatus, device]);
-
-    // Cancel spans when permission is denied/blocked/unavailable
-    useEffect(() => {
-        if (cameraPermissionStatus !== RESULTS.BLOCKED && cameraPermissionStatus !== RESULTS.UNAVAILABLE && cameraPermissionStatus !== RESULTS.DENIED) {
-            return;
-        }
-        cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
-        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
-        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
-        cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
-    }, [cameraPermissionStatus]);
-
-    // Cancel spans on unmount if camera never initialized
-    useEffect(() => {
-        return () => {
-            if (cameraInitialized.current) {
-                return;
-            }
-            if (cameraInitSpanStarted.current) {
-                cancelSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
-            }
-            cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
-            // Cancel entry-to-scan spans if they haven't ended naturally
-            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
-            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
-            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
-        };
-    }, []);
+    const {handleCameraInitialized: handleTelemetryInitialized} = useCameraInitTelemetry({cameraPermissionStatus, device});
 
     const handleCameraInitialized = () => {
-        if (cameraInitialized.current) {
-            return;
-        }
-        cameraInitialized.current = true;
-        if (cameraInitSpanStarted.current) {
-            endSpan(CONST.TELEMETRY.SPAN_CAMERA_INIT);
-        }
-        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
-        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_READY);
-        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
-
-        // Pre-create upload directory to avoid latency during capture
-        const path = getReceiptsUploadFolderPath();
-        ReactNativeBlobUtil.fs
-            .isDir(path)
-            .then((isDir) => {
-                if (isDir) {
-                    return;
-                }
-                ReactNativeBlobUtil.fs.mkdir(path).catch((error: string) => {
-                    Log.warn('Error creating the receipts upload directory', error);
-                });
-            })
-            .catch((error: string) => {
-                Log.warn('Error checking if the upload directory exists', error);
-            });
-
+        handleTelemetryInitialized();
         onCameraInitialized?.();
     };
 
@@ -287,28 +194,10 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
                 <View style={[styles.flex1]}>
                     {cameraPermissionStatus !== RESULTS.GRANTED && (
-                        <ScrollView contentContainerStyle={styles.flexGrow1}>
-                            <View style={[styles.cameraView, isInLandscapeMode ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
-                                <ImageSVG
-                                    contentFit="contain"
-                                    src={lazyIllustrations.Hand}
-                                    width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                                    height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                                    style={styles.pb5}
-                                />
-
-                                <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                                <Button
-                                    success
-                                    text={translate('common.continue')}
-                                    accessibilityLabel={translate('common.continue')}
-                                    style={[styles.p9, styles.pt5]}
-                                    onPress={capturePhoto}
-                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                                />
-                            </View>
-                        </ScrollView>
+                        <CameraPermissionPrompt
+                            isInLandscapeMode={isInLandscapeMode}
+                            onPress={capturePhoto}
+                        />
                     )}
                     {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
                         <View style={[styles.cameraView]}>
@@ -321,133 +210,42 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                         </View>
                     )}
                     {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                        <View style={[styles.cameraView, styles.alignItemsCenter]}>
-                            <GestureDetector gesture={tapGesture}>
-                                <View style={StyleUtils.getCameraViewfinderStyle(cameraAspectRatio, isInLandscapeMode)}>
-                                    <NavigationAwareCamera
-                                        ref={camera}
-                                        device={device}
-                                        format={format}
-                                        fps={fps}
-                                        style={styles.flex1}
-                                        zoom={device.neutralZoom}
-                                        photo
-                                        cameraTabIndex={1}
-                                        forceInactive={isAttachmentPickerActive || didCapturePhoto}
-                                        onInitialized={handleCameraInitialized}
-                                    />
-                                    <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
-                                    <Animated.View
-                                        pointerEvents="none"
-                                        style={[StyleSheet.absoluteFill, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
-                                    />
-                                </View>
-                            </GestureDetector>
-                            {canUseMultiScan ? (
-                                <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
-                                    <PressableWithFeedback
-                                        role={CONST.ROLE.BUTTON}
-                                        accessibilityLabel={translate('receipt.flash')}
-                                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                                        onPress={() => setFlash((prevFlash) => !prevFlash)}
-                                    >
-                                        <Icon
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
-                                            src={lazyIcons.Bolt}
-                                            fill={flash ? theme.white : theme.icon}
-                                        />
-                                    </PressableWithFeedback>
-                                </View>
-                            ) : null}
-                        </View>
+                        <CameraViewport
+                            camera={camera}
+                            device={device}
+                            format={format}
+                            fps={fps}
+                            cameraAspectRatio={cameraAspectRatio}
+                            isInLandscapeMode={isInLandscapeMode}
+                            tapGesture={tapGesture}
+                            cameraFocusIndicatorAnimatedStyle={cameraFocusIndicatorAnimatedStyle}
+                            blinkStyle={blinkStyle}
+                            isAttachmentPickerActive={isAttachmentPickerActive}
+                            didCapturePhoto={didCapturePhoto}
+                            onInitialized={handleCameraInitialized}
+                            canUseMultiScan={canUseMultiScan}
+                            flash={flash}
+                            hasFlash={hasFlash}
+                            setFlash={setFlash}
+                        />
                     )}
                 </View>
 
-                <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.p3, !isInLandscapeMode && styles.flexRow]}>
-                    <AttachmentPicker
-                        onOpenPicker={() => {
-                            setIsAttachmentPickerActive(true);
-                            onAttachmentPickerStatusChange?.(true);
-                        }}
-                        fileLimit={shouldAcceptMultipleFiles ? CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT : 1}
-                        shouldValidateImage={false}
-                    >
-                        {({openPicker}) => (
-                            <PressableWithFeedback
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('receipt.gallery')}
-                                sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
-                                style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
-                                onPress={() =>
-                                    openPicker({
-                                        onPicked,
-                                        onCanceled: () => onAttachmentPickerStatusChange?.(false),
-                                        onClosed: () => {
-                                            setIsAttachmentPickerActive(false);
-                                            onAttachmentPickerStatusChange?.(false);
-                                        },
-                                    })
-                                }
-                            >
-                                <Icon
-                                    height={variables.iconSizeMenuItem}
-                                    width={variables.iconSizeMenuItem}
-                                    src={lazyIcons.Gallery}
-                                    fill={theme.textSupporting}
-                                />
-                            </PressableWithFeedback>
-                        )}
-                    </AttachmentPicker>
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.shutter')}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
-                        style={[styles.alignItemsCenter]}
-                        onPress={capturePhoto}
-                    >
-                        <ImageSVG
-                            contentFit="contain"
-                            src={lazyIllustrations.Shutter}
-                            width={CONST.RECEIPT.SHUTTER_SIZE}
-                            height={CONST.RECEIPT.SHUTTER_SIZE}
-                        />
-                    </PressableWithFeedback>
-                    {canUseMultiScan ? (
-                        <PressableWithFeedback
-                            accessibilityRole="button"
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.multiScan')}
-                            style={styles.alignItemsEnd}
-                            onPress={toggleMultiScan}
-                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
-                        >
-                            <Icon
-                                height={variables.iconSizeMenuItem}
-                                width={variables.iconSizeMenuItem}
-                                src={lazyIcons.ReceiptMultiple}
-                                fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
-                            />
-                        </PressableWithFeedback>
-                    ) : (
-                        <PressableWithFeedback
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.flash')}
-                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                            style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
-                            disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                            onPress={() => setFlash((prevFlash) => !prevFlash)}
-                        >
-                            <Icon
-                                height={variables.iconSizeMenuItem}
-                                width={variables.iconSizeMenuItem}
-                                src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
-                                fill={theme.textSupporting}
-                            />
-                        </PressableWithFeedback>
-                    )}
-                </View>
+                <ScannerControlsBar
+                    isInLandscapeMode={isInLandscapeMode}
+                    isMultiScanEnabled={isMultiScanEnabled}
+                    canUseMultiScan={canUseMultiScan}
+                    shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
+                    cameraPermissionStatus={cameraPermissionStatus}
+                    flash={flash}
+                    hasFlash={hasFlash}
+                    setFlash={setFlash}
+                    setIsAttachmentPickerActive={setIsAttachmentPickerActive}
+                    onAttachmentPickerStatusChange={onAttachmentPickerStatusChange}
+                    onPicked={onPicked}
+                    capturePhoto={capturePhoto}
+                    toggleMultiScan={toggleMultiScan}
+                />
             </View>
         </View>
     );

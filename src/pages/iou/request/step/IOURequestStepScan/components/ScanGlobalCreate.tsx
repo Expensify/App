@@ -39,12 +39,6 @@ type ScanGlobalCreateProps = WithCurrentUserPersonalDetailsProps & {
     backToReport: string | undefined;
 };
 
-const preloadConfirmation = () => {
-    // Preload the confirmation screen module so its JS is parsed and ready by the time
-    // we navigate after capture — avoids a cold-start module load on slower devices.
-    require('../../IOURequestStepConfirmation');
-};
-
 /**
  * ScanGlobalCreate — initiated from the FAB (+) button (no specific report).
  * Uses default expense policy to auto-select workspace, or navigates to participant picker.
@@ -146,7 +140,6 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                     pregenerateThumbnail(source).then(() => processReceipts([file]));
                 }}
                 onPicked={validateFiles}
-                onCameraInitialized={preloadConfirmation}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
                 shouldAcceptMultipleFiles
             />
