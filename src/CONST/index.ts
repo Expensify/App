@@ -105,10 +105,10 @@ const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
 const selectableOnboardingChoices = {
-    PERSONAL_SPEND: 'newDotPersonalSpend',
     MANAGE_TEAM: 'newDotManageTeam',
     EMPLOYER: 'newDotEmployer',
-    CHAT_SPLIT: 'newDotSplitChat',
+    TRACK_BUSINESS: 'newDotTrackWorkspace',
+    TRACK_PERSONAL: 'newDotTrackPersonalWorkspace',
     LOOKING_AROUND: 'newDotLookingAround',
 } as const;
 
@@ -116,6 +116,8 @@ const backendOnboardingChoices = {
     ADMIN: 'newDotAdmin',
     SUBMIT: 'newDotSubmit',
     TRACK_WORKSPACE: 'newDotTrackWorkspace',
+    PERSONAL_SPEND: 'newDotPersonalSpend',
+    CHAT_SPLIT: 'newDotSplitChat',
     TEST_DRIVE_RECEIVER: 'testDriveReceiver',
 } as const;
 
@@ -125,7 +127,7 @@ const onboardingChoices = {
 } as const;
 
 const createExpenseOnboardingChoices = {
-    PERSONAL_SPEND: selectableOnboardingChoices.PERSONAL_SPEND,
+    PERSONAL_SPEND: backendOnboardingChoices.PERSONAL_SPEND,
     EMPLOYER: selectableOnboardingChoices.EMPLOYER,
     SUBMIT: backendOnboardingChoices.SUBMIT,
 } as const;
@@ -680,10 +682,13 @@ const CONST = {
             PERSONAL: 'PERSONAL',
         },
     },
-    NON_USD_BANK_ACCOUNT: {
+    CORPAY_DOCUMENT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
         FILE_LIMIT: 1,
+        MAX_FILE_SIZE: 2097152,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
+    },
+    NON_USD_BANK_ACCOUNT: {
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
         CORPAY_UNDEFINED_OPTION_VALUE: 'Undefined',
@@ -884,10 +889,8 @@ const CONST = {
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         GUSTO: 'gustoNewDot',
-        BULK_DUPLICATE_REPORT: 'bulkDuplicateReport',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
-        SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
     },
     BUTTON_STATES: {
@@ -1212,6 +1215,7 @@ const CONST = {
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
+    CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Configure-approval-workflows',
     SELECT_WORKFLOWS_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows',
     COPILOT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Add-or-Act-As-a-Copilot',
     BULK_UPLOAD_HELP_URL: 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-an-Expense#option-4-bulk-upload-receipts-desktop-only',
@@ -1220,7 +1224,7 @@ const CONST = {
     PERSONAL_AND_CORPORATE_KARMA_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/expensify-billing/Personal-and-Corporate-Karma',
     COLLECT_UPGRADE_HELP_URL: 'https://help.expensify.com/Hidden/collect-upgrade',
     MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
-    CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
+    ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
@@ -1833,6 +1837,7 @@ const CONST = {
         NATIVE_ID: 'composer',
         MAX_LINES: 16,
         MAX_LINES_SMALL_SCREEN: 6,
+        MAX_LINES_LANDSCAPE_MODE: 2,
         MAX_LINES_FULL: -1,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
@@ -2032,6 +2037,7 @@ const CONST = {
         ATTRIBUTE_MIN_DURATION: 'min_duration',
         ATTRIBUTE_FINISHED_MANUALLY: 'finished_manually',
         ATTRIBUTE_IS_WARM: 'is_warm',
+        ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN: 'lazy_tab_fallback_shown',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
         ATTRIBUTE_SKELETON_PREFIX: 'skeleton.',
         ATTRIBUTE_SCENARIO: 'scenario',
@@ -3517,8 +3523,6 @@ const CONST = {
 
             // Often referred to as "collect" workspaces
             TEAM: 'team',
-
-            SUBMIT: 'submit2026',
         },
         RULE_CONDITIONS: {
             MATCHES: 'matches',
@@ -3537,7 +3541,6 @@ const CONST = {
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             USER: 'user',
-            EDITOR: 'editor',
         },
         AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS: 2000000,
 
@@ -3600,6 +3603,7 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             SETTINGS: 'settings',
             EXPORT: 'export',
+            SYNC_WITH_GUSTO: 'syncWithGusto',
         },
         MEMBERS_BULK_ACTION_TYPES: {
             REMOVE: 'remove',
@@ -3684,6 +3688,7 @@ const CONST = {
             GAMBLING: 'gambling',
             TOBACCO: 'tobacco',
             ADULT_ENTERTAINMENT: 'adultEntertainment',
+            HANDWRITTEN_RECEIPT: 'handwrittenReceipt',
         },
         RECEIPT_PARTNERS: {
             NAME: {UBER: 'uber'},
@@ -3849,6 +3854,7 @@ const CONST = {
             gambling: true,
             tobacco: false,
             adultEntertainment: true,
+            handwrittenReceipt: false,
         },
         DEFAULT_BILLABLE: false,
         DEFAULT_REIMBURSABLE: true,
@@ -6303,6 +6309,7 @@ const CONST = {
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
+        DISTANCE_EDIT_TYPE: 'distanceEditType',
         SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
         SPLIT: {
             AMOUNT: 'amount',
@@ -7519,9 +7526,6 @@ const CONST = {
     DOWNLOADS_PATH: '/Downloads',
     DOWNLOADS_TIMEOUT: 5000,
 
-    // Max time (ms) to wait for a transaction thread report before falling back to renderable content.
-    SKELETON_LOADING_TIMEOUT_MS: 10000,
-
     NEW_EXPENSIFY_PATH: '/New Expensify',
     RECEIPTS_UPLOAD_PATH: '/Receipts-Upload',
 
@@ -7595,6 +7599,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
+            CENTRAL_TRAVEL_INVOICING: 'central-travel-invoicing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -7657,6 +7662,7 @@ const CONST = {
                     WITHDRAWAL_ID: this.TABLE_COLUMNS.WITHDRAWAL_ID,
                 },
                 EXPENSE_REPORT: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
                     DATE: this.TABLE_COLUMNS.DATE,
                     SUBMITTED: this.TABLE_COLUMNS.SUBMITTED,
                     APPROVED: this.TABLE_COLUMNS.APPROVED,
@@ -7702,17 +7708,20 @@ const CONST = {
         get GROUP_CUSTOM_COLUMNS() {
             return {
                 FROM: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
                     FROM: this.TABLE_COLUMNS.GROUP_FROM,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
                 CARD: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
                     CARD: this.TABLE_COLUMNS.GROUP_CARD,
                     FEED: this.TABLE_COLUMNS.GROUP_FEED,
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
                 WITHDRAWAL_ID: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
                     WITHDRAWN: this.TABLE_COLUMNS.GROUP_WITHDRAWN,
                     WITHDRAWAL_STATUS: this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
                     BANK_ACCOUNT: this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
@@ -7770,6 +7779,7 @@ const CONST = {
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
                 ],
                 EXPENSE_REPORT: [
+                    this.TABLE_COLUMNS.AVATAR,
                     this.TABLE_COLUMNS.DATE,
                     this.TABLE_COLUMNS.STATUS,
                     this.TABLE_COLUMNS.TITLE,
@@ -7786,9 +7796,10 @@ const CONST = {
         },
         get GROUP_DEFAULT_COLUMNS() {
             return {
-                FROM: [this.TABLE_COLUMNS.GROUP_FROM, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
-                CARD: [this.TABLE_COLUMNS.GROUP_CARD, this.TABLE_COLUMNS.GROUP_FEED, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                FROM: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_FROM, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                CARD: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_CARD, this.TABLE_COLUMNS.GROUP_FEED, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 WITHDRAWAL_ID: [
+                    this.TABLE_COLUMNS.AVATAR,
                     this.TABLE_COLUMNS.GROUP_WITHDRAWN,
                     this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
                     this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
@@ -7966,6 +7977,7 @@ const CONST = {
             EXPORTED: 'exported',
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawalType',
+            WITHDRAWAL_STATUS: 'withdrawalStatus',
             WITHDRAWN: 'withdrawn',
             TOTAL: 'total',
             TITLE: 'title',
@@ -8038,6 +8050,7 @@ const CONST = {
             EXPORTED: 'exported',
             POSTED: 'posted',
             WITHDRAWAL_TYPE: 'withdrawal-type',
+            WITHDRAWAL_STATUS: 'withdrawal-status',
             WITHDRAWN: 'withdrawn',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
@@ -8516,6 +8529,8 @@ const CONST = {
         ORIGINAL_CURRENCY: 'originalCurrency',
         UNIQUE_ID: 'uniqueID',
         EXTERNAL_ID: 'externalID',
+        MAX_AMOUNT_NO_RECEIPT: 'maxAmountNoReceipt',
+        MAX_AMOUNT_NO_ITEMIZED_RECEIPT: 'maxAmountNoItemizedReceipt',
     },
 
     IMPORT_SPREADSHEET: {
@@ -8878,6 +8893,9 @@ const CONST = {
         COLLAPSIBLE_SECTION: {
             TOGGLE: 'CollapsibleSection-Toggle',
         },
+        ACCORDION_SECTION: {
+            TOGGLE: 'AccordionSection-Toggle',
+        },
         VIDEO_PLAYER: {
             PLAY_PAUSE_BUTTON: 'VideoPlayer-PlayPauseButton',
             FULLSCREEN_BUTTON: 'VideoPlayer-FullscreenButton',
@@ -8942,17 +8960,10 @@ const CONST = {
             FILTER_POPUP_APPLY_TEXT_INPUT: 'Search-FilterPopupApplyTextInput',
             FILTER_POPUP_RESET_AMOUNT: 'Search-FilterPopupResetAmount',
             FILTER_POPUP_APPLY_AMOUNT: 'Search-FilterPopupApplyAmount',
-            FILTER_POPUP_SAVE_AMOUNT: 'Search-FilterPopupSaveAmount',
             FILTER_POPUP_RESET_DATE: 'Search-FilterPopupResetDate',
             FILTER_POPUP_APPLY_DATE: 'Search-FilterPopupApplyDate',
-            FILTER_POPUP_RESET_USER: 'Search-FilterPopupResetUser',
-            FILTER_POPUP_APPLY_USER: 'Search-FilterPopupApplyUser',
-            FILTER_POPUP_RESET_REPORT: 'Search-FilterPopupResetReport',
-            FILTER_POPUP_APPLY_REPORT: 'Search-FilterPopupApplyReport',
             FILTER_POPUP_RESET_REPORT_FIELD: 'Search-FilterPopupResetReportField',
             FILTER_POPUP_APPLY_REPORT_FIELD: 'Search-FilterPopupApplyReportField',
-            FILTER_POPUP_RESET_CARD: 'Search-FilterPopupResetCard',
-            FILTER_POPUP_APPLY_CARD: 'Search-FilterPopupApplyCard',
             TRANSACTION_LIST_ITEM_CHECKBOX: 'Search-TransactionListItemCheckbox',
             EXPANDED_TRANSACTION_ROW: 'Search-ExpandedTransactionRow',
             EXPANDED_TRANSACTION_ROW_CHECKBOX: 'Search-ExpandedTransactionRowCheckbox',
@@ -9345,6 +9356,7 @@ const CONST = {
                 PLAN_TYPE: 'WorkspaceOverview-PlanType',
                 SHARE: 'WorkspaceOverview-Share',
                 CUSTOM_RULES: 'WorkspaceOverview-CustomRules',
+                RULES_DOCUMENT: 'WorkspaceOverview-RulesDocument',
                 INVITE_BUTTON: 'WorkspaceOverview-InviteButton',
                 MORE_DROPDOWN: 'WorkspaceOverview-MoreDropdown',
             },
@@ -9544,6 +9556,9 @@ const CONST = {
             SIGN_OUT: 'SettingsGeneral-SignOut',
             GO_TO_CLASSIC: 'SettingsGeneral-GoToExpensifyClassic',
         },
+        ADD_AGENT_PAGE: {
+            AVATAR: 'AddAgentPage-Avatar',
+        },
         SETTINGS_PROFILE: {
             AVATAR: 'SettingsProfile-Avatar',
             DISPLAY_NAME: 'SettingsProfile-DisplayName',
@@ -9662,12 +9677,6 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'New global partnerships: banking, travel, accounting, & more',
-                subtitle: 'Newsletter',
-                url: 'https://use.expensify.com/blog/expensify-new-integrations-march-2026',
-                publishedDate: '2026-03-25',
-            },
-            {
                 title: 'Smarter cards, mileage, and approvals',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-april-2026-product-update',
@@ -9678,6 +9687,12 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260421550894/en/Expensify-Partners-With-IOCP-to-Expand-Access-to-Modern-Spend-Management',
                 publishedDate: '2026-04-21',
+            },
+            {
+                title: 'Expensify named Expense Platform of the Year',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260506556347/en/Expensify-Named-Expense-Management-Platform-of-the-Year',
+                publishedDate: '2026-05-06',
             },
         ],
     },

@@ -45,6 +45,14 @@ type ReportAttributes = {
      * The reportID of the one-transaction thread report, if applicable.
      */
     oneTransactionThreadReportID?: string;
+
+    /**
+     * True when this report (typically a child expense report) has an RBR-worthy reason that should
+     * propagate up to its parent workspace chat. Set by the per-report pass; consumed by the propagation
+     * loop. We track it separately from `brickRoadStatus` because we suppress the child's own RBR/Fix badge
+     * when the parent workspace chat is accessible (so we can't read `brickRoadStatus` to drive propagation).
+     */
+    needsParentChatErrorPropagation?: boolean;
 };
 
 /**

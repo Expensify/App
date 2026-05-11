@@ -8,10 +8,12 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
@@ -25,6 +27,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
+import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
@@ -631,7 +634,9 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         if (transitionFromOldDot) {
             Navigation.navigate(routeToNavigate);
         } else if (Navigation.isTopmostRouteModalScreen()) {
-            Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
+            Navigation.dismissModal({
+                afterTransition: () => Navigation.navigate(routeToNavigate),
+            });
         } else {
             Navigation.navigate(routeToNavigate, {forceReplace: true});
         }
@@ -727,7 +732,7 @@ function savePolicyDraftByNewWorkspace({
         makeMeAdmin,
         policyName,
         policyID,
-        engagementChoice: introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        engagementChoice: isTrackOnboardingChoice(introSelected?.choice) ? CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE : CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
         currency,
         file,
         lastUsedPaymentMethod,
@@ -847,47 +852,51 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     Navigation.clearPreloadedRoutes();
-    const resetPromise = Onyx.clear(KEYS_TO_PRESERVE)
-        .then(() => {
-            // Network key is preserved, so when exiting imported state, we should:
-            // 1. Stop forcing offline mode so the app can reconnect
-            // 2. Clear the IS_USING_IMPORTED_STATE flag
-            // 3. Restore the original user session
-            if (isStateImported) {
-                setShouldForceOffline(false);
-                Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, false);
-                Log.info('[ImportedState] Exiting imported state mode, restoring original session');
-            }
-
-            if (shouldNavigateToHomepage) {
-                Navigation.navigate(ROUTES.HOME);
-            }
-
-            if (preservedUserSession) {
-                Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
-                Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
-            }
-
-            if (preservedAccount) {
-                Onyx.set(ONYXKEYS.ACCOUNT, preservedAccount);
-                Onyx.set(ONYXKEYS.PRESERVED_ACCOUNT, null);
-            }
-        })
-        .then(() => {
-            // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
-            // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
-            // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
-            // When exiting imported state, force openApp to run even though the variable might not be updated yet
-            openApp(false, undefined, isStateImported).then(() => {
-                if (!sequentialQueue || isStateImported) {
-                    return;
+    // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
+    // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
+    const resetPromise = clearWorkboxRecoveryCaches().then(() =>
+        clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE)
+            .then(() => {
+                // Network key is preserved, so when exiting imported state, we should:
+                // 1. Stop forcing offline mode so the app can reconnect
+                // 2. Clear the IS_USING_IMPORTED_STATE flag
+                // 3. Restore the original user session
+                if (isStateImported) {
+                    setShouldForceOffline(false);
+                    Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, false);
+                    Log.info('[ImportedState] Exiting imported state mode, restoring original session');
                 }
 
-                for (const request of sequentialQueue) {
-                    save(request);
+                if (shouldNavigateToHomepage) {
+                    Navigation.navigate(ROUTES.HOME);
                 }
-            });
-        });
+
+                if (preservedUserSession) {
+                    Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
+                    Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
+                }
+
+                if (preservedAccount) {
+                    Onyx.set(ONYXKEYS.ACCOUNT, preservedAccount);
+                    Onyx.set(ONYXKEYS.PRESERVED_ACCOUNT, null);
+                }
+            })
+            .then(() => {
+                // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
+                // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
+                // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
+                // When exiting imported state, force openApp to run even though the variable might not be updated yet
+                openApp(false, undefined, isStateImported).then(() => {
+                    if (!sequentialQueue || isStateImported) {
+                        return;
+                    }
+
+                    for (const request of sequentialQueue) {
+                        save(request);
+                    }
+                });
+            }),
+    );
     clearSoundAssetsCache();
     return resetPromise;
 }

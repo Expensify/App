@@ -24,6 +24,7 @@ import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransaction
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -131,7 +132,7 @@ function IOURequestStepConfirmation({
      * Additionally, if neither reportReal nor reportDraft exist, we fallback to the transactionReport
      * to ensure proper navigation after expense creation.
      */
-    const transactionReport = getReportOrDraftReport(transaction?.reportID);
+    const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const reportWithDraftFallback = useMemo(() => reportReal ?? reportDraft, [reportDraft, reportReal]);
     const shouldHideToSection = useMemo(() => isMoneyRequestReport(reportWithDraftFallback), [reportWithDraftFallback]);
     const report = useMemo(
@@ -230,8 +231,7 @@ function IOURequestStepConfirmation({
         [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, policy, conciergeReportID],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `??` would not fall through when isFromGlobalCreate is explicitly `false` (QAB targets an existing report), preventing isFromFloatingActionButton from being considered.
-    const isFromGlobalCreate = !!(transaction?.isFromGlobalCreate || transaction?.isFromFloatingActionButton);
+    const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 

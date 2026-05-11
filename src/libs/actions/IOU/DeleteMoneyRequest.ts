@@ -34,7 +34,8 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations, getReportPreviewAction} from '.';
+import {getAllReportActionsFromIOU, getAllReportNameValuePairs, getAllReports, getAllTransactions, getAllTransactionViolations} from '.';
+import {getReportPreviewAction} from './MoneyRequestBuilder';
 
 type DeleteMoneyRequestFunctionParams = {
     transactionID: string | undefined;
@@ -203,7 +204,6 @@ function prepareToCleanUpMoneyRequest(
     }
 
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const messageText = Localize.translateLocal(
         hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount',
         convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
@@ -458,7 +458,6 @@ function cleanUpMoneyRequest(
     // First, update the reportActions to ensure related actions are not displayed.
     Onyx.update(reportActionsOnyxUpdates).then(() => {
         Navigation.goBack(urlToNavigateBack);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (shouldDeleteIOUReport) {
                 clearAllRelatedReportActionErrors(reportID, reportAction, originalReportID);

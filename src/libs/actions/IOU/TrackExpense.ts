@@ -104,22 +104,12 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
-import type {BuildOnyxDataForMoneyRequestKeys, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from './index';
-import {
-    buildMinimalTransactionForFormula,
-    getAllReports,
-    getAllTransactionDrafts,
-    getAllTransactions,
-    getAllTransactionViolations,
-    getMoneyRequestInformation,
-    getMoneyRequestPolicyTags,
-    getReceiptError,
-    getReportPreviewAction,
-    getSearchOnyxUpdate,
-    getTransactionWithPreservedLocalReceiptSource,
-    handleNavigateAfterExpenseCreate,
-    highlightTransactionOnSearchRouteIfNeeded,
-} from './index';
+import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
+import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
+import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
+import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
+import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {getSearchOnyxUpdate} from './SearchUpdate';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
 import type {
@@ -488,7 +478,7 @@ function buildOnyxDataForTrackExpense({
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
-                routes: null,
+                // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
             },
         },
     );
@@ -879,7 +869,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     if (!chatReport) {
         const currentTime = DateUtils.getDBTime();
         const selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmailParam, currentTime);
+        const selfDMCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailParam, created: currentTime});
         optimisticReportID = selfDMReport.reportID;
         optimisticReportActionID = selfDMCreatedReportAction.reportActionID;
         chatReport = selfDMReport;
@@ -1659,7 +1649,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         participantParams,
         policyParams: {
             ...policyParams,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             policyTagList: getMoneyRequestPolicyTags({
                 existingIOUReport,
                 moneyRequestReportID,
@@ -2027,7 +2016,6 @@ function convertBulkTrackedExpensesToIOU({
             personalDetails,
             betas,
             policyParams: {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 policyTagList: getMoneyRequestPolicyTags({
                     moneyRequestReportID: iouReportID,
                     parentChatReport: chatReport,
