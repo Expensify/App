@@ -19,7 +19,10 @@ function FilterList({selectedFilter, onFilterSelected}: FilterListProps) {
     const fullscreen = useFullscreenAdvancedFilters();
 
     return (
-        <ScrollView style={[styles.typeFiltersContainer, fullscreen && styles.pv0]}>
+        <ScrollView
+            style={[styles.typeFiltersContainer, fullscreen && styles.pv0]}
+            showsVerticalScrollIndicator={false}
+        >
             {typeFiltersKeys.map((section, index) => (
                 <View key={`${section.at(0)}`}>
                     {index !== 0 && (
