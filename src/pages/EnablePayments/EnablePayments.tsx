@@ -41,6 +41,14 @@ function EnablePaymentsPage() {
         openEnablePaymentsPage();
     }, [isOffline]);
 
+    useEffect(() => {
+        if (userWallet?.currentStep !== CONST.WALLET.STEP.ACTIVATE) {
+            return;
+        }
+
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    }, [userWallet?.currentStep]);
+
     const isUserWalletEmpty = isEmptyObject(userWallet);
     if (isUserWalletEmpty || userWallet?.isLoading || (!hasFreshData && !isOffline)) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {

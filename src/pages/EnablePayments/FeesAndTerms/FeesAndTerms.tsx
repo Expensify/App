@@ -26,7 +26,7 @@ function FeesAndTerms() {
         });
         BankAccounts.clearPersonalBankAccount();
         Wallet.resetWalletAdditionalDetailsDraft();
-        Navigation.navigate(ROUTES.SETTINGS_WALLET);
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
     };
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: termsAndFeesSubsteps, startFrom: 0, onFinished: submit});
 
