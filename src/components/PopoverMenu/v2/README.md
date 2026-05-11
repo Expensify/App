@@ -46,12 +46,23 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
 
 ### Triggers
 
-`<Trigger>` and `<SecondaryInteractionTrigger>` are context providers — they don't render their own pressable. They publish `onPress` / `onSecondaryInteraction` / `ref` / `accessibilityState` / `nativeID` / `accessibilityControls` into `PressResponderContext`; the consuming `<PressableWithFeedback>` (or `<PressableWithSecondaryInteraction>`) reads the context and merges those props into itself. The pressable can be at any depth in the subtree.
+`<Trigger>` and `<SecondaryInteractionTrigger>` are context providers — they don't render their own pressable. They publish `onPress` / `onSecondaryInteraction` / `ref` / `accessibilityState` / `nativeID` / `accessibilityControls` into `PressResponderContext`; the consuming pressable reads the context and merges those props into itself. The pressable can be at any depth in the subtree.
 
 - **`<PopoverMenu.Trigger>`** — primary trigger. Render any subtree containing a `<PressableWithFeedback>`. The pressable's `onPress` (if supplied) runs *before* the popover opens; consumers can call `event.preventDefault()` inside their `onPress` to gate the open (matches `<Item onSelect>`'s contract).
 - **`<PopoverMenu.SecondaryInteractionTrigger>`** — long-press (native) / right-click (web) variant. Render any subtree containing a `<PressableWithSecondaryInteraction>`. Same gating contract via `event.preventDefault()`. Web right-click anchors at the cursor position (Radix `<ContextMenu>` parity); native long-press anchors at the pressable's bounding rect.
 - **`<PopoverMenu.Sub.Trigger>` / `useSubTrigger({disabled?})`** — sub-level analogue. The wrapper renders an opinionated `MenuItem` drill-down row; the hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` to compose any pressable as a sub trigger.
 - **`<PopoverMenu.Sub.BackButton>` / `useSubBackButton()`** — sub-level back button. Render it as a child of `<Sub.Content>` (matches Radix / React Aria explicit-composition); the wrapper self-gates to the active level so siblings at ancestor levels stay mounted without rendering. Hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
+
+#### Which pressables consume `PressResponderContext`
+
+The context is published by the trigger and consumed by Pressable variants that call `usePressResponderProps` + `useResponderRef` internally:
+
+| Pressable | Consumes | Use with |
+|---|---|---|
+| `<PressableWithFeedback>` | `onPress`, `ref`, `accessibilityState`, `nativeID`, `accessibilityControls` | `<Trigger>` |
+| `<PressableWithSecondaryInteraction>` | `onSecondaryInteraction` (delegates remaining props to its inner `<PressableWithFeedback>`) | `<SecondaryInteractionTrigger>` |
+
+Raw RN `<Pressable>`, `<TouchableOpacity>`, or any other pressable component will **not** pick up the responder's props. They must be wrapped in `<PressableWithFeedback>` / `<PressableWithSecondaryInteraction>` or call the responder hooks directly. `<Trigger>` dev-warns in development if it publishes a handler that no descendant consumes (e.g. `<SecondaryInteractionTrigger>` paired with `<PressableWithFeedback>` only). The warning fires once on mount; if your pressable mounts lazily after a state flip, you may see a one-time false-positive — matches Aria's `<PressResponder>` semantics.
 
 ### Row composition — `useSelectableRow({onSelect?, disabled?})`
 

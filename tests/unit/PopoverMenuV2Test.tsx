@@ -12,6 +12,7 @@ import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
 import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import Log from '@libs/Log';
 
 const {useIsAtActiveLevel} = PopoverMenu;
 
@@ -509,6 +510,62 @@ describe('PopoverMenu V2', () => {
             expect(consumerOnPressA).toHaveBeenCalledTimes(1);
             expect(consumerOnPressB).toHaveBeenCalledTimes(1);
         });
+
+        it('flows responder props through arbitrary wrappers to the underlying pressable', () => {
+            const onOpenChange = jest.fn();
+            function PassthroughWrapper({children}: {children: ReactNode}) {
+                return <View testID="wrapper">{children}</View>;
+            }
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger>
+                            <PassthroughWrapper>
+                                <PassthroughWrapper>
+                                    <PressableWithFeedback
+                                        accessibilityLabel="Open menu"
+                                        sentryLabel="TriggerTest"
+                                        testID="trigger"
+                                    >
+                                        <View testID="trigger-icon" />
+                                    </PressableWithFeedback>
+                                </PassthroughWrapper>
+                            </PassthroughWrapper>
+                        </PopoverMenu.Trigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            onOpenChange.mockClear();
+            fireEvent.press(screen.getByTestId('trigger'));
+            expect(onOpenChange).toHaveBeenLastCalledWith(true);
+        });
+
+        it('accepts multiple children and a Fragment subtree', () => {
+            const onOpenChange = jest.fn();
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger>
+                            <>
+                                <View testID="trigger-sibling" />
+                                <PressableWithFeedback
+                                    accessibilityLabel="Open menu"
+                                    sentryLabel="TriggerTest"
+                                    testID="trigger"
+                                >
+                                    <View />
+                                </PressableWithFeedback>
+                            </>
+                        </PopoverMenu.Trigger>
+                        <VisibilityObserver onChange={onOpenChange} />
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            expect(screen.getByTestId('trigger-sibling')).toBeOnTheScreen();
+            fireEvent.press(screen.getByTestId('trigger'));
+            expect(onOpenChange).toHaveBeenLastCalledWith(true);
+        });
     });
 
     describe('SecondaryInteractionTrigger', () => {
@@ -608,6 +665,27 @@ describe('PopoverMenu V2', () => {
             expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
             expect(longPressEvent.defaultPrevented).toBe(true);
             expect(onOpenChange).not.toHaveBeenCalledWith(true);
+        });
+
+        it('warns when descendant pressable does not match the published gesture kind', () => {
+            const warnSpy = jest.spyOn(Log, 'warn');
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.SecondaryInteractionTrigger>
+                            <PressableWithFeedback
+                                accessibilityLabel="Wrong pressable"
+                                sentryLabel="X"
+                                testID="wrong-pressable"
+                            >
+                                <View />
+                            </PressableWithFeedback>
+                        </PopoverMenu.SecondaryInteractionTrigger>
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('secondary'));
+            warnSpy.mockRestore();
         });
     });
 
