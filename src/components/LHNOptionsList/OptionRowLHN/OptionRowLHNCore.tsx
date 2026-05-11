@@ -17,13 +17,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import FS from '@libs/Fullstory';
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
 import {isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils} from '@libs/ReportUtils';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import DescriptiveText from './OptionRow/DescriptiveText';
 import DraftIndicator from './OptionRow/DraftIndicator';
 import Title from './OptionRow/Title';
 import OptionRowAlternateText from './OptionRowAlternateText';
@@ -152,14 +152,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                                         style={style}
                                     />
                                 </View>
-                                {optionItem?.descriptiveText ? (
-                                    <View
-                                        style={[styles.flexWrap]}
-                                        fsClass={FS.getChatFSClass(optionItem)}
-                                    >
-                                        <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
-                                    </View>
-                                ) : null}
+                                <DescriptiveText optionItem={optionItem} />
                                 <OptionRowErrorBadge
                                     brickRoadIndicator={brickRoadIndicator}
                                     actionBadgeText={actionBadgeText}
