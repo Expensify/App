@@ -69,7 +69,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
         <FilterPopupButton
             PopoverComponent={filtersPopup}
             popoverWidth={CONST.ADVANCED_FILTERS_POPOVER_WIDTH}
-            renderButton={({onPress, ref}) => (
+            renderButton={({onPress, ref, isExpanded}) => (
                 <Button
                     ref={ref}
                     small
@@ -77,6 +77,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                     text={translate('search.filtersHeader')}
                     icon={expensifyIcons.Filter}
                     onPress={onPress}
+                    innerStyles={isExpanded ? styles.buttonDefaultHovered : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTERS_BUTTON}
                 />
             )}
