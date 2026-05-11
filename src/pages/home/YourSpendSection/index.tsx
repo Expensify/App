@@ -95,7 +95,7 @@ function YourSpendSection() {
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'ThumbsUp', 'MoneyBag']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'ThumbsUpHourglass', 'MoneyBag']);
 
     const isVisible =
         approvalRowState === YOUR_SPEND_ROW_STATE.LOADING ||
@@ -143,7 +143,7 @@ function YourSpendSection() {
                             leftComponent={
                                 <View style={styles.getWidgetItemIconContainerStyle(theme.border)}>
                                     <Icon
-                                        src={icons.ThumbsUp}
+                                        src={icons.ThumbsUpHourglass}
                                         fill={theme.icon}
                                         width={variables.iconSizeNormal}
                                         height={variables.iconSizeNormal}
