@@ -23,15 +23,18 @@ function PressResponder({children, ref, onPress, onSecondaryInteraction, accessi
         },
     };
 
+    // Stable boolean deps so identity churn from fresh handler closures doesn't re-run the dev-warn each render.
+    const hasOnPress = !!onPress;
+    const hasOnSecondary = !!onSecondaryInteraction;
     useEffect(() => {
         if (!__DEV__) {
             return;
         }
         const required: RegisterKind[] = [];
-        if (onPress) {
+        if (hasOnPress) {
             required.push('press');
         }
-        if (onSecondaryInteraction) {
+        if (hasOnSecondary) {
             required.push('secondary');
         }
         const missing = required.filter((kind) => !consumedKindsRef.current.has(kind));
@@ -41,7 +44,7 @@ function PressResponder({children, ref, onPress, onSecondaryInteraction, accessi
         Log.warn(
             `[PressResponder] published ${missing.join(', ')} handler(s) but no descendant pressable consumed them. Use <PressableWithFeedback> for 'press' and <PressableWithSecondaryInteraction> for 'secondary'.`,
         );
-    }, [onPress, onSecondaryInteraction]);
+    }, [hasOnPress, hasOnSecondary]);
 
     return <PressResponderContext.Provider value={value}>{children}</PressResponderContext.Provider>;
 }
