@@ -28,6 +28,7 @@ import {
     getIntegrationSyncFailedMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
+    getModerationFlagState,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
@@ -48,13 +49,12 @@ import {
     isConsecutiveActionMadeByPreviousActor,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
-    isResolvedActionableWhisper,
     shouldHideNewMarker,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import shouldDisplayNewMarkerOnReportAction from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
-import type {Card, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, OriginalMessageIOU, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -1044,65 +1044,6 @@ describe('ReportActionsUtils', () => {
             // Then the whisper with deleted set should be filtered out, leaving only the ADD_COMMENT
             expect(result).toStrictEqual([input.at(0)]);
         });
-
-        it('should keep ACTIONABLE_MENTION_WHISPER visible when deleted is set but parent comment is not deleted', () => {
-            // Given a parent ADD_COMMENT (ID N) and an ACTIONABLE_MENTION_WHISPER (ID N+1) whose
-            // originalMessage.deleted is set (e.g. from the backend one-per-user cleanup rule).
-            // Use sequential IDs so the parent check can find the parent via whisperID - 1.
-            const parentID = '1000000000000000';
-            const whisperID = '1000000000000001';
-
-            const parentAction: ReportAction = {
-                created: '2024-11-19 08:04:13.728',
-                reportActionID: parentID,
-                reportID: '1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                originalMessage: {
-                    html: '<mention-user accountID="18414674"/>',
-                    whisperedTo: [],
-                    lastModified: '2024-11-19 08:04:13.728',
-                },
-                message: [
-                    {
-                        html: '<mention-user accountID="18414674"/>',
-                        text: '@someone',
-                        type: 'COMMENT',
-                        whisperedTo: [],
-                    },
-                ],
-            };
-
-            const whisperAction: ReportAction = {
-                created: '2024-11-19 08:04:13.730',
-                reportActionID: whisperID,
-                reportID: '1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
-                originalMessage: {
-                    inviteeAccountIDs: [18414674],
-                    lastModified: '2024-11-19 08:04:25.813',
-                    whisperedTo: [18301266],
-                    deleted: '2024-11-19 08:04:27.000',
-                },
-                message: [
-                    {
-                        html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
-                        text: "Heads up,  isn't a member of this room.",
-                        type: 'COMMENT',
-                    },
-                ],
-            };
-
-            const allActionsForReport: ReportActions = {
-                [parentID]: parentAction,
-                [whisperID]: whisperAction,
-            };
-
-            // When checking whether the whisper is resolved, providing the full action set
-            const result = isResolvedActionableWhisper(whisperAction, allActionsForReport);
-
-            // Then the whisper should NOT be treated as resolved because its parent is still present and not deleted
-            expect(result).toBe(false);
-        });
     });
 
     describe('hasRequestFromCurrentAccount', () => {
@@ -1282,62 +1223,6 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getReportActionMessageFragments', () => {
-        it('should return the correct fragment for the REIMBURSED action', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: '1',
-                created: '1',
-                message: [
-                    {
-                        type: 'TEXT',
-                        style: 'strong',
-                        text: 'Concierge',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: ' reimbursed this report',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: ' on behalf of you',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: ' from the bank account ending in 1111',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: '. Money is on its way to your bank account ending in 0000. Reimbursement estimated to complete on Dec 16.',
-                    },
-                ],
-            };
-            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
-            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
-        });
-
-        it('should translate the REIMBURSED action using originalMessage.method when paymentMethod is absent (Pusher path)', () => {
-            // Given a REIMBURSED action that arrived via Pusher with only `method` set (as Auth stores it)
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: '2',
-                created: '2024-01-01',
-                originalMessage: {
-                    method: 'Check',
-                },
-            };
-            // When we get the message fragments
-            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            // Then the translated message is used (not raw backend text)
-            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
-            expect(fragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
-            expect(expectedMessage).toContain('check');
-        });
-
         it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
@@ -5167,6 +5052,78 @@ describe('ReportActionsUtils', () => {
         it('returns undefined when the agent firstName is only whitespace so the generic fallback can be used', () => {
             const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
             expect(getHumanAgentFirstName(action, makePersonalDetails('   '))).toBeUndefined();
+        });
+    });
+
+    describe('getModerationFlagState', () => {
+        function makeActionWithDecision(decision: DecisionName | undefined): ReportAction {
+            return {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'hello',
+                        text: 'hello',
+                        moderationDecision: decision ? {decision} : undefined,
+                    },
+                ],
+            } as ReportAction;
+        }
+
+        it('returns undefined and not flagged when the action is null', () => {
+            expect(getModerationFlagState(null)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+
+        it('returns undefined and not flagged when the action is undefined', () => {
+            expect(getModerationFlagState(undefined)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+
+        it('returns undefined and not flagged when the message has no moderation decision', () => {
+            expect(getModerationFlagState(makeActionWithDecision(undefined))).toEqual({latestDecision: undefined, hasBeenFlagged: false});
+        });
+
+        it('returns approved and not flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_APPROVED))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_APPROVED,
+                hasBeenFlagged: false,
+            });
+        });
+
+        it('returns pending and not flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_PENDING))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
+                hasBeenFlagged: false,
+            });
+        });
+
+        it('returns pendingRemove and not flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+                hasBeenFlagged: false,
+            });
+        });
+
+        it('returns pendingHide and flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+                hasBeenFlagged: true,
+            });
+        });
+
+        it('returns hidden and flagged', () => {
+            expect(getModerationFlagState(makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_HIDDEN))).toEqual({
+                latestDecision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN,
+                hasBeenFlagged: true,
+            });
+        });
+
+        it('returns the safe default for non-ADD_COMMENT actions even when the message carries a flagged decision', () => {
+            const action = {
+                ...makeActionWithDecision(CONST.MODERATION.MODERATOR_DECISION_HIDDEN),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            } as ReportAction;
+            expect(getModerationFlagState(action)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
         });
     });
 });

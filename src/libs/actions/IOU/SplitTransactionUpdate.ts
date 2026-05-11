@@ -54,8 +54,9 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
-import {getAllReports, getMoneyRequestInformation, getMoneyRequestParticipantsFromReport, getMoneyRequestPolicyTags, getPolicyTagsData, getReportPreviewAction} from './index';
-import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} from './index';
+import {getAllReports, getMoneyRequestParticipantsFromReport, getMoneyRequestPolicyTags, getPolicyTagsData} from './index';
+import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
+import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams} from './MoneyRequestBuilder';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
@@ -1101,6 +1102,7 @@ function updateSplitTransactions({
                         IOUTransactionID: null,
                     },
                     errors: null,
+                    childReportID: null,
                 },
             };
 
@@ -1120,6 +1122,15 @@ function updateSplitTransactions({
             });
 
             onyxData.successData?.push(...successData);
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [firstIOU.reportActionID]: {
+                        pendingAction: null,
+                    },
+                },
+            });
 
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,

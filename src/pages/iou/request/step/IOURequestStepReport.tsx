@@ -106,20 +106,22 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
+    const buildParticipants = (report: OnyxEntry<Report>) => [
+        {
+            selected: true,
+            accountID: 0,
+            isPolicyExpenseChat: true,
+            reportID: report?.chatReportID,
+            policyID: report?.policyID,
+        },
+    ];
+
     const handleGlobalCreateReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
             return;
         }
         const reportOrDraftReportFromValue = getReportOrDraftReport(item.value, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`]);
-        const participants = [
-            {
-                selected: true,
-                accountID: 0,
-                isPolicyExpenseChat: true,
-                reportID: reportOrDraftReportFromValue?.chatReportID,
-                policyID: reportOrDraftReportFromValue?.policyID,
-            },
-        ];
+        const participants = buildParticipants(reportOrDraftReportFromValue);
 
         const currentPolicyID = perDiemOriginalPolicy?.id;
         const newPolicyID = reportOrDraftReportFromValue?.policyID;
@@ -169,10 +171,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         handleGoBack();
         InteractionManager.runAfterInteractions(() => {
             Navigation.setNavigationActionToMicrotaskQueue(() => {
+                const participants = buildParticipants(report);
+
                 setTransactionReport(
                     transaction.transactionID,
                     {
                         reportID: item.value,
+                        participants,
                     },
                     !isEditing,
                 );
