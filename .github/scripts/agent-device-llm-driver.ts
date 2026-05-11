@@ -565,6 +565,14 @@ async function executeStep(
     }
     ctx.stats.onBashRun();
     actions = bashResult.actions;
+    // Settle gap: agent-device fill returns once it has dispatched
+    // the typing command, but the on-device EditText needs a beat for
+    // React Native's onChange to fire and the accessibility tree to
+    // re-publish the new text. Without this, verifyPostState below
+    // takes a snapshot before the typed text has propagated and the
+    // expect predicate fails on what's transient lag, not a real
+    // problem.
+    await sleep(500);
   }
 
   const post = await verifyPostState(step, null);
@@ -999,6 +1007,29 @@ async function runLLMStep(
     }
 
     messages.push({ role: "user", content: toolResults });
+
+    // Refresh snap + appstate after every batch of tool calls that
+    // changed device state. Without this the LLM keeps seeing the
+    // pre-step snapshot even after its fill/press took effect, so
+    // identical fills get caught by the seen-hash dedup and the LLM
+    // burns its budget retrying actions it already performed.
+    // dispatchTool's snapshot/wait_for/back/dismiss callbacks already
+    // refresh; fill and press do not.
+    if (
+      toolUses.some(
+        (tu) => tu.name === "fill" || tu.name === "press" || tu.name === "wait",
+      )
+    ) {
+      try {
+        snap = adCli.snapshot();
+        app = adCli.appstate();
+      } catch (e) {
+        // Transient — next loop iteration will retry implicitly.
+        log(
+          `runLLMStep: post-action snap refresh threw (${(e as Error).message.slice(0, 80)}); continuing with stale snap`,
+        );
+      }
+    }
   }
 
   return {
