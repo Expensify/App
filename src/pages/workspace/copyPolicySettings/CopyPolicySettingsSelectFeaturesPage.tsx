@@ -18,11 +18,16 @@ import {areAllTargetsAccountingCompatible} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getDistanceRateCustomUnit, getMemberAccountIDsForWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {formatAddressToString} from '@libs/ReportActionsUtils';
+import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from '@pages/workspace/duplicate/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 /**
  * Parts that depend on a compatible accounting connection between source and targets.
@@ -68,6 +73,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettings] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettings?.targetPolicyIDs ?? [];
@@ -76,13 +84,30 @@ function CopyPolicySettingsSelectFeaturesPage() {
 
     const isAccountingCompatible = areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
 
+    const memberCount = Object.keys(getMemberAccountIDsForWorkspace(sourcePolicy?.employeeList, false, false)).length;
+    const categoriesCount = Object.values(policyCategories ?? {}).filter((c) => c.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const totalTags = policyTags
+        ? Object.values(policyTags).reduce((sum, tagGroup) => sum + Object.values(tagGroup.tags).filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length, 0)
+        : 0;
+    const taxesCount = Object.values(sourcePolicy?.taxRates?.taxes ?? {}).filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const reportFieldsCount = Object.values(getReportFieldsByPolicyID(sourcePolicyID) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const connectedIntegration = getAllValidConnectedIntegration(sourcePolicy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
+    const distanceRatesCount = Object.values(getDistanceRateCustomUnit(sourcePolicy)?.rates ?? {}).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const perDiemRates = getPerDiemCustomUnit(sourcePolicy)?.rates ?? {};
+    const perDiemCount = Object.values(perDiemRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
+    const workflows = getWorkflowRules(sourcePolicy, translate);
+    const rules = getWorkspaceRules(sourcePolicy, translate);
+    const invoiceCompany =
+        sourcePolicy?.invoice?.companyName && sourcePolicy?.invoice?.companyWebsite
+            ? `${sourcePolicy.invoice.companyName}, ${sourcePolicy.invoice.companyWebsite}`
+            : (sourcePolicy?.invoice?.companyName ?? sourcePolicy?.invoice?.companyWebsite ?? '');
+
     const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[]>([]);
 
     const isAccountingSelected = selectedFeatures.includes('accounting');
 
-    const effectiveSelectedFeatures = isAccountingSelected
-        ? Array.from(new Set<Part>([...selectedFeatures, ...ACCOUNTING_FORCE_ENABLED_PARTS]))
-        : selectedFeatures;
+    const effectiveSelectedFeatures = isAccountingSelected ? Array.from(new Set<Part>([...selectedFeatures, ...ACCOUNTING_FORCE_ENABLED_PARTS])) : selectedFeatures;
 
     const isFeatureDisabled = (part: Part) => {
         if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
@@ -94,13 +119,57 @@ function CopyPolicySettingsSelectFeaturesPage() {
         return false;
     };
 
-    const listItems: ListItem[] = FEATURE_ROWS.map((row) => ({
-        text: translate(row.labelKey),
-        keyForList: row.part,
-        isSelected: effectiveSelectedFeatures.includes(row.part),
-        isDisabled: isFeatureDisabled(row.part),
-        isDisabledCheckbox: isFeatureDisabled(row.part),
-    }));
+    const getFeatureAlternateText = (part: Part): string | undefined => {
+        switch (part) {
+            case 'overview': {
+                const currencyText = sourcePolicy?.outputCurrency ? `${sourcePolicy.outputCurrency} ${translate('common.currency')}` : '';
+                return [currencyText, formattedAddress].filter(Boolean).join(', ') || undefined;
+            }
+            case 'members':
+                return memberCount > 0 ? `${memberCount} ${translate('workspace.common.members').toLowerCase()}` : undefined;
+            case 'reports':
+                return reportFieldsCount > 0 ? `${reportFieldsCount} ${translate('workspace.common.reportFields').toLowerCase()}` : undefined;
+            case 'accounting':
+                return connectedIntegration?.length ? connectedIntegration.map((name) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name]).join(', ') : undefined;
+            case 'categories':
+                return categoriesCount > 0 ? `${categoriesCount} ${translate('workspace.common.categories').toLowerCase()}` : undefined;
+            case 'tags':
+                return totalTags > 0 ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined;
+            case 'taxes':
+                return taxesCount > 0 ? `${taxesCount} ${translate('workspace.common.taxes').toLowerCase()}` : undefined;
+            case 'workflows':
+                return workflows?.join(', ');
+            case 'rules':
+                return rules?.length
+                    ? `${rules.length} ${translate('workspace.common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
+                    : undefined;
+            case 'distanceRates':
+                return distanceRatesCount > 0 ? `${distanceRatesCount} ${translate('iou.rates').toLowerCase()}` : undefined;
+            case 'perDiem':
+                return perDiemCount > 0 ? `${perDiemCount} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined;
+            case 'invoices': {
+                const bankCount = bankAccountList ? Object.keys(bankAccountList).length : 0;
+                if (bankCount > 0 && invoiceCompany) {
+                    return `${bankCount} ${translate('common.bankAccounts').toLowerCase()}, ${invoiceCompany}`;
+                }
+                return invoiceCompany || undefined;
+            }
+            default:
+                return undefined;
+        }
+    };
+
+    const listItems: ListItem[] = FEATURE_ROWS.map((row) => {
+        const alternateText = getFeatureAlternateText(row.part);
+        return {
+            text: translate(row.labelKey),
+            keyForList: row.part,
+            isSelected: effectiveSelectedFeatures.includes(row.part),
+            isDisabled: isFeatureDisabled(row.part),
+            isDisabledCheckbox: isFeatureDisabled(row.part),
+            alternateText: alternateText?.trim().replace(/,\s*$/, ''),
+        };
+    });
 
     const toggleFeature = (item: ListItem) => {
         const part = item.keyForList as Part | undefined;
@@ -182,6 +251,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
                         data={listItems}
                         ListItem={MultiSelectListItem}
                         canSelectMultiple
+                        alternateNumberOfSupportedLines={2}
                         onSelectRow={toggleFeature}
                         onSelectAll={selectableFeatures.length > 0 ? toggleAll : undefined}
                         selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.RIGHT}
