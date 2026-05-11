@@ -305,6 +305,18 @@ function getMonthNames(): string[] {
 }
 
 /**
+ * Returns month list items for SelectionList.
+ */
+function getFilteredMonthItems(monthNames: string[], currentMonth: number) {
+    return monthNames.map((month, index) => ({
+        text: month.charAt(0).toUpperCase() + month.slice(1),
+        value: index,
+        keyForList: index.toString(),
+        isSelected: index === currentMonth,
+    }));
+}
+
+/**
  * @returns [Monday, Tuesday, Wednesday, ...]
  */
 function getDaysOfWeek(): string[] {
@@ -1093,6 +1105,7 @@ const DateUtils = {
     isTomorrow,
     isYesterday,
     getMonthNames,
+    getFilteredMonthItems,
     getDaysOfWeek,
     formatWithUTCTimeZone,
     getWeekEndsOn,

@@ -45,6 +45,14 @@ type ReportAttributes = {
      * The reportID of the one-transaction thread report, if applicable.
      */
     oneTransactionThreadReportID?: string;
+
+    /**
+     * True when this report (typically a child expense report) has an RBR-worthy reason that should
+     * propagate up to its parent workspace chat. Set by the per-report pass; consumed by the propagation
+     * loop. We track it separately from `brickRoadStatus` because we suppress the child's own RBR/Fix badge
+     * when the parent workspace chat is accessible (so we can't read `brickRoadStatus` to drive propagation).
+     */
+    needsParentChatErrorPropagation?: boolean;
 };
 
 /**
@@ -84,6 +92,15 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
  * The derived value for report outstanding reports.
  */
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
+
+/**
+ * The derived value for reports grouped by policy ID.
+ * Groups reports by their policyID where:
+ * - The report has a policyID
+ * - The report is owned by the current user
+ * - The report state is open or submitted (stateNum <= 1)
+ */
+type OpenAndSubmittedReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
  * The derived value for visible report actions.
@@ -276,13 +293,13 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
-export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,

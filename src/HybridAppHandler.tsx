@@ -22,6 +22,8 @@ function HybridAppHandler() {
 
         setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
             if (loggedOutFromOldDot) {
+                endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+                endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
                 endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT);
             } else {
                 setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);

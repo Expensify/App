@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {memo} from 'react';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -9,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 import {clearCreateChatError} from '@userActions/Report';
@@ -21,7 +23,7 @@ type ReportActionItemCreatedProps = {
     reportID: string | undefined;
 
     /** The id of the policy */
-    // eslint-disable-next-line react/no-unused-prop-types
+
     policyID: string | undefined;
 };
 function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedProps) {
@@ -34,6 +36,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     if (!isChatReport(report)) {
@@ -47,10 +50,16 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mr2]}
-            onClose={() => clearCreateChatError(report, conciergeReportID, introSelected, currentUserAccountID, betas)}
+            onClose={() => clearCreateChatError(report, conciergeReportID, introSelected, currentUserAccountID, betas, isSelfTourViewed)}
         >
             <View style={[styles.pRelative]}>
-                <AnimatedEmptyStateBackground />
+                {/* hasDeferredWriteForReport is non-reactive (reads a module-level Map, not tracked by React).
+                   This is intentional: we only suppress the animation on the initial render while a
+                   DISMISS_MODAL write targeting THIS report is pending. The animation re-appears on the
+                   next organic re-render (e.g. Onyx updates after the API write resolves). The check is
+                   scoped to `report.reportID` so an unrelated submit flow's dismiss doesn't suppress the
+                   animation here. */}
+                {!hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID) && <AnimatedEmptyStateBackground />}
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}

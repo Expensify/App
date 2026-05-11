@@ -140,7 +140,6 @@ describe('PopoverMenu utils', () => {
 
 jest.mock('@components/PopoverWithMeasuredContent', () => {
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: (props: PropsWithChildren<Record<string, unknown>>) => props.children,
     };
@@ -151,7 +150,6 @@ jest.mock('@components/FocusableMenuItem', () => {
     const {Pressable, Text} = require('react-native');
 
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: (props: {title: string; pressableTestID?: string; onPress?: (event: GestureResponderEvent) => void}) => (
             <Pressable

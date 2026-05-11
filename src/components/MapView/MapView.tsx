@@ -35,13 +35,15 @@ function MapView({
     pitchEnabled,
     initialState,
     waypoints,
-    directionCoordinates,
+    directionCoordinates: directionCoordinatesProp,
     onMapReady,
     interactive = true,
     distanceInMeters,
     unit,
     ref,
 }: MapViewProps) {
+    const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
+
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
     const navigation = useNavigation();
     const {isOffline} = useNetwork();
@@ -278,7 +280,7 @@ function MapView({
                 />
                 {interactive && (
                     <Mapbox.ShapeSource
-                        id="user-location"
+                        id={CONST.MAP_VIEW_LAYERS.USER_LOCATION_SOURCE}
                         shape={{
                             type: 'FeatureCollection',
                             features: [
@@ -294,8 +296,8 @@ function MapView({
                         }}
                     >
                         <Mapbox.CircleLayer
-                            id="user-location-layer"
-                            sourceID="user-location"
+                            id={CONST.MAP_VIEW_LAYERS.USER_LOCATION}
+                            sourceID={CONST.MAP_VIEW_LAYERS.USER_LOCATION_SOURCE}
                             style={{
                                 circleColor: colors.blue400,
                                 circleRadius: 8,
@@ -319,7 +321,12 @@ function MapView({
                     );
                 })}
 
-                {!!directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                {!!directionCoordinatesProp && (
+                    <Direction
+                        coordinates={directionCoordinatesProp}
+                        belowLayerID={interactive ? CONST.MAP_VIEW_LAYERS.USER_LOCATION : undefined}
+                    />
+                )}
                 {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
                     <MarkerView
                         coordinate={distanceSymbolCoordinate}

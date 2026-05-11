@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useEffect, useState} from 'react';
+import type {RotationDegrees} from 'react-fast-pdf';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,6 +20,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -94,6 +96,9 @@ type AttachmentViewProps = Attachment & {
 
     /** Transaction object. When provided, will be used instead of fetching from Onyx. */
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Controlled rotation angle for the PDF */
+    rotation?: RotationDegrees;
 };
 
 function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
@@ -131,6 +136,7 @@ function AttachmentView({
     isUploading = false,
     reportID,
     transaction: transactionProp,
+    rotation,
 }: AttachmentViewProps) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery']);
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -139,6 +145,7 @@ function AttachmentView({
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
+    const report = useReportOrReportDraft(reportID);
 
     const actions = useAttachmentCarouselPagerActions();
     const {onAttachmentError, onTap} = actions ?? {};
@@ -158,9 +165,8 @@ function AttachmentView({
             return;
         }
         const videoSource = isVideo && typeof source === 'string' ? source : undefined;
-        updateCurrentURLAndReportID(videoSource, reportID);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- currentlyPlayingURL and playVideo are intentionally excluded to prevent a feedback loop
-    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID]);
+        updateCurrentURLAndReportID(videoSource, report, reportID);
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, report]);
 
     const [imageError, setImageError] = useState(false);
 
@@ -226,7 +232,7 @@ function AttachmentView({
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string, encryptedAuthToken) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
-            const id = (transaction && transaction.transactionID) ?? reportActionID;
+            const id = transaction?.transactionID ?? reportActionID;
             if (path && id) {
                 addCachedPDFPaths(id, path);
             }
@@ -255,6 +261,7 @@ function AttachmentView({
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
                     isUsedAsChatAttachment={isUsedAsChatAttachment}
                     onLoadError={onPDFLoadError}
+                    rotation={rotation}
                 />
             </View>
         );
