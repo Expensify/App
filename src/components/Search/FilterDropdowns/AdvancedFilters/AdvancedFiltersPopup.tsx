@@ -4,7 +4,9 @@ import SafeTriangle from '@components/SafeTriangle';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,6 +19,8 @@ type AdvancedFiltersPopupProps = {
 
 function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {windowHeight} = useWindowDimensions();
     const [selectedFilter, setSelectedFilter] = useState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
     const filterContentRef = useRef<View>(null);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -25,7 +29,7 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>
-            <View style={[styles.advanceFiltersPopupContainer]}>
+            <View style={[styles.flexRow, StyleUtils.getMaximumHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_MAX_HEIGHT))]}>
                 <FilterList
                     selectedFilter={selectedFilter}
                     onFilterSelected={setSelectedFilter}

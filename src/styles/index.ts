@@ -4927,11 +4927,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
-        advanceFiltersPopupContainer: {
-            maxHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
-            flexDirection: 'row',
-        },
-
         advanceFiltersFullscreenContainer: {
             flex: 1,
             paddingBottom: 8,

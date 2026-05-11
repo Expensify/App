@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
+import ScrollView from '@components/ScrollView';
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -175,7 +176,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pv2]}>
-            <View>
+            <ScrollView>
                 {modifierConfig.map((config) => (
                     <>
                         <SingleSelectListItem
@@ -203,7 +204,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
                             ))}
                     </>
                 ))}
-            </View>
+            </ScrollView>
             <Button
                 style={[styles.ph5, styles.pb3]}
                 success
