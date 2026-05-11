@@ -103,7 +103,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
-            {hasAdminPolicies && (
+            {(hasAdminPolicies || !!effectivePreferredPolicyName) && (
                 <OfflineWithFeedback
                     pendingAction={restrictedPrimaryPolicyIDPendingAction}
                     errors={restrictedPrimaryPolicyIDErrors}
