@@ -40,7 +40,9 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
     const isEnabled = !!group?.enableRestrictedPrimaryPolicy;
     const preferredPolicyID = group?.restrictedPrimaryPolicyID;
 
+    // Get the preffered policy name from the local policy Onyx collection data or the fallback from the security group data. This is because domain admins without access to the preferred policy won't find it's data in Onyx.
     const [preferredPolicyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {selector: policyNameSelector});
+    const effectivePreferredPolicyName = preferredPolicyName ?? group?.restrictedPrimaryPolicyName;
 
     const [enableRestrictedPrimaryPolicyPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         selector: domainSecurityGroupSettingPendingActionSelector('enableRestrictedPrimaryPolicy', groupID),
@@ -110,7 +112,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                 >
                     <MenuItemWithTopDescription
                         description={translate('domain.groups.preferredWorkspace')}
-                        title={preferredPolicyName ?? firstAdminPolicy?.name}
+                        title={effectivePreferredPolicyName}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
                         disabled={!isEnabled}
