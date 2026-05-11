@@ -26,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
+import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 import {createDraftInitialWorkspace, createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from './Policy/Policy';
@@ -850,8 +851,10 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     const sequentialQueue = getAll();
 
     Navigation.clearPreloadedRoutes();
+    // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
+    // ReconnectApp once the openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
     const resetPromise = clearWorkboxRecoveryCaches().then(() =>
-        Onyx.clear(KEYS_TO_PRESERVE)
+        clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE)
             .then(() => {
                 // Network key is preserved, so when exiting imported state, we should:
                 // 1. Stop forcing offline mode so the app can reconnect

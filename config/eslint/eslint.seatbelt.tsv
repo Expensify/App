@@ -343,7 +343,6 @@
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../src/libs/actions/IOU/PerDiem.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/IOU/Receipt.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/Receipt.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	2
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"no-restricted-syntax"	1
@@ -355,7 +354,6 @@
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	2
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
-"../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/Split.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
