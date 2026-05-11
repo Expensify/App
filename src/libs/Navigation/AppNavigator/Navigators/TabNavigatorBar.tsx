@@ -11,6 +11,8 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
+import cancelTabNavigationSpans from '@libs/telemetry/cancelTabNavigationSpans';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -20,6 +22,11 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NAVIGATION_TABS.SEARCH,
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.SETTINGS,
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NAVIGATION_TABS.WORKSPACES,
+};
+
+const NAVIGATION_TAB_TO_SPAN: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, string>> = {
+    [NAVIGATION_TABS.INBOX]: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+    [NAVIGATION_TABS.SEARCH]: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
 };
 
 // Count as tab-root when they surface as the resolved leaf.
@@ -94,6 +101,12 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         });
         return () => cancelAnimationFrame(frameId);
     }, [stateKey]);
+
+    // Cancel any in-flight tab-navigation span that doesn't match the new focused tab.
+    // The span for the new tab is started by the tab button before navigation, so we keep it via `except`.
+    useEffect(() => {
+        cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPAN[selectedTab]);
+    }, [selectedTab]);
 
     const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
 
