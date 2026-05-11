@@ -22,9 +22,9 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {showContextMenu} from './inbox/report/ContextMenu/ReportActionContextMenu';
 
-type ReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.DYNAMIC_REFERRAL_DETAILS>;
+type DynamicReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.DYNAMIC_REFERRAL_DETAILS>;
 
-function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
+function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'NewWindow', 'QuestionMark']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -58,7 +58,7 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
             }
             headerContainerStyles={[styles.staticHeaderImage, styles.justifyContentEnd]}
             backgroundColor={theme.PAGE_THEMES[SCREENS.DYNAMIC_REFERRAL_DETAILS].backgroundColor}
-            testID="ReferralDetailsPage"
+            testID="DynamicReferralDetailsPage"
             onBackButtonPress={() => {
                 Navigation.goBack(backPath);
             }}
@@ -102,4 +102,4 @@ function ReferralDetailsPage({route}: ReferralDetailsPageProps) {
     );
 }
 
-export default ReferralDetailsPage;
+export default DynamicReferralDetailsPage;
