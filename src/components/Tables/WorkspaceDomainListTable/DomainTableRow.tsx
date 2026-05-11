@@ -1,11 +1,17 @@
+import {View} from 'react-native';
+import Icon from '@components/Icon';
+import style from '@components/Icon/IconWrapperStyles';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PopoverMenuItem} from '@components/PopoverMenu';
 import TableRow from '@components/Table/TableRow';
+import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDomainErrors} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import {DomainRowData} from '.';
 
@@ -21,7 +27,7 @@ export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayo
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Globe']);
+    const icons = useMemoizedLazyExpensifyIcons(['Globe', 'ArrowRight']);
 
     const threeDotMenuItems: PopoverMenuItem[] = [];
 
@@ -45,13 +51,36 @@ export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayo
         <OfflineWithFeedback
             errors={item.errors}
             pendingAction={item.pendingAction}
+            onClose={() => clearDomainErrors(item.domainAccountID)}
         >
             <TableRow
                 interactive
                 rowIndex={rowIndex}
                 skeletonReasonAttributes={{context: 'domainTableRow'}}
             >
-                {({hovered}) => <></>}
+                {({hovered}) => (
+                    <>
+                        <View style={[styles.flex1]}></View>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                            {threeDotMenuItems.length > 0 && (
+                                <ThreeDotsMenu
+                                    isNested
+                                    shouldOverlay
+                                    shouldSelfPosition
+                                    menuItems={threeDotMenuItems}
+                                />
+                            )}
+
+                            <Icon
+                                src={icons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
+                            />
+                        </View>
+                    </>
+                )}
             </TableRow>
         </OfflineWithFeedback>
     );
