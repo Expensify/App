@@ -113,6 +113,19 @@ If a card reaches its expiration date, it automatically deactivates and declines
 
 ---
 
+## How to export Expensify Card data as CSV
+
+You can bulk-select cards and export their details to a CSV file for reporting or reconciliation.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+2. Select the checkboxes next to the cards you want to export. Use the checkbox in the header row to select all cards at once.
+3. Click the **selected** dropdown that appears.
+4. Select **Export as CSV**.
+
+The downloaded CSV file includes the following columns for each selected card: email, name, last four digits, type (virtual or physical), limit type, and limit amount.
+
+---
+
 # How to freeze or unfreeze an Expensify Card
 
 As a Workspace Admin, you can freeze or unfreeze any card in your workspace without needing to cancel or reissue it.
