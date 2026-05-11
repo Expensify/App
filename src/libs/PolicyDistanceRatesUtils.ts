@@ -67,6 +67,8 @@ function validateCreateDistanceRateForm(
 
     if (!hasName) {
         errors.name = translate('workspace.distanceRates.errors.nameRequired');
+    } else if ([...trimmedName].length > CONST.TAX_RATES.NAME_MAX_LENGTH) {
+        errors.name = translate('common.error.characterLimitExceedCounter', [...trimmedName].length, CONST.TAX_RATES.NAME_MAX_LENGTH);
     } else if (existingRateNames.includes(trimmedName)) {
         errors.name = translate('workspace.distanceRates.errors.nameAlreadyExists');
     }
