@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {WorkspaceRowData} from '.';
@@ -27,6 +28,10 @@ export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackWorkspaceAvatar']);
+
+    const formattedOwnerName = item.ownerName ?? '';
+    const formattedWorkspaceName = getUserFriendlyWorkspaceType(item.type, translate);
+    const itemDeletedStyles = item.isDeleted ? [styles.offlineFeedbackDeleted] : [{}];
 
     return (
         <Table.Row
@@ -51,7 +56,7 @@ export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={item.title}
-                                style={[item.isDeleted ? styles.offlineFeedbackDeleted : {}]}
+                                style={itemDeletedStyles}
                             />
                             {item.isDefault && (
                                 <Badge
@@ -71,10 +76,17 @@ export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
                         />
                         <WorkspacesListRowDisplayName
                             isDeleted={item.isDeleted}
-                            ownerName={item.ownerName ?? ''}
+                            ownerName={formattedOwnerName}
                         />
                     </View>
-                    <View style={[styles.flex1]}></View>
+                    <View style={[styles.flex1]}>
+                        <Text
+                            numberOfLines={1}
+                            style={itemDeletedStyles}
+                        >
+                            {formattedWorkspaceName}
+                        </Text>
+                    </View>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
                         <Icon
                             src={icons.ArrowRight}
