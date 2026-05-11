@@ -192,6 +192,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 shouldRenderAsHTML
                                 description={translate('task.description')}
                                 title={report?.description ?? ''}
+                                accessibilityLabel={`${translate('task.description')}, ${Parser.htmlToText(report?.description ?? '')}`}
                                 onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
                                 shouldShowRightIcon={!isDisableInteractive}
                                 disabled={disableState}
