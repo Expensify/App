@@ -1,11 +1,11 @@
 import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
-import type {MultifactorAuthenticationOverlayParamList} from '@libs/Navigation/types';
+import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
 
 const INITIAL_SCREEN = 'MFA_Initial' as const;
 
-type MfaOverlayInternalParamList = MultifactorAuthenticationOverlayParamList & Record<typeof INITIAL_SCREEN, undefined>;
+type MultifactorAuthenticationModalNavigatorInternalParamList = MultifactorAuthenticationModalNavigatorParamList & Record<typeof INITIAL_SCREEN, undefined>;
 
-const mfaNavigationRef = createNavigationContainerRef<MfaOverlayInternalParamList>();
+const mfaNavigationRef = createNavigationContainerRef<MultifactorAuthenticationModalNavigatorInternalParamList>();
 
 let pendingNavigation: {screen: string; params?: Record<string, unknown>} | undefined;
 // True once the placeholder INITIAL_SCREEN has laid out at least once. On iOS
@@ -15,9 +15,9 @@ let pendingNavigation: {screen: string; params?: Record<string, unknown>} | unde
 // directly when INITIAL is already laid out.
 let hasInitialLaidOut = false;
 
-function navigate<T extends keyof MultifactorAuthenticationOverlayParamList>(
+function navigate<T extends keyof MultifactorAuthenticationModalNavigatorParamList>(
     screen: T,
-    ...args: MultifactorAuthenticationOverlayParamList[T] extends undefined ? [] : [MultifactorAuthenticationOverlayParamList[T]]
+    ...args: MultifactorAuthenticationModalNavigatorParamList[T] extends undefined ? [] : [MultifactorAuthenticationModalNavigatorParamList[T]]
 ) {
     const params: Record<string, unknown> | undefined = args[0];
 
@@ -63,4 +63,4 @@ function clearPendingNavigation() {
 }
 
 export {INITIAL_SCREEN, mfaNavigationRef, navigate, applyPendingNavigation, clearPendingNavigation};
-export type {MfaOverlayInternalParamList};
+export type {MultifactorAuthenticationModalNavigatorInternalParamList};

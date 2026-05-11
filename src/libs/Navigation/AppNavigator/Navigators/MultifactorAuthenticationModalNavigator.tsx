@@ -6,7 +6,7 @@ import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
-import type {MfaOverlayInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
+import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
 import {applyPendingNavigation, clearPendingNavigation, INITIAL_SCREEN, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
@@ -24,7 +24,7 @@ import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-const Stack = createPlatformStackNavigator<MfaOverlayInternalParamList>();
+const Stack = createPlatformStackNavigator<MultifactorAuthenticationModalNavigatorInternalParamList>();
 
 const loadValidateCodePage = () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/ValidateCodePage').default;
 const loadOutcomePage = () => require<ReactComponentModule>('../../../../pages/MultifactorAuthentication/OutcomePage').default;
@@ -43,7 +43,7 @@ function TransparentScreen() {
 
 TransparentScreen.displayName = 'TransparentScreen';
 
-function MultifactorAuthenticationOverlay() {
+function MultifactorAuthenticationModalNavigator() {
     const state = useMultifactorAuthenticationState();
     const {cancel} = useMultifactorAuthentication();
     const {dispatch} = useMultifactorAuthenticationActions();
@@ -109,7 +109,7 @@ function MultifactorAuthenticationOverlay() {
 
     return (
         <View
-            style={[StyleSheet.absoluteFill, styles.mfaOverlayRoot]}
+            style={[StyleSheet.absoluteFill, styles.mfaModalNavigatorRoot]}
             pointerEvents="box-none"
         >
             {!shouldUseNarrowLayout && (
@@ -180,6 +180,6 @@ function MultifactorAuthenticationOverlay() {
     );
 }
 
-MultifactorAuthenticationOverlay.displayName = 'MultifactorAuthenticationOverlay';
+MultifactorAuthenticationModalNavigator.displayName = 'MultifactorAuthenticationModalNavigator';
 
-export default MultifactorAuthenticationOverlay;
+export default MultifactorAuthenticationModalNavigator;

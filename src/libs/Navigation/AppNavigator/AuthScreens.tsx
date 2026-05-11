@@ -59,7 +59,7 @@ import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
-import MultifactorAuthenticationOverlay from './Navigators/MultifactorAuthenticationOverlay';
+import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
@@ -374,7 +374,7 @@ function AuthScreens() {
                         />
                     </RootStack.Navigator>
                     <RequireTwoFactorAuthenticationOverlay />
-                    <MultifactorAuthenticationOverlay />
+                    <MultifactorAuthenticationModalNavigator />
                     <SearchRouterModal />
                     <GPSTripStateChecker />
                     <GPSInProgressModal />

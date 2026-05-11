@@ -15,11 +15,11 @@ import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {markHasAcceptedSoftPrompt} from '@libs/actions/MultifactorAuthentication';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MultifactorAuthenticationOverlayParamList} from '@libs/Navigation/types';
+import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
 
-type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationOverlayParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
+type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationModalNavigatorParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
 
 function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationPromptPageProps) {
     const {translate} = useLocalize();
