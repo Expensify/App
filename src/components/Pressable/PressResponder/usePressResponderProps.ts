@@ -20,10 +20,20 @@ function usePressResponderProps(consumer: ConsumablePressProps, kind: RegisterKi
         return consumer;
     }
     responder.register(kind);
+    const responderOnPress = responder.onPress;
+    const responderOnSecondaryInteraction = responder.onSecondaryInteraction;
     return {
         ...consumer,
-        onPress: responder.onPress ? composeEventHandlers(consumer.onPress, responder.onPress as (event: Parameters<NonNullable<PressableProps['onPress']>>[0]) => void) : consumer.onPress,
-        onSecondaryInteraction: responder.onSecondaryInteraction ? composeEventHandlers(consumer.onSecondaryInteraction, responder.onSecondaryInteraction) : consumer.onSecondaryInteraction,
+        onPress: responderOnPress
+            ? composeEventHandlers(consumer.onPress, (event) => {
+                  responderOnPress(event);
+              })
+            : consumer.onPress,
+        onSecondaryInteraction: responderOnSecondaryInteraction
+            ? composeEventHandlers(consumer.onSecondaryInteraction, (event) => {
+                  responderOnSecondaryInteraction(event);
+              })
+            : consumer.onSecondaryInteraction,
         accessibilityState: responder.accessibilityState ? {...consumer.accessibilityState, ...responder.accessibilityState} : consumer.accessibilityState,
         nativeID: responder.nativeID ?? consumer.nativeID,
         accessibilityControls: responder.accessibilityControls ?? consumer.accessibilityControls,
