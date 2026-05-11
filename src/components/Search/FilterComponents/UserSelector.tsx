@@ -1,5 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
-import React, {useRef, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
+import {getExpensifyTeamExclusions} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,9 +21,12 @@ import ListFilterWrapper from './ListFilterViewWrapper';
 type UserSelectorProps = {
     value: string[] | undefined;
     onChange: (options: string[]) => void;
+
+    /** Whether to soft-exclude Expensify team members (Guides/Account Managers) from suggestions. Used by the From filter so internal staff don't leak into customer suggestions. */
+    shouldExcludeExpensifyTeamMembers?: boolean;
 };
 
-function UserSelector({value = [], onChange}: UserSelectorProps) {
+function UserSelector({value = [], onChange, shouldExcludeExpensifyTeamMembers = false}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -49,11 +53,19 @@ function UserSelector({value = [], onChange}: UserSelectorProps) {
         return options;
     }, []);
 
+    const expensifyTeamExclusions = useMemo(() => {
+        if (!shouldExcludeExpensifyTeamMembers) {
+            return CONST.EMPTY_OBJECT as Record<string, boolean>;
+        }
+        return getExpensifyTeamExclusions(personalDetails, currentUserPersonalDetails.login);
+    }, [shouldExcludeExpensifyTeamMembers, personalDetails, currentUserPersonalDetails.login]);
+
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         initialSelected: initialSelectedOptions,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        excludeFromSuggestionsOnly: expensifyTeamExclusions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         includeUserToInvite: false,
         includeCurrentUser: true,
