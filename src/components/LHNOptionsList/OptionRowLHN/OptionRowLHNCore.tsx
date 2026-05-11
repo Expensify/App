@@ -1,7 +1,6 @@
 import React, {useRef} from 'react';
 import type {ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
-import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
@@ -18,14 +17,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
-import FS from '@libs/Fullstory';
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
-import {isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isGroupChat, isSystemChat} from '@libs/ReportUtils';
+import {isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils} from '@libs/ReportUtils';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import DescriptiveText from './OptionRow/DescriptiveText';
 import DraftIndicator from './OptionRow/DraftIndicator';
+import Title from './OptionRow/Title';
 import OptionRowAlternateText from './OptionRowAlternateText';
 import OptionRowAvatar from './OptionRowAvatar';
 import OptionRowErrorBadge from './OptionRowErrorBadge';
@@ -82,9 +82,6 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
 
     const subscriptAvatarBorderColor = isOptionFocused ? focusedBackgroundColor : theme.sidebar;
 
-    // This is used to ensure that we display the text exactly as the user entered it when displaying LHN title, instead of parsing their text to HTML.
-    const shouldParseFullTitle = optionItem?.parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat(optionItem);
-
     const accessibilityLabel = [
         `${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`,
         optionItem.isUnread ? translate('common.unread') : '',
@@ -133,25 +130,9 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                                 />
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
-                                        <DisplayNames
-                                            accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={optionItem.text ?? ''}
-                                            shouldParseFullTitle={shouldParseFullTitle}
-                                            displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                            textStyles={displayNameStyle}
-                                            shouldUseFullTitle={
-                                                !!optionItem.isChatRoom ||
-                                                !!optionItem.isPolicyExpenseChat ||
-                                                !!optionItem.isTaskReport ||
-                                                !!optionItem.isThread ||
-                                                !!optionItem.isMoneyRequestReport ||
-                                                !!optionItem.isInvoiceReport ||
-                                                !!optionItem.private_isArchived ||
-                                                isGroupChat(optionItem) ||
-                                                isSystemChat(optionItem)
-                                            }
+                                        <Title
+                                            optionItem={optionItem}
+                                            displayNameStyle={displayNameStyle}
                                             testID={testID}
                                         />
                                         {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1, styles.flexShrink1]} />}
@@ -171,14 +152,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                                         style={style}
                                     />
                                 </View>
-                                {optionItem?.descriptiveText ? (
-                                    <View
-                                        style={[styles.flexWrap]}
-                                        fsClass={FS.getChatFSClass(optionItem)}
-                                    >
-                                        <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
-                                    </View>
-                                ) : null}
+                                <DescriptiveText optionItem={optionItem} />
                                 <OptionRowErrorBadge
                                     brickRoadIndicator={brickRoadIndicator}
                                     actionBadgeText={actionBadgeText}

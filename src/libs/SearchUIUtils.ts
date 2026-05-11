@@ -4400,7 +4400,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         const insightsSearchKeys = [
             CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            ...(!isTrackIntentUser ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
+            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
         ];
