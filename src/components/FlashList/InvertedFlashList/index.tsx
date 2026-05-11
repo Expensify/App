@@ -8,10 +8,6 @@ import CellRendererComponent from './CellRendererComponent';
 
 /** Approximate row height for `initialScrollIndexParams.viewOffset` (FlashList uses `layout.y + viewOffset`). */
 const ESTIMATED_ITEM_HEIGHT_PX = 50;
-const LINK_BOTTOM_OFFSET_RATIO = 0.4;
-/** `LINK_BOTTOM_OFFSET_RATIO` is applied in full at this height; shorter windows use a lower effective ratio. */
-const WINDOW_HEIGHT_AT_FULL_LINK_OFFSET = 900;
-const MIN_LINK_OFFSET_RATIO_SCALE = 0.35;
 
 type InvertedFlashListProps<T> = FlashListProps<T> & {
     /** Key of the item to initially scroll to when the list first renders. */
@@ -27,7 +23,14 @@ type InvertedFlashListProps<T> = FlashListProps<T> & {
     ref: FlatListRefType;
 };
 
-function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReached: onStartReachedProp, ...restProps}: InvertedFlashListProps<T>) {
+function InvertedFlashList<T>({
+    data,
+    keyExtractor,
+    initialScrollKey,
+    onStartReached: onStartReachedProp,
+    initialScrollIndexParams: initialScrollIndexParamsProp,
+    ...restProps
+}: InvertedFlashListProps<T>) {
     const {onStartReached, maintainVisibleContentPosition} = useFlashListScrollKey<T>({
         data,
         keyExtractor,
@@ -39,11 +42,9 @@ function InvertedFlashList<T>({data, keyExtractor, initialScrollKey, onStartReac
     const targetIndex = initialScrollKey == null ? -1 : data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey);
     const initialScrollIndex = targetIndex < 0 ? undefined : targetIndex;
 
-    // Smaller viewports get a lower effective ratio so the link offset doesn’t over-nudge (e.g. on phones in landscape).
-    const linkOffsetRatioScale = Math.max(MIN_LINK_OFFSET_RATIO_SCALE, Math.min(1, windowHeight / WINDOW_HEIGHT_AT_FULL_LINK_OFFSET));
-    const effectiveLinkBottomOffsetRatio = LINK_BOTTOM_OFFSET_RATIO * linkOffsetRatioScale;
-    const viewOffset = initialScrollIndex === undefined ? undefined : (ESTIMATED_ITEM_HEIGHT_PX - windowHeight) * effectiveLinkBottomOffsetRatio;
-    const initialScrollIndexParams: FlashListProps<T>['initialScrollIndexParams'] = viewOffset === undefined ? undefined : {viewOffset};
+    const viewOffset = initialScrollIndex === undefined ? undefined : -Math.max((windowHeight - ESTIMATED_ITEM_HEIGHT_PX) / 2, 0);
+    const defaultInitialScrollIndexParams: FlashListProps<T>['initialScrollIndexParams'] = viewOffset === undefined ? undefined : {viewOffset};
+    const initialScrollIndexParams = initialScrollIndexParamsProp === undefined ? defaultInitialScrollIndexParams : initialScrollIndexParamsProp;
 
     return (
         <FlashList<T>

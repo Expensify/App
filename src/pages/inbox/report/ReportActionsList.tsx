@@ -164,6 +164,15 @@ const newActionUnsubscribeMap: Record<string, () => void> = {};
 // the useRef value gets reset when the reportID changes, so we use a global variable to keep track
 let prevReportID: string | null = null;
 
+const INITIAL_TARGET_REPORT_ACTION_ESTIMATED_HEIGHT = CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT;
+const INITIAL_VIEWPORT_OVERSCAN_ITEMS = 2;
+
+type InitialViewportRange = {
+    first: number;
+    last: number;
+    requiredMountedItems: number;
+};
+
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -171,6 +180,32 @@ let prevReportID: string | null = null;
  */
 function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
+}
+
+function isInitialViewportCovered(mountedIndices: Set<number>, range: InitialViewportRange, initialScrollIndex: number) {
+    if (mountedIndices.size < range.requiredMountedItems) {
+        return false;
+    }
+
+    const mountedIndexList = Array.from(mountedIndices);
+    const hasItemBeforeInitialTarget = range.first >= initialScrollIndex || mountedIndexList.some((index) => index < initialScrollIndex);
+    const hasItemAfterInitialTarget = range.last <= initialScrollIndex || mountedIndexList.some((index) => index > initialScrollIndex);
+
+    return hasItemBeforeInitialTarget && hasItemAfterInitialTarget;
+}
+
+type InitialViewportItemMountObserverProps = {
+    children: React.ReactNode;
+    index: number;
+    onMount?: (index: number) => void;
+};
+
+function InitialViewportItemMountObserver({children, index, onMount}: InitialViewportItemMountObserverProps) {
+    useEffect(() => {
+        onMount?.(index);
+    }, [index, onMount]);
+
+    return children;
 }
 
 function ReportActionsList({
@@ -464,11 +499,101 @@ function ReportActionsList({
     const initialScrollKey = useMemo(() => {
         return linkedReportActionID ?? unreadMarkerReportActionID;
     }, [linkedReportActionID, unreadMarkerReportActionID]);
+    const initialScrollIndex = useMemo(() => {
+        if (!initialScrollKey) {
+            return -1;
+        }
+
+        return sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey);
+    }, [initialScrollKey, sortedVisibleReportActions]);
+    const hasInitialScrollTarget = initialScrollIndex >= 0;
+    const [listHeight, setListHeight] = useState(0);
+    const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
+    const mountedInitialViewportIndicesRef = useRef(new Set<number>());
+    const hasInitialViewportLoadedRef = useRef(!hasInitialScrollTarget);
+    const initialScrollIndexViewOffset = useMemo(() => {
+        if (!hasInitialScrollTarget) {
+            return undefined;
+        }
+
+        return -Math.max((listHeight - INITIAL_TARGET_REPORT_ACTION_ESTIMATED_HEIGHT) / 2, 0);
+    }, [hasInitialScrollTarget, listHeight]);
+    const initialScrollIndexParams = useMemo(() => (initialScrollIndexViewOffset === undefined ? undefined : {viewOffset: initialScrollIndexViewOffset}), [initialScrollIndexViewOffset]);
+    const initialViewportRange = useMemo<InitialViewportRange | undefined>(() => {
+        if (!hasInitialScrollTarget || listHeight <= 0) {
+            return undefined;
+        }
+
+        const estimatedVisibleReportActions = Math.max(1, Math.ceil(listHeight / INITIAL_TARGET_REPORT_ACTION_ESTIMATED_HEIGHT));
+        const radius = Math.ceil(estimatedVisibleReportActions / 2) + INITIAL_VIEWPORT_OVERSCAN_ITEMS;
+        const first = Math.max(initialScrollIndex - radius, 0);
+        const last = Math.min(initialScrollIndex + radius, sortedVisibleReportActions.length - 1);
+
+        return {
+            first,
+            last,
+            requiredMountedItems: Math.min(estimatedVisibleReportActions, last - first + 1),
+        };
+    }, [hasInitialScrollTarget, initialScrollIndex, listHeight, sortedVisibleReportActions.length]);
+    const shouldRenderFlashList = !hasInitialScrollTarget || listHeight > 0;
+    const shouldShowInitialViewportSkeleton = hasInitialScrollTarget && isInitialViewportLoading;
 
     const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
     const handleListInitiallyLoaded = useCallback(() => {
         setIsListInitiallyLoaded(true);
     }, []);
+    useLayoutEffect(() => {
+        mountedInitialViewportIndicesRef.current.clear();
+        hasInitialViewportLoadedRef.current = !hasInitialScrollTarget;
+        setIsInitialViewportLoading(hasInitialScrollTarget);
+    }, [hasInitialScrollTarget, initialScrollIndex, initialScrollKey, listID]);
+
+    const handleReportActionsListLayout = useCallback(
+        (event: LayoutChangeEvent) => {
+            const nextListHeight = event.nativeEvent.layout.height;
+            if (Math.round(listHeight) === Math.round(nextListHeight)) {
+                return;
+            }
+
+            if (!hasInitialViewportLoadedRef.current) {
+                mountedInitialViewportIndicesRef.current.clear();
+                setIsInitialViewportLoading(hasInitialScrollTarget);
+            }
+            setListHeight(nextListHeight);
+        },
+        [hasInitialScrollTarget, listHeight],
+    );
+
+    const handleInitialViewportItemMounted = useCallback(
+        (index: number) => {
+            if (!initialViewportRange || hasInitialViewportLoadedRef.current) {
+                return;
+            }
+
+            if (index < initialViewportRange.first || index > initialViewportRange.last) {
+                return;
+            }
+
+            mountedInitialViewportIndicesRef.current.add(index);
+
+            if (!isInitialViewportCovered(mountedInitialViewportIndicesRef.current, initialViewportRange, initialScrollIndex)) {
+                return;
+            }
+
+            hasInitialViewportLoadedRef.current = true;
+            setIsInitialViewportLoading(false);
+            handleListInitiallyLoaded();
+        },
+        [handleListInitiallyLoaded, initialScrollIndex, initialViewportRange],
+    );
+
+    const handleFlashListLoaded = useCallback(() => {
+        if (initialViewportRange) {
+            return;
+        }
+
+        handleListInitiallyLoaded();
+    }, [handleListInitiallyLoaded, initialViewportRange]);
 
     const isReportUnread = useMemo(
         () => isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction)),
@@ -837,11 +962,11 @@ function ReportActionsList({
     }, [parentReportAction, report, sortedVisibleReportActions]);
 
     const renderItem = useCallback(
-        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+        ({item: reportAction, index, target}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
             const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsFromOnyx);
             const showPreviousMessagesButton = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isConciergeSidePanel && !!showHiddenHistory && !!hasPreviousMessages;
 
-            return (
+            const reportActionListItem = (
                 <>
                     <ReportActionsListItemRenderer
                         reportAction={reportAction}
@@ -887,6 +1012,19 @@ function ReportActionsList({
                     )}
                 </>
             );
+
+            if (target !== 'Cell' || !initialViewportRange || !isInitialViewportLoading || index < initialViewportRange.first || index > initialViewportRange.last) {
+                return reportActionListItem;
+            }
+
+            return (
+                <InitialViewportItemMountObserver
+                    index={index}
+                    onMount={handleInitialViewportItemMounted}
+                >
+                    {reportActionListItem}
+                </InitialViewportItemMountObserver>
+            );
         },
         [
             parentReportAction,
@@ -916,6 +1054,9 @@ function ReportActionsList({
             styles,
             translate,
             expensifyIcons.UpArrow,
+            initialViewportRange,
+            isInitialViewportLoading,
+            handleInitialViewportItemMounted,
         ],
     );
 
@@ -1027,43 +1168,55 @@ function ReportActionsList({
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
+                onLayout={handleReportActionsListLayout}
             >
                 {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
-                <InvertedFlashList
-                    accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={reportScrollManager.ref}
-                    testID="report-actions-list"
-                    style={styles.overscrollBehaviorContain}
-                    data={sortedVisibleReportActions}
-                    renderItem={renderItem}
-                    keyExtractor={keyExtractor}
-                    drawDistance={1500}
-                    renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[
-                        styles.chatContentScrollView,
-                        shouldFocusToTopOnMount && styles.justifyContentEnd,
-                        shouldScrollToEndAfterLayout && StyleUtils.getHiddenChatContentStyle(),
-                    ]}
-                    showsVerticalScrollIndicator={getShowScrollIndicator(shouldScrollToEndAfterLayout)}
-                    onEndReached={onEndReached}
-                    onEndReachedThreshold={0.75}
-                    onStartReached={handleStartReached}
-                    onStartReachedThreshold={0.75}
-                    ListHeaderComponent={listHeaderComponent}
-                    ListFooterComponent={listFooterComponent}
-                    keyboardShouldPersistTaps="handled"
-                    onInitiallyLoaded={handleListInitiallyLoaded}
-                    onLayout={onLayoutInner}
-                    onScroll={trackVerticalScrolling}
-                    onViewableItemsChanged={onViewableItemsChanged}
-                    extraData={extraData}
-                    key={listID}
-                    getItemType={(item) => item.actionName}
-                    initialScrollKey={initialScrollKey}
-                    onContentSizeChange={() => {
-                        trackVerticalScrolling(undefined);
-                    }}
-                />
+                {shouldRenderFlashList ? (
+                    <InvertedFlashList
+                        accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                        ref={reportScrollManager.ref}
+                        testID="report-actions-list"
+                        style={styles.overscrollBehaviorContain}
+                        data={sortedVisibleReportActions}
+                        renderItem={renderItem}
+                        keyExtractor={keyExtractor}
+                        drawDistance={1500}
+                        renderScrollComponent={renderActionSheetAwareScrollView}
+                        contentContainerStyle={[
+                            styles.chatContentScrollView,
+                            shouldFocusToTopOnMount && styles.justifyContentEnd,
+                            shouldScrollToEndAfterLayout && StyleUtils.getHiddenChatContentStyle(),
+                        ]}
+                        showsVerticalScrollIndicator={getShowScrollIndicator(shouldScrollToEndAfterLayout)}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={0.75}
+                        onStartReached={handleStartReached}
+                        onStartReachedThreshold={0.75}
+                        ListHeaderComponent={listHeaderComponent}
+                        ListFooterComponent={listFooterComponent}
+                        keyboardShouldPersistTaps="handled"
+                        onLoad={handleFlashListLoaded}
+                        onLayout={onLayoutInner}
+                        onScroll={trackVerticalScrolling}
+                        onViewableItemsChanged={onViewableItemsChanged}
+                        extraData={extraData}
+                        key={listID}
+                        getItemType={(item) => item.actionName}
+                        initialScrollKey={initialScrollKey}
+                        initialScrollIndexParams={initialScrollIndexParams}
+                        onContentSizeChange={() => {
+                            trackVerticalScrolling(undefined);
+                        }}
+                    />
+                ) : null}
+                {shouldShowInitialViewportSkeleton ? (
+                    <View
+                        pointerEvents="none"
+                        style={[styles.pAbsolute, styles.t0, styles.r0, styles.b0, styles.l0, styles.appBG, styles.overflowHidden, styles.zIndex10]}
+                    >
+                        <ReportActionsSkeletonView />
+                    </View>
+                ) : null}
             </View>
         </>
     );
