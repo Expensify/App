@@ -1263,6 +1263,15 @@ function setSearchContext(shouldShowSearchQuery: boolean) {
     Onyx.set(ONYXKEYS.SEARCH_CONTEXT, {shouldShowSearchQuery});
 }
 
+/**
+ * Returns an object containing the filter values needed to reset
+ * the currently applied advanced filters back to their initial state.
+ *
+ * - STATUS is reset to `ALL`
+ * - TYPE is reset to `EXPENSE`
+ * - Other filters are reset to `undefined`
+ * - COLUMNS is excluded from resetting
+ */
 function getAdvancedFiltersToReset(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>) {
     return Object.keys(searchAdvancedFiltersForm).reduce((acc, filterKey) => {
         if (filterKey === FILTER_KEYS.STATUS) {
