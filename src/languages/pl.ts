@@ -5931,7 +5931,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             description: 'Wybierz przestrzenie robocze, do których chcesz skopiować ustawienia, a następnie wybierz ustawienia do skopiowania.',
             searchPlaceholder: 'Wyszukaj przestrzenie robocze',
             selectFeatures: 'Wybierz funkcje do skopiowania',
-            whichFeatures: 'Które konfiguracje chcesz skopiować do pozostałych przestrzeni roboczych? Tylko te ustawienia zostaną zastąpione w docelowych przestrzeniach roboczych.',
+            whichFeatures: 'Wybierz ustawienia, które mają zostać zastąpione w istniejących przestrzeniach roboczych.',
             accountingDisabledTooltip: 'Źródłowa i docelowa przestrzeń robocza nie są podłączone do tego samego konta księgowego, więc tych ustawień nie można bezpiecznie skopiować.',
             workflowsWithoutMembersTitle: 'Skopiować przepływy pracy bez członków?',
             workflowsWithoutMembersPrompt:

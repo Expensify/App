@@ -5937,7 +5937,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             description: 'Escolha os espaços de trabalho para os quais deseja copiar as configurações e, em seguida, selecione as configurações que deseja copiar.',
             searchPlaceholder: 'Pesquisar espaços de trabalho',
             selectFeatures: 'Selecione os recursos a copiar',
-            whichFeatures: 'Quais configurações você quer copiar para os outros espaços de trabalho? Apenas essas configurações serão substituídas nos espaços de trabalho de destino.',
+            whichFeatures: 'Selecione as configurações a serem substituídas nos seus espaços de trabalho existentes.',
             accountingDisabledTooltip:
                 'Os espaços de trabalho de origem e destino não estão conectados à mesma conta contábil, portanto, essas configurações não podem ser copiadas com segurança.',
             workflowsWithoutMembersTitle: 'Copiar fluxos de trabalho sem membros?',

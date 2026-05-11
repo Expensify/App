@@ -5957,7 +5957,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             description: 'Scegli gli spazi di lavoro in cui vuoi copiare le impostazioni, quindi seleziona le impostazioni che desideri copiare.',
             searchPlaceholder: 'Cerca spazi di lavoro',
             selectFeatures: 'Seleziona le funzionalità da copiare',
-            whichFeatures: 'Quali configurazioni vuoi copiare negli altri spazi di lavoro? Solo queste impostazioni verranno sovrascritte negli spazi di lavoro di destinazione.',
+            whichFeatures: 'Seleziona le impostazioni da sovrascrivere nei tuoi spazi di lavoro esistenti.',
             accountingDisabledTooltip:
                 'Gli spazi di lavoro di origine e di destinazione non sono connessi allo stesso account contabile, quindi queste impostazioni non possono essere copiate in modo sicuro.',
             workflowsWithoutMembersTitle: 'Copiare i workflow senza i membri?',

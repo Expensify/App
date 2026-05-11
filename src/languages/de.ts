@@ -5967,7 +5967,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             description: 'Wähle die Arbeitsbereiche aus, in die du Einstellungen kopieren möchtest, und wähle anschließend die zu kopierenden Einstellungen aus.',
             searchPlaceholder: 'Arbeitsbereiche suchen',
             selectFeatures: 'Funktionen zum Kopieren auswählen',
-            whichFeatures: 'Welche Konfigurationen möchtest du in die anderen Arbeitsbereiche kopieren? Nur diese Einstellungen werden in den Zielarbeitsbereichen überschrieben.',
+            whichFeatures: 'Wähle die Einstellungen aus, die in deinen bestehenden Arbeitsbereichen überschrieben werden sollen.',
             accountingDisabledTooltip:
                 'Der Quell- und der Ziel-Arbeitsbereich sind nicht mit demselben Buchhaltungskonto verbunden, daher können diese Einstellungen nicht sicher kopiert werden.',
             workflowsWithoutMembersTitle: 'Workflows ohne Mitglieder kopieren?',

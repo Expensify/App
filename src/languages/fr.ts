@@ -5987,7 +5987,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             description: 'Choisissez les espaces de travail vers lesquels copier les paramètres, puis sélectionnez les paramètres à copier.',
             searchPlaceholder: 'Rechercher des espaces de travail',
             selectFeatures: 'Sélectionnez les fonctionnalités à copier',
-            whichFeatures: 'Quelles configurations voulez-vous copier vers les autres espaces de travail ? Seuls ces paramètres seront écrasés dans les espaces de travail cibles.',
+            whichFeatures: 'Sélectionnez les paramètres à écraser sur vos espaces de travail existants.',
             accountingDisabledTooltip:
                 'Les espaces de travail source et cible ne sont pas connectés au même compte comptable ; ces paramètres ne peuvent donc pas être copiés en toute sécurité.',
             workflowsWithoutMembersTitle: 'Copier les workflows sans les membres ?',

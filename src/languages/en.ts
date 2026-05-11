@@ -5980,7 +5980,7 @@ const translations = {
             description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
             searchPlaceholder: 'Search workspaces',
             selectFeatures: 'Select features to copy',
-            whichFeatures: 'Which configurations do you want to copy to the other workspaces? Only these settings will be overwritten on the target workspaces.',
+            whichFeatures: 'Select the settings to overwrite on your existing workspaces.',
             accountingDisabledTooltip: 'The source and target workspaces are not connected to the same accounting account, so these settings can’t be safely copied.',
             workflowsWithoutMembersTitle: 'Copy workflows without members?',
             workflowsWithoutMembersPrompt: 'You’re copying Workflows without Members. Submission and payment settings will be copied, but the workspace members will not change. Continue?',
