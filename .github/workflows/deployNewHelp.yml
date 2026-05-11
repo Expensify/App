@@ -70,6 +70,8 @@ jobs:
       - name: Build Jekyll site
         run: bundle exec jekyll build --source ./ --destination ./_site
         working-directory: ./help  # Ensure Jekyll is building the site in /help
+        env:
+          JEKYLL_ENV: production
 
       # This will copy the contents of /help/_site to Cloudflare.  The pages-action will
       # evaluate the current branch to determine into which CF environment to deploy:
