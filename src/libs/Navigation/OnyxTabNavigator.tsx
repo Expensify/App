@@ -109,7 +109,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     lazyLoadEnabled = false,
     onTabSelect,
     equalWidth = false,
-    backBehavior = CONST.TAB.BACK_BEHAVIOR.INITIAL_ROUTE,
+    backBehavior = 'initialRoute',
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
     const styles = useThemeStyles();

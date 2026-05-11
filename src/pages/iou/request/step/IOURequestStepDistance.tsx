@@ -765,7 +765,7 @@ function IOURequestStepDistance({
                     defaultSelectedTab={CONST.TAB_REQUEST.DISTANCE_MAP}
                     tabBar={TabSelector}
                     // Back closes the RHP directly instead of reverting the tab first.
-                    backBehavior={CONST.TAB.BACK_BEHAVIOR.NONE}
+                    backBehavior="none"
                 >
                     <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>{renderMapTab}</TopTab.Screen>
                     <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>{renderManualTab}</TopTab.Screen>
