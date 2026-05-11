@@ -302,81 +302,87 @@ function WorkspaceHRPage({
                             isCentralPane
                             renderTitle={() => <Text style={[styles.textStrong]}>{translate('workspace.accounting.title')}</Text>}
                         >
-                            {/* Gusto card */}
-                            <MenuItem
-                                title={translate('workspace.hr.gusto.title')}
-                                icon={icons.GustoSquare}
-                                iconType={CONST.ICON_TYPE_AVATAR}
-                                wrapperStyle={[styles.ph0, styles.pv2, styles.mt4, !!gustoLastSyncErrorMessage && styles.pb0]}
-                                interactive={false}
-                                description={gustoConnectionDescription}
-                                errorText={gustoLastSyncErrorMessage}
-                                errorTextStyle={[styles.mt5]}
-                                shouldShowRedDotIndicator
-                                shouldShowRightComponent
-                                rightComponent={gustoRowRightComponent}
-                            />
-                            {isGustoConnectedState && (
+                            {isBetaEnabled(CONST.BETAS.GUSTO) && (
                                 <>
-                                    <OfflineWithFeedback pendingAction={gustoConfig?.pendingFields?.approvalMode}>
-                                        <MenuItemWithTopDescription
-                                            description={translate('workspace.hr.gusto.approvalMode')}
-                                            title={getGustoApprovalModeLabel(gustoConfig?.approvalMode)}
-                                            style={[styles.sectionMenuItemTopDescription, styles.mt2]}
-                                            shouldShowRightIcon
-                                            brickRoadIndicator={gustoConfig?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(policyID))}
-                                        />
-                                    </OfflineWithFeedback>
-                                    <OfflineWithFeedback pendingAction={gustoConfig?.pendingFields?.finalApprover}>
-                                        <MenuItemWithTopDescription
-                                            description={translate('workspace.hr.gusto.finalApprover')}
-                                            title={getFinalApproverDisplayName(gustoConfig?.finalApprover, 'workspace.hr.gusto.notSet')}
-                                            style={styles.sectionMenuItemTopDescription}
-                                            shouldShowRightIcon
-                                            brickRoadIndicator={gustoConfig?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(policyID))}
-                                        />
-                                    </OfflineWithFeedback>
+                                    <MenuItem
+                                        title={translate('workspace.hr.gusto.title')}
+                                        icon={icons.GustoSquare}
+                                        iconType={CONST.ICON_TYPE_AVATAR}
+                                        wrapperStyle={[styles.ph0, styles.pv2, styles.mt4, !!gustoLastSyncErrorMessage && styles.pb0]}
+                                        interactive={false}
+                                        description={gustoConnectionDescription}
+                                        errorText={gustoLastSyncErrorMessage}
+                                        errorTextStyle={[styles.mt5]}
+                                        shouldShowRedDotIndicator
+                                        shouldShowRightComponent
+                                        rightComponent={gustoRowRightComponent}
+                                    />
+                                    {isGustoConnectedState && (
+                                        <>
+                                            <OfflineWithFeedback pendingAction={gustoConfig?.pendingFields?.approvalMode}>
+                                                <MenuItemWithTopDescription
+                                                    description={translate('workspace.hr.gusto.approvalMode')}
+                                                    title={getGustoApprovalModeLabel(gustoConfig?.approvalMode)}
+                                                    style={[styles.sectionMenuItemTopDescription, styles.mt2]}
+                                                    shouldShowRightIcon
+                                                    brickRoadIndicator={gustoConfig?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(policyID))}
+                                                />
+                                            </OfflineWithFeedback>
+                                            <OfflineWithFeedback pendingAction={gustoConfig?.pendingFields?.finalApprover}>
+                                                <MenuItemWithTopDescription
+                                                    description={translate('workspace.hr.gusto.finalApprover')}
+                                                    title={getFinalApproverDisplayName(gustoConfig?.finalApprover, 'workspace.hr.gusto.notSet')}
+                                                    style={styles.sectionMenuItemTopDescription}
+                                                    shouldShowRightIcon
+                                                    brickRoadIndicator={gustoConfig?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(policyID))}
+                                                />
+                                            </OfflineWithFeedback>
+                                        </>
+                                    )}
                                 </>
                             )}
 
-                            {/* TriNet (Zenefits) card */}
-                            <MenuItem
-                                title={translate('workspace.hr.zenefits.title')}
-                                icon={icons.ZenefitsSquare}
-                                iconType={CONST.ICON_TYPE_AVATAR}
-                                wrapperStyle={[styles.ph0, styles.pv2, styles.mt4, !!zenefitsLastSyncErrorMessage && styles.pb0]}
-                                interactive={false}
-                                description={zenefitsConnectionDescription}
-                                errorText={zenefitsLastSyncErrorMessage}
-                                errorTextStyle={[styles.mt5]}
-                                shouldShowRedDotIndicator
-                                shouldShowRightComponent
-                                rightComponent={zenefitsRowRightComponent}
-                            />
-                            {isZenefitsConnectedState && (
+                            {isBetaEnabled(CONST.BETAS.ZENEFITS) && (
                                 <>
-                                    <OfflineWithFeedback pendingAction={zenefitsConfig?.pendingFields?.approvalMode}>
-                                        <MenuItemWithTopDescription
-                                            description={translate('workspace.hr.zenefits.approvalMode')}
-                                            title={getZenefitsApprovalModeLabel(zenefitsConfig?.approvalMode)}
-                                            style={[styles.sectionMenuItemTopDescription, styles.mt2]}
-                                            shouldShowRightIcon
-                                            brickRoadIndicator={zenefitsConfig?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(policyID))}
-                                        />
-                                    </OfflineWithFeedback>
-                                    <OfflineWithFeedback pendingAction={zenefitsConfig?.pendingFields?.finalApprover}>
-                                        <MenuItemWithTopDescription
-                                            description={translate('workspace.hr.zenefits.finalApprover')}
-                                            title={getFinalApproverDisplayName(zenefitsConfig?.finalApprover, 'workspace.hr.zenefits.notSet')}
-                                            style={styles.sectionMenuItemTopDescription}
-                                            shouldShowRightIcon
-                                            brickRoadIndicator={zenefitsConfig?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.getRoute(policyID))}
-                                        />
-                                    </OfflineWithFeedback>
+                                    <MenuItem
+                                        title={translate('workspace.hr.zenefits.title')}
+                                        icon={icons.ZenefitsSquare}
+                                        iconType={CONST.ICON_TYPE_AVATAR}
+                                        wrapperStyle={[styles.ph0, styles.pv2, styles.mt4, !!zenefitsLastSyncErrorMessage && styles.pb0]}
+                                        interactive={false}
+                                        description={zenefitsConnectionDescription}
+                                        errorText={zenefitsLastSyncErrorMessage}
+                                        errorTextStyle={[styles.mt5]}
+                                        shouldShowRedDotIndicator
+                                        shouldShowRightComponent
+                                        rightComponent={zenefitsRowRightComponent}
+                                    />
+                                    {isZenefitsConnectedState && (
+                                        <>
+                                            <OfflineWithFeedback pendingAction={zenefitsConfig?.pendingFields?.approvalMode}>
+                                                <MenuItemWithTopDescription
+                                                    description={translate('workspace.hr.zenefits.approvalMode')}
+                                                    title={getZenefitsApprovalModeLabel(zenefitsConfig?.approvalMode)}
+                                                    style={[styles.sectionMenuItemTopDescription, styles.mt2]}
+                                                    shouldShowRightIcon
+                                                    brickRoadIndicator={zenefitsConfig?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.getRoute(policyID))}
+                                                />
+                                            </OfflineWithFeedback>
+                                            <OfflineWithFeedback pendingAction={zenefitsConfig?.pendingFields?.finalApprover}>
+                                                <MenuItemWithTopDescription
+                                                    description={translate('workspace.hr.zenefits.finalApprover')}
+                                                    title={getFinalApproverDisplayName(zenefitsConfig?.finalApprover, 'workspace.hr.zenefits.notSet')}
+                                                    style={styles.sectionMenuItemTopDescription}
+                                                    shouldShowRightIcon
+                                                    brickRoadIndicator={zenefitsConfig?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.getRoute(policyID))}
+                                                />
+                                            </OfflineWithFeedback>
+                                        </>
+                                    )}
                                 </>
                             )}
                         </Section>

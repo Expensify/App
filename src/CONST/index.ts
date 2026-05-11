@@ -452,7 +452,7 @@ const CONST = {
         SAGE_INTACCT: 'Sage Intacct',
         CERTINIA: 'FinancialForce',
         BILLCOM: 'Bill.com',
-        ZENEFITS: 'TriNet',
+        ZENEFITS: 'Zenefits',
     },
 
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
