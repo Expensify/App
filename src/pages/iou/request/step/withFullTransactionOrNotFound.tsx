@@ -56,7 +56,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
-    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
+    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
+    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE;
 
 type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
     PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
