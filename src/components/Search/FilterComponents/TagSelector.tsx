@@ -1,43 +1,35 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
-import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import type {MultiSelectItem} from './MultiSelectPopup';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+import MultiSelect from './MultiSelect';
 
-type TagSelectPopupProps = {
-    closeOverlay: () => void;
-    updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
+type TagSelectorProps = {
+    value: string[] | undefined;
+    onChange: (tags: string[]) => void;
 };
 
-function TagSelectPopup({closeOverlay, updateFilterForm}: TagSelectPopupProps) {
+function TagSelector({value = [], onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
-
-    const selectedTagsItems = searchAdvancedFiltersForm?.tag?.map((tag) => {
-        if (tag === CONST.SEARCH.TAG_EMPTY_VALUE) {
-            return {text: translate('search.noTag'), value: tag};
-        }
-        return {text: getCleanedTagName(tag), value: tag};
-    });
-
+    const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+
     const selectedPoliciesTagLists = Object.keys(allPolicyTagLists ?? {})
-        .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key))
+        .filter((key) => policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`)?.includes(key))
         ?.map((key) => getTagNamesFromTagsLists(allPolicyTagLists?.[key] ?? {}))
         .flat();
 
     const tagItems = [{text: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
     const uniqueTagNames = new Set<string>();
-    if (policyIDs?.length === 0) {
+    if (policyIDs.length === 0) {
         const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
         for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
             uniqueTagNames.add(tag);
@@ -49,20 +41,21 @@ function TagSelectPopup({closeOverlay, updateFilterForm}: TagSelectPopupProps) {
     }
     tagItems.push(...Array.from(uniqueTagNames).map((tagName) => ({text: getCleanedTagName(tagName), value: tagName})));
 
-    const updateTagFilterForm = (items: Array<MultiSelectItem<string>>) => {
-        updateFilterForm({tag: items.map((item) => item.value)});
-    };
+    const selectedTagsItems = value.map((tag) => {
+        if (tag === CONST.SEARCH.TAG_EMPTY_VALUE) {
+            return {text: translate('search.noTag'), value: tag};
+        }
+        return {text: getCleanedTagName(tag), value: tag};
+    });
 
     return (
-        <MultiSelectFilterPopup
-            closeOverlay={closeOverlay}
-            translationKey="common.tag"
+        <MultiSelect
+            value={selectedTagsItems}
             items={tagItems}
-            value={selectedTagsItems ?? []}
             isSearchable={tagItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-            onChangeCallback={updateTagFilterForm}
+            onChange={(tags) => onChange(tags.map((tag) => tag.value))}
         />
     );
 }
 
-export default TagSelectPopup;
+export default TagSelector;

@@ -172,6 +172,8 @@ function MoneyRequestReceiptView({
     const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+
     // Browsers don't fire mouseenter when an element mounts under the cursor
     useEffect(() => {
         if (isLoading) {
@@ -441,7 +443,14 @@ function MoneyRequestReceiptView({
             return;
         }
         const source = URL.createObjectURL(file as Blob);
-        replaceReceipt({transactionID: linkedTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+        replaceReceipt({
+            transactionID: linkedTransactionID,
+            file: file as File,
+            source,
+            transactionPolicy: policy,
+            transactionPolicyCategories: policyCategories,
+            transactionPolicyTagList: policyTagList,
+        });
     };
 
     // For empty receipt should be fullHeight
