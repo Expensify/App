@@ -262,6 +262,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         availableOptions.recentReports,
         availableOptions.personalDetails,
         icons.FallbackAvatar,
+        policyMemberEmailsToAccountIDs,
     ]);
 
     const goBack = useCallback(() => {
