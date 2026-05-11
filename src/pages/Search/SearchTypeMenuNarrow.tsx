@@ -49,7 +49,10 @@ type SearchTypeMenuNarrowContentProps = {
 };
 
 function getNarrowActiveTabKey(activeSavedSearchKey: string, activeItemKey?: string): string {
-    return activeSavedSearchKey || activeItemKey || '';
+    if (activeSavedSearchKey !== '') {
+        return activeSavedSearchKey;
+    }
+    return activeItemKey ?? '';
 }
 
 function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchTypeMenuNarrowContentProps) {

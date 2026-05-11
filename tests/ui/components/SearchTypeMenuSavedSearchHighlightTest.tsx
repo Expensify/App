@@ -3,17 +3,23 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import useNetwork from '@hooks/useNetwork';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import StaticSearchTypeMenu from '@pages/Search/SearchPageNarrow/StaticSearchTypeMenu';
 import SearchTypeMenuNarrow from '@pages/Search/SearchTypeMenuNarrow';
-import ONYXKEYS from '@src/ONYXKEYS';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
-import useNetwork from '@hooks/useNetwork';
 
-jest.mock('@react-navigation/native', () => ({
-    useNavigation: jest.fn(() => ({dispatch: jest.fn()})),
-}));
+jest.mock('@react-navigation/native', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        useNavigation: jest.fn(() => ({dispatch: jest.fn()})),
+    };
+});
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 
 function Wrapper({children}: {children: React.ReactNode}) {
