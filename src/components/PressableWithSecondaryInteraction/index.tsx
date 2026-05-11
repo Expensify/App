@@ -26,7 +26,7 @@ function PressableWithSecondaryInteraction({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<HTMLDivElement | null>(null);
-    const {onSecondaryInteraction} = usePressResponderProps({onSecondaryInteraction: rawOnSecondaryInteraction});
+    const {onSecondaryInteraction} = usePressResponderProps({onSecondaryInteraction: rawOnSecondaryInteraction}, 'secondary');
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         if (hasHoverSupport() && !enableLongPressWithHover) {

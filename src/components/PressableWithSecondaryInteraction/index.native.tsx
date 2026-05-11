@@ -20,7 +20,7 @@ function PressableWithSecondaryInteraction({
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
-    const {onSecondaryInteraction} = usePressResponderProps({onSecondaryInteraction: rawOnSecondaryInteraction});
+    const {onSecondaryInteraction} = usePressResponderProps({onSecondaryInteraction: rawOnSecondaryInteraction}, 'secondary');
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         event.preventDefault();
