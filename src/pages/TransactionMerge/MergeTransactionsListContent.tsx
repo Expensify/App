@@ -51,6 +51,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
         mergeTransaction,
     });
+    const [targetTransactionReportByID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`);
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
@@ -130,8 +131,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         ? getTransactionReportName({
               translate,
               reportAction: undefined,
+              transaction: targetTransaction,
               transactions: [targetTransaction],
               reports: targetTransactionReport ? [targetTransactionReport] : [],
+              transactionReport: targetTransactionReportByID,
           })
         : '';
 

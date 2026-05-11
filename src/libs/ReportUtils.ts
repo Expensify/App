@@ -979,6 +979,10 @@ type GetReportNameParams = {
     // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
     /** Used to identify the Concierge chat so its name can be set to the Concierge display name */
     conciergeReportID?: string;
+    /** The transaction linked to the report action */
+    transaction?: OnyxEntry<Transaction>;
+    /** The report that the transaction belongs to */
+    transactionReport?: OnyxEntry<Report>;
 };
 
 type GetReportStatusParams = {
@@ -5255,13 +5259,17 @@ function shouldShowRBRForMissingSmartscanFields(iouReport: OnyxEntry<Report>, io
 function getTransactionReportName({
     translate,
     reportAction,
+    transaction: transactionParam,
     transactions,
     reports,
+    transactionReport,
 }: {
     translate: LocalizedTranslate;
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>;
+    transaction?: OnyxEntry<Transaction>;
     transactions?: Transaction[];
     reports?: Report[];
+    transactionReport?: OnyxEntry<Report>;
 }): string {
     if (reportAction && isReversedTransaction(reportAction)) {
         return translate('parentReportAction.reversedTransaction');
@@ -5271,7 +5279,7 @@ function getTransactionReportName({
         return translate('parentReportAction.deletedExpense');
     }
 
-    const transaction = reportAction ? getLinkedTransaction(reportAction, transactions) : transactions?.at(0);
+    const transaction = transactionParam ?? (reportAction ? getLinkedTransaction(reportAction, transactions) : transactions?.at(0));
 
     if (isEmptyObject(transaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
@@ -5282,7 +5290,7 @@ function getTransactionReportName({
         return translate('iou.receiptScanning', {count: 1});
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, reports);
+    const report = getReportOrDraftReport(transaction?.reportID, reports, undefined, undefined, transactionReport);
     if (hasMissingSmartscanFieldsTransactionUtils(transaction, report)) {
         return translate('iou.receiptMissingDetails');
     }
@@ -5735,8 +5743,20 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
  * @deprecated Moved to src/libs/ReportNameUtils.ts.
  */
 function getReportName(reportNameInformation: GetReportNameParams): string {
-    const {report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, transactions, isReportArchived, reports, conciergeReportID} =
-        reportNameInformation;
+    const {
+        report,
+        policy,
+        parentReportActionParam,
+        personalDetails,
+        invoiceReceiverPolicy,
+        reportAttributes,
+        transactions,
+        isReportArchived,
+        reports,
+        conciergeReportID,
+        transaction: transactionParam,
+        transactionReport,
+    } = reportNameInformation;
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue =
         report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined && isReportArchived === undefined;
@@ -5788,7 +5808,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
 
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
-            formattedName = getTransactionReportName({translate: translateLocal, reportAction: parentReportAction, transactions, reports});
+            formattedName = getTransactionReportName({translate: translateLocal, reportAction: parentReportAction, transaction: transactionParam, transactions, reports, transactionReport});
 
             if (isArchivedNonExpense) {
                 formattedName = generateArchivedReportName(formattedName);
