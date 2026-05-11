@@ -22,7 +22,8 @@ function SearchFiltersClearButton({onPress}: SearchFiltersClearButtonProps) {
         <PressableWithFeedback
             accessibilityLabel={translate('common.clear')}
             onPress={onPress}
-            style={[styles.flexRow, styles.gap1, styles.alignItemsCenter, styles.ph2]}
+            style={[styles.searchFiltersClearButton]}
+            hoverStyle={styles.hoveredComponentBG}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.CLEAR_FILTERS_BUTTON}
         >
             <Icon
@@ -30,7 +31,7 @@ function SearchFiltersClearButton({onPress}: SearchFiltersClearButtonProps) {
                 fill={theme.icon}
                 extraSmall
             />
-            <Text style={[styles.textMicroSupporting]}>{translate('common.clear')}</Text>
+            <Text style={[styles.textMicroBoldSupporting]}>{translate('common.clear')}</Text>
         </PressableWithFeedback>
     );
 }

@@ -4965,6 +4965,15 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
+        searchFiltersClearButton: {
+            flexDirection: 'row',
+            gap: 4,
+            alignItems: 'center',
+            borderRadius: variables.buttonBorderRadius,
+            paddingHorizontal: 12,
+            minHeight: 28,
+        },
+
         searchPageInputWideTouchableWrapper: {height: 32, width: 200},
         searchPageInputWidePlaceholder: {
             // Extra 2 to account for the borders
