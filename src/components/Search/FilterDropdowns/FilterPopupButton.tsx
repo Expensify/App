@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 type PopoverComponentProps = {
     isExpanded: boolean;
@@ -31,18 +32,18 @@ type FilterPopupButtonProps = {
     /** The viewport's offset */
     viewportOffsetTop: number;
 
+    /** Wrapper style for the outer view */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
     popoverWidth?: number;
+    popoverAnchorAlignment?: AnchorAlignment;
+    smallScreenModalType?: PopoverWithMeasuredContentProps['smallScreenModalType'];
 
     /** The component to render in the popover */
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
 
     /** The component to render as the button */
     renderButton: (props: ButtonComponentProps) => ReactNode;
-
-    /** Wrapper style for the outer view */
-    wrapperStyle?: StyleProp<ViewStyle>;
-
-    smallScreenModalType?: PopoverWithMeasuredContentProps['smallScreenModalType'];
 };
 
 const ANCHOR_ORIGIN = {
@@ -50,7 +51,15 @@ const ANCHOR_ORIGIN = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function FilterPopupButton({viewportOffsetTop, popoverWidth, PopoverComponent, renderButton, wrapperStyle, smallScreenModalType}: FilterPopupButtonProps) {
+function FilterPopupButton({
+    viewportOffsetTop,
+    popoverWidth,
+    wrapperStyle,
+    smallScreenModalType,
+    popoverAnchorAlignment: popoverAnchorAlignmentProp,
+    PopoverComponent,
+    renderButton,
+}: FilterPopupButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -71,6 +80,8 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, PopoverComponent, r
 
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
 
+    const popoverAnchorAlignment = popoverAnchorAlignmentProp ?? ANCHOR_ORIGIN;
+
     /**
      * Toggle the overlay between open & closed
      */
@@ -88,7 +99,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, PopoverComponent, r
      * Calculate popover position and toggle overlay
      */
     const calculatePopoverPositionAndToggleOverlay = () => {
-        calculatePopoverPosition(anchorRef, ANCHOR_ORIGIN).then((pos) => {
+        calculatePopoverPosition(anchorRef, popoverAnchorAlignment).then((pos) => {
             setPopoverTriggerPosition({...pos, vertical: pos.vertical});
             toggleOverlay();
         });
@@ -115,7 +126,7 @@ function FilterPopupButton({viewportOffsetTop, popoverWidth, PopoverComponent, r
                 isVisible={isOverlayVisible}
                 onClose={toggleOverlay}
                 anchorPosition={popoverTriggerPosition}
-                anchorAlignment={ANCHOR_ORIGIN}
+                anchorAlignment={popoverAnchorAlignment}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}

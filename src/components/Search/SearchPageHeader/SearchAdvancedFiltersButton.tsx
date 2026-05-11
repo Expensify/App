@@ -69,6 +69,10 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
         <FilterPopupButton
             PopoverComponent={filtersPopup}
             popoverWidth={CONST.ADVANCED_FILTERS_POPOVER_WIDTH}
+            popoverAnchorAlignment={{
+                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            }}
             renderButton={({onPress, ref, isExpanded}) => (
                 <Button
                     ref={ref}
