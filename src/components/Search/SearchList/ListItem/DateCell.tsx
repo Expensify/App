@@ -9,17 +9,19 @@ type DateCellProps = {
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
     suffixText?: string;
+    /** Optional text to display instead of the formatted date (e.g., 'Scanning') */
+    displayText?: string;
 };
 
-function DateCell({date, showTooltip, isLargeScreenWidth, suffixText}: DateCellProps) {
+function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, displayText}: DateCellProps) {
     const styles = useThemeStyles();
 
     const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-    const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
+    const dateDisplayText = displayText ?? (suffixText ? `${formattedDate} • ${suffixText}` : formattedDate);
 
     return (
         <TextWithTooltip
-            text={displayText}
+            text={dateDisplayText}
             shouldShowTooltip={showTooltip}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : styles.mutedNormalTextLabel, !!suffixText && styles.flexShrink1]}
         />
