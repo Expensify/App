@@ -47,7 +47,7 @@ function Composer({
     const isInLandscapeMode = useIsInLandscapeMode();
 
     useEffect(() => {
-        if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
+        if (!textInput.current?.setSelection || !selection || isComposerFullSize) {
             return;
         }
 
@@ -114,7 +114,10 @@ function Composer({
         [onPasteFile],
     );
 
-    const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
+    const maxHeightStyle = useMemo(
+        () => StyleUtils.getComposerMaxHeightStyle(isInLandscapeMode ? CONST.COMPOSER.MAX_LINES_LANDSCAPE_MODE : maxLines, isComposerFullSize),
+        [StyleUtils, isComposerFullSize, maxLines, isInLandscapeMode],
+    );
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
 
     return (

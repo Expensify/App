@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import {
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
@@ -17,7 +19,8 @@ import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import createRandomPolicy from '../utils/collections/policies';
-import {buildPersonalDetails, localeCompare} from '../utils/TestHelper';
+import {buildPersonalDetails, localeCompare, translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const personalDetails: PersonalDetailsList = {};
 const personalDetailsByEmail: PersonalDetailsList = {};
@@ -1308,22 +1311,17 @@ describe('WorkflowUtils', () => {
     });
 
     describe('getApprovalLimitDescription', () => {
-        const mockTranslate = jest.fn((key: string, params?: Record<string, string>) => {
-            if (key === 'workflowsApprovalLimitPage.forwardLimitDescription') {
-                return `Reports above ${params?.approvalLimit} forward to ${params?.approverName}`;
-            }
-            return key;
-        });
-
         beforeEach(() => {
-            mockTranslate.mockClear();
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
         });
 
         it('Should return undefined when approver is undefined', () => {
             const result = getApprovalLimitDescription({
                 approver: undefined,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1336,7 +1334,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1349,7 +1348,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1362,7 +1362,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1375,7 +1376,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: {},
             });
 
@@ -1391,7 +1393,8 @@ describe('WorkflowUtils', () => {
             const result = getApprovalLimitDescription({
                 approver,
                 currency: 'USD',
-                translate: mockTranslate as unknown as Parameters<typeof getApprovalLimitDescription>[0]['translate'],
+                translate: translateLocal,
+                convertToDisplayString,
                 personalDetailsByEmail: personalDetailsWithEmail,
             });
 

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -13,8 +13,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -22,10 +24,11 @@ import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import CompactMenuContext from './CompactMenuContext';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
-import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
+import type {MenuItemProps} from './MenuItem';
 import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
 import type BaseModalProps from './Modal/types';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -144,8 +147,8 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
 
-    /** Whether to show the selected option checkmark */
-    shouldShowSelectedItemCheck?: boolean;
+    /** Whether to show a radio button on each item to indicate which one is currently selected */
+    shouldShowRadioButton?: boolean;
 
     /** The style of content container which wraps all child views */
     containerStyles?: StyleProp<ViewStyle>;
@@ -191,7 +194,7 @@ const renderWithConditionalWrapper = (shouldUseScrollView: boolean, contentConta
     if (shouldUseScrollView) {
         return <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>;
     }
-    // eslint-disable-next-line react/jsx-no-useless-fragment
+
     return <View style={contentContainerStyle}>{children}</View>;
 };
 
@@ -291,7 +294,7 @@ function BasePopoverMenu({
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
     restoreFocusType,
-    shouldShowSelectedItemCheck = false,
+    shouldShowRadioButton = false,
     containerStyles,
     badgeStyle,
     headerStyles,
@@ -312,14 +315,57 @@ function BasePopoverMenu({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: currentMenuItemsFocusedIndex,
+        maxIndex: currentMenuItems.length - 1,
+        isActive: isVisible,
+    });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
+    const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
+
+    const getPreviousSubMenu = () => {
+        let currentItems = menuItems;
+        for (let i = 0; i < enteredSubMenuIndexes.length - 1; i++) {
+            const nextItems = currentItems[enteredSubMenuIndexes[i]].subMenuItems;
+            if (!nextItems) {
+                return currentItems;
+            }
+            currentItems = nextItems;
+        }
+        return currentItems;
+    };
+
+    const isRadioButtonMode = enteredSubMenuIndexes.length === 0 ? shouldShowRadioButton : !!getPreviousSubMenu().at(enteredSubMenuIndexes.at(-1) ?? -1)?.shouldShowRadioButton;
+
+    // In radio-button mode, suppress the visual highlight until the user starts navigating,
+    // even though the selected item is already focused (for immediate Enter/arrow support).
+    useEffect(() => {
+        if (!isVisible || !isRadioButtonMode) {
+            return;
+        }
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const isNavigationKey = [
+                CONST.KEYBOARD_SHORTCUTS.ARROW_UP,
+                CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN,
+                CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT,
+                CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT,
+                CONST.KEYBOARD_SHORTCUTS.TAB,
+            ].some(({shortcutKey}) => shortcutKey === e.key);
+            if (!isNavigationKey) {
+                return;
+            }
+            setHasKeyBeenPressed(true);
+        };
+        addKeyDownPressListener(handleKeyDown);
+        return () => removeKeyDownPressListener(handleKeyDown);
+    }, [isVisible, isRadioButtonMode]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -331,6 +377,9 @@ function BasePopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+            if (selectedItem.shouldShowRadioButton) {
+                setHasKeyBeenPressed(false);
+            }
         } else if (selectedItem.shouldCloseModalOnSelect === false) {
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
@@ -350,18 +399,6 @@ function BasePopoverMenu({
         }
     };
 
-    const getPreviousSubMenu = () => {
-        let currentItems = menuItems;
-        for (let i = 0; i < enteredSubMenuIndexes.length - 1; i++) {
-            const nextItems = currentItems[enteredSubMenuIndexes[i]].subMenuItems;
-            if (!nextItems) {
-                return currentItems;
-            }
-            currentItems = nextItems;
-        }
-        return currentItems;
-    };
-
     const renderBackButtonItem = () => {
         const previousMenuItems = getPreviousSubMenu();
         const previouslySelectedItem = previousMenuItems[enteredSubMenuIndexes[enteredSubMenuIndexes.length - 1]];
@@ -374,7 +411,10 @@ function BasePopoverMenu({
                 icon={expensifyIcons.BackArrow}
                 iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
-                additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
+                additionalIconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}, styles.opacitySemiTransparent, styles.mr1]}
+                iconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}]}
+                wrapperStyle={[styles.ph5, styles.pv3]}
+                innerContainerStyle={styles.alignItemsCenter}
                 title={backButtonTitle}
                 accessibilityLabel={`${translate('common.goBack')}, ${backButtonTitle}`}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
@@ -404,8 +444,10 @@ function BasePopoverMenu({
             ...menuItemProps
         } = item;
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
-        // eslint-disable-next-line react/no-array-index-key
+
         const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
+        // In radio-button mode, suppress visual focus highlight until the user starts keyboard navigation.
+        const isVisuallyFocused = focusedIndex === menuIndex && (!isRadioButtonMode || hasKeyBeenPressed);
         return (
             <OfflineWithFeedback
                 key={reactKey}
@@ -416,8 +458,7 @@ function BasePopoverMenu({
                     pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={(event) => selectItem(menuIndex, event)}
-                    focused={focusedIndex === menuIndex}
-                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                    focused={isVisuallyFocused}
                     shouldCheckActionAllowedOnPress={false}
                     iconRight={item.rightIcon}
                     shouldShowRightIcon={!!item.rightIcon}
@@ -431,7 +472,13 @@ function BasePopoverMenu({
                     badgeText={badgeText}
                     badgeStyle={StyleSheet.flatten(badgeStyle)}
                     wrapperStyle={[
-                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
+                        StyleUtils.getItemBackgroundColorStyle(
+                            !isRadioButtonMode && !!item.isSelected,
+                            isVisuallyFocused,
+                            item.disabled ?? false,
+                            theme.activeComponentBG,
+                            theme.hoverComponentBG,
+                        ),
                         shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
                     ]}
                     shouldRemoveHoverBackground={item.isSelected}
@@ -440,6 +487,7 @@ function BasePopoverMenu({
                     role={CONST.ROLE.BUTTON}
                     // Spread other props dynamically
                     {...menuItemProps}
+                    shouldShowRadioButton={isRadioButtonMode}
                     hasSubMenuItems={!!subMenuItems?.length}
                     shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
@@ -490,6 +538,7 @@ function BasePopoverMenu({
 
     const handleModalHide = () => {
         onModalHide?.();
+        setHasKeyBeenPressed(false);
         const keyPath = buildKeyPathFromIndexPath(menuItems, enteredSubMenuIndexes);
         const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
 
@@ -547,16 +596,17 @@ function BasePopoverMenu({
             return shouldEnableMaxHeight && !isInLandscapeMode ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
         }
 
-        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
+        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: variables.compactPopoverMenuWidth}, styles.pv2];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
+            stylesArray.push({maxHeight: Math.max(windowHeight - variables.compactPopoverMenuVerticalMargin, CONST.POPOVER_MENU_MAX_HEIGHT)});
         }
 
         return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, styles.pv2, shouldUseScrollView, windowHeight, isInLandscapeMode]);
 
-    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
+        (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : styles.pv2, scrollContainerStyle]) as ViewStyle) ?? {};
     const {
         paddingVertical: menuContainerPaddingVertical,
         paddingTop: menuContainerPaddingTop,
@@ -624,16 +674,18 @@ function BasePopoverMenu({
                 active={isVisible}
                 shouldReturnFocus={!shouldEnableNewFocusManagement}
             >
-                <View
-                    onLayout={onLayout}
-                    style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
-                >
-                    {renderWithConditionalWrapper(
-                        shouldUseScrollView,
-                        [scrollViewPaddingStyles, restScrollContainerStyle],
-                        [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
-                    )}
-                </View>
+                <CompactMenuContext.Provider value>
+                    <View
+                        onLayout={onLayout}
+                        style={[restMenuContainerStyle, restContainerStyles, isWeb ? styles.flex1 : styles.flexGrow1]}
+                    >
+                        {renderWithConditionalWrapper(
+                            shouldUseScrollView,
+                            [scrollViewPaddingStyles, restScrollContainerStyle],
+                            [renderHeaderText(), enteredSubMenuIndexes.length > 0 && renderBackButtonItem(), renderedMenuItems],
+                        )}
+                    </View>
+                </CompactMenuContext.Provider>
             </FocusTrapForModal>
         </PopoverWithMeasuredContent>
     );

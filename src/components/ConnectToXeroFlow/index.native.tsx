@@ -10,7 +10,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
-import {close} from '@libs/actions/Modal';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -55,20 +54,18 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 <RequireTwoFactorAuthenticationModal
                     onSubmit={() => {
                         setIsRequire2FAModalOpen(false);
-                        close(() => {
-                            const backTo = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
-                            const validatedUserForwardTo = getXeroSetupLink(policyID);
-                            if (isUserValidated) {
-                                Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(backTo, validatedUserForwardTo));
-                                return;
-                            }
-                            Navigation.navigate(
-                                ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({
-                                    backTo,
-                                    forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute(backTo, validatedUserForwardTo),
-                                }),
-                            );
-                        });
+                        const backTo = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
+                        const validatedUserForwardTo = getXeroSetupLink(policyID);
+                        if (isUserValidated) {
+                            Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(backTo, validatedUserForwardTo));
+                            return;
+                        }
+                        Navigation.navigate(
+                            ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({
+                                backTo,
+                                forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute(backTo, validatedUserForwardTo),
+                            }),
+                        );
                     }}
                     onCancel={() => setIsRequire2FAModalOpen(false)}
                     isVisible={isRequire2FAModalOpen}

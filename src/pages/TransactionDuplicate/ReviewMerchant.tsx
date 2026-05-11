@@ -75,6 +75,7 @@ function ReviewMerchant() {
                 options={options}
                 index={currentScreenIndex}
                 onSelectRow={setMerchant}
+                selectedValue={reviewDuplicates?.merchant}
             />
         </ScreenWrapper>
     );

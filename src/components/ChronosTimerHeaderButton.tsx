@@ -3,8 +3,10 @@ import {View} from 'react-native';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +19,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -48,8 +51,19 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         [canPerformWriteAction, visibleReportActionsData, report.reportID, currentUserAccountID],
     );
 
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+    const {isOffline} = useNetwork();
+
+    // Keep the button usable while offline so queued start/stop comments are sent on reconnect.
+    // The button should be disabled if the OpenReport request is in progress, so that the state of the button (whether it says "start" or "stop") will reflect the most recent data coming from the server.
+    // There is still a possible bug where if you are offline, the button could reflect the wrong state. However, there is really no way to fix this without breaking the offline experience.
+    const shouldDisableButton = !!isLoadingInitialReportActions && !isOffline;
+
     const ancestors = useAncestors(report);
     const isInSidePanel = useIsInSidePanel();
+    const delegateAccountID = useDelegateAccountID();
 
     function sendCommentToChronos() {
         addComment({
@@ -61,6 +75,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             currentUserAccountID,
             shouldPlaySound: false,
             isInSidePanel,
+            delegateAccountID,
         });
     }
 
@@ -68,12 +83,24 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         {
             value: 'timer' as const,
             text: translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer'),
-            onSelected: () => callFunctionIfActionIsAllowed(sendCommentToChronos)(),
+            disabled: shouldDisableButton,
+            onSelected: () => {
+                if (shouldDisableButton) {
+                    return;
+                }
+                callFunctionIfActionIsAllowed(sendCommentToChronos)();
+            },
         },
         {
             value: 'scheduleOOO' as const,
             text: translate('chronos.scheduleOOO'),
-            onSelected: () => Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID)),
+            disabled: shouldDisableButton,
+            onSelected: () => {
+                if (shouldDisableButton) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID));
+            },
             shouldUpdateSelectedIndex: false,
         },
     ];
@@ -86,6 +113,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <ButtonWithDropdownMenu<ChronosAction>
                 success={!isTimerRunning}
+                isDisabled={shouldDisableButton}
                 onPress={() => {
                     callFunctionIfActionIsAllowed(sendCommentToChronos)();
                 }}

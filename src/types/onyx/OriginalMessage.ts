@@ -132,6 +132,9 @@ type OriginalMessageAddComment = {
 
     /** List accountIDs are mentioned in message */
     mentionedAccountIDs?: number[];
+
+    /** The accountID of the human agent assisting Concierge when "Reply as yourself" is used */
+    humanAgentAccountID?: number;
 };
 
 /** Model of `actionable mention whisper` report action */
@@ -480,6 +483,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** New value for max expense amount with no receipt */
     newMaxExpenseAmountNoReceipt?: number;
+
+    /** Old value for max expense amount with no itemized receipt */
+    oldMaxExpenseAmountNoItemizedReceipt?: number;
+
+    /** New value for max expense amount with no itemized receipt */
+    newMaxExpenseAmountNoItemizedReceipt?: number;
 
     /** Currency of the policy */
     currency?: string;
@@ -1226,6 +1235,16 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls?: string[];
 
     /**
+     * A list of URLs to the Travel Invoicing Journal Entry records
+     */
+    travelInvoicingUrls?: string[];
+
+    /**
+     * The Concierge reasoning for the action
+     */
+    reasoning?: string;
+
+    /**
      * The type of the export action
      */
     type?: string;
@@ -1281,6 +1300,9 @@ type OriginalMessageIntegrationSyncFailed = {
 
     /** The error message from Integration Server */
     errorMessage: string;
+
+    /** Number of times this identical failure has recurred (set by server-side de-duplication) */
+    recurrenceCount?: number;
 };
 
 /**
@@ -1385,6 +1407,14 @@ type OriginalMessageTakeControl = {
     mentionedAccountIDs: number[];
     /** Whether this action was triggered automatically (e.g., during auto-pay) */
     automaticAction?: boolean;
+};
+
+/**
+ * Model of Reassign Approver action original message (system-generated when approval workflow changes)
+ */
+type OriginalMessageReassignApprover = {
+    /** Account ID of the new approver assigned by the system */
+    newApproverID: number;
 };
 
 /**
@@ -1536,6 +1566,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;

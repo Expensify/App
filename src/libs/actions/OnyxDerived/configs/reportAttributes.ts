@@ -1,6 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getIsOffline} from '@libs/NetworkState';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -89,11 +90,14 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.CONCIERGE_REPORT_ID,
+        ONYXKEYS.NETWORK,
     ],
     compute: (
         [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
         {currentValue, sourceValues},
     ) => {
+        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
+        const isOffline = getIsOffline();
         // Check if display names changed when personal details are updated
         let displayNamesChanged = false;
         if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -269,6 +273,8 @@ export default createOnyxDerivedValueConfig({
                     isReportArchived,
                     allTransactions: transactions,
                     reports,
+                    currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserLogin: session?.email ?? '',
                 });
 
                 const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -277,6 +283,7 @@ export default createOnyxDerivedValueConfig({
                 let brickRoadStatus;
                 let actionBadge;
                 let actionTargetReportActionID;
+                let needsParentChatErrorPropagation = false;
                 const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
                     report,
                     chatReport,
@@ -284,15 +291,26 @@ export default createOnyxDerivedValueConfig({
                     hasAnyViolations || hasFieldViolations,
                     reportErrors,
                     transactions,
+                    isOffline,
                     transactionViolations,
                     !!isReportArchived,
                     reports,
                 );
                 // if report has errors or violations, show red dot
                 if (reasonAndReportAction) {
-                    brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                    actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
-                    actionTargetReportActionID = reasonAndReportAction.reportAction?.reportActionID;
+                    needsParentChatErrorPropagation = true;
+
+                    // RBR/Fix mirrors GBR's access rule: only show on the child when the user can't already
+                    // see it on the parent workspace chat. The parent still gets ERROR/FIX through the
+                    // propagation loop below, so the actionable indicator surfaces on the workspace chat row
+                    // (which is where C+ wants it). Skips when the chat parent isn't accessible to the user.
+                    const chatPolicy = chatReport?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${chatReport.policyID}`] : undefined;
+                    const isChildOfAccessiblePolicyExpenseChat = !!chatReport && isPolicyExpenseChat(chatReport) && (!!chatReport.isOwnPolicyExpenseChat || isPolicyAdmin(chatPolicy));
+                    if (!isChildOfAccessiblePolicyExpenseChat) {
+                        brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                        actionBadge = CONST.REPORT.ACTION_BADGE.FIX;
+                        actionTargetReportActionID = reasonAndReportAction.reportAction?.reportActionID;
+                    }
                 }
                 // if report does not have error, check if it should show green dot
                 if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttention) {
@@ -323,6 +341,7 @@ export default createOnyxDerivedValueConfig({
                     actionTargetReportActionID,
                     reportErrors,
                     oneTransactionThreadReportID,
+                    needsParentChatErrorPropagation,
                 };
 
                 return acc;
@@ -339,8 +358,15 @@ export default createOnyxDerivedValueConfig({
 
             // If this is an IOU report and its calculated attributes have an error,
             // then we need to mark its parent chat report.
+            // We read `needsParentChatErrorPropagation` rather than `brickRoadStatus` because the per-report
+            // pass suppresses the child's own brickRoadStatus when the parent workspace chat is accessible —
+            // we still need to propagate the error up so the parent shows the indicator.
             const attributes = reportAttributes[report.reportID];
-            if (report.chatReportID && report.reportID !== report.chatReportID && attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+            if (
+                report.chatReportID &&
+                report.reportID !== report.chatReportID &&
+                (attributes?.needsParentChatErrorPropagation || attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR)
+            ) {
                 chatReportIDsWithErrors.add(report.chatReportID);
             }
         }

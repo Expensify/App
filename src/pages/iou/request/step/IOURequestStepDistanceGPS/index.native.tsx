@@ -1,15 +1,11 @@
 import React, {useEffect, useRef, useState} from 'react';
-import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import DistanceMapView from '@components/DistanceMapView';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import ImageSVG from '@components/ImageSVG';
-import type {MapViewHandle, WayPoint} from '@components/MapView/MapViewTypes';
-import mapUtils from '@components/MapView/utils';
+import type {Coordinate, MapViewHandle} from '@components/MapView/MapViewTypes';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -20,13 +16,12 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints, isTripCaptured as isTripCapturedUtil} from '@libs/GPSDraftDetailsUtils';
+import {getGPSConvertedDistance, getGpsPoints, getGPSWaypoints, getLastGpsPoint, getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
@@ -38,9 +33,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type IconAsset from '@src/types/utils/IconAsset';
 import GPSButtons from './GPSButtons';
 import type IOURequestStepDistanceGPSProps from './types';
+import useGPSWaypointMarkers from './useGPSWaypointMarkers';
 import Waypoints from './Waypoints';
 
 function IOURequestStepDistanceGPS({
@@ -52,11 +47,9 @@ function IOURequestStepDistanceGPS({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceGPSProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
 
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const {DotIndicatorUnfilled, Location} = useMemoizedLazyExpensifyIcons(['DotIndicatorUnfilled', 'Location']);
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const mapRef = useRef<MapViewHandle>(null);
@@ -79,7 +72,7 @@ function IOURequestStepDistanceGPS({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -90,7 +83,6 @@ function IOURequestStepDistanceGPS({
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
@@ -102,7 +94,7 @@ function IOURequestStepDistanceGPS({
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const navigateToNextStep = () => {
-        const gpsCoordinates = getGPSCoordinates(gpsDraftDetails);
+        const gpsCoordinates = getStringifiedGPSCoordinates(gpsDraftDetails);
         const distance = getGPSConvertedDistance(gpsDraftDetails, unit);
 
         setGPSTransactionDraftData(transactionID, gpsDraftDetails, distance);
@@ -133,7 +125,6 @@ function IOURequestStepDistanceGPS({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            activePolicyID,
             privateIsArchived: isArchived,
             gpsCoordinates,
             gpsDistance: distance,
@@ -174,64 +165,16 @@ function IOURequestStepDistanceGPS({
         if (!gpsDraftDetails?.isTracking) {
             return;
         }
-        const latestPoint = gpsDraftDetails.gpsPoints?.at(-1);
+        const latestPoint = getLastGpsPoint(gpsDraftDetails);
         if (!latestPoint) {
             return;
         }
         mapRef.current?.flyTo([latestPoint.long, latestPoint.lat], CONST.MAPBOX.DEFAULT_ZOOM, 1000);
-    }, [gpsDraftDetails?.gpsPoints, gpsDraftDetails?.isTracking]);
+    }, [gpsDraftDetails]);
 
-    const isTripCaptured = isTripCapturedUtil(gpsDraftDetails);
+    const waypointMarkers = useGPSWaypointMarkers();
 
-    const getMarkerComponent = (icon: IconAsset): ReactNode => (
-        <ImageSVG
-            src={icon}
-            width={CONST.MAP_MARKER_SIZE}
-            height={CONST.MAP_MARKER_SIZE}
-            fill={theme.icon}
-        />
-    );
-
-    const getWaypointMarkers = (): WayPoint[] => {
-        const points = gpsDraftDetails?.gpsPoints ?? [];
-        const firstPoint = points.at(0);
-        const lastPoint = points.at(-1);
-        const markers: WayPoint[] = [];
-
-        if (firstPoint) {
-            markers.push({
-                id: 'gps-start',
-                coordinate: [firstPoint.long, firstPoint.lat],
-                markerComponent: (): ReactNode => getMarkerComponent(DotIndicatorUnfilled),
-            });
-        }
-
-        if (lastPoint && lastPoint !== firstPoint && isTripCaptured) {
-            markers.push({
-                id: 'gps-end',
-                coordinate: [lastPoint.long, lastPoint.lat],
-                markerComponent: (): ReactNode => getMarkerComponent(Location),
-            });
-        }
-
-        return markers;
-    };
-
-    const waypointMarkers = getWaypointMarkers();
-
-    const directionCoordinates: Array<[number, number]> = (gpsDraftDetails?.gpsPoints ?? []).map(({lat, long}) => [long, lat]);
-
-    // Show the full route after stopping the trip
-    const showFullRouteAfterStopping = () => {
-        if (directionCoordinates.length < 2) {
-            return;
-        }
-        const {northEast, southWest} = mapUtils.getBounds(
-            waypointMarkers.map((waypoint) => waypoint.coordinate),
-            directionCoordinates,
-        );
-        mapRef.current?.fitBounds(northEast, southWest, CONST.MAPBOX.PADDING, 1000);
-    };
+    const directionCoordinates: Coordinate[][] = getGpsPoints(gpsDraftDetails).map((points): Coordinate[] => points.map(({lat, long}) => [long, lat]));
 
     return (
         <StepScreenWrapper
@@ -275,9 +218,9 @@ function IOURequestStepDistanceGPS({
                             navigateToNextStep={navigateToNextStep}
                             setShouldShowStartError={setShouldShowStartError}
                             setShouldShowPermissionsError={setShouldShowPermissionsError}
-                            onTripStopped={showFullRouteAfterStopping}
                             reportID={reportID}
                             unit={unit}
+                            gpsPoints={getGpsPoints(gpsDraftDetails)}
                         />
                     </View>
                 </View>
@@ -287,9 +230,9 @@ function IOURequestStepDistanceGPS({
 }
 
 const IOURequestStepDistanceGPSWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceGPS);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceGPSWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceGPSWithCurrentUserPersonalDetails, true);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceGPSWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceGPSWithWritableReportOrNotFound);
 
 export default IOURequestStepDistanceGPSWithFullTransactionOrNotFound;

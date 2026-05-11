@@ -1,14 +1,21 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -16,8 +23,11 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
+import useDebouncedValue from '@hooks/useDebouncedValue';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -28,14 +38,17 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearAddMemberError,
     clearDeleteMemberError,
     clearInviteDraft,
+    clearUpdateMemberRoleError,
     clearWorkspaceOwnerChangeFlow,
     downloadMembersCSV,
     openWorkspaceMembersPage,
@@ -97,9 +110,19 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
     customField2?: string;
 };
 
+const WORKSPACE_MEMBER_FILTER_VALUES = {
+    ALL: 'all',
+    ADMINS: 'admins',
+    APPROVERS: 'approvers',
+    AUDITORS: 'auditors',
+} as const;
+
+type WorkspaceMemberFilterValue = ValueOf<typeof WORKSPACE_MEMBER_FILTER_VALUES>;
+type WorkspaceMemberFilterOption = SingleSelectItem<WorkspaceMemberFilterValue>;
+
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Table', 'User', 'UserEye']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -112,6 +135,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<BaseTextInputRef>(null);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const [selectedRoleFilter, setSelectedRoleFilter] = useState<WorkspaceMemberFilterOption | null>(null);
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {isAccountLocked} = useLockedAccountState();
@@ -148,7 +172,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
-    const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler']);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler', 'EmptyShelves']);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const {approvalWorkflows} = useMemo(
@@ -262,7 +287,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedEmployees([]);
             removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
@@ -373,9 +397,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         (item: MemberOption) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 clearDeleteMemberError(route.params.policyID, item.login);
-            } else {
-                clearAddMemberError(route.params.policyID, item.login, item.accountID);
+                return;
             }
+
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
+                clearUpdateMemberRoleError(route.params.policyID, item.login);
+                return;
+            }
+
+            clearAddMemberError(route.params.policyID, item.login, item.accountID);
         },
         [route.params.policyID],
     );
@@ -384,8 +414,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const currentUserLogin = currentUserPersonalDetails.login;
     const invitedPrimaryToSecondaryLogins = useMemo(() => invertObject(policy?.primaryLoginsInvited ?? {}), [policy?.primaryLoginsInvited]);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-    const data: MemberOption[] = useMemo(() => {
-        const result: MemberOption[] = [];
+
+    const filteredMembers = useMemo(() => {
+        const result: Array<{email: string; policyEmployee: PolicyEmployee; accountID: number; details: PersonalDetails}> = [];
 
         for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
             const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
@@ -409,6 +440,19 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 }
             }
 
+            result.push({email, policyEmployee, accountID, details});
+        }
+        return result;
+    }, [policy?.employeeList, policyMemberEmailsToAccountIDs, isOffline, personalDetails, policyOwner, currentUserLogin]);
+
+    const hasAnyCustomField1 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeeUserID), [filteredMembers]);
+    const hasAnyCustomField2 = useMemo(() => filteredMembers.some(({policyEmployee}) => !!policyEmployee.employeePayrollID), [filteredMembers]);
+    const shouldShowCustomField1Column = isControlPolicyWithWideLayout && hasAnyCustomField1;
+    const shouldShowCustomField2Column = isControlPolicyWithWideLayout && hasAnyCustomField2;
+    const shouldShowAnyCustomFieldColumn = shouldShowCustomField1Column || shouldShowCustomField2Column;
+
+    const data: MemberOption[] = useMemo(() => {
+        return filteredMembers.map(({policyEmployee, accountID, details}) => {
             const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
             let roleBadgeText = '';
@@ -423,7 +467,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const memberEmail = formatPhoneNumber(details?.login ?? '');
             const accessibilityLabel = [memberName, memberEmail, roleBadgeText].filter(Boolean).join(', ');
 
-            result.push({
+            return {
                 keyForList: details.login ?? '',
                 accountID,
                 login: details.login ?? '',
@@ -436,24 +480,28 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 text: memberName,
                 alternateText: memberEmail,
                 accessibilityLabel,
-                rightElement: isControlPolicyWithWideLayout ? (
+                rightElement: shouldShowAnyCustomFieldColumn ? (
                     <>
-                        <View style={[styles.flex1, styles.pr3]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.alignSelfStart]}
-                            >
-                                {policyEmployee.employeeUserID}
-                            </Text>
-                        </View>
-                        <View style={[styles.flex1, styles.pr3]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.alignSelfStart]}
-                            >
-                                {policyEmployee.employeePayrollID}
-                            </Text>
-                        </View>
+                        {shouldShowCustomField1Column && (
+                            <View style={[styles.flex1, styles.pr3]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.alignSelfStart]}
+                                >
+                                    {policyEmployee.employeeUserID}
+                                </Text>
+                            </View>
+                        )}
+                        {shouldShowCustomField2Column && (
+                            <View style={[styles.flex1, styles.pr3]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.alignSelfStart]}
+                                >
+                                    {policyEmployee.employeePayrollID}
+                                </Text>
+                            </View>
+                        )}
                         <View style={[StyleUtils.getMinimumWidth(variables.w72)]}>
                             <MemberRightIcon
                                 role={policyEmployee.role}
@@ -482,16 +530,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
-            });
-        }
-        return result;
+            };
+        });
     }, [
-        policy?.employeeList,
+        filteredMembers,
         policy?.ownerAccountID,
         policy?.owner,
-        policyMemberEmailsToAccountIDs,
-        isOffline,
-        personalDetails,
         isPolicyAdmin,
         session?.accountID,
         styles.cursorDefault,
@@ -500,12 +544,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         translate,
         styles.alignSelfStart,
         styles.alignSelfEnd,
-        isControlPolicyWithWideLayout,
+        shouldShowAnyCustomFieldColumn,
+        shouldShowCustomField1Column,
+        shouldShowCustomField2Column,
         StyleUtils,
         formatPhoneNumber,
         invitedPrimaryToSecondaryLogins,
-        policyOwner,
-        currentUserLogin,
         icons.FallbackAvatar,
     ]);
 
@@ -514,7 +558,54 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         return results.length > 0;
     }, []);
     const sortMembers = useCallback((memberOptions: MemberOption[]) => sortAlphabetically(memberOptions, 'text', localeCompare), [localeCompare]);
-    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
+    const roleFilterOptions: WorkspaceMemberFilterOption[] = [
+        {text: translate('workspace.people.allMembers'), value: WORKSPACE_MEMBER_FILTER_VALUES.ALL},
+        {text: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
+        {text: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
+    ];
+
+    if (isControlPolicy(policy)) {
+        roleFilterOptions.push({
+            text: translate('workspace.people.auditors'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
+        });
+    }
+
+    const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
+        setSelectedEmployees([]);
+
+        if (!item || item.value === WORKSPACE_MEMBER_FILTER_VALUES.ALL) {
+            setSelectedRoleFilter(null);
+            return;
+        }
+
+        setSelectedRoleFilter(item);
+    };
+
+    const rolePreFilter = (member: MemberOption) => {
+        if (!selectedRoleFilter) {
+            return true;
+        }
+
+        const employee = policy?.employeeList?.[member.login];
+
+        switch (selectedRoleFilter.value) {
+            case WORKSPACE_MEMBER_FILTER_VALUES.ADMINS:
+                return member.login === policy?.owner || employee?.role === CONST.POLICY.ROLE.ADMIN;
+            case WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS:
+                return isPolicyApprover(policy, member.login);
+            case WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS:
+                return employee?.role === CONST.POLICY.ROLE.AUDITOR;
+            default:
+                return true;
+        }
+    };
+    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers, rolePreFilter);
+
+    const handleSearchChange = (value: string) => {
+        setSelectedEmployees([]);
+        setInputValue(value);
+    };
 
     useEffect(() => {
         if (!isFocused) {
@@ -537,14 +628,70 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, [isLoading, policy?.employeeList, translate, isOfflineAndNoMemberDataAvailable]);
 
     const memberCount = data.filter((member) => member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const hasGustoConnection = !!policy?.connections?.gusto;
+    const shouldShowGustoSyncLink = isPolicyAdmin && hasGustoConnection;
+    const isGustoSyncInProgress =
+        hasGustoConnection && connectionSyncProgress?.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO && isConnectionInProgress(connectionSyncProgress, policy);
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
+    const debouncedFilteredData = useDebouncedValue(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+    const isFilteringMembers = filteredData?.length < debouncedFilteredData?.length;
+    const displayedFilteredData = isFilteringMembers ? debouncedFilteredData : filteredData;
+    const hasNoDisplayedMembers = displayedFilteredData.length === 0;
+    const shouldShowRoleFilter = data.length > 0;
+    const shouldShowRoleFilterEmptyState = shouldShowRoleFilter && !!selectedRoleFilter && inputValue.length === 0 && hasNoDisplayedMembers;
+    const shouldShowEmptySearchMessage = !shouldShowRoleFilterEmptyState && hasNoDisplayedMembers;
+    const noResultsMessage = translate('common.noResultsFoundMatching', inputValue);
+
+    // SearchBar's built-in empty state also controls screen-reader announcements.
+    // We render a custom no-results message in this page, so we announce it manually
+    // to preserve the same accessibility behavior without using SearchBar's default layout.
+    useDebouncedAccessibilityAnnouncement(noResultsMessage, shouldShowEmptySearchMessage, inputValue);
+
+    const rolePopoverComponent = ({closeOverlay}: PopoverComponentProps) => (
+        <SingleSelectPopup
+            label={translate('common.role')}
+            items={roleFilterOptions}
+            value={selectedRoleFilter ?? roleFilterOptions.at(0)}
+            closeOverlay={closeOverlay}
+            onChange={handleRoleFilterChange}
+            defaultValue={roleFilterOptions.at(0)?.value}
+            selectionListStyle={{listItemWrapperStyle: styles.mnh40}}
+        />
+    );
+
+    const roleFilterDropdown = shouldShowRoleFilter ? (
+        <DropdownButton
+            label={selectedRoleFilter?.text ?? translate('workspace.people.allMembers')}
+            value={null}
+            PopoverComponent={rolePopoverComponent}
+            innerStyles={[styles.gap2, shouldUseNarrowLayout && styles.mw100]}
+            wrapperStyle={shouldUseNarrowLayout ? styles.flexGrow0 : undefined}
+            labelStyle={styles.fontSizeLabel}
+            caretWrapperStyle={styles.gap2}
+            medium
+        />
+    ) : null;
 
     const getHeaderContent = () => (
         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-            <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
-                {translate('workspace.people.workspaceMembersCount', memberCount)}
-            </Text>
+            <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
+                <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
+                    {translate('workspace.people.workspaceMembersCount', memberCount)}
+                    {shouldShowGustoSyncLink && '. '}
+                    {shouldShowGustoSyncLink && (
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>{translate('workspace.people.configureGustoSync')}</TextLink>
+                    )}
+                </Text>
+                {shouldShowGustoSyncLink && isGustoSyncInProgress && (
+                    <ActivityIndicator
+                        size="small"
+                        style={styles.ml2}
+                        reasonAttributes={{context: 'WorkspaceMembersPage.gustoSync'}}
+                    />
+                )}
+            </View>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
                     type="success"
@@ -571,23 +718,27 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     });
 
     const getCustomListHeader = () => {
-        if (filteredData.length === 0) {
+        if (hasNoDisplayedMembers) {
             return null;
         }
 
-        // Show 4 columns only on wide screens for control policies
-        if (isControlPolicyWithWideLayout) {
+        // Show custom field columns only on wide screens for control policies when members have data
+        if (shouldShowAnyCustomFieldColumn) {
             const header = (
                 <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, canSelectMultiple && styles.pl3]}>
                     <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.member')}</Text>
                     </View>
-                    <View style={[styles.flex1, styles.pr3]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField1')}</Text>
-                    </View>
-                    <View style={[styles.flex1, styles.pr3]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField2')}</Text>
-                    </View>
+                    {shouldShowCustomField1Column && (
+                        <View style={[styles.flex1, styles.pr3]}>
+                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField1')}</Text>
+                        </View>
+                    )}
+                    {shouldShowCustomField2Column && (
+                        <View style={[styles.flex1, styles.pr3]}>
+                            <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField2')}</Text>
+                        </View>
+                    )}
                     <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr6, styles.pl2]}>
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
                     </View>
@@ -696,7 +847,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return [];
         }
 
-        const menuItems = [
+        const menuItems: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
             {
                 icon: icons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
@@ -736,8 +887,41 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             },
         ];
 
+        if (hasGustoConnection) {
+            menuItems.push({
+                icon: icons.Sync,
+                text: translate('workspace.people.syncWithGusto'),
+                onSelected: () => {
+                    if (isOffline) {
+                        close(showRequiresInternetModal);
+                        return;
+                    }
+
+                    close(() => syncConnection(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO));
+                },
+                value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_GUSTO,
+                disabled: isGustoSyncInProgress,
+            });
+        }
+
         return menuItems;
-    }, [isPolicyAdmin, icons.Table, icons.Download, translate, isAccountLocked, isOffline, policyID, showLockedAccountModal, showRequiresInternetModal]);
+    }, [
+        isPolicyAdmin,
+        icons.Table,
+        icons.Download,
+        icons.Sync,
+        translate,
+        isAccountLocked,
+        isOffline,
+        policyID,
+        showLockedAccountModal,
+        showRequiresInternetModal,
+        hasGustoConnection,
+        isGustoSyncInProgress,
+        policy,
+    ]);
+
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {
@@ -751,7 +935,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
-                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceMembersPage-header-dropdown-menu-button"
@@ -764,8 +948,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
                     text={translate('workspace.invite.member')}
                     icon={icons.Plus}
-                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 />
                 <ButtonWithDropdownMenu
                     success={false}
@@ -796,13 +980,26 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     {getHeaderContent()}
                 </>
             )}
-            {data.length > CONST.SEARCH_ITEM_LIMIT && (
-                <SearchBar
-                    inputValue={inputValue}
-                    onChangeText={setInputValue}
-                    label={translate('workspace.people.findMember')}
-                    shouldShowEmptyState={!filteredData.length}
-                />
+            {(shouldShowRoleFilter || shouldShowSearchBar) && (
+                <View style={styles.flexColumn}>
+                    <View style={[styles.mh5, styles.gap3, styles.mb5, styles.flexRow, styles.alignItemsCenter]}>
+                        {!!roleFilterDropdown && roleFilterDropdown}
+                        {shouldShowSearchBar && (
+                            <SearchBar
+                                inputValue={inputValue}
+                                onChangeText={handleSearchChange}
+                                label={translate('workspace.people.findMember')}
+                                shouldShowEmptyState={false}
+                                style={[styles.flex1, styles.mh0, styles.mb0]}
+                            />
+                        )}
+                    </View>
+                    {shouldShowEmptySearchMessage && (
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Text style={[styles.textNormal, styles.colorMuted]}>{noResultsMessage}</Text>
+                        </View>
+                    )}
+                </View>
             )}
         </>
     );
@@ -820,7 +1017,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             icon={!selectionModeHeader ? illustrations.ReceiptWrangler : undefined}
-            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
+            headerContent={!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
             testID="WorkspaceMembersPage"
             shouldShowLoading={false}
             shouldUseHeadlineHeader={!selectionModeHeader}
@@ -837,7 +1034,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}
@@ -855,12 +1052,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         selectedItems={selectedEmployees}
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={isPolicyAdmin}
-                        onSelectAll={filteredData.length > 0 ? () => toggleAllUsers(filteredData) : undefined}
-                        style={{listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3}}
+                        onSelectAll={displayedFilteredData.length > 0 ? () => toggleAllUsers(displayedFilteredData) : undefined}
+                        style={{
+                            listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
+                            contentContainerStyle: shouldShowRoleFilterEmptyState ? styles.flexGrow1 : undefined,
+                            listFooterContentStyle: shouldShowRoleFilterEmptyState ? styles.flex1 : undefined,
+                        }}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        onCheckboxPress={(item) => toggleUser(item.login)}
-                        shouldUseDefaultRightHandSideCheckmark={false}
+                        onSelectionButtonPress={(item) => toggleUser(item.login)}
                         shouldSingleExecuteRowSelect={!isPolicyAdmin}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
@@ -872,6 +1072,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         shouldUseUserSkeletonView
                         shouldHeaderBeInsideList
                         shouldShowRightCaret
+                        listFooterContent={
+                            shouldShowRoleFilterEmptyState ? (
+                                <GenericEmptyStateComponent
+                                    headerMedia={illustrations.EmptyShelves}
+                                    headerContentStyles={styles.emptyShelvesIllustration}
+                                    title={translate('workspace.people.emptyRoleFilter.title')}
+                                    subtitle={translate('workspace.people.emptyRoleFilter.subtitle')}
+                                    headerStyles={styles.emptyStateCardIllustrationContainer}
+                                />
+                            ) : undefined
+                        }
                     />
                 </>
             )}
