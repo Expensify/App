@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useMemo} from 'react';
+import {useEffect, useEffectEvent, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -98,6 +98,18 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     const displayableCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
 
+    // Stable signature of the displayable card IDs. Used as a dependency for the
+    // search-firing effect so it re-runs when cards finish loading after first
+    // focus, without re-firing on unrelated cardList updates.
+    const displayableCardIDsKey = useMemo(
+        () =>
+            displayableCards
+                .map((card) => card.cardID)
+                .sort((a, b) => a - b)
+                .join(','),
+        [displayableCards],
+    );
+
     // Map cardID → snapshot hash so we can look up totals from allSnapshots
     const cardQueryHashByCardID = useMemo(
         () =>
@@ -113,7 +125,8 @@ function useYourSpendData(): UseYourSpendDataReturn {
         () =>
             displayableCards.map((card) => {
                 const hash = cardQueryHashByCardID[card.cardID];
-                const snapshot = hash !== undefined ? allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] : undefined;
+                const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
+                const snapshot = snapshotKey ? allSnapshots?.[snapshotKey] : undefined;
                 return {
                     cardID: card.cardID,
                     lastFour: card.lastFourPAN ?? '',
@@ -125,15 +138,67 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [displayableCards, accountID, cardQueryHashByCardID, allSnapshots],
     );
 
-    const approvalRowState = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
-    const paymentRowState = getYourSpendRowState({isApplicable: isPaymentApplicable, isOffline, searchResults: paymentSearchResults});
+    const approvalRowStateRaw = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
+    const paymentRowStateRaw = getYourSpendRowState({isApplicable: isPaymentApplicable, isOffline, searchResults: paymentSearchResults});
 
-    const approvalTotals: YourSpendRowTotals = {total: approvalSearchResults?.search.total, currency: approvalSearchResults?.search.currency};
-    const paymentTotals: YourSpendRowTotals = {total: paymentSearchResults?.search.total, currency: paymentSearchResults?.search.currency};
+    const approvalTotalsRaw: YourSpendRowTotals = {total: approvalSearchResults?.search.total, currency: approvalSearchResults?.search.currency};
+    const paymentTotalsRaw: YourSpendRowTotals = {total: paymentSearchResults?.search.total, currency: paymentSearchResults?.search.currency};
+
+    // The Search screen reuses the same snapshot key for the same query and fires `search()` with
+    // `shouldCalculateTotals: false` (default). That optimistically clears `count/total/currency`
+    // on the shared snapshot, then the response SETs `search` without totals — causing this row to
+    // briefly flip to HIDDEN_EMPTY between navigation and the home re-fetch. Cache the last READY
+    // totals and reuse them whenever the snapshot is loaded but its count has been wiped. A
+    // genuine `count === 0` is still treated as empty.
+    const [cachedApprovalReady, setCachedApprovalReady] = useState<YourSpendRowTotals | null>(null);
+    const [cachedPaymentReady, setCachedPaymentReady] = useState<YourSpendRowTotals | null>(null);
+
+    if (
+        approvalRowStateRaw === YOUR_SPEND_ROW_STATE.READY &&
+        (!cachedApprovalReady || cachedApprovalReady.total !== approvalTotalsRaw.total || cachedApprovalReady.currency !== approvalTotalsRaw.currency)
+    ) {
+        setCachedApprovalReady({total: approvalTotalsRaw.total, currency: approvalTotalsRaw.currency});
+    }
+    if (
+        paymentRowStateRaw === YOUR_SPEND_ROW_STATE.READY &&
+        (!cachedPaymentReady || cachedPaymentReady.total !== paymentTotalsRaw.total || cachedPaymentReady.currency !== paymentTotalsRaw.currency)
+    ) {
+        setCachedPaymentReady({total: paymentTotalsRaw.total, currency: paymentTotalsRaw.currency});
+    }
+
+    const approvalCount = approvalSearchResults?.search.count;
+    const paymentCount = paymentSearchResults?.search.count;
+    const approvalCountIsMissing = approvalCount === undefined || approvalCount === null;
+    const paymentCountIsMissing = paymentCount === undefined || paymentCount === null;
+
+    const shouldUseCachedApproval =
+        approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && approvalCountIsMissing && approvalSearchResults !== undefined && cachedApprovalReady !== null;
+    const shouldUseCachedPayment = paymentRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY && paymentCountIsMissing && paymentSearchResults !== undefined && cachedPaymentReady !== null;
+
+    const approvalRowState = shouldUseCachedApproval ? YOUR_SPEND_ROW_STATE.READY : approvalRowStateRaw;
+    const paymentRowState = shouldUseCachedPayment ? YOUR_SPEND_ROW_STATE.READY : paymentRowStateRaw;
+    const approvalTotals: YourSpendRowTotals = shouldUseCachedApproval && cachedApprovalReady ? cachedApprovalReady : approvalTotalsRaw;
+    const paymentTotals: YourSpendRowTotals = shouldUseCachedPayment && cachedPaymentReady ? cachedPaymentReady : paymentTotalsRaw;
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
             return;
+        }
+        for (const card of displayableCards) {
+            const cardQuery = buildRecentCardTransactionsQuery(accountID, card.cardID);
+            const cardQueryJSON = buildSearchQueryJSON(cardQuery);
+            if (!cardQueryJSON) {
+                continue;
+            }
+            search({
+                queryJSON: cardQueryJSON,
+                searchKey: undefined,
+                offset: 0,
+                isOffline,
+                isLoading: false,
+                shouldCalculateTotals: true,
+                shouldUpdateLastSearchParams: false,
+            });
         }
         if (approvalQueryJSON) {
             search({
@@ -164,7 +229,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
             return;
         }
         fireSearches();
-    }, [isFocused, isOffline]);
+    }, [isFocused, isOffline, displayableCardIDsKey]);
 
     return {
         approvalRowState,
