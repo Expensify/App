@@ -97,7 +97,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Attendee, DistanceExpenseType, Participant} from '@src/types/onyx/IOU';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -136,6 +136,14 @@ type TrackExpenseInformation = {
     optimisticReportActionID: string | undefined;
     onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys | BuildPolicyDataKeys | typeof ONYXKEYS.SELF_DM_REPORT_ID>;
 };
+
+let lastDistanceExpenseType: OnyxEntry<DistanceExpenseType>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
+    callback: (value) => {
+        lastDistanceExpenseType = value;
+    },
+});
 
 type GetTrackExpenseInformationTransactionParams = {
     comment: string;
@@ -2444,6 +2452,11 @@ function trackExpense(params: CreateTrackExpenseParams) {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
             value: transaction?.iouRequestType,
+        });
+        onyxData?.failureData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
+            value: lastDistanceExpenseType ?? null,
         });
     }
 

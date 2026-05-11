@@ -1391,6 +1391,33 @@ describe('actions/IOU/TrackExpense', () => {
             mockFetch?.succeed?.();
         });
 
+        it('should roll back last distance expense type when a tracked distance request fails', async () => {
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-distance-failure',
+            };
+            const existingTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+            await waitForBatchedUpdates();
+
+            mockFetch?.fail?.();
+
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {amount: 5000, distance: 1200, merchant: 'Failed Distance'}),
+                existingTransaction,
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+
+            mockFetch?.succeed?.();
+        });
+
         it('should handle category and tag together correctly', async () => {
             // Given a selfDM report with category and tag
             const selfDMReport: Report = {

@@ -6876,6 +6876,30 @@ describe('createDistanceRequest', () => {
         await waitForBatchedUpdates();
     });
 
+    it('rolls back last distance expense type when the distance request fails', async () => {
+        const testReport = createRandomReport(1, undefined);
+        const existingTransaction: Transaction = {
+            ...createRandomTransaction(1),
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
+        await Onyx.set(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+        await waitForBatchedUpdates();
+
+        mockFetch?.fail?.();
+
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        createDistanceRequest({
+            ...getDefaultDistanceRequestParams(testReport, {amount: 500, comment: 'Failed distance request'}, recentWaypoints),
+            existingTransaction,
+        });
+        await waitForBatchedUpdates();
+
+        expect(await getOnyxValue(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE)).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+
+        mockFetch?.succeed?.();
+    });
+
     it('creates billable distance request when billable flag is set', async () => {
         const policyID = 'billablePolicy';
         const fakePolicy = {...createRandomPolicy(1), id: policyID, disabledFields: {defaultBillable: false}};

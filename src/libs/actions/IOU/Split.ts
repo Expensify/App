@@ -61,7 +61,7 @@ import {removeDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
+import type {Attendee, DistanceExpenseType, Participant, Split} from '@src/types/onyx/IOU';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -135,6 +135,14 @@ type CreateDistanceRequestInformation = {
     shouldDeferAutoSubmit?: boolean;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
 };
+
+let lastDistanceExpenseType: OnyxEntry<DistanceExpenseType>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
+    callback: (value) => {
+        lastDistanceExpenseType = value;
+    },
+});
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
     splitShares: SplitShares;
@@ -2002,6 +2010,11 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
                 value: transaction.iouRequestType,
+            });
+            onyxData?.failureData?.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
+                value: lastDistanceExpenseType ?? null,
             });
         }
 
