@@ -1240,7 +1240,6 @@ function Search({
             markReportIDAsExpense,
             toggleTransaction,
             handleSearch,
-            currentSearchKey,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
