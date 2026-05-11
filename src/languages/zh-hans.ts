@@ -5787,11 +5787,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         },
         copyPolicySettings: {
             error: '复制工作区设置时发生错误。请重试。',
-        },
-        copySettings: {
             title: '复制设置',
             selectWorkspaces: '选择工作区',
-            whichWorkspaces: '您想将这些设置复制到哪些工作区？',
+            description: '选择要将设置复制到的工作区，然后选择要复制的设置。',
             searchPlaceholder: '搜索工作区',
         },
         emptyWorkspace: {

@@ -5962,11 +5962,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
         },
         copyPolicySettings: {
             error: 'Beim Kopieren der Arbeitsbereich-Einstellungen ist ein Fehler aufgetreten. Bitte versuche es erneut.',
-        },
-        copySettings: {
             title: 'Einstellungen kopieren',
             selectWorkspaces: 'Arbeitsbereiche auswählen',
-            whichWorkspaces: 'In welche Arbeitsbereiche möchtest du diese Einstellungen kopieren?',
+            description: 'Wähle die Arbeitsbereiche aus, in die du Einstellungen kopieren möchtest, und wähle anschließend die zu kopierenden Einstellungen aus.',
             searchPlaceholder: 'Arbeitsbereiche suchen',
         },
         emptyWorkspace: {

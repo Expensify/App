@@ -5975,11 +5975,9 @@ const translations = {
         },
         copyPolicySettings: {
             error: 'An error occurred while copying workspace settings. Please try again.',
-        },
-        copySettings: {
             title: 'Copy settings',
             selectWorkspaces: 'Select workspaces',
-            whichWorkspaces: 'Which workspaces do you want to copy these settings to?',
+            description: 'Choose the workspaces you want to copy settings to, then select the settings you’d like to copy.',
             searchPlaceholder: 'Search workspaces',
         },
         emptyWorkspace: {

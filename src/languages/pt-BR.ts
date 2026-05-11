@@ -5932,11 +5932,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
         },
         copyPolicySettings: {
             error: 'Ocorreu um erro ao copiar as configurações do espaço de trabalho. Tente novamente.',
-        },
-        copySettings: {
             title: 'Copiar configurações',
             selectWorkspaces: 'Selecionar espaços de trabalho',
-            whichWorkspaces: 'Para quais espaços de trabalho você quer copiar essas configurações?',
+            description: 'Escolha os espaços de trabalho para os quais deseja copiar as configurações e, em seguida, selecione as configurações que deseja copiar.',
             searchPlaceholder: 'Pesquisar espaços de trabalho',
         },
         emptyWorkspace: {

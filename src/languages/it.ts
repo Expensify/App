@@ -5952,11 +5952,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         },
         copyPolicySettings: {
             error: 'Si è verificato un errore durante la copia delle impostazioni del workspace. Riprova.',
-        },
-        copySettings: {
             title: 'Copia impostazioni',
             selectWorkspaces: 'Seleziona spazi di lavoro',
-            whichWorkspaces: 'In quali spazi di lavoro vuoi copiare queste impostazioni?',
+            description: 'Scegli gli spazi di lavoro in cui vuoi copiare le impostazioni, quindi seleziona le impostazioni che desideri copiare.',
             searchPlaceholder: 'Cerca spazi di lavoro',
         },
         emptyWorkspace: {

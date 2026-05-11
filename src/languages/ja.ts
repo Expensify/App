@@ -5885,11 +5885,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         },
         copyPolicySettings: {
             error: 'ワークスペース設定のコピー中にエラーが発生しました。もう一度お試しください。',
-        },
-        copySettings: {
             title: '設定をコピー',
             selectWorkspaces: 'ワークスペースを選択',
-            whichWorkspaces: 'どのワークスペースに設定をコピーしますか？',
+            description: '設定をコピーしたいワークスペースを選び、続いてコピーする設定を選択してください。',
             searchPlaceholder: 'ワークスペースを検索',
         },
         emptyWorkspace: {

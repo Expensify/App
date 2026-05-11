@@ -5839,11 +5839,9 @@ ${amount} para ${merchant} - ${date}`,
         },
         copyPolicySettings: {
             error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Inténtalo de nuevo.',
-        },
-        copySettings: {
             title: 'Copiar configuración',
             selectWorkspaces: 'Selecciona espacios de trabajo',
-            whichWorkspaces: '¿A qué espacios de trabajo quieres copiar esta configuración?',
+            description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que deseas copiar.',
             searchPlaceholder: 'Buscar espacios de trabajo',
         },
         emptyWorkspace: {

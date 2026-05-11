@@ -5982,11 +5982,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         },
         copyPolicySettings: {
             error: 'Une erreur s’est produite lors de la copie des paramètres de l’espace de travail. Veuillez réessayer.',
-        },
-        copySettings: {
             title: 'Copier les paramètres',
             selectWorkspaces: 'Sélectionner des espaces de travail',
-            whichWorkspaces: 'Vers quels espaces de travail voulez-vous copier ces paramètres?',
+            description: 'Choisissez les espaces de travail vers lesquels copier les paramètres, puis sélectionnez les paramètres à copier.',
             searchPlaceholder: 'Rechercher des espaces de travail',
         },
         emptyWorkspace: {

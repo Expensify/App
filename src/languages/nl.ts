@@ -5932,11 +5932,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         },
         copyPolicySettings: {
             error: 'Er is een fout opgetreden bij het kopiëren van de werkruimte-instellingen. Probeer het opnieuw.',
-        },
-        copySettings: {
             title: 'Instellingen kopiëren',
             selectWorkspaces: 'Werkruimtes selecteren',
-            whichWorkspaces: 'Naar welke werkruimtes wil je deze instellingen kopiëren?',
+            description: 'Kies de werkruimtes waar je instellingen naartoe wilt kopiëren en selecteer vervolgens de instellingen die je wilt kopiëren.',
             searchPlaceholder: 'Werkruimtes zoeken',
         },
         emptyWorkspace: {
