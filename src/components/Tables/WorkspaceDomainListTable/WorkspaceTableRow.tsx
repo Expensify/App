@@ -1,3 +1,4 @@
+import React from 'react';
 import Table from '@components/Table';
 import {WorkspaceRowData} from '.';
 
@@ -12,6 +13,10 @@ export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
         <Table.Row
             interactive
             rowIndex={rowIndex}
-        ></Table.Row>
+            onPress={item.action}
+            skeletonReasonAttributes={{context: 'WorkspaceRow'}}
+        >
+            {({hovered}) => <View></View>}
+        </Table.Row>
     );
 }

@@ -22,6 +22,7 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionList/types';
+import WorkspaceDomainListTable, {DomainRowData, WorkspaceRowData} from '@components/Tables/WorkspaceDomainListTable';
 import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -53,6 +54,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
@@ -529,6 +531,10 @@ function WorkspacesListPage() {
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
     const workspaces: WorkspaceItem[] = [];
+
+    const domainRows: DomainRowData[] = [];
+    const workspaceRows: WorkspaceRowData[] = [];
+
     if (!isEmptyObject(policies)) {
         const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
@@ -540,6 +546,7 @@ function WorkspacesListPage() {
             const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
             let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+
             if (isPolicyAdmin(policy, session?.email)) {
                 const indicator = reimbursementAccountBrickRoadIndicator ?? receiptUberBrickRoadIndicator;
 
@@ -558,46 +565,53 @@ function WorkspacesListPage() {
             }
 
             if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
+                const id = Object.keys(policy.policyDetailsForNonMembers).at(0) as string;
                 const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
-                const id = Object.keys(policy.policyDetailsForNonMembers).at(0);
-                workspaces.push({
-                    listItemType: 'workspace',
-                    title: policyInfo.name,
-                    icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
-                    disabled: true,
-                    ownerAccountID: policyInfo.ownerAccountID,
-                    type: policyInfo.type,
-                    iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                    iconFill: theme.textLight,
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
+
+                const policyOwnerAccountID = policyInfo.ownerAccountID;
+                const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+
+                workspaceRows.push({
                     policyID: id,
-                    role: CONST.POLICY.ROLE.USER,
+                    disabled: true,
                     errors: undefined,
+                    type: policyInfo.type,
+                    title: policyInfo.name,
+                    role: CONST.POLICY.ROLE.USER,
+                    ownerAccountID: policyOwnerAccountID,
+                    ownerLogin: ownerDetails ? ownerDetails.login : undefined,
+                    ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
+                    ownerName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : undefined,
+                    iconType: policyInfo?.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                    icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
                     action: () => null,
                     dismissError: () => null,
-                    isJoinRequestPending: true,
-                    keyForList: policyInfo.name,
                 });
             } else {
-                workspaces.push({
-                    listItemType: 'workspace',
+                const policyOwnerAccountID = policy.ownerAccountID;
+                const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+
+                workspaceRows.push({
+                    policyID: policy.id,
+                    disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    errors: policy.errors,
+                    type: policy.type,
                     title: policy.name,
+                    role: policy.role,
+                    ownerAccountID: policyOwnerAccountID,
+                    ownerLogin: ownerDetails ? ownerDetails.login : undefined,
+                    ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
+                    ownerName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : undefined,
+                    iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                    action: () => navigateToWorkspace(policy.id),
                     brickRoadIndicator,
                     pendingAction: policy.pendingAction,
-                    errors: policy.errors,
+                    action: () => navigateToWorkspace(policy.id),
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                    disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                    iconFill: theme.textLight,
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
-                    policyID: policy.id,
-                    ownerAccountID: policy.ownerAccountID,
-                    role: policy.role,
-                    type: policy.type,
-                    employeeList: policy.employeeList,
-                    keyForList: policy.name,
+                    // Missing
+                    // iconFill
+                    // fallbackIcon
+                    // employeeList
                 });
             }
         }
@@ -644,9 +658,10 @@ function WorkspacesListPage() {
         }
     }, [duplicateWorkspace?.policyID, isFocused, filteredWorkspaces]);
 
+    // JACK_TODO: Move to table
     const listHeaderComponent = (
         <>
-            {isLessThanMediumScreen && <View style={styles.mt3} />}
+            {/* {isLessThanMediumScreen && <View style={styles.mt3} />}
             {workspaces.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.common.findWorkspace')}
@@ -683,7 +698,7 @@ function WorkspacesListPage() {
                     </View>
                     <View style={[styles.workspaceRightColumn, styles.mr7]} />
                 </View>
-            )}
+            )} */}
         </>
     );
 
@@ -773,19 +788,9 @@ function WorkspacesListPage() {
                         />
                     </View>
                 ) : (
-                    <FlatList
-                        ref={flatlistRef}
-                        data={data}
-                        onScrollToIndexFailed={(info) => {
-                            flatlistRef.current?.scrollToOffset({
-                                offset: info.averageItemLength * info.index,
-                                animated: true,
-                            });
-                        }}
-                        renderItem={renderItem}
-                        ListHeaderComponent={listHeaderComponent}
-                        keyboardShouldPersistTaps="handled"
-                        contentContainerStyle={styles.pb20}
+                    <WorkspaceDomainListTable
+                        domains={[]}
+                        workspaces={workspaceRows}
                     />
                 )}
             </View>

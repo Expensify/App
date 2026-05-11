@@ -1,3 +1,4 @@
+import {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useRef} from 'react';
 import {ValueOf} from 'type-fest';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
@@ -6,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import WorkspaceRow from './WorkspaceTableRow';
 
 type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 
@@ -14,14 +16,16 @@ export type WorkspaceRowData = {
     icon: AvatarSource;
     disabled: boolean;
     policyID: string;
-    ownerAccountID: string;
-    ownerName: string;
-    ownerLogin: string;
-    ownerAvatar: AvatarSource;
+    ownerAccountID?: number;
+    ownerName?: string;
+    ownerLogin?: string;
+    ownerAvatar?: AvatarSource;
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
-    errors?: OnyxCommon.Errors | undefined;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: () => void;
     dismissError: () => void;
 };
@@ -43,7 +47,7 @@ type WorkspaceListTableProps = {
     workspaces: WorkspaceRowData[];
 };
 
-export default function WorkspaceListTable({domains, workspaces}: WorkspaceListTableProps) {
+export default function WorkspaceDomainListTable({domains, workspaces}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey>>(null);
@@ -77,7 +81,7 @@ export default function WorkspaceListTable({domains, workspaces}: WorkspaceListT
             return item1.title.localeCompare(item2.title) * orderMultiplier;
         }
 
-        if (activeSorting.columnKey === 'owner') {
+        if (activeSorting.columnKey === 'owner' && item1.ownerName && item2.ownerName) {
             return item1.ownerName.localeCompare(item2.ownerName) * orderMultiplier;
         }
 
@@ -93,11 +97,20 @@ export default function WorkspaceListTable({domains, workspaces}: WorkspaceListT
         return item.title.toLowerCase().includes(searchLowerCase);
     };
 
+    const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
+        return (
+            <WorkspaceRow
+                item={item}
+                rowIndex={index}
+            />
+        );
+    };
+
     return (
         <Table
             data={workspaces}
             columns={columns}
-            renderItem={() => <></>}
+            renderItem={renderItem}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             keyExtractor={(row) => row.policyID}
