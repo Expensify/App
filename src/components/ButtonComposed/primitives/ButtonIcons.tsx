@@ -45,24 +45,23 @@ function ButtonIconBase({src, style, hoverFill, fill}: ButtonIconProps) {
 
 function ButtonIconLeft({src, style, hoverFill, fill}: ButtonIconProps) {
     const styles = useThemeStyles();
-    const {size, isLoading} = useButtonContext();
+    const {isLoading} = useButtonContext();
 
     return (
         <ButtonIconBase
             {...{src, hoverFill, fill}}
-            style={[size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL || size === CONST.DROPDOWN_BUTTON_SIZE.SMALL ? styles.mr1 : styles.mr2, style, isLoading && styles.opacity0]}
+            style={[style, isLoading && styles.opacity0]}
         />
     );
 }
 
 function ButtonIconRight({src, style, hoverFill, fill}: ButtonIconProps) {
     const styles = useThemeStyles();
-    const {size} = useButtonContext();
 
     return (
         <ButtonIconBase
             {...{src, hoverFill, fill}}
-            style={[styles.mlAuto, size === CONST.DROPDOWN_BUTTON_SIZE.LARGE ? styles.pl2 : styles.pl1, style]}
+            style={[styles.mlAuto, style]}
         />
     );
 }

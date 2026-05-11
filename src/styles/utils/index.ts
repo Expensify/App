@@ -597,6 +597,16 @@ function getButtonSizeStyle(styles: ThemeStyles, size?: ButtonSizeValue): ViewSt
     return size ? sizeStyleMap[size] : undefined;
 }
 
+function getComposedButtonSizeStyle(styles: ThemeStyles, size: ButtonSizeValue): StyleProp<ViewStyle> {
+    const sizeStyleMap: Record<ButtonSizeValue, StyleProp<ViewStyle>> = {
+        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: [styles.buttonExtraSmall, {paddingHorizontal: styles.buttonExtraSmall.paddingHorizontal - 4}],
+        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: [styles.buttonSmall, {paddingHorizontal: styles.buttonSmall.paddingHorizontal - 4}],
+        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: [styles.buttonMedium, {paddingHorizontal: styles.buttonMedium.paddingHorizontal - 4}],
+        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: [styles.buttonLarge, {paddingHorizontal: styles.buttonLarge.paddingHorizontal - 4}],
+    };
+    return sizeStyleMap[size];
+}
+
 function getButtonPaddingStyle(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
     if (!size) {
         return hasIcon && !hasText ? {...styles.buttonMedium, ...styles.ph0} : undefined;
@@ -612,10 +622,10 @@ function getButtonPaddingStyle(styles: ThemeStyles, size?: ButtonSizeValue, hasI
     }
 
     const horizontalPaddingBySize: Record<ButtonSizeValue, ViewStyle> = {
-        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: hasIcon ? styles.pl2 : styles.pr2,
-        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: hasIcon ? styles.pl2 : styles.pr2,
-        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: hasIcon ? styles.pl3 : styles.pr3,
-        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: hasIcon ? styles.pl4 : styles.pr4,
+        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: hasIcon ? styles.pl2 : styles.pr2, // = getButtonSizeStyle(EXTRA_SMALL), doesn't change padding
+        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: hasIcon ? styles.pl2 : styles.pr2, // = getButtonSizeStyle(SMALL) - 4px padding on icon side
+        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: hasIcon ? styles.pl3 : styles.pr3, // = getButtonSizeStyle(MEDIUM) - 4px padding on icon side
+        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: hasIcon ? styles.pl4 : styles.pr4, // = getButtonSizeStyle(LARGE) - 4px padding on icon side
     };
     return horizontalPaddingBySize[size];
 }
@@ -1444,6 +1454,7 @@ const staticStyleUtils = {
     getIconWidthAndHeightStyle,
     getButtonStyleWithIcon,
     getButtonSizeStyle,
+    getComposedButtonSizeStyle,
     getButtonPaddingStyle,
     getButtonVariantStyles,
     getCharacterWidth,

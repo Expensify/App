@@ -85,7 +85,7 @@ function Button({
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getButtonSizeStyle(styles, size),
+            StyleUtils.getComposedButtonSizeStyle(styles, size),
             buttonVariantStyles,
             shouldRemoveBorderRadius ? borderRadiusStyles[shouldRemoveBorderRadius] : undefined,
             styles.alignItemsStretch,
@@ -176,7 +176,18 @@ function Button({
         >
             {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
             <ButtonContext.Provider value={contextValue}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, contentContainerStyle, styles.mw100]}>{children}</View>
+                <View
+                    style={[
+                        styles.flexRow,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                        contentContainerStyle,
+                        styles.mw100,
+                        (size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM || size === CONST.DROPDOWN_BUTTON_SIZE.LARGE) && styles.gap1,
+                    ]}
+                >
+                    {children}
+                </View>
             </ButtonContext.Provider>
             {isLoading && (
                 <ActivityIndicator

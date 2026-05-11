@@ -6,7 +6,6 @@ import {ButtonIconLeft, ButtonIconRight} from '@components/ButtonComposed/primit
 import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
 import type {BaseButtonProps, ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -78,8 +77,6 @@ function ButtonWithIcons({
     iconRightStyles = [],
 }: ButtonWithIconsProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const buttonPaddingStyle = StyleUtils.getButtonPaddingStyle(styles, size, !!iconLeft, text?.length > 0, !!iconRight);
     return (
         <Button
             contentContainerStyle={contentContainerStyle}
@@ -94,7 +91,7 @@ function ButtonWithIcons({
             onMouseDown={onMouseDown}
             style={style}
             disabledStyle={disabledStyle}
-            innerStyles={[buttonPaddingStyle, innerStyles]}
+            innerStyles={innerStyles}
             shouldUseDefaultHover={shouldUseDefaultHover}
             variant={variant}
             shouldRemoveBorderRadius={shouldRemoveBorderRadius}
@@ -126,7 +123,7 @@ function ButtonWithIcons({
                     src={iconLeft}
                     fill={iconLeftFill}
                     hoverFill={iconLeftHoverFill}
-                    style={[!text && styles.mr0, iconLeftStyles]}
+                    style={iconLeftStyles}
                 />
             )}
             {secondLineText ? (
