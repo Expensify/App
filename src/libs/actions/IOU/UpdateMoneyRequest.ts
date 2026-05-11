@@ -940,10 +940,12 @@ function addOptimisticSmartScanModifiedAmountViolation({
         return transactionViolations.filter((v) => !isSmartScanModifiedAmount(v));
     }
 
-    const withoutSmartScanModifiedAmount = transactionViolations.filter((v) => !isSmartScanModifiedAmount(v));
+    if (transactionViolations.some(isSmartScanModifiedAmount)) {
+        return transactionViolations;
+    }
 
     return [
-        ...withoutSmartScanModifiedAmount,
+        ...transactionViolations,
         {
             name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
             type: CONST.VIOLATION_TYPES.NOTICE,
