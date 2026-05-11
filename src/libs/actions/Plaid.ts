@@ -7,7 +7,7 @@ import {getCompanyCardFeed} from '@libs/CardUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithDomainID, StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -59,7 +59,7 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
  */
-function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID, isPersonal?: boolean) {
+function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID, isPersonal?: boolean, cardID?: string) {
     const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
 
     const params: OpenPlaidCompanyCardLoginParams = {
@@ -69,6 +69,7 @@ function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: Card
         domain,
         isPersonal,
         feed: feed ? getCompanyCardFeed(feed) : undefined,
+        cardID,
     };
 
     const optimisticData = [
@@ -146,8 +147,6 @@ function importPlaidAccounts(
     country: string,
     domainName: string,
     plaidAccounts: string,
-    statementPeriodEnd: StatementPeriodEnd | undefined,
-    statementPeriodEndDay: StatementPeriodEndDay | undefined,
     plaidAccessToken: string | undefined,
 ) {
     const parameters: ImportPlaidAccountsParams = {
@@ -157,8 +156,6 @@ function importPlaidAccounts(
         country,
         domainName,
         plaidAccounts,
-        statementPeriodEnd,
-        statementPeriodEndDay,
         plaidAccessToken,
     };
 

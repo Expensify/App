@@ -19,6 +19,7 @@ import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-a
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
+import BankLock from '@assets/images/bank-lock.svg';
 import Bank from '@assets/images/bank.svg';
 import Basket from '@assets/images/basket.svg';
 import BedCircleSlash from '@assets/images/bed-circle-slash.svg';
@@ -36,6 +37,7 @@ import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
+import CameraFlip from '@assets/images/camera-flip.svg';
 import Camera from '@assets/images/camera.svg';
 import CarCircleSlash from '@assets/images/car-circle-slash.svg';
 import CarPlus from '@assets/images/car-plus.svg';
@@ -278,6 +280,7 @@ const Expensicons = {
     AttachmentNotFound,
     BackArrow,
     Bank,
+    BankLock,
     Basket,
     CircularArrowBackwards,
     Bill,
@@ -292,6 +295,7 @@ const Expensicons = {
     Buildings,
     Calendar,
     Camera,
+    CameraFlip,
     Car,
     CarPlus,
     Cash,
