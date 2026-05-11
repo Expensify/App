@@ -148,9 +148,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     );
 
     const lastAction = allReportActions?.at(-1);
-    const isInitiallyLoadingTransactionThread = isReportTransactionThread && (!!isLoadingInitialReportActions || (allReportActions ?? [])?.length <= 1);
-
-    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isInitiallyLoadingTransactionThread || isConciergeSidePanel);
+    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeSidePanel);
 
     useEffect(() => {
         // When we linked to message - we do not need to wait for initial actions - they already exists
