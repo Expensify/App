@@ -53,9 +53,6 @@ type WorkspaceCompanyCardTableRowProps = {
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableLayout: boolean;
 
-    /** Number of columns in the table */
-    columnCount: number;
-
     /** The index of the row */
     rowIndex: number;
 
@@ -67,16 +64,7 @@ type WorkspaceCompanyCardTableRowProps = {
     onAssignCard: (cardName: string, cardID: string) => void;
 };
 
-function WorkspaceCompanyCardTableRow({
-    item,
-    policyID,
-    CardFeedIcon,
-    shouldUseNarrowTableLayout,
-    columnCount,
-    rowIndex,
-    isAssigningCardDisabled,
-    onAssignCard,
-}: WorkspaceCompanyCardTableRowProps) {
+function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNarrowTableLayout, rowIndex, isAssigningCardDisabled, onAssignCard}: WorkspaceCompanyCardTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -142,17 +130,7 @@ function WorkspaceCompanyCardTableRow({
                 onPress={handleRowPress}
             >
                 {({hovered}) => (
-                    <View
-                        style={[
-                            styles.flex1,
-                            styles.flexRow,
-                            styles.alignItemsCenter,
-                            styles.gap3,
-                            styles.dFlex,
-                            // Use Grid on web when available (will override flex if supported)
-                            !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
-                        ]}
-                    >
+                    <>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             {isAssigned ? (
                                 <ReportActionAvatars
@@ -222,7 +200,7 @@ function WorkspaceCompanyCardTableRow({
                                 height={variables.iconSizeNormal}
                             />
                         </View>
-                    </View>
+                    </>
                 )}
             </Table.Row>
         </OfflineWithFeedback>

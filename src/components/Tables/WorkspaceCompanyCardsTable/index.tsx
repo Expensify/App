@@ -295,7 +295,6 @@ function WorkspaceCompanyCardsTable({
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-            columnCount={columns.length}
         />
     );
 
