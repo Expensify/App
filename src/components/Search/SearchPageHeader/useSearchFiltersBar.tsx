@@ -22,7 +22,6 @@ import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFilte
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import DatePickerFilterPopup from './DatePickerFilterPopup';
-import SearchFiltersClearButton from './SearchFiltersClearButton';
 
 type FilterItem = WithSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
@@ -31,9 +30,9 @@ type FilterItem = WithSentryLabel & {
 
 type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
-    ClearFiltersButton: ReactNode | null;
     hasErrors: boolean;
     shouldShowFiltersBarLoading: boolean;
+    clearFilters: () => void;
 };
 
 type FilterPopupProps = {
@@ -179,9 +178,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
 
     return {
         filters,
-        ClearFiltersButton: filters.length > 0 ? <SearchFiltersClearButton onPress={clearFilters} /> : null,
         hasErrors: Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline,
         shouldShowFiltersBarLoading,
+        clearFilters,
     };
 }
 
