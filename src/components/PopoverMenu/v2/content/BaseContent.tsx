@@ -15,6 +15,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import {ContentCloseContext, ContentFocusContext, ContentItemActionsContext, ContentNavigationContext, ContentSubActionsContext} from './ContentContext';
+import DismissButton from './DismissButton';
 import useContentController from './useContentController';
 
 type BasePopoverProps = {
@@ -116,6 +117,7 @@ function BaseContentInner({
                                                 containerStyles,
                                             ]}
                                         >
+                                            <DismissButton onPress={close} />
                                             {children}
                                         </View>
                                     </ContentCloseContext.Provider>
