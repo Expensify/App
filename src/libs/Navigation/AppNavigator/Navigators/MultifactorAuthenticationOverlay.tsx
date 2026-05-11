@@ -41,6 +41,8 @@ function TransparentScreen() {
     );
 }
 
+TransparentScreen.displayName = 'TransparentScreen';
+
 const overlayStyles = StyleSheet.create({
     root: {
         zIndex: variables.mfaOverlayZIndex,
