@@ -266,9 +266,9 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
-    const {superWideRHPRouteKeys} = useWideRHPState();
-    // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
-    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
+    // When SearchReport is stacked above another RHP (wide or super-wide), delay autofocus until after the transition completes to avoid animation jank
+    const shouldDelayAutoFocus = (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
@@ -585,7 +585,6 @@ function ComposerWithSuggestions({
                 syncSelectionWithOnChangeTextRef.current = null;
 
                 // ensure that selection is set imperatively after all state changes are effective
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     // note: this implementation is only available on non-web RN, thus the wrapping
                     // 'if' block contains a redundant (since the ref is only used on iOS) platform check
@@ -657,7 +656,6 @@ function ComposerWithSuggestions({
         }
         delayedAutoFocusRouteKeyRef.current = route.key;
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const task = InteractionManager.runAfterInteractions(() => {
             focus(true);
         });
