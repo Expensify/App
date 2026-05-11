@@ -21,6 +21,7 @@ import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -121,6 +122,11 @@ type UseExpenseSubmissionParams = {
 
     // Navigation
     backToReport?: string;
+};
+
+type SendMoneyReportIDs = {
+    optimisticChatReportID: string | undefined;
+    chatReportID: string | undefined;
 };
 
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
@@ -544,6 +550,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (!transaction) {
             return;
         }
+        const shouldDeferForSearch = iouType === CONST.IOU.TYPE.SPLIT && !shouldHandleNav && isSearchTopmostFullScreenRoute();
 
         createDistanceRequestIOUActions({
             report,
@@ -592,6 +599,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             recentWaypoints,
             betas,
             shouldHandleNavigation: shouldHandleNav,
+            shouldDeferForSearch,
             previousOdometerDraft: odometerDraft,
         });
     }
@@ -632,10 +640,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
+        const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
 
-        // Split (startSplitBill, splitBill, splitBillAndOpenReport) flows handle their own
-        // navigation internally and don't participate in the dismiss-modal fast path.
-        // shouldHandleNavigation is not threaded through to them.
+        // Split flows usually navigate to the destination report internally, but dismiss-first
+        // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
         if (iouType === CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).filter((receipt) => !!receipt).length) {
             const currentUserLogin = currentUserPersonalDetails.login;
             if (currentUserLogin) {
@@ -668,6 +676,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         quickAction,
                         policyRecentlyUsedCurrencies,
                         participantsPolicyTags,
+                        shouldHandleNavigation,
+                        shouldDeferForSearch: shouldDeferSplitForSearch,
                     });
                 }
             }
@@ -706,6 +716,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    shouldHandleNavigation,
+                    shouldDeferForSearch: shouldDeferSplitForSearch,
                 });
             }
             markSubmitExpenseEnd();
@@ -741,6 +753,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    shouldHandleNavigation,
+                    shouldDeferForSearch: shouldDeferSplitForSearch,
                 });
             }
             markSubmitExpenseEnd();
@@ -836,7 +850,13 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         markSubmitExpenseEnd();
     }
 
-    function sendMoney(paymentMethod: PaymentMethodType | undefined) {
+    function sendMoney(
+        paymentMethod: PaymentMethodType | undefined,
+        shouldHandleNavigation = true,
+        resolvedReportIDs?: SendMoneyReportIDs,
+        shouldStartTracking = true,
+        shouldDeferForSearch = false,
+    ) {
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const participant = participants?.at(0);
@@ -845,7 +865,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+        const {optimisticChatReportID, chatReportID} =
+            resolvedReportIDs ?? resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
         const sendMoneyParams = {
             report,
             quickAction,
@@ -858,6 +879,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             merchant: transaction.merchant,
             receipt: receiptFiles[transaction.transactionID],
             optimisticChatReportID,
+            shouldStartTracking,
+            shouldDeferForSearch,
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
@@ -869,7 +892,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         } else {
             return;
         }
-        dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
+        if (shouldHandleNavigation) {
+            dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
+        }
     }
 
     return {createTransaction, sendMoney, isConfirmed, formHasBeenSubmitted};

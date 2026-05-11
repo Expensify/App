@@ -25,6 +25,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     calculateDefaultReimbursable,
@@ -35,10 +36,13 @@ import {
     resolveOptimisticChatReportID,
 } from '@libs/IOUUtils';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU';
@@ -265,13 +269,85 @@ function IOURequestStepAmount({
                         currentUserAccountID: currentUserAccountIDParam,
                         recipient: participants.at(0) ?? {},
                         optimisticChatReportID,
+                        shouldStartTracking: false,
                     };
-                    if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        sendMoneyWithWallet(sendMoneyParams);
-                    } else {
-                        sendMoneyElsewhere(sendMoneyParams);
+
+                    const startSendMoneyTracking = (
+                        followUpAction: typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                        pendingReportID?: string,
+                    ) => {
+                        startTracking(
+                            {
+                                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+                                iouType: CONST.IOU.TYPE.PAY,
+                                requestType: 'pay',
+                                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                                hasReceipt: false,
+                            },
+                            {skipSubmitExpenseSpan: true},
+                        );
+                        setFastPath(
+                            followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
+                                ? CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT
+                                : CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL,
+                            CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST,
+                        );
+                        setPendingSubmitFollowUpAction(followUpAction, pendingReportID);
+                    };
+
+                    const submitSendMoney = () => {
+                        if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                            sendMoneyWithWallet(sendMoneyParams);
+                        } else {
+                            sendMoneyElsewhere(sendMoneyParams);
+                        }
+                    };
+
+                    const isReportSplitTopmost = isReportTopmostSplitNavigator();
+                    const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
+                    const isDestinationAlreadyTopmost = isReportSplitTopmost && Navigation.getTopmostReportId() === chatReportID;
+                    const isDestinationReportLoaded = !!chatReportID && !!getReportOrDraftReport(chatReportID)?.reportID;
+                    if (!chatReportID) {
+                        if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                            sendMoneyWithWallet({...sendMoneyParams, shouldStartTracking: true});
+                        } else {
+                            sendMoneyElsewhere({...sendMoneyParams, shouldStartTracking: true});
+                        }
+                        dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
+                        return;
                     }
-                    dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
+
+                    if (shouldStayOnSearch) {
+                        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                        startSendMoneyTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+                        Navigation.dismissModal({
+                            afterTransition: () => {
+                                if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                                    sendMoneyWithWallet({...sendMoneyParams, shouldDeferForSearch: true});
+                                } else {
+                                    sendMoneyElsewhere({...sendMoneyParams, shouldDeferForSearch: true});
+                                }
+                            },
+                        });
+                        return;
+                    }
+
+                    startSendMoneyTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, chatReportID);
+
+                    if (isDestinationAlreadyTopmost) {
+                        Navigation.dismissModal({afterTransition: submitSendMoney});
+                        return;
+                    }
+
+                    if (!isDestinationReportLoaded) {
+                        submitSendMoney();
+                        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
+                        return;
+                    }
+
+                    Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(chatReportID), {
+                        afterTransition: submitSendMoney,
+                    });
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {

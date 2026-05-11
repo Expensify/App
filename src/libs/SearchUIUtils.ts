@@ -2070,7 +2070,7 @@ function getTransactionsSections({
         let shouldShow = true;
 
         const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`);
-        if (currentQueryJSON && !isActionLoading) {
+        if (currentQueryJSON && !isActionLoading && transactionItem.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 const status = currentQueryJSON.status;
                 if (Array.isArray(status)) {

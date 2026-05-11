@@ -36,12 +36,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU';
 import {isMobileSafari} from '@libs/Browser';
+import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
+    resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
@@ -55,6 +57,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
+import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getRequestType,
@@ -74,6 +77,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -432,8 +436,9 @@ function IOURequestStepConfirmation({
 
     // handleSearchDismiss doesn't pre-insert - it just dismisses the modal when search is
     // already on top. This is safe for per-diem TRACK (which navigates to self-DM, but when
-    // search is on top dismissModalAndOpenReportInInboxTab only dismisses). SPLIT/PAY still
-    // can't use it because their navigation is coupled to the action function.
+    // search is on top dismissModalAndOpenReportInInboxTab only dismisses). SPLIT/PAY need
+    // dedicated handling because they preserve Search from Spend but reveal a report from
+    // other tabs.
     const canDismissFromSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const hasPreInsertFired = useRef(false);
@@ -457,11 +462,9 @@ function IOURequestStepConfirmation({
         // pushing a duplicate route (which would require an extra back press).
 
         // Only eligible when search pre-insert didn't win, and the flow ends at a report (not Search).
-        // Split flows handle their own dismiss/navigation, so pre-inserting would cause double navigation.
         // When Search is the topmost fullscreen and there's no report context (e.g. QAB from Spend tab),
         // pre-inserting a report is wrong - the user should stay on Search after submission.
-        const isSplitRequest = iouType === CONST.IOU.TYPE.SPLIT;
-        const canUseReportPreInsert = !isSplitRequest && !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isFromGlobalCreate && !isSearchTopmostFullScreenRoute()));
+        const canUseReportPreInsert = !shouldPreInsertSearch && (isReportTopmostSplitNavigator() || (!isFromGlobalCreate && !isSearchTopmostFullScreenRoute()));
 
         // RHP has its own dismiss handler; pre-inserting under it would break the stack.
         const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
@@ -507,6 +510,79 @@ function IOURequestStepConfirmation({
         // the original destination, and the submit handler will navigate correctly regardless.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTransactionReady, destinationReportID]);
+
+    const handleSendMoney = useCallback(
+        (paymentMethod: PaymentMethodType | undefined) => {
+            if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && paymentMethod !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                sendMoney(paymentMethod);
+                return;
+            }
+
+            const participant = participants.at(0);
+            if (!participant) {
+                sendMoney(paymentMethod);
+                return;
+            }
+
+            const resolvedReportIDs = resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+            const payDestinationReportID = destinationReportID ?? resolvedReportIDs.chatReportID;
+            const isDestinationAlreadyTopmost = Navigation.getTopmostReportId() === payDestinationReportID;
+            const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
+            if (!payDestinationReportID || isDestinationAlreadyTopmost) {
+                sendMoney(paymentMethod, true, resolvedReportIDs);
+                return;
+            }
+
+            if (shouldStayOnSearch) {
+                reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                startTracking(
+                    {
+                        scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+                        iouType: CONST.IOU.TYPE.PAY,
+                        requestType: 'pay',
+                        isFromGlobalCreate: !report?.reportID,
+                        hasReceipt: !!transaction?.receipt,
+                    },
+                    {skipSubmitExpenseSpan: true},
+                );
+                setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
+                setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+                Navigation.dismissModal({
+                    afterTransition: () => {
+                        sendMoney(paymentMethod, false, resolvedReportIDs, false, true);
+                    },
+                });
+                return;
+            }
+
+            startTracking(
+                {
+                    scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+                    iouType: CONST.IOU.TYPE.PAY,
+                    requestType: 'pay',
+                    isFromGlobalCreate: !report?.reportID,
+                    hasReceipt: !!transaction?.receipt,
+                },
+                {skipSubmitExpenseSpan: true},
+            );
+            setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
+            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, payDestinationReportID);
+
+            const isDestinationReportLoaded = !!getReportOrDraftReport(payDestinationReportID)?.reportID;
+            if (!isDestinationReportLoaded) {
+                sendMoney(paymentMethod, false, resolvedReportIDs, false);
+                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(payDestinationReportID));
+                return;
+            }
+
+            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(payDestinationReportID), {
+                afterTransition: () => {
+                    sendMoney(paymentMethod, false, resolvedReportIDs, false);
+                },
+            });
+        },
+        [currentUserPersonalDetails.accountID, destinationReportID, participants, report, sendMoney, transaction?.receipt],
+    );
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -806,7 +882,7 @@ function IOURequestStepConfirmation({
                                 }}
                                 onToggleBillable={setBillable}
                                 onConfirm={onConfirm}
-                                onSendMoney={sendMoney}
+                                onSendMoney={handleSendMoney}
                                 showRemoveExpenseConfirmModal={() => {
                                     confirmRemoveCurrentTransaction();
                                 }}

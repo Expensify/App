@@ -37,7 +37,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 // eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isCreatedTaskReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getNonHeldAndFullAmount, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
@@ -242,6 +242,7 @@ function Search({
     // cleared when the server-confirmed version arrives (pendingAction !== ADD).
     const hasPendingWriteOnMountRef = useRef(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
     const optimisticWatchKeyRef = useRef(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
+    const [optimisticWatchKey, setOptimisticWatchKey] = useState(() => getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
     const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
 
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMountRef.current);
@@ -262,18 +263,19 @@ function Search({
         optimisticTrackingCleanedUpRef.current = true;
         cachedOptimisticItemRef.current = null;
         optimisticWatchKeyRef.current = undefined;
+        setOptimisticWatchKey(undefined);
         setShowPendingExpensePlaceholder(false);
         setIsOptimisticTrackingCleared(true);
     }, []);
 
     // Safety timeout: if the optimistic lifecycle hasn't resolved within 10s
     // (e.g. API failure, offline, item never reaches sortedData), clear the
-    // skeleton placeholder so the UI doesn't get stuck. The stableSortedData
-    // cache (cachedOptimisticItemRef) is intentionally kept alive so the item
-    // stays visible at its sorted position until server-confirmed data arrives;
-    // clearOptimisticTracking handles that cleanup when pendingAction !== ADD.
-    // Re-fires when showPendingExpensePlaceholder is re-armed (subsequent expense
-    // creation while Search stays mounted) so each cycle gets a fresh safety net.
+    // skeleton placeholder so the UI doesn't get stuck. This is tied to the
+    // placeholder state, not only the initial mount, because Search can stay
+    // mounted while a later submit flow re-arms the placeholder on focus.
+    // The stableSortedData cache (cachedOptimisticItemRef) is intentionally kept
+    // alive so the item stays visible at its sorted position until server-confirmed
+    // data arrives; clearOptimisticTracking handles that cleanup when pendingAction !== ADD.
     useEffect(() => {
         if (!showPendingExpensePlaceholder) {
             return;
@@ -353,6 +355,20 @@ function Search({
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
+    useEffect(() => {
+        if (optimisticWatchKey || isOptimisticTrackingCleared || !hasPendingWriteOnMountRef.current) {
+            return;
+        }
+
+        const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        if (!latestKey) {
+            return;
+        }
+
+        optimisticWatchKeyRef.current = latestKey;
+        requestAnimationFrame(() => setOptimisticWatchKey(latestKey));
+    }, [isOptimisticTrackingCleared, optimisticWatchKey, showPendingExpensePlaceholder, transactions]);
+
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -360,6 +376,47 @@ function Search({
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         selector: selectFilteredReportActions,
     });
+
+    const searchDataWithOptimisticTransaction = useMemo(() => {
+        const searchData = searchResults?.data;
+        if (!searchData || !isTransactionSearchType(type) || !optimisticWatchKey || isOptimisticTrackingCleared) {
+            return searchData;
+        }
+
+        const optimisticTransactionKey = optimisticWatchKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)
+            ? (optimisticWatchKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`)
+            : undefined;
+        const optimisticTransaction = optimisticTransactionKey ? transactions?.[optimisticTransactionKey] : undefined;
+        if (!optimisticTransactionKey || !optimisticTransaction?.transactionID || searchData[optimisticTransactionKey]) {
+            return searchData;
+        }
+
+        const nextSearchData = {
+            ...searchData,
+            [optimisticTransactionKey]: optimisticTransaction,
+        } as SearchResults['data'];
+
+        for (const [reportActionsKey, actions] of Object.entries(reportActions ?? {})) {
+            if (!actions) {
+                continue;
+            }
+
+            const hasOptimisticTransactionAction = Object.values(actions).some((action) => {
+                if (!isMoneyRequestAction(action)) {
+                    return false;
+                }
+                const originalMessage = getOriginalMessage(action);
+                return originalMessage?.IOUTransactionID === optimisticTransaction.transactionID;
+            });
+            if (!hasOptimisticTransactionAction) {
+                continue;
+            }
+
+            nextSearchData[reportActionsKey as `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`] = actions;
+        }
+
+        return nextSearchData;
+    }, [isOptimisticTrackingCleared, optimisticWatchKey, reportActions, searchResults?.data, transactions, type]);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
@@ -577,7 +634,7 @@ function Search({
     const prevIsSearchResultEmpty = usePrevious(isSearchResultsEmpty);
 
     const {baseFilteredData, filteredDataLength, allDataLength, hasDeletedTransaction} = useMemo(() => {
-        if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded || !searchResults.data) {
+        if (shouldDeferHeavySearchWork || searchResults === undefined || !isDataLoaded || !searchDataWithOptimisticTransaction) {
             return {baseFilteredData: [], filteredDataLength: 0, allDataLength: 0, hasDeletedTransaction: false};
         }
 
@@ -590,7 +647,7 @@ function Search({
 
         const [filteredData1, allLength, hasDeletedTransactionFromSections] = getSections({
             type,
-            data: searchResults.data,
+            data: searchDataWithOptimisticTransaction,
             policies,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
@@ -626,6 +683,7 @@ function Search({
         validGroupBy,
         isDataLoaded,
         shouldDeferHeavySearchWork,
+        searchDataWithOptimisticTransaction,
         searchResults,
         type,
         archivedReportsIdSet,
@@ -1364,25 +1422,23 @@ function Search({
             return;
         }
 
-        // The watch key may not be available at mount when the deferred write channel
-        // was only reserved (fast path: rAF hasn't fired yet). Try to resolve it lazily
-        // on each sortedData change. If data arrives before we ever get a key (e.g. the
-        // channel was flushed between renders), clear tracking since the list is populated.
+        // The watch key may not be available when the deferred write channel was only
+        // reserved. Search can already be populated with stale rows, so keep waiting
+        // until the real write registers and exposes the optimistic transaction key.
         if (!optimisticWatchKeyRef.current) {
             const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
             if (latestKey) {
                 optimisticWatchKeyRef.current = latestKey;
-            } else if (sortedData.length > 0) {
-                clearOptimisticTracking();
-                return;
-            } else {
-                return;
+                requestAnimationFrame(() => setOptimisticWatchKey(latestKey));
             }
+            return;
         }
 
+        const optimisticWatchKeyFromRef = optimisticWatchKeyRef.current;
         const optimisticItem = sortedData.find(
-            (item): item is TransactionListItemType => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current,
+            (item): item is TransactionListItemType => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyFromRef,
         );
+        const isOptimisticItemInSearchSnapshot = !!optimisticWatchKeyFromRef && !!searchResults?.data?.[optimisticWatchKeyFromRef as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`];
         if (optimisticItem) {
             if (rollbackTimeoutRef.current) {
                 clearTimeout(rollbackTimeoutRef.current);
@@ -1394,16 +1450,16 @@ function Search({
             cachedOptimisticItemRef.current = optimisticItem;
             cachedOptimisticItemIndexRef.current = sortedData.indexOf(optimisticItem);
 
-            if (optimisticItem.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            if (optimisticItem.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isOptimisticItemInSearchSnapshot) {
                 clearOptimisticTracking();
             }
-        } else if (cachedOptimisticItemRef.current && !rollbackTimeoutRef.current) {
+        } else if (cachedOptimisticItemRef.current && isOptimisticItemInSearchSnapshot && !rollbackTimeoutRef.current) {
             rollbackTimeoutRef.current = setTimeout(() => {
                 rollbackTimeoutRef.current = undefined;
                 clearOptimisticTracking();
             }, OPTIMISTIC_ROLLBACK_GRACE_MS);
         }
-    }, [sortedData, clearOptimisticTracking]);
+    }, [sortedData, clearOptimisticTracking, searchResults?.data]);
 
     // Re-inject the cached optimistic item when a stale snapshot temporarily removes it
     // from sortedData. Once the item is back (real data), this is a no-op.
@@ -1589,6 +1645,7 @@ function Search({
                 cachedOptimisticItemRef.current = null;
                 const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
                 optimisticWatchKeyRef.current = latestKey;
+                setOptimisticWatchKey(latestKey);
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');

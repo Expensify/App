@@ -6,6 +6,7 @@ import * as API from '@libs/API';
 import type {SendMoneyParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
@@ -19,7 +20,7 @@ import {
     getParsedComment,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {startTracking} from '@libs/telemetry/submitFollowUpAction';
+import {addOptimization, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import {notifyNewAction} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -493,9 +494,25 @@ type SendMoneyActionParams = {
     merchant?: string;
     receipt?: Receipt;
     optimisticChatReportID?: string;
+    shouldStartTracking?: boolean;
+    shouldDeferForSearch?: boolean;
 };
 
-function sendMoneyElsewhere({report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID}: SendMoneyActionParams) {
+function sendMoneyElsewhere({
+    report,
+    quickAction,
+    amount,
+    currency,
+    comment,
+    currentUserAccountID,
+    recipient,
+    created,
+    merchant,
+    receipt,
+    optimisticChatReportID,
+    shouldStartTracking = true,
+    shouldDeferForSearch = false,
+}: SendMoneyActionParams) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
         quickAction,
@@ -511,23 +528,48 @@ function sendMoneyElsewhere({report, quickAction, amount, currency, comment, cur
         optimisticChatReportID,
         currentUserAccountID,
     });
-    startTracking(
-        {
-            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
-            iouType: CONST.IOU.TYPE.PAY,
-            requestType: 'pay',
-            isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
-            hasReceipt: !!receipt,
-        },
-        {skipSubmitExpenseSpan: true},
-    );
+    if (shouldStartTracking) {
+        startTracking(
+            {
+                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+                iouType: CONST.IOU.TYPE.PAY,
+                requestType: 'pay',
+                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                hasReceipt: !!receipt,
+            },
+            {skipSubmitExpenseSpan: true},
+        );
+    }
     playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
+    deferOrExecuteWrite(
+        () => {
+            API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
+        },
+        {
+            shouldDeferForSearch,
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        },
+    );
 
     notifyNewAction(params.chatReportID, undefined, true);
 }
 
-function sendMoneyWithWallet({report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID}: SendMoneyActionParams) {
+function sendMoneyWithWallet({
+    report,
+    quickAction,
+    amount,
+    currency,
+    comment,
+    currentUserAccountID,
+    recipient,
+    created,
+    merchant,
+    receipt,
+    optimisticChatReportID,
+    shouldStartTracking = true,
+    shouldDeferForSearch = false,
+}: SendMoneyActionParams) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
         quickAction,
@@ -543,18 +585,29 @@ function sendMoneyWithWallet({report, quickAction, amount, currency, comment, cu
         optimisticChatReportID,
         currentUserAccountID,
     });
-    startTracking(
-        {
-            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
-            iouType: CONST.IOU.TYPE.PAY,
-            requestType: 'pay',
-            isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
-            hasReceipt: !!receipt,
-        },
-        {skipSubmitExpenseSpan: true},
-    );
+    if (shouldStartTracking) {
+        startTracking(
+            {
+                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+                iouType: CONST.IOU.TYPE.PAY,
+                requestType: 'pay',
+                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                hasReceipt: !!receipt,
+            },
+            {skipSubmitExpenseSpan: true},
+        );
+    }
     playSound(SOUNDS.DONE);
-    API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
+    deferOrExecuteWrite(
+        () => {
+            API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
+        },
+        {
+            shouldDeferForSearch,
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        },
+    );
 
     notifyNewAction(params.chatReportID, undefined, true);
 }

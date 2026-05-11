@@ -6,7 +6,7 @@ const BASE_SNAPSHOT: SubmitNavigationSnapshot = {
     isReportPreInserted: false,
     isFromGlobalCreate: false,
     canDismissFromSearch: false,
-    isSplitRequest: false,
+    dismissesToReport: false,
     destinationReportID: undefined,
     isReportInRHP: false,
     isReportTopmostSplit: false,
@@ -64,6 +64,20 @@ describe('getSubmitHandler', () => {
         ).toBe(SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS);
     });
 
+    it('returns REPORT_IN_RHP_DISMISS for report-dismissing flows when report is in RHP', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    dismissesToReport: true,
+                    isReportInRHP: true,
+                    destinationReportID: '456',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS);
+    });
+
     it('falls through to DEFAULT when report is in RHP but no destinationReportID', () => {
         expect(
             getSubmitHandler(
@@ -111,6 +125,46 @@ describe('getSubmitHandler', () => {
                     isFromGlobalCreate: true,
                     canDismissFromSearch: false,
                     isSearchTopmostFullScreen: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DEFAULT);
+    });
+
+    it('returns DISMISS_TO_REPORT for global create flows that dismiss to a loaded destination report', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    dismissesToReport: true,
+                    destinationReportID: '456',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DISMISS_TO_REPORT);
+    });
+
+    it('returns DISMISS_MODAL for global create report-dismissing flows from Search/Spend', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    dismissesToReport: true,
+                    isSearchTopmostFullScreen: true,
+                    destinationReportID: '456',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DISMISS_MODAL);
+    });
+
+    it('returns DEFAULT for global create report-dismissing flows when destination report is not loaded', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    dismissesToReport: true,
+                    destinationReportID: '456',
+                    isDestinationReportLoaded: false,
                 }),
             ),
         ).toBe(SUBMIT_HANDLER.DEFAULT);
@@ -209,15 +263,15 @@ describe('canUseDismissModalFastPath', () => {
         ).toBe(true);
     });
 
-    it('returns false for split requests even when other conditions are met', () => {
+    it('returns true for report-dismissing requests when other conditions are met', () => {
         expect(
             canUseDismissModalFastPath(
                 snap({
-                    isSplitRequest: true,
+                    dismissesToReport: true,
                     destinationReportID: '123',
                     isDestinationReportLoaded: true,
                 }),
             ),
-        ).toBe(false);
+        ).toBe(true);
     });
 });

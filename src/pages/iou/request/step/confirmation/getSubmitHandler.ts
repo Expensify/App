@@ -2,6 +2,7 @@ const SUBMIT_HANDLER = {
     SEARCH_PRE_INSERT: 'searchPreInsert',
     REPORT_PRE_INSERT: 'reportPreInsert',
     DISMISS_MODAL: 'dismissModal',
+    DISMISS_TO_REPORT: 'dismissToReport',
     REPORT_IN_RHP_DISMISS: 'reportInRHPDismiss',
     SEARCH_DISMISS: 'searchDismiss',
     DEFAULT: 'default',
@@ -14,7 +15,7 @@ type SubmitNavigationSnapshot = {
     isReportPreInserted: boolean;
     isFromGlobalCreate: boolean;
     canDismissFromSearch: boolean;
-    isSplitRequest: boolean;
+    dismissesToReport: boolean;
     destinationReportID: string | undefined;
     isReportInRHP: boolean;
     isReportTopmostSplit: boolean;
@@ -23,13 +24,6 @@ type SubmitNavigationSnapshot = {
 };
 
 function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean {
-    // Split flows handle their own dismiss/navigation internally (splitBill and
-    // splitBillAndOpenReport both call dismissModalAndOpenReportInInboxTab), so
-    // dismissing here first would cause double navigation and an orphaned deferred channel.
-    if (snapshot.isSplitRequest) {
-        return false;
-    }
-
     // Global create without a report split navigator should go to Search, not dismiss to a report.
     if (snapshot.isFromGlobalCreate && !snapshot.isReportTopmostSplit) {
         return false;
@@ -62,7 +56,8 @@ function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean
  *   isReportPreInserted                    -> REPORT_PRE_INSERT
  *   canUseDismissModalFastPath()           -> DISMISS_MODAL
  *   isFromGlobalCreate && canDismissFromSearch && isSearchTopmostFullScreen -> SEARCH_DISMISS
- *   isReportInRHP && destinationReportID && !isSplitRequest -> REPORT_IN_RHP_DISMISS
+ *   isReportInRHP && destinationReportID   -> REPORT_IN_RHP_DISMISS
+ *   isFromGlobalCreate && dismissesToReport && destinationReportID && isDestinationReportLoaded -> DISMISS_TO_REPORT
  *   else                                   -> DEFAULT
  */
 function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
@@ -78,8 +73,14 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     if (snapshot.isFromGlobalCreate && snapshot.canDismissFromSearch && snapshot.isSearchTopmostFullScreen) {
         return SUBMIT_HANDLER.SEARCH_DISMISS;
     }
-    if (snapshot.isReportInRHP && snapshot.destinationReportID && !snapshot.isSplitRequest) {
+    if (snapshot.isReportInRHP && snapshot.destinationReportID) {
         return SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS;
+    }
+    if (snapshot.isFromGlobalCreate && snapshot.dismissesToReport && snapshot.isSearchTopmostFullScreen) {
+        return SUBMIT_HANDLER.DISMISS_MODAL;
+    }
+    if (snapshot.isFromGlobalCreate && snapshot.dismissesToReport && snapshot.destinationReportID && snapshot.isDestinationReportLoaded) {
+        return SUBMIT_HANDLER.DISMISS_TO_REPORT;
     }
     return SUBMIT_HANDLER.DEFAULT;
 }
