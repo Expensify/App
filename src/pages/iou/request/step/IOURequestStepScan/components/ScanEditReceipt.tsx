@@ -32,6 +32,7 @@ function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) 
     const {translate} = useLocalize();
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const navigateBack = () => {
@@ -50,7 +51,7 @@ function ScanEditReceipt({report, transactionID, backTo}: ScanEditReceiptProps) 
 
     const handleCapture = (file: FileObject, source: string) => {
         setMoneyRequestReceipt(transactionID, source, file.name ?? '', false, file.type);
-        replaceReceipt({transactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+        replaceReceipt({transactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories, transactionPolicyTagList: policyTagList});
         navigateBack();
     };
 
