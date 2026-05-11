@@ -40,7 +40,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
     const isEnabled = !!group?.enableRestrictedPrimaryPolicy;
     const preferredPolicyID = group?.restrictedPrimaryPolicyID;
 
-    // Get the preffered policy name from the local policy Onyx collection data or the fallback from the security group data. This is because domain admins without access to the preferred policy won't find it's data in Onyx.
+    // Get the preferred policy name from the local policy Onyx collection data or the fallback from the security group data. This is because domain admins without access to the preferred policy won't find it's data in Onyx.
     const [preferredPolicyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {selector: policyNameSelector});
     const effectivePreferredPolicyName = preferredPolicyName ?? group?.restrictedPrimaryPolicyName;
 
