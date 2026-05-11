@@ -123,6 +123,9 @@ type ConfirmModalProps = {
     innerContainerStyle?: ViewStyle;
 };
 
+/**
+ * @deprecated Use @hooks/useConfirmModal instead. This leverages the global modal system in @components/Modal/Global instead, which prevents consumers from having to manage modal state and keeps the JSX tree lean.
+ */
 function ConfirmModal({
     confirmText = '',
     cancelText = '',

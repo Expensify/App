@@ -183,13 +183,10 @@ function IOURequestStepDescription({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
-    const getDescriptionHint = () => {
-        return transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
-    };
+    const descriptionHint = transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 inputRef.current?.focus();
             });
@@ -239,7 +236,8 @@ function IOURequestStepDescription({
                         type="markdown"
                         excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                         ref={inputCallbackRef}
-                        hint={getDescriptionHint()}
+                        hint={descriptionHint}
+                        shouldRenderHintAsHTML={!!descriptionHint}
                     />
                 </View>
             </FormProvider>
