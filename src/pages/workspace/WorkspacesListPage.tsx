@@ -466,51 +466,6 @@ function WorkspacesListPage() {
         }
 
         return threeDotsMenuItems;
-
-        // return (
-        //     <OfflineWithFeedback
-        //         key={`${item.title}_${index}`}
-        //         pendingAction={item.pendingAction}
-        //         errorRowStyles={[styles.ph5, styles.mt3]}
-        //         onClose={item.dismissError}
-        //         errors={item.errors}
-        //         style={styles.mb2}
-        //         shouldShowErrorMessages={item.policyID !== policyIDToDelete}
-        //         shouldHideOnDelete={false}
-        //     >
-        //         <PressableWithoutFeedback
-        //             accessible={false}
-        //             style={[styles.mh5]}
-        //             disabled={item.disabled}
-        //             onPress={item.action}
-        //             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
-        //         >
-        //             {({hovered}) => (
-        //                 <WorkspacesListRow
-        //                     title={item.title}
-        //                     policyID={item.policyID}
-        //                     menuItems={threeDotsMenuItems}
-        //                     workspaceIcon={item.icon}
-        //                     ownerAccountID={item.ownerAccountID}
-        //                     workspaceType={item.type}
-        //                     shouldAnimateInHighlight={shouldAnimateInHighlight}
-        //                     isJoinRequestPending={item?.isJoinRequestPending}
-        //                     rowStyles={hovered && styles.hoveredComponentBG}
-        //                     layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
-        //                     brickRoadIndicator={item.brickRoadIndicator}
-        //                     shouldDisableThreeDotsMenu={item.disabled}
-        //                     style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedbackDeleted : {}]}
-        //                     isDefault={isDefault}
-        //                     isLoadingBill={isLoadingBill}
-        //                     resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
-        //                     isHovered={hovered}
-        //                     disabled={item.disabled}
-        //                     onPress={item.action}
-        //                 />
-        //             )}
-        //         </PressableWithoutFeedback>
-        //     </OfflineWithFeedback>
-        // );
     };
 
     const navigateToWorkspace = (policyID: string) => {
@@ -533,6 +488,7 @@ function WorkspacesListPage() {
     /**
      * Add free policies (workspaces) to the list of menu items and returns the list of menu items
      */
+    // JACK_TODO: REplace with the workspacerows
     const workspaces: WorkspaceItem[] = [];
 
     const domainRows: DomainRowData[] = [];
