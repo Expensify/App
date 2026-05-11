@@ -19,11 +19,11 @@ import {
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestTag,
-    shouldOptimisticallyUpdateSearch,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {calculateDiffAmount} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
+import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
 import {completeSplitBill, splitBill, startSplitBill} from '@libs/actions/IOU/Split';
 import {updateSplitTransactionsFromSplitExpensesFlow} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
@@ -2299,7 +2299,7 @@ describe('actions/IOU', () => {
 
             // Given a test user is signed in with Onyx setup and some initial data
             await signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, undefined);
+            subscribeToUserEvents(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, undefined);
             await waitForBatchedUpdates();
             await setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
 

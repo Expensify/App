@@ -7787,13 +7787,37 @@ describe('SearchUIUtils', () => {
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS, CONST.SEARCH.TABLE_COLUMNS.TITLE, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
 
             expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
-                // Avatar should always be visible
-                CONST.SEARCH.TABLE_COLUMNS.AVATAR,
                 CONST.SEARCH.TABLE_COLUMNS.DATE,
                 CONST.SEARCH.TABLE_COLUMNS.STATUS,
                 CONST.SEARCH.TABLE_COLUMNS.TITLE,
                 CONST.SEARCH.TABLE_COLUMNS.TOTAL,
             ]);
+        });
+
+        test('Should include Avatar when user keeps it in visible columns for expense reports', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
+                CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            ]);
+        });
+
+        test('Should omit Avatar but keep Total when Avatar is toggled off for expense reports', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS];
+
+            const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
+            expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+        });
+
+        test('Should not force Avatar for group-by:from when toggled off', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL];
+
+            const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, groupBy: CONST.SEARCH.GROUP_BY.FROM});
+            expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
+            expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM);
         });
 
         test('Should hide To for strict default expense columns', () => {
@@ -9727,5 +9751,44 @@ describe('getCardDescriptionForSearchTable', () => {
 
     it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
         expect(getCardDescriptionForSearchTable(baseCompanyCard, translateLocal)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
+    });
+});
+
+describe('getWithdrawalStatusOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns three options keyed by SETTLEMENT_STATUS values in enum order', () => {
+        const options = SearchUIUtils.getWithdrawalStatusOptions(translateLocal);
+        expect(options).toEqual([
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.PENDING, text: 'Pending'},
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.CLEARED, text: 'Cleared'},
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.FAILED, text: 'Failed'},
+        ]);
+    });
+});
+
+describe('getWithdrawalStatusDisplayText', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns undefined for empty input', () => {
+        expect(SearchUIUtils.getWithdrawalStatusDisplayText(undefined, translateLocal)).toBeUndefined();
+        expect(SearchUIUtils.getWithdrawalStatusDisplayText([], translateLocal)).toBeUndefined();
+    });
+
+    it('returns the translated label for a single-element selection', () => {
+        expect(SearchUIUtils.getWithdrawalStatusDisplayText([CONST.SEARCH.SETTLEMENT_STATUS.PENDING], translateLocal)).toBe('Pending');
+    });
+
+    it('joins translated labels for a multi-value selection, preserving options order', () => {
+        expect(
+            SearchUIUtils.getWithdrawalStatusDisplayText(
+                [CONST.SEARCH.SETTLEMENT_STATUS.FAILED, CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
+                translateLocal,
+            ),
+        ).toBe('Pending, Cleared, Failed');
     });
 });

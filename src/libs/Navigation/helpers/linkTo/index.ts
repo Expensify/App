@@ -72,6 +72,17 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams?.reportID === newParams?.reportID;
 }
 
+function isNavigatingToReportActionWithinSameReport(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {
+    if (currentRoute.name !== SCREENS.REPORT || newRoute.name !== SCREENS.REPORT) {
+        return false;
+    }
+
+    const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+
+    return currentParams?.reportID === newParams?.reportID && currentParams.reportActionID !== newParams.reportActionID;
+}
+
 /**
  * Returns true when both current and target states are within TabNavigator (tab switching).
  * In this case we must keep NAVIGATE (not PUSH) because tab navigators use jumpTo/navigate.
@@ -118,7 +129,7 @@ function shouldChangeToMatchingFullScreen(
     return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastActiveScreen !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
-export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, shouldChangeToMatchingFullScreen};
+export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, shouldChangeToMatchingFullScreen, isNavigatingToReportActionWithinSameReport};
 
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
@@ -185,6 +196,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         (!isDynamicRoute || isRhpNavigationFromStackedTab)
     ) {
         // We want to PUSH by default to add entries to the browser history.
+        action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+    }
+
+    // When we link to a report action in the current report, we want to push instead of replace so that back navigation
+    // works naturally.
+    else if (isNavigatingToReportActionWithinSameReport(currentFocusedRoute, focusedRouteFromPath)) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
