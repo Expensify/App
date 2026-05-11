@@ -104,7 +104,7 @@ type WorkspaceItem = {listItemType: 'workspace'} & ListItem &
 
 type WorkspaceOrDomainListItem = WorkspaceItem | DomainItem | {listItemType: 'domains-header' | 'workspaces-empty-state' | 'domains-empty-state'};
 
-type GetWorkspaceMenuItem = {item: WorkspaceItem; index: number};
+type GetWorkspaceMenuItem = {item: WorkspaceRowData; index: number};
 
 /**
  * Dismisses the errors on one item
@@ -358,7 +358,7 @@ function WorkspacesListPage() {
     /**
      * Gets the menu item for each workspace
      */
-    const getWorkspaceMenuItem = ({item, index}: GetWorkspaceMenuItem) => {
+    const getThreeDotMenuItems = ({item, index}: GetWorkspaceMenuItem) => {
         const isAdmin = isPolicyAdmin(item as unknown as PolicyType, session?.email);
         const isOwner = item.ownerAccountID === session?.accountID;
         const isDefault = activePolicyID === item.policyID;
@@ -464,50 +464,52 @@ function WorkspacesListPage() {
             });
         }
 
-        return (
-            <OfflineWithFeedback
-                key={`${item.title}_${index}`}
-                pendingAction={item.pendingAction}
-                errorRowStyles={[styles.ph5, styles.mt3]}
-                onClose={item.dismissError}
-                errors={item.errors}
-                style={styles.mb2}
-                shouldShowErrorMessages={item.policyID !== policyIDToDelete}
-                shouldHideOnDelete={false}
-            >
-                <PressableWithoutFeedback
-                    accessible={false}
-                    style={[styles.mh5]}
-                    disabled={item.disabled}
-                    onPress={item.action}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
-                >
-                    {({hovered}) => (
-                        <WorkspacesListRow
-                            title={item.title}
-                            policyID={item.policyID}
-                            menuItems={threeDotsMenuItems}
-                            workspaceIcon={item.icon}
-                            ownerAccountID={item.ownerAccountID}
-                            workspaceType={item.type}
-                            shouldAnimateInHighlight={shouldAnimateInHighlight}
-                            isJoinRequestPending={item?.isJoinRequestPending}
-                            rowStyles={hovered && styles.hoveredComponentBG}
-                            layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
-                            brickRoadIndicator={item.brickRoadIndicator}
-                            shouldDisableThreeDotsMenu={item.disabled}
-                            style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedbackDeleted : {}]}
-                            isDefault={isDefault}
-                            isLoadingBill={isLoadingBill}
-                            resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
-                            isHovered={hovered}
-                            disabled={item.disabled}
-                            onPress={item.action}
-                        />
-                    )}
-                </PressableWithoutFeedback>
-            </OfflineWithFeedback>
-        );
+        return threeDotsMenuItems;
+
+        // return (
+        //     <OfflineWithFeedback
+        //         key={`${item.title}_${index}`}
+        //         pendingAction={item.pendingAction}
+        //         errorRowStyles={[styles.ph5, styles.mt3]}
+        //         onClose={item.dismissError}
+        //         errors={item.errors}
+        //         style={styles.mb2}
+        //         shouldShowErrorMessages={item.policyID !== policyIDToDelete}
+        //         shouldHideOnDelete={false}
+        //     >
+        //         <PressableWithoutFeedback
+        //             accessible={false}
+        //             style={[styles.mh5]}
+        //             disabled={item.disabled}
+        //             onPress={item.action}
+        //             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKSPACE_MENU_ITEM}
+        //         >
+        //             {({hovered}) => (
+        //                 <WorkspacesListRow
+        //                     title={item.title}
+        //                     policyID={item.policyID}
+        //                     menuItems={threeDotsMenuItems}
+        //                     workspaceIcon={item.icon}
+        //                     ownerAccountID={item.ownerAccountID}
+        //                     workspaceType={item.type}
+        //                     shouldAnimateInHighlight={shouldAnimateInHighlight}
+        //                     isJoinRequestPending={item?.isJoinRequestPending}
+        //                     rowStyles={hovered && styles.hoveredComponentBG}
+        //                     layoutWidth={isLessThanMediumScreen ? CONST.LAYOUT_WIDTH.NARROW : CONST.LAYOUT_WIDTH.WIDE}
+        //                     brickRoadIndicator={item.brickRoadIndicator}
+        //                     shouldDisableThreeDotsMenu={item.disabled}
+        //                     style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedbackDeleted : {}]}
+        //                     isDefault={isDefault}
+        //                     isLoadingBill={isLoadingBill}
+        //                     resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
+        //                     isHovered={hovered}
+        //                     disabled={item.disabled}
+        //                     onPress={item.action}
+        //                 />
+        //             )}
+        //         </PressableWithoutFeedback>
+        //     </OfflineWithFeedback>
+        // );
     };
 
     const navigateToWorkspace = (policyID: string) => {
@@ -538,7 +540,7 @@ function WorkspacesListPage() {
     if (!isEmptyObject(policies)) {
         const reimbursementAccountBrickRoadIndicator = !isEmptyObject(reimbursementAccount?.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
 
-        for (const policy of Object.values(policies)) {
+        for (const [index, policy] of Object.values(policies).entries()) {
             if (!policy || !shouldShowPolicy(policy, true, session?.email)) {
                 continue;
             }
@@ -571,7 +573,7 @@ function WorkspacesListPage() {
                 const policyOwnerAccountID = policyInfo.ownerAccountID;
                 const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
-                workspaceRows.push({
+                const pendingWorkspaceRow: WorkspaceRowData = {
                     policyID,
                     disabled: true,
                     errors: undefined,
@@ -589,12 +591,15 @@ function WorkspacesListPage() {
                     icon: policyInfo?.avatar ? policyInfo.avatar : getDefaultWorkspaceAvatar(policy.name),
                     action: () => null,
                     dismissError: () => null,
-                });
+                };
+
+                pendingWorkspaceRow.threeDotMenuItems = getThreeDotMenuItems({item: pendingWorkspaceRow, index});
+                workspaceRows.push(pendingWorkspaceRow);
             } else {
                 const policyOwnerAccountID = policy.ownerAccountID;
                 const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
-                workspaceRows.push({
+                const workspaceRow: WorkspaceRowData = {
                     policyID: policy.id,
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     errors: policy.errors,
@@ -616,7 +621,10 @@ function WorkspacesListPage() {
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                     // Missing
                     // employeeList
-                });
+                };
+
+                workspaceRow.threeDotMenuItems = getThreeDotMenuItems({item: workspaceRow, index});
+                workspaceRows.push(workspaceRow);
             }
         }
     }
@@ -728,36 +736,36 @@ function WorkspacesListPage() {
         shouldShowDomainsSection && !domains.length ? [{listItemType: 'domains-empty-state' as const}] : [],
     ].flat();
 
-    const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
-        switch (item.listItemType) {
-            case 'workspace': {
-                return getWorkspaceMenuItem({item, index});
-            }
-            case 'domain': {
-                return (
-                    <DomainMenuItem
-                        item={item}
-                        index={index}
-                    />
-                );
-            }
-            case 'domains-header': {
-                return (
-                    <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.pv3, styles.mt0, styles.mb0]}>
-                        <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.domains')}</Text>
-                    </View>
-                );
-            }
-            case 'workspaces-empty-state': {
-                return <WorkspacesEmptyStateComponent />;
-            }
-            case 'domains-empty-state': {
-                return <DomainsEmptyStateComponent />;
-            }
-            default:
-                return null;
-        }
-    };
+    // const renderItem = ({item, index}: {item: WorkspaceOrDomainListItem; index: number}) => {
+    //     switch (item.listItemType) {
+    //         case 'workspace': {
+    //             return getThreeDotMenuItems({item, index});
+    //         }
+    //         case 'domain': {
+    //             return (
+    //                 <DomainMenuItem
+    //                     item={item}
+    //                     index={index}
+    //                 />
+    //             );
+    //         }
+    //         case 'domains-header': {
+    //             return (
+    //                 <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter, styles.ph5, styles.pv3, styles.mt0, styles.mb0]}>
+    //                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.domains')}</Text>
+    //                 </View>
+    //             );
+    //         }
+    //         case 'workspaces-empty-state': {
+    //             return <WorkspacesEmptyStateComponent />;
+    //         }
+    //         case 'domains-empty-state': {
+    //             return <DomainsEmptyStateComponent />;
+    //         }
+    //         default:
+    //             return null;
+    //     }
+    // };
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 

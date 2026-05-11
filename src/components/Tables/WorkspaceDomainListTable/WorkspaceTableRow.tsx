@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/core';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
@@ -12,11 +13,14 @@ import Tooltip from '@components/Tooltip';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {WorkspaceRowData} from '.';
 
 type WorkspaceRowProps = {
@@ -30,20 +34,13 @@ export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
 
     const theme = useTheme();
     const styles = useThemeStyles();
+    const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'DotIndicator']);
 
     const formattedOwnerName = item.ownerName ?? '';
     const formattedWorkspaceName = getUserFriendlyWorkspaceType(item.type, translate);
     const itemDeletedStyles = item.isDeleted ? [styles.offlineFeedbackDeleted] : [{}];
-
-    const threeDotMenuItems: PopoverMenuItem[] = [
-        {
-            icon: icons.Building,
-            text: translate('workspace.common.goToWorkspace'),
-            onSelected: item.action,
-        },
-    ];
 
     const BrickRoadIndicator = item.brickRoadIndicator && (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
@@ -128,8 +125,9 @@ export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
                                     shouldOverlay
                                     shouldSelfPosition
                                     disabled={item.disabled}
-                                    menuItems={threeDotMenuItems}
+                                    isContainerFocused={isFocused}
                                     threeDotsMenuRef={threeDotsMenuRef}
+                                    menuItems={item.threeDotMenuItems ?? []}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
                                 />

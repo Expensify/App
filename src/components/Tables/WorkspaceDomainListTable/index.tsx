@@ -1,6 +1,7 @@
 import {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useRef} from 'react';
 import {ValueOf} from 'type-fest';
+import {PopoverMenuItem} from '@components/PopoverMenu';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,7 @@ export type WorkspaceRowData = {
     ownerName?: string;
     ownerLogin?: string;
     ownerAvatar?: AvatarSource;
+    threeDotMenuItems?: PopoverMenuItem[];
     type: ValueOf<typeof CONST.POLICY.TYPE>;
     role: ValueOf<typeof CONST.POLICY.ROLE>;
     iconType: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_ICON;
