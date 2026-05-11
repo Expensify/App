@@ -20,13 +20,15 @@ type BuildConciergeDraftReportActionParams = {
     reportID: string;
 };
 
-type MarkdownRange = {
+type TextRange = {
     start: number;
     end: number;
 };
 
 const CODE_BLOCK_DELIMITER = '```';
 const INLINE_CODE_DELIMITER = '`';
+const BOLD_DELIMITER = '**';
+const STRIKETHROUGH_DELIMITER = '~~';
 
 function isEscaped(text: string, index: number): boolean {
     let slashCount = 0;
@@ -40,8 +42,8 @@ function isEscaped(text: string, index: number): boolean {
     return slashCount % 2 !== 0;
 }
 
-function getCodeRanges(text: string): {ranges: MarkdownRange[]; unclosedCodeBlockStart: number | null} {
-    const ranges: MarkdownRange[] = [];
+function getCodeRanges(text: string): {ranges: TextRange[]; unclosedCodeBlockStart: number | null} {
+    const ranges: TextRange[] = [];
     let unclosedCodeBlockStart: number | null = null;
 
     for (let pos = 0; pos <= text.length - CODE_BLOCK_DELIMITER.length; pos++) {
@@ -88,7 +90,7 @@ function getCodeRanges(text: string): {ranges: MarkdownRange[]; unclosedCodeBloc
     return {ranges, unclosedCodeBlockStart};
 }
 
-function stripUnpairedLastLineDelimiter(text: string, delimiter: string, ignoredRanges: MarkdownRange[] = []): string {
+function stripUnpairedLastLineDelimiter(text: string, delimiter: string, ignoredRanges: TextRange[] = []): string {
     const lastNewline = text.lastIndexOf('\n');
     const lastLineStart = lastNewline + 1;
     const delimiterIndexes: number[] = [];
@@ -110,7 +112,7 @@ function stripUnpairedLastLineDelimiter(text: string, delimiter: string, ignored
     return text;
 }
 
-function normalizeDelimiterForExpensiMark(text: string, delimiter: string, replacement: string, ignoredRanges: MarkdownRange[] = []): string {
+function normalizeDelimiterForExpensiMark(text: string, delimiter: string, replacement: string, ignoredRanges: TextRange[] = []): string {
     let result = '';
 
     for (let pos = 0; pos < text.length; pos++) {
@@ -168,14 +170,14 @@ function stripIncompleteMarkdown(markdown: string): string {
     }
 
     codeRanges = getCodeRanges(result).ranges;
-    result = stripUnpairedLastLineDelimiter(result, '**', codeRanges);
+    result = stripUnpairedLastLineDelimiter(result, BOLD_DELIMITER, codeRanges);
     codeRanges = getCodeRanges(result).ranges;
-    result = normalizeDelimiterForExpensiMark(result, '**', '*', codeRanges);
+    result = normalizeDelimiterForExpensiMark(result, BOLD_DELIMITER, '*', codeRanges);
 
     codeRanges = getCodeRanges(result).ranges;
-    result = stripUnpairedLastLineDelimiter(result, '~~', codeRanges);
+    result = stripUnpairedLastLineDelimiter(result, STRIKETHROUGH_DELIMITER, codeRanges);
     codeRanges = getCodeRanges(result).ranges;
-    result = normalizeDelimiterForExpensiMark(result, '~~', '~', codeRanges);
+    result = normalizeDelimiterForExpensiMark(result, STRIKETHROUGH_DELIMITER, '~', codeRanges);
 
     return result;
 }
