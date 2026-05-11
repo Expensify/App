@@ -56,10 +56,11 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     const JoinRequestPendingBadge = (
         <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Badge
-                text={translate('workspace.common.requested')}
-                textStyles={styles.textStrong}
-                badgeStyles={styles.alignSelfCenter}
                 icon={icons.Hourglass}
+                textStyles={styles.textStrong}
+                text={translate('workspace.common.requested')}
+                isCondensed={shouldUseNarrowTableLayout}
+                badgeStyles={[styles.alignSelfCenter, styles.ml0]}
             />
         </View>
     );
@@ -74,7 +75,8 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                 <Badge
                     text={translate('common.default')}
                     textStyles={styles.textStrong}
-                    badgeStyles={styles.alignSelfCenter}
+                    isCondensed={shouldUseNarrowTableLayout}
+                    badgeStyles={[styles.alignSelfCenter, styles.ml0]}
                 />
             </View>
         </Tooltip>
@@ -100,7 +102,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                             fallbackIcon={icons.FallbackWorkspaceAvatar}
                         />
 
-                        <View style={[styles.flexGrow1]}>
+                        <View style={[styles.flexGrow1, styles.gap1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={item.title}
@@ -110,7 +112,12 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                             <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
                                 {item.isDefault && DefaultWorkspaceBadge}
                                 {item.isJoinRequestPending && JoinRequestPendingBadge}
-                                <Text numberOfLines={1}>{narrowWorkspaceLabel}</Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textLabelSupporting]}
+                                >
+                                    {narrowWorkspaceLabel}
+                                </Text>
                             </View>
                         </View>
 
@@ -163,7 +170,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                             imageStyles={styles.alignSelfCenter}
                             fallbackIcon={icons.FallbackWorkspaceAvatar}
                         />
-                        <View style={[styles.flexRow, styles.flexGrow1, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.flexGrow1, styles.gap2, styles.alignItemsCenter]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={item.title}
