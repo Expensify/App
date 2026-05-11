@@ -6,10 +6,14 @@ type SecondaryInteractionHandler = (event: GestureResponderEvent | MouseEvent) =
 
 type RegisterKind = 'press' | 'secondary';
 
+// Matches react-native-web's accessibilityHasPopup (aria-haspopup) shape; ignored on native.
+type AccessibilityHasPopup = 'dialog' | 'grid' | 'listbox' | 'menu' | 'tree' | false;
+
 type PressResponderContextValue = {
     onPress?: PressableProps['onPress'];
     onSecondaryInteraction?: SecondaryInteractionHandler;
     accessibilityState?: AccessibilityState;
+    accessibilityHasPopup?: AccessibilityHasPopup;
     nativeID?: string;
     accessibilityControls?: string | string[];
     ref?: PressableProps['ref'];
@@ -20,4 +24,4 @@ const PressResponderContext = createContext<PressResponderContextValue | null>(n
 PressResponderContext.displayName = 'PressResponderContext';
 
 export default PressResponderContext;
-export type {PressResponderContextValue, SecondaryInteractionHandler, RegisterKind};
+export type {AccessibilityHasPopup, PressResponderContextValue, SecondaryInteractionHandler, RegisterKind};

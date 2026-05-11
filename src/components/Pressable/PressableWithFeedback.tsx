@@ -67,6 +67,7 @@ function PressableWithFeedback({
     const slot = usePressResponderProps({
         onPress: rest.onPress,
         accessibilityState: rest.accessibilityState,
+        accessibilityHasPopup: rest.accessibilityHasPopup,
         nativeID: rest.nativeID,
         accessibilityControls: rest.accessibilityControls,
     });
@@ -86,6 +87,7 @@ function PressableWithFeedback({
                 ref={mergedRef}
                 onPress={slot.onPress}
                 accessibilityState={slot.accessibilityState}
+                accessibilityHasPopup={slot.accessibilityHasPopup}
                 nativeID={slot.nativeID}
                 accessibilityControls={slot.accessibilityControls}
                 disabled={rest.disabled}

@@ -2,6 +2,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {PressResponder} from '@components/Pressable/PressResponder';
+import CONST from '@src/CONST';
 import type {AnchorRect} from './RootContext';
 import {useRootMeta, useRootVisibility} from './RootContext';
 import useAnchorOpener from './useAnchorOpener';
@@ -34,6 +35,7 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
                 open(getCursorRect(event));
             }}
             accessibilityState={{expanded: isVisible}}
+            accessibilityHasPopup={CONST.ROLE.MENU}
             nativeID={triggerID}
             accessibilityControls={isVisible ? contentID : undefined}
         >

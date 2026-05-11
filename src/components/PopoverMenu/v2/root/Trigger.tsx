@@ -1,6 +1,7 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {PressResponder} from '@components/Pressable/PressResponder';
+import CONST from '@src/CONST';
 import {useRootMeta, useRootVisibility} from './RootContext';
 import useAnchorOpener from './useAnchorOpener';
 
@@ -24,6 +25,7 @@ function Trigger({children}: TriggerProps): React.ReactElement {
                 open();
             }}
             accessibilityState={{expanded: isVisible}}
+            accessibilityHasPopup={CONST.ROLE.MENU}
             nativeID={triggerID}
             accessibilityControls={isVisible ? contentID : undefined}
         >
