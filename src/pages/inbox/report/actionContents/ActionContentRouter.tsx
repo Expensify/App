@@ -1,5 +1,4 @@
 import React from 'react';
-import type {TextInput} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import CreatedReportForUnapprovedTransactionsAction from '@components/ReportActionItem/CreatedReportForUnapprovedTransactionsAction';
@@ -13,8 +12,6 @@ import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import UnreportedTransactionAction from '@components/ReportActionItem/UnreportedTransactionAction';
-import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
-import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -46,7 +43,6 @@ import {
     isTripPreview,
 } from '@libs/ReportActionsUtils';
 import {getMovedActionMessage, isExpenseReport} from '@libs/ReportUtils';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -131,32 +127,14 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Whether the context menu should be displayed for this action */
-    shouldDisplayContextMenuValue: boolean;
-
     /** User payment card ID */
     userBillingFundID?: number;
 
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
-    /** Popover context menu anchor ref, read by switch-arm consumers inside their event handlers */
-    contextMenuAnchorRef: React.RefObject<Exclude<ContextMenuAnchor, TextInput>>;
-
-    /** Memoized state value for ShowContextMenuStateContext */
-    contextMenuStateValue: ShowContextMenuStateContextType;
-
-    /** Memoized actions value for ShowContextMenuActionsContext */
-    contextMenuActionsValue: ShowContextMenuActionsContextType;
-
     /** Toggle whether the payment method popover is active */
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
-
-    /** Re-evaluate whether this row is the active context menu target */
-    toggleContextMenuFromActiveReportAction: () => void;
-
-    /** Open the context menu, transitioning the action sheet first */
-    handleShowContextMenu: (callback: () => void) => void;
 };
 
 function ActionContentRouter({
@@ -181,15 +159,9 @@ function ActionContentRouter({
     isTryNewDotNVPDismissed,
     shouldShowBorder,
     isOnSearch,
-    shouldDisplayContextMenuValue,
     userBillingFundID,
     index,
-    contextMenuAnchorRef,
-    contextMenuStateValue,
-    contextMenuActionsValue,
     setIsPaymentMethodPopoverActive,
-    toggleContextMenuFromActiveReportAction,
-    handleShowContextMenu,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -208,11 +180,9 @@ function ActionContentRouter({
                     <ChatTransactionPreview
                         action={action}
                         reportID={reportID}
-                        originalReportID={originalReportID}
                         chatReportID={chatReportID}
                         iouReport={iouReport}
                         shouldShowSplitPreview={shouldShowSplitPreview}
-                        shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                         transactionID={shouldShowSplitPreview ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
                     />
                 );
@@ -229,12 +199,8 @@ function ActionContentRouter({
                 reportID={reportID}
                 action={action}
                 isHovered={hovered}
-                contextMenuAnchorRef={contextMenuAnchorRef}
-                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 style={displayAsGroup ? [] : [styles.mt2]}
                 isWhisper={isWhisper}
-                shouldDisplayContextMenu={shouldDisplayContextMenuValue}
-                originalReportID={originalReportID}
             />
         );
     }
@@ -243,11 +209,7 @@ function ActionContentRouter({
             <TripRoomPreview
                 action={action}
                 isHovered={hovered}
-                contextMenuAnchorRef={contextMenuAnchorRef}
                 containerStyles={displayAsGroup ? [] : [styles.mt2]}
-                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                shouldDisplayContextMenu={shouldDisplayContextMenuValue}
-                originalReportID={originalReportID}
             />
         );
     }
@@ -261,15 +223,11 @@ function ActionContentRouter({
                 policyID={report?.policyID}
                 chatReportID={reportID}
                 action={action}
-                contextMenuAnchorRef={contextMenuAnchorRef}
                 isHovered={hovered}
                 isWhisper={isWhisper}
-                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                 onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                 shouldShowBorder={shouldShowBorder}
-                originalReportID={originalReportID}
             />
         );
     }
@@ -278,21 +236,13 @@ function ActionContentRouter({
     }
     if (isCreatedTaskReportAction(action)) {
         return (
-            <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
-                <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
-                    <TaskPreview
-                        style={displayAsGroup ? [] : [styles.mt1]}
-                        chatReportID={reportID}
-                        action={action}
-                        isHovered={hovered}
-                        onShowContextMenu={handleShowContextMenu}
-                        contextMenuAnchorRef={contextMenuAnchorRef}
-                        checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                        policyID={report?.policyID}
-                        shouldDisplayContextMenu={shouldDisplayContextMenuValue}
-                    />
-                </ShowContextMenuActionsContext.Provider>
-            </ShowContextMenuStateContext.Provider>
+            <TaskPreview
+                style={displayAsGroup ? [] : [styles.mt1]}
+                chatReportID={reportID}
+                action={action}
+                isHovered={hovered}
+                policyID={report?.policyID}
+            />
         );
     }
     if (isReimbursementQueuedAction(action)) {
@@ -547,8 +497,6 @@ function ActionContentRouter({
             updateHiddenState={updateHiddenState}
             isArchivedRoom={isArchivedRoom}
             isOnSearch={isOnSearch}
-            contextMenuStateValue={contextMenuStateValue}
-            contextMenuActionsValue={contextMenuActionsValue}
             userBillingFundID={userBillingFundID}
         />
     );

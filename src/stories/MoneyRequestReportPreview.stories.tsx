@@ -84,16 +84,6 @@ export default {
             options: [{marginTop: 8}],
             control: {type: 'radio'},
         },
-        /** Popover context menu anchor ref, read inside event handlers when showing the context menu */
-        contextMenuAnchorRef: {
-            options: [null],
-            control: {type: 'radio'},
-        },
-        /** Callback for updating context menu active state, used for showing context menu */
-        checkIfContextMenuActive: {
-            options: [undefined, () => {}],
-            control: {type: 'radio'},
-        },
         /** Callback when the payment options popover is shown */
         onPaymentOptionsShow: {
             options: [undefined, () => {}],

@@ -5,8 +5,6 @@ import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
-import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
-import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,8 +38,6 @@ type ChatMessageContentProps = {
     updateHiddenState: (isHiddenValue: boolean) => void;
     isArchivedRoom?: boolean;
     isOnSearch: boolean;
-    contextMenuStateValue: ShowContextMenuStateContextType;
-    contextMenuActionsValue: ShowContextMenuActionsContextType;
     userBillingFundID: number | undefined;
 };
 
@@ -58,8 +54,6 @@ function ChatMessageContent({
     updateHiddenState,
     isArchivedRoom,
     isOnSearch,
-    contextMenuStateValue,
-    contextMenuActionsValue,
     userBillingFundID,
 }: ChatMessageContentProps) {
     const {translate} = useLocalize();
@@ -83,60 +77,54 @@ function ChatMessageContent({
 
     return (
         <MentionReportContext.Provider value={mentionReportContextValue}>
-            <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
-                <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
-                    <AttachmentContext.Provider value={attachmentContextValue}>
-                        {draftMessage === undefined ? (
-                            <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
-                                <ReportActionItemMessage
-                                    reportID={reportID}
-                                    action={action}
-                                    displayAsGroup={displayAsGroup}
-                                    isHidden={isHidden}
-                                />
-                                {hasBeenFlagged && (
-                                    <Button
-                                        small
-                                        style={[styles.mt2, styles.alignSelfStart]}
-                                        onPress={() => updateHiddenState(!isHidden)}
-                                        sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
-                                    >
-                                        <Text
-                                            style={[styles.buttonSmallText, styles.userSelectNone]}
-                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        >
-                                            {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
-                                        </Text>
-                                    </Button>
-                                )}
-                                {mayHaveActionableButtons && (
-                                    <ChatActionableButtons
-                                        action={action}
-                                        report={report}
-                                        originalReport={originalReport}
-                                        reportID={reportID}
-                                        originalReportID={originalReportID}
-                                        userBillingFundID={userBillingFundID}
-                                    />
-                                )}
-                            </View>
-                        ) : (
-                            <ReportActionItemMessageEdit
+            <AttachmentContext.Provider value={attachmentContextValue}>
+                {draftMessage === undefined ? (
+                    <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
+                        <ReportActionItemMessage
+                            reportID={reportID}
+                            action={action}
+                            displayAsGroup={displayAsGroup}
+                            isHidden={isHidden}
+                        />
+                        {hasBeenFlagged && (
+                            <Button
+                                small
+                                style={[styles.mt2, styles.alignSelfStart]}
+                                onPress={() => updateHiddenState(!isHidden)}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
+                            >
+                                <Text
+                                    style={[styles.buttonSmallText, styles.userSelectNone]}
+                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                >
+                                    {isHidden ? translate('moderation.revealMessage') : translate('moderation.hideMessage')}
+                                </Text>
+                            </Button>
+                        )}
+                        {mayHaveActionableButtons && (
+                            <ChatActionableButtons
                                 action={action}
-                                draftMessage={draftMessage}
+                                report={report}
+                                originalReport={originalReport}
                                 reportID={reportID}
                                 originalReportID={originalReportID}
-                                policyID={report?.policyID}
-                                index={index}
-                                shouldDisableEmojiPicker={
-                                    (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
-                                }
-                                isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                                userBillingFundID={userBillingFundID}
                             />
                         )}
-                    </AttachmentContext.Provider>
-                </ShowContextMenuActionsContext.Provider>
-            </ShowContextMenuStateContext.Provider>
+                    </View>
+                ) : (
+                    <ReportActionItemMessageEdit
+                        action={action}
+                        draftMessage={draftMessage}
+                        reportID={reportID}
+                        originalReportID={originalReportID}
+                        policyID={report?.policyID}
+                        index={index}
+                        shouldDisableEmojiPicker={(chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)}
+                        isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                    />
+                )}
+            </AttachmentContext.Provider>
         </MentionReportContext.Provider>
     );
 }

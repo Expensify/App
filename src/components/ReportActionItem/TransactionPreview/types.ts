@@ -1,7 +1,5 @@
-import type {RefObject} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -27,12 +25,6 @@ type TransactionPreviewProps = {
     /** All the data of the action, used for showing context menu */
     action: OnyxEntry<ReportAction>;
 
-    /** Popover context menu anchor ref, read inside event handlers when showing the context menu */
-    contextMenuAnchorRef?: RefObject<ContextMenuAnchor> | null;
-
-    /** Callback for updating context menu active state, used for showing context menu */
-    checkIfContextMenuActive?: () => void;
-
     /** Optional custom styles to be applied to container component. */
     containerStyles?: StyleProp<ViewStyle>;
 
@@ -51,9 +43,6 @@ type TransactionPreviewProps = {
     /** Whether a message is a whisper */
     isWhisper?: boolean;
 
-    /** Whether  context menu should be shown on press */
-    shouldDisplayContextMenu?: boolean;
-
     /** In the case where we have access to the transactionID in the parent */
     transactionID?: string;
 
@@ -68,9 +57,6 @@ type TransactionPreviewProps = {
 
     /** Whether the item should be highlighted */
     shouldHighlight?: boolean;
-
-    /** ID of the original report from which the given reportAction is first created */
-    originalReportID?: string;
 };
 
 type TransactionPreviewContentProps = {
