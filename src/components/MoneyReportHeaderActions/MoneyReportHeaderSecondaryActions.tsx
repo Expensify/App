@@ -273,10 +273,9 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const lifecycleActions = useLifecycleActions({
         reportID,
         startApprovedAnimation,
-        startAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType, onConfirm, paymentType) => {
-            openHoldMenu({requestType, onConfirm: onConfirm ?? (() => startApprovedAnimation()), paymentType});
+        onHoldMenuOpen: (requestType, onConfirm) => {
+            openHoldMenu({requestType, onConfirm: onConfirm ?? (() => startApprovedAnimation())});
         },
     });
 
