@@ -153,6 +153,16 @@ function setupPaymentSnapshot(results: SearchResults | undefined) {
     onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
 }
 
+/** Seeds the allSnapshots collection with a card snapshot so the hook can read count/total/currency. */
+function setupCardSnapshot(cardID: number, results: SearchResults | undefined) {
+    const cardQuery = cardID === CARD_ID_1 ? CARD_QUERY_1 : CARD_QUERY_2;
+    const hash = buildSearchQueryJSON(cardQuery)?.hash;
+    if (!onyxData[ONYXKEYS.COLLECTION.SNAPSHOT]) {
+        onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] = {};
+    }
+    (onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] as Record<string, unknown>)[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+}
+
 /** Returns a typed offline payload for `useNetwork.mockReturnValue`. */
 function networkState(isOffline: boolean): ReturnType<typeof useNetwork> {
     return {isOffline};
@@ -286,28 +296,59 @@ describe('useYourSpendData — cardRows', () => {
         expect(result.current.cardRows).toEqual([]);
     });
 
-    it('returns one row with correct cardID, lastFour, and query for a single card', () => {
+    it('excludes a card when its snapshot has not loaded yet (no recent-transactions confirmation)', () => {
         mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        // No snapshot seeded → hook cannot confirm any transactions exist
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.cardRows).toHaveLength(0);
+    });
+
+    it('excludes a card whose snapshot has count === 0 (no transactions in last 30 days)', () => {
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(0));
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.cardRows).toHaveLength(0);
+    });
+
+    it('returns one row with correct cardID, lastFour, and query when snapshot confirms recent transactions', () => {
+        mockedGetDisplayableExpensifyCards.mockReturnValue(makeDisplayableCards([{cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1}]));
+        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(3));
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(1);
-        expect(result.current.cardRows.at(0)).toEqual({
+        expect(result.current.cardRows.at(0)).toMatchObject({
             cardID: CARD_ID_1,
             lastFour: CARD_LAST_FOUR_1,
             query: CARD_QUERY_1,
         });
     });
 
-    it('returns multiple rows in order for multiple displayable cards', () => {
+    it('returns multiple rows in order when all cards have recent transactions', () => {
         mockedGetDisplayableExpensifyCards.mockReturnValue(
             makeDisplayableCards([
                 {cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1},
                 {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
             ]),
         );
+        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(5));
+        setupCardSnapshot(CARD_ID_2, makeSearchResultsWithCount(2));
         const {result} = renderHook(() => useYourSpendData());
         expect(result.current.cardRows).toHaveLength(2);
         expect(result.current.cardRows.at(0)).toMatchObject({cardID: CARD_ID_1, lastFour: CARD_LAST_FOUR_1, query: CARD_QUERY_1});
         expect(result.current.cardRows.at(1)).toMatchObject({cardID: CARD_ID_2, lastFour: CARD_LAST_FOUR_2, query: CARD_QUERY_2});
+    });
+
+    it('only includes cards with recent transactions when some have count 0 and others have count > 0', () => {
+        mockedGetDisplayableExpensifyCards.mockReturnValue(
+            makeDisplayableCards([
+                {cardID: CARD_ID_1, lastFourPAN: CARD_LAST_FOUR_1},
+                {cardID: CARD_ID_2, lastFourPAN: CARD_LAST_FOUR_2},
+            ]),
+        );
+        setupCardSnapshot(CARD_ID_1, makeSearchResultsWithCount(0));
+        setupCardSnapshot(CARD_ID_2, makeSearchResultsWithCount(4));
+        const {result} = renderHook(() => useYourSpendData());
+        expect(result.current.cardRows).toHaveLength(1);
+        expect(result.current.cardRows.at(0)).toMatchObject({cardID: CARD_ID_2, lastFour: CARD_LAST_FOUR_2});
     });
 });
 

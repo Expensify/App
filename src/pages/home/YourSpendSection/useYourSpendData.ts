@@ -123,18 +123,22 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
-            displayableCards.map((card) => {
+            displayableCards.reduce<YourSpendCardRow[]>((acc, card) => {
                 const hash = cardQueryHashByCardID[card.cardID];
                 const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
                 const snapshot = snapshotKey ? allSnapshots?.[snapshotKey] : undefined;
-                return {
+                if (!snapshot?.search.count) {
+                    return acc;
+                }
+                acc.push({
                     cardID: card.cardID,
                     lastFour: card.lastFourPAN ?? '',
                     query: buildRecentCardTransactionsQuery(accountID, card.cardID),
-                    total: snapshot?.search.total,
-                    currency: snapshot?.search.currency,
-                };
-            }),
+                    total: snapshot.search.total,
+                    currency: snapshot.search.currency,
+                });
+                return acc;
+            }, []),
         [displayableCards, accountID, cardQueryHashByCardID, allSnapshots],
     );
 
