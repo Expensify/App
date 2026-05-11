@@ -20,6 +20,7 @@ import captureReceipt from '@pages/iou/request/step/IOURequestStepScan/captureRe
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
 import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
+import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import useCameraInitTelemetry from '@pages/iou/request/step/IOURequestStepScan/hooks/useCameraInitTelemetry';
@@ -34,7 +35,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a react-native-vision-camera viewfinder with shutter, flash toggle, gallery picker, and focus gesture.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onCameraInitialized, onAttachmentPickerStatusChange}: CameraProps) {
+function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, onCameraInitialized, onAttachmentPickerStatusChange, submitMultiScan}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -246,7 +247,24 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                     capturePhoto={capturePhoto}
                     toggleMultiScan={toggleMultiScan}
                 />
+
+                {canUseMultiScan && !!submitMultiScan && isInLandscapeMode && (
+                    <ReceiptPreviews
+                        isMultiScanEnabled={isMultiScanEnabled}
+                        submit={submitMultiScan}
+                        isCapturingPhoto={didCapturePhoto}
+                        isInLandscapeMode
+                    />
+                )}
             </View>
+
+            {canUseMultiScan && !!submitMultiScan && !isInLandscapeMode && (
+                <ReceiptPreviews
+                    isMultiScanEnabled={isMultiScanEnabled}
+                    submit={submitMultiScan}
+                    isCapturingPhoto={didCapturePhoto}
+                />
+            )}
         </View>
     );
 }

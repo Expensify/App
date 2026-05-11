@@ -46,6 +46,13 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
 
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
+    const navigateFromReport = (fileTransactionIDs: string[]) => {
+        startScanProcessSpan(isMultiScanEnabled);
+        setMultipleMoneyRequestParticipantsFromReport(fileTransactionIDs, report, currentUserPersonalDetails.accountID).then(() =>
+            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport),
+        );
+    };
+
     const processReceipts = (files: FileObject[]) => {
         const receiptFiles = buildReceiptFiles({
             files,
@@ -67,12 +74,15 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
             return;
         }
 
-        startScanProcessSpan(isMultiScanEnabled);
+        navigateFromReport(receiptFiles.map((rf: ReceiptFile) => rf.transactionID));
+    };
 
-        const fileTransactionIDs = receiptFiles.map((rf: ReceiptFile) => rf.transactionID);
-        setMultipleMoneyRequestParticipantsFromReport(fileTransactionIDs, report, currentUserPersonalDetails.accountID).then(() =>
-            navigateToConfirmationPage(iouType, transactionID, reportID, backToReport),
-        );
+    const submitMultiScan = () => {
+        const ids = transactions.map((t) => t.transactionID).filter((id): id is string => !!id);
+        if (ids.length === 0) {
+            return;
+        }
+        navigateFromReport(ids);
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
@@ -94,6 +104,7 @@ function ScanFromReport({report, iouType, reportID, transactionID, transaction, 
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
+                submitMultiScan={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
             {ErrorModal}

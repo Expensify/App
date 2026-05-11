@@ -245,7 +245,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
             return;
         }
 
-        setReceiptFiles(newReceiptFiles);
+        setReceiptFiles((prev) => (isMultiScanEnabled ? [...prev, ...newReceiptFiles] : newReceiptFiles));
 
         if (isMultiScanEnabled) {
             return;
@@ -264,6 +264,24 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
         submitDirectly(newReceiptFiles, false);
     };
 
+    const submitMultiScan = () => {
+        const draftIDs = new Set(transactions.map((t) => t.transactionID).filter((id): id is string => !!id));
+        const validReceiptFiles = receiptFiles.filter((rf) => draftIDs.has(rf.transactionID));
+        if (validReceiptFiles.length === 0) {
+            return;
+        }
+        const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT;
+        if (gpsRequired) {
+            if (shouldStartLocationPermissionFlow) {
+                setStartLocationPermissionFlow(true);
+                return;
+            }
+            submitDirectly(validReceiptFiles, true);
+            return;
+        }
+        submitDirectly(validReceiptFiles, false);
+    };
+
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
         processReceipts(files);
     });
@@ -277,6 +295,7 @@ function ScanSkipConfirmation({report, iouType, reportID, transactionID, transac
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
+                submitMultiScan={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
             {ErrorModal}

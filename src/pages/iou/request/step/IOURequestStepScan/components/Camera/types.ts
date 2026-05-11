@@ -28,6 +28,9 @@ type CameraProps = {
 
     /** Called when the attachment picker opens or closes (useful for showing/hiding a full-screen loader) */
     onAttachmentPickerStatusChange?: (isOpen: boolean) => void;
+
+    /** Called when the user taps the multi-scan submit button on the preview ribbon. Native multi-scan only. */
+    submitMultiScan?: () => void;
 };
 
 export default CameraProps;

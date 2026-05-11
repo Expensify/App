@@ -59,7 +59,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
 
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
-    const navigateGlobalCreate = (receiptFiles: ReceiptFile[]) => {
+    const navigateGlobalCreate = (transactionIDs: string[]) => {
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id) : selfDMReport;
@@ -70,7 +70,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
             if (transaction?.participants && transaction.participants.at(0)?.reportID !== targetReport?.reportID) {
                 const isTrackExpense = transaction.participants.at(0)?.reportID === selfDMReport?.reportID;
 
-                const setParticipantsPromises = receiptFiles.map((rf) => setMoneyRequestParticipants(rf.transactionID, transaction.participants));
+                const setParticipantsPromises = transactionIDs.map((tid) => setMoneyRequestParticipants(tid, transaction.participants));
                 Promise.all(setParticipantsPromises).then(() => {
                     if (isTrackExpense) {
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
@@ -81,9 +81,9 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                 return;
             }
 
-            const setParticipantsPromises = receiptFiles.map((rf) => {
-                setTransactionReport(rf.transactionID, {reportID: transactionReportID}, true);
-                return setMoneyRequestParticipantsFromReport(rf.transactionID, targetReport, currentUserPersonalDetails.accountID);
+            const setParticipantsPromises = transactionIDs.map((tid) => {
+                setTransactionReport(tid, {reportID: transactionReportID}, true);
+                return setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
             });
             Promise.all(setParticipantsPromises).then(() =>
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID)),
@@ -119,7 +119,16 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
 
         startScanProcessSpan(isMultiScanEnabled);
 
-        navigateGlobalCreate(receiptFiles);
+        navigateGlobalCreate(receiptFiles.map((rf: ReceiptFile) => rf.transactionID));
+    };
+
+    const submitMultiScan = () => {
+        const ids = transactions.map((t) => t.transactionID).filter((id): id is string => !!id);
+        if (ids.length === 0) {
+            return;
+        }
+        startScanProcessSpan(true);
+        navigateGlobalCreate(ids);
     };
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation((files: FileObject[]) => {
@@ -141,6 +150,7 @@ function ScanGlobalCreate({iouType, reportID, transactionID, transaction, backTo
                 }}
                 onPicked={validateFiles}
                 onAttachmentPickerStatusChange={setIsLoaderVisible}
+                submitMultiScan={submitMultiScan}
                 shouldAcceptMultipleFiles
             />
             {ErrorModal}
