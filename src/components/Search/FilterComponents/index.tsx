@@ -213,6 +213,7 @@ function FilterComponents({filterKey, value, policyIDQuery, onChange}: FilterCom
                     value={value as string[] | undefined}
                     key={filterKey}
                     onChange={onChange}
+                    shouldExcludeExpensifyTeamMembers={filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM}
                 />
             );
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID:
