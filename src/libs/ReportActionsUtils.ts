@@ -4507,11 +4507,14 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
     );
     const isHRConnection = hrFriendlyNames.includes(label);
     const param = encodeURIComponent(`{"policyID": "${policyID}"}`);
-    const workspaceLink = shouldShowOldDotLink
-        ? `${oldDotEnvironmentURL}/policy?param=${param}#connections`
-        : isHRConnection
-          ? `${environmentURL}/${ROUTES.WORKSPACE_HR.getRoute(policyID)}`
-          : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
+    let workspaceLink: string;
+    if (shouldShowOldDotLink) {
+        workspaceLink = `${oldDotEnvironmentURL}/policy?param=${param}#connections`;
+    } else if (isHRConnection) {
+        workspaceLink = `${environmentURL}/${ROUTES.WORKSPACE_HR.getRoute(policyID)}`;
+    } else {
+        workspaceLink = `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
+    }
     let message = translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceLink);
     if (recurrenceCount && recurrenceCount > 1) {
         message += ` ${translate('report.actions.type.integrationSyncFailedRecurrence', {count: recurrenceCount})}`;

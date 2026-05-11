@@ -2,15 +2,16 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -39,9 +40,9 @@ function ZenefitsApprovalModePage({
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const policy = usePolicy(policyID);
+    const {showConfirmModal} = useConfirmModal();
     const currentApprovalMode = policy?.connections?.zenefits?.config?.approvalMode ?? undefined;
     const [draftApprovalMode, setDraftApprovalMode] = useState<ApprovalMode | undefined>();
-    const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
     const selectedApprovalMode = draftApprovalMode ?? currentApprovalMode;
     const isSaveDisabled = !draftApprovalMode || draftApprovalMode === currentApprovalMode;
     const approvalModeOptions: ApprovalModeListItem[] = [
@@ -73,14 +74,23 @@ function ZenefitsApprovalModePage({
         setDraftApprovalMode(approvalMode);
     };
 
-    const saveApprovalMode = () => {
+    const handleSave = () => {
         if (!draftApprovalMode) {
             return;
         }
 
-        updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode);
-        setIsWarningModalOpen(false);
-        Navigation.goBack();
+        showConfirmModal({
+            title: translate('workspace.hr.zenefits.approvalModeWarningTitle'),
+            prompt: <RenderHTML html={translate('workspace.hr.zenefits.approvalModeWarningPrompt', CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />,
+            confirmText: translate('workspace.hr.zenefits.approvalModeWarningConfirm'),
+            cancelText: translate('common.cancel'),
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            updateZenefitsApprovalMode(policyID, draftApprovalMode, currentApprovalMode);
+            Navigation.goBack();
+        });
     };
 
     return (
@@ -115,20 +125,11 @@ function ZenefitsApprovalModePage({
                             large
                             success
                             text={translate('common.save')}
-                            onPress={() => setIsWarningModalOpen(true)}
+                            onPress={handleSave}
                             isDisabled={isSaveDisabled}
                         />
                     </FixedFooter>
                 </View>
-                <ConfirmModal
-                    title={translate('workspace.hr.zenefits.approvalModeWarningTitle')}
-                    isVisible={isWarningModalOpen}
-                    onConfirm={saveApprovalMode}
-                    onCancel={() => setIsWarningModalOpen(false)}
-                    prompt={<RenderHTML html={translate('workspace.hr.zenefits.approvalModeWarningPrompt', CONST.CONFIGURE_APPROVAL_WORKFLOWS_HELP_URL)} />}
-                    confirmText={translate('workspace.hr.zenefits.approvalModeWarningConfirm')}
-                    cancelText={translate('common.cancel')}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

@@ -9,6 +9,7 @@ import ConnectToZenefitsFlow from '@components/ConnectToZenefitsFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -16,6 +17,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -55,7 +57,7 @@ function WorkspaceHRPage({
     const [activeGustoFlowKey, setActiveGustoFlowKey] = useState<number>();
     const [activeZenefitsFlowKey, setActiveZenefitsFlowKey] = useState<number>();
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
-    const [isZenefitsDisconnectModalOpen, setIsZenefitsDisconnectModalOpen] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'ZenefitsSquare', 'Sync', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['NewUser']);
@@ -153,11 +155,26 @@ function WorkspaceHRPage({
             {
                 icon: icons.Trashcan,
                 text: translate('workspace.hr.zenefits.disconnect'),
-                onSelected: () => setIsZenefitsDisconnectModalOpen(true),
+                onSelected: () => {
+                    showConfirmModal({
+                        title: translate('workspace.hr.zenefits.disconnectTitle'),
+                        prompt: translate('workspace.hr.zenefits.disconnectPrompt'),
+                        confirmText: translate('workspace.hr.zenefits.disconnect'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        if (policy) {
+                            removePolicyConnection(policy, CONST.POLICY.CONNECTIONS.NAME.ZENEFITS);
+                        }
+                    });
+                },
                 shouldCallAfterModalHide: true,
             },
         ],
-        [icons.Sync, icons.Trashcan, isOffline, policy, translate],
+        [icons.Sync, icons.Trashcan, isOffline, policy, showConfirmModal, translate],
     );
 
     const getGustoApprovalModeLabel = (approvalMode?: GustoApprovalMode | null) => {
@@ -400,21 +417,6 @@ function WorkspaceHRPage({
                     onCancel={() => setIsDisconnectModalOpen(false)}
                     prompt={translate('workspace.hr.gusto.disconnectPrompt')}
                     confirmText={translate('workspace.hr.gusto.disconnect')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                <ConfirmModal
-                    title={translate('workspace.hr.zenefits.disconnectTitle')}
-                    isVisible={isZenefitsDisconnectModalOpen}
-                    onConfirm={() => {
-                        if (policy) {
-                            removePolicyConnection(policy, CONST.POLICY.CONNECTIONS.NAME.ZENEFITS);
-                        }
-                        setIsZenefitsDisconnectModalOpen(false);
-                    }}
-                    onCancel={() => setIsZenefitsDisconnectModalOpen(false)}
-                    prompt={translate('workspace.hr.zenefits.disconnectPrompt')}
-                    confirmText={translate('workspace.hr.zenefits.disconnect')}
                     cancelText={translate('common.cancel')}
                     danger
                 />
