@@ -158,9 +158,7 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
                 initialSortColumn="workspaces"
                 title={translate('common.workspaces')}
             >
-                <View style={[styles.mb4, styles.ph5, styles.mnw200, styles.flexGrow0, styles.alignSelfStart]}>
-                    <Table.SearchBar label={translate('workspace.common.findWorkspace')} />
-                </View>
+                <Table.SearchBar label={translate('workspace.common.findWorkspace')} />
 
                 <Table.Header />
                 <Table.Body />
