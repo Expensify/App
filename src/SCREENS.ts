@@ -625,7 +625,7 @@ const SCREENS = {
             NETSUITE_TOKEN_INPUT: 'Policy_Accounting_NetSuite_Token_Input',
             NETSUITE_SUBSIDIARY_SELECTOR: 'Policy_Accounting_NetSuite_Subsidiary_Selector',
             NETSUITE_IMPORT: 'Policy_Accounting_NetSuite_Import',
-            NETSUITE_EXPORT: 'Policy_Accounting_NetSuite_Export',
+            DYNAMIC_NETSUITE_EXPORT: 'Dynamic_Policy_Accounting_NetSuite_Export',
             DYNAMIC_NETSUITE_PREFERRED_EXPORTER_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Preferred_Exporter_Select',
             DYNAMIC_NETSUITE_DATE_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Date_Select',
             DYNAMIC_NETSUITE_EXPORT_EXPENSES: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses',
