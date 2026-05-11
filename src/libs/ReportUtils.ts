@@ -6161,9 +6161,10 @@ function navigateBackOnDeleteTransaction(backRoute: Route | undefined) {
         Navigation.dismissToSuperWideRHP();
         return;
     }
-    Navigation.dismissToSuperWideRHP();
-    Navigation.isNavigationReady().then(() => {
-        Navigation.goBack(backRoute);
+    Navigation.dismissToSuperWideRHP({
+        afterTransition: () => {
+            Navigation.goBack(backRoute);
+        },
     });
 }
 
