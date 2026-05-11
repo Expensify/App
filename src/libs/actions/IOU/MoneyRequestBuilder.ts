@@ -625,8 +625,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         const managerMcTestParticipant = getManagerMcTestParticipant(currentUserAccountIDParam, personalDetails) ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
             type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
-            // Prefer the freshly computed reimbursableTotal over the (sometimes stale) stored total.
-            amount: getReimbursableTotal(iou.report) || (iou.report?.total ?? 0),
+            amount: iou.report?.total ?? 0,
             currency: iou.report?.currency ?? '',
             comment: '',
             participants: [managerMcTestParticipant],
