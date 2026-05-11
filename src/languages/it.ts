@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Il prossimo mese',
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -2204,6 +2205,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Il tuo account è bloccato',
         chatToConciergeToUnlock: 'Chatta con Concierge per risolvere i problemi di sicurezza e sbloccare il tuo account.',
         chatWithConcierge: 'Chatta con Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gestione dei dispositivi',
+        description: `Gestisci tutti i dispositivi su cui hai effettuato l'accesso con il tuo account Expensify.`,
+        revoke: 'Revoca',
+        unknownDevice: 'Dispositivo Sconosciuto',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticazione a due fattori',
@@ -6024,6 +6031,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             approvers: 'Approvatori',
             auditors: 'Revisori',
             emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},
+            configureGustoSync: 'Configura la sincronizzazione con Gusto.',
+            syncWithGusto: 'Sincronizza con Gusto',
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -6877,6 +6886,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             customRules: {
                 title: 'Politica di spesa',
                 cardSubtitle: 'Qui trovi il regolamento spese del tuo team, così tutti sono allineati su cosa è coperto.',
+                policyDocument: 'Documento di politica',
+                policyText: 'Testo della politica',
             },
             spendRules: {
                 title: 'Spesa',
