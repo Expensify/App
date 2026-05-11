@@ -64,7 +64,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             renderItem={renderFilterItem}
             onEndReached={adjustScroll}
             onEndReachedThreshold={0.75}
-            ListFooterComponent={filters.length > 0 ? () => <SearchFiltersClearButton onPress={clearFilters} /> : undefined}
+            ListFooterComponent={filters.length > 0 ? <SearchFiltersClearButton onPress={clearFilters} /> : undefined}
         />
     );
 }
