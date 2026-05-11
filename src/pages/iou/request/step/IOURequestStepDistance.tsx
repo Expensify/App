@@ -12,6 +12,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useEnvironment from '@hooks/useEnvironment';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -81,6 +82,7 @@ function IOURequestStepDistance({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const {isProduction} = useEnvironment();
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
@@ -356,15 +358,17 @@ function IOURequestStepDistance({
             if (isEditingSplit) {
                 iouWaypointType = CONST.IOU.TYPE.SPLIT_EXPENSE;
             }
-            // Construct the backTo URL explicitly to match the stack entry created when we navigated
-            // to this distance edit page. Using Navigation.getActiveRoute() would return a URL with
-            // the OnyxTabNavigator's tab suffix (e.g. "/distance-map") which doesn't match the stack
-            // entry — causing Navigation.goBack() to REPLACE instead of POP and creating a duplicate
-            // distance page entry in the stack.
-            const waypointBackTo = ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backTo);
+            // In the edit flow this page is wrapped in an OnyxTabNavigator, so Navigation.getActiveRoute()
+            // returns a URL with the tab suffix (e.g. "/distance-map") that doesn't match the stack entry
+            // — Navigation.goBack() then REPLACEs instead of POPs and crashes. Build the backTo URL
+            // explicitly there. The create flow has no tab navigator, so the production getActiveRoute()
+            // path is correct (GH #90037).
+            const waypointBackTo = isEditing
+                ? ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backTo)
+                : Navigation.getActiveRoute();
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID, index.toString(), waypointBackTo));
         },
-        [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditingSplit],
+        [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditingSplit, isEditing],
     );
 
     const navigateToNextStep = useCallback(() => {
@@ -751,7 +755,7 @@ function IOURequestStepDistance({
         [currentDistance, distanceUnit, submitManualDistance, manualFormError, handleManualInputChange],
     );
 
-    if (isEditing) {
+    if (isEditing && !isProduction) {
         return (
             <StepScreenWrapper
                 headerTitle={translate('common.distance')}
