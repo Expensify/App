@@ -76,6 +76,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldClearInputOnSelect = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldPreventAutoScrollOnSelect = false,
     isRowMultilineSupported = false,
     titleNumberOfLines,
     shouldHighlightSelectedItem,
@@ -180,7 +181,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         if (canSelectMultiple) {
-            if (sections.length > 1 && !isItemSelected(item)) {
+            if (!shouldPreventAutoScrollOnSelect && sections.length > 1 && !isItemSelected(item)) {
                 scrollToIndex(0);
             }
 
@@ -189,6 +190,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+            if (indexToFocus !== focusedIndex) {
+                suppressNextFocusScrollRef.current = true;
+            }
             setFocusedIndex(indexToFocus);
         }
         onSelectRow(item);
@@ -288,6 +292,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         setFocusedIndex,
     });
 
+    const suppressNextFocusScroll = () => {
+        suppressNextFocusScrollRef.current = true;
+    };
+
     useSearchFocusSync({
         searchValue: textInputOptions?.value,
         data: flattenedData,
@@ -297,7 +305,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
+        focusedIndex,
         firstFocusableIndex,
+        suppressNextFocusScroll,
     });
 
     const textInputComponent = () => {
@@ -355,7 +365,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             case CONST.SECTION_LIST_ITEM_TYPE.ROW: {
                 const isItemFocused = index === focusedIndex;
                 const isItemVisuallyFocused = isItemFocused && (shouldHighlightInitiallyFocusedItem || isKeyboardNavigating);
-                const isDisabled = !!item.isDisabled;
+                const isDisabled = !!item.isDisabled && !item.isSelected;
 
                 return (
                     <ListItemRenderer

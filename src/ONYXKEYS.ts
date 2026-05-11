@@ -87,6 +87,9 @@ const ONYXKEYS = {
     /** GPS points stored for the GPS distance expense before they're accepted by the user */
     GPS_DRAFT_DETAILS: 'gpsDraftDetails',
 
+    /** Odometer draft stored for the Save for later flow */
+    ODOMETER_DRAFT: 'odometerDraft',
+
     /** Contains all the info for Tasks */
     TASK: 'task',
 
@@ -570,6 +573,9 @@ const ONYXKEYS = {
     /** Stores the information about duplicated workspace */
     DUPLICATE_WORKSPACE: 'duplicateWorkspace',
 
+    /** Stores the state of the bulk Copy Policy Settings flow */
+    COPY_POLICY_SETTINGS: 'copyPolicySettings',
+
     /** Stores the information about currently edited advanced approval workflow */
     APPROVAL_WORKFLOW: 'approvalWorkflow',
 
@@ -602,6 +608,9 @@ const ONYXKEYS = {
 
     /** Company cards custom names */
     NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES: 'nvp_expensify_ccCustomNames',
+
+    /** Whether to kick off the "Concierge is thinking" indicator when AgentZeroStatusGate mounts */
+    CONCIERGE_THINKING_KICKOFF: 'conciergeThinkingKickoff',
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
@@ -709,9 +718,6 @@ const ONYXKEYS = {
     /** Whether the user has denied the contact import permission prompt */
     HAS_DENIED_CONTACT_IMPORT_PROMPT: 'hasDeniedContactImportPrompt',
 
-    /** Keeps track of whether the "Confirm Navigate to Expensify Classic" modal is opened */
-    IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN: 'IsOpenConfirmNavigateExpensifyClassicModalOpen',
-
     /** The transaction IDs to be highlighted when opening the Expenses search route page */
     TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE: 'transactionIdsHighlightOnSearchRoute',
 
@@ -815,6 +821,9 @@ const ONYXKEYS = {
 
         /** The value that indicates whether Continuous Reconciliation should be used on the domain */
         EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION: 'expensifyCard_useContinuousReconciliation_',
+
+        /** Pending action for continuous reconciliation enabled status */
+        EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION: 'expensifyCard_useContinuousReconciliationPendingAction_',
 
         /** The selected accounting integration bank account ID for card reconciliation */
         EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID: 'expensifyCard_bankAccount_',
@@ -1110,6 +1119,8 @@ const ONYXKEYS = {
         ADD_WORK_EMAIL_FORM_DRAFT: 'addWorkEmailFormDraft',
         EDIT_DOMAIN_GROUP_NAME_FORM: 'editDomainGroupNameForm',
         EDIT_DOMAIN_GROUP_NAME_FORM_DRAFT: 'editDomainGroupNameFormDraft',
+        ADD_AGENT_FORM: 'addAgentForm',
+        ADD_AGENT_FORM_DRAFT: 'addAgentFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1255,6 +1266,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
     [ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM]: FormTypes.AddWorkEmailForm;
     [ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM]: FormTypes.DomainGroupEditNameForm;
+    [ONYXKEYS.FORMS.ADD_AGENT_FORM]: FormTypes.AddAgentForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1319,7 +1331,9 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING]: boolean;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
-    [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: OnyxTypes.CardContinuousReconciliation;
+    // Old accounts may still save this as "1" or "0".
+    [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean | string;
+    [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION]: OnyxTypes.CardContinuousReconciliation;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID]: string;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeedWithDomainID;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
@@ -1357,6 +1371,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: boolean;
     [ONYXKEYS.IS_GPS_IN_PROGRESS_MODAL_OPEN]: boolean;
     [ONYXKEYS.GPS_DRAFT_DETAILS]: OnyxTypes.GpsDraftDetails;
+    [ONYXKEYS.ODOMETER_DRAFT]: OnyxTypes.OdometerDraft;
     [ONYXKEYS.FULLSCREEN_VISIBILITY]: boolean;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.NEW_GROUP_CHAT_DRAFT]: OnyxTypes.NewGroupChatDraft;
@@ -1508,6 +1523,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ASSIGN_CARD]: OnyxTypes.AssignCard;
     [ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE]: boolean;
     [ONYXKEYS.DUPLICATE_WORKSPACE]: OnyxTypes.DuplicateWorkspace;
+    [ONYXKEYS.COPY_POLICY_SETTINGS]: OnyxTypes.CopyPolicySettings;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: string;
     [ONYXKEYS.NVP_BILLING_FUND_ID]: number;
@@ -1528,6 +1544,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_ROUTE]: string;
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
+    [ONYXKEYS.CONCIERGE_THINKING_KICKOFF]: boolean;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
     [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
@@ -1568,7 +1585,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
-    [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
 };
