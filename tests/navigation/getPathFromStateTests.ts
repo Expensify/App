@@ -22,12 +22,6 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         CountryScreen: {
             path: 'country',
         },
-        ReportDetailsScreen: {
-            path: 'details',
-        },
-        ShareCodeScreen: {
-            path: 'shareCode',
-        },
         FlagScreen: {
             path: 'flag/:reportID/:reportActionID',
         },
@@ -63,12 +57,6 @@ jest.mock('@src/ROUTES', () => ({
         },
         FLAG: {
             path: 'flag/:reportID/:reportActionID',
-        },
-        REPORT_DETAILS: {
-            path: 'details',
-        },
-        REPORT_DETAILS_SHARE_CODE: {
-            path: 'shareCode',
         },
         CONSTANT_PICKER: {
             path: 'constant-picker',
@@ -234,29 +222,6 @@ describe('getPathFromState', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen'}, {name: 'CountryScreen', params: {country: 'US'}}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country?country=US');
-        });
-
-        it('uses stored path for a simple dynamic route to avoid appending the suffix twice', () => {
-            mockRNGetPathFromState.mockReturnValue('/r/123/details');
-
-            const state = buildState([
-                {name: 'ReportScreen', params: {reportID: '123'}},
-                {name: 'ReportDetailsScreen', path: '/r/123/details'},
-            ]);
-
-            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/details');
-        });
-
-        it('uses stored path for a stacked simple dynamic route to avoid appending duplicated segments', () => {
-            mockRNGetPathFromState.mockReturnValue('/r/123/details');
-
-            const state = buildState([
-                {name: 'ReportScreen', params: {reportID: '123'}},
-                {name: 'ReportDetailsScreen', path: '/r/123/details'},
-                {name: 'ShareCodeScreen', path: '/r/123/details/shareCode'},
-            ]);
-
-            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/details/shareCode');
         });
 
         it('params + query params stacking', () => {

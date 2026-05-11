@@ -765,7 +765,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
             result.push(PromotedActions.pin(report));
         }
 
-        result.push(PromotedActions.share());
+        result.push(PromotedActions.share(report));
 
         return result;
     }, [canJoin, report, currentUserPersonalDetails.accountID]);

@@ -17,7 +17,7 @@ jest.mock('@src/ROUTES', () => ({
         MEMBER_DETAILS: {path: 'member-details/:accountID'},
         OPT_TRAILING: {path: 'opt-page/:id?'},
         OPT_MIDDLE: {path: 'wrap/:p?/end'},
-        REPORT_DETAILS_SHARE_CODE: {path: 'shareCode'},
+        REPORT_DETAILS_SHARE_CODE: {path: 'share-code'},
     },
 }));
 
@@ -91,15 +91,6 @@ describe('useDynamicBackPath', () => {
         const {result} = renderHook(() => useDynamicBackPath(path));
 
         expect(result.current).toBe('settings/wallet');
-    });
-
-    it('should remove only the Share Code suffix when stacked on report details', () => {
-        const path = DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path;
-        getPathFromStateMock.mockReturnValue(`r/123/details/${path}`);
-
-        const {result} = renderHook(() => useDynamicBackPath(path));
-
-        expect(result.current).toBe('r/123/details');
     });
 
     const FLAG_COMMENT_PATH = 'flag/:reportID/:reportActionID' as DynamicRouteSuffix;

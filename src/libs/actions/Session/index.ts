@@ -1454,7 +1454,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
     const routesAccessibleByAnonymousUser = [
         ROUTES.SIGN_IN_MODAL,
         getAnonymousAccessibleReportPath(DYNAMIC_ROUTES.REPORT_DETAILS.path),
-        getAnonymousAccessibleReportPath(DYNAMIC_ROUTES.REPORT_DETAILS.path, DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path),
+        getAnonymousAccessibleReportPath(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path),
         ROUTES.CONCIERGE,
     ];
     const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
