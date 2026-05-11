@@ -128,19 +128,19 @@ function CopyPolicySettingsSelectFeaturesPage() {
         [isPartDisabled],
     );
 
-    const togglableParts = useMemo<Part[]>(() => FEATURE_ROWS.filter((row) => !isPartDisabled(row.part)).map((row) => row.part), [isPartDisabled]);
+    const selectableParts = useMemo<Part[]>(() => FEATURE_ROWS.filter((row) => !isPartDisabled(row.part)).map((row) => row.part), [isPartDisabled]);
 
     const toggleAll = useCallback(() => {
-        const togglableSet = new Set(togglableParts);
+        const selectableSet = new Set(selectableParts);
         setSelectedParts((prev) => {
-            const allSelected = togglableParts.every((part) => prev.includes(part));
+            const allSelected = selectableParts.every((part) => prev.includes(part));
             if (allSelected) {
-                // Deselect togglable parts, keep any disabled-but-selected parts as-is (none exist today).
-                return prev.filter((part) => !togglableSet.has(part));
+                // Deselect selectable parts, keep any disabled-but-selected parts as-is (none exist today).
+                return prev.filter((part) => !selectableSet.has(part));
             }
-            return Array.from(new Set([...prev, ...togglableParts]));
+            return Array.from(new Set([...prev, ...selectableParts]));
         });
-    }, [togglableParts]);
+    }, [selectableParts]);
 
     const commitAndNavigate = useCallback(() => {
         if (!sourcePolicyID) {
@@ -205,7 +205,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
                         ListItem={MultiSelectListItem}
                         canSelectMultiple
                         onSelectRow={togglePart}
-                        onSelectAll={togglableParts.length > 0 ? toggleAll : undefined}
+                        onSelectAll={selectableParts.length > 0 ? toggleAll : undefined}
                         shouldSingleExecuteRowSelect
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}
