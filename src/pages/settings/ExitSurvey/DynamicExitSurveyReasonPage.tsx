@@ -69,13 +69,9 @@ function DynamicExitSurveyReasonPage() {
     }, []);
 
     const switchToClassic = useCallback(() => {
-        Log.info('[ExitSurvey] User chose Switch to Classic', false, {isHybridApp: CONFIG.IS_HYBRID_APP});
-        if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSetNVP: true, isTrackingGPS});
-            return;
-        }
+        Log.info('[ExitSurvey] User chose Switch to Classic');
         submitForm();
-    }, [isTrackingGPS, submitForm]);
+    }, [submitForm]);
 
     const isSwitchToClassicDisabled = !CONFIG.IS_HYBRID_APP && (isOffline || !draftResponse.trim());
     const isGoBackJustOnceDisabled = !CONFIG.IS_HYBRID_APP && isOffline;
