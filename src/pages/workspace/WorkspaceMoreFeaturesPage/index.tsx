@@ -169,8 +169,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         });
     };
 
-    const warnDisconnectGustoFirst = async () => {
-        if (!policy?.connections?.gusto) {
+    const warnDisconnectHRFirst = async () => {
+        if (!policy?.connections?.gusto && !policy?.connections?.zenefits) {
             return;
         }
         await showConfirmModal({
@@ -309,17 +309,19 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
                             }}
                         />
-                        {isBetaEnabled(CONST.BETAS.GUSTO) && (
+                        {(isBetaEnabled(CONST.BETAS.GUSTO) || isBetaEnabled(CONST.BETAS.ZENEFITS)) && (
                             <MoreFeatureToggle
                                 icon={illustrations.Members}
                                 title={translate('workspace.hr.title')}
                                 subtitle={translate('workspace.hr.subtitle')}
                                 isActive={
-                                    ((policy?.isHREnabled === true || !!policy?.connections?.gusto) && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false
+                                    ((policy?.isHREnabled === true || !!policy?.connections?.gusto || !!policy?.connections?.zenefits) &&
+                                        canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ??
+                                    false
                                 }
                                 pendingAction={policy?.pendingFields?.isHREnabled}
-                                disabled={!!policy?.connections?.gusto}
-                                disabledAction={warnDisconnectGustoFirst}
+                                disabled={!!policy?.connections?.gusto || !!policy?.connections?.zenefits}
+                                disabledAction={warnDisconnectHRFirst}
                                 onToggle={(isEnabled) => {
                                     if (!policyID) {
                                         return;

@@ -283,6 +283,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'QBDSquare',
         'CertiniaSquare',
         'GustoSquare',
+        'ZenefitsSquare',
         'Pencil',
         'Workflows',
     ]);

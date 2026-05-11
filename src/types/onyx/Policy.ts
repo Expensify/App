@@ -1376,6 +1376,24 @@ type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
     'approvalMode' | 'finalApprover'
 >;
 
+/** Zenefits (TriNet) connection data */
+type ZenefitsConnectionData = Record<string, never>;
+
+/** Zenefits (TriNet) connection config */
+type ZenefitsConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Zenefits approval mode */
+        approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null;
+
+        /** Workspace member who acts as the final approver */
+        finalApprover: string | null;
+
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'approvalMode' | 'finalApprover'
+>;
+
 /**
  * Data imported from QuickBooks Desktop.
  */
@@ -1509,6 +1527,9 @@ type Connections = {
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
+
+    /** Zenefits (TriNet) integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */

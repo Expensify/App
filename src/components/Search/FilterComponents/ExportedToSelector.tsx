@@ -43,6 +43,7 @@ function ExportedToSelector({value = [], onChange}: ExportedToSelectorProps) {
         'QBDSquare',
         'CertiniaSquare',
         'GustoSquare',
+        'ZenefitsSquare',
         'Table',
         'TablePencil',
     ]);

@@ -1143,7 +1143,7 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingFeatureConnection(policy);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
-        return policy?.isHREnabled === true || !!policy?.connections?.gusto;
+        return policy?.isHREnabled === true || !!policy?.connections?.gusto || !!policy?.connections?.zenefits;
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -1816,6 +1816,10 @@ function isGustoConnected(policy?: OnyxEntry<Policy>) {
     return !!policy?.connections?.gusto;
 }
 
+function isZenefitsConnected(policy?: OnyxEntry<Policy>) {
+    return !!policy?.connections?.zenefits;
+}
+
 function getConnectedIntegration(policy: Policy | undefined, connectionNames: readonly ConnectionName[] = getAccountingConnectionNames()) {
     return connectionNames.find((integration) => !!policy?.connections?.[integration]);
 }
@@ -2364,6 +2368,7 @@ export {
     getRulesDocumentSourceURL,
     getHRConnectionNames,
     isGustoConnected,
+    isZenefitsConnected,
 };
 
 export type {MemberEmailsToAccountIDs};

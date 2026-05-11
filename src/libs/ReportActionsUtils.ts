@@ -4502,9 +4502,17 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
         errorMessage: '',
     };
 
+    const hrFriendlyNames: string[] = CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES.map(
+        (name) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name as keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY],
+    );
+    const isHRConnection = hrFriendlyNames.includes(label);
     const param = encodeURIComponent(`{"policyID": "${policyID}"}`);
-    const workspaceAccountingLink = shouldShowOldDotLink ? `${oldDotEnvironmentURL}/policy?param=${param}#connections` : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
-    let message = translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceAccountingLink);
+    const workspaceLink = shouldShowOldDotLink
+        ? `${oldDotEnvironmentURL}/policy?param=${param}#connections`
+        : isHRConnection
+          ? `${environmentURL}/${ROUTES.WORKSPACE_HR.getRoute(policyID)}`
+          : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
+    let message = translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceLink);
     if (recurrenceCount && recurrenceCount > 1) {
         message += ` ${translate('report.actions.type.integrationSyncFailedRecurrence', {count: recurrenceCount})}`;
     }

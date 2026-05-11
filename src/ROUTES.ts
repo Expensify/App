@@ -2469,6 +2469,24 @@ const ROUTES = {
             return `workspaces/${policyID}/hr/gusto/final-approver` as const;
         },
     },
+    WORKSPACE_HR_ZENEFITS_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/hr/zenefits/approval-mode',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_ZENEFITS_APPROVAL_MODE route');
+            }
+            return `workspaces/${policyID}/hr/zenefits/approval-mode` as const;
+        },
+    },
+    WORKSPACE_HR_ZENEFITS_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/hr/zenefits/final-approver',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_ZENEFITS_FINAL_APPROVER route');
+            }
+            return `workspaces/${policyID}/hr/zenefits/final-approver` as const;
+        },
+    },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',
         getRoute: (policyID: string | undefined) => {
