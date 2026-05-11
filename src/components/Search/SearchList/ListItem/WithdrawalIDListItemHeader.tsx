@@ -102,6 +102,19 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
               })();
 
     const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}
+            >
+                <Icon
+                    src={icon}
+                    width={iconSize}
+                    height={iconSize}
+                    additionalStyles={iconStyles}
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT}
@@ -203,20 +216,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && (
-                        <>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
-                                <Icon
-                                    src={icon}
-                                    width={iconSize}
-                                    height={iconSize}
-                                    additionalStyles={iconStyles}
-                                />
-                            </View>
-
-                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
-                        </>
-                    )}
+                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>

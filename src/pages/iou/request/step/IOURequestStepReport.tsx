@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setCustomUnitID, setCustomUnitRateID} from '@libs/actions/IOU';
@@ -63,7 +64,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
-    const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
+    const reportOrDraftReport = useReportOrReportDraft(reportIDFromRoute);
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportOrDraftReport?.parentReportID}`, {selector: getIOUActionsSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreateReport = action === CONST.IOU.ACTION.CREATE;
@@ -105,20 +106,22 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
     };
 
+    const buildParticipants = (report: OnyxEntry<Report>) => [
+        {
+            selected: true,
+            accountID: 0,
+            isPolicyExpenseChat: true,
+            reportID: report?.chatReportID,
+            policyID: report?.policyID,
+        },
+    ];
+
     const handleGlobalCreateReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
             return;
         }
-        const reportOrDraftReportFromValue = getReportOrDraftReport(item.value);
-        const participants = [
-            {
-                selected: true,
-                accountID: 0,
-                isPolicyExpenseChat: true,
-                reportID: reportOrDraftReportFromValue?.chatReportID,
-                policyID: reportOrDraftReportFromValue?.policyID,
-            },
-        ];
+        const reportOrDraftReportFromValue = getReportOrDraftReport(item.value, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`]);
+        const participants = buildParticipants(reportOrDraftReportFromValue);
 
         const currentPolicyID = perDiemOriginalPolicy?.id;
         const newPolicyID = reportOrDraftReportFromValue?.policyID;
@@ -168,10 +171,13 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         handleGoBack();
         InteractionManager.runAfterInteractions(() => {
             Navigation.setNavigationActionToMicrotaskQueue(() => {
+                const participants = buildParticipants(report);
+
                 setTransactionReport(
                     transaction.transactionID,
                     {
                         reportID: item.value,
+                        participants,
                     },
                     !isEditing,
                 );
