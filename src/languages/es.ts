@@ -57,6 +57,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Contraseña',
         magicCode: 'Código mágico',
+        magicCodeCaution: 'Solo ingresa este código en el sitio web o la aplicación oficial de Expensify.',
         digits: 'dígitos',
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',

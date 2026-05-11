@@ -115,6 +115,7 @@ const translations = {
         zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Magic code',
+        magicCodeCaution: 'Only enter this code on the official Expensify website or app.',
         digits: 'digits',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',
