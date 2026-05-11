@@ -578,8 +578,9 @@ function WorkspacesListPage() {
                     type: policyInfo.type,
                     title: policyInfo.name,
                     role: CONST.POLICY.ROLE.USER,
-                    isDefault: activePolicyID === policyID,
                     isDeleted: false,
+                    isJoinRequestPending: true,
+                    isDefault: activePolicyID === policyID,
                     ownerAccountID: policyOwnerAccountID,
                     ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                     ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
@@ -601,6 +602,7 @@ function WorkspacesListPage() {
                     title: policy.name,
                     role: policy.role,
                     ownerAccountID: policyOwnerAccountID,
+                    isJoinRequestPending: false,
                     isDefault: activePolicyID === policy.id,
                     isDeleted: isPendingDeletePolicy(policy),
                     ownerLogin: ownerDetails ? ownerDetails.login : undefined,
@@ -613,8 +615,6 @@ function WorkspacesListPage() {
                     action: () => navigateToWorkspace(policy.id),
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                     // Missing
-                    // iconFill
-                    // fallbackIcon
                     // employeeList
                 });
             }

@@ -17,6 +17,7 @@ export type WorkspaceRowData = {
     disabled: boolean;
     isDefault: boolean;
     isDeleted: boolean;
+    isJoinRequestPending: boolean;
     policyID: string;
     ownerAccountID?: number;
     ownerName?: string;
