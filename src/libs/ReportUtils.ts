@@ -209,10 +209,10 @@ import {
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
     isExportIntegrationAction,
+    isForwardedAction,
     isIntegrationMessageAction,
     isModifiedExpenseAction,
     isMoneyRequestAction,
-    isForwardedAction,
     isMovedAction,
     isPendingRemove,
     isPolicyChangeLogAction,
@@ -2034,7 +2034,7 @@ function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>): boole
     }
 
     const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {});
-    const lastSubmittedAt = reportActions.filter(isSubmittedAction).reduce((latest, action) => (action.created > latest ? action.created : latest), '');
+    const lastSubmittedAt = reportActions.filter(isSubmittedAction).reduce<string>((latest, action) => (action.created > latest ? action.created : latest), '');
 
     return reportActions.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
 }

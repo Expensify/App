@@ -5560,7 +5560,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             const transaction = {
-                ...createRandomTransaction(Number(transactionID)),
+                ...createRandomTransaction(89012),
                 transactionID,
                 reportID,
             };
