@@ -4,6 +4,7 @@ import type {EventMapCore, NavigationState, ParamListBase, ScreenListeners} from
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import type {TabSelectorProps} from '@components/TabSelector/types';
@@ -61,6 +62,9 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /** How the inner tab navigator handles `goBack`. Pass `NONE` to forward back to the parent (e.g. close the RHP) instead of switching tabs. */
+    backBehavior?: ValueOf<typeof CONST.TAB.BACK_BEHAVIOR>;
 };
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
@@ -105,6 +109,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     lazyLoadEnabled = false,
     onTabSelect,
     equalWidth = false,
+    backBehavior = CONST.TAB.BACK_BEHAVIOR.INITIAL_ROUTE,
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
     const styles = useThemeStyles();
@@ -178,7 +183,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                 {...rest}
                 id={id}
                 initialRouteName={validInitialTab}
-                backBehavior="initialRoute"
+                backBehavior={backBehavior}
                 keyboardDismissMode="none"
                 tabBar={TabBarWithFocusTrapInclusion}
                 onTabSelect={onTabSelect}

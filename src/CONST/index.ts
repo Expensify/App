@@ -6384,6 +6384,13 @@ const CONST = {
             LINKED: 'ReceiptPartnersLinkedTab',
             OUTSTANDING: 'ReceiptPartnersOutstandingTab',
         },
+        BACK_BEHAVIOR: {
+            INITIAL_ROUTE: 'initialRoute',
+            FIRST_ROUTE: 'firstRoute',
+            ORDER: 'order',
+            HISTORY: 'history',
+            NONE: 'none',
+        },
     },
     TAB_REQUEST: {
         MANUAL: 'manual',
