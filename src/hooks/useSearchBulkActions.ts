@@ -335,7 +335,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);
 
     const selectedCurrencies = [...selectedReports.map((report) => report.currency), ...Object.values(selectedTransactions).map((transaction) => transaction.currency)].filter(Boolean);
-    const hasMixedCurrencies = new Set(selectedCurrencies).size > 1;
+    const hasMultipleCurrencies = new Set(selectedCurrencies).size > 1;
 
     const {bulkPayButtonOptions, businessBankAccountOptions, shouldShowBusinessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
@@ -343,7 +343,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
-        onlyShowPayElsewhere: onlyShowPayElsewhere || hasMixedCurrencies,
+        onlyShowPayElsewhere: onlyShowPayElsewhere || hasMultipleCurrencies,
     });
 
     const {status, hash} = queryJSON ?? {};
