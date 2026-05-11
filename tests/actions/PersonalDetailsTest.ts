@@ -718,7 +718,6 @@ describe('actions/PersonalDetails', () => {
         };
 
         it('should call API.makeRequestWithSideEffects with correct command and Onyx data', async () => {
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
 
             PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
