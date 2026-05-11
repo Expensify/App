@@ -43,12 +43,6 @@ function TransparentScreen() {
 
 TransparentScreen.displayName = 'TransparentScreen';
 
-const overlayStyles = StyleSheet.create({
-    root: {
-        zIndex: variables.mfaOverlayZIndex,
-    },
-});
-
 function MultifactorAuthenticationOverlay() {
     const state = useMultifactorAuthenticationState();
     const {cancel} = useMultifactorAuthentication();
@@ -115,7 +109,7 @@ function MultifactorAuthenticationOverlay() {
 
     return (
         <View
-            style={[StyleSheet.absoluteFill, overlayStyles.root]}
+            style={[StyleSheet.absoluteFill, styles.mfaOverlayRoot]}
             pointerEvents="box-none"
         >
             {!shouldUseNarrowLayout && (
