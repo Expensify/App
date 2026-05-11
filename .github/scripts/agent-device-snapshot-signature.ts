@@ -1,23 +1,25 @@
-// Structural signature of a UI snapshot.
-//
-// The signature is the cache key for the replay system: cache hits replay
-// recorded actions, cache misses fall back to the LLM. For that to work,
-// the signature must be:
-//
-//   1. STABLE across cosmetic UI changes — locale rotation, A/B copy
-//      tests, visible user data, dynamic timestamps. We exclude visible
-//      `text` content for this reason. A label changing from
-//      "Continue" to "Submit" must NOT bust the cache (the replay layer
-//      finds the button by role + position, then the LLM recovery layer
-//      handles a real shape change if any).
-//
-//   2. SENSITIVE to structural change — a new button appearing, an
-//      input becoming non-editable, a screen transitioning to a
-//      different layout. These are the events that invalidate a
-//      recorded action sequence.
-//
-// Net effect: localization or copy churn doesn't trigger an LLM call,
-// but real UI shape change does.
+/*
+ * Structural signature of a UI snapshot.
+ *
+ * The signature is the cache key for the replay system: cache hits replay
+ * recorded actions, cache misses fall back to the LLM. For that to work,
+ * the signature must be:
+ *
+ *   1. STABLE across cosmetic UI changes — locale rotation, A/B copy
+ *      tests, visible user data, dynamic timestamps. We exclude visible
+ *      `text` content for this reason. A label changing from
+ *      "Continue" to "Submit" must NOT bust the cache (the replay layer
+ *      finds the button by role + position, then the LLM recovery layer
+ *      handles a real shape change if any).
+ *
+ *   2. SENSITIVE to structural change — a new button appearing, an
+ *      input becoming non-editable, a screen transitioning to a
+ *      different layout. These are the events that invalidate a
+ *      recorded action sequence.
+ *
+ * Net effect: localization or copy churn doesn't trigger an LLM call,
+ * but real UI shape change does.
+ */
 
 import { createHash } from "crypto";
 import type { Snapshot, SnapshotNode } from "./agent-device-cli";

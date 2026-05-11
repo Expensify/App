@@ -1,20 +1,22 @@
-// Thin client for the Anthropic /v1/messages endpoint.
-//
-// Decisions baked in:
-//   - Direct `fetch` instead of `@anthropic-ai/sdk` to avoid a new
-//     dependency on a CI-only path. Node 20 has fetch built in.
-//   - Prompt caching (`cache_control: {type: "ephemeral"}`) on the
-//     system message and the last tool definition. The system + tool
-//     surface is static across the run, so cache hit rate after step 1
-//     is ~100%, cutting per-call cost by 5-10x. The 5-minute TTL fits
-//     a single CI run with margin.
-//   - Bounded exponential backoff with jitter for 429/500/502/503/529.
-//     The runner's caller decides what to do on final failure (typically
-//     fall back to a deterministic bash-style assertion); this client
-//     never silently degrades.
-//   - Token budget kill-switch: total input+output tokens accumulated
-//     across the run; throw if exceeded. Bounds runaway spend if a
-//     prompt or tool design accidentally explodes context.
+/*
+ * Thin client for the Anthropic /v1/messages endpoint.
+ *
+ * Decisions baked in:
+ *   - Direct `fetch` instead of `@anthropic-ai/sdk` to avoid a new
+ *     dependency on a CI-only path. Node 20 has fetch built in.
+ *   - Prompt caching (`cache_control: {type: "ephemeral"}`) on the
+ *     system message and the last tool definition. The system + tool
+ *     surface is static across the run, so cache hit rate after step 1
+ *     is ~100%, cutting per-call cost by 5-10x. The 5-minute TTL fits
+ *     a single CI run with margin.
+ *   - Bounded exponential backoff with jitter for 429/500/502/503/529.
+ *     The runner's caller decides what to do on final failure (typically
+ *     fall back to a deterministic bash-style assertion); this client
+ *     never silently degrades.
+ *   - Token budget kill-switch: total input+output tokens accumulated
+ *     across the run; throw if exceeded. Bounds runaway spend if a
+ *     prompt or tool design accidentally explodes context.
+ */
 
 export type AnthropicTool = {
   name: string;
@@ -113,10 +115,12 @@ export class AnthropicClient {
     messages: AnthropicMessage[];
     maxTokens?: number;
   }): Promise<AnthropicResponse> {
-    // Mark system + last tool as cacheable. Anthropic caches the
-    // contiguous prefix UP TO each `cache_control` marker, so two
-    // markers means "cache through end of system" and "cache
-    // through end of tools" as separate cached prefixes.
+    /*
+     * Mark system + last tool as cacheable. Anthropic caches the
+     * contiguous prefix UP TO each `cache_control` marker, so two
+     * markers means "cache through end of system" and "cache
+     * through end of tools" as separate cached prefixes.
+     */
     const cachedTools = args.tools.map((t, i) =>
       i === args.tools.length - 1
         ? { ...t, cache_control: { type: "ephemeral" as const } }
@@ -138,9 +142,11 @@ export class AnthropicClient {
       messages: args.messages,
     };
 
-    // Verbose diagnostic mode: capture the full message thread + tool_use
-    // calls in the trace. Trade-off is artifact size and a small risk
-    // of leaking content the user typed; disabled unless DEBUG_LLM=1.
+    /*
+     * Verbose diagnostic mode: capture the full message thread + tool_use
+     * calls in the trace. Trade-off is artifact size and a small risk
+     * of leaking content the user typed; disabled unless DEBUG_LLM=1.
+     */
     const verbose = (process.env.DEBUG_LLM ?? "") === "1";
     if (verbose) {
       const lastUser = args.messages
@@ -239,9 +245,11 @@ export class AnthropicClient {
   }
 
   private accountForUsage(usage: AnthropicResponse["usage"]): void {
-    // Cache reads cost roughly 10% of normal input tokens, but for
-    // budget-protection purposes we count them at face value —
-    // budgets are about runaway prompt design, not pricing.
+    /*
+     * Cache reads cost roughly 10% of normal input tokens, but for
+     * budget-protection purposes we count them at face value —
+     * budgets are about runaway prompt design, not pricing.
+     */
     this.tokensUsed += usage.input_tokens + usage.output_tokens;
     if (this.tokensUsed > this.opts.tokenBudget) {
       throw new TokenBudgetExceededError(
