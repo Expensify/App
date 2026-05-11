@@ -9,6 +9,7 @@ import StaticSearchTypeMenu from '@pages/Search/SearchPageNarrow/StaticSearchTyp
 import SearchTypeMenuNarrow from '@pages/Search/SearchTypeMenuNarrow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
@@ -128,5 +129,37 @@ describe('Search saved-search tab highlight', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByRole('tab', {name: 'My saved search'})).toBeNull();
+    });
+
+    it('highlights built-in tab when saved search is pending delete while online (interactive narrow)', async () => {
+        const baseQuery = 'type:expense status:all';
+        const savedQueryString = `${baseQuery} sortBy:amount`;
+        const savedQueryJSON = buildSearchQueryJSON(savedQueryString);
+
+        if (!savedQueryJSON) {
+            throw new Error('Failed to build saved query JSON');
+        }
+
+        (useNetwork as jest.Mock).mockReturnValue({isOffline: false});
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.SAVED_SEARCHES, {
+                [savedQueryJSON.hash]: {
+                    name: 'My saved search',
+                    query: savedQueryString,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            });
+        });
+
+        render(
+            <Wrapper>
+                <SearchTypeMenuNarrow queryJSON={savedQueryJSON} />
+            </Wrapper>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByRole('tab', {name: 'My saved search'})).toBeNull();
+        expect(screen.getByRole('tab', {name: translateLocal('search.tabs.expenses'), selected: true})).toBeTruthy();
     });
 });

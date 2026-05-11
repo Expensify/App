@@ -61,10 +61,23 @@ type GetActiveItemIndexParams = {
     sortBy?: string;
     sortOrder?: string;
     type?: string;
+    isOffline: boolean;
 };
 
-function getActiveItemIndex({typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type}: GetActiveItemIndexParams): number {
-    const isSavedSearchActive = hash !== undefined && !!savedSearches && Object.keys(savedSearches).some((key) => Number(key) === hash);
+function getActiveItemIndex({typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type, isOffline}: GetActiveItemIndexParams): number {
+    const isSavedSearchActive =
+        hash !== undefined &&
+        !!savedSearches &&
+        Object.entries(savedSearches).some(([key, raw]) => {
+            if (Number(key) !== hash) {
+                return false;
+            }
+            const item = raw as {pendingAction?: string};
+            if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
+                return false;
+            }
+            return true;
+        });
 
     if (isSavedSearchActive) {
         return -1;
@@ -188,8 +201,9 @@ const useSearchTypeMenuSections = (queryParams?: UseSearchTypeMenuSectionsParams
                 sortBy,
                 sortOrder,
                 type,
+                isOffline,
             }),
-        [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type],
+        [typeMenuSections, savedSearches, hash, similarSearchHash, sortBy, sortOrder, type, isOffline],
     );
 
     const flattenedTypeMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
