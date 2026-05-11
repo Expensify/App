@@ -1,3 +1,4 @@
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PopoverMenuItem} from '@components/PopoverMenu';
 import TableRow from '@components/Table/TableRow';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -41,11 +42,17 @@ export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayo
     }
 
     return (
-        <TableRow
-            interactive
-            rowIndex={rowIndex}
+        <OfflineWithFeedback
+            errors={item.errors}
+            pendingAction={item.pendingAction}
         >
-            {({hovered}) => <></>}
-        </TableRow>
+            <TableRow
+                interactive
+                rowIndex={rowIndex}
+                skeletonReasonAttributes={{context: 'domainTableRow'}}
+            >
+                {({hovered}) => <></>}
+            </TableRow>
+        </OfflineWithFeedback>
     );
 }
