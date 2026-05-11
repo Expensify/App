@@ -1,7 +1,7 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {PressResponder} from '@components/Pressable/PressResponder';
-import {useRootState} from './RootContext';
+import {useRootMeta, useRootVisibility} from './RootContext';
 import useAnchorOpener from './useAnchorOpener';
 
 type TriggerProps = {
@@ -11,10 +11,8 @@ type TriggerProps = {
 /** Consumer's `onPress` can call `event.preventDefault()` to gate the open (mirrors `<Item onSelect>`'s keep-open contract). */
 function Trigger({children}: TriggerProps): React.ReactElement {
     const {ref, open} = useAnchorOpener(Trigger.displayName);
-    const {
-        state: {isVisible},
-        meta: {triggerID, contentID},
-    } = useRootState(Trigger.displayName);
+    const {isVisible} = useRootVisibility(Trigger.displayName);
+    const {triggerID, contentID} = useRootMeta(Trigger.displayName);
 
     return (
         <PressResponder

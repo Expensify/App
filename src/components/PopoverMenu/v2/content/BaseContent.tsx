@@ -5,7 +5,7 @@ import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import CompactMenuContext from '@components/CompactMenuContext';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import type BaseModalProps from '@components/Modal/types';
-import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import {useRootMeta, useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 import type {ActiveAnchor} from '@components/PopoverMenu/v2/root/RootContext';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import {computeAnchorPosition} from '@hooks/usePopoverPosition';
@@ -44,9 +44,7 @@ const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
 
 /** Outer guard: skips the controller's subscriptions until the trigger has published an anchor. */
 function BaseContent(props: BaseContentProps): React.ReactElement | null {
-    const {
-        meta: {activeAnchor},
-    } = useRootState(props.componentName);
+    const {activeAnchor} = useRootMeta(props.componentName);
     if (!activeAnchor) {
         return null;
     }
@@ -75,10 +73,8 @@ function BaseContentInner({
     activeAnchor,
 }: BaseContentProps & {activeAnchor: ActiveAnchor}): React.ReactElement {
     const styles = useThemeStyles();
-    const {
-        state: {isVisible},
-        meta: {triggerID, contentID},
-    } = useRootState(componentName);
+    const {isVisible} = useRootVisibility(componentName);
+    const {triggerID, contentID} = useRootMeta(componentName);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
     const {isSmallScreenWidth} = useResponsiveLayout();
 

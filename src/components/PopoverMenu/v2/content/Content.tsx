@@ -1,5 +1,5 @@
 import React from 'react';
-import {useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 import useSuppressSpaceScroll from '@hooks/useSuppressSpaceScroll';
 import BaseContent from './BaseContent';
 import type {BasePopoverProps} from './BaseContent';
@@ -9,9 +9,7 @@ type ContentProps = BasePopoverProps;
 
 /** Popover surface for menus that fit; for unbounded row counts, use `<ScrollableContent>`. */
 function Content(props: ContentProps): React.ReactElement | null {
-    const {
-        state: {isVisible},
-    } = useRootState(Content.displayName);
+    const {isVisible} = useRootVisibility(Content.displayName);
     // ScrollableContent skips this — the user opts into space scrolling the inner content.
     useSuppressSpaceScroll(isVisible);
 

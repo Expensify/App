@@ -3,7 +3,7 @@ import type {ReactNode} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {PressResponder} from '@components/Pressable/PressResponder';
 import type {AnchorRect} from './RootContext';
-import {useRootState} from './RootContext';
+import {useRootMeta, useRootVisibility} from './RootContext';
 import useAnchorOpener from './useAnchorOpener';
 
 /** Web right-click anchors at cursor (Radix `<ContextMenu>` parity); native long-press falls back to element rect. */
@@ -21,10 +21,8 @@ type SecondaryInteractionTriggerProps = {
 /** Long-press (native) / right-click (web) variant of `<Trigger>`. */
 function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProps): React.ReactElement {
     const {ref, open} = useAnchorOpener(SecondaryInteractionTrigger.displayName);
-    const {
-        state: {isVisible},
-        meta: {triggerID, contentID},
-    } = useRootState(SecondaryInteractionTrigger.displayName);
+    const {isVisible} = useRootVisibility(SecondaryInteractionTrigger.displayName);
+    const {triggerID, contentID} = useRootMeta(SecondaryInteractionTrigger.displayName);
 
     return (
         <PressResponder

@@ -12,30 +12,41 @@ type ActiveAnchor = {
     rect: AnchorRect;
 };
 
-type RootState = {
-    state: {isVisible: boolean};
-    meta: {
-        activeAnchor: ActiveAnchor | null;
-        /** Stable id linking Trigger ↔ Content for `accessibilityLabelledBy` / `aria-controls`. */
-        triggerID: string;
-        /** Stable id on Content's surface so triggers can advertise `aria-controls`. */
-        contentID: string;
-    };
+type RootVisibility = {isVisible: boolean};
+
+type RootMeta = {
+    activeAnchor: ActiveAnchor | null;
+    /** Stable id linking Trigger ↔ Content for `accessibilityLabelledBy` / `aria-controls`. */
+    triggerID: string;
+    /** Stable id on Content's surface so triggers can advertise `aria-controls`. */
+    contentID: string;
 };
 
 type RootActions = {
     setIsVisible: Dispatch<SetStateAction<boolean>>;
+    /** Narrowed to never-null: only `useAnchorOpener` writes; reset happens via `setIsVisible(false)` and the next press overwrites. */
     setActiveAnchor: (anchor: ActiveAnchor) => void;
 };
 
-const RootStateContext = createContext<RootState | null>(null);
-RootStateContext.displayName = 'PopoverMenuRootStateContext';
+const RootVisibilityContext = createContext<RootVisibility | null>(null);
+RootVisibilityContext.displayName = 'PopoverMenuRootVisibilityContext';
+
+const RootMetaContext = createContext<RootMeta | null>(null);
+RootMetaContext.displayName = 'PopoverMenuRootMetaContext';
 
 const RootActionsContext = createContext<RootActions | null>(null);
 RootActionsContext.displayName = 'PopoverMenuRootActionsContext';
 
-function useRootState(componentName: string): RootState {
-    const value = use(RootStateContext);
+function useRootVisibility(componentName: string): RootVisibility {
+    const value = use(RootVisibilityContext);
+    if (!value) {
+        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Root>.`);
+    }
+    return value;
+}
+
+function useRootMeta(componentName: string): RootMeta {
+    const value = use(RootMetaContext);
     if (!value) {
         throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Root>.`);
     }
@@ -50,5 +61,5 @@ function useRootActions(componentName: string): RootActions {
     return value;
 }
 
-export {RootStateContext, RootActionsContext, useRootState, useRootActions};
-export type {ActiveAnchor, AnchorRect, AnchorRef, RootState, RootActions};
+export {RootVisibilityContext, RootMetaContext, RootActionsContext, useRootVisibility, useRootMeta, useRootActions};
+export type {ActiveAnchor, AnchorRect, AnchorRef, RootVisibility, RootMeta, RootActions};

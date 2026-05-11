@@ -1,7 +1,7 @@
 import React, {useId, useState} from 'react';
 import type {ReactNode} from 'react';
-import {RootActionsContext, RootStateContext} from './RootContext';
-import type {ActiveAnchor, RootActions, RootState} from './RootContext';
+import {RootActionsContext, RootMetaContext, RootVisibilityContext} from './RootContext';
+import type {ActiveAnchor, RootActions, RootMeta, RootVisibility} from './RootContext';
 
 type RootProps = {
     children: ReactNode;
@@ -15,16 +15,16 @@ function Root({children, defaultOpen = false}: RootProps): React.ReactElement {
     const triggerID = useId();
     const contentID = useId();
 
-    const stateValue: RootState = {
-        state: {isVisible},
-        meta: {activeAnchor, triggerID, contentID},
-    };
+    const visibility: RootVisibility = {isVisible};
+    const meta: RootMeta = {activeAnchor, triggerID, contentID};
     const actions: RootActions = {setIsVisible, setActiveAnchor};
 
     return (
-        <RootStateContext.Provider value={stateValue}>
-            <RootActionsContext.Provider value={actions}>{children}</RootActionsContext.Provider>
-        </RootStateContext.Provider>
+        <RootVisibilityContext.Provider value={visibility}>
+            <RootMetaContext.Provider value={meta}>
+                <RootActionsContext.Provider value={actions}>{children}</RootActionsContext.Provider>
+            </RootMetaContext.Provider>
+        </RootVisibilityContext.Provider>
     );
 }
 

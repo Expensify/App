@@ -1,4 +1,4 @@
-import {useRootActions, useRootState} from '@components/PopoverMenu/v2/root/RootContext';
+import {useRootActions, useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 import type {ContentClose, ContentFocus, ContentItemActions, ContentNavigation, ContentSubActions} from './ContentContext';
 import useCloseOnModalCover from './useCloseOnModalCover';
 import useCloseOnScreenBlur from './useCloseOnScreenBlur';
@@ -12,9 +12,7 @@ function useContentController(componentName: string): {
     itemActions: ContentItemActions;
     close: ContentClose;
 } {
-    const {
-        state: {isVisible},
-    } = useRootState(componentName);
+    const {isVisible} = useRootVisibility(componentName);
     const {setIsVisible} = useRootActions(componentName);
 
     const focus = useFocusableRegistry({isVisible});

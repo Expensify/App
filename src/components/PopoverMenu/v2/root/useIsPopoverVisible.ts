@@ -1,12 +1,12 @@
 import {use} from 'react';
-import {RootStateContext} from './RootContext';
+import {RootVisibilityContext} from './RootContext';
 
 function useIsPopoverVisible(): boolean {
-    const value = use(RootStateContext);
+    const value = use(RootVisibilityContext);
     if (!value) {
         throw new Error('useIsPopoverVisible() must be called inside <PopoverMenu.Root>.');
     }
-    return value.state.isVisible;
+    return value.isVisible;
 }
 
 export default useIsPopoverVisible;
