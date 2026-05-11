@@ -1,5 +1,6 @@
 import {BaseNavigationContainer, NavigationIndependentTree} from '@react-navigation/core';
 import {DarkTheme, DefaultTheme} from '@react-navigation/native';
+import {CardStyleInterpolators} from '@react-navigation/stack';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -12,8 +13,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isSafari} from '@libs/Browser';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 import useModalCardStyleInterpolator from '@navigation/AppNavigator/useModalCardStyleInterpolator';
 import type {MultifactorAuthenticationOverlayParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -144,11 +147,13 @@ function MultifactorAuthenticationOverlay() {
                                 animationTypeForReplace: 'push',
                                 animation: Animations.SLIDE_FROM_RIGHT,
                                 native: {contentStyle: styles.navigationScreenCardStyle},
-                                // RHP-style interpolator: uses fixed sideBarWidth instead of measured
-                                // card width, which is 0 on the first push in a fresh navigator.
                                 web: {
+                                    presentation: Presentation.TRANSPARENT_MODAL,
+                                    cardOverlayEnabled: false,
                                     cardStyle: styles.navigationScreenCardStyle,
-                                    cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
+                                    // forHorizontalIOS from @react-navigation misbehaves on Safari (same reason as RHP — see useRHPScreenOptions),
+                                    // so we fall back to the Expensify modal interpolator there.
+                                    cardStyleInterpolator: isSafari() ? (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}) : CardStyleInterpolators.forHorizontalIOS,
                                 },
                             }}
                         >
