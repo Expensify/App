@@ -331,6 +331,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={ModalStackNavigators.WorkspaceDuplicateModalStackNavigator}
                                 />
                                 <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.POLICY_COPY_SETTINGS}
+                                    component={ModalStackNavigators.PolicyCopySettingsModalStackNavigator}
+                                />
+                                <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.NEW_TASK}
                                     component={ModalStackNavigators.NewTaskModalStackNavigator}
                                 />

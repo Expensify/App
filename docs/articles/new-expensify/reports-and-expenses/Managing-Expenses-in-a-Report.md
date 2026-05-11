@@ -91,10 +91,10 @@ The table displays:
 - Date
 - Merchant
 - Category
-- Attendees (if any expense has attendees)
-- Per attendee (if any expense has attendees)
 - Amount
 - Workspace violations (if applicable)
+
+Additional columns such as **Attendees** and **Per attendee** can be enabled via the **Columns** picker when attendee tracking is available.
 
 Clicking a row opens the full expense in a side panel (web) or details screen (mobile).
 
