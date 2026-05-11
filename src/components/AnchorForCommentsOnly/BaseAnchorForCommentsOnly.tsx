@@ -81,7 +81,6 @@ function BaseAnchorForCommentsOnly({
             onPressOut={onPressOut}
             role={CONST.ROLE.LINK}
             tabIndex={-1}
-            accessibilityLabel={href}
             wrapperStyle={wrapperStyle}
         >
             <Tooltip
