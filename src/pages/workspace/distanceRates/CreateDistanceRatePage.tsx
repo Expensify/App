@@ -67,6 +67,7 @@ function CreateDistanceRatePage({
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
+        // A blocking view is shown when customUnitID is undefined, so this function should never be called
         if (!customUnitID) {
             return;
         }
