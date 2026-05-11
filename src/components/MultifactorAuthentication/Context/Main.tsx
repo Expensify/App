@@ -131,6 +131,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself.
             // Close the modal so the overlay plays its exit animation and then resets.
             if (callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN) {
+                dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
                 dispatch({type: 'CLOSE_MODAL'});
                 return;
             }
