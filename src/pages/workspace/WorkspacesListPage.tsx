@@ -399,7 +399,7 @@ function WorkspacesListPage() {
             });
             threeDotsMenuItems.push({
                 icon: icons.Copy,
-                text: translate('workspace.copySettings.title'),
+                text: translate('workspace.copyPolicySettings.title'),
                 onSelected: () => (item.policyID ? Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS.getRoute(item.policyID)) : undefined),
             });
         }
