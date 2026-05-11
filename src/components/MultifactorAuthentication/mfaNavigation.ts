@@ -19,7 +19,7 @@ function navigate<T extends keyof MultifactorAuthenticationOverlayParamList>(
     screen: T,
     ...args: MultifactorAuthenticationOverlayParamList[T] extends undefined ? [] : [MultifactorAuthenticationOverlayParamList[T]]
 ) {
-    const params = args[0] as Record<string, unknown> | undefined;
+    const params: Record<string, unknown> | undefined = args[0];
 
     // Navigator mounts only while the overlay is visible. Buffer the request
     // until the placeholder INITIAL_SCREEN lays out and triggers the push.
