@@ -33,8 +33,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistance} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {clearOdometerDraft, saveOdometerDraft, removeMoneyRequestOdometerImage, setMoneyRequestOdometerReading} from '@libs/actions/OdometerTransactionUtils';
-import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
+import {clearOdometerDraft, saveOdometerDraft, removeMoneyRequestOdometerImage, setMoneyRequestOdometerReading, isOdometerDraftPendingHydration} from '@libs/actions/OdometerTransactionUtils';
+import {createBackupTransaction, removeBackupTransactionWithImageCleanup, restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -53,6 +53,7 @@ import SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import { getOdometerImageUri } from '@libs/OdometerImageUtils';
 import useOdometerImageHandlers from './IOURequestStepDistance/hooks/useOdometerImageHandlers';
 import useOdometerNavigation from './IOURequestStepDistance/hooks/useOdometerNavigation';
 import useOdometerReadingsState from './IOURequestStepDistance/hooks/useOdometerReadingsState';
@@ -190,6 +191,64 @@ function IOURequestStepDistanceOdometer({
         backupHandledManuallyRef: backupHandledManually,
     });
 
+    // Initialize values from transaction when editing or when transaction has data (but not when switching tabs)
+    // This updates the current state, but NOT the initial refs (those are set only once on mount)
+    useEffect(() => {
+        const currentStart = currentTransaction?.comment?.odometerStart;
+        const currentEnd = currentTransaction?.comment?.odometerEnd;
+
+        const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
+        const hasLocalState = startReadingRef.current || endReadingRef.current;
+        const startValue = currentStart !== null && currentStart !== undefined ? currentStart.toString() : '';
+        const endValue = currentEnd !== null && currentEnd !== undefined ? currentEnd.toString() : '';
+
+        // External resync: txn was edited elsewhere with no in-flight typing here, making it the new baseline.
+        // Includes image URI diffs so an isEditingConfirmation Save that only touched the photos still resyncs.
+        const isExternalResync =
+            hasTransactionData &&
+            hasInitializedRefs.current &&
+            !userHasUnsavedTypingRef.current &&
+            (startValue !== startReadingRef.current ||
+                endValue !== endReadingRef.current ||
+                getOdometerImageUri(currentTransaction?.comment?.odometerStartImage) !== getOdometerImageUri(initialStartImageRef.current) ||
+                getOdometerImageUri(currentTransaction?.comment?.odometerEndImage) !== getOdometerImageUri(initialEndImageRef.current));
+
+        // Only initialize if:
+        // 1. We haven't initialized yet AND transaction has data, OR
+        // 2. We're editing and transaction has data (to load existing values), OR
+        // 3. Transaction has data but local state is empty (user navigated back from another page), OR
+        // 4. An external resync arrived - the typing-flag inside isExternalResync avoids clobbering
+        //    in-progress keystrokes here.
+        const shouldInitialize =
+            (!hasInitializedRefs.current && hasTransactionData) ||
+            (isEditing && hasTransactionData && !hasLocalState) ||
+            (hasTransactionData && !hasLocalState && hasInitializedRefs.current) ||
+            isExternalResync;
+
+        if (shouldInitialize) {
+            if (startValue || endValue) {
+                setStartReading(startValue);
+                setEndReading(endValue);
+                startReadingRef.current = startValue;
+                endReadingRef.current = endValue;
+            }
+        }
+
+        // Slide the discard-changes baseline up so leaving doesn't flag the externally-saved value as unsaved
+        if (isExternalResync) {
+            initialStartReadingRef.current = startValue;
+            initialEndReadingRef.current = endValue;
+            initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
+            initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
+        }
+    }, [
+        currentTransaction?.comment?.odometerStart,
+        currentTransaction?.comment?.odometerEnd,
+        currentTransaction?.comment?.odometerStartImage,
+        currentTransaction?.comment?.odometerEndImage,
+        isEditing,
+    ]);
+
     const navigateToNextStep = useOdometerNavigation({
         iouType,
         report,
@@ -215,6 +274,26 @@ function IOURequestStepDistanceOdometer({
         introSelected,
         personalOutputCurrency: personalPolicy?.outputCurrency,
     });
+
+    useEffect(() => {
+        if (!isEditingConfirmation) {
+            return () => {};
+        }
+        createBackupTransaction(transaction, isTransactionDraft, true);
+
+        return () => {
+            if (backupHandledManually.current) {
+                return;
+            }
+            if (didSaveEditingConfirmationRef.current) {
+                removeBackupTransactionWithImageCleanup(transactionID, isTransactionDraft);
+                return;
+            }
+            restoreOriginalTransactionFromBackupWithImageCleanup(transactionID, isTransactionDraft);
+        };
+        // We only want to create the backup once on mount and restore/remove it on unmount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Calculate total distance - updated live after every input change
     const totalDistance = (() => {
@@ -473,6 +552,10 @@ function IOURequestStepDistanceOdometer({
 
     const getHasUnsavedChanges = () => {
         if (!isFocused || isEditing || shouldBypassDiscardConfirmationRef.current || didSaveEditingConfirmationRef.current || backupHandledManually.current) {
+            return false;
+        }
+        // Draft matching the transaction means changes are persisted; the typing guard prevents suppressing the modal mid-edit (typed values aren't in the transaction yet).
+        if (!userHasUnsavedTypingRef.current && !!odometerDraft && !isOdometerDraftPendingHydration(odometerDraft, currentTransaction?.comment)) {
             return false;
         }
         const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
