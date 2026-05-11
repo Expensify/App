@@ -426,36 +426,7 @@ describe('PopoverMenu V2', () => {
             expect(onOpenChange).not.toHaveBeenCalledWith(true);
         });
 
-        it('throws when the child is a Fragment', () => {
-            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-            expect(() =>
-                render(
-                    <NavigationContext.Provider value={mockNavigation}>
-                        <PopoverMenu.Root>
-                            <PopoverMenu.Trigger>
-                                {
-                                    React.createElement(
-                                        React.Fragment,
-                                        null,
-                                        <PressableWithFeedback
-                                            onPress={() => {}}
-                                            accessibilityLabel="X"
-                                            sentryLabel="X"
-                                        >
-                                            <View />
-                                        </PressableWithFeedback>,
-                                    ) as unknown as React.ReactElement<PopoverMenu.TriggerSlotProps>
-                                }
-                            </PopoverMenu.Trigger>
-                        </PopoverMenu.Root>
-                    </NavigationContext.Provider>,
-                ),
-            ).toThrow(/<PopoverMenu\.Trigger> cannot wrap a Fragment/);
-            consoleError.mockRestore();
-        });
-
-        it('does not crash when the slotted child omits onPress at runtime', () => {
-            // PressableWithFeedback marks onPress optional → typechecks against the slot's required onPress → wrapper must guard at runtime.
+        it('opens via PressResponder context even when the consumer pressable omits onPress', () => {
             const onOpenChange = jest.fn();
             render(
                 <NavigationContext.Provider value={mockNavigation}>
@@ -637,33 +608,6 @@ describe('PopoverMenu V2', () => {
             expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
             expect(longPressEvent.defaultPrevented).toBe(true);
             expect(onOpenChange).not.toHaveBeenCalledWith(true);
-        });
-
-        it('throws when the child is a Fragment', () => {
-            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-            expect(() =>
-                render(
-                    <NavigationContext.Provider value={mockNavigation}>
-                        <PopoverMenu.Root>
-                            <PopoverMenu.SecondaryInteractionTrigger>
-                                {
-                                    React.createElement(
-                                        React.Fragment,
-                                        null,
-                                        <PressableWithSecondaryInteraction
-                                            onSecondaryInteraction={() => {}}
-                                            accessibilityLabel="X"
-                                        >
-                                            <View />
-                                        </PressableWithSecondaryInteraction>,
-                                    ) as unknown as React.ReactElement<PopoverMenu.SecondaryInteractionTriggerSlotProps>
-                                }
-                            </PopoverMenu.SecondaryInteractionTrigger>
-                        </PopoverMenu.Root>
-                    </NavigationContext.Provider>,
-                ),
-            ).toThrow(/<PopoverMenu\.SecondaryInteractionTrigger> cannot wrap a Fragment/);
-            consoleError.mockRestore();
         });
     });
 

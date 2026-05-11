@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import usePressResponderProps from '@components/Pressable/PressResponder/usePressResponderProps';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen, hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -16,7 +17,7 @@ function PressableWithSecondaryInteraction({
     withoutFocusOnSecondaryInteraction = false,
     needsOffscreenAlphaCompositing = false,
     preventDefaultContextMenu = true,
-    onSecondaryInteraction,
+    onSecondaryInteraction: rawOnSecondaryInteraction,
     activeOpacity = 1,
     opacityAnimationDuration,
     ref,
@@ -25,6 +26,7 @@ function PressableWithSecondaryInteraction({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<HTMLDivElement | null>(null);
+    const {onSecondaryInteraction} = usePressResponderProps({onSecondaryInteraction: rawOnSecondaryInteraction});
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         if (hasHoverSupport() && !enableLongPressWithHover) {

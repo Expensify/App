@@ -4,13 +4,13 @@ Compound popover-menu primitives — uncontrolled by design. Inspired by [Radix 
 
 ## Goals
 
-- **Uncontrolled by design.** Visibility lives inside `<Root>`. The `<Trigger>` and `<SecondaryInteractionTrigger>` slot wrappers open it on press; item selection / item-handler `event.preventDefault()` / screen blur / modal-stack cover close it. Callers observe via `useIsPopoverVisible()` when they need to coordinate UI (e.g. keep video controls visible while menu is open).
+- **Uncontrolled by design.** Visibility lives inside `<Root>`. `<Trigger>` and `<SecondaryInteractionTrigger>` open it on press; item selection / item-handler `event.preventDefault()` / screen blur / modal-stack cover close it. Callers observe via `useIsPopoverVisible()` when they need to coordinate UI (e.g. keep video controls visible while menu is open).
 - **Composition over configuration.** Behaviour is selected by which components you compose, not by boolean props on a monolithic component (`Content` vs `ScrollableContent`, `<Header>` instead of `headerText`, etc.).
-- **Structural insulation from re-renders.** Triggers don't re-render when content state (sub navigation, focus) changes. Achieved by splitting state into separate contexts (`RootState/Actions`, `ContentNavigation/Focus/Actions`, `Sub`).
+- **Structural insulation from content-state re-renders.** Triggers don't re-render when content state (sub navigation, focus) changes. Achieved by splitting state into separate contexts (`RootState/Actions`, `ContentNavigation/Focus/Actions`, `Sub`). Root-visibility re-renders DO reach triggers (to drive `accessibilityState.expanded` / `accessibilityControls` on the underlying pressable) — that's a once-per-open/close cadence and worth the a11y win.
 - **Always-on hierarchy assertions.** Misuse fails loud at render time with a descriptive error (`<PopoverMenu.Item> must be rendered inside <PopoverMenu.Content>`), in dev *and* staging. The throws are emitted by the existing context-consumer hooks (`useRootState`, `useContentActions`, `useSubContext`, …) — no separate assertion layer.
 - **No manual memoization.** All files in this folder compile under React Compiler — no `useCallback` / `useMemo` / `React.memo`.
-- **Trigger slot via `cloneElement`.** `<Trigger>` and `<SecondaryInteractionTrigger>` clone their single pressable child and merge a ref + an `onPress` (or `onSecondaryInteraction`) wrapper that opens the popover. The wrapper does not render its own element. Verified to compile under React Compiler.
-- **Sub-level wrapper-plus-hook.** `<Sub.Trigger>` / `useSubTrigger` and `<Sub.BackButton>` / `useSubBackButton` ship in two layers — opinionated `MenuItem` wrapper for the canonical row, hook for non-`MenuItem` shapes. Same intent as React Aria's `useMenuTrigger` + `<MenuTrigger>`. The Root-level triggers don't carry sibling hooks because their canonical visual is just "any pressable", which the slot wrapper already accepts directly.
+- **Trigger props flow via context, not `cloneElement`.** `<Trigger>` and `<SecondaryInteractionTrigger>` publish their props (`onPress`/`onSecondaryInteraction`/`ref`/`accessibilityState`/`nativeID`/`accessibilityControls`) into `PressResponderContext` (project-level primitive at `src/components/Pressable/PressResponder/`). Any descendant `<PressableWithFeedback>` (or `<PressableWithSecondaryInteraction>`) consumes the context automatically — works through arbitrary wrapper depth (Tooltip, IconButton, conditional renders) because the actual pressable reads from context rather than relying on its parent to forward injected props. Mirrors React Aria's `<PressResponder>` pattern.
+- **Sub-level wrapper-plus-hook.** `<Sub.Trigger>` / `useSubTrigger` and `<Sub.BackButton>` / `useSubBackButton` ship in two layers — opinionated `MenuItem` wrapper for the canonical row, hook for non-`MenuItem` shapes. Same intent as React Aria's `useMenuTrigger` + `<MenuTrigger>`.
 
 ## Public API
 
@@ -46,10 +46,10 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
 
 ### Triggers
 
-`<Trigger>` and `<SecondaryInteractionTrigger>` are slot wrappers — they don't render their own pressable; they `cloneElement` their single child and merge a ref + an `onPress` (or `onSecondaryInteraction`) handler that opens the popover. The child supplies its own pressable shape, accessibility metadata, and styling.
+`<Trigger>` and `<SecondaryInteractionTrigger>` are context providers — they don't render their own pressable. They publish `onPress` / `onSecondaryInteraction` / `ref` / `accessibilityState` / `nativeID` / `accessibilityControls` into `PressResponderContext`; the consuming `<PressableWithFeedback>` (or `<PressableWithSecondaryInteraction>`) reads the context and merges those props into itself. The pressable can be at any depth in the subtree.
 
-- **`<PopoverMenu.Trigger>`** — primary trigger. Child must be a single React element with `onPress: (event?) => void`. The slotted child's `onPress` runs *before* the popover opens; consumers can call `event.preventDefault()` inside their `onPress` to gate the open (matches `<Item onSelect>`'s contract).
-- **`<PopoverMenu.SecondaryInteractionTrigger>`** — long-press (native) / right-click (web) variant. Child must supply `onSecondaryInteraction: (event) => void`. Same gating contract via `event.preventDefault()`.
+- **`<PopoverMenu.Trigger>`** — primary trigger. Render any subtree containing a `<PressableWithFeedback>`. The pressable's `onPress` (if supplied) runs *before* the popover opens; consumers can call `event.preventDefault()` inside their `onPress` to gate the open (matches `<Item onSelect>`'s contract).
+- **`<PopoverMenu.SecondaryInteractionTrigger>`** — long-press (native) / right-click (web) variant. Render any subtree containing a `<PressableWithSecondaryInteraction>`. Same gating contract via `event.preventDefault()`. Web right-click anchors at the cursor position (Radix `<ContextMenu>` parity); native long-press anchors at the pressable's bounding rect.
 - **`<PopoverMenu.Sub.Trigger>` / `useSubTrigger({disabled?})`** — sub-level analogue. The wrapper renders an opinionated `MenuItem` drill-down row; the hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` to compose any pressable as a sub trigger.
 - **`<PopoverMenu.Sub.BackButton>` / `useSubBackButton()`** — sub-level back button. Render it as a child of `<Sub.Content>` (matches Radix / React Aria explicit-composition); the wrapper self-gates to the active level so siblings at ancestor levels stay mounted without rendering. Hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
 
@@ -59,9 +59,9 @@ Returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` to compose any press
 
 #### Conditional opening (gating via `preventDefault`)
 
-The slot wrapper calls the consumer's `onPress` first, then opens — unless the consumer called `event.preventDefault()`. Mirrors `<Item onSelect>`'s existing pattern.
+The pressable's `onPress` runs first, then the trigger's open — unless the pressable called `event.preventDefault()`. Mirrors `<Item onSelect>`'s existing pattern.
 
-> **`preventDefault()` must be called synchronously**, before any `await`. The wrapper checks `event.defaultPrevented` immediately after the consumer's `onPress` returns; a deferred call (after `await` or in a promise callback) lands too late and the popover will already be open. Same constraint as Radix's `composeEventHandlers`. For async pre-press validation, gate at the layer above the trigger (e.g., short-circuit the press handler before reaching `<Trigger>`).
+> **`preventDefault()` must be called synchronously**, before any `await`. The composed handler checks `event.defaultPrevented` immediately after the consumer's `onPress` returns; a deferred call (after `await` or in a promise callback) lands too late and the popover will already be open. Same constraint as Radix's `composeEventHandlers`. For async pre-press validation, gate at the layer above the trigger.
 
 ```tsx
 function MoreMenuTrigger({videoPlayerRef, url}) {
@@ -72,6 +72,8 @@ function MoreMenuTrigger({videoPlayerRef, url}) {
         }
         updateSource(url);
     };
+    // <IconButton> wraps <Tooltip><PressableWithFeedback /></Tooltip> internally — the popover's props
+    // still reach the inner PressableWithFeedback because it reads them from PressResponderContext.
     return (
         <PopoverMenu.Trigger>
             <IconButton onPress={handlePress} src={ThreeDots} tooltipText="..." />
@@ -104,13 +106,13 @@ Two variants cover the bounded-N regime:
 
 ### Anchor
 
-The pressable cloned by `<Trigger>` (or `<SecondaryInteractionTrigger>`) IS the anchor — there is no separate `<Anchor>` slot, no `anchorRef` prop, no `anchorPosition` prop. The trigger captures `getBoundingClientRect()` on press and publishes the rect to context. Multiple triggers in one `<Root>` are supported; the popover anchors to whichever was pressed last.
+The pressable consuming the `<Trigger>` / `<SecondaryInteractionTrigger>` context is the anchor — there is no separate `<Anchor>` slot, no `anchorRef` prop, no `anchorPosition` prop. The trigger captures `getBoundingClientRect()` on press and publishes the rect to context. (`<SecondaryInteractionTrigger>` on web substitutes `MouseEvent.pageX`/`pageY` for a 1×1 cursor rect.) Multiple triggers in one `<Root>` are supported; the popover anchors to whichever was pressed last.
 
 ## Folder layout
 
 Grouped by feature, not by file type. Each subfolder owns its components, contexts, and hooks, and re-exports its public surface through a barrel (`index.ts`); the top-level [`index.tsx`](./index.tsx) re-exports each barrel.
 
-- **`root/`** — `<Root>` provider, the trigger slot wrappers (`<Trigger>`, `<SecondaryInteractionTrigger>`), the visibility hook (`useIsPopoverVisible`), and the shared anchor-opener helper.
+- **`root/`** — `<Root>` provider, the `<PressResponder>`-based trigger wrappers (`<Trigger>`, `<SecondaryInteractionTrigger>`), the visibility hook (`useIsPopoverVisible`), and the shared anchor-opener helper.
 - **`content/`** — public surface variants (`<Content>`, `<ScrollableContent>`) plus the internal scaffolding they share.
 - **`rows/`** — leaf rows rendered inside content (`<Item>`, `<CheckmarkItem>`, `<Label>`, `<Header>`, `<Separator>`, `<Group>`).
 - **`sub/`** — `<Sub>` plus its compound members `<Sub.Trigger>` and `<Sub.Content>`.
