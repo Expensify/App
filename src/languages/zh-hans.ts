@@ -881,7 +881,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
         fabNewChat: '开始聊天',
-        fabNewChatExplained: '打开操作菜单',
         fabScanReceiptExplained: '扫描收据',
         chatPinned: '聊天已置顶',
         draftedMessage: '已起草的消息',
@@ -7886,6 +7885,7 @@ ${reportName}
         selectAllFeatures: '选择所有功能',
         selectAllTransactions: '选择所有交易',
         selectAllItems: '全选所有项目',
+        openActionsMenu: '打开操作菜单',
     },
     parentReportAction: {
         deletedReport: '已删除的报告',

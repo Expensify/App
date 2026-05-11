@@ -914,7 +914,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Trouver quelque chose...',
         buttonMySettings: 'Mes paramètres',
         fabNewChat: 'Commencer la discussion',
-        fabNewChatExplained: 'Ouvrir le menu des actions',
         fabScanReceiptExplained: 'Scanner le reçu',
         chatPinned: 'Discussion épinglée',
         draftedMessage: 'Message rédigé',
@@ -8151,6 +8150,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         selectAllFeatures: 'Sélectionner toutes les fonctionnalités',
         selectAllTransactions: 'Sélectionner toutes les transactions',
         selectAllItems: 'Sélectionner tous les éléments',
+        openActionsMenu: 'Ouvrir le menu des actions',
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',

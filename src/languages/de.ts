@@ -911,7 +911,6 @@ const translations: TranslationDeepObject<typeof en> = {
         buttonFind: 'Etwas finden ...',
         buttonMySettings: 'Meine Einstellungen',
         fabNewChat: 'Chat starten',
-        fabNewChatExplained: 'Aktionsmenü öffnen',
         fabScanReceiptExplained: 'Beleg scannen',
         chatPinned: 'Chat angeheftet',
         draftedMessage: 'Entwurfene Nachricht',
@@ -8129,6 +8128,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         selectAllFeatures: 'Alle Funktionen auswählen',
         selectAllTransactions: 'Alle Transaktionen auswählen',
         selectAllItems: 'Alle Einträge auswählen',
+        openActionsMenu: 'Aktionsmenü öffnen',
     },
     parentReportAction: {
         deletedReport: 'Gelöschter Bericht',
