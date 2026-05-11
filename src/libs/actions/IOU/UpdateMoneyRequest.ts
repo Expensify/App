@@ -988,15 +988,22 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             .map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]),
     );
     // Flag `merchant` as pending on any edit that causes the BE to regenerate the receipt
-    // (waypoints / distance / rate). `merchant` isn't in `transactionChanges`, so the success-data
-    // merge won't clear it via `clearedPendingFields` — it persists through the gap between API ack
-    // and the Pusher push that delivers the new `receipt.source`. The Pusher push then clears all
-    // pendingFields atomically together with the new URL, eliminating the broken-image flash.
-    // It also drives the Distance row's offline-feedback strikethrough for pure distance edits.
-    if ('waypoints' in transactionChanges || 'distance' in transactionChanges || 'customUnitRateID' in transactionChanges) {
+    // (waypoints / distance / rate). It bridges the gap between API ack and the Pusher push that
+    // delivers the new `receipt.source`, keeping `ReportActionItemImage` on `ConfirmedRoute` so the
+    // stale receipt URL doesn't briefly render. It also drives the Distance row's offline-feedback
+    // strikethrough for pure distance edits.
+    const shouldFlagMerchantPending = 'waypoints' in transactionChanges || 'distance' in transactionChanges || 'customUnitRateID' in transactionChanges;
+    if (shouldFlagMerchantPending) {
         pendingFields.merchant = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
     }
     const clearedPendingFields = getClearedPendingFields(transactionChanges);
+    // `getClearedPendingFields` only clears `merchant` for distance edits, so when we artificially
+    // flag it for waypoint/rate edits we must also clear it here. Otherwise the flag persists past
+    // API ack if the Pusher receipt push is missed/delayed (e.g. flaky subscription, incognito),
+    // leaving the receipt frame stuck on `ConfirmedRoute` instead of switching to the new image.
+    if (shouldFlagMerchantPending) {
+        clearedPendingFields.merchant = null;
+    }
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]));
 
     const isTransactionOnHold = isOnHold(transaction);

@@ -14,6 +14,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {ReportActions} from '@src/types/onyx';
@@ -53,6 +54,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     const navigatorKey = navigation.getState()?.key;
     const routeParams = route.params as {reportID?: string; reportActionID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
+    const {canGoBack} = useNavigation();
 
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -175,13 +177,17 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         Navigation.setParams({reportActionID: undefined}, route.key, navigatorKey);
     };
 
+    // Just go back where we came from if there's navigation history. If there is no history, fallback to the report for
+    // this action.
+    const goBack = () => (canGoBack() ? Navigation.goBack() : Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportIDFromRoute)));
+
     return (
         <FullPageNotFoundView
             shouldShow={shouldShowNotFoundLinkedAction}
             subtitleKey="notFound.commentYouLookingForCannotBeFound"
             subtitleStyle={[styles.textSupporting]}
             shouldShowBackButton={shouldUseNarrowLayout}
-            onBackButtonPress={navigateToEndOfReport}
+            onBackButtonPress={goBack}
             shouldShowLink
             linkTranslationKey="notFound.goToChatInstead"
             subtitleKeyBelowLink="notFound.contactConcierge"

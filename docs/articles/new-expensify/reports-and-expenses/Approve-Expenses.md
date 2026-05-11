@@ -42,6 +42,17 @@ To review and approve a report submitted to you for approval:
 
 ---
 
+## How to approve a report that contains held expenses
+
+If a report contains one or more held expenses, clicking **Approve** (from within the report or from the **Reports** page) displays a confirmation modal with two options:
+
+- **Approve only [non-held amount]**: Approves only the compliant (non-held) expenses. The held expenses are moved to a separate report so they can be reviewed independently.
+- **Approve [full amount]**: Approves the entire report, including all held expenses.
+
+If every expense on the report is held, only the **Approve [full amount]** option is available.
+
+---
+
 ## How to add an approver to a report
 
 1. From the Report, choose **More**. 
@@ -157,3 +168,7 @@ Expense reports group multiple expenses into one batch for review or payment. Dr
 ## What happens after I approve a report?
 
 The report moves to the next approver in the workflow. If you are the final approver, the report becomes **Approved** and is ready for payment.
+
+## What happens to held expenses when I partially approve a report?
+
+When you choose **Approve only**, the held expenses are moved to a new separate report. The non-held expenses are approved on the original report. You can then review and approve the held expenses independently once they are ready.

@@ -291,9 +291,7 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     const request: PaginatedRequest<TKey> = {
         ...prepareRequest(command, type, apiCommandParameters, onyxData, conflictResolver),
         ...config,
-        ...{
-            isPaginated: true,
-        },
+        isPaginated: true,
     };
 
     switch (type) {
