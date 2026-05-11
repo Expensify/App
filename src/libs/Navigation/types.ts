@@ -2389,10 +2389,8 @@ type FeatureTrainingNavigatorParamList = {
 };
 
 type ReferralDetailsNavigatorParamList = {
-    [SCREENS.REFERRAL_DETAILS]: {
+    [SCREENS.DYNAMIC_REFERRAL_DETAILS]: {
         contentType: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: string;
     };
 };
 

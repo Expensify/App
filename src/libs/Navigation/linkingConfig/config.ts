@@ -1893,7 +1893,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.REFERRAL]: {
                     screens: {
-                        [SCREENS.REFERRAL_DETAILS]: ROUTES.REFERRAL_DETAILS_MODAL.route,
+                        [SCREENS.DYNAMIC_REFERRAL_DETAILS]: DYNAMIC_ROUTES.REFERRAL_DETAILS.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_VERIFY_ACCOUNT]: {

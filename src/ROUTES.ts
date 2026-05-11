@@ -475,6 +475,11 @@ const DYNAMIC_ROUTES = {
         path: 'share-code',
         entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
     },
+    REFERRAL_DETAILS: {
+        path: 'referral/:contentType',
+        entryScreens: ['*'],
+        getRoute: (contentType: string) => `referral/${contentType}` as const,
+    },
     REPORT_DETAILS_EXPORT: {
         path: 'details/export/:connectionName',
         entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
@@ -3193,13 +3198,6 @@ const ROUTES = {
     RULES_MERCHANT_PREVIEW_MATCHES: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
-    },
-    // Referral program promotion
-    REFERRAL_DETAILS_MODAL: {
-        route: 'referral/:contentType',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
     },
     SHARE_ROOT: 'share/root',
     SHARE_ROOT_SHARE: 'share/root/share',

@@ -1048,7 +1048,7 @@ const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParam
     [SCREENS.SIGN_IN_ROOT]: () => require<ReactComponentModule>('../../../../pages/signin/SignInModal').default,
 });
 const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNavigatorParamList>({
-    [SCREENS.REFERRAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/ReferralDetailsPage').default,
+    [SCREENS.DYNAMIC_REFERRAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/ReferralDetailsPage').default,
 });
 
 const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({

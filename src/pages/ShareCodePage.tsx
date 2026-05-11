@@ -21,6 +21,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -41,7 +42,7 @@ import {getAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route as AppRoute} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
 type ShareCodePageOnyxProps = {
@@ -189,9 +190,11 @@ function ShareCodePage({report, policy, backTo, reportNavigateBackRoute}: ShareC
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                         icon={icons.Cash}
                         onPress={() => {
-                            const referralBackRoute = Navigation.getActiveRoute();
+                            const referralBaseRoute = report?.reportID
+                                ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID))
+                                : Navigation.getActiveRouteWithoutParams();
 
-                            Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, referralBackRoute));
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE), referralBaseRoute));
                         }}
                         shouldShowRightIcon
                     />

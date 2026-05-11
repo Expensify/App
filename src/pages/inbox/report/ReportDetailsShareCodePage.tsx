@@ -13,7 +13,8 @@ import withReportOrNotFound from './withReportOrNotFound';
 type ReportDetailsShareCodePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_SHARE_CODE>;
 
 function ReportDetailsShareCodePage({report, policy}: ReportDetailsShareCodePageProps) {
-    const navigateBackRoute = createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
+    const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(report.reportID);
+    const navigateBackRoute = createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, reportRoute);
 
     if (isSelfDM(report)) {
         return <NotFoundPage />;
