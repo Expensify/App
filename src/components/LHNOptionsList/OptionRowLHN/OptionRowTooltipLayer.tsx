@@ -1,5 +1,4 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -11,17 +10,10 @@ import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 import useLHNRowProductTrainingTooltip from './useLHNRowProductTrainingTooltip';
 
 type OptionRowTooltipLayerProps = {
-    /** Report ID of the row */
-    reportID: string;
-
-    /** Report data of the row, used to determine onboarding eligibility */
-    report: OnyxEntry<Report>;
-
-    /** Option data, used to forward pendingAction and errors to OfflineWithFeedback */
+    /** Option data, drives onboarding eligibility checks and forwards pendingAction/errors to OfflineWithFeedback */
     optionItem: OptionData;
 
     /** Renders the row content. */
@@ -57,15 +49,15 @@ function OptionRowTooltipLayerInner({renderChildren}: OptionRowTooltipLayerInner
 
 OptionRowTooltipLayerInner.displayName = 'OptionRowTooltipLayerInner';
 
-function OptionRowTooltipLayer({reportID, report, optionItem, renderChildren}: OptionRowTooltipLayerProps) {
+function OptionRowTooltipLayer({optionItem, renderChildren}: OptionRowTooltipLayerProps) {
     const {firstReportIDWithGBRorRBR, onboardingPurpose, onboarding} = useLHNTooltipContext();
     const session = useSession();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
+    const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === optionItem.reportID;
     const isOnboardingGuideAssigned = onboardingPurpose === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !session?.email?.includes('+');
-    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurpose);
-    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(report) && isChatUsedForOnboarding : isConciergeChatReport(report);
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(optionItem, onboarding, conciergeReportID, onboardingPurpose);
+    const shouldShowGetStartedTooltip = isOnboardingGuideAssigned ? isAdminRoom(optionItem) && isChatUsedForOnboarding : isConciergeChatReport(optionItem);
 
     // Skip the inner component (and its heavy hooks) entirely when the row can never show a tooltip.
     const shouldEvaluateTooltip = shouldShowRBRorGBRTooltip || shouldShowGetStartedTooltip;
