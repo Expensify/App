@@ -61,7 +61,7 @@ function DynamicExitSurveyReasonPage() {
     const goBackJustOnce = useCallback(() => {
         Log.info('[ExitSurvey] User chose Go back just once');
         Navigation.dismissModal();
-        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
     }, []);
 
     const switchToClassic = useCallback(() => {
