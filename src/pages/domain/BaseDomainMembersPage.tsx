@@ -213,8 +213,9 @@ function BaseDomainMembersPage({
 
     const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
     const shouldShowEmptySearchMessage = !!shouldShowSearchBar && inputValue.length !== 0 && filteredData.length === 0;
-    // Show empty pre filter state only if we have data, filtered data is empty, but the search have not been used.
-    const shouldShowEmptyPreFilterState = filteredData.length === 0 && data.length !== 0 && !!emptyStateTitle && inputValue.length === 0;
+    // Show empty pre filter state whenever the list is empty and search is not active.
+    // This prevents a blank page on first load while member details are still being populated.
+    const shouldShowEmptyPreFilterState = filteredData.length === 0 && !!emptyStateTitle && inputValue.length === 0;
     const listHeaderContent =
         searchBarAccessory || shouldShowSearchBar ? (
             <View style={styles.flexColumn}>
