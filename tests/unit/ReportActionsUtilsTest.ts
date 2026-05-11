@@ -18,6 +18,7 @@ import {
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
+    getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     getCurrencyDefaultTaxUpdateMessage,
@@ -5152,6 +5153,118 @@ describe('ReportActionsUtils', () => {
         it('returns undefined when the agent firstName is only whitespace so the generic fallback can be used', () => {
             const action = makeConciergeAction({humanAgentAccountID: HUMAN_AGENT_ACCOUNT_ID});
             expect(getHumanAgentFirstName(action, makePersonalDetails('   '))).toBeUndefined();
+        });
+    });
+
+    describe('getCombinedReportActions', () => {
+        const makeAction = (id: string, actionName: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction =>
+            ({
+                reportActionID: id,
+                actionName,
+                created,
+                message: [{type: 'TEXT', html: '', text: '', isEdited: false, isDeletedParentAction: false}],
+                ...overrides,
+            }) as unknown as ReportAction;
+
+        const makeIOUAction = (id: string, created: string, type: string, hasIOUDetails = false): ReportAction =>
+            makeAction(id, CONST.REPORT.ACTIONS.TYPE.IOU, created, {
+                originalMessage: {
+                    type,
+                    ...(hasIOUDetails ? {IOUDetails: {amount: 100, currency: 'USD'}} : {}),
+                },
+            } as Partial<ReportAction>);
+
+        it('returns original reportActions when transactionThreadReportID is null', () => {
+            const actions = [makeAction('1', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00')];
+            const result = getCombinedReportActions(actions, null, []);
+            expect(result).toEqual(actions);
+        });
+
+        it('returns original reportActions for sent money reports', () => {
+            const sentMoneyAction = makeIOUAction('1', '2024-01-01 10:00:00', CONST.IOU.REPORT_ACTION_TYPE.PAY, true);
+            const actions = [sentMoneyAction];
+            const result = getCombinedReportActions(actions, 'txnThread1', [makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 11:00:00')]);
+            expect(result).toEqual(actions);
+        });
+
+        it('combines and sorts actions from parent and transaction thread', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const parentComment = makeAction('2', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 09:00:00');
+            const txnCreated = makeAction('4', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 09:30:00');
+
+            const result = getCombinedReportActions([parentCreated, parentComment], 'txnThread1', [txnCreated, txnComment]);
+
+            // parentCreated should be kept since it's older; txnCreated should be filtered out
+            // Result should be sorted descending by created, with CREATED last
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).toContain('1');
+            expect(resultIDs).toContain('2');
+            expect(resultIDs).toContain('3');
+        });
+
+        it('keeps transaction thread CREATED when it is older than parent CREATED', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 10:00:00');
+            const txnCreated = makeAction('2', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+
+            const result = getCombinedReportActions([parentCreated], 'txnThread1', [txnCreated]);
+            const actionNames = result.map((a) => a.actionName);
+            // Only one CREATED should be present
+            expect(actionNames.filter((name) => name === CONST.REPORT.ACTIONS.TYPE.CREATED).length).toBe(1);
+        });
+
+        it('filters out IOU CREATE actions in non-selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouCreateAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouCreateAction], 'txnThread1', [txnComment]);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).not.toContain('2');
+        });
+
+        it('filters out IOU TRACK actions in non-selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouTrackAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment]);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).not.toContain('2');
+        });
+
+        it('keeps IOU TRACK actions in selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouTrackAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment], true);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).toContain('2');
+        });
+
+        it('filters out IOU CREATE actions even in selfDM context', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouCreateAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            const result = getCombinedReportActions([parentCreated, iouCreateAction], 'txnThread1', [txnComment], true);
+            const resultIDs = result.map((a) => a.reportActionID);
+            expect(resultIDs).not.toContain('2');
+        });
+
+        it('passes report parameter correctly to determine selfDM behavior', () => {
+            const parentCreated = makeAction('1', CONST.REPORT.ACTIONS.TYPE.CREATED, '2024-01-01 08:00:00');
+            const iouTrackAction = makeIOUAction('2', '2024-01-01 09:00:00', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
+            const txnComment = makeAction('3', CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, '2024-01-01 10:00:00');
+
+            // Without report - TRACK should be filtered
+            const resultWithoutReport = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment], false);
+            expect(resultWithoutReport.map((a) => a.reportActionID)).not.toContain('2');
+
+            // With selfDM report - TRACK should be kept
+            const resultWithReport = getCombinedReportActions([parentCreated, iouTrackAction], 'txnThread1', [txnComment], true);
+            expect(resultWithReport.map((a) => a.reportActionID)).toContain('2');
         });
     });
 
