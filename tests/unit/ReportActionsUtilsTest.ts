@@ -1723,6 +1723,106 @@ describe('ReportActionsUtils', () => {
 
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should not crash and should return false when originalMessage is a plain string (legacy/OldDot expense-update shape)', () => {
+            const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
+            const reportAction = {
+                created: '2021-08-31 10:00:00.000',
+                reportActionID: '8401445780099176',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: legacyNotificationString,
+                message: [
+                    {
+                        html: legacyNotificationString,
+                        type: 'COMMENT',
+                        text: legacyNotificationString,
+                    },
+                ],
+            } as unknown as ReportAction;
+
+            expect(() => ReportActionsUtils.isDeletedAction(reportAction)).not.toThrow();
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it('should not crash and should return false when message is a non-array string and originalMessage is missing', () => {
+            const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
+            const reportAction = {
+                created: '2021-08-31 10:00:00.000',
+                reportActionID: '8401445780099177',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: legacyNotificationString,
+            } as unknown as ReportAction;
+
+            expect(() => ReportActionsUtils.isDeletedAction(reportAction)).not.toThrow();
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+    });
+
+    describe('getFirstVisibleReportActionID', () => {
+        it('does not crash when sortedReportActions contains a legacy action whose originalMessage is a string', () => {
+            const legacyNotificationString = 'The August 31, 2021 expense has been updated with official data from an imported card';
+            const createdAction = {
+                created: '2021-08-31 09:00:00.000',
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                message: [{html: '__FAKE__', type: 'COMMENT', text: '__FAKE__'}],
+            } as unknown as ReportAction;
+
+            const legacyExpenseUpdateAction = {
+                created: '2021-08-31 10:00:00.000',
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: legacyNotificationString,
+                message: [{html: legacyNotificationString, type: 'COMMENT', text: legacyNotificationString}],
+            } as unknown as ReportAction;
+
+            const visibleAction = {
+                created: '2021-08-31 11:00:00.000',
+                reportActionID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {html: 'Hello', whisperedTo: []},
+                message: [{html: 'Hello', type: 'COMMENT', text: 'Hello'}],
+            } as unknown as ReportAction;
+
+            // Mirror the production sort used by getSortedReportActionsForDisplay (descending, CREATED last)
+            // so this test exercises the same ordering invariant the helper relies on.
+            const sorted = ReportActionsUtils.getSortedReportActions([createdAction, legacyExpenseUpdateAction, visibleAction], true);
+
+            expect(() => ReportActionsUtils.getFirstVisibleReportActionID(sorted)).not.toThrow();
+            expect(ReportActionsUtils.getFirstVisibleReportActionID(sorted)).toBe(legacyExpenseUpdateAction.reportActionID);
+        });
+    });
+
+    describe('getOriginalMessage', () => {
+        it('returns undefined when the underlying originalMessage is a plain string (legacy shape)', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'legacy-1',
+                originalMessage: 'plain string from legacy backend',
+            } as unknown as ReportAction;
+
+            expect(getOriginalMessage(reportAction)).toBeUndefined();
+        });
+
+        it('returns undefined when message is a non-array string and originalMessage is missing', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'legacy-2',
+                message: 'plain string from legacy backend',
+            } as unknown as ReportAction;
+
+            expect(getOriginalMessage(reportAction)).toBeUndefined();
+        });
+
+        it('returns the object when originalMessage is object-shaped', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: 'shaped-1',
+                originalMessage: {html: 'hi', whisperedTo: []},
+            } as unknown as ReportAction;
+
+            expect(getOriginalMessage(reportAction)).toEqual({html: 'hi', whisperedTo: []});
+        });
     });
 
     describe('getRenamedAction', () => {
