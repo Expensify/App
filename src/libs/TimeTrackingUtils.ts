@@ -1,5 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import {convertToDisplayString, convertToFrontendAmountAsString} from './CurrencyUtils';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import {convertToFrontendAmountAsString} from './CurrencyUtils';
 import {validateAmount} from './MoneyRequestUtils';
 
 /**
@@ -12,7 +13,13 @@ function computeTimeAmount(rateInCents: number, count: number): number {
 /**
  * Creates an automatic merchant value for time requests.
  */
-function formatTimeMerchant(hours: number, rate: number, currency: string, translate: LocalizedTranslate): string {
+function formatTimeMerchant(
+    hours: number,
+    rate: number,
+    currency: string,
+    translate: LocalizedTranslate,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
     return translate('iou.timeTracking.hoursAt', hours, convertToDisplayString(rate, currency));
 }
 

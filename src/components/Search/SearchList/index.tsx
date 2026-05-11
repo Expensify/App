@@ -36,6 +36,7 @@ import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {HoldMenuCallback} from '..';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
@@ -91,9 +92,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
 
@@ -122,6 +120,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+
+    /** Callback to fire when hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
 
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
@@ -208,7 +209,6 @@ function SearchList({
     onEndReached,
     containerStyle,
     ListFooterComponent,
-    shouldPreventDefaultFocusOnSelectRow,
     shouldPreventLongPressRow,
     queryJSON,
     columns,
@@ -218,6 +218,7 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     violations,
+    onHoldMenuOpen,
     nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
@@ -317,12 +318,11 @@ function SearchList({
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
 
-    const newTransactionIDByItemKey = useMemo(() => {
+    const newTransactionIDByItemKey = (() => {
         if (newTransactions.length === 0) {
             return CONST.EMPTY_MAP;
         }
 
-        // Precompute the per-row highlight lookup once so renderItem can stay O(1) during list renders.
         const mappedTransactionIDs = new Map<string, string>();
         for (const item of data) {
             const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
@@ -332,7 +332,7 @@ function SearchList({
         }
 
         return mappedTransactionIDs;
-    }, [data, groupBy, newTransactions]);
+    })();
 
     const {windowWidth} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columns, queryJSON.type, isActionColumnWide);
@@ -359,7 +359,6 @@ function SearchList({
                 return;
             }
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
@@ -443,10 +442,9 @@ function SearchList({
                         isFocused={isItemFocused}
                         onSelectRow={onSelectRow}
                         onLongPressRow={handleLongPressRow}
-                        onCheckboxPress={onCheckboxPress}
+                        onSelectionButtonPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
                         item={itemWithSelection}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
                         columns={columns}
                         policies={policies}
@@ -465,6 +463,7 @@ function SearchList({
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        onHoldMenuOpen={onHoldMenuOpen}
                         onUndelete={handleUndelete}
                         keyForList={item.keyForList}
                         isFirstItem={index === firstVisibleIndex}
@@ -486,7 +485,6 @@ function SearchList({
             handleLongPressRow,
             onCheckboxPress,
             canSelectMultiple,
-            shouldPreventDefaultFocusOnSelectRow,
             hash,
             columns,
             policies,
@@ -496,6 +494,7 @@ function SearchList({
             violations,
             lastPaymentMethod,
             personalPolicyID,
+            onHoldMenuOpen,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             nonPersonalAndWorkspaceCards,

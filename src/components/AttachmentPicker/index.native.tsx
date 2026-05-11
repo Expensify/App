@@ -281,7 +281,10 @@ function AttachmentPicker({
                 }
                 return result;
             }, []);
-            pickerTypes = mappedTypes.length > 0 ? mappedTypes : [types.allFiles];
+            // If any extension has no native type mapping, fall back to allFiles so those
+            // file types remain selectable. Downstream validation handles the type check.
+            const hasUnmappedExtensions = acceptedFileTypes.some((ext) => EXTENSION_TO_NATIVE_TYPE[String(ext)] === undefined);
+            pickerTypes = mappedTypes.length > 0 && !hasUnmappedExtensions ? mappedTypes : [types.allFiles];
         } else {
             pickerTypes = [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles];
         }

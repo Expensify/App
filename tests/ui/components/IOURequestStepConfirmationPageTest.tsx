@@ -13,7 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, TaxRatesWithDefault} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import * as IOU from '../../../src/libs/actions/IOU';
+import * as MoneyRequest from '../../../src/libs/actions/IOU/MoneyRequest';
 import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
@@ -29,9 +29,9 @@ jest.mock('@rnmapbox/maps', () => {
 });
 
 jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
     const cache = new Map<string, Record<string, unknown>>();
     cache.set('en', flatten(en));
@@ -51,7 +51,7 @@ jest.mock('@assets/emojis', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         default: actual.default,
         importEmojiLocale: jest.fn(() => Promise.resolve()),
     };
@@ -60,10 +60,10 @@ jest.mock('@assets/emojis', () => {
 jest.mock('@libs/EmojiTrie', () => ({
     buildEmojisTrie: jest.fn(),
 }));
-jest.mock('@libs/actions/IOU', () => {
-    const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');
+jest.mock('@libs/actions/IOU/MoneyRequest', () => {
+    const actual = jest.requireActual<typeof MoneyRequest>('@libs/actions/IOU/MoneyRequest');
     return {
-        ...actualNav,
+        ...actual,
         startMoneyRequest: jest.fn(),
     };
 });
@@ -326,7 +326,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then startMoneyRequest should not be called from IOURequestConfirmationPage.
-        expect(IOU.startMoneyRequest).not.toHaveBeenCalled();
+        expect(MoneyRequest.startMoneyRequest).not.toHaveBeenCalled();
     });
 
     it('should create a split expense for a scanned receipt', async () => {

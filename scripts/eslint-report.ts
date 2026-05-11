@@ -629,7 +629,7 @@ const runReport = async (): Promise<void> => {
         namedArgs: {
             output: {
                 description: 'Output HTML path (relative to App repo root unless absolute)',
-                default: path.join('reports', 'eslint-report.html'),
+                default: path.join('.eslint-reports', 'eslint-report.html'),
             },
             'git-limit': {
                 description: 'Max commits for history chart',

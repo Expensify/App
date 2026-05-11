@@ -41,7 +41,6 @@ jest.mock('@libs/Navigation/navigationRef', () => {
         index: 0,
     };
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: {
             getRootState: jest.fn(() => mockState),
@@ -60,10 +59,8 @@ jest.mock('@libs/Navigation/navigationRef', () => {
 
 // Mock react-navigation/native to prevent navigation errors
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ...actualNav,
         useNavigationState: () => true,
         useRoute: jest.fn(),
@@ -168,7 +165,7 @@ describe('GoogleTagManagerTest', () => {
             policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             isSelfTourViewed: false,
             betas: undefined,
@@ -178,7 +175,7 @@ describe('GoogleTagManagerTest', () => {
         createWorkspace({
             policyName: '',
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
@@ -189,7 +186,7 @@ describe('GoogleTagManagerTest', () => {
         createWorkspace({
             policyName: '',
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
@@ -232,7 +229,6 @@ describe('GoogleTagManagerTest', () => {
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
-            activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -315,7 +314,7 @@ describe('handleActionButtonPress', () => {
     const snapshotReport = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${mockReportItemWithHold.reportID}`] ?? {};
     const snapshotPolicy = mockSnapshotForItem?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${mockReportItemWithHold.policyID}`] ?? {};
 
-    test('Should navigate to item when report has one transaction on hold', () => {
+    test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             hash: searchHash,
@@ -328,8 +327,30 @@ describe('handleActionButtonPress', () => {
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
+            onHoldMenuOpen: jest.fn(),
+            policy: snapshotPolicy as Policy,
         });
-        expect(goToItem).toHaveBeenCalledTimes(1);
+        expect(goToItem).not.toHaveBeenCalled();
+    });
+
+    test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
+        const onHoldMenuOpen = jest.fn();
+        handleActionButtonPress({
+            hash: searchHash,
+            item: mockReportItemWithHold,
+            goToItem: jest.fn(),
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+            userBillingGracePeriodEnds: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            onHoldMenuOpen,
+            policy: snapshotPolicy as Policy,
+        });
+
+        expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
@@ -345,6 +366,7 @@ describe('handleActionButtonPress', () => {
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
+            policy: snapshotPolicy as Policy,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
