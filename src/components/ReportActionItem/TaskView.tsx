@@ -140,7 +140,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                         StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
                                         isDisableInteractive && styles.cursorDefault,
                                     ]}
-                                    accessibilityLabel={taskTitle || translate('task.task')}
+                                    accessibilityLabel={Parser.htmlToText(taskTitleWithoutPre) || translate('task.task')}
                                     disabled={isDisableInteractive}
                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                 >
