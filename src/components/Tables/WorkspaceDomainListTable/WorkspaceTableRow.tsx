@@ -160,7 +160,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <Avatar
                             name={item.title}
                             source={item.icon}
@@ -170,11 +170,11 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                             imageStyles={styles.alignSelfCenter}
                             fallbackIcon={icons.FallbackWorkspaceAvatar}
                         />
-                        <View style={[styles.flexRow, styles.flexGrow1, styles.gap2, styles.alignItemsCenter]}>
+                        <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.flex1]}>
                             <TextWithTooltip
                                 shouldShowTooltip
                                 text={item.title}
-                                style={itemDeletedStyles}
+                                style={[itemDeletedStyles, styles.flexShrink1]}
                             />
                             {item.isDefault && DefaultWorkspaceBadge}
                             {item.isJoinRequestPending && JoinRequestPendingBadge}
