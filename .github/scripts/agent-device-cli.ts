@@ -1,16 +1,18 @@
-// Thin TypeScript wrapper around the `agent-device` CLI.
-//
-// Why this exists: the CLI emits accessibility-tree snapshots as
-// human-readable text (`@e4 [text-field] "Phone or email," [editable]`).
-// That format is fine for humans grepping artifacts but bad for an LLM
-// because:
-//   1. The LLM has to re-tokenize the structure on every turn — wasteful.
-//   2. Subtle whitespace/quoting differences across platforms (Android's
-//      trailing comma vs iOS's no comma) leak into the LLM's reasoning.
-//   3. Phantom hallucinated refs are harder to detect against free text.
-//
-// We parse once here, hand the LLM a typed JSON array, and keep the raw
-// text in the artifact for post-mortem.
+/*
+ * Thin TypeScript wrapper around the `agent-device` CLI.
+ *
+ * Why this exists: the CLI emits accessibility-tree snapshots as
+ * human-readable text (`@e4 [text-field] "Phone or email," [editable]`).
+ * That format is fine for humans grepping artifacts but bad for an LLM
+ * because:
+ *   1. The LLM has to re-tokenize the structure on every turn — wasteful.
+ *   2. Subtle whitespace/quoting differences across platforms (Android's
+ *      trailing comma vs iOS's no comma) leak into the LLM's reasoning.
+ *   3. Phantom hallucinated refs are harder to detect against free text.
+ *
+ * We parse once here, hand the LLM a typed JSON array, and keep the raw
+ * text in the artifact for post-mortem.
+ */
 
 import { execFileSync } from "child_process";
 
@@ -45,13 +47,15 @@ export type AppState = {
 
 const SESSION = process.env.AGENT_DEVICE_SESSION ?? "ci";
 
-// Bound every CLI invocation so a hung emulator can't wedge the smoke.
-// 30s is generous for read-only commands (snapshot/screenshot/appstate).
-// `fill` is special: typing a 30-char string into an editable on a
-// 2-core ubuntu-latest under load was observed to exceed 30s (the
-// CLI partial-typed and exited non-zero on timeout — visible at the
-// device level via screenshot but the runner threw before recording
-// the action). 90s gives ~3x headroom.
+/*
+ * Bound every CLI invocation so a hung emulator can't wedge the smoke.
+ * 30s is generous for read-only commands (snapshot/screenshot/appstate).
+ * `fill` is special: typing a 30-char string into an editable on a
+ * 2-core ubuntu-latest under load was observed to exceed 30s (the
+ * CLI partial-typed and exited non-zero on timeout — visible at the
+ * device level via screenshot but the runner threw before recording
+ * the action). 90s gives ~3x headroom.
+ */
 const CLI_TIMEOUT_MS = 30_000;
 const CLI_FILL_TIMEOUT_MS = 90_000;
 
@@ -147,7 +151,7 @@ export function parseAppState(raw: string): AppState {
   return { foregroundApp: fg?.[1], activity: act?.[1], raw };
 }
 
-// ---- public surface used by the runner -------------------------------
+/* ---- public surface used by the runner ------------------------------- */
 
 export function snapshot(): Snapshot {
   return parseSnapshot(run(["snapshot", "-i", "--session", SESSION]));
@@ -155,8 +159,10 @@ export function snapshot(): Snapshot {
 
 export function screenshotBase64(path: string): string {
   run(["screenshot", path, "--session", SESSION]);
-  // The CLI writes to disk; the runner reads + base64-encodes itself
-  // (we keep this wrapper free of fs to keep the signatures simple).
+  /*
+   * The CLI writes to disk; the runner reads + base64-encodes itself
+   * (we keep this wrapper free of fs to keep the signatures simple).
+   */
   return path;
 }
 
@@ -173,14 +179,16 @@ export function press(ref: string): void {
 }
 
 export function closeSession(): void {
-  // Idempotent — if there's no session, this is a no-op.
+  /* Idempotent — if there's no session, this is a no-op. */
   tryRun(["close", "--session", SESSION]);
 }
 
 export function adbKey(keyEvent: number): void {
-  // Used by the LLM's `back()` and `dismiss_keyboard()` tools. We
-  // shell out to adb directly rather than agent-device because the
-  // CLI doesn't expose a keyevent primitive.
+  /*
+   * Used by the LLM's `back()` and `dismiss_keyboard()` tools. We
+   * shell out to adb directly rather than agent-device because the
+   * CLI doesn't expose a keyevent primitive.
+   */
   execFileSync("adb", ["shell", "input", "keyevent", String(keyEvent)], {
     timeout: CLI_TIMEOUT_MS,
     encoding: "utf8",

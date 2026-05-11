@@ -1,15 +1,17 @@
-// Replay cache for the LLM-driven smoke.
-//
-// Without this cache, every PR run pays the LLM round-trip cost on
-// every step. Worse, every run is non-deterministic. With it, the
-// happy path costs ~$0 and runs deterministically; only when the
-// snapshot signature changes (real UI shape change) do we fall
-// through to the LLM.
-//
-// The cache file lives at `tests/smoke/cache/<test-case>.json` and
-// is committed. The diff in code review is the human-readable
-// signal that "the SignIn UI shape changed" — the property
-// reviewers want to see.
+/*
+ * Replay cache for the LLM-driven smoke.
+ *
+ * Without this cache, every PR run pays the LLM round-trip cost on
+ * every step. Worse, every run is non-deterministic. With it, the
+ * happy path costs ~$0 and runs deterministically; only when the
+ * snapshot signature changes (real UI shape change) do we fall
+ * through to the LLM.
+ *
+ * The cache file lives at `tests/smoke/cache/<test-case>.json` and
+ * is committed. The diff in code review is the human-readable
+ * signal that "the SignIn UI shape changed" — the property
+ * reviewers want to see.
+ */
 
 import { createHash } from "crypto";
 import fs from "fs";

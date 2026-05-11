@@ -1,35 +1,37 @@
-// Phase-1 LLM-driven Android smoke runner.
-//
-// Lifecycle inside the workflow's emulator-runner `script:` block:
-//
-//   1. Boot dance (deterministic, NOT LLM-driven):
-//      - close any stale agent-device session
-//      - locate dev APK from android/app/build/outputs/...
-//      - adb install
-//      - adb reverse tcp:8081 tcp:8081  (Metro reachable from emulator)
-//      - npm start &  (Metro background)
-//      - poll /status until packager-status:running
-//      - agent-device open --relaunch  (cold start)
-//
-//   2. Test-case execution:
-//      - parse test case (numbered steps + optional `expect:` lines)
-//      - per step: cache-first / LLM-fallback / bash-fallback ladder
-//      - assert post-state via `expect:` evaluator
-//      - write artifacts (screenshots, snapshots, llm-trace, cache-diff)
-//
-//   3. Cleanup (always — even on signal/error):
-//      - dump logcat once
-//      - close agent-device session (so re-runs aren't tripped by the
-//        "session already bound" guard)
-//      - kill background jobs (Metro)
-//
-// Why a TS runner instead of Python or Bash:
-//   - The repo already runs ts-node in CI (precedent: createDocsRoutes.ts).
-//   - Reusing the snapshot parser + signature + expect DSL across
-//     replay / LLM / bash paths means one source of truth for what
-//     "the SignIn screen is on screen" means — a divergence between
-//     "what bash sees" and "what the LLM sees" would be a class of
-//     bugs we don't want.
+/*
+ * Phase-1 LLM-driven Android smoke runner.
+ *
+ * Lifecycle inside the workflow's emulator-runner `script:` block:
+ *
+ *   1. Boot dance (deterministic, NOT LLM-driven):
+ *      - close any stale agent-device session
+ *      - locate dev APK from android/app/build/outputs/...
+ *      - adb install
+ *      - adb reverse tcp:8081 tcp:8081  (Metro reachable from emulator)
+ *      - npm start &  (Metro background)
+ *      - poll /status until packager-status:running
+ *      - agent-device open --relaunch  (cold start)
+ *
+ *   2. Test-case execution:
+ *      - parse test case (numbered steps + optional `expect:` lines)
+ *      - per step: cache-first / LLM-fallback / bash-fallback ladder
+ *      - assert post-state via `expect:` evaluator
+ *      - write artifacts (screenshots, snapshots, llm-trace, cache-diff)
+ *
+ *   3. Cleanup (always — even on signal/error):
+ *      - dump logcat once
+ *      - close agent-device session (so re-runs aren't tripped by the
+ *        "session already bound" guard)
+ *      - kill background jobs (Metro)
+ *
+ * Why a TS runner instead of Python or Bash:
+ *   - The repo already runs ts-node in CI (precedent: createDocsRoutes.ts).
+ *   - Reusing the snapshot parser + signature + expect DSL across
+ *     replay / LLM / bash paths means one source of truth for what
+ *     "the SignIn screen is on screen" means — a divergence between
+ *     "what bash sees" and "what the LLM sees" would be a class of
+ *     bugs we don't want.
+ */
 
 import { execFileSync, spawn } from "child_process";
 import fs from "fs";
@@ -54,7 +56,7 @@ import type {
   AnthropicMessage,
 } from "./agent-device-llm-client";
 
-// ---- config -----------------------------------------------------------
+/* ---- config ----------------------------------------------------------- */
 
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 const TOKEN_BUDGET = Number(process.env.LLM_TOKEN_BUDGET ?? 200_000);
@@ -67,23 +69,27 @@ const CACHE_PATH =
   process.env.LLM_CACHE_PATH ?? deriveCachePath(TEST_CASE_PATH);
 const APK_GLOB = "android/app/build/outputs/apk/development/debug";
 const METRO_READY_TIMEOUT_MS = 120_000;
-// 600s gives ~2× margin over Phase 0's observed 294s (warm AVD). The
-// first run on a fresh AVD-cache key is closer to a cold boot since
-// the prime+run happens in two separate emulator-runner invocations
-// and the snapshot-load overhead lands inside this budget.
+/*
+ * 600s gives ~2× margin over Phase 0's observed 294s (warm AVD). The
+ * first run on a fresh AVD-cache key is closer to a cold boot since
+ * the prime+run happens in two separate emulator-runner invocations
+ * and the snapshot-load overhead lands inside this budget.
+ */
 const SIGNIN_LOAD_TIMEOUT_MS = 600_000;
 const BOOT_PROBE_INTERVAL_MS = 30_000;
 const STEP_WALL_CLOCK_BUDGET_MS = 60_000;
 const MAX_STATE_CHANGING_ACTIONS = 4;
 const SCREENSHOT_BUDGET_PER_RUN = 2;
 const TEXT_LENGTH_CAP = 200;
-// DEBUG_LLM=1 makes both the LLM client (request/response bodies)
-// and the runner (per-tool-dispatch entries) emit verbose entries to
-// llm-trace.jsonl + stdout. Off by default to keep normal-run
-// artifacts and CI stdout slim.
+/*
+ * DEBUG_LLM=1 makes both the LLM client (request/response bodies)
+ * and the runner (per-tool-dispatch entries) emit verbose entries to
+ * llm-trace.jsonl + stdout. Off by default to keep normal-run
+ * artifacts and CI stdout slim.
+ */
 const DEBUG_LLM = process.env.DEBUG_LLM === "1";
 
-// ---- types ------------------------------------------------------------
+/* ---- types ------------------------------------------------------------ */
 
 type Step = {
   number: number;
@@ -108,7 +114,7 @@ type ContentBlock =
 
 type ExecutedAction = CachedAction & { ref?: string };
 
-// ---- entry point ------------------------------------------------------
+/* ---- entry point ------------------------------------------------------ */
 
 async function main(): Promise<void> {
   fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
@@ -175,9 +181,11 @@ async function main(): Promise<void> {
     }
   }
 
-  // Always write the recorded cache diff, even if it's identical.
-  // Reviewers want to see a clean (no-op) diff to know the canary
-  // ran end-to-end without UI drift.
+  /*
+   * Always write the recorded cache diff, even if it's identical.
+   * Reviewers want to see a clean (no-op) diff to know the canary
+   * ran end-to-end without UI drift.
+   */
   const diffText = cache.diff(committed, recorded);
   fs.writeFileSync(
     path.join(ARTIFACTS_DIR, "cache-diff.txt"),
@@ -196,7 +204,7 @@ async function main(): Promise<void> {
   }
 }
 
-// ---- test case parser -------------------------------------------------
+/* ---- test case parser ------------------------------------------------- */
 
 function parseTestCase(raw: string): Step[] {
   const steps: Step[] = [];
@@ -226,7 +234,7 @@ function parseTestCase(raw: string): Step[] {
   return steps;
 }
 
-// ---- boot dance (matches Phase 0's bash) ------------------------------
+/* ---- boot dance (matches Phase 0's bash) ------------------------------ */
 
 async function bootApp(): Promise<void> {
   log("boot: closing stale session");
@@ -249,15 +257,17 @@ async function bootApp(): Promise<void> {
     stdio: "inherit",
   });
 
-  // Pre-emptive ANR suppression. On the 2-core ubuntu-latest runner
-  // the Pixel Launcher routinely ANRs under the combined load of
-  // Metro + APK launch + agent-device. The system normally shows a
-  // blocking "isn't responding" dialog that hides our app behind it.
-  // Setting hide_error_dialogs=1 makes the OS suppress those dialogs
-  // (the underlying ANR still happens but the foreground app keeps
-  // running uncovered). Best-effort — if the property doesn't exist
-  // on this Android version, fall through and let the in-loop
-  // recovery handle it.
+  /*
+   * Pre-emptive ANR suppression. On the 2-core ubuntu-latest runner
+   * the Pixel Launcher routinely ANRs under the combined load of
+   * Metro + APK launch + agent-device. The system normally shows a
+   * blocking "isn't responding" dialog that hides our app behind it.
+   * Setting hide_error_dialogs=1 makes the OS suppress those dialogs
+   * (the underlying ANR still happens but the foreground app keeps
+   * running uncovered). Best-effort — if the property doesn't exist
+   * on this Android version, fall through and let the in-loop
+   * recovery handle it.
+   */
   try {
     execFileSync(
       "adb",
@@ -265,17 +275,19 @@ async function bootApp(): Promise<void> {
       { timeout: 5_000, stdio: "ignore" },
     );
   } catch {
-    // best effort
+    /* best effort */
   }
 
-  // Disable Android Autofill globally. Without this, the framework
-  // silently populates editable fields (email, password, etc.) when
-  // they gain focus and a credential is cached on the AVD. That
-  // makes the LLM appear to "succeed" with just a press call —
-  // recorded cache misses the actual fill action, and replay on a
-  // different AVD snapshot (where autofill state has rotated)
-  // breaks because press alone no longer suffices. Forcing the LLM
-  // to explicitly fill makes both record and replay deterministic.
+  /*
+   * Disable Android Autofill globally. Without this, the framework
+   * silently populates editable fields (email, password, etc.) when
+   * they gain focus and a credential is cached on the AVD. That
+   * makes the LLM appear to "succeed" with just a press call —
+   * recorded cache misses the actual fill action, and replay on a
+   * different AVD snapshot (where autofill state has rotated)
+   * breaks because press alone no longer suffices. Forcing the LLM
+   * to explicitly fill makes both record and replay deterministic.
+   */
   try {
     execFileSync(
       "adb",
@@ -283,7 +295,7 @@ async function bootApp(): Promise<void> {
       { timeout: 5_000, stdio: "ignore" },
     );
   } catch {
-    // best effort
+    /* best effort */
   }
 
   log("boot: starting Metro");
@@ -319,13 +331,15 @@ async function bootApp(): Promise<void> {
     },
   );
 
-  // Bounded wait for the SignIn UI to hydrate. The LLM can technically
-  // poll for it itself in step 1, but on slow runners that would burn
-  // LLM budget on what's effectively boot-blocking emulator wait time.
-  // We dump a probe snapshot every 30s during the wait so post-mortem
-  // can see *what* the app was showing if the wait times out — the
-  // first run of this workflow had no such artifacts and the failure
-  // was undebuggable from the upload.
+  /*
+   * Bounded wait for the SignIn UI to hydrate. The LLM can technically
+   * poll for it itself in step 1, but on slow runners that would burn
+   * LLM budget on what's effectively boot-blocking emulator wait time.
+   * We dump a probe snapshot every 30s during the wait so post-mortem
+   * can see *what* the app was showing if the wait times out — the
+   * first run of this workflow had no such artifacts and the failure
+   * was undebuggable from the upload.
+   */
   log("boot: waiting for SignIn UI");
   const start = Date.now();
   let probeIdx = 0;
@@ -335,9 +349,11 @@ async function bootApp(): Promise<void> {
     try {
       snap = adCli.snapshot();
     } catch (e) {
-      // Don't let a single transient snapshot timeout kill the wait —
-      // the emulator may be under heavy load and the next poll will
-      // probably succeed.
+      /*
+       * Don't let a single transient snapshot timeout kill the wait —
+       * the emulator may be under heavy load and the next poll will
+       * probably succeed.
+       */
       log(
         `boot: snapshot threw (${(e as Error).message.slice(0, 80)}); retrying`,
       );
@@ -352,15 +368,17 @@ async function bootApp(): Promise<void> {
       );
       return;
     }
-    // ANR-recovery: when the runner is memory-pressured the system
-    // shows a "Pixel Launcher isn't responding" dialog over our app.
-    // Press "Wait" to dismiss, then force-stop + relaunch via
-    // agent-device. Plain `am start` was insufficient: if the ANR
-    // hit during JS bundle delivery, MainActivity was in a half-
-    // initialised state and `am start` just brought that broken
-    // activity to the foreground (run 25560886459 stuck on splash
-    // for 600s after recovering from an ANR via am start). Force-
-    // stop guarantees a clean process spawn for the next launch.
+    /*
+     * ANR-recovery: when the runner is memory-pressured the system
+     * shows a "Pixel Launcher isn't responding" dialog over our app.
+     * Press "Wait" to dismiss, then force-stop + relaunch via
+     * agent-device. Plain `am start` was insufficient: if the ANR
+     * hit during JS bundle delivery, MainActivity was in a half-
+     * initialised state and `am start` just brought that broken
+     * activity to the foreground (run 25560886459 stuck on splash
+     * for 600s after recovering from an ANR via am start). Force-
+     * stop guarantees a clean process spawn for the next launch.
+     */
     if (isAnrDialog(snap)) {
       log("boot: ANR dialog detected — dismissing and force-relaunching app");
       try {
@@ -403,7 +421,7 @@ async function bootApp(): Promise<void> {
       } catch (e) {
         log(`boot: relaunch failed: ${(e as Error).message.slice(0, 80)}`);
       }
-      // Give the process a moment to come back up before re-snapshotting.
+      /* Give the process a moment to come back up before re-snapshotting. */
       await sleep(3_000);
       continue;
     }
@@ -421,8 +439,10 @@ async function bootApp(): Promise<void> {
     }
     await sleep(6_000);
   }
-  // Capture as much state as we can BEFORE failing so a re-run isn't
-  // required to debug. The cleanup trap will still write logcat after.
+  /*
+   * Capture as much state as we can BEFORE failing so a re-run isn't
+   * required to debug. The cleanup trap will still write logcat after.
+   */
   try {
     const snap = adCli.snapshot();
     fs.writeFileSync(
@@ -474,7 +494,7 @@ async function waitForMetro(): Promise<void> {
         return;
       }
     } catch {
-      // Metro not up yet
+      /* Metro not up yet */
     }
     await sleep(2_000);
   }
@@ -483,7 +503,7 @@ async function waitForMetro(): Promise<void> {
   );
 }
 
-// ---- per-step orchestration -------------------------------------------
+/* ---- per-step orchestration ------------------------------------------- */
 
 type StepCtx = {
   committed: CacheV1;
@@ -565,13 +585,15 @@ async function executeStep(
     }
     ctx.stats.onBashRun();
     actions = bashResult.actions;
-    // Settle gap: agent-device fill returns once it has dispatched
-    // the typing command, but the on-device EditText needs a beat for
-    // React Native's onChange to fire and the accessibility tree to
-    // re-publish the new text. Without this, verifyPostState below
-    // takes a snapshot before the typed text has propagated and the
-    // expect predicate fails on what's transient lag, not a real
-    // problem.
+    /*
+     * Settle gap: agent-device fill returns once it has dispatched
+     * the typing command, but the on-device EditText needs a beat for
+     * React Native's onChange to fire and the accessibility tree to
+     * re-publish the new text. Without this, verifyPostState below
+     * takes a snapshot before the typed text has propagated and the
+     * expect predicate fails on what's transient lag, not a real
+     * problem.
+     */
     await sleep(500);
   }
 
@@ -611,11 +633,13 @@ async function verifyPostState(
   const snap = adCli.snapshot();
   const app = adCli.appstate();
 
-  // Expect (when declared) is the source of truth: it's a deterministic
-  // predicate over the live UI, while the post-signature is a structural
-  // hash that can drift on cosmetic re-renders, animation timing, or
-  // node-ordering changes that don't affect what the user actually sees.
-  // If expect passes, the step succeeded — drift becomes advisory.
+  /*
+   * Expect (when declared) is the source of truth: it's a deterministic
+   * predicate over the live UI, while the post-signature is a structural
+   * hash that can drift on cosmetic re-renders, animation timing, or
+   * node-ordering changes that don't affect what the user actually sees.
+   * If expect passes, the step succeeded — drift becomes advisory.
+   */
   if (step.expect) {
     const ev = evaluateExpect(step.expect, snap, app);
     if (!ev.ok) {
@@ -629,8 +653,10 @@ async function verifyPostState(
     return { ok: true, snap };
   }
 
-  // No expect declared — fall back to signature equality so a cache-hit
-  // path still has *some* post-state check.
+  /*
+   * No expect declared — fall back to signature equality so a cache-hit
+   * path still has *some* post-state check.
+   */
   if (expectedSignature && snapshotSignature(snap) !== expectedSignature) {
     return {
       ok: false,
@@ -640,7 +666,7 @@ async function verifyPostState(
   return { ok: true, snap };
 }
 
-// ---- cache replay -----------------------------------------------------
+/* ---- cache replay ----------------------------------------------------- */
 
 async function replayCachedActions(
   actions: CachedAction[],
@@ -650,9 +676,11 @@ async function replayCachedActions(
     if (!ok.ok) {
       return ok;
     }
-    // Tiny settle gap — even on warm runners, fill→press in
-    // immediate succession occasionally lands the press before
-    // React has propagated the fill.
+    /*
+     * Tiny settle gap — even on warm runners, fill→press in
+     * immediate succession occasionally lands the press before
+     * React has propagated the fill.
+     */
     await sleep(150);
   }
   return { ok: true };
@@ -718,7 +746,7 @@ async function runWaitFor(
   };
 }
 
-// ---- LLM step ---------------------------------------------------------
+/* ---- LLM step --------------------------------------------------------- */
 
 const SYSTEM_PROMPT = [
   "You are an autonomous mobile UI test runner driving the Expensify Android app via the agent-device CLI.",
@@ -1008,13 +1036,15 @@ async function runLLMStep(
 
     messages.push({ role: "user", content: toolResults });
 
-    // Refresh snap + appstate after every batch of tool calls that
-    // changed device state. Without this the LLM keeps seeing the
-    // pre-step snapshot even after its fill/press took effect, so
-    // identical fills get caught by the seen-hash dedup and the LLM
-    // burns its budget retrying actions it already performed.
-    // dispatchTool's snapshot/wait_for/back/dismiss callbacks already
-    // refresh; fill and press do not.
+    /*
+     * Refresh snap + appstate after every batch of tool calls that
+     * changed device state. Without this the LLM keeps seeing the
+     * pre-step snapshot even after its fill/press took effect, so
+     * identical fills get caught by the seen-hash dedup and the LLM
+     * burns its budget retrying actions it already performed.
+     * dispatchTool's snapshot/wait_for/back/dismiss callbacks already
+     * refresh; fill and press do not.
+     */
     if (
       toolUses.some(
         (tu) => tu.name === "fill" || tu.name === "press" || tu.name === "wait",
@@ -1024,7 +1054,7 @@ async function runLLMStep(
         snap = adCli.snapshot();
         app = adCli.appstate();
       } catch (e) {
-        // Transient — next loop iteration will retry implicitly.
+        /* Transient — next loop iteration will retry implicitly. */
         log(
           `runLLMStep: post-action snap refresh threw (${(e as Error).message.slice(0, 80)}); continuing with stale snap`,
         );
@@ -1118,7 +1148,7 @@ function describeExecutedAction(a: ExecutedAction): string {
   return a.tool;
 }
 
-// ---- LLM tool dispatch ------------------------------------------------
+/* ---- LLM tool dispatch ------------------------------------------------ */
 
 type DispatchCtx = {
   snap: Snapshot;
@@ -1307,17 +1337,19 @@ function takeScreenshot(filename: string): string {
   return fs.readFileSync(p).toString("base64");
 }
 
-// ---- bash fallback ----------------------------------------------------
+/* ---- bash fallback ---------------------------------------------------- */
 
-// Mirrors Phase 0's bash logic for the SignIn flow. Used when:
-//   - ANTHROPIC_API_KEY is missing
-//   - The Anthropic API exhausts retries with HTTP errors
-//   - The LLM gives up via step_failed (rare; mostly defensive)
-//
-// Only the SignIn-flow steps are covered. Adding a new test case
-// without LLM access requires extending this map. That's intentional:
-// the bash fallback is a safety net for known flows, not a generic
-// drop-in for the LLM.
+/*
+ * Mirrors Phase 0's bash logic for the SignIn flow. Used when:
+ *   - ANTHROPIC_API_KEY is missing
+ *   - The Anthropic API exhausts retries with HTTP errors
+ *   - The LLM gives up via step_failed (rare; mostly defensive)
+ *
+ * Only the SignIn-flow steps are covered. Adding a new test case
+ * without LLM access requires extending this map. That's intentional:
+ * the bash fallback is a safety net for known flows, not a generic
+ * drop-in for the LLM.
+ */
 
 async function runBashFallback(
   step: Step,
@@ -1327,7 +1359,7 @@ async function runBashFallback(
   const text = step.text.toLowerCase();
 
   if (text.includes("wait") && text.includes("signin")) {
-    // Boot dance already gated on this; an instant pass is fine.
+    /* Boot dance already gated on this; an instant pass is fine. */
     return { ok: true, actions: [] };
   }
 
@@ -1405,7 +1437,7 @@ async function runBashFallback(
   };
 }
 
-// ---- cleanup ----------------------------------------------------------
+/* ---- cleanup ---------------------------------------------------------- */
 
 const backgroundPids: number[] = [];
 let cleanedUp = false;
@@ -1437,14 +1469,14 @@ function registerCleanup(): void {
         },
       );
     } catch {
-      // best effort
+      /* best effort */
     }
     adCli.closeSession();
     for (const pid of backgroundPids) {
       try {
         process.kill(-pid, "SIGTERM");
       } catch {
-        // already gone
+        /* already gone */
       }
     }
   };
@@ -1459,7 +1491,7 @@ function registerCleanup(): void {
   });
 }
 
-// ---- helpers ----------------------------------------------------------
+/* ---- helpers ---------------------------------------------------------- */
 
 function deriveCachePath(testCasePath: string): string {
   const base = path.basename(testCasePath, path.extname(testCasePath));

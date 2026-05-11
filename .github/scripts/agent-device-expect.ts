@@ -1,20 +1,22 @@
-// `expect:` DSL — machine-checked postcondition for each test step.
-//
-// Why a tiny DSL instead of letting the LLM self-report success:
-// `step_complete(rationale)` is an LLM claim, not evidence. A canary
-// that trusts an LLM's claim is a canary the LLM can lie to. The
-// `expect:` clause is evaluated by deterministic TypeScript code
-// against the post-state snapshot/appstate. The step fails red if
-// `expect:` fails, regardless of what the LLM said.
-//
-// Grammar (intentionally small — extend only when a real test step
-// can't be expressed):
-//   snapshot.contains_text("...")
-//   snapshot.field_with_text("...").exists
-//   appstate.foreground == "..."
-//
-// String literal: double-quoted, backslash-escapable. No interpolation,
-// no regex, no boolean ops. If a step needs more, write a second step.
+/*
+ * `expect:` DSL — machine-checked postcondition for each test step.
+ *
+ * Why a tiny DSL instead of letting the LLM self-report success:
+ * `step_complete(rationale)` is an LLM claim, not evidence. A canary
+ * that trusts an LLM's claim is a canary the LLM can lie to. The
+ * `expect:` clause is evaluated by deterministic TypeScript code
+ * against the post-state snapshot/appstate. The step fails red if
+ * `expect:` fails, regardless of what the LLM said.
+ *
+ * Grammar (intentionally small — extend only when a real test step
+ * can't be expressed):
+ *   snapshot.contains_text("...")
+ *   snapshot.field_with_text("...").exists
+ *   appstate.foreground == "..."
+ *
+ * String literal: double-quoted, backslash-escapable. No interpolation,
+ * no regex, no boolean ops. If a step needs more, write a second step.
+ */
 
 import type { AppState, Snapshot } from "./agent-device-cli";
 
