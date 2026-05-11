@@ -59,6 +59,66 @@ function filterReceiptViolations(violations: TransactionViolation[]): Transactio
     return violations;
 }
 
+// Module-level Onyx snapshots used by `getSmartscanFailedMissingFields`, which is called from
+// synchronous utility functions (e.g. `getReportName`, `getLastMessageTextForReport`) that
+// can't subscribe to Onyx themselves. Mirrors the snapshot pattern already used in
+// OptionsListUtils.ts and ReportNameUtils.ts.
+let allTransactionsForViolations: OnyxCollection<Transaction>;
+// eslint-disable-next-line rulesdir/no-onyx-connect -- needed for synchronous lookups in non-reactive utility functions
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allTransactionsForViolations = value;
+    },
+});
+
+let allTransactionViolationsForViolations: OnyxCollection<TransactionViolation[]>;
+// eslint-disable-next-line rulesdir/no-onyx-connect -- needed for synchronous lookups in non-reactive utility functions
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allTransactionViolationsForViolations = value;
+    },
+});
+
+/**
+ * Returns the list of fields the SmartScan failed to extract for the given transaction.
+ *
+ * Prefers the `missingFields` array on the SMARTSCAN_FAILED violation (populated by Auth in
+ * `Violations::getSmartScanFailedViolation`). When the violation isn't in Onyx yet, falls back
+ * to computing the list from the transaction itself — same fallback used by
+ * `ReceiptScanFailedContent` and `MoneyRequestReceiptView` so all three render the same text.
+ */
+function getSmartscanFailedMissingFields(transactionID: string | undefined): string[] {
+    if (!transactionID) {
+        return [];
+    }
+    const violations = allTransactionViolationsForViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const smartscanFailed = violations.find((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+    const fromViolation = smartscanFailed?.data?.missingFields;
+    if (fromViolation && fromViolation.length > 0) {
+        return fromViolation;
+    }
+
+    const transaction = allTransactionsForViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.SCAN_FAILED) {
+        return [];
+    }
+    const computed: string[] = [];
+    if (TransactionUtils.isMerchantMissing(transaction)) {
+        computed.push('merchant');
+    }
+    if (TransactionUtils.isCreatedMissing(transaction)) {
+        computed.push('date');
+    }
+    if (TransactionUtils.isAmountMissing(transaction)) {
+        computed.push('amount');
+    }
+    return computed;
+}
+
 function isMaxExpenseAmountRuleEnabled(maxAmount: number | undefined) {
     return typeof maxAmount === 'number' && maxAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
@@ -951,4 +1011,4 @@ const ViolationsUtils = {
 export {getIsViolationFixed};
 export type {ViolationFixParams, ViolationTranslationParams};
 export default ViolationsUtils;
-export {filterReceiptViolations};
+export {filterReceiptViolations, getSmartscanFailedMissingFields};

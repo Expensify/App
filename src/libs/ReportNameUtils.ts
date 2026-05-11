@@ -55,6 +55,7 @@ import {
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getJoinRequestMessage,
+    getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -161,6 +162,7 @@ import {
     isTripRoom,
     isUserCreatedPolicyRoom,
 } from './ReportUtils';
+import {getSmartscanFailedMissingFields} from './Violations/ViolationsUtils';
 
 type ComputeReportName = {
     report?: Report;
@@ -472,7 +474,8 @@ function computeReportNameBasedOnReportAction(
         if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
             iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
         }
-        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)});
+        const missingFields = getSmartscanFailedMissingFields(getLinkedTransactionID(iouAction));
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
