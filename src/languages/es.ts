@@ -6371,9 +6371,12 @@ ${amount} para ${merchant} - ${date}`,
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',
                 other: '¿Estás seguro de que quieres eliminar estas tasas?',
             }),
+            startDate: 'Fecha de inicio',
+            endDate: 'Fecha de fin',
             errors: {
                 rateNameRequired: 'El nombre de la tasa es obligatorio',
                 existingRateName: 'Ya existe una tasa de distancia con este nombre',
+                startDateMustBeBeforeEndDate: 'La fecha de inicio debe ser anterior a la fecha de fin.',
             },
         },
         editor: {

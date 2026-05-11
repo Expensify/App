@@ -2,11 +2,13 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
-import InputWrapperWithRef from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -50,12 +52,21 @@ function CreateDistanceRatePage({
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateRateValue(values, toLocaleDigit, translate),
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
+            const rateErrors = validateRateValue(values, toLocaleDigit, translate);
+            if (rateErrors.rate) {
+                errors.rate = rateErrors.rate;
+            }
+            if (values.startDate && values.endDate && values.startDate > values.endDate) {
+                errors.endDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
+            }
+            return errors;
+        },
         [toLocaleDigit, translate],
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
-        // A blocking view is shown when customUnitID is undefined, so this function should never be called
         if (!customUnitID) {
             return;
         }
@@ -66,6 +77,8 @@ function CreateDistanceRatePage({
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
+            ...(values.startDate ? {startDate: values.startDate} : {}),
+            ...(values.endDate ? {endDate: values.endDate} : {}),
         };
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
@@ -109,14 +122,30 @@ function CreateDistanceRatePage({
                         submitButtonStyles={[styles.mh5, styles.mt0]}
                         addBottomSafeAreaPadding
                     >
-                        <InputWrapperWithRef
-                            InputComponent={AmountForm}
-                            inputID={INPUT_IDS.RATE}
-                            decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                            isCurrencyPressable={false}
-                            currency={currency}
-                            ref={inputCallbackRef}
-                        />
+                        <ScrollView contentContainerStyle={styles.flexGrow1}>
+                            <InputWrapper
+                                InputComponent={AmountForm}
+                                inputID={INPUT_IDS.RATE}
+                                decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                isCurrencyPressable={false}
+                                currency={currency}
+                                ref={inputCallbackRef}
+                            />
+                            <View style={[styles.mh5, styles.mt4]}>
+                                <InputWrapper
+                                    InputComponent={DatePicker}
+                                    inputID={INPUT_IDS.START_DATE}
+                                    label={translate('workspace.distanceRates.startDate')}
+                                />
+                            </View>
+                            <View style={[styles.mh5, styles.mt4]}>
+                                <InputWrapper
+                                    InputComponent={DatePicker}
+                                    inputID={INPUT_IDS.END_DATE}
+                                    label={translate('workspace.distanceRates.endDate')}
+                                />
+                            </View>
+                        </ScrollView>
                     </FormProvider>
                 </FullPageBlockingView>
             </ScreenWrapper>
