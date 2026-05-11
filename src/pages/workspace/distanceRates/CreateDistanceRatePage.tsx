@@ -1,23 +1,25 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import AmountForm from '@components/AmountForm';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
+import {validateCreateDistanceRateForm} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -39,7 +41,7 @@ function CreateDistanceRatePage({
     },
 }: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, preferredLocale} = useLocalize();
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnit = getDistanceRateCustomUnit(policy);
@@ -49,21 +51,13 @@ function CreateDistanceRatePage({
     const isDistanceRateUpgrade = transactionID && reportID;
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
+    const existingRateNames = useMemo(() => Object.values(customUnit?.rates ?? {}).map((r) => r.name ?? ''), [customUnit?.rates]);
+
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
-            const rateErrors = validateRateValue(values, toLocaleDigit, translate);
-            if (rateErrors.rate) {
-                errors.rate = rateErrors.rate;
-            }
-            if (values.startDate && values.endDate && values.startDate > values.endDate) {
-                errors.endDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
-            }
-            return errors;
-        },
-        [toLocaleDigit, translate],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames),
+        [toLocaleDigit, translate, existingRateNames],
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
@@ -74,7 +68,7 @@ function CreateDistanceRatePage({
 
         const newRate: Rate = {
             currency,
-            name: getOptimisticRateName(customUnit?.rates ?? {}),
+            name: values.name.trim(),
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
@@ -124,13 +118,24 @@ function CreateDistanceRatePage({
                         addBottomSafeAreaPadding
                     >
                         <ScrollView contentContainerStyle={styles.flexGrow1}>
+                            <View style={[styles.mh5]}>
+                                <InputWrapper
+                                    ref={inputCallbackRef}
+                                    InputComponent={TextInput}
+                                    inputID={INPUT_IDS.NAME}
+                                    label={translate('common.name')}
+                                    accessibilityLabel={translate('common.name')}
+                                    role={CONST.ROLE.PRESENTATION}
+                                />
+                            </View>
                             <InputWrapper
-                                InputComponent={AmountForm}
+                                InputComponent={NumberWithSymbolForm}
                                 inputID={INPUT_IDS.RATE}
                                 decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                                isCurrencyPressable={false}
                                 currency={currency}
-                                ref={inputCallbackRef}
+                                symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+                                symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
+                                isSymbolPressable={false}
                             />
                             <View style={[styles.mh5, styles.mt4]}>
                                 <InputWrapper

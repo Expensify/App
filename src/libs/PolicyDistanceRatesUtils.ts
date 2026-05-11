@@ -51,6 +51,45 @@ function getOptimisticRateName(rates: Record<string, Rate>): string {
     return newRateCount === 0 ? CONST.CUSTOM_UNITS.NEW_RATE : `${CONST.CUSTOM_UNITS.NEW_RATE} ${newRateCount}`;
 }
 
+function validateCreateDistanceRateForm(
+    values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>,
+    toLocaleDigit: (arg: string) => string,
+    translate: LocalizedTranslate,
+    existingRateNames: string[],
+): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> {
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
+    const parsedRate = replaceAllDigits(values.rate, toLocaleDigit);
+    const decimalSeparator = toLocaleDigit('.');
+    const rateValueRegex = RegExp(String.raw`^-?\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
+    const trimmedName = values.name?.trim() ?? '';
+    const hasName = trimmedName.length > 0;
+    const hasRate = rateValueRegex.test(parsedRate) && parsedRate !== '' && parseFloatAnyLocale(parsedRate) > 0;
+
+    if (!hasName && !hasRate) {
+        errors.name = translate('workspace.distanceRates.errors.nameAndAmountRequired');
+    } else {
+        if (!hasName) {
+            errors.name = translate('workspace.distanceRates.errors.nameRequired');
+        } else if (existingRateNames.includes(trimmedName)) {
+            errors.name = translate('workspace.distanceRates.errors.nameAlreadyExists');
+        }
+
+        if (!hasRate) {
+            if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
+                errors.rate = translate('common.error.invalidRateError');
+            } else if (parseFloatAnyLocale(parsedRate) <= 0) {
+                errors.rate = translate('common.error.lowRateError');
+            }
+        }
+    }
+
+    if (values.startDate && values.endDate && values.startDate > values.endDate) {
+        errors.endDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
+    }
+
+    return errors;
+}
+
 type PolicyDistanceRateUpdateField = keyof Pick<Rate, 'name' | 'rate'> | keyof TaxRateAttributes;
 
 /**
@@ -137,5 +176,5 @@ function buildOnyxDataForPolicyDistanceRateUpdates(
     return {optimisticData, successData, failureData};
 }
 
-export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, buildOnyxDataForPolicyDistanceRateUpdates};
+export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates};
 export type {PolicyDistanceRateUpdateField};
