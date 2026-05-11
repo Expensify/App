@@ -63,3 +63,4 @@ function clearPendingNavigation() {
 }
 
 export {INITIAL_SCREEN, mfaNavigationRef, navigate, applyPendingNavigation, clearPendingNavigation};
+export type {MfaOverlayInternalParamList};
