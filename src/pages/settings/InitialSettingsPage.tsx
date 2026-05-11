@@ -327,13 +327,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.GO_TO_CLASSIC,
             ...(CONFIG.IS_HYBRID_APP
                 ? {
-                      action() {
-                          if (shouldOpenSurveyReasonPage) {
-                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path));
-                              return;
-                          }
-                          closeReactNativeApp({shouldSetNVP: true, isTrackingGPS});
-                      },
+                      action: () => closeReactNativeApp({shouldSetNVP: true, isTrackingGPS}),
                   }
                 : {
                       action() {
