@@ -170,12 +170,7 @@ describe('TransactionUtils', () => {
                 },
             ];
 
-            const result = TransactionUtils.hasSubmissionBlockingViolationInReport(
-                [optimisticTransaction],
-                transactionViolations,
-                optimisticTransaction.transactionID,
-                optimisticViolations,
-            );
+            const result = TransactionUtils.hasSubmissionBlockingViolationInReport([optimisticTransaction], transactionViolations, optimisticTransaction.transactionID, optimisticViolations);
 
             expect(result).toBe(false);
         });
