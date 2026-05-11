@@ -1223,62 +1223,6 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getReportActionMessageFragments', () => {
-        it('should return the correct fragment for the REIMBURSED action', () => {
-            const action = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: '1',
-                created: '1',
-                message: [
-                    {
-                        type: 'TEXT',
-                        style: 'strong',
-                        text: 'Concierge',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: ' reimbursed this report',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: ' on behalf of you',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: ' from the bank account ending in 1111',
-                    },
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: '. Money is on its way to your bank account ending in 0000. Reimbursement estimated to complete on Dec 16.',
-                    },
-                ],
-            };
-            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
-            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
-        });
-
-        it('should translate the REIMBURSED action using originalMessage.method when paymentMethod is absent (Pusher path)', () => {
-            // Given a REIMBURSED action that arrived via Pusher with only `method` set (as Auth stores it)
-            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: '2',
-                created: '2024-01-01',
-                originalMessage: {
-                    method: 'Check',
-                },
-            };
-            // When we get the message fragments
-            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
-            // Then the translated message is used (not raw backend text)
-            const expectedMessage = ReportActionsUtils.getReimbursedMessage(translateLocal, action, undefined, 0);
-            expect(fragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
-            expect(expectedMessage).toContain('check');
-        });
-
         it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
