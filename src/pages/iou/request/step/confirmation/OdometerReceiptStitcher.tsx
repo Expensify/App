@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import stitchOdometerImages from '@libs/stitchOdometerImages';
+import STITCHED_ODOMETER_FILENAME_PREFIX from '@libs/stitchOdometerImages/constants';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import CONST from '@src/CONST';
@@ -42,6 +43,8 @@ function OdometerReceiptStitcher({
         startImage: FileObject | string | null | undefined;
         endImage: FileObject | string | null | undefined;
     } | null>(null);
+    // Self-heal against external clears (e.g. ReceiptFileValidator).
+    const lastWrittenReceiptSource = useRef<string | null>(null);
 
     useEffect(() => {
         // Wait until useRestartOnOdometerImagesFailure has confirmed the blob URLs are still
@@ -53,12 +56,15 @@ function OdometerReceiptStitcher({
 
         // Skip stitching when source images haven't changed (compare by URI not reference
         // because Onyx may create new object instances when restoring a backup transaction)
+        // and the receipt source still matches what we last wrote.
         const startUri = getOdometerImageUri(odometerStartImage);
         const endUri = getOdometerImageUri(odometerEndImage);
+        const currentReceiptSource = transaction.receipt?.source?.toString() ?? '';
         if (
             lastStitchedImages.current !== null &&
             getOdometerImageUri(lastStitchedImages.current.startImage) === startUri &&
-            getOdometerImageUri(lastStitchedImages.current.endImage) === endUri
+            getOdometerImageUri(lastStitchedImages.current.endImage) === endUri &&
+            lastWrittenReceiptSource.current === currentReceiptSource
         ) {
             return;
         }
@@ -67,11 +73,21 @@ function OdometerReceiptStitcher({
             const singleImage = odometerStartImage ?? odometerEndImage;
 
             if (!singleImage) {
+                // Skip the clear on fresh transactions - otherwise we'd write an empty receipt object onto them.
+                if (transaction.receipt?.source) {
+                    setMoneyRequestReceipt(transaction.transactionID, '', '', true, '');
+                }
+                lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+                lastWrittenReceiptSource.current = '';
                 return;
             }
 
-            setMoneyRequestReceipt(transaction.transactionID, getOdometerImageUri(singleImage), getOdometerImageName(singleImage), true, getOdometerImageType(singleImage));
+            // Fallback name keeps ReceiptFileValidator from failing on an unnamed FileObject.
+            const singleImageName = getOdometerImageName(singleImage) || `${STITCHED_ODOMETER_FILENAME_PREFIX}.jpg`;
+            const singleImageUri = getOdometerImageUri(singleImage);
+            setMoneyRequestReceipt(transaction.transactionID, singleImageUri, singleImageName, true, getOdometerImageType(singleImage));
             lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+            lastWrittenReceiptSource.current = singleImageUri;
             return;
         }
 
@@ -90,8 +106,10 @@ function OdometerReceiptStitcher({
                     cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
                     return;
                 }
-                setMoneyRequestReceipt(transaction.transactionID, getOdometerImageUri(stitchedImage), getOdometerImageName(stitchedImage), true, getOdometerImageType(stitchedImage));
+                const stitchedUri = getOdometerImageUri(stitchedImage);
+                setMoneyRequestReceipt(transaction.transactionID, stitchedUri, getOdometerImageName(stitchedImage), true, getOdometerImageType(stitchedImage));
                 lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+                lastWrittenReceiptSource.current = stitchedUri;
                 endSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_STITCH);
             })
             .catch((error: unknown) => {

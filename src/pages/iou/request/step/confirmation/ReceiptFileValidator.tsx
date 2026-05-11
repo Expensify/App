@@ -1,9 +1,10 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -45,6 +46,13 @@ function ReceiptFileValidator({
     draftTransactionIDs,
     onReceiptFilesChange,
 }: ReceiptFileValidatorProps) {
+    // Live transactions for the async .then() below - lets it detect when the receipt URL was
+    // rewritten during in-flight validation so a stale failure doesn't clobber the new receipt.
+    const transactionsRef = useRef(transactions);
+    useEffect(() => {
+        transactionsRef.current = transactions;
+    }, [transactions]);
+
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
@@ -54,6 +62,7 @@ function ReceiptFileValidator({
         let newReceiptFiles: Record<string, Receipt> = {};
         let isScanFilesCanBeRead = true;
         let resetInitialTransactionReceipt = false;
+        let validatedInitialReceiptPath: string | number | undefined;
 
         Promise.all(
             transactions.map((item) => {
@@ -61,6 +70,10 @@ function ReceiptFileValidator({
                 const itemReceiptPath = item.receipt?.source;
                 const itemReceiptType = item.receipt?.type;
                 const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
+
+                if (item.transactionID === initialTransactionID) {
+                    validatedInitialReceiptPath = itemReceiptPath;
+                }
 
                 if (!isLocalFile) {
                     if (item.receipt) {
@@ -96,6 +109,22 @@ function ReceiptFileValidator({
                 return validateReceiptFile(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure) ?? Promise.resolve();
             }),
         ).then(() => {
+            // If the receipt source was rewritten during validation, the failure is stale - skip clear/navigate.
+            const liveInitialReceiptSource = transactionsRef.current.find((t) => t.transactionID === initialTransactionID)?.receipt?.source;
+            const isValidationStale = liveInitialReceiptSource !== validatedInitialReceiptPath;
+            if (isValidationStale) {
+                resetInitialTransactionReceipt = false;
+                isScanFilesCanBeRead = true;
+            }
+            // Odometer receipts are derived from comment images by OdometerReceiptStitcher and recovered
+            // by useRestartOnOdometerImagesFailure. While source images are alive, a failed fetch is just
+            // mid-stitch transience - the next cycle will rewrite. Don't clear or navigate away.
+            const initialLive = transactionsRef.current.find((t) => t.transactionID === initialTransactionID);
+            const isOdometerInitial = !!initialLive && isOdometerDistanceRequestTransactionUtils(initialLive);
+            const hasLiveOdometerImage = !!(initialLive?.comment?.odometerStartImage ?? initialLive?.comment?.odometerEndImage);
+            if (isOdometerInitial && hasLiveOdometerImage && !isScanFilesCanBeRead) {
+                return;
+            }
             if (resetInitialTransactionReceipt) {
                 setMoneyRequestReceipt(initialTransactionID, '', '', true, '');
             }
