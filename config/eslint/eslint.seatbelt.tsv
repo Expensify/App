@@ -488,7 +488,6 @@
 "../../src/pages/ScheduleCall/ScheduleCallPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchMoneyRequestReportPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/Search/SearchPage.tsx"	"react-hooks/refs"	31
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchTransactionsChangeReport.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
