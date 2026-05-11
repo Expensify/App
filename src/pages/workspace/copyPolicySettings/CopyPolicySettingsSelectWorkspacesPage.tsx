@@ -114,11 +114,23 @@ function CopyPolicySettingsSelectWorkspacesPage() {
         setSelectedTargetIDs((prev) => (prev.includes(id) ? prev.filter((selectedID) => selectedID !== id) : [...prev, id]));
     }, []);
 
-    const isSelectAllChecked = eligiblePolicies.length > 0 && selectedTargetIDs.length === eligiblePolicies.length;
-
+    // Scope select-all to the currently visible (filtered) rows so its behavior matches
+    // the header checkbox state that SelectionList derives from filteredPolicies. Selections
+    // on rows hidden by the active search are preserved across toggles.
     const toggleAll = useCallback(() => {
-        setSelectedTargetIDs(isSelectAllChecked ? [] : eligiblePolicies.map((policy) => policy.id));
-    }, [isSelectAllChecked, eligiblePolicies]);
+        const visibleIDs = filteredPolicies.map((policy) => policy.id);
+        if (visibleIDs.length === 0) {
+            return;
+        }
+        setSelectedTargetIDs((prev) => {
+            const areAllVisibleSelected = visibleIDs.every((id) => prev.includes(id));
+            if (areAllVisibleSelected) {
+                const visibleSet = new Set(visibleIDs);
+                return prev.filter((id) => !visibleSet.has(id));
+            }
+            return Array.from(new Set([...prev, ...visibleIDs]));
+        });
+    }, [filteredPolicies]);
 
     const onConfirm = useCallback(() => {
         if (!sourcePolicyID) {
