@@ -16,6 +16,7 @@ import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getPayeeName} from '@libs/ReportUtils';
@@ -168,9 +169,13 @@ function DistanceRequestStartPage({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    Promise.resolve(guard.onDiscard()).then(() => {
-                        tabNavigationRef.current?.dispatch(TabActions.jumpTo(targetRoute.name));
-                    });
+                    Promise.resolve(guard.onDiscard())
+                        .then(() => {
+                            tabNavigationRef.current?.dispatch(TabActions.jumpTo(targetRoute.name));
+                        })
+                        .catch((error: unknown) => {
+                            Log.warn('[DistanceRequestStartPage] Failed to run onDiscard callback', {error});
+                        });
                 });
             },
         }),
