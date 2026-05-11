@@ -226,6 +226,7 @@
 "../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOnboardingFlow.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useOutstandingBalanceGuard.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
+"../../src/hooks/usePaginatedReportActions.ts"	"react-hooks/refs"	1
 "../../src/hooks/usePaymentOptions.ts"	"react-hooks/refs"	1
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
 "../../src/hooks/useProactiveAppReview.ts"	"react-hooks/purity"	1
@@ -487,7 +488,6 @@
 "../../src/pages/ScheduleCall/ScheduleCallPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchMoneyRequestReportPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/Search/SearchPage.tsx"	"react-hooks/refs"	31
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchTransactionsChangeReport.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
@@ -522,9 +522,11 @@
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/refs"	6
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/inbox/report/ReportActionsList.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
-"../../src/pages/inbox/report/ReportActionsList.tsx"	"react-hooks/refs"	5
+"../../src/pages/inbox/report/ReportActionsList.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	5
+"../../src/pages/inbox/report/ReportActionsList.tsx"	"react-hooks/refs"	7
 "../../src/pages/inbox/report/ReportActionsList.tsx"	"react-hooks/set-state-in-effect"	3
+"../../src/pages/inbox/report/ReportActionsView.tsx"	"react-hooks/globals"	1
+"../../src/pages/inbox/report/ReportActionsView.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/inbox/report/TripSummary.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/inbox/report/UserTypingEventListener.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
 "../../src/pages/inbox/report/shouldUseEmojiPickerSelection/index.website.ts"	"no-restricted-syntax"	1

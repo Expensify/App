@@ -18,6 +18,7 @@ function useChartFontManager(): SkTypefaceFontProvider | null {
             webFont(require('@assets/fonts/web/ExpensifyNeue-BoldItalic.woff2') as string),
         ],
         NotoSansSymbols: [webFont(require('@assets/fonts/NotoSans-Symbols.ttf') as string)],
+        NotoSansSCMonths: [webFont(require('@assets/fonts/NotoSansSC-Months.ttf') as string)],
     });
 }
 
