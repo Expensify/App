@@ -63,14 +63,10 @@ function DynamicExitSurveyReasonPage() {
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
 
     const goBackJustOnce = useCallback(() => {
-        Log.info('[ExitSurvey] User chose Go back just once', false, {isHybridApp: CONFIG.IS_HYBRID_APP});
-        if (CONFIG.IS_HYBRID_APP) {
-            closeReactNativeApp({shouldSetNVP: false, isTrackingGPS});
-            return;
-        }
+        Log.info('[ExitSurvey] User chose Go back just once');
         Navigation.dismissModal();
         openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-    }, [isTrackingGPS]);
+    }, []);
 
     const switchToClassic = useCallback(() => {
         Log.info('[ExitSurvey] User chose Switch to Classic', false, {isHybridApp: CONFIG.IS_HYBRID_APP});
