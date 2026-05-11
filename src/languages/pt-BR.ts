@@ -5936,6 +5936,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             selectWorkspaces: 'Selecionar espaços de trabalho',
             description: 'Escolha os espaços de trabalho para os quais deseja copiar as configurações e, em seguida, selecione as configurações que deseja copiar.',
             searchPlaceholder: 'Pesquisar espaços de trabalho',
+            selectFeatures: 'Selecione os recursos a copiar',
+            whichFeatures: 'Quais configurações você quer copiar para os outros espaços de trabalho? Apenas essas configurações serão substituídas nos espaços de trabalho de destino.',
+            accountingDisabledTooltip:
+                'Os espaços de trabalho de origem e destino não estão conectados à mesma conta contábil, portanto, essas configurações não podem ser copiadas com segurança.',
+            workflowsWithoutMembersTitle: 'Copiar fluxos de trabalho sem membros?',
+            workflowsWithoutMembersPrompt:
+                'Você está copiando Fluxos de trabalho sem Membros. As configurações de envio e pagamento serão copiadas, mas os membros dos espaços de trabalho não serão alterados. Continuar?',
         },
         emptyWorkspace: {
             title: 'Você não tem nenhum workspace',

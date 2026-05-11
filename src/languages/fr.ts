@@ -5986,6 +5986,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             selectWorkspaces: 'Sélectionner des espaces de travail',
             description: 'Choisissez les espaces de travail vers lesquels copier les paramètres, puis sélectionnez les paramètres à copier.',
             searchPlaceholder: 'Rechercher des espaces de travail',
+            selectFeatures: 'Sélectionnez les fonctionnalités à copier',
+            whichFeatures: 'Quelles configurations voulez-vous copier vers les autres espaces de travail ? Seuls ces paramètres seront écrasés dans les espaces de travail cibles.',
+            accountingDisabledTooltip:
+                'Les espaces de travail source et cible ne sont pas connectés au même compte comptable ; ces paramètres ne peuvent donc pas être copiés en toute sécurité.',
+            workflowsWithoutMembersTitle: 'Copier les workflows sans les membres ?',
+            workflowsWithoutMembersPrompt:
+                'Vous copiez les Workflows sans les Membres. Les paramètres de soumission et de paiement seront copiés, mais les membres des espaces de travail ne changeront pas. Continuer ?',
         },
         emptyWorkspace: {
             title: 'Vous n’avez aucun espace de travail',

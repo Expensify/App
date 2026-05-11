@@ -5936,6 +5936,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             selectWorkspaces: 'Werkruimtes selecteren',
             description: 'Kies de werkruimtes waar je instellingen naartoe wilt kopiëren en selecteer vervolgens de instellingen die je wilt kopiëren.',
             searchPlaceholder: 'Werkruimtes zoeken',
+            selectFeatures: 'Selecteer welke onderdelen je wilt kopiëren',
+            whichFeatures: 'Welke configuraties wil je naar de andere werkruimtes kopiëren? Alleen deze instellingen worden in de doelwerkruimtes overschreven.',
+            accountingDisabledTooltip: 'De bron- en doelwerkruimte zijn niet verbonden met dezelfde boekhoudaccount, dus deze instellingen kunnen niet veilig worden gekopieerd.',
+            workflowsWithoutMembersTitle: 'Workflows zonder leden kopiëren?',
+            workflowsWithoutMembersPrompt:
+                'Je kopieert Workflows zonder Leden. De instellingen voor indienen en betalen worden gekopieerd, maar de leden van de werkruimtes blijven ongewijzigd. Doorgaan?',
         },
         emptyWorkspace: {
             title: 'Je hebt geen werkruimtes',

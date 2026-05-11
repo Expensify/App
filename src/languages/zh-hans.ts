@@ -5791,6 +5791,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             selectWorkspaces: '选择工作区',
             description: '选择要将设置复制到的工作区，然后选择要复制的设置。',
             searchPlaceholder: '搜索工作区',
+            selectFeatures: '选择要复制的功能',
+            whichFeatures: '您想将哪些配置复制到其他工作区？仅这些设置会在目标工作区中被覆盖。',
+            accountingDisabledTooltip: '源工作区和目标工作区未连接到同一会计账户，因此无法安全地复制这些设置。',
+            workflowsWithoutMembersTitle: '在不包含成员的情况下复制工作流？',
+            workflowsWithoutMembersPrompt: '您正在复制工作流但未包含成员。将复制提交和付款设置，但工作区成员不会发生变化。继续吗？',
         },
         emptyWorkspace: {
             title: '你还没有工作区',

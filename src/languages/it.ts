@@ -5956,6 +5956,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             selectWorkspaces: 'Seleziona spazi di lavoro',
             description: 'Scegli gli spazi di lavoro in cui vuoi copiare le impostazioni, quindi seleziona le impostazioni che desideri copiare.',
             searchPlaceholder: 'Cerca spazi di lavoro',
+            selectFeatures: 'Seleziona le funzionalità da copiare',
+            whichFeatures: 'Quali configurazioni vuoi copiare negli altri spazi di lavoro? Solo queste impostazioni verranno sovrascritte negli spazi di lavoro di destinazione.',
+            accountingDisabledTooltip:
+                'Gli spazi di lavoro di origine e di destinazione non sono connessi allo stesso account contabile, quindi queste impostazioni non possono essere copiate in modo sicuro.',
+            workflowsWithoutMembersTitle: 'Copiare i workflow senza i membri?',
+            workflowsWithoutMembersPrompt:
+                'Stai copiando i Workflow senza i Membri. Le impostazioni di invio e pagamento verranno copiate, ma i membri degli spazi di lavoro non cambieranno. Continuare?',
         },
         emptyWorkspace: {
             title: 'Non hai nessuna area di lavoro',

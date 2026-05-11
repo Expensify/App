@@ -5843,6 +5843,13 @@ ${amount} para ${merchant} - ${date}`,
             selectWorkspaces: 'Selecciona espacios de trabajo',
             description: 'Elige los espacios de trabajo a los que quieres copiar la configuración y luego selecciona los ajustes que deseas copiar.',
             searchPlaceholder: 'Buscar espacios de trabajo',
+            selectFeatures: 'Selecciona las funciones a copiar',
+            whichFeatures: '¿Qué configuraciones quieres copiar a los demás espacios de trabajo? Solo se sobrescribirán estos ajustes en los espacios de trabajo de destino.',
+            accountingDisabledTooltip:
+                'Los espacios de trabajo de origen y destino no están conectados a la misma cuenta de contabilidad, por lo que estos ajustes no pueden copiarse de forma segura.',
+            workflowsWithoutMembersTitle: '¿Copiar flujos de trabajo sin miembros?',
+            workflowsWithoutMembersPrompt:
+                'Vas a copiar los Flujos de trabajo sin los Miembros. Se copiarán los ajustes de envío y pago, pero los miembros de los espacios de trabajo no cambiarán. ¿Continuar?',
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',

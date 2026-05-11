@@ -5889,6 +5889,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             selectWorkspaces: 'ワークスペースを選択',
             description: '設定をコピーしたいワークスペースを選び、続いてコピーする設定を選択してください。',
             searchPlaceholder: 'ワークスペースを検索',
+            selectFeatures: 'コピーする機能を選択',
+            whichFeatures: 'どの設定を他のワークスペースにコピーしますか？コピー先のワークスペースでは、これらの設定のみが上書きされます。',
+            accountingDisabledTooltip: 'コピー元とコピー先のワークスペースが同じ会計アカウントに接続されていないため、これらの設定は安全にコピーできません。',
+            workflowsWithoutMembersTitle: 'メンバーなしでワークフローをコピーしますか？',
+            workflowsWithoutMembersPrompt:
+                'メンバーをコピーせずにワークフローをコピーしようとしています。送信および支払いの設定はコピーされますが、ワークスペースのメンバーは変更されません。続行しますか？',
         },
         emptyWorkspace: {
             title: 'ワークスペースがありません',
