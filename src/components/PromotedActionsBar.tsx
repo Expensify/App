@@ -12,7 +12,7 @@ import type {IntroSelected} from '@userActions/Report';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, togglePinnedState} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type OnyxReport from '@src/types/onyx/Report';
@@ -57,7 +57,7 @@ const PromotedActions = {
         translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
         onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned)),
     }),
-    share: (report) => ({
+    share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
         icon: 'QrCode',
         translationKey: 'common.share',
