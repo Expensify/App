@@ -545,26 +545,35 @@ function WorkspacesListPage() {
                 continue;
             }
 
-            const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+            const brickRoadIndicator = (() => {
+                if (!isPolicyAdmin(policy, session?.email)) {
+                    return undefined;
+                }
 
-            let brickRoadIndicator: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+                if (reimbursementAccountBrickRoadIndicator) {
+                    return reimbursementAccountBrickRoadIndicator;
+                }
 
-            if (isPolicyAdmin(policy, session?.email)) {
+                const receiptUberBrickRoadIndicator = getUberConnectionErrorDirectlyFromPolicy(policy as OnyxEntry<PolicyType>) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
                 const indicator = reimbursementAccountBrickRoadIndicator ?? receiptUberBrickRoadIndicator;
 
-                if (indicator) {
-                    brickRoadIndicator = indicator;
-                } else if (policiesWithCardFeedErrors.find((p) => p.id === policy.id)) {
-                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                } else if (shouldShowEmployeeListError(policy)) {
-                    brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-                } else {
-                    brickRoadIndicator = getPolicyBrickRoadIndicatorStatus(
-                        policy,
-                        isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
-                    );
+                if (receiptUberBrickRoadIndicator) {
+                    return indicator;
                 }
-            }
+
+                if (policiesWithCardFeedErrors.find((p) => p.id === policy.id)) {
+                    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                }
+
+                if (shouldShowEmployeeListError(policy)) {
+                    return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+                }
+
+                return getPolicyBrickRoadIndicatorStatus(
+                    policy,
+                    isConnectionInProgress(allConnectionSyncProgresses?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`], policy),
+                );
+            })();
 
             if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
                 const policyID = Object.keys(policy.policyDetailsForNonMembers).at(0) as string;
@@ -619,8 +628,6 @@ function WorkspacesListPage() {
                     pendingAction: policy.pendingAction,
                     action: () => navigateToWorkspace(policy.id),
                     dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                    // Missing
-                    // employeeList
                 };
 
                 workspaceRow.threeDotMenuItems = getThreeDotMenuItems({item: workspaceRow, index});

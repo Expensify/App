@@ -44,6 +44,16 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
     const narrowWorkspaceLabel = `${translate('common.owner')}: ${formattedOwnerName} • ${formattedWorkspaceType}`;
     const itemDeletedStyles = item.isDeleted ? [styles.offlineFeedbackDeleted] : [{}];
 
+    const accessibilityLabel = [
+        `${translate('workspace.common.workspaceName')}: ${item.title}`,
+        item.isDefault ? translate('common.default') : '',
+        item.isJoinRequestPending ? translate('workspace.common.requested') : '',
+        item.ownerName ? `${translate('workspace.common.workspaceOwner')}: ${item.ownerName}` : '',
+        item.type ? `${translate('workspace.common.workspaceType')}: ${formattedWorkspaceType}` : '',
+    ]
+        .filter(Boolean)
+        .join(', ');
+
     const BrickRoadIndicator = item.brickRoadIndicator && (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
             <Icon
@@ -87,8 +97,10 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
             <Table.Row
                 interactive
                 rowIndex={rowIndex}
-                onPress={item.action}
+                disabled={item.disabled}
+                accessibilityLabel={accessibilityLabel}
                 skeletonReasonAttributes={{context: 'WorkspaceRow', reason: 'narrowLayout'}}
+                onPress={item.action}
             >
                 {({hovered}) => (
                     <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
@@ -155,8 +167,10 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
         <Table.Row
             interactive
             rowIndex={rowIndex}
-            onPress={item.action}
+            disabled={item.disabled}
+            accessibilityLabel={accessibilityLabel}
             skeletonReasonAttributes={{context: 'WorkspaceRow'}}
+            onPress={item.action}
         >
             {({hovered}) => (
                 <>
