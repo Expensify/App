@@ -70,6 +70,8 @@ jobs:
       - name: Build Jekyll site
         run: bundle exec jekyll build --source ./ --destination ./_site
         working-directory: ./docs
+        env:
+          JEKYLL_ENV: production
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@f0a1cd58cd66095dee69bfa18fa5efd1dde93bca
