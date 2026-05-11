@@ -195,6 +195,42 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'sparkles-icon',
                 contentModel: HTMLContentModel.mixed,
             }),
+            victorychart: HTMLElementModel.fromCustomModel({
+                tagName: 'victorychart',
+                contentModel: HTMLContentModel.block,
+            }),
+            victorybar: HTMLElementModel.fromCustomModel({
+                tagName: 'victorybar',
+                contentModel: HTMLContentModel.block,
+            }),
+            /*victoryline: HTMLElementModel.fromCustomModel({
+                tagName: 'victoryline',
+                contentModel: HTMLContentModel.block,
+            }),
+            victorypie: HTMLElementModel.fromCustomModel({
+                tagName: 'victorypie',
+                contentModel: HTMLContentModel.block,
+            }),
+            victoryaxis: HTMLElementModel.fromCustomModel({
+                tagName: 'victoryaxis',
+                contentModel: HTMLContentModel.block,
+            }),
+            victorylegend: HTMLElementModel.fromCustomModel({
+                tagName: 'victorylegend',
+                contentModel: HTMLContentModel.block,
+            }),
+            victorylabel: HTMLElementModel.fromCustomModel({
+                tagName: 'victorylabel',
+                contentModel: HTMLContentModel.textual,
+            }),
+            victorytooltip: HTMLElementModel.fromCustomModel({
+                tagName: 'victorytooltip',
+                contentModel: HTMLContentModel.textual,
+            }),
+            victorygroup: HTMLElementModel.fromCustomModel({
+                tagName: 'victorygroup',
+                contentModel: HTMLContentModel.block,
+            }),*/
         }),
         [
             styles.taskTitleMenuItem,

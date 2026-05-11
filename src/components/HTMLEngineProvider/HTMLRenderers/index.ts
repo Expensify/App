@@ -21,6 +21,8 @@ import TaskTitleRenderer from './TaskTitleRenderer';
 import TransactionHistoryLinkRenderer from './TransactionHistoryLinkRenderer';
 import ULRenderer from './ULRenderer';
 import UserDetailsRenderer from './UserDetailsRenderer';
+import VictoryChartRenderer from './VictoryChartRenderer';
+import VictoryBarRenderer from './VictoryChartRenderer/VictoryBarRenderer';
 import VideoRenderer from './VideoRenderer';
 
 /**
@@ -54,6 +56,15 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'transaction-history-link': TransactionHistoryLinkRenderer,
     'account-manager-link': AccountManagerLinkRenderer,
     'sparkles-icon': SparklesIconRenderer,
+    victorychart: VictoryChartRenderer,
+    victorybar: VictoryBarRenderer,
+    /*victoryline: VictoryLineRenderer,
+    victorypie: VictoryPieRenderer,
+    victoryaxis: VictoryAxisRenderer,
+    victorylegend: VictoryLegendRenderer,
+    victorylabel: VictoryLabelRenderer,
+    victorytooltip: VictoryTooltipRenderer,
+    victorygroup: VictoryGroupRenderer,*/
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 
