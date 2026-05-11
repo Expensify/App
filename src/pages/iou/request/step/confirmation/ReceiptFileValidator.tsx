@@ -60,7 +60,8 @@ function ReceiptFileValidator({
     useEffect(() => {
         let ignore = false;
         let newReceiptFiles: Record<string, Receipt> = {};
-        let isScanFilesCanBeRead = true;
+        let didInitialFail = false;
+        let didNonInitialFail = false;
         let resetInitialTransactionReceipt = false;
         let validatedInitialReceiptPath: string | number | undefined;
 
@@ -98,24 +99,28 @@ function ReceiptFileValidator({
                 };
 
                 const onFailure = () => {
-                    isScanFilesCanBeRead = false;
                     if (initialTransactionID === item.transactionID) {
+                        didInitialFail = true;
                         // We don't directly reset the receipt here because this will cause the transaction to change
                         // and retrigger the effect before the promise is resolved which will cause ignoring of the redirection.
                         resetInitialTransactionReceipt = true;
+                    } else {
+                        didNonInitialFail = true;
                     }
                 };
 
                 return validateReceiptFile(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure) ?? Promise.resolve();
             }),
         ).then(() => {
-            // If the receipt source was rewritten during validation, the failure is stale - skip clear/navigate.
+            // If the initial transaction's receipt source was rewritten during validation, its failure is stale - drop just that one.
+            // Non-initial failures are preserved so genuine dead-blob failures in other transactions still trigger recovery.
             const liveInitialReceiptSource = transactionsRef.current.find((t) => t.transactionID === initialTransactionID)?.receipt?.source;
             const isValidationStale = liveInitialReceiptSource !== validatedInitialReceiptPath;
             if (isValidationStale) {
+                didInitialFail = false;
                 resetInitialTransactionReceipt = false;
-                isScanFilesCanBeRead = true;
             }
+            const isScanFilesCanBeRead = !didInitialFail && !didNonInitialFail;
             // Odometer receipts are derived from comment images by OdometerReceiptStitcher and recovered
             // by useRestartOnOdometerImagesFailure. While source images are alive, a failed fetch is just
             // mid-stitch transience - the next cycle will rewrite. Don't clear or navigate away.
