@@ -2,6 +2,7 @@ import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-n
 import type {NavigationState, PartialState} from '@react-navigation/routers';
 import {config, normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import type {Screen} from '@src/SCREENS';
+import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import isDynamicRouteScreen from './dynamicRoutesUtils/isDynamicRouteScreen';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
@@ -121,6 +122,14 @@ function getPathFromStateWithDynamicRoute(state: State): string {
 
     if (!suffixPattern) {
         return RNGetPathFromState(state, config);
+    }
+
+    const focusedRoutePath = typeof focusedRoute?.path === 'string' ? focusedRoute.path : undefined;
+    const queryParamKeys = getDynamicRouteQueryParams(suffixPattern);
+    const canUseStoredPath = !!focusedRoutePath && !suffixPattern.includes(':') && !queryParamKeys?.length;
+    const storedPathSuffixMatch = canUseStoredPath ? findMatchingDynamicSuffix(focusedRoutePath) : undefined;
+    if (focusedRoutePath && storedPathSuffixMatch?.pattern === suffixPattern) {
+        return focusedRoutePath;
     }
 
     const actualSuffix = buildSuffixFromPattern(suffixPattern, focusedRoute?.params as Record<string, unknown> | undefined);
