@@ -488,6 +488,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: '下个月',
         previousYear: '上一年',
         nextYear: '明年',
+        avatar: '头像',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -1099,6 +1100,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '随它去',
         dropMessage: '将文件拖放到此处',
         flash: '闪光',
+        flipCamera: '切换相机',
         multiScan: '多重扫描',
         shutter: '快门',
         gallery: '图库',
@@ -1270,6 +1272,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `支付 ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `以企业身份支付 ${formattedAmount}` : `使用公司账户付款`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `将 ${formattedAmount} 标记为已支付` : `标记为已支付`),
+        confirmPaymentReceivedModalTitle: '确认已收到付款',
+        receivedPayment: '已收到付款',
+        receivedPaymentConfirmation: '仅当您已在 Expensify 之外收到付款时才继续。',
+        confirmReceivedPayment: '是的，我已收到付款。',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `使用个人账户 ${last4Digits} 支付了 ${amount}` : `使用个人账户支付`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `已使用商务账户 ${last4Digits} 支付 ${amount}` : `使用公司账户支付`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `通过 ${policyName} 支付 ${formattedAmount}` : `通过 ${policyName} 支付`),
@@ -2141,6 +2147,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: '你的账户已被锁定',
         chatToConciergeToUnlock: '与 Concierge 聊天以解决安全问题并解锁您的账户。',
         chatWithConcierge: '与 Concierge 聊天',
+    },
+    deviceManagementPage: {
+        title: '设备管理',
+        description: '管理您使用 Expensify 账户登录过的所有设备。',
+        revoke: '撤销',
+        unknownDevice: '未知设备',
     },
     twoFactorAuth: {
         headerTitle: '双重身份验证',
@@ -5562,6 +5574,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 subtitle: '为时间跟踪设置可计费的小时费率。',
                 defaultHourlyRate: '默认时薪',
             },
+            hrWarningModal: {disconnectText: '若要禁用人力资源功能，请先将 Gusto 与此工作区断开连接。'},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -5849,6 +5862,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             approvers: '审批人',
             auditors: '审计员',
             emptyRoleFilter: {title: '没有成员符合此筛选条件', subtitle: '邀请成员或更改上方的筛选条件。'},
+            configureGustoSync: '配置 Gusto 同步。',
+            syncWithGusto: '与 Gusto 同步',
         },
         card: {
             getStartedIssuing: '从发放您的第一张虚拟卡或实体卡开始使用。',
@@ -6579,6 +6594,7 @@ ${reportName}
                 gambling: '赌博',
                 tobacco: '烟草',
                 adultEntertainment: '成人娱乐',
+                handwrittenReceipt: '手写收据',
                 requireCompanyCard: '所有消费均需使用公司卡',
                 requireCompanyCardDescription: '标记所有现金支出，包括里程和每日津贴报销。',
                 requireCompanyCardDisabledTooltip: '启用“公司卡”（位于“更多功能”下）以解锁。',
@@ -6675,6 +6691,8 @@ ${reportName}
             customRules: {
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
+                policyDocument: '政策文件',
+                policyText: '政策文本',
             },
             spendRules: {
                 title: '支出',
@@ -8009,13 +8027,9 @@ ${reportName}
         stopped: '已停止',
         start: '开始',
         stop: '停止',
+        save: '保存',
+        resume: '简历',
         discard: '丢弃',
-        stopGpsTrackingModal: {
-            title: '停止 GPS 跟踪',
-            prompt: '你确定吗？这将结束你当前的流程。',
-            cancel: '恢复跟踪',
-            confirm: '停止 GPS 跟踪',
-        },
         discardDistanceTrackingModal: {
             title: '放弃距离跟踪',
             prompt: '确定要继续吗？这将放弃你当前的行程，且无法撤销。',
@@ -8185,6 +8199,8 @@ ${reportName}
                         return `成人娱乐`;
                     case 'hotelIncidentals':
                         return `酒店杂费`;
+                    case 'handwrittenReceipt':
+                        return `手写收据`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }

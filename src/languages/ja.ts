@@ -492,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: '来月',
         previousYear: '前年',
         nextYear: '来年',
+        avatar: 'アバター',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -1120,6 +1121,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '手放して',
         dropMessage: 'ここにファイルをドロップしてください',
         flash: 'フラッシュ',
+        flipCamera: 'カメラ切替',
         multiScan: 'マルチスキャン',
         shutter: 'シャッター',
         gallery: 'ギャラリー',
@@ -1294,6 +1296,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `${formattedAmount} を支払う`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} をビジネスとして支払う` : `ビジネスアカウントで支払う`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `${formattedAmount} を支払済みにする` : `支払い済みにする`),
+        confirmPaymentReceivedModalTitle: '支払いを受領したことを確認',
+        receivedPayment: '支払い受領済み',
+        receivedPaymentConfirmation: 'Expensify以外で支払いを受け取っている場合のみ続行してください。',
+        confirmReceivedPayment: 'はい、支払いを受け取りました。',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `個人アカウント（下4桁 ${last4Digits}）で ${amount} を支払いました` : `個人アカウントで支払い済み`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `ビジネス口座（末尾${last4Digits}）で${amount}を支払いました` : `ビジネスアカウントで支払済み`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `${policyName}で${formattedAmount}を支払う` : `${policyName}で支払う`),
@@ -2178,6 +2184,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'あなたのアカウントはロックされています',
         chatToConciergeToUnlock: 'セキュリティに関する懸念を解決し、アカウントのロックを解除するには、Concierge とチャットしてください。',
         chatWithConcierge: 'Conciergeとチャット',
+    },
+    deviceManagementPage: {
+        title: 'デバイス管理',
+        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
+        revoke: '取り消す',
+        unknownDevice: '不明なデバイス',
     },
     twoFactorAuth: {
         headerTitle: '2要素認証',
@@ -5660,6 +5672,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 subtitle: '時間追跡用の請求可能な時間単価を設定します。',
                 defaultHourlyRate: 'デフォルトの時給率',
             },
+            hrWarningModal: {disconnectText: '人事機能を無効にするには、まずこのワークスペースから Gusto の連携を解除してください。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -5951,6 +5964,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             approvers: '承認者',
             auditors: '監査担当者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
+            configureGustoSync: 'Gusto 同期を設定する。',
+            syncWithGusto: 'Gusto と同期',
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -6696,6 +6711,7 @@ ${reportName}
                 gambling: 'ギャンブル',
                 tobacco: 'たばこ',
                 adultEntertainment: 'アダルトエンターテインメント',
+                handwrittenReceipt: '手書きレシート',
                 requireCompanyCard: 'すべての購入に会社カードを必須にする',
                 requireCompanyCardDescription: 'マイレージや日当経費を含む、すべての現金支出にフラグを付ける。',
                 requireCompanyCardDisabledTooltip: 'ロック解除するには、「その他の機能」内の「会社カード」を有効にしてください。',
@@ -6793,6 +6809,8 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                policyDocument: 'ポリシー文書',
+                policyText: 'ポリシーテキスト',
             },
             spendRules: {
                 title: '支出',
@@ -8145,13 +8163,9 @@ ${reportName}
         stopped: '停止済み',
         start: '開始',
         stop: '停止',
+        save: '保存',
+        resume: '再開',
         discard: '破棄',
-        stopGpsTrackingModal: {
-            title: 'GPS追跡を停止',
-            prompt: '本当に終了してもよろしいですか？現在の進行状況が失われます。',
-            cancel: '追跡を再開',
-            confirm: 'GPS追跡を停止',
-        },
         discardDistanceTrackingModal: {
             title: '移動距離の追跡を破棄',
             prompt: '本当によろしいですか？現在の操作は破棄され、元に戻すことはできません。',
@@ -8326,6 +8340,8 @@ ${reportName}
                         return `アダルトエンターテインメント`;
                     case 'hotelIncidentals':
                         return `ホテル諸雑費`;
+                    case 'handwrittenReceipt':
+                        return `手書きレシート`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }

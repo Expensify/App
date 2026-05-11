@@ -492,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Volgende maand',
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -1135,6 +1136,7 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laat het los',
         dropMessage: 'Zet je bestand hier neer',
         flash: 'flits',
+        flipCamera: 'Camera wisselen',
         multiScan: 'meerscannen',
         shutter: 'sluiter',
         gallery: 'galerij',
@@ -1309,6 +1311,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Betaal ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} als bedrijf` : `Betalen met zakelijke rekening`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Markeer ${formattedAmount} als betaald` : `Markeren als betaald`),
+        confirmPaymentReceivedModalTitle: 'Ontvangst van betaling bevestigen',
+        receivedPayment: 'Betaling ontvangen',
+        receivedPaymentConfirmation: 'Ga alleen verder als je de betaling al buiten Expensify hebt ontvangen.',
+        confirmReceivedPayment: 'Ja, ik heb de betaling ontvangen.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met privérekening`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betaal via ${policyName}`),
@@ -2194,6 +2200,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Je account is vergrendeld',
         chatToConciergeToUnlock: 'Chat met Concierge om beveiligingsproblemen op te lossen en je account te ontgrendelen.',
         chatWithConcierge: 'Chatten met Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Apparaatbeheer',
+        description: 'Beheer alle apparaten waarop u bent ingelogd met uw Expensify-account.',
+        revoke: 'Intrekken',
+        unknownDevice: 'Onbekend Apparaat',
     },
     twoFactorAuth: {
         headerTitle: 'Tweeledige verificatie',
@@ -5707,6 +5719,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
                 defaultHourlyRate: 'Standaard uurtarief',
             },
+            hrWarningModal: {disconnectText: 'Om HR uit te schakelen, verbreek eerst de verbinding van Gusto met deze workspace.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -5998,6 +6011,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             approvers: 'Fiatteurs',
             auditors: 'Accountants',
             emptyRoleFilter: {title: 'Geen leden komen overeen met dit filter', subtitle: 'Nodig een lid uit of wijzig het filter hierboven.'},
+            configureGustoSync: 'Gusto-synchronisatie configureren.',
+            syncWithGusto: 'Synchroniseren met Gusto',
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -6750,6 +6765,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 gambling: 'Gokken',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Volwassenenentertainment',
+                handwrittenReceipt: 'Handgeschreven bonnen',
                 requireCompanyCard: 'Verplicht bedrijfskaarten voor alle aankopen',
                 requireCompanyCardDescription: 'Markeer alle contante uitgaven, inclusief kilometer- en dagvergoedingen.',
                 requireCompanyCardDisabledTooltip: 'Schakel Bedrijfskaarten in (onder Meer functies) om te ontgrendelen.',
@@ -6849,6 +6865,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             customRules: {
                 title: 'Declaratiebeleid',
                 cardSubtitle: 'Hier staat het declaratiebeleid van je team, zodat iedereen hetzelfde beeld heeft van wat er wordt vergoed.',
+                policyDocument: 'Beleidsdocument',
+                policyText: 'Beleidstekst',
             },
             spendRules: {
                 title: 'Uitgaven',
@@ -8218,13 +8236,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         stopped: 'Gestopt',
         start: 'Start',
         stop: 'Stop',
+        save: 'Opslaan',
+        resume: 'Hervatten',
         discard: 'Weggooien',
-        stopGpsTrackingModal: {
-            title: 'GPS-tracking stoppen',
-            prompt: 'Weet je het zeker? Dit beëindigt je huidige sessie.',
-            cancel: 'Tracking hervatten',
-            confirm: 'GPS-tracking stoppen',
-        },
         discardDistanceTrackingModal: {
             title: 'Afstandsregistratie negeren',
             prompt: 'Weet je het zeker? Hiermee wordt je huidige proces afgebroken en dit kan niet ongedaan worden gemaakt.',
@@ -8403,6 +8417,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                         return `entertainment voor volwassenen`;
                     case 'hotelIncidentals':
                         return `hotelincidentals`;
+                    case 'handwrittenReceipt':
+                        return `handgeschreven bonnen`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
