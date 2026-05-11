@@ -611,9 +611,7 @@ function dismissDuplicateTransactionViolation({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
-            ...transaction,
             comment: {
-                ...transaction?.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
                         [dismissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
@@ -635,7 +633,9 @@ function dismissDuplicateTransactionViolation({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
-            ...transaction,
+            comment: {
+                dismissedViolations: transaction?.comment?.dismissedViolations ?? null,
+            },
         },
     }));
 
