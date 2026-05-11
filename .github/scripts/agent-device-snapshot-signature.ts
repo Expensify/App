@@ -32,8 +32,51 @@ function project(node: SnapshotNode): string {
   ].join("|");
 }
 
+/**
+ * Transient nodes the signature must ignore.
+ *
+ * React Native dev-mode renders an inline "!, <warning>" bubble for
+ * runtime warnings (StrictMode, dev-only assertions, etc.). These
+ * appear and disappear between runs depending on bundler timing and
+ * warning suppression state — same screen, different node count.
+ * Runs 25659967543 and 25662443061 produced different signatures on
+ * an identical SignIn screen because one had 3 extra dev-warning
+ * nodes the other didn't, and cache replay never landed.
+ *
+ * These warnings are dev-only, never reach release builds, and never
+ * mean anything to a user — exactly the kind of cosmetic node the
+ * structural signature should disregard.
+ */
+function isTransientDevWarning(node: SnapshotNode): boolean {
+  if (!node.text) {
+    return false;
+  }
+  if (node.kind === "group" && node.text.startsWith("!, ")) {
+    return true;
+  }
+  if (node.kind === "text" && node.text === "!") {
+    return true;
+  }
+  if (
+    node.kind === "text" &&
+    node.text.startsWith("Open debugger to view warnings")
+  ) {
+    return true;
+  }
+  if (
+    node.kind === "text" &&
+    node.text.startsWith("The result of getSnapshot")
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function snapshotSignature(snap: Snapshot): string {
-  const projected = snap.nodes.map(project).join("\n");
+  const projected = snap.nodes
+    .filter((n) => !isTransientDevWarning(n))
+    .map(project)
+    .join("\n");
   return createHash("sha256").update(projected).digest("hex").slice(0, 16);
 }
 
