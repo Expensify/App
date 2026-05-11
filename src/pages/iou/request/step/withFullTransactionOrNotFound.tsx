@@ -56,7 +56,8 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
-    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT;
+    | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
+    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE;
 
 type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithFullTransactionOrNotFoundOnyxProps &
     PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
@@ -65,7 +66,6 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
     WrappedComponent: ComponentType<TProps>,
     shouldShowLoadingIndicator = false,
 ): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>> {
-    // eslint-disable-next-line rulesdir/no-negated-variables
     function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>) {
         const {route} = props;
         const transactionID = route.params.transactionID;

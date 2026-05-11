@@ -25,6 +25,7 @@ function getExportMenuItem(
     companyCard?: Card,
     backTo?: string | undefined,
 ): ExportIntegration | undefined {
+    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const currentConnectionName = getCurrentConnectionName(policy);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
@@ -105,7 +106,7 @@ function getExportMenuItem(
                 title: isDefaultTitle ? defaultCard : selectedAccount?.name,
                 exportType,
                 shouldShowMenuItem,
-                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, basePath),
                 data: resultData.map((card) => ({
                     value: card.id,
                     text: card.name,
@@ -132,7 +133,7 @@ function getExportMenuItem(
                 exportType,
                 shouldShowMenuItem: !!exportConfiguration?.nonReimbursableAccount,
                 title: isDefaultTitle ? defaultCard : selectedAccount?.name,
-                exportPageLink: ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID, backTo),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, basePath),
                 data: (resultData ?? []).map((card) => {
                     return {
                         value: card.id,
@@ -295,7 +296,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 title,
-                exportPageLink: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID, backTo),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, backTo ?? ROUTES.POLICY_ACCOUNTING.getRoute(policyID)),
                 data,
             };
         }
@@ -345,7 +346,7 @@ function getExportMenuItem(
                 title,
                 exportType,
                 shouldShowMenuItem,
-                exportPageLink: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID, backTo),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)),
                 data: resultData.map((card) => ({
                     value: card.id,
                     text: card.name,

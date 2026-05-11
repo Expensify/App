@@ -22,7 +22,7 @@ import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, DismissedProductTraining, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {useCurrencyListState} from './useCurrencyList';
@@ -44,7 +44,6 @@ type UseAutocompleteSuggestionsParams = {
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
     draftComments: OnyxCollection<string>;
-    nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>;
     betas: OnyxEntry<Beta[]>;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
@@ -65,6 +64,7 @@ const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
+const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const BOOLEAN_VALUES = Object.values(CONST.SEARCH.BOOLEAN);
 const ACTION_FILTER_VALUES = Object.values(CONST.SEARCH.ACTION_FILTERS);
 const IS_VALUES_LIST = Object.values(CONST.SEARCH.IS_VALUES);
@@ -92,7 +92,6 @@ function useAutocompleteSuggestions({
     allFeeds,
     options,
     draftComments,
-    nvpDismissedProductTraining,
     betas,
     countryCode,
     loginList,
@@ -223,7 +222,6 @@ function useAutocompleteSuggestions({
             const participants = getSearchOptions({
                 options,
                 draftComments,
-                nvpDismissedProductTraining,
                 betas: betas ?? [],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -261,7 +259,6 @@ function useAutocompleteSuggestions({
             const filteredReports = getSearchOptions({
                 options,
                 draftComments,
-                nvpDismissedProductTraining,
                 betas: betas ?? [],
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
@@ -370,6 +367,16 @@ function useAutocompleteSuggestions({
             return filteredWithdrawalTypes.map((withdrawalType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_TYPE,
                 text: withdrawalType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS: {
+            const filteredWithdrawalStatuses = WITHDRAWAL_STATUS_VALUES.filter(
+                (withdrawalStatus) => withdrawalStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(withdrawalStatus),
+            ).sort();
+
+            return filteredWithdrawalStatuses.map((withdrawalStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS,
+                text: withdrawalStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {

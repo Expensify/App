@@ -75,13 +75,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
     const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && !hasAnyEligibleMember;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
     const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
     // Build a map of member emails to their existing workflow's approver email (for non-default workflows only)
     const membersInExistingWorkflows = (() => {
@@ -140,6 +140,22 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                         }
                     }
 
+                    const personalDetail = getPersonalDetailByEmail(member.email);
+
+                    // Fall back when getMemberAccountIDsForWorkspace can't resolve an accountID — for
+                    // example a freshly invited user whose personal details haven't fully synced yet
+                    // (the helper requires personalDetail.login). Without a real accountID,
+                    // ReportActionAvatars renders the FallbackAvatar instead of the default avatar
+                    // assigned to that account.
+                    if (!accountID) {
+                        const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
+                        if (personalDetail?.accountID) {
+                            accountID = personalDetail.accountID;
+                        } else if (draftAccountID) {
+                            accountID = draftAccountID;
+                        }
+                    }
+
                     const login = personalDetailLogins?.[accountID] ?? member.email;
                     const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
                     const avatar = member.avatar ?? personalDetail?.avatar;
@@ -162,7 +178,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     };
                 }),
         );
-    }, [approvalWorkflow?.members, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft, personalDetailLogins, policy?.employeeList, policy?.owner]);
+            });
+    }, [policy?.employeeList]); main
 
     const workflowApprovers = approvalWorkflow?.approvers;
 

@@ -74,11 +74,11 @@ const getBankLinkedPersonalCards = (cards: OnyxEntry<CardList>): CardList => {
 };
 
 /**
- * Selects the Expensify Card feed from the card list and returns the first one.
+ * Selects the Expensify Card feed from the card list and returns the first regular (non-travel) one.
  */
 const defaultExpensifyCardSelector = (allCards: OnyxEntry<NonPersonalAndWorkspaceCardListDerivedValue>) => {
-    const cards = getExpensifyCardFeedsForDisplay(allCards ?? undefined);
-    return Object.values(cards)?.at(0);
+    const cards = Object.values(getExpensifyCardFeedsForDisplay(allCards ?? undefined, undefined));
+    return cards.find((feed) => feed.country !== CONST.TRAVEL.PROGRAM_TRAVEL_US);
 };
 
 /**
@@ -100,6 +100,10 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
 const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
     !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && supportsPINManagementFeatures(card ?? undefined));
 
+const isExpensifyCardContinuousReconciliationEnabledSelector = (value: boolean | string | undefined): boolean | undefined => {
+    return typeof value === 'string' ? value === '1' : value;
+};
+
 export {
     filterCardsHiddenFromSearch,
     filterOutPersonalCards,
@@ -109,4 +113,5 @@ export {
     buildFeedKeysWithAssignedCards,
     isExpensifyCardUkEuSupportedSelector,
     getBankLinkedPersonalCards,
+    isExpensifyCardContinuousReconciliationEnabledSelector,
 };

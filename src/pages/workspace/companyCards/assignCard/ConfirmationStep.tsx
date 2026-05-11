@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -82,7 +83,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         if (backTo) {
             Navigation.navigate(backTo);
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard?.isAssignmentFinished, backTo]);
 

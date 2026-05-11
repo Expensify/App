@@ -22,7 +22,7 @@ Page creation GH: https://github.com/Expensify/Expensify/issues/614406
 
 ## Who can duplicate an expense
 
-Anyone can duplicate their own expenses. **Duplicate expense** is available for cash, distance, and per diem expenses in any status, including Unreported, Draft, Processing, Approved, and Paid. 
+Anyone can duplicate their own expenses. **Duplicate expense** is available for cash, distance, and per diem expenses in any status, including Unreported, Draft, Processing, Approved, Paid, and Deleted. 
 
 Card expenses (company cards and Expensify Cards) cannot be duplicated.
 

@@ -22,14 +22,16 @@ import {
     isSelfDM,
     shouldEnableNegative,
 } from '@libs/ReportUtils';
-import {calculateTaxAmount, getAmount, getClearedPendingFields, getCurrency, getTaxValue, getUpdatedTransaction, isOnHold} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getAmount, getClearedPendingFields, getCurrency, getTaxValue, getUpdatedTransaction, isOnHold, isSplitChildTransaction} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getAllTransactionViolations, getCurrentUserEmail, getUpdatedMoneyRequestReportData, getUserAccountID} from '.';
+import {getAllTransactionViolations} from '.';
+import {getUpdatedMoneyRequestReportData} from './MoneyRequestBuilder';
 
 function removeUnchangedBulkEditFields(
     transactionChanges: TransactionChanges,
@@ -79,6 +81,8 @@ type UpdateMultipleMoneyRequestsParams = {
     allPolicies?: OnyxCollection<OnyxTypes.Policy>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
 };
 
 function updateMultipleMoneyRequests({
@@ -94,6 +98,8 @@ function updateMultipleMoneyRequests({
     allPolicies,
     introSelected,
     betas,
+    currentUserAccountID,
+    currentUserLogin,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -132,7 +138,7 @@ function updateMultipleMoneyRequests({
         // bulk-edit comments are visible immediately while still offline.
         let didCreateThreadInThisIteration = false;
         if (!transactionThreadReportID && iouReport?.reportID) {
-            const optimisticTransactionThread = createTransactionThreadReport(introSelected, getCurrentUserEmail(), getUserAccountID(), betas, iouReport, reportAction, transaction);
+            const optimisticTransactionThread = createTransactionThreadReport(introSelected, currentUserLogin, currentUserAccountID, betas, iouReport, reportAction, transaction);
             if (optimisticTransactionThread?.reportID) {
                 transactionThreadReportID = optimisticTransactionThread.reportID;
                 transactionThread = optimisticTransactionThread;
@@ -144,6 +150,9 @@ function updateMultipleMoneyRequests({
         // Category, tag, tax, and billable only apply to expense/invoice reports and unreported (track) expenses.
         // For plain IOU transactions these fields are not applicable and must be silently skipped.
         const supportsExpenseFields = isUnreportedExpense || isFromExpenseReport || isInvoiceReportReportUtils(baseIouReport ?? undefined);
+        // Split children must keep their amount/currency/tax in sync with the split parent's totals.
+        // Allow coding fields (category, tag, merchant, etc.) but block these so we never put the split out of sync.
+        const isSplitChild = isSplitChildTransaction(transaction);
         // Use the transaction's own policy for all per-transaction checks (permissions, tax, change-diffing).
         // Falls back to the shared bulk-edit policy when the transaction's workspace cannot be resolved.
         const transactionPolicy = (iouReport?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport.policyID}`] : undefined) ?? policy;
@@ -165,10 +174,23 @@ function updateMultipleMoneyRequests({
         if (changes.created && canEditField(CONST.EDIT_REQUEST_FIELD.DATE)) {
             transactionChanges.created = changes.created;
         }
-        if (changes.amount !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.AMOUNT)) {
+        if (changes.amount !== undefined && !isSplitChild && canEditField(CONST.EDIT_REQUEST_FIELD.AMOUNT)) {
             transactionChanges.amount = changes.amount;
         }
-        if (changes.currency && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+        // When bulk-editing amount on a taxed expense without also changing taxCode, recompute
+        // taxAmount from the transaction's existing taxCode so offline optimistic data and the
+        // queued payload stay in sync with the new amount. Skip when the rate can't be resolved
+        // (e.g. cross-policy bulk edit where the transaction's own policy is missing from cache)
+        // to avoid silently overwriting a non-zero taxAmount with 0.
+        if (changes.amount !== undefined && !isSplitChild && !changes.taxCode && transaction.taxCode && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
+            const taxValue = getTaxValue(transactionPolicy, transaction, transaction.taxCode);
+            if (taxValue) {
+                const decimals = getCurrencyDecimals(getCurrency(transaction));
+                const taxAmount = calculateTaxAmount(taxValue, Math.abs(changes.amount), decimals);
+                transactionChanges.taxAmount = convertToBackendAmount(taxAmount);
+            }
+        }
+        if (changes.currency && !isSplitChild && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
             transactionChanges.currency = changes.currency;
         }
         if (changes.category !== undefined && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
@@ -180,7 +202,7 @@ function updateMultipleMoneyRequests({
         if (changes.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
             transactionChanges.comment = getParsedComment(changes.comment);
         }
-        if (changes.taxCode && supportsExpenseFields && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
+        if (changes.taxCode && supportsExpenseFields && !isSplitChild && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
             transactionChanges.taxCode = changes.taxCode;
             const taxValue = getTaxValue(transactionPolicy, transaction, changes.taxCode);
             transactionChanges.taxValue = taxValue;
@@ -332,42 +354,40 @@ function updateMultipleMoneyRequests({
         // new values immediately (the snapshot is the exclusive data source for search
         // result rendering and is not automatically updated by the TRANSACTION write above).
         if (hash) {
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {...updatedTransaction, pendingFields};
+            if (optimisticViolationsData && optimisticViolationsData.onyxMethod === Onyx.METHOD.SET) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = optimisticViolationsData.value;
+            }
             snapshotOptimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                            ...updatedTransaction,
-                            pendingFields,
-                        },
-                        ...(optimisticViolationsData && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: optimisticViolationsData.value}),
-                    },
+                    data: optimisticSnapshotData,
                 },
             });
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const successSnapshotData: NullishDeep<SearchResultDataType> = {};
+            successSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {pendingFields: clearedPendingFields};
             snapshotSuccessData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
-                    data: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingFields: clearedPendingFields},
-                    },
+                    data: successSnapshotData,
                 },
             });
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {...transaction, pendingFields: clearedPendingFields};
+            if (currentTransactionViolations) {
+                failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = currentTransactionViolations;
+            }
             snapshotFailureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const,
                 value: {
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                            ...transaction,
-                            pendingFields: clearedPendingFields,
-                        },
-                        ...(currentTransactionViolations && {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations}),
-                    },
+                    data: failureSnapshotData,
                 },
             });
         }
@@ -434,7 +454,7 @@ function updateMultipleMoneyRequests({
             const hasCreatedAction = didCreateThreadInThisIteration || Object.values(threadReportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
             const optimisticCreatedValue: Record<string, Partial<OnyxTypes.ReportAction>> = {};
             if (!hasCreatedAction) {
-                const optimisticCreatedAction = buildOptimisticCreatedReportAction(CONST.REPORT.OWNER_EMAIL_FAKE);
+                const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: CONST.REPORT.OWNER_EMAIL_FAKE});
                 optimisticCreatedAction.pendingAction = null;
                 backfilledCreatedActionID = optimisticCreatedAction.reportActionID;
                 optimisticCreatedValue[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;

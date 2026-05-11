@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import type AttachmentModalHandler from './types';
 
@@ -8,7 +9,6 @@ const attachmentModalHandler: AttachmentModalHandler = {
         // The issue is tracked in https://github.com/Expensify/App/issues/52937.
         // `InteractionManager.runAfterInteractions` ensures that `onCloseCallback` is executed only after all interactions and animations have completed,
         // preventing any unintended visual delay or jarring transition when the modal is closed.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             onCloseCallback?.();
         });
