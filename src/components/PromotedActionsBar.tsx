@@ -61,7 +61,7 @@ const PromotedActions = {
         key: CONST.PROMOTED_ACTIONS.SHARE,
         icon: 'QrCode',
         translationKey: 'common.share',
-        onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID))),
+        onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
     }),
     join: (report, currentUserAccountID) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,

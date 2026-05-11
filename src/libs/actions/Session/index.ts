@@ -61,7 +61,7 @@ import CONFIG from '@src/CONFIG';
 import CONST, {FRAUD_PROTECTION_EVENT} from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
@@ -1428,8 +1428,8 @@ function signInWithValidateCodeAndNavigate(accountID: number, validateCode: stri
 }
 
 /** Normalized path prefix `r/:reportID/…` for allowlist comparison after replacing real IDs with `:reportID`. */
-function getAnonymousAccessibleReportPath(dynamicSuffix: string) {
-    return `${ROUTES.REPORT}/:reportID/${dynamicSuffix}`;
+function getAnonymousAccessibleReportPath(...dynamicSuffixes: DynamicRouteSuffix[]) {
+    return `${ROUTES.REPORT}/:reportID/${dynamicSuffixes.join('/')}`;
 }
 
 /**
@@ -1454,7 +1454,7 @@ const canAnonymousUserAccessRoute = (route: string) => {
     const routesAccessibleByAnonymousUser = [
         ROUTES.SIGN_IN_MODAL,
         getAnonymousAccessibleReportPath(DYNAMIC_ROUTES.REPORT_DETAILS.path),
-        getAnonymousAccessibleReportPath(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path),
+        getAnonymousAccessibleReportPath(DYNAMIC_ROUTES.REPORT_DETAILS.path, DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path),
         ROUTES.CONCIERGE,
     ];
     const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(`/${route}`);
