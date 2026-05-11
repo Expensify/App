@@ -1,7 +1,7 @@
-import { MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG } from '@components/MultifactorAuthentication/config';
-import type { MultifactorAuthenticationScenarioConfig } from '@components/MultifactorAuthentication/config/types';
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from '@components/MultifactorAuthentication/config';
+import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
 import CONST from '@src/CONST';
-import type { Action, MultifactorAuthenticationState } from './types';
+import type {Action, MultifactorAuthenticationState} from './types';
 
 const DEFAULT_STATE: MultifactorAuthenticationState = {
     isModalOpen: false,
@@ -72,7 +72,7 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             return {...state, scenarioResponse: action.payload};
         case 'INIT': {
             // We can safely make this assertion because the params type is already type-guarded in both the executeScenario and the actions themselves. Each scenario config satisfies MultifactorAuthenticationScenarioConfig at definition; the union prevents direct assertion
-            const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as unknown as MultifactorAuthenticationScenarioConfig;
+            const scenario = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[action.payload.scenario] as MultifactorAuthenticationScenarioConfig;
             return {
                 ...DEFAULT_STATE,
                 isModalOpen: true,
