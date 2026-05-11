@@ -2839,8 +2839,32 @@ function isSubmissionBlockingViolation(violation: TransactionViolation): boolean
 /**
  * Returns true if the transaction has at least one violation that should block report submission.
  */
-function hasSubmissionBlockingViolation(violations: TransactionViolation[] | null | undefined): boolean {
+function hasSubmissionBlockingViolationInList(violations: TransactionViolation[] | null | undefined): boolean {
     return !!violations?.some(isSubmissionBlockingViolation);
+}
+
+/**
+ * Returns true if any report transaction has a violation that should block report submission.
+ * Allows callers to use an optimistic violation list for one transaction before it is written to Onyx.
+ */
+function hasSubmissionBlockingViolationInReport(
+    transactions: Array<OnyxEntry<Transaction>>,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    optimisticTransactionID?: string,
+    optimisticViolations?: TransactionViolations | null,
+): boolean {
+    return transactions.some((transaction) => {
+        if (!transaction) {
+            return false;
+        }
+
+        const violations =
+            transaction.transactionID === optimisticTransactionID
+                ? optimisticViolations
+                : transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
+
+        return hasSubmissionBlockingViolationInList(violations);
+    });
 }
 
 /**
@@ -2855,7 +2879,7 @@ function hasSubmissionBlockingViolations(
     policy: OnyxEntry<Policy>,
 ): boolean {
     const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
-    return hasSubmissionBlockingViolation(violations);
+    return hasSubmissionBlockingViolationInList(violations);
 }
 
 /**
@@ -2981,7 +3005,8 @@ export {
     hasReservationList,
     hasViolation,
     hasDuplicateTransactions,
-    hasSubmissionBlockingViolation,
+    hasSubmissionBlockingViolationInList,
+    hasSubmissionBlockingViolationInReport,
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     shouldShowBrokenConnectionViolation,

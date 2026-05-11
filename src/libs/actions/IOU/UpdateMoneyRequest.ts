@@ -14,6 +14,7 @@ import {
     buildOptimisticModifiedExpenseReportAction,
     getOutstandingChildRequest,
     getParsedComment,
+    getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
@@ -28,7 +29,7 @@ import {
     getClearedPendingFields,
     getMerchant,
     getUpdatedTransaction,
-    hasSubmissionBlockingViolation,
+    hasSubmissionBlockingViolationInReport,
     haveWaypointAddressesChanged,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
@@ -1448,8 +1449,17 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 (hasModifiedReimbursable && iouReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED))
         ) {
             const currentNextStep = iouReportNextStep ?? {};
-            const shouldFixViolations = Array.isArray(violationsOnyxData.value) && hasSubmissionBlockingViolation(violationsOnyxData.value);
             const moneyRequestReport = updatedMoneyRequestReport ?? iouReport ?? undefined;
+            const reportTransactions = [
+                ...getReportTransactions(moneyRequestReport?.reportID).filter((reportTransaction) => reportTransaction.transactionID !== transactionID),
+                updatedTransaction,
+            ];
+            const shouldFixViolations = hasSubmissionBlockingViolationInReport(
+                reportTransactions,
+                getAllTransactionViolations(),
+                transactionID,
+                Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : null,
+            );
             const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, getAllTransactionViolations(), currentUserAccountIDParam, currentUserEmailParam);
             const optimisticNextStep = buildOptimisticNextStep({
                 report: moneyRequestReport,

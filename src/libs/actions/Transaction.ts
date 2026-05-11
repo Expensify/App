@@ -43,7 +43,7 @@ import {
 } from '@libs/ReportUtils';
 import {
     hasPendingRTERViolation,
-    hasSubmissionBlockingViolation,
+    hasSubmissionBlockingViolationInList,
     isDeletedTransaction,
     isManagedCardTransaction,
     isOnHold,
@@ -1168,7 +1168,7 @@ function changeTransactionsReport({
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
                 value: allTransactionViolation?.[transaction.transactionID] ?? null,
             });
-            if (Array.isArray(violationData.value) && hasSubmissionBlockingViolation(violationData.value)) {
+            if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
                 shouldFixViolations = true;
             }
             if (policy?.disabledFields?.reimbursable) {
@@ -1556,7 +1556,7 @@ function changeTransactionsReport({
             policyHasDependentTags,
             false,
         );
-        if (Array.isArray(violationData.value) && hasSubmissionBlockingViolation(violationData.value)) {
+        if (Array.isArray(violationData.value) && hasSubmissionBlockingViolationInList(violationData.value)) {
             shouldFixViolations = true;
         }
     }
