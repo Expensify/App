@@ -106,8 +106,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             return;
         }
 
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
-
         // Intentional: derives the selected-members list from the approval workflow data.
         // This effect synchronizes local component state with the Onyx-sourced workflow when it changes.
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -123,22 +121,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 .map((member) => {
                     let accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
                     const isPolicyMember = !!policy?.employeeList?.[member.email];
-
-                    const personalDetail = getPersonalDetailByEmail(member.email);
-
-                    // Fall back when getMemberAccountIDsForWorkspace can't resolve an accountID — for
-                    // example a freshly invited user whose personal details haven't fully synced yet
-                    // (the helper requires personalDetail.login). Without a real accountID,
-                    // ReportActionAvatars renders the FallbackAvatar instead of the default avatar
-                    // assigned to that account.
-                    if (!accountID) {
-                        const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
-                        if (personalDetail?.accountID) {
-                            accountID = personalDetail.accountID;
-                        } else if (draftAccountID) {
-                            accountID = draftAccountID;
-                        }
-                    }
 
                     const personalDetail = getPersonalDetailByEmail(member.email);
 
@@ -178,8 +160,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                     };
                 }),
         );
-            });
-    }, [policy?.employeeList]); main
+    }, [approvalWorkflow?.members, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft, personalDetailLogins, policy?.employeeList, policy?.owner, policyMemberEmailsToAccountIDs]);
 
     const workflowApprovers = approvalWorkflow?.approvers;
 
@@ -204,7 +185,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         const members: SelectionListApprover[] = [...selectedMembers];
         const approversEmail = workflowApprovers?.map((member) => member?.email);
 
-        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
         const availableMembers = liveAvailableMembers
             .map((member) => {
                 const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
