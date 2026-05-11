@@ -19,7 +19,12 @@ function Trigger({children}: TriggerProps): React.ReactElement {
     return (
         <PressResponder
             ref={ref}
-            onPress={() => open()}
+            onPress={(event) => {
+                if (event?.defaultPrevented) {
+                    return;
+                }
+                open();
+            }}
             accessibilityState={{expanded: isVisible}}
             nativeID={triggerID}
             accessibilityControls={isVisible ? contentID : undefined}

@@ -31,8 +31,8 @@ export default function mergeRefs<T = unknown>(...refs: Array<RefObject<T> | Ref
         }
         return () => {
             for (let index = 0; index < refs.length; index += 1) {
-                const ref = refs[index];
-                const cleanup = cleanups[index];
+                const ref = refs.at(index);
+                const cleanup = cleanups.at(index);
                 if (cleanup) {
                     cleanup();
                 } else if (typeof ref === 'function') {

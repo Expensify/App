@@ -1,7 +1,6 @@
 import {use} from 'react';
 import type {AccessibilityState} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
-import composeEventHandlers from '@libs/composeEventHandlers';
 import PressResponderContext from './PressResponderContext';
 import type {RegisterKind, SecondaryInteractionHandler} from './PressResponderContext';
 
@@ -14,6 +13,10 @@ type ConsumablePressProps = {
     accessibilityControls?: string | string[];
 };
 
+/**
+ * Sequentially chains the consumer handler then the responder handler — no implicit `defaultPrevented` gate.
+ * Publishers (e.g. `<Trigger>`) that want consumer-cancellation read `event.defaultPrevented` themselves.
+ */
 function usePressResponderProps(consumer: ConsumablePressProps, kind: RegisterKind = 'press'): ConsumablePressProps {
     const responder = use(PressResponderContext);
     if (!responder) {
@@ -25,14 +28,16 @@ function usePressResponderProps(consumer: ConsumablePressProps, kind: RegisterKi
     return {
         ...consumer,
         onPress: responderOnPress
-            ? composeEventHandlers(consumer.onPress, (event) => {
+            ? (event) => {
+                  consumer.onPress?.(event);
                   responderOnPress(event);
-              })
+              }
             : consumer.onPress,
         onSecondaryInteraction: responderOnSecondaryInteraction
-            ? composeEventHandlers(consumer.onSecondaryInteraction, (event) => {
+            ? (event) => {
+                  consumer.onSecondaryInteraction?.(event);
                   responderOnSecondaryInteraction(event);
-              })
+              }
             : consumer.onSecondaryInteraction,
         accessibilityState: responder.accessibilityState ? {...consumer.accessibilityState, ...responder.accessibilityState} : consumer.accessibilityState,
         nativeID: responder.nativeID ?? consumer.nativeID,

@@ -29,7 +29,12 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
     return (
         <PressResponder
             ref={ref}
-            onSecondaryInteraction={(event) => open(getCursorRect(event))}
+            onSecondaryInteraction={(event) => {
+                if (event?.defaultPrevented) {
+                    return;
+                }
+                open(getCursorRect(event));
+            }}
             accessibilityState={{expanded: isVisible}}
             nativeID={triggerID}
             accessibilityControls={isVisible ? contentID : undefined}
