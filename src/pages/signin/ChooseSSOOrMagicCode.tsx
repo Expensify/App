@@ -15,7 +15,7 @@ import {clearSignInData, resendValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {signedInWithSAMLSelector} from '@src/selectors/Session';
+import {authTokenSelector} from '@src/selectors/Session';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
@@ -33,7 +33,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [signedInWithSAML] = useOnyx(ONYXKEYS.SESSION, {selector: signedInWithSAMLSelector});
+    const [authToken] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenSelector});
 
     // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
@@ -53,8 +53,7 @@ function ChooseSSOOrMagicCode({setIsUsingMagicCode}: ChooseSSOOrMagicCodeProps) 
                     large
                     style={[styles.mv3]}
                     text={translate('samlSignIn.useSingleSignOn')}
-                    // `signedInWithSAML` keeps the spinner visible until AuthScreens mounts.
-                    isLoading={!!account?.isLoading || !!signedInWithSAML}
+                    isLoading={!!account?.isLoading || !!authToken}
                     onPress={() => {
                         Navigation.navigate(ROUTES.SAML_SIGN_IN);
                     }}

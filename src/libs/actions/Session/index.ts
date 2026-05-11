@@ -190,22 +190,14 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
             key: ONYXKEYS.SESSION,
             value: {
                 signedInWithShortLivedAuthToken: null,
+                signedInWithSAML: isSAML,
                 isSupportAuthTokenUsed: null,
                 isAuthenticatingWithShortLivedToken: false,
             },
         },
     ];
 
-    // Reset `signedInWithSAML` on failure so the SSO button can recover.
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP | typeof ONYXKEYS.SESSION>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                signedInWithSAML: null,
-            },
-        },
-    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP>> = [];
 
     if (CONFIG.IS_HYBRID_APP && isSAML) {
         optimisticData.push({
