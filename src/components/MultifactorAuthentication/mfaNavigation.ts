@@ -59,6 +59,7 @@ function applyPendingNavigation() {
 
 function clearPendingNavigation() {
     pendingNavigation = undefined;
+    hasInitialLaidOut = false;
 }
 
 export {INITIAL_SCREEN, mfaNavigationRef, navigate, applyPendingNavigation, clearPendingNavigation};
