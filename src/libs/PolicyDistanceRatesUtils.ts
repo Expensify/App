@@ -65,21 +65,17 @@ function validateCreateDistanceRateForm(
     const hasName = trimmedName.length > 0;
     const hasRate = rateValueRegex.test(parsedRate) && parsedRate !== '' && parseFloatAnyLocale(parsedRate) > 0;
 
-    if (!hasName && !hasRate) {
-        errors.name = translate('workspace.distanceRates.errors.nameAndAmountRequired');
-    } else {
-        if (!hasName) {
-            errors.name = translate('workspace.distanceRates.errors.nameRequired');
-        } else if (existingRateNames.includes(trimmedName)) {
-            errors.name = translate('workspace.distanceRates.errors.nameAlreadyExists');
-        }
+    if (!hasName) {
+        errors.name = translate('workspace.distanceRates.errors.nameRequired');
+    } else if (existingRateNames.includes(trimmedName)) {
+        errors.name = translate('workspace.distanceRates.errors.nameAlreadyExists');
+    }
 
-        if (!hasRate) {
-            if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
-                errors.rate = translate('common.error.invalidRateError');
-            } else if (parseFloatAnyLocale(parsedRate) <= 0) {
-                errors.rate = translate('common.error.lowRateError');
-            }
+    if (!hasRate) {
+        if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
+            errors.rate = translate('common.error.invalidRateError');
+        } else if (parseFloatAnyLocale(parsedRate) <= 0) {
+            errors.rate = translate('common.error.lowRateError');
         }
     }
 
