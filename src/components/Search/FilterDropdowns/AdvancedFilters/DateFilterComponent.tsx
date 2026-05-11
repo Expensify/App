@@ -1,4 +1,5 @@
 import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
@@ -48,7 +49,7 @@ function DateFilterComponent({filterKey, value: initialValue, onChange}: DateFil
     };
 
     return (
-        <>
+        <View style={[styles.flex1, !fullscreen && styles.pv2]}>
             {!!selectedDateModifier && (
                 <HeaderWithBackButton
                     style={[styles.h10]}
@@ -89,7 +90,7 @@ function DateFilterComponent({filterKey, value: initialValue, onChange}: DateFil
                     }}
                 />
             )}
-        </>
+        </View>
     );
 }
 

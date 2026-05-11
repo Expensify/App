@@ -5,6 +5,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+import type {TextInputOptions} from '@components/SelectionList/types';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -21,14 +22,15 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import type {SearchFilterSelectionListStyleProps} from '../types';
 import ListFilterView from './ListFilterViewWrapper';
 
-type CardSelectorProps = {
+type CardSelectorProps = SearchFilterSelectionListStyleProps & {
     value: string[] | undefined;
     onChange: (cards: string[]) => void;
 };
 
-function CardSelector({value = [], onChange}: CardSelectorProps) {
+function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, onChange}: CardSelectorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -117,11 +119,14 @@ function CardSelector({value = [], onChange}: CardSelectorProps) {
         }
     };
 
-    const textInputOptions = {
+    const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: translate('common.search'),
         onChangeText: setSearchTerm,
         headerMessage: debouncedSearchTerm.trim() && sections.every((section) => !section.data.length) ? translate('common.noResultsFound') : '',
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
     };
 
     const isLoadingOnyxData = isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata);
@@ -154,6 +159,7 @@ function CardSelector({value = [], onChange}: CardSelectorProps) {
                     textInputOptions={textInputOptions}
                     shouldStopPropagation
                     canSelectMultiple
+                    style={selectionListStyle}
                 />
             )}
         </ListFilterView>

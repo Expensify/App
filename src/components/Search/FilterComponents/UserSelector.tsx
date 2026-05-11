@@ -15,14 +15,15 @@ import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMa
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchFilterSelectionListStyleProps} from '../types';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
-type UserSelectorProps = {
+type UserSelectorProps = SearchFilterSelectionListStyleProps & {
     value: string[] | undefined;
     onChange: (options: string[]) => void;
 };
 
-function UserSelector({value = [], onChange}: UserSelectorProps) {
+function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -146,6 +147,9 @@ function UserSelector({value = [], onChange}: UserSelectorProps) {
               onChangeText: setSearchTerm,
               headerMessage,
               disableAutoFocus: !shouldFocusInputOnScreenFocus,
+              style: {
+                  containerStyle: selectionListTextInputStyle,
+              },
           }
         : undefined;
 
@@ -164,7 +168,7 @@ function UserSelector({value = [], onChange}: UserSelectorProps) {
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 onEndReached={onListEndReached}
-                style={{contentContainerStyle: [styles.pb0]}}
+                style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
             />
         </ListFilterWrapper>
     );

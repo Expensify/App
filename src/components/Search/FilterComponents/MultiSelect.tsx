@@ -2,9 +2,11 @@ import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+import type {TextInputOptions} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -21,7 +23,7 @@ type MultiSelectItem<T> = {
     leftElement?: ReactNode;
 };
 
-type MultiSelectProps<T> = {
+type MultiSelectProps<T> = SearchFilterSelectionListStyleProps & {
     /** The list of all items to show up in the list */
     items: Array<MultiSelectItem<T>>;
 
@@ -41,7 +43,7 @@ type MultiSelectProps<T> = {
     loading?: boolean;
 };
 
-function MultiSelect<T extends string>({loading, value, items, isSearchable, searchPlaceholder, onChange}: MultiSelectProps<T>) {
+function MultiSelect<T extends string>({loading, value, items, isSearchable, searchPlaceholder, selectionListTextInputStyle, selectionListStyle, onChange}: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -77,11 +79,14 @@ function MultiSelect<T extends string>({loading, value, items, isSearchable, sea
         }
     };
 
-    const textInputOptions = {
+    const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
         onChangeText: setSearchTerm,
         headerMessage,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
     };
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};
@@ -106,7 +111,7 @@ function MultiSelect<T extends string>({loading, value, items, isSearchable, sea
                     ListItem={MultiSelectListItem}
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
-                    style={{contentContainerStyle: [styles.pb0]}}
+                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                 />
             )}
         </ListFilterView>

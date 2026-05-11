@@ -1,5 +1,6 @@
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import ReportFieldBase from '@components/Search/FilterComponents/ReportField';
 import type {ReportFieldHandle} from '@components/Search/FilterComponents/ReportField';
@@ -21,6 +22,11 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
     const reportFieldRef = useRef<ReportFieldHandle>(null);
 
+    let reportFieldStyle: ViewStyle | undefined = undefined;
+    if (!fullscreen) {
+        reportFieldStyle = selectedField ? styles.pt2 : styles.pv2;
+    }
+
     return (
         <View style={[styles.flex1, styles.justifyContentBetween]}>
             <ReportFieldBase
@@ -28,10 +34,11 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
                 values={values}
                 selectedField={selectedField}
                 onFieldSelected={setSelectedField}
+                style={reportFieldStyle}
             />
             {(!!selectedField || fullscreen) && (
                 <Button
-                    style={[styles.ph5, styles.pb3]}
+                    style={[styles.p5]}
                     success
                     medium={!fullscreen}
                     large={fullscreen}

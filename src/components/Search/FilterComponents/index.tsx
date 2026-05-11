@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +25,7 @@ import UserSelector from './UserSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
 type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
-type FilterComponentsProps = {
+type FilterComponentsProps = SearchFilterSelectionListStyleProps & {
     filterKey: FilterKeys;
     value: SearchAdvancedFiltersForm[FilterKeys] | undefined;
     policyIDQuery: string[] | undefined;
@@ -45,7 +45,7 @@ type TextInputFilterComponentsProps = {
 };
 
 type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
-type SingleSelectFilterComponentsProps = {
+type SingleSelectFilterComponentsProps = SearchFilterSelectionListStyleProps & {
     filterKey: SingleSelectFilterKeys;
     value: SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined;
     onChange: (value: SearchAdvancedFiltersForm[SingleSelectFilterKeys]) => void;
@@ -57,7 +57,7 @@ type MultiSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS;
-type MultiSelectFilterComponentsProps = {
+type MultiSelectFilterComponentsProps = SearchFilterSelectionListStyleProps & {
     filterKey: MultiSelectFilterKeys;
     value: SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined;
     onChange: (values: SearchAdvancedFiltersForm[MultiSelectFilterKeys]) => void;
@@ -80,7 +80,7 @@ function TextInputFilterComponents({filterKey, value, onChange}: TextInputFilter
     );
 }
 
-function SingleSelectFilterComponents({filterKey, value, onChange}: SingleSelectFilterComponentsProps) {
+function SingleSelectFilterComponents({filterKey, value, selectionListTextInputStyle, selectionListStyle, onChange}: SingleSelectFilterComponentsProps) {
     const {translate} = useLocalize();
     const items = getSingleSelectFilterOptions(filterKey, translate);
 
@@ -88,12 +88,14 @@ function SingleSelectFilterComponents({filterKey, value, onChange}: SingleSelect
         <SingleSelect
             items={items}
             value={items.find((option) => option.value === value)}
+            selectionListTextInputStyle={selectionListTextInputStyle}
+            selectionListStyle={selectionListStyle}
             onChange={(item) => onChange(item.value)}
         />
     );
 }
 
-function MultiSelectFilterComponents({filterKey, value = [], onChange}: MultiSelectFilterComponentsProps) {
+function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle, onChange}: MultiSelectFilterComponentsProps) {
     const {translate} = useLocalize();
     const typeSelector = (searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) => {
         return searchAdvancedFiltersForm?.type;
@@ -109,6 +111,7 @@ function MultiSelectFilterComponents({filterKey, value = [], onChange}: MultiSel
         <MultiSelect
             items={items}
             value={multiSelectValues}
+            selectionListStyle={selectionListStyle}
             onChange={(selectedItems) => {
                 if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                     onChange(selectedItems.length > 0 ? selectedItems.map((item) => item.value) : CONST.SEARCH.STATUS.EXPENSE.ALL);
@@ -120,7 +123,7 @@ function MultiSelectFilterComponents({filterKey, value = [], onChange}: MultiSel
     );
 }
 
-function FilterComponents({filterKey, value, policyIDQuery, onChange}: FilterComponentsProps) {
+function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInputStyle, selectionListStyle, onChange}: FilterComponentsProps) {
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -141,6 +144,8 @@ function FilterComponents({filterKey, value, policyIDQuery, onChange}: FilterCom
             return (
                 <Component
                     value={value as string[] | undefined}
+                    selectionListTextInputStyle={selectionListTextInputStyle}
+                    selectionListStyle={selectionListStyle}
                     onChange={onChange}
                 />
             );
@@ -149,6 +154,7 @@ function FilterComponents({filterKey, value, policyIDQuery, onChange}: FilterCom
             return (
                 <TypeSelector
                     value={value as string | undefined}
+                    selectionListStyle={selectionListStyle}
                     onChange={onChange}
                 />
             );
@@ -174,6 +180,8 @@ function FilterComponents({filterKey, value, policyIDQuery, onChange}: FilterCom
                 <CurrencySelector
                     key={filterKey}
                     value={value as string[] | undefined}
+                    selectionListTextInputStyle={selectionListTextInputStyle}
+                    selectionListStyle={selectionListStyle}
                     onChange={onChange}
                 />
             );
@@ -186,6 +194,8 @@ function FilterComponents({filterKey, value, policyIDQuery, onChange}: FilterCom
                     key={filterKey}
                     filterKey={filterKey}
                     value={value as SingleSelectFilterComponentsProps['value'] | undefined}
+                    selectionListTextInputStyle={selectionListTextInputStyle}
+                    selectionListStyle={selectionListStyle}
                     onChange={onChange}
                 />
             );
@@ -200,6 +210,8 @@ function FilterComponents({filterKey, value, policyIDQuery, onChange}: FilterCom
                     key={filterKey}
                     filterKey={filterKey}
                     value={value}
+                    selectionListTextInputStyle={selectionListTextInputStyle}
+                    selectionListStyle={selectionListStyle}
                     onChange={onChange}
                 />
             );
@@ -212,6 +224,8 @@ function FilterComponents({filterKey, value, policyIDQuery, onChange}: FilterCom
                 <UserSelector
                     value={value as string[] | undefined}
                     key={filterKey}
+                    selectionListTextInputStyle={selectionListTextInputStyle}
+                    selectionListStyle={selectionListStyle}
                     onChange={onChange}
                 />
             );
@@ -220,6 +234,8 @@ function FilterComponents({filterKey, value, policyIDQuery, onChange}: FilterCom
                 <WorkspaceSelector
                     value={value as string[] | undefined}
                     policyIDQuery={policyIDQuery}
+                    selectionListTextInputStyle={selectionListTextInputStyle}
+                    selectionListStyle={selectionListStyle}
                     onChange={onChange}
                 />
             );

@@ -1,16 +1,17 @@
 import React from 'react';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {SearchFilterSelectionListStyleProps} from '../types';
 import type {MultiSelectItem} from './MultiSelect';
 import MultiSelect from './MultiSelect';
 
-type WorkspaceSelectorProps = {
+type WorkspaceSelectorProps = SearchFilterSelectionListStyleProps & {
     policyIDQuery: string[] | undefined;
     value: string[] | undefined;
     onChange: (item: string[]) => void;
 };
 
-function WorkspaceSelector({policyIDQuery, value, onChange}: WorkspaceSelectorProps) {
+function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, onChange}: WorkspaceSelectorProps) {
     const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFilters();
     const workspaceOptions: Array<MultiSelectItem<string>> = workspaces
         .flatMap((section) => section.data)
@@ -30,6 +31,8 @@ function WorkspaceSelector({policyIDQuery, value, onChange}: WorkspaceSelectorPr
             value={selectedWorkspaceOptions}
             onChange={(policyIDs) => onChange(policyIDs.map((id) => id.value))}
             isSearchable={shouldShowWorkspaceSearchInput}
+            selectionListTextInputStyle={selectionListTextInputStyle}
+            selectionListStyle={selectionListStyle}
         />
     );
 }

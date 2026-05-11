@@ -9,14 +9,15 @@ import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import type {SearchFilterSelectionListStyleProps} from '../types';
 import MultiSelect from './MultiSelect';
 
-type CategorySelectorProps = {
+type CategorySelectorProps = SearchFilterSelectionListStyleProps & {
     value: string[] | undefined;
     onChange: (categories: string[]) => void;
 };
 
-function CategorySelector({value = [], onChange}: CategorySelectorProps) {
+function CategorySelector({value = [], selectionListTextInputStyle, selectionListStyle, onChange}: CategorySelectorProps) {
     const {translate} = useLocalize();
     const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -78,6 +79,8 @@ function CategorySelector({value = [], onChange}: CategorySelectorProps) {
             items={categoryItems}
             isSearchable={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
             searchPlaceholder={translate('common.category')}
+            selectionListTextInputStyle={selectionListTextInputStyle}
+            selectionListStyle={selectionListStyle}
             onChange={(categories) => onChange(categories.map((category) => category.value))}
         />
     );

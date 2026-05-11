@@ -174,7 +174,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
     const label = translate(FILTER_VIEW_MAP[filterKey].labelKey);
 
     return (
-        <View style={[styles.flex1, styles.justifyContentBetween]}>
+        <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pv2]}>
             <View>
                 {modifierConfig.map((config) => (
                     <>

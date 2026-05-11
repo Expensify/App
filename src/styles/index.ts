@@ -4954,7 +4954,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         filterContentContainer: {
             flex: 1,
-            paddingVertical: 8,
             minWidth: CONST.ADVANCED_FILTERS_CONTENT_WIDTH,
         },
 

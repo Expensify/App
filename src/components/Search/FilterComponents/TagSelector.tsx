@@ -10,14 +10,15 @@ import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import type {SearchFilterSelectionListStyleProps} from '../types';
 import MultiSelect from './MultiSelect';
 
-type TagSelectorProps = {
+type TagSelectorProps = SearchFilterSelectionListStyleProps & {
     value: string[] | undefined;
     onChange: (tags: string[]) => void;
 };
 
-function TagSelector({value = [], onChange}: TagSelectorProps) {
+function TagSelector({value = [], selectionListTextInputStyle, selectionListStyle, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
     const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
@@ -53,6 +54,8 @@ function TagSelector({value = [], onChange}: TagSelectorProps) {
             value={selectedTagsItems}
             items={tagItems}
             isSearchable={tagItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            selectionListTextInputStyle={selectionListTextInputStyle}
+            selectionListStyle={selectionListStyle}
             onChange={(tags) => onChange(tags.map((tag) => tag.value))}
         />
     );

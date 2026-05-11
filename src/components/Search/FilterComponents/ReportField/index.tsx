@@ -1,5 +1,6 @@
 import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,6 +36,7 @@ type ReportFieldBaseProps = {
     ref: React.Ref<ReportFieldHandle>;
     values: ReportFieldValues | undefined;
     selectedField: PolicyReportField | null;
+    style?: StyleProp<ViewStyle>;
     onFieldSelected: (field: PolicyReportField | null) => void;
 };
 
@@ -174,7 +176,7 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
     );
 }
 
-function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFieldSelected}: ReportFieldBaseProps) {
+function ReportFieldBase({ref, values: initialValues = {}, selectedField, style, onFieldSelected}: ReportFieldBaseProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const policyReportFieldsSelector = (policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare);
@@ -257,7 +259,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFiel
 
     if (selectedField) {
         return (
-            <View style={[styles.gap2, styles.flexShrink1]}>
+            <View style={[styles.gap2, styles.flexShrink1, style]}>
                 {!selectedDateModifier && (
                     <HeaderWithBackButton
                         style={[styles.h10]}
@@ -293,7 +295,7 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, onFiel
     });
 
     return (
-        <ScrollView>
+        <ScrollView contentContainerStyle={[style]}>
             {listItems.map((item) => (
                 <MenuItem
                     key={item.key}

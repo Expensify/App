@@ -7,9 +7,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
+import type {SearchFilterSelectionListStyleProps} from '../types';
 import SingleSelect from './SingleSelect';
 
-type TypeSelectorProps = {
+type TypeSelectorProps = SearchFilterSelectionListStyleProps & {
     value: string | undefined;
     onChange: (item: string) => void;
 };
@@ -43,7 +44,7 @@ function typeOptionsPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColl
     return result;
 }
 
-function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, onChange}: TypeSelectorProps) {
+function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, onChange}: TypeSelectorProps) {
     const {translate} = useLocalize();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: typeOptionsPoliciesSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -55,6 +56,7 @@ function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, onChange}: TypeS
             // text is only needed when the list is searchable
             value={{value, text: ''}}
             items={types}
+            selectionListStyle={selectionListStyle}
             onChange={(item) => onChange(item.value)}
         />
     );

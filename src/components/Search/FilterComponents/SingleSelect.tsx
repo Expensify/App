@@ -1,11 +1,12 @@
 import React, {Activity, useState} from 'react';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem, SelectionListStyle} from '@components/SelectionList/types';
+import type {ListItem, SelectionListStyle, TextInputOptions} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import type {SearchFilterSelectionListStyleProps} from '../types';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
 type SingleSelectItem<T> = {
@@ -13,7 +14,7 @@ type SingleSelectItem<T> = {
     value: T;
 };
 
-type SingleSelectProps<T> = {
+type SingleSelectProps<T> = SearchFilterSelectionListStyleProps & {
     /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
 
@@ -29,9 +30,6 @@ type SingleSelectProps<T> = {
     /** Search input place holder */
     searchPlaceholder?: string;
 
-    /** Custom styles for the SelectionList */
-    selectionListStyle?: SelectionListStyle;
-
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
 
@@ -39,7 +37,18 @@ type SingleSelectProps<T> = {
     hasHeader?: boolean;
 };
 
-function SingleSelect<T extends string>({value, items, isSearchable, searchPlaceholder, selectionListStyle, shouldShowList = true, hasTitle, hasHeader, onChange}: SingleSelectProps<T>) {
+function SingleSelect<T extends string>({
+    value,
+    items,
+    isSearchable,
+    searchPlaceholder,
+    selectionListTextInputStyle,
+    selectionListStyle,
+    shouldShowList = true,
+    hasTitle,
+    hasHeader,
+    onChange,
+}: SingleSelectProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
@@ -86,11 +95,14 @@ function SingleSelect<T extends string>({value, items, isSearchable, searchPlace
         onChange(newItem);
     };
 
-    const textInputOptions = {
+    const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: isSearchable ? (searchPlaceholder ?? translate('common.search')) : undefined,
         onChangeText: setSearchTerm,
         headerMessage: noResultsFound ? translate('common.noResultsFound') : undefined,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
     };
 
     return (

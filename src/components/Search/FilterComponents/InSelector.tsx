@@ -3,6 +3,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {TextInputOptions} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -20,9 +21,10 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
+import type {SearchFilterSelectionListStyleProps} from '../types';
 import ListFilterView from './ListFilterViewWrapper';
 
-type InSelectorProps = {
+type InSelectorProps = SearchFilterSelectionListStyleProps & {
     value: string[] | undefined;
     onChange: (ins: string[]) => void;
 };
@@ -39,7 +41,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
     return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
 }
 
-function InSelector({value = [], onChange}: InSelectorProps) {
+function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, onChange}: InSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {options, areOptionsInitialized} = useOptionsList();
@@ -152,11 +154,14 @@ function InSelector({value = [], onChange}: InSelectorProps) {
     const isLoadingNewOptions = !!isSearchingForReports;
     const shouldShowLoadingPlaceholder = !areOptionsInitialized || !value || !personalDetails;
 
-    const textInputOptions = {
+    const textInputOptions: TextInputOptions = {
         value: searchTerm,
         label: translate('common.search'),
         onChangeText: setSearchTerm,
         headerMessage,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
     };
 
     const itemCount = sections.flatMap((section) => section.data).length;
@@ -176,6 +181,7 @@ function InSelector({value = [], onChange}: InSelectorProps) {
                 isLoadingNewOptions={isLoadingNewOptions}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput
+                style={selectionListStyle}
             />
         </ListFilterView>
     );

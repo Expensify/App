@@ -1,6 +1,9 @@
+import type {StyleProp} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {SelectionListStyle} from '@components/SelectionList/types';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
 import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
@@ -383,6 +386,11 @@ type SearchChartProps = {
     unitPosition?: UnitPosition;
 };
 
+type SearchFilterSelectionListStyleProps = {
+    selectionListTextInputStyle?: StyleProp<ViewStyle>;
+    selectionListStyle?: SelectionListStyle;
+};
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -437,4 +445,5 @@ export type {
     SearchCustomColumnIds,
     GroupedItem,
     SearchChartProps,
+    SearchFilterSelectionListStyleProps,
 };
