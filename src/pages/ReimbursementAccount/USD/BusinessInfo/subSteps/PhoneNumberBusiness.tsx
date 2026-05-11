@@ -5,7 +5,7 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidUSPhone} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -16,7 +16,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const COMPANY_PHONE_NUMBER_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE;
 const STEP_FIELDS = [COMPANY_PHONE_NUMBER_KEY];
 
-function PhoneNumberBusiness({onNext, onMove, isEditing}: SubPageProps) {
+function PhoneNumberBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -67,7 +67,6 @@ function PhoneNumberBusiness({onNext, onMove, isEditing}: SubPageProps) {
             defaultValue={defaultCompanyPhoneNumber}
             shouldShowHelpLinks={false}
             placeholder={translate('common.phoneNumberPlaceholder')}
-            shouldDelayAutoFocus
         />
     );
 }
