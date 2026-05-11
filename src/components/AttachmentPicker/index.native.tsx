@@ -549,10 +549,15 @@ function AttachmentPicker({
     const selectItem = useCallback(
         (item: Item) => {
             /* Items with onPress (e.g. in-app camera) handle their own flow
-             * and don't go through the promise-based pickAttachment chain. */
+             * and don't go through the promise-based pickAttachment chain.
+             * We still defer via onModalHide so the popover fully dismisses
+             * before the camera Modal presents — on iOS, presenting a new
+             * modal while another is closing can cause the new one to fail. */
             if ('onPress' in item) {
+                onModalHide.current = () => {
+                    item.onPress();
+                };
                 close();
-                item.onPress();
                 return;
             }
 
