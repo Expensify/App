@@ -1,9 +1,11 @@
+import React from 'react';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import style from '@components/Icon/IconWrapperStyles';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PopoverMenuItem} from '@components/PopoverMenu';
 import TableRow from '@components/Table/TableRow';
+import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -47,6 +49,15 @@ export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayo
         });
     }
 
+    const VerifiedDomainBadge = (
+        <Badge
+            success={item.isValidated}
+            text={item.isValidated ? translate('common.verified') : translate('domain.notVerified')}
+            textStyles={styles.textStrong}
+            badgeStyles={styles.alignSelfStart}
+        />
+    );
+
     return (
         <OfflineWithFeedback
             errors={item.errors}
@@ -60,7 +71,20 @@ export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayo
             >
                 {({hovered}) => (
                     <>
-                        <View style={[styles.flex1]}></View>
+                        <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                            <Icon
+                                src={icons.Globe}
+                                fill={theme.icon}
+                                additionalStyles={styles.domainIcon}
+                            />
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <TextWithTooltip
+                                    text={item.title}
+                                    shouldShowTooltip
+                                />
+                                {item.isAdmin && VerifiedDomainBadge}
+                            </View>
+                        </View>
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
                             {threeDotMenuItems.length > 0 && (
                                 <ThreeDotsMenu

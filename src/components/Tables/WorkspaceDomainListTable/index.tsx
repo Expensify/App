@@ -1,5 +1,5 @@
 import {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useRef} from 'react';
+import React from 'react';
 import {ValueOf} from 'type-fest';
 import {PopoverMenuItem} from '@components/PopoverMenu';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';

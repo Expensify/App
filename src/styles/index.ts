@@ -5889,8 +5889,10 @@ const staticStyles = (theme: ThemeColors) =>
         },
         domainIcon: {
             backgroundColor: theme.border,
-            padding: 10,
+            padding: 5,
             borderRadius: 8,
+            width: 28,
+            height: 28,
         },
         copyableTextField: {
             color: theme.textSupporting,
