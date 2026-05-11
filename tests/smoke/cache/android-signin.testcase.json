@@ -6,18 +6,18 @@
     {
       "stepNumber": 1,
       "stepTextHash": "eefe04289ed44849",
-      "preSignature": "15794371cece6ece",
-      "postSignature": "15794371cece6ece",
+      "preSignature": "bada22fec79afdc7",
+      "postSignature": "bada22fec79afdc7",
       "actions": [],
       "expect": "snapshot.contains_text(\"Phone or email\")",
-      "recordedAt": "2026-05-11T09:33:36.152Z",
+      "recordedAt": "2026-05-11T10:29:23.672Z",
       "runId": "25659967543"
     },
     {
       "stepNumber": 2,
       "stepTextHash": "988a4a6e077e6dc6",
-      "preSignature": "15794371cece6ece",
-      "postSignature": "1416ff7437729bd4",
+      "preSignature": "bada22fec79afdc7",
+      "postSignature": "04ba1966c1ae1c5f",
       "actions": [
         {
           "tool": "fill",
@@ -30,14 +30,14 @@
         }
       ],
       "expect": "snapshot.field_with_text(\"rustam.zeinalov@callstack.com\").exists",
-      "recordedAt": "2026-05-11T09:35:09.430Z",
+      "recordedAt": "2026-05-11T10:29:23.673Z",
       "runId": "25659967543"
     },
     {
       "stepNumber": 3,
       "stepTextHash": "a071b334a6b8c0f4",
-      "preSignature": "1416ff7437729bd4",
-      "postSignature": "2a958e751a6dab98",
+      "preSignature": "04ba1966c1ae1c5f",
+      "postSignature": "33d1e5d0787b275a",
       "actions": [
         {
           "tool": "press",
@@ -51,14 +51,14 @@
         }
       ],
       "expect": "appstate.foreground == \"com.expensify.chat.dev\"",
-      "recordedAt": "2026-05-11T09:35:29.243Z",
+      "recordedAt": "2026-05-11T10:29:23.673Z",
       "runId": "25659967543"
     },
     {
       "stepNumber": 4,
       "stepTextHash": "a1059919be2f42c9",
-      "preSignature": "2a958e751a6dab98",
-      "postSignature": "2a958e751a6dab98",
+      "preSignature": "33d1e5d0787b275a",
+      "postSignature": "33d1e5d0787b275a",
       "actions": [
         {
           "tool": "wait_for",
@@ -67,7 +67,7 @@
         }
       ],
       "expect": "snapshot.contains_text(\"Magic code\")",
-      "recordedAt": "2026-05-11T09:35:42.112Z",
+      "recordedAt": "2026-05-11T10:29:23.673Z",
       "runId": "25659967543"
     }
   ]
