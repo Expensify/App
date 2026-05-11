@@ -286,6 +286,7 @@ function getBadgeFromIOUReport(
         chatReport,
         policy,
         getReportTransactions(iouReport?.reportID),
+        // TODO: https://github.com/Expensify/App/issues/66512
         getAllTransactionViolations(),
         currentUserLogin,
         currentUserAccountID,
@@ -367,6 +368,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
 
     let total = expenseReport.total ?? 0;
     const hasHeldExpenses = hasHeldExpensesReportUtils(expenseReport.reportID);
+    // TODO: https://github.com/Expensify/App/issues/66512
     const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy, getAllTransactionViolations());
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
@@ -469,6 +471,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                     updatedExpenseReport,
                     currentUserEmailParam,
                     currentUserAccountIDParam,
+                    // TODO: https://github.com/Expensify/App/issues/66512
                     getAllTransactionViolations(),
                     undefined,
                 ),
@@ -664,6 +667,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                 currentUserAccountIDParam,
                 expenseReport,
                 policy,
+                // TODO: https://github.com/Expensify/App/issues/66512
                 getAllTransactionViolations()?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
             ),
         );
@@ -672,6 +676,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         }
 
         for (const transaction of transactions) {
+            // TODO: https://github.com/Expensify/App/issues/66512
             const transactionViolations = getAllTransactionViolations()?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
             const newTransactionViolations = transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
             optimisticData.push({

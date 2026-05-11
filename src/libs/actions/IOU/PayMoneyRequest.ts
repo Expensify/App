@@ -137,6 +137,7 @@ function getPayMoneyRequestParams({
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
 }): PayMoneyRequestData {
+    // TODO: https://github.com/Expensify/App/issues/66512
     const allTransactionViolations = getAllTransactionViolations();
 
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);

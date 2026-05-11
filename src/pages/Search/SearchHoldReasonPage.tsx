@@ -29,6 +29,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {clearSelectedTransactions} = useSearchActionsContext();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isOffline} = useNetwork();
 
     const selectedTransactionsList = Object.values(selectedTransactions);
@@ -44,13 +45,14 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors);
+                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors, allTransactionViolations);
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors);
+                    const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors, transactionViolations);
                 }
                 clearSelectedTransactions();
             }
@@ -69,6 +71,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             selectedTransactions,
             currentUserLogin,
             currentUserAccountID,
+            allTransactionViolations,
         ],
     );
 

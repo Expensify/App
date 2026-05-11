@@ -113,6 +113,7 @@ function prepareRejectMoneyRequestData(
 ): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
+    // TODO: https://github.com/Expensify/App/issues/66512
     const allTransactionViolations = getAllTransactionViolations();
 
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -904,6 +905,7 @@ function markRejectViolationAsResolved(transactionID: string, isOffline: boolean
         return;
     }
 
+    // TODO: https://github.com/Expensify/App/issues/66512
     const allTransactionViolations = getAllTransactionViolations();
 
     const currentViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];

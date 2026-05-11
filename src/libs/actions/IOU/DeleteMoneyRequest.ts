@@ -70,6 +70,7 @@ function prepareToCleanUpMoneyRequest(
     selectedTransactionIDs?: string[],
 ) {
     const allTransactions = getAllTransactions();
+    // TODO: https://github.com/Expensify/App/issues/66512
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
     const allReportActions = getAllReportActionsFromIOU();
