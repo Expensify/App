@@ -7,7 +7,7 @@ import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
-import {applyPendingNavigation, clearPendingNavigation, INITIAL_SCREEN, mfaNavigationRef} from '@components/MultifactorAuthentication/mfaNavigation';
+import {handleInitialScreenLayout, INITIAL_SCREEN, mfaNavigationRef, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -36,7 +36,7 @@ function TransparentScreen() {
     return (
         <View
             style={StyleSheet.absoluteFill}
-            onLayout={applyPendingNavigation}
+            onLayout={handleInitialScreenLayout}
         />
     );
 }
@@ -56,7 +56,7 @@ function MultifactorAuthenticationModalNavigator() {
     const {isModalOpen} = state;
     const [prevIsModalOpen, setPrevIsModalOpen] = useState(isModalOpen);
     const [isClosing, setIsClosing] = useState(false);
-    const progress = useSharedValue(0);
+    const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
 
     // Mirror isModalOpen transitions during render so the slide-out animation can
@@ -79,7 +79,7 @@ function MultifactorAuthenticationModalNavigator() {
 
     useEffect(() => {
         if (isModalOpen) {
-            progress.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
+            backdropProgress.set(withTiming(1, {duration: CONST.ANIMATED_TRANSITION}));
             return;
         }
         if (!isClosing) {
@@ -90,17 +90,17 @@ function MultifactorAuthenticationModalNavigator() {
         if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
             mfaNavigationRef.goBack();
         }
-        progress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
+        backdropProgress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
         const cleanupTimer = setTimeout(() => {
-            clearPendingNavigation();
+            resetMfaNavigation();
             setIsClosing(false);
             dispatch({type: 'RESET'});
         }, CONST.ANIMATED_TRANSITION);
         return () => clearTimeout(cleanupTimer);
-    }, [isModalOpen, isClosing, progress, dispatch]);
+    }, [isModalOpen, isClosing, backdropProgress, dispatch]);
 
     const backdropAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: progress.get() * variables.overlayOpacity,
+        opacity: backdropProgress.get() * variables.overlayOpacity,
     }));
 
     if (!isVisible) {
