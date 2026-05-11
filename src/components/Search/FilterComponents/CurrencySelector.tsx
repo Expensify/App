@@ -1,7 +1,7 @@
 import React from 'react';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
+import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
-import type {SearchFilterSelectionListStyleProps} from '../types';
 import MultiSelect from './MultiSelect';
 
 type CurrencySelectorProps = SearchFilterSelectionListStyleProps & {

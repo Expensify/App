@@ -22,7 +22,7 @@ function ReportFieldFilterComponent({values, onChange}: ReportFieldComponentProp
     const [selectedField, setSelectedField] = useState<PolicyReportField | null>(null);
     const reportFieldRef = useRef<ReportFieldHandle>(null);
 
-    let reportFieldStyle: ViewStyle | undefined = undefined;
+    let reportFieldStyle: ViewStyle | undefined;
     if (!fullscreen) {
         reportFieldStyle = selectedField ? styles.pt2 : styles.pv2;
     }

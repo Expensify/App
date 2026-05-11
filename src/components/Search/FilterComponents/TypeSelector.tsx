@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getTypeOptions} from '@libs/SearchUIUtils';
@@ -7,7 +8,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
-import type {SearchFilterSelectionListStyleProps} from '../types';
 import SingleSelect from './SingleSelect';
 
 type TypeSelectorProps = SearchFilterSelectionListStyleProps & {

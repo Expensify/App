@@ -1,8 +1,8 @@
 import React, {useEffect} from 'react';
 import useFilterFeedData from '@components/Search/hooks/useFilterFeedData';
+import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import useNetwork from '@hooks/useNetwork';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
-import type {SearchFilterSelectionListStyleProps} from '../types';
 import MultiSelect from './MultiSelect';
 
 type FeedSelectorProps = SearchFilterSelectionListStyleProps & {

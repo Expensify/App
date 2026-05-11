@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import Icon from '@components/Icon';
+import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {filterPolicyIDSelector} from '@src/selectors/Search';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {SearchFilterSelectionListStyleProps} from '../types';
 import MultiSelect from './MultiSelect';
 
 type ExportedToSelectorProps = SearchFilterSelectionListStyleProps & {

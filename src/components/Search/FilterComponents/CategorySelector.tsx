@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -9,7 +10,6 @@ import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import type {SearchFilterSelectionListStyleProps} from '../types';
 import MultiSelect from './MultiSelect';
 
 type CategorySelectorProps = SearchFilterSelectionListStyleProps & {

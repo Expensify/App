@@ -1,11 +1,11 @@
 import React from 'react';
+import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {Policy} from '@src/types/onyx';
-import type {SearchFilterSelectionListStyleProps} from '../types';
 import MultiSelect from './MultiSelect';
 
 type TaxRateSelectorProps = SearchFilterSelectionListStyleProps & {

@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {useRef, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -15,7 +16,6 @@ import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMa
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchFilterSelectionListStyleProps} from '../types';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
 type UserSelectorProps = SearchFilterSelectionListStyleProps & {

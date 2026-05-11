@@ -1,7 +1,7 @@
 import React from 'react';
+import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import type {SearchFilterSelectionListStyleProps} from '../types';
 import type {MultiSelectItem} from './MultiSelect';
 import MultiSelect from './MultiSelect';
 
