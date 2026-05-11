@@ -15,11 +15,14 @@ function compareNodes(a: View | null, b: View | null): number {
     if (a === null || b === null) {
         return 0;
     }
+    // Bitmask: compareDocumentPosition returns a bitfield
     const position = a.compareDocumentPosition(b);
-    if (position === DOCUMENT_POSITION_FOLLOWING) {
+    // eslint-disable-next-line no-bitwise -- bit-test required to read DOM bitfield flags
+    if ((position & DOCUMENT_POSITION_FOLLOWING) !== 0) {
         return -1;
     }
-    if (position === DOCUMENT_POSITION_PRECEDING) {
+    // eslint-disable-next-line no-bitwise -- bit-test required to read DOM bitfield flags
+    if ((position & DOCUMENT_POSITION_PRECEDING) !== 0) {
         return 1;
     }
     return 0;
