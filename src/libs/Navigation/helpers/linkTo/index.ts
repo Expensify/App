@@ -27,6 +27,7 @@ const defaultLinkToOptions: LinkToOptions = {
  * Used to distinguish plain tab switches from cross-tab deep navigations.
  */
 const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
+const TRANSIENT_AUTH_SCREENS = new Set<string>([SCREENS.TRANSITION_BETWEEN_APPS, SCREENS.VALIDATE_LOGIN]);
 
 function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -205,11 +206,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
-    // When something other than TAB_NAVIGATOR is on top of the stack and we're navigating
-    // to TAB_NAVIGATOR, PUSH a new instance above (e.g., above RHP).
+    // When a transient auth screen is on top of the stack, replace it with TAB_NAVIGATOR so
+    // back navigation does not reveal a stale loader after sign-in.
+    // For other stacked routes (e.g., RHP), keep pushing a new TAB_NAVIGATOR above them.
     const currentTopRoute = currentState.routes[currentState.index];
     if (currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && typedPayload.name === NAVIGATORS.TAB_NAVIGATOR) {
-        (action as {type: string}).type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+        (action as {type: string}).type = TRANSIENT_AUTH_SCREENS.has(currentTopRoute?.name ?? '') || forceReplace ? CONST.NAVIGATION.ACTION_TYPE.REPLACE : CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
     // Cross-tab navigation to a deep leaf (e.g. Settings → Concierge): PUSH a new TAB_NAVIGATOR so

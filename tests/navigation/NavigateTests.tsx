@@ -20,6 +20,28 @@ jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
+const getHomeTabNavigatorRoute = () => ({
+    name: NAVIGATORS.TAB_NAVIGATOR,
+    state: {
+        index: 0,
+        routes: [
+            {name: SCREENS.HOME},
+            {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+            {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
+            {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+        ],
+    },
+});
+
+const getRightModalNavigatorRoute = () => ({
+    name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+    state: {
+        index: 0,
+        routes: [{name: SCREENS.RIGHT_MODAL.SETTINGS}],
+    },
+});
+
 describe('Navigate', () => {
     beforeEach(() => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
@@ -132,6 +154,69 @@ describe('Navigate', () => {
             const settingsSplitAfterGoBack = tabStateAfter?.routes.at(3);
             expect(settingsSplitAfterGoBack?.state?.index).toBe(1);
             expect(settingsSplitAfterGoBack?.state?.routes.at(-1)?.name).toBe(SCREENS.SETTINGS.ABOUT);
+        });
+
+        it.each([SCREENS.TRANSITION_BETWEEN_APPS, SCREENS.VALIDATE_LOGIN])('replaces transient auth route when navigating to a report (%s)', (transientRoute) => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 1,
+                        routes: [getHomeTabNavigatorRoute(), {name: transientRoute}],
+                    }}
+                />,
+            );
+
+            const rootStateBeforeNavigate = navigationRef.current?.getRootState();
+            expect(rootStateBeforeNavigate?.routes.at(-1)?.name).toBe(transientRoute);
+
+            act(() => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('1'));
+            });
+
+            const rootStateAfterNavigate = navigationRef.current?.getRootState();
+            const pushedTabState = rootStateAfterNavigate?.routes.at(-1)?.state;
+            const activeTabAfterNavigate = pushedTabState?.routes.at(pushedTabState?.index ?? 0);
+
+            expect(rootStateAfterNavigate?.routes).toHaveLength(2);
+            expect(rootStateAfterNavigate?.routes.map((route) => route.name)).not.toContain(transientRoute);
+            expect(rootStateAfterNavigate?.routes.at(-1)?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+            expect(activeTabAfterNavigate?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        });
+
+        it('pushes a new tab navigator above a right modal by default', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 1,
+                        routes: [getHomeTabNavigatorRoute(), getRightModalNavigatorRoute()],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('1'));
+            });
+
+            const rootStateAfterNavigate = navigationRef.current?.getRootState();
+            expect(rootStateAfterNavigate?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR, NAVIGATORS.TAB_NAVIGATOR]);
+        });
+
+        it('honors forceReplace when navigating from a right modal to a tab route', () => {
+            render(
+                <TestNavigationContainer
+                    initialState={{
+                        index: 1,
+                        routes: [getHomeTabNavigatorRoute(), getRightModalNavigatorRoute()],
+                    }}
+                />,
+            );
+
+            act(() => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute('1'), {forceReplace: true});
+            });
+
+            const rootStateAfterNavigate = navigationRef.current?.getRootState();
+            expect(rootStateAfterNavigate?.routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.TAB_NAVIGATOR]);
         });
 
         it('to the page from the different split navigator', () => {

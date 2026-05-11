@@ -210,6 +210,10 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                     component={getEmptyComponent()}
                 />
                 <RootStack.Screen
+                    name={SCREENS.TRANSITION_BETWEEN_APPS}
+                    component={getEmptyComponent()}
+                />
+                <RootStack.Screen
                     name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                     component={TestRightModalNavigator}
                 />
