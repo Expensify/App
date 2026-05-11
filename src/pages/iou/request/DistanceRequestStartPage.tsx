@@ -135,6 +135,7 @@ function DistanceRequestStartPage({
         () => ({
             tabPress: (event: EventArg<'tabPress', true, undefined>) => {
                 if (isDiscardModalOpenRef.current) {
+                    event.preventDefault();
                     return;
                 }
                 const guard = activeGuardRef.current;
