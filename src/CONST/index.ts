@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
+import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
@@ -224,7 +225,7 @@ const CONST = {
     ANIMATED_HIGHLIGHT_WORKSPACE_FEATURE_ITEM_END_DURATION: 3000,
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
-    ANIMATED_TRANSITION: 300,
+    ANIMATED_TRANSITION: Platform.OS === 'web' ? 1 : 300,
     KEYBOARD_RESTORATION_FLAG_RESET_DELAY: 100,
     SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
@@ -1928,10 +1929,10 @@ const CONST = {
             PRESERVE: 'preserve',
         },
         ANIMATION_TIMING: {
-            DEFAULT_IN: 300,
-            DEFAULT_OUT: 200,
-            DEFAULT_RIGHT_DOCKED_IOS_IN: 500,
-            DEFAULT_RIGHT_DOCKED_IOS_OUT: 400,
+            DEFAULT_IN: Platform.OS === 'web' ? 1 : 300,
+            DEFAULT_OUT: Platform.OS === 'web' ? 1 : 200,
+            DEFAULT_RIGHT_DOCKED_IOS_IN: Platform.OS === 'web' ? 1 : 500,
+            DEFAULT_RIGHT_DOCKED_IOS_OUT: Platform.OS === 'web' ? 1 : 400,
             FAB_IN: 350,
             FAB_OUT: 200,
         },

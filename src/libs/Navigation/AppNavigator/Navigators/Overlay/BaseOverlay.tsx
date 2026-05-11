@@ -1,4 +1,3 @@
-import {useCardAnimation} from '@react-navigation/stack';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
@@ -23,17 +22,25 @@ type BaseOverlayProps = {
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 };
 
+// Web-only: skip the card-progress-driven fade and pin the overlay opacity so it appears alongside the card mount.
+const STATIC_OVERLAY_PROGRESS = new Animated.Value(1);
+
 // The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
 function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
     const styles = useThemeStyles();
-    const {current} = useCardAnimation();
     const {translate} = useLocalize();
 
     return (
         <Animated.View
             id="BaseOverlay"
             aria-hidden
-            style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue})]}
+            style={[
+                styles.pFixed,
+                styles.t0,
+                styles.b0,
+                styles.overlayBackground,
+                styles.overlayStyles({progress: progress ?? STATIC_OVERLAY_PROGRESS, positionLeftValue, positionRightValue}),
+            ]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.

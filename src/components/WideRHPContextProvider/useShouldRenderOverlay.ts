@@ -2,9 +2,9 @@ import {useEffect, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
+import {Animated, Platform} from 'react-native';
 
-const OVERLAY_TIMING_DURATION = 300;
+const OVERLAY_TIMING_DURATION = Platform.OS === 'web' ? 0 : 300;
 
 function useShouldRenderOverlay(condition: boolean, overlayProgress: Animated.Value) {
     const [shouldRenderOverlay, setShouldRenderOverlay] = useState(false);

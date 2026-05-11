@@ -60,6 +60,7 @@ const useRootNavigatorScreenOptions = () => {
                     modalCardStyleInterpolator({
                         props,
                         shouldAnimateSidePanel: true,
+                        animationEnabled: false,
                         // On a wide layout, the output range multiplier is multiplied inside useModalCardStyleInterpolator by the width of a single RHP.
                         // Depending on the value of expandedRHPProgress, after multiplication the appropriate RHP width should be obtained.
                         // To achieve this, the following function was used:
