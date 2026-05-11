@@ -11,6 +11,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import popToReportInReportsSplitNavigator from '@libs/Navigation/helpers/popToReportInReportsSplitNavigator';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -1124,10 +1125,11 @@ function updateSplitTransactions({
     for (const undeletedTransaction of undeletedTransactions) {
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
         const isSelfDMTransaction = splitTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const reportActionsReportID = isSelfDMTransaction ? originalSelfDMReportID : splitTransaction?.reportID;
+        const selfDMReportIDForLookup = originalSelfDMReportID ?? selfDMReport?.reportID;
+        const reportActionsReportID = isSelfDMTransaction ? selfDMReportIDForLookup : splitTransaction?.reportID;
         const splitReportActions = getAllReportActions(reportActionsReportID);
         const reportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${splitTransaction?.reportID}`];
-        const splitReportID = isSelfDMTransaction ? (originalSelfDMReportID ?? String(CONST.DEFAULT_NUMBER_ID)) : (splitTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+        const splitReportID = isSelfDMTransaction ? (selfDMReportIDForLookup ?? String(CONST.DEFAULT_NUMBER_ID)) : (splitTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
         const splitTransactionReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitReportID}`];
         const isReportArchived = isArchivedReport(reportNameValuePairs);
         const currentReportAction = Object.values(splitReportActions).find((action) => {
@@ -1683,16 +1685,13 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // the brief "Not Found" flash caused by the original transaction being deleted while
     // the transaction thread is still visible in the central pane.
     //
-    // We dismiss the modal and then goBack to the selfDM report so that every screen pushed
-    // after it (split flow modals) is popped off the stack. Otherwise
-    // the back action lands on a stale screen pointing at the deleted original transaction
-    // and shows the FullPageNotFoundView.
+    // After dismissing the modal, pop any intermediate report screens above selfDM in the
+    // REPORTS_SPLIT_NAVIGATOR (e.g. the original transaction's thread). Those become stale
+    // after the split because the original transaction's reportID is set to SPLIT_REPORT_ID,
+    // and falling back on them would land the user on FullPageNotFoundView.
     if (isSelfDMSplit && params.transactionReport?.reportID) {
-        const selfDMReportRoute = ROUTES.REPORT_WITH_ID.getRoute(params.transactionReport.reportID);
-        Navigation.dismissModal();
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goBack(selfDMReportRoute);
-        });
+        const selfDMReportID = params.transactionReport.reportID;
+        Navigation.dismissModal({afterTransition: () => popToReportInReportsSplitNavigator(selfDMReportID)});
         requestAnimationFrame(() => {
             updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
         });
