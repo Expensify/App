@@ -160,6 +160,7 @@ import {
     sortIconsByName,
     sortOutstandingReportsBySelected,
     temporary_getMoneyRequestOptions,
+    updateReportPreview,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -10677,6 +10678,34 @@ describe('ReportUtils', () => {
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
+        });
+
+        it('should refresh childLastActorAccountID when adding a new expense to an existing preview', () => {
+            const chatReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const iouReport: Report = {
+                ...createRandomReport(200, undefined),
+                parentReportID: '1',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 1,
+                managerID: 2,
+            };
+
+            const initialPreview = {
+                ...buildOptimisticReportPreview(chatReport, iouReport),
+                childLastActorAccountID: undefined,
+            };
+
+            const updatedPreview = updateReportPreview(iouReport, initialPreview, false, '', {
+                transactionID: '123',
+                created: '2026-05-11 10:30:00',
+                receipt: {source: 'receipt.png'},
+            } as Transaction);
+
+            expect(updatedPreview.childLastActorAccountID).toBe(currentUserAccountID);
         });
     });
 

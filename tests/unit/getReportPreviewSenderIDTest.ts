@@ -248,6 +248,222 @@ describe('getReportPreviewSenderID', () => {
         expect(result).toBe(OWNER_ACCOUNT_ID);
     });
 
+    it('returns childOwnerAccountID after cache clear when one sender has a manual expense and one failed receipt without attendees', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({
+                transactionCount: 2,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                lastActorAccountID: OWNER_ACCOUNT_ID,
+            }),
+            action: makeAction({
+                childMoneyRequestCount: 2,
+                childLastActorAccountID: undefined,
+            }),
+            iouActions: [],
+            transactions: [
+                makeTransaction(1200, 'user@test.com', {
+                    transactionID: '123',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '321',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
+    it('returns childOwnerAccountID when the preview action is unavailable and iouReport.lastActorAccountID is rehydrated as a string', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({
+                transactionCount: 2,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                lastActorAccountID: `${OWNER_ACCOUNT_ID}` as unknown as number,
+            }),
+            action: undefined,
+            iouActions: [],
+            transactions: [
+                makeTransaction(1200, 'user@test.com', {
+                    transactionID: '123',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '321',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
+    it('returns undefined after cache clear when the failed receipt was created by the other participant', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({
+                transactionCount: 2,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                lastActorAccountID: MANAGER_ACCOUNT_ID,
+            }),
+            action: makeAction({
+                childMoneyRequestCount: 2,
+                childLastActorAccountID: undefined,
+            }),
+            iouActions: [],
+            transactions: [
+                makeTransaction(1200, 'user@test.com', {
+                    transactionID: '123',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '321',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when all transactions have failed receipt states and no sender-identifying data', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({transactionCount: 2}),
+            action: makeAction({childMoneyRequestCount: 2}),
+            iouActions: [],
+            transactions: [
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '123',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt-1.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '321',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt-2.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBeUndefined();
+    });
+
+    it('returns childOwnerAccountID when multiple failed receipts belong to the same sender and known transactions already anchor that sender', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({
+                transactionCount: 3,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                lastActorAccountID: OWNER_ACCOUNT_ID,
+            }),
+            action: makeAction({
+                childMoneyRequestCount: 3,
+                childLastActorAccountID: undefined,
+            }),
+            iouActions: [],
+            transactions: [
+                makeTransaction(1200, 'user@test.com', {
+                    transactionID: '123',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '321',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt-1.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '456',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt-2.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
+    it('returns undefined when multiple failed receipts exist but the latest actor does not match the known sender anchor', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({
+                transactionCount: 3,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                lastActorAccountID: MANAGER_ACCOUNT_ID,
+            }),
+            action: makeAction({
+                childMoneyRequestCount: 3,
+                childLastActorAccountID: undefined,
+            }),
+            iouActions: [],
+            transactions: [
+                makeTransaction(1200, 'user@test.com', {
+                    transactionID: '123',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '321',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt-1.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '456',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt-2.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBeUndefined();
+    });
+
     it('returns undefined when the report preview has not loaded all child transactions yet', () => {
         const result = getReportPreviewSenderID({
             ...baseParams,
@@ -255,6 +471,203 @@ describe('getReportPreviewSenderID', () => {
             action: makeAction({childMoneyRequestCount: 2}),
             iouActions: [],
             transactions: [makeTransaction(100)],
+        });
+
+        expect(result).toBeUndefined();
+    });
+
+    it('returns childOwnerAccountID during partial hydration when one recent receipt-backed transaction is still missing and the loaded transactions already anchor the same sender', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({
+                transactionCount: 4,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                lastActorAccountID: OWNER_ACCOUNT_ID,
+            }),
+            action: makeAction({
+                childMoneyRequestCount: 4,
+                childLastActorAccountID: OWNER_ACCOUNT_ID,
+                childRecentReceiptTransactionIDs: Object.fromEntries([
+                    ['321', '2026-05-11 10:30:00'],
+                    ['456', '2026-05-11 10:31:00'],
+                ]),
+            }),
+            hasFinishedInitialReportActionsLoad: false,
+            iouActions: [],
+            transactions: [
+                makeTransaction(1200, 'user@test.com', {
+                    transactionID: '123',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '321',
+                    comment: undefined,
+                    modifiedAmount: 50000,
+                    receipt: {
+                        source: 'receipt-complete.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                    },
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '456',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt-failed.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
+    it('returns childOwnerAccountID during partial hydration when multiple recent receipt-backed transactions are still missing and the loaded transactions already anchor the same sender', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({
+                transactionCount: 4,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                lastActorAccountID: OWNER_ACCOUNT_ID,
+            }),
+            action: makeAction({
+                childMoneyRequestCount: 4,
+                childLastActorAccountID: OWNER_ACCOUNT_ID,
+                childRecentReceiptTransactionIDs: Object.fromEntries([
+                    ['321', '2026-05-11 10:30:00'],
+                    ['456', '2026-05-11 10:31:00'],
+                ]),
+            }),
+            hasFinishedInitialReportActionsLoad: false,
+            iouActions: [],
+            transactions: [
+                makeTransaction(1200, 'user@test.com', {
+                    transactionID: '123',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '789',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'loaded-receipt.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
+    it('returns childOwnerAccountID when incomplete IOU action coverage conflicts with anchored direction-based actors for a failed receipt transaction', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({
+                transactionCount: 6,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+            }),
+            action: makeAction({
+                childMoneyRequestCount: 6,
+                childLastActorAccountID: OWNER_ACCOUNT_ID,
+                childRecentReceiptTransactionIDs: Object.fromEntries([['789', '2026-05-11 10:24:41']]),
+            }),
+            iouActions: [
+                makeIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE, {
+                    actorAccountID: MANAGER_ACCOUNT_ID,
+                    originalMessage: {
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        IOUTransactionID: '789',
+                        amount: 0,
+                        currency: 'USD',
+                    },
+                }),
+            ],
+            transactions: [
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '111',
+                    comment: undefined,
+                    modifiedAmount: 50000,
+                    receipt: {
+                        source: 'receipt-1.jpg',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                    },
+                }),
+                makeTransaction(2300, 'user@test.com', {
+                    transactionID: '222',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '333',
+                    comment: undefined,
+                    modifiedAmount: 50000,
+                    receipt: {
+                        source: 'receipt-2.jpg',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                    },
+                }),
+                makeTransaction(4300, 'user@test.com', {
+                    transactionID: '444',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '555',
+                    comment: undefined,
+                    modifiedAmount: 3848,
+                    receipt: {
+                        source: 'receipt-3.jpg',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE,
+                    },
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '789',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt-failed.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
+        });
+
+        expect(result).toBe(OWNER_ACCOUNT_ID);
+    });
+
+    it('returns undefined during partial hydration when the missing transaction case does not have recent receipt metadata to support sender inference', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport({
+                transactionCount: 3,
+                ownerAccountID: OWNER_ACCOUNT_ID,
+                managerID: MANAGER_ACCOUNT_ID,
+                lastActorAccountID: OWNER_ACCOUNT_ID,
+            }),
+            action: makeAction({
+                childMoneyRequestCount: 3,
+                childLastActorAccountID: OWNER_ACCOUNT_ID,
+            }),
+            hasFinishedInitialReportActionsLoad: false,
+            iouActions: [],
+            transactions: [
+                makeTransaction(1200, 'user@test.com', {
+                    transactionID: '123',
+                    comment: undefined,
+                }),
+                makeTransaction(0, 'user@test.com', {
+                    transactionID: '321',
+                    comment: undefined,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {
+                        source: 'receipt-failed.png',
+                        state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED,
+                    },
+                }),
+            ],
         });
 
         expect(result).toBeUndefined();
