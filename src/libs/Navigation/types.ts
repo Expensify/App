@@ -1130,7 +1130,7 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS]: {
         policyID: string;
-        connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
+        connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>;
         reconciliationAccountSettingsType?: string;
     };
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
