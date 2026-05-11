@@ -565,19 +565,21 @@ function WorkspacesListPage() {
             }
 
             if (policy?.isJoinRequestPending && policy?.policyDetailsForNonMembers) {
-                const id = Object.keys(policy.policyDetailsForNonMembers).at(0) as string;
+                const policyID = Object.keys(policy.policyDetailsForNonMembers).at(0) as string;
                 const policyInfo = Object.values(policy.policyDetailsForNonMembers).at(0) as PolicyDetailsForNonMembers;
 
                 const policyOwnerAccountID = policyInfo.ownerAccountID;
                 const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
                 workspaceRows.push({
-                    policyID: id,
+                    policyID,
                     disabled: true,
                     errors: undefined,
                     type: policyInfo.type,
                     title: policyInfo.name,
                     role: CONST.POLICY.ROLE.USER,
+                    isDefault: activePolicyID === policyID,
+                    isDeleted: false,
                     ownerAccountID: policyOwnerAccountID,
                     ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                     ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
@@ -599,6 +601,8 @@ function WorkspacesListPage() {
                     title: policy.name,
                     role: policy.role,
                     ownerAccountID: policyOwnerAccountID,
+                    isDefault: activePolicyID === policy.id,
+                    isDeleted: isPendingDeletePolicy(policy),
                     ownerLogin: ownerDetails ? ownerDetails.login : undefined,
                     ownerAvatar: ownerDetails ? ownerDetails.avatar : undefined,
                     ownerName: ownerDetails ? getDisplayNameOrDefault(ownerDetails) : undefined,

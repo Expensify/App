@@ -15,6 +15,8 @@ export type WorkspaceRowData = {
     title: string;
     icon: AvatarSource;
     disabled: boolean;
+    isDefault: boolean;
+    isDeleted: boolean;
     policyID: string;
     ownerAccountID?: number;
     ownerName?: string;
