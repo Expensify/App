@@ -18,6 +18,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
 
@@ -30,9 +31,12 @@ type ConnectBankAccountProps = {
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setUSDBankAccountStep?: (step: string | null) => void;
+
+    /** Route to return to when navigating back out of the flow */
+    backTo?: Route;
 };
 
-function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: ConnectBankAccountProps) {
+function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep, backTo}: ConnectBankAccountProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
@@ -116,6 +120,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
                     requiresTwoFactorAuth={requiresTwoFactorAuth}
                     reimbursementAccount={reimbursementAccount}
                     setUSDBankAccountStep={setUSDBankAccountStep}
+                    backTo={backTo}
                 />
             )}
         </ScreenWrapper>
