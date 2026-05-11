@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -72,90 +72,71 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicyIDs = copyPolicySettings?.targetPolicyIDs ?? [];
 
-    const targetPolicies = useMemo(() => targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter(Boolean), [targetPolicyIDs, policies]);
+    const targetPolicies = targetPolicyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter(Boolean);
 
-    const isAccountingCompatible = useMemo(() => areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies), [sourcePolicy, targetPolicies]);
+    const isAccountingCompatible = areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
 
-    const [selectedParts, setSelectedParts] = useState<readonly Part[]>([]);
+    const [selectedFeatures, setSelectedFeatures] = useState<readonly Part[]>([]);
 
-    const isAccountingSelected = selectedParts.includes('accounting');
+    const isAccountingSelected = selectedFeatures.includes('accounting');
 
-    // Force-enabled parts cannot be toggled off while accounting is selected.
-    const effectiveSelectedParts = useMemo(() => {
-        if (!isAccountingSelected) {
-            return selectedParts;
+    const effectiveSelectedFeatures = isAccountingSelected
+        ? Array.from(new Set<Part>([...selectedFeatures, ...ACCOUNTING_FORCE_ENABLED_PARTS]))
+        : selectedFeatures;
+
+    const isFeatureDisabled = (part: Part) => {
+        if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
+            return true;
         }
-        const next = new Set<Part>(selectedParts);
-        for (const part of ACCOUNTING_FORCE_ENABLED_PARTS) {
-            next.add(part);
+        if (!isAccountingCompatible && (ACCOUNTING_DEPENDENT_PARTS as readonly Part[]).includes(part)) {
+            return true;
         }
-        return Array.from(next);
-    }, [selectedParts, isAccountingSelected]);
+        return false;
+    };
 
-    const isPartDisabled = useCallback(
-        (part: Part) => {
-            if (isAccountingSelected && (ACCOUNTING_FORCE_ENABLED_PARTS as readonly Part[]).includes(part)) {
-                return true;
-            }
-            if (!isAccountingCompatible && (ACCOUNTING_DEPENDENT_PARTS as readonly Part[]).includes(part)) {
-                return true;
-            }
-            return false;
-        },
-        [isAccountingSelected, isAccountingCompatible],
-    );
+    const listItems: ListItem[] = FEATURE_ROWS.map((row) => ({
+        text: translate(row.labelKey),
+        keyForList: row.part,
+        isSelected: effectiveSelectedFeatures.includes(row.part),
+        isDisabled: isFeatureDisabled(row.part),
+        isDisabledCheckbox: isFeatureDisabled(row.part),
+    }));
 
-    const listItems: ListItem[] = useMemo(
-        () =>
-            FEATURE_ROWS.map((row) => ({
-                text: translate(row.labelKey),
-                keyForList: row.part,
-                isSelected: effectiveSelectedParts.includes(row.part),
-                isDisabled: isPartDisabled(row.part),
-                isDisabledCheckbox: isPartDisabled(row.part),
-            })),
-        [translate, effectiveSelectedParts, isPartDisabled],
-    );
+    const toggleFeature = (item: ListItem) => {
+        const part = item.keyForList as Part | undefined;
+        if (!part || isFeatureDisabled(part)) {
+            return;
+        }
+        setSelectedFeatures((prev) => (prev.includes(part) ? prev.filter((selectedPart) => selectedPart !== part) : [...prev, part]));
+    };
 
-    const togglePart = useCallback(
-        (item: ListItem) => {
-            const part = item.keyForList as Part | undefined;
-            if (!part || isPartDisabled(part)) {
-                return;
-            }
-            setSelectedParts((prev) => (prev.includes(part) ? prev.filter((selectedPart) => selectedPart !== part) : [...prev, part]));
-        },
-        [isPartDisabled],
-    );
+    const selectableFeatures: Part[] = FEATURE_ROWS.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
-    const selectableParts = useMemo<Part[]>(() => FEATURE_ROWS.filter((row) => !isPartDisabled(row.part)).map((row) => row.part), [isPartDisabled]);
-
-    const toggleAll = useCallback(() => {
-        const selectableSet = new Set(selectableParts);
-        setSelectedParts((prev) => {
-            const allSelected = selectableParts.every((part) => prev.includes(part));
+    const toggleAll = () => {
+        const selectableSet = new Set(selectableFeatures);
+        setSelectedFeatures((prev) => {
+            const allSelected = selectableFeatures.every((part) => prev.includes(part));
             if (allSelected) {
-                // Deselect selectable parts, keep any disabled-but-selected parts as-is (none exist today).
                 return prev.filter((part) => !selectableSet.has(part));
             }
-            return Array.from(new Set([...prev, ...selectableParts]));
+            return Array.from(new Set([...prev, ...selectableFeatures]));
         });
-    }, [selectableParts]);
+    };
 
-    const commitAndNavigate = useCallback(() => {
+    const saveAndNavigate = () => {
         if (!sourcePolicyID) {
             return;
         }
-        setCopyPolicySettingsData({parts: effectiveSelectedParts.slice()});
+        setCopyPolicySettingsData({parts: effectiveSelectedFeatures.slice()});
         Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_CONFIRM.getRoute(sourcePolicyID));
-    }, [sourcePolicyID, effectiveSelectedParts]);
+    };
 
-    const onConfirm = useCallback(() => {
-        const isWorkflowsSelected = effectiveSelectedParts.includes('workflows');
-        const isMembersSelected = effectiveSelectedParts.includes('members');
+    const onConfirm = () => {
+        const isWorkflowsSelected = effectiveSelectedFeatures.includes('workflows');
+        const isMembersSelected = effectiveSelectedFeatures.includes('members');
 
         if (!isWorkflowsSelected || isMembersSelected) {
-            commitAndNavigate();
+            saveAndNavigate();
             return;
         }
         showConfirmModal({
@@ -167,19 +148,16 @@ function CopyPolicySettingsSelectFeaturesPage() {
             if (result.action !== ModalActions.CONFIRM) {
                 return;
             }
-            commitAndNavigate();
+            saveAndNavigate();
         });
-    }, [effectiveSelectedParts, commitAndNavigate, showConfirmModal, translate]);
+    };
 
-    const confirmButtonOptions: ConfirmButtonOptions<ListItem> = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.next'),
-            onConfirm,
-            isDisabled: effectiveSelectedParts.length === 0,
-        }),
-        [translate, onConfirm, effectiveSelectedParts.length],
-    );
+    const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm,
+        isDisabled: effectiveSelectedFeatures.length === 0,
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -204,8 +182,9 @@ function CopyPolicySettingsSelectFeaturesPage() {
                         data={listItems}
                         ListItem={MultiSelectListItem}
                         canSelectMultiple
-                        onSelectRow={togglePart}
-                        onSelectAll={selectableParts.length > 0 ? toggleAll : undefined}
+                        onSelectRow={toggleFeature}
+                        onSelectAll={selectableFeatures.length > 0 ? toggleAll : undefined}
+                        selectionButtonPosition={CONST.SELECTION_BUTTON_POSITION.RIGHT}
                         shouldSingleExecuteRowSelect
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}
