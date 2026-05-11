@@ -115,6 +115,7 @@ const translations = {
         zoom: 'Zoom',
         password: 'Password',
         magicCode: 'Magic code',
+        magicCodeCaution: 'Only enter this code if you requested to sign in. Do not share it with anyone.',
         digits: 'digits',
         twoFactorCode: 'Two-factor code',
         workspaces: 'Workspaces',

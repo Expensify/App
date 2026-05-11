@@ -57,6 +57,7 @@ const translations: TranslationDeepObject<typeof en> = {
         zoom: 'Zoom',
         password: 'Contraseña',
         magicCode: 'Código mágico',
+        magicCodeCaution: 'Ingresa este código solo si solicitaste iniciar sesión. No lo compartas con nadie.',
         digits: 'dígitos',
         twoFactorCode: 'Autenticación de dos factores',
         workspaces: 'Espacios de trabajo',
