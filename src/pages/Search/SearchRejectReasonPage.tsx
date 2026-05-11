@@ -30,7 +30,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {translate} = useLocalize();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
     const selectedTransactionsForReject = useMemo(() => {
         if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS && reportID) {
@@ -51,7 +51,16 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 return;
             }
 
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch(currentSearchHash, selectedTransactionsForReject, comment, allPolicies, allReports, currentUserAccountID, betas);
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch(
+                currentSearchHash,
+                selectedTransactionsForReject,
+                comment,
+                allPolicies,
+                allReports,
+                currentUserAccountID,
+                currentUserLogin ?? '',
+                betas,
+            );
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
             } else {
@@ -63,16 +72,17 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             }
         },
         [
+            isDelegateAccessRestricted,
             currentSearchHash,
-            clearSelectedTransactions,
+            selectedTransactionsForReject,
             allPolicies,
             allReports,
-            route.name,
-            selectedTransactionsForReject,
-            isDelegateAccessRestricted,
             currentUserAccountID,
-            showDelegateNoAccessModal,
+            currentUserLogin,
             betas,
+            route.name,
+            showDelegateNoAccessModal,
+            clearSelectedTransactions,
         ],
     );
 

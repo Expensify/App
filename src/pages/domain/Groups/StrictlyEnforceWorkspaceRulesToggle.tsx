@@ -9,7 +9,10 @@ import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type StrictlyEnforceWorkspaceRulesToggleProps = {
+    /** The account ID of the domain */
     domainAccountID: number;
+
+    /** The ID of the security group */
     groupID: string;
 };
 
@@ -33,9 +36,9 @@ function StrictlyEnforceWorkspaceRulesToggle({domainAccountID, groupID}: Strictl
     return (
         <View style={styles.mv3}>
             <ToggleSettingOptionRow
-                title={translate('domain.groups.StrictlyEnforceWorkspaceRules')}
-                subtitle={translate('domain.groups.StrictlyEnforceWorkspaceRulesDescription')}
-                switchAccessibilityLabel={translate('domain.groups.StrictlyEnforceWorkspaceRules')}
+                title={translate('domain.groups.strictlyEnforceWorkspaceRules')}
+                subtitle={translate('domain.groups.strictlyEnforceWorkspaceRulesDescription')}
+                switchAccessibilityLabel={translate('domain.groups.strictlyEnforceWorkspaceRules')}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={isEnabled}
                 onToggle={(enabled) => {
