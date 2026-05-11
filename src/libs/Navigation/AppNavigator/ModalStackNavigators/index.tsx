@@ -192,6 +192,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxAmountPage').default,
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxRatePage').default,
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCategory').default,
+    [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCategoryCreate').default,
     [SCREENS.MONEY_REQUEST.STEP_DATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDate').default,
     [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDescription').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistance').default,
@@ -759,7 +760,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/import/NetSuiteImportCustomersOrProjectSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportConfigurationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_PREFERRED_EXPORTER_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuitePreferredExporterSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_DATE_SELECT]: () =>

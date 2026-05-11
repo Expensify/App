@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Il prossimo mese',
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -1312,10 +1313,6 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Paga ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Paga ${formattedAmount} come azienda` : `Paga con conto aziendale`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Segna ${formattedAmount} come pagato` : `Segna come pagata`),
-        confirmPaymentReceivedModalTitle: 'Conferma la ricezione del pagamento',
-        receivedPayment: 'Pagamento ricevuto',
-        receivedPaymentConfirmation: 'Procedi solo se hai già ricevuto il pagamento al di fuori di Expensify.',
-        confirmReceivedPayment: 'Sì, ho ricevuto il pagamento.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `pagato ${amount} con conto personale ${last4Digits}` : `Pagato con conto personale`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `ha pagato ${amount} con il conto aziendale ${last4Digits}` : `Pagato con conto aziendale`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Paga ${formattedAmount} tramite ${policyName}` : `Paga tramite ${policyName}`),
@@ -6030,6 +6027,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             approvers: 'Approvatori',
             auditors: 'Revisori',
             emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},
+            configureGustoSync: 'Configura la sincronizzazione con Gusto.',
+            syncWithGusto: 'Sincronizza con Gusto',
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -6883,6 +6882,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             customRules: {
                 title: 'Politica di spesa',
                 cardSubtitle: 'Qui trovi il regolamento spese del tuo team, così tutti sono allineati su cosa è coperto.',
+                policyDocument: 'Documento di politica',
+                policyText: 'Testo della politica',
             },
             spendRules: {
                 title: 'Spesa',

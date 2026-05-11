@@ -149,13 +149,17 @@ const DYNAMIC_ROUTES = {
         path: 'journal-posting-preference/select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
     },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT: {
+        path: 'connections/netsuite/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.COMPANY_CARD_EXPORT],
+    },
     POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
         path: 'receivable-account/select',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
     },
     POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
         path: 'invoice-item-preference/select',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
     },
     POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT: {
         path: 'invoice-item/select',
@@ -163,15 +167,15 @@ const DYNAMIC_ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
         path: 'preferred-exporter/select',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
     },
     POLICY_ACCOUNTING_NETSUITE_DATE_SELECT: {
         path: 'date/select',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES: {
         path: 'expenses/:expenseType',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
         getRoute: (expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) => `expenses/${expenseType as string}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: {
@@ -1455,6 +1459,16 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/taxAmount/${transactionID}/${reportID}`, backTo);
         },
     },
+    MONEY_REQUEST_STEP_CATEGORY_CREATE: {
+        route: ':action/:iouType/category/new/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string, backTo = '') => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_CATEGORY_CREATE route');
+            }
+            // eslint-disable-next-line no-restricted-syntax -- backTo is needed here to track where editing was initiated from (e.g. search/view or r/:reportID)
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/category/new/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
+        },
+    },
     MONEY_REQUEST_STEP_CATEGORY: {
         route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
@@ -2189,6 +2203,10 @@ const ROUTES = {
     WORKSPACE_AVATAR: {
         route: 'workspaces/:policyID/avatar',
         getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
+    },
+    WORKSPACE_DOCUMENT: {
+        route: 'workspaces/:policyID/document',
+        getRoute: (policyID: string) => `workspaces/${policyID}/document` as const,
     },
     WORKSPACE_JOIN_USER: {
         route: 'workspaces/:policyID/join',
@@ -3745,17 +3763,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
         route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_EXPORT route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/` as const, backTo, false);
-        },
     },
     POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/connections/netsuite/export/tax-posting-account/select',
