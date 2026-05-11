@@ -9,6 +9,7 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
     '/workspaces/*/tags/*/edit': '/settings/$1/tags/settings/tag-list-edit/$2',
     '/workspaces/*/tags/new': '/settings/$1/tags/tag-new',
+    '/workspaces/*/tag/*/*': '/settings/$1/tags/tag-settings/$2/$3',
     '/workspaces/*/tag/*/*/edit': '/settings/$1/tags/tag-settings/$2/$3/tag-edit',
     '/workspaces/*/tag/*/*/gl-code': '/settings/$1/tags/tag-settings/$2/$3/tag-gl-code',
     '/workspaces/*/tag/*/*/approver': '/settings/$1/tags/tag-settings/$2/$3/tag-approver',
