@@ -5,7 +5,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -168,8 +167,6 @@ function AccessOrNotFoundWrapper({
 
     const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName) : true;
 
-    const {isOffline} = useNetwork();
-
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isPageAccessible = accessVariants.reduce((acc, variant) => {
         const accessFunction = ACCESS_VARIANTS[variant];
@@ -185,7 +182,7 @@ function AccessOrNotFoundWrapper({
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
     useEffect(() => {
-        if (!isFocused || isEmptyObject(policy) || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled) || shouldShowNotFoundPage) {
+        if (!isFocused || isEmptyObject(policy) || isFeatureEnabled || (pendingField && !isFeatureEnabled) || shouldShowNotFoundPage) {
             return;
         }
 
@@ -195,7 +192,7 @@ function AccessOrNotFoundWrapper({
         });
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pendingField, isOffline, isFeatureEnabled, shouldShowNotFoundPage, isFocused]);
+    }, [pendingField, isFeatureEnabled, shouldShowNotFoundPage, isFocused]);
 
     useEffect(() => {
         if (isLoadingReportData || !isPolicyNotAccessible) {
