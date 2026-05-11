@@ -169,7 +169,8 @@ function DistanceRequestStartPage({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    Promise.resolve(guard.onDiscard())
+                    Promise.resolve()
+                        .then(() => guard.onDiscard())
                         .then(() => {
                             tabNavigationRef.current?.dispatch(TabActions.jumpTo(targetRoute.name));
                         })
