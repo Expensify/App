@@ -14,6 +14,8 @@ function Direction({coordinates}: DirectionProps) {
     const styles = useThemeStyles();
     const layerLayoutStyle: Record<string, string> = styles.mapDirectionLayer.layout;
     const layerPointStyle: Record<string, string | number> = styles.mapDirectionLayer.paint;
+    const layerBorderLayoutStyle: Record<string, string> = styles.mapDirectionLayerBorder.layout;
+    const layerBorderPointStyle: Record<string, string | number> = styles.mapDirectionLayerBorder.paint;
 
     if (!utils.isSingleSegmentRoute(coordinates)) {
         const validSegments = coordinates.filter((segment) => segment.length >= 2);
@@ -39,6 +41,13 @@ function Direction({coordinates}: DirectionProps) {
                             },
                         }}
                     >
+                        <Layer
+                            id={`${CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}-segment-${index}`}
+                            type="line"
+                            source={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
+                            paint={layerBorderPointStyle}
+                            layout={layerBorderLayoutStyle}
+                        />
                         <Layer
                             id={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
                             type="line"
@@ -71,6 +80,13 @@ function Direction({coordinates}: DirectionProps) {
                         },
                     }}
                 >
+                    <Layer
+                        id={CONST.MAP_VIEW_LAYERS.ROUTE_BORDER}
+                        type="line"
+                        source={CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}
+                        paint={layerBorderPointStyle}
+                        layout={layerBorderLayoutStyle}
+                    />
                     <Layer
                         id={CONST.MAP_VIEW_LAYERS.ROUTE_FILL}
                         type="line"

@@ -8,6 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getArrayDepth from '@libs/getArrayDepth';
+import {getMapMarkerSize} from '@libs/getMapMarkerSize';
 import {getWaypointIndex} from '@libs/TransactionUtils';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
@@ -45,16 +46,15 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'DotIndicatorUnfilled', 'Location']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MapStartWaypoint', 'MapStopWaypoint', 'MapWaypoint']);
 
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
-    const getMarkerComponent = (icon: IconAsset): ReactNode => (
+    const getMarkerComponent = (icon: IconAsset, width: number, height: number): ReactNode => (
         <ImageSVG
             src={icon}
-            width={CONST.MAP_MARKER_SIZE}
-            height={CONST.MAP_MARKER_SIZE}
-            fill={theme.icon}
+            width={width}
+            height={height}
         />
     );
 
@@ -67,18 +67,22 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
 
         const index = getWaypointIndex(key);
         let MarkerComponent: IconAsset;
+        let markerSize: {width: number; height: number};
         if (index === 0) {
-            MarkerComponent = expensifyIcons.DotIndicatorUnfilled;
+            MarkerComponent = expensifyIcons.MapStartWaypoint;
+            markerSize = getMapMarkerSize('START_WAYPOINT');
         } else if (index === lastWaypointIndex) {
-            MarkerComponent = expensifyIcons.Location;
+            MarkerComponent = expensifyIcons.MapStopWaypoint;
+            markerSize = getMapMarkerSize('STOP_WAYPOINT');
         } else {
-            MarkerComponent = expensifyIcons.DotIndicator;
+            MarkerComponent = expensifyIcons.MapWaypoint;
+            markerSize = getMapMarkerSize('WAYPOINT');
         }
 
         waypointMarkers.push({
             id: `${waypoint.lng},${waypoint.lat},${index}`,
             coordinate: [waypoint.lng, waypoint.lat] as const,
-            markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
+            markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent, markerSize.width, markerSize.height),
         });
     }
 

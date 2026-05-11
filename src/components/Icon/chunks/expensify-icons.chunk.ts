@@ -161,6 +161,10 @@ import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-m
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
+import MapCurrentLocation from '@assets/images/map-current-location.svg';
+import MapStartWaypoint from '@assets/images/map-start-waypoint.svg';
+import MapStopWaypoint from '@assets/images/map-stop-waypoint.svg';
+import MapWaypoint from '@assets/images/map-waypoint.svg';
 import Map from '@assets/images/map.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
@@ -390,6 +394,10 @@ const Expensicons = {
     Mail,
     MakeAdmin,
     Map,
+    MapCurrentLocation,
+    MapStartWaypoint,
+    MapStopWaypoint,
+    MapWaypoint,
     Menu,
     Meter,
     Megaphone,

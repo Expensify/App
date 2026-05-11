@@ -11,9 +11,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getMapMarkerSize} from '@libs/getMapMarkerSize';
 import {getDistanceInMeters, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,10 +42,9 @@ type DistanceRequestFooterProps = {
 };
 
 function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle}: DistanceRequestFooterProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'DotIndicatorUnfilled', 'Location', 'Plus']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'MapStartWaypoint', 'MapStopWaypoint', 'MapWaypoint']);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -60,12 +59,11 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
     const {unit} = mileageRate ?? {};
 
-    const getMarkerComponent = (icon: IconAsset): ReactNode => (
+    const getMarkerComponent = (icon: IconAsset, width: number, height: number): ReactNode => (
         <ImageSVG
             src={icon}
-            width={CONST.MAP_MARKER_SIZE}
-            height={CONST.MAP_MARKER_SIZE}
-            fill={theme.icon}
+            width={width}
+            height={height}
         />
     );
 
@@ -77,18 +75,22 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
 
         const index = getWaypointIndex(key);
         let MarkerComponent: IconAsset;
+        let markerSize: {width: number; height: number};
         if (index === 0) {
-            MarkerComponent = expensifyIcons.DotIndicatorUnfilled;
+            MarkerComponent = expensifyIcons.MapStartWaypoint;
+            markerSize = getMapMarkerSize('START_WAYPOINT');
         } else if (index === lastWaypointIndex) {
-            MarkerComponent = expensifyIcons.Location;
+            MarkerComponent = expensifyIcons.MapStopWaypoint;
+            markerSize = getMapMarkerSize('STOP_WAYPOINT');
         } else {
-            MarkerComponent = expensifyIcons.DotIndicator;
+            MarkerComponent = expensifyIcons.MapWaypoint;
+            markerSize = getMapMarkerSize('WAYPOINT');
         }
 
         waypointMarkers.push({
             id: `${waypoint.lng},${waypoint.lat},${index}`,
             coordinate: [waypoint.lng, waypoint.lat] as const,
-            markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
+            markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent, markerSize.width, markerSize.height),
         });
     }
 

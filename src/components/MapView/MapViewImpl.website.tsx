@@ -10,6 +10,7 @@ import type {MapRef, ViewState} from 'react-map-gl';
 import Map, {Marker} from 'react-map-gl';
 import {View} from 'react-native';
 import Button from '@components/Button';
+import ImageSVG from '@components/ImageSVG';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -59,7 +60,7 @@ function MapViewImpl({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
 
     const [mapRef, setMapRef] = useState<MapRef | null>(null);
     const initialLocation = useMemo(() => ({longitude: initialState.location[0], latitude: initialState.location[1]}), [initialState]);
@@ -274,7 +275,11 @@ function MapViewImpl({
                         longitude={currentPosition?.longitude ?? 0}
                         latitude={currentPosition?.latitude ?? 0}
                     >
-                        <View style={styles.currentPositionDot} />
+                        <ImageSVG
+                            src={expensifyIcons.MapCurrentLocation}
+                            width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
+                            height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
+                        />
                     </Marker>
                 )}
                 {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
