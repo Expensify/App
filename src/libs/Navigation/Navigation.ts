@@ -484,10 +484,9 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
         return;
     }
 
-    // For TAB_NAVIGATOR targets, use POP_TO so the underlying tab's nested state is restored from the
-    // payload — plain pop can leave the active tab pointing at Home instead of the intended target.
-    // Issue: https://github.com/Expensify/App/issues/89006
-    if ((minimalAction.payload as {name?: string} | undefined)?.name === NAVIGATORS.TAB_NAVIGATOR) {
+    // For TAB_NAVIGATOR targets, POP_TO restores nested state from the payload (#89006). Skip when
+    // there's nothing to pop — POP_TO would otherwise pop to an older matching route (#89209).
+    if (distanceToPop > 0 && (minimalAction.payload as {name?: string} | undefined)?.name === NAVIGATORS.TAB_NAVIGATOR) {
         navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO, target: targetState.key});
         return;
     }

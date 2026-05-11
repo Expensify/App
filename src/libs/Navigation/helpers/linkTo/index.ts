@@ -1,7 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {CommonActions, findFocusedRoute} from '@react-navigation/native';
-import ROOT_TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/ROOT_TAB_SCREENS';
 import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
@@ -22,6 +21,12 @@ import type {ActionPayloadParams, LinkToOptions} from './types';
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,
 };
+
+/**
+ * Leaf screen names that represent the root/landing view of each tab.
+ * Used to distinguish plain tab switches from cross-tab deep navigations.
+ */
+const ROOT_TAB_SCREENS = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT, SCREENS.WORKSPACES_LIST]);
 
 function areNamesAndParamsEqual(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const currentFocusedRoute = findFocusedRoute(currentState);
@@ -65,6 +70,17 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
 
     return currentParams?.reportID === newParams?.reportID;
+}
+
+function isNavigatingToReportActionWithinSameReport(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {
+    if (currentRoute.name !== SCREENS.REPORT || newRoute.name !== SCREENS.REPORT) {
+        return false;
+    }
+
+    const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+
+    return currentParams?.reportID === newParams?.reportID && currentParams.reportActionID !== newParams.reportActionID;
 }
 
 /**
@@ -113,7 +129,7 @@ function shouldChangeToMatchingFullScreen(
     return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastActiveScreen !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
-export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, shouldChangeToMatchingFullScreen};
+export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, shouldChangeToMatchingFullScreen, isNavigatingToReportActionWithinSameReport};
 
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
@@ -180,6 +196,12 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         (!isDynamicRoute || isRhpNavigationFromStackedTab)
     ) {
         // We want to PUSH by default to add entries to the browser history.
+        action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+    }
+
+    // When we link to a report action in the current report, we want to push instead of replace so that back navigation
+    // works naturally.
+    else if (isNavigatingToReportActionWithinSameReport(currentFocusedRoute, focusedRouteFromPath)) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 

@@ -15,7 +15,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
-import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
@@ -58,6 +58,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
@@ -98,7 +99,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             return;
         }
 
-        await stopGpsTrip(false, true);
+        await stopGpsTrip(false, getGpsPoints(gpsDraftDetails), true);
 
         switchAccount();
     };
@@ -153,12 +154,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     };
 
     const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
-            shouldShowRightIcon: true,
-            iconRight: icons.Checkmark,
-            success: true,
-            isSelected: true,
-        });
+        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {isSelected: true});
 
         if (isActingAsDelegate) {
             const delegateEmail = account?.delegatedAccess?.delegate ?? '';
@@ -313,6 +309,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     scrollContainerStyle={styles.pb4}
                     shouldUseScrollView
                     shouldUpdateFocusedIndex={false}
+                    shouldShowRadioButton
                 />
             )}
         </>

@@ -17,7 +17,7 @@ import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
  * - Fires openSearch() to load bank account data
  * - Re-fires openSearch() when coming back online
  */
-function useSearchPageSetup(queryJSON: SearchQueryJSON | undefined) {
+function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const {isOffline} = useNetwork();
     const prevIsOffline = usePrevious(isOffline);
     const {clearSelectedTransactions} = useSearchActionsContext();

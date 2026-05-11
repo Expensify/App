@@ -6,6 +6,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import Parser from '@libs/Parser';
 import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';
+import ULRenderer from './HTMLEngineProvider/HTMLRenderers/ULRenderer';
 
 type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 
@@ -40,6 +41,9 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
                 // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
                 .replaceAll(/(<emoji[^>]*>)(?:<emoji[^>]*>)+/g, '$1')
                 .replaceAll(/(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g, '$1')
+                // Strip orphaned <br/> tags inside <ul> that would render as extra empty bullets
+                .replaceAll(/<br\s*\/?>\s*(<\/ul>)/gi, '$1')
+                .replaceAll(/(<\/li>)\s*<br\s*\/?>\s*(?=<(?:li|\/ul)>)/gi, '$1')
         );
     }, [htmlParam]);
 
@@ -55,6 +59,7 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
         /* eslint-disable @typescript-eslint/naming-convention */
         'bullet-item': BulletItemRenderer,
         'sparkles-icon': SparklesIconRenderer,
+        ul: ULRenderer,
     };
 
     const htmlSource = (

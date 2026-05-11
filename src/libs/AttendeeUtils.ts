@@ -1,8 +1,10 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+import {sortAlphabetically} from './OptionsListUtils';
 
 function getNormalizedString(value?: string): string | undefined {
     const normalizedValue = value?.trim();
@@ -54,6 +56,20 @@ function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], p
     return [capitalizedFirst, ...lowercasedRest].join(', ');
 }
 
+/**
+ * Converts raw attendees value to an array.
+ * Onyx may deserialize arrays as plain objects, so both shapes are handled.
+ */
+function convertAttendeesToArray(rawAttendees: unknown): Attendee[] {
+    if (Array.isArray(rawAttendees)) {
+        return rawAttendees as Attendee[];
+    }
+    if (rawAttendees && typeof rawAttendees === 'object') {
+        return Object.values(rawAttendees as Record<string, Attendee>);
+    }
+    return [];
+}
+
 /** Returns whether there are missing attendees for the given category */
 function getIsMissingAttendeesViolation(
     policyCategories: PolicyCategories | undefined,
@@ -76,7 +92,7 @@ function getIsMissingAttendeesViolation(
 
     const creatorLogin = userPersonalDetails.login ?? '';
     const creatorEmail = userPersonalDetails.email ?? '';
-    const attendees = Array.isArray(iouAttendees) ? iouAttendees : [];
+    const attendees = convertAttendeesToArray(iouAttendees);
     // Check both login and email since attendee objects may have identifier in either property
     const attendeesMinusCreatorCount = attendees.filter((a) => {
         const attendeeIdentifier = a?.login ?? a?.email;
@@ -133,4 +149,38 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     return violations;
 }
 
-export {formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation};
+/**
+ * Enrich each attendee with live `personalDetails` and return them sorted alphabetically by displayName.
+ */
+function enrichAndSortAttendees(attendees: Attendee[], personalDetailsList: OnyxEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']): Attendee[];
+function enrichAndSortAttendees(
+    attendees: Attendee[] | string | undefined,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+): Attendee[] | string | undefined;
+function enrichAndSortAttendees(
+    attendees: Attendee[] | string | undefined,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
+    localeCompare: LocaleContextProps['localeCompare'],
+): Attendee[] | string | undefined {
+    if (!Array.isArray(attendees)) {
+        return attendees;
+    }
+    return sortAlphabetically(
+        attendees.map((a) => {
+            const pd = a?.accountID ? personalDetailsList?.[a.accountID] : undefined;
+            const freshAvatar = typeof pd?.avatar === 'string' ? pd.avatar : undefined;
+            return {
+                ...a,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                displayName: pd?.displayName || a?.displayName,
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                avatarUrl: freshAvatar || a?.avatarUrl,
+            };
+        }),
+        'displayName',
+        localeCompare,
+    );
+}
+
+export {enrichAndSortAttendees, formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};

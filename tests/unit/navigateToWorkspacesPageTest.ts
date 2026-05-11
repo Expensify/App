@@ -2,7 +2,6 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-syntax
 import * as PolicyUtils from '@libs/PolicyUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
@@ -15,7 +14,6 @@ jest.mock('@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigat
 jest.mock('@libs/PolicyUtils');
 jest.mock('@libs/interceptAnonymousUser');
 jest.mock('@libs/Navigation/helpers/getPathFromState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));

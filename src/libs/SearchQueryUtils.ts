@@ -1,7 +1,7 @@
 import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subMonths} from 'date-fns';
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
@@ -14,12 +14,14 @@ import type {
     ReportFieldTextKey,
     SearchAmountFilterKeys,
     SearchDateFilterKeys,
+    SearchDateKey,
     SearchDatePreset,
     SearchFilterKey,
     SearchQueryJSON,
     SearchQueryString,
     SearchStatus,
     SearchWithdrawalType,
+    SyntaxFilterKey,
     UserFriendlyKey,
     UserFriendlyValue,
 } from '@components/Search/types';
@@ -33,7 +35,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {ExpenseTypeValue, ExpenseTypeValues, HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
@@ -70,6 +72,7 @@ const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE)
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
+const VALID_WITHDRAWAL_STATUSES = new Set<string>(Object.values(CONST.SEARCH.SETTLEMENT_STATUS));
 
 // Create reverse lookup maps for O(1) performance
 const createKeyToUserFriendlyMap = () => {
@@ -385,7 +388,7 @@ function getFilters(queryJSON: SearchQueryJSON) {
  * - for `AMOUNT` it formats value to "backend" amount
  * - for personal filters it tries to substitute any user emails with accountIDs
  */
-function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, filterValue: string | string[], shouldSkipAmountConversion = false) {
+function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string | string[], shouldSkipAmountConversion = false) {
     if (AMOUNT_FILTER_KEYS.includes(filterName as SearchAmountFilterKeys)) {
         if (shouldSkipAmountConversion) {
             return filterValue;
@@ -450,7 +453,7 @@ function getDefaultSearchQueryJSON() {
     return defaultSearchQueryJSON;
 }
 
-function wasViewExplicitlySet(queryJSON?: SearchQueryJSON) {
+function wasViewExplicitlySet(queryJSON?: SearchQueryJSON | Readonly<SearchQueryJSON>) {
     if (!queryJSON?.view) {
         return false;
     }
@@ -578,17 +581,21 @@ function getRawFilterListFromQuery(rawQuery: SearchQueryString) {
 }
 
 // Cache for buildSearchQueryJSON to avoid re-running the PEG parser for identical queries.
+// Cached values are shallow-frozen; callers needing to change fields must spread into a new object first.
 // This is a pure function called from 64+ sites — many fire during the same render cycle
 // with identical query strings, each running the full parser from scratch.
-const buildSearchQueryJSONCache = new Map<string, SearchQueryJSON | undefined>();
+const buildSearchQueryJSONCache = new Map<string, Readonly<SearchQueryJSON> | undefined>();
 const BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE = 50;
 const BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR = '\x00'; // Null byte prevents collisions if query/rawQuery contain arbitrary strings
 
-function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString) {
-    const cacheKey = rawQuery ? `${query}${BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR}${rawQuery}` : query;
+function getBuildSearchQueryJSONCacheKey(query: SearchQueryString, rawQuery?: SearchQueryString) {
+    return rawQuery ? `${query}${BUILD_SEARCH_QUERY_JSON_CACHE_KEY_SEPARATOR}${rawQuery}` : query;
+}
+
+function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
+    const cacheKey = getBuildSearchQueryJSONCacheKey(query, rawQuery);
     if (buildSearchQueryJSONCache.has(cacheKey)) {
-        const cached = buildSearchQueryJSONCache.get(cacheKey);
-        return cached ? {...cached} : cached;
+        return buildSearchQueryJSONCache.get(cacheKey);
     }
 
     try {
@@ -628,12 +635,18 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
                 buildSearchQueryJSONCache.delete(firstKey);
             }
         }
-        buildSearchQueryJSONCache.set(cacheKey, result);
+        const frozen = Object.freeze(result);
+        buildSearchQueryJSONCache.set(cacheKey, frozen);
 
-        return {...result};
+        return frozen;
     } catch (e) {
         console.error(`Error when parsing SearchQuery: "${query}"`, e);
     }
+}
+
+/** Parses {@link query} (and optionally {@link rawQuery}) into JSON. Repeated calls share the same cached object identity for referential stability. */
+function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
+    return getCachedSearchQueryJSON(query, rawQuery);
 }
 
 /**
@@ -642,7 +655,7 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
  *
  * In a way this is the reverse of buildSearchQueryJSON()
  */
-function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
+function buildSearchQueryString(queryJSON?: SearchQueryJSON | Readonly<SearchQueryJSON>) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
     const isViewExplicitlySet = wasViewExplicitlySet(queryJSON);
@@ -699,11 +712,11 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | 
 
         const rawValue = rawFilter.value;
         const filterKey = rawFilter.key;
-        const isRecognizedFilterKey = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS).includes(filterKey as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>);
+        const isRecognizedFilterKey = Object.values(CONST.SEARCH.SYNTAX_FILTER_KEYS).includes(filterKey as SyntaxFilterKey);
         let updatedValue: string | string[] = Array.isArray(rawValue) ? rawValue.map((value) => value?.toString() ?? '') : (rawValue?.toString() ?? '');
 
         if (isRecognizedFilterKey) {
-            updatedValue = getUpdatedFilterValue(filterKey as ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, updatedValue);
+            updatedValue = getUpdatedFilterValue(filterKey as SyntaxFilterKey, updatedValue);
         }
 
         accumulator.push({
@@ -938,7 +951,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPORTER ||
                     filterKey === FILTER_KEYS.EXPORTED_TO ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
-                    filterKey === FILTER_KEYS.COLUMNS) &&
+                    filterKey === FILTER_KEYS.COLUMNS ||
+                    filterKey === FILTER_KEYS.WITHDRAWAL_STATUS) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
@@ -1097,6 +1111,11 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.find((withdrawalType): withdrawalType is SearchWithdrawalType =>
                 VALID_WITHDRAWAL_TYPES.has(withdrawalType as ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>),
             );
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS) {
+            filtersForm[key as typeof filterKey] = filterValues.filter((withdrawalStatus) => VALID_WITHDRAWAL_STATUSES.has(withdrawalStatus)) as Array<
+                ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>
+            >;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
             filtersForm[key as typeof filterKey] = filterValues.filter((card) => cardList?.[card]);
@@ -1791,11 +1810,11 @@ function buildCannedSearchQuery({
     return buildSearchQueryString(normalizedQueryJSON);
 }
 
-function isDefaultExpensesQuery(queryJSON: SearchQueryJSON) {
+function isDefaultExpensesQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
 
-function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON) {
+function isDefaultExpenseReportsQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !queryJSON.status && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
 }
 
@@ -1815,8 +1834,8 @@ const sortOptionsWithEmptyValue = (a: string, b: string, localeCompare: LocaleCo
 /**
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
-function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON, computeNodeValue: (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => string | string[]) {
-    const standardQuery = cloneDeep(queryJSON);
+function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>, computeNodeValue: (left: SyntaxFilterKey, right: string | string[]) => string | string[]) {
+    const standardQuery = cloneDeep(queryJSON) as SearchQueryJSON;
     const filters = standardQuery.filters;
     const traverse = (node: ASTNode) => {
         if (!node.operator) {
@@ -1855,7 +1874,7 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         return;
     }
 
-    const computeNodeValue = (left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
+    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
     return buildSearchQueryString(standardizedQuery);
 }
@@ -2002,7 +2021,7 @@ function buildFilterQueryWithSortDefaults(
 /**
  * Builds an optimistic Snapshot update to ensure offline data for Tasks and Chat messages appears in Search.
  */
-function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string, unknown>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
+function buildOptimisticSnapshotData(type: SearchDataTypes, data: NullishDeep<SearchResultDataType>): OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
     const searchQuery = buildCannedSearchQuery({type});
     const searchQueryJSON = buildSearchQueryJSON(searchQuery);
     if (!searchQueryJSON) {
@@ -2012,7 +2031,6 @@ function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string,
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchQueryJSON.hash}`,
         value: {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             data,
         },
     };
@@ -2026,7 +2044,12 @@ function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string,
  * - For standard date-filter keys (e.g. `"date"`, `"submittedDate"`) the modifier
  *   is appended: `"dateOn"`, `"dateBefore"`, etc.
  */
-function getDateFilterKeys(dateKey: string) {
+function getDateFilterKeys(dateKey: SearchDateFilterKeys): {
+    dateOnKey: SearchDateKey;
+    dateBeforeKey: SearchDateKey;
+    dateAfterKey: SearchDateKey;
+    dateRangeKey: SearchDateKey;
+} {
     if (dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         const suffix = dateKey.replace(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX, '');
         return {
@@ -2058,19 +2081,17 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
- * Set of filter keys that represent free-text fields where the default `:` (eq) operator
- * should be treated as a substring/partial match (`contains`) when querying the backend.
- * This allows searches like `merchant:coffee` to match "Coffee shop".
+ * Fields where `:` should still be sent to the backend as `contains`.
+ * Merchant is intentionally excluded because `merchant:` is exact and `merchant*:` is contains.
  */
-const TEXT_SEARCH_FIELDS = new Set<string>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+const BACKEND_CONTAINS_FIELDS = new Set<string>([CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
 
 /**
- * Recursively traverses a search AST and replaces the `eq` operator with `contains`
- * for free-text filter fields (merchant, description). This enables partial/substring
- * matching on the backend for text searches while preserving the user-facing `:` syntax.
+ * Recursively traverses a search AST and replaces `eq` with `contains`
+ * for fields that still use partial matching on the backend.
  */
 function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
-    if (typeof node.left === 'string' && TEXT_SEARCH_FIELDS.has(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+    if (typeof node.left === 'string' && BACKEND_CONTAINS_FIELDS.has(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
         return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
     }
 
@@ -2097,15 +2118,14 @@ function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIE
 
 /**
  * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
- * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
- * so all backend commands use consistent partial-match semantics — matching what the search view shows.
+ * Applies field-specific backend normalization while preserving explicit merchant operators.
  * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
  */
 function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
     const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
     const normalizedRawFilterList = queryData.rawFilterList
         ? queryData.rawFilterList.map((filter) => {
-              if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+              if (BACKEND_CONTAINS_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
                   return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
               }
               return filter;
@@ -2113,10 +2133,6 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
         : queryData.rawFilterList;
     return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
 }
-
-const isAmountFilterKey = (key: SearchDateFilterKeys | SearchAmountFilterKeys): key is SearchAmountFilterKeys => {
-    return AMOUNT_FILTER_KEYS.includes(key as SearchAmountFilterKeys);
-};
 
 export {
     getDateRangeDisplayValueFromFormValue,
@@ -2154,7 +2170,6 @@ export {
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
-    isAmountFilterKey,
 };
 
 export type {BuildUserReadableQueryStringParams};

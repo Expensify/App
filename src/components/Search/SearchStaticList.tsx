@@ -22,6 +22,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import StatusBadge from '@components/StatusBadge';
 import TransactionItemRow from '@components/TransactionItemRow';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -30,7 +31,6 @@ import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportStatusColorStyle, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
-import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
@@ -69,6 +69,7 @@ function SearchStaticList({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
@@ -96,6 +97,7 @@ function SearchStaticList({
             bankAccountList: undefined,
             allReportMetadata: undefined,
             conciergeReportID: undefined,
+            convertToDisplayString,
         });
 
         return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
@@ -107,12 +109,10 @@ function SearchStaticList({
     // the destination is visible (focus signal for the dual-gate span ending).
     useFocusEffect(
         useCallback(() => {
-            const hasPendingAction = getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
-            if (!showPendingExpensePlaceholder && hasPendingAction) {
+            const hasPendingWrite = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            if (!showPendingExpensePlaceholder && hasPendingWrite) {
                 setShowPendingExpensePlaceholder(true);
-            } else if (showPendingExpensePlaceholder && !hasPendingAction && sortedData.length > 0) {
-                // Only clear the placeholder once real data is available to avoid
-                // a blank flash when the stale snapshot has been filtered empty.
+            } else if (showPendingExpensePlaceholder && !hasPendingWrite && sortedData.length > 0) {
                 setShowPendingExpensePlaceholder(false);
             }
 
@@ -367,7 +367,7 @@ function SearchStaticList({
                         <SearchRowSkeleton
                             shouldAnimate
                             fixedNumItems={1}
-                            isLoadMore={!shouldUseNarrowLayout}
+                            isLoadMore
                             reasonAttributes={pendingExpenseReasonAttributes}
                         />
                     ) : undefined
