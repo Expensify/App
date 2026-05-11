@@ -7,7 +7,6 @@ import SelectionScraper from '@libs/SelectionScraper';
 import CONST from '@src/CONST';
 
 jest.mock('@libs/Clipboard', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         canSetHtml: jest.fn(),
@@ -17,13 +16,11 @@ jest.mock('@libs/Clipboard', () => ({
 }));
 
 jest.mock('@libs/Clipboard/getClipboardText', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));
 
 jest.mock('@libs/KeyboardShortcut', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         subscribe: jest.fn(),
@@ -31,7 +28,6 @@ jest.mock('@libs/KeyboardShortcut', () => ({
 }));
 
 jest.mock('@libs/SelectionScraper', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         getCurrentSelection: jest.fn(),
@@ -66,7 +62,18 @@ describe('useCopySelectionHelper', () => {
     it('subscribes to copy shortcut and unsubscribes on unmount', () => {
         const {unmount} = renderHook(() => useCopySelectionHelper());
 
-        expect(mockSubscribe).toHaveBeenCalledWith(copyShortcutConfig.shortcutKey, expect.any(Function), copyShortcutConfig.descriptionKey, [...copyShortcutConfig.modifiers], false);
+        expect(mockSubscribe).toHaveBeenCalledWith(
+            copyShortcutConfig.shortcutKey,
+            expect.any(Function),
+            copyShortcutConfig.descriptionKey,
+            [...copyShortcutConfig.modifiers],
+            false,
+            false,
+            0,
+            true,
+            [],
+            false,
+        );
 
         unmount();
 

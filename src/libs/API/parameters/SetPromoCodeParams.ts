@@ -1,4 +1,4 @@
 type SetPromoCodeParams = {
-    expensifyCode: string;
+    promoCode: string;
 };
 export default SetPromoCodeParams;

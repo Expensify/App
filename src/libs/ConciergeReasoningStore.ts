@@ -26,6 +26,11 @@ type Listener = (reportID: string, state: ReasoningEntry[]) => void;
 const store = new Map<string, ReportState>();
 const listeners = new Set<Listener>();
 
+// Stable empty array reference for useSyncExternalStore compatibility.
+// getSnapshot must return the same reference when data hasn't changed,
+// otherwise React will re-render infinitely.
+const EMPTY_ENTRIES: ReasoningEntry[] = [];
+
 /**
  * Notify all subscribers of state changes
  */
@@ -97,7 +102,7 @@ function clearReasoning(reportID: string) {
  * Get the reasoning history for a report
  */
 function getReasoningHistory(reportID: string): ReasoningEntry[] {
-    return store.get(reportID)?.entries ?? [];
+    return store.get(reportID)?.entries ?? EMPTY_ENTRIES;
 }
 
 /**

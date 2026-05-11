@@ -1,5 +1,5 @@
 import {activePolicySelector} from '@selectors/Policy';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
 import {canSubmitPerDiemExpenseFromWorkspace, isPaidGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -31,8 +31,53 @@ function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string
     );
 }
 
+type PolicyQualificationResult = {
+    singlePolicyID: string | undefined;
+    isMemberOfMoreThanOnePolicy: boolean;
+    validExpensePolicyID: string | undefined;
+};
+
+/**
+ * Selector that computes which policies qualify for moving expenses.
+ * Returns only IDs and flags — stable output that prevents re-renders when unrelated policies change.
+ */
+function getPolicyQualificationResult(
+    policies: OnyxCollection<Policy>,
+    login: string,
+    isPerDiemRequest?: boolean,
+    isTimeRequest?: boolean,
+    expensePolicyID?: string,
+): PolicyQualificationResult {
+    if (!policies) {
+        return {singlePolicyID: undefined, isMemberOfMoreThanOnePolicy: false, validExpensePolicyID: undefined};
+    }
+
+    let singlePolicyID: string | undefined;
+    let isMemberOfMoreThanOnePolicy = false;
+    for (const policy of Object.values(policies)) {
+        if (!isPolicyValidForMovingExpenses(policy, login, isPerDiemRequest, isTimeRequest)) {
+            continue;
+        }
+        if (!singlePolicyID) {
+            singlePolicyID = policy?.id;
+        } else {
+            isMemberOfMoreThanOnePolicy = true;
+            break;
+        }
+    }
+
+    let validExpensePolicyID: string | undefined;
+    if (expensePolicyID) {
+        const expensePolicy = policies[`${ONYXKEYS.COLLECTION.POLICY}${expensePolicyID}`];
+        if (expensePolicy && isPolicyValidForMovingExpenses(expensePolicy, login, isPerDiemRequest, isTimeRequest)) {
+            validExpensePolicyID = expensePolicyID;
+        }
+    }
+
+    return {singlePolicyID, isMemberOfMoreThanOnePolicy, validExpensePolicyID};
+}
+
 function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string) {
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {
         selector: activePolicySelector,
@@ -41,38 +86,30 @@ function usePolicyForMovingExpenses(isPerDiemRequest?: boolean, isTimeRequest?: 
     const session = useSession();
     const login = session?.email ?? '';
 
-    // Early exit optimization: only need to check if we have 0, 1, or >1 policies
-    let singleUserPolicy;
-    let isMemberOfMoreThanOnePolicy = false;
-    for (const policy of Object.values(allPolicies ?? {})) {
-        if (!isPolicyValidForMovingExpenses(policy, login, isPerDiemRequest, isTimeRequest)) {
-            continue;
-        }
+    // Contextual selector — captures login/flags from closure.
+    // Returns only IDs + flags (stable output) to prevent re-renders when unrelated policies change.
+    const policyQualificationSelector = (policies: OnyxCollection<Policy>) => getPolicyQualificationResult(policies, login, isPerDiemRequest, isTimeRequest, expensePolicyID);
+    const [qualificationResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: policyQualificationSelector,
+    });
 
-        if (!singleUserPolicy) {
-            singleUserPolicy = policy;
-        } else {
-            isMemberOfMoreThanOnePolicy = true;
-            break; // Found 2, no need to continue
-        }
-    }
+    const {singlePolicyID, isMemberOfMoreThanOnePolicy, validExpensePolicyID} = qualificationResult ?? {};
+
+    // Per-key lookup for the resolved policy (only fires when that specific policy changes)
+    const resolvedPolicyID = validExpensePolicyID ?? singlePolicyID;
+    const [resolvedPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${resolvedPolicyID}`);
 
     // If an expense policy ID is provided and valid, prefer it over the active policy
-    // This ensures that when viewing/editing an expense from workspace B, we show workspace B
-    // even if the user's default workspace is A
-    if (expensePolicyID) {
-        const expensePolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${expensePolicyID}`];
-        if (expensePolicy && isPolicyValidForMovingExpenses(expensePolicy, login, isPerDiemRequest, isTimeRequest)) {
-            return {policyForMovingExpensesID: expensePolicyID, policyForMovingExpenses: expensePolicy, shouldSelectPolicy: false};
-        }
+    if (validExpensePolicyID) {
+        return {policyForMovingExpensesID: validExpensePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false};
     }
 
     if (activePolicy && (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(activePolicy)) && (!isTimeRequest || isTimeTrackingEnabled(activePolicy))) {
         return {policyForMovingExpensesID: activePolicyID, policyForMovingExpenses: activePolicy, shouldSelectPolicy: false};
     }
 
-    if (singleUserPolicy && !isMemberOfMoreThanOnePolicy) {
-        return {policyForMovingExpensesID: singleUserPolicy.id, policyForMovingExpenses: singleUserPolicy, shouldSelectPolicy: false};
+    if (singlePolicyID && !isMemberOfMoreThanOnePolicy) {
+        return {policyForMovingExpensesID: singlePolicyID, policyForMovingExpenses: resolvedPolicy, shouldSelectPolicy: false};
     }
 
     if (isMemberOfMoreThanOnePolicy) {

@@ -887,6 +887,18 @@ type AirPnr = {
             /** Vendor cancellation ID for the ticket. */
             vendorCancellationId: string;
         }>;
+        /** Last confirmed tickets before cancellation/voiding. */
+        lastConfirmedTickets?: Array<{
+            /** Flight coupons associated with the ticket. */
+            flightCoupons: Array<{
+                /** Index of the flight. */
+                flightIdx: number;
+                /** Index of the leg. */
+                legIdx: number;
+                /** Status of the flight coupon. */
+                status: string;
+            }>;
+        }>;
         /** Index of the traveler. */
         travelerIdx: number;
         /** User ID associated with the traveler. */

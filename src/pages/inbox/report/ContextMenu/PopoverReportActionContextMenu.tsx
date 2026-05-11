@@ -1,9 +1,11 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-/* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {cancelAnimation, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -15,10 +17,9 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import {deleteTrackExpense} from '@libs/actions/IOU';
+import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
@@ -48,7 +49,7 @@ type PopoverReportActionContextMenuProps = {
 };
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate} = useLocalize();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -58,6 +59,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
+    const reportActionsRef = useRef(reportActions);
+    reportActionsRef.current = reportActions;
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
@@ -76,6 +79,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+    // UI-thread timer driving the delayed hide. https://github.com/Expensify/App/issues/89069
+    const hideDelayProgress = useSharedValue(0);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
     const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
 
@@ -89,7 +94,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const personalPolicy = usePersonalPolicy();
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -183,6 +187,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * @param isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
     const showContextMenu: ReportActionContextMenu['showContextMenu'] = (showContextMenuParams) => {
+        cancelAnimation(hideDelayProgress);
         const {
             type,
             event,
@@ -295,13 +300,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * Hide the ReportActionContextMenu modal popover.
      * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
-    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
-        const {callbacks = {}} = hideContextMenuParams ?? {};
-
-        if (typeof callbacks.onHide === 'function') {
-            onPopoverHideActionCallback.current = callbacks.onHide;
-        }
-
+    const performHide = () => {
         selectionRef.current = '';
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
@@ -313,6 +312,33 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
             setComposerToRefocusOnClose(undefined);
         });
+    };
+
+    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
+        const {callbacks = {}, hideDelayMs} = hideContextMenuParams ?? {};
+
+        if (typeof callbacks.onHide === 'function') {
+            onPopoverHideActionCallback.current = callbacks.onHide;
+        }
+
+        cancelAnimation(hideDelayProgress);
+
+        if (!hideDelayMs || hideDelayMs <= 0) {
+            performHide();
+            return;
+        }
+
+        // UI-thread delayed hide. https://github.com/Expensify/App/issues/89069
+        hideDelayProgress.set(0);
+        hideDelayProgress.set(
+            withTiming(1, {duration: hideDelayMs}, (finished) => {
+                'worklet';
+
+                if (finished) {
+                    scheduleOnRN(performHide);
+                }
+            }),
+        );
     };
 
     const transactionIDs: string[] = [];
@@ -367,9 +393,10 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     isChatIOUReportArchived,
                     allTransactionViolationsParam: allTransactionViolations,
                     currentUserAccountID,
+                    currentUserEmail: email ?? '',
                 });
             } else if (originalMessage?.IOUTransactionID) {
-                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
+                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport({
@@ -380,15 +407,20 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 reportTransactions,
                 allTransactionViolations,
                 bankAccountList,
-                personalPolicy,
-                translate,
-                toLocaleDigit,
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(report, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
+                deleteReportComment(
+                    report,
+                    reportAction,
+                    ancestorsRef.current,
+                    isReportArchived,
+                    isOriginalReportArchived,
+                    email ?? '',
+                    visibleReportActionsData ?? undefined,
+                    reportActionsRef.current ?? undefined,
+                );
             });
         }
 
@@ -411,10 +443,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         email,
         reportTransactions,
         bankAccountList,
-        personalPolicy,
         isOriginalReportArchived,
-        translate,
-        toLocaleDigit,
         visibleReportActionsData,
     ]);
 

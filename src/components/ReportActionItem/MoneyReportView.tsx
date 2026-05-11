@@ -10,15 +10,15 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {resolveReportFieldValue} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
@@ -46,7 +46,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -71,6 +70,14 @@ type MoneyReportViewProps = {
 
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground?: boolean;
+
+    /**
+     * When true, the Total amount is rendered as a loading indicator regardless of `isOffline`.
+     * Use this when the caller knows the underlying total is being recomputed and a
+     * network-independent update is expected, so falling back to the (stale) amount while offline
+     * would be misleading.
+     */
+    isTotalPending?: boolean;
 };
 
 function MoneyReportView({
@@ -81,14 +88,17 @@ function MoneyReportView({
     shouldHideThreadDividerLine,
     pendingAction,
     shouldShowAnimatedBackground = true,
+    isTotalPending = false,
 }: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const isSettled = isSettledReportUtils(report?.reportID);
-    const isTotalUpdated = hasUpdatedTotal(report, policy);
+    const isTotalUpdated = hasUpdatedTotal(report, policy) && !isTotalPending;
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const transactions = useReportTransactions(report?.reportID);
@@ -106,6 +116,7 @@ function MoneyReportView({
         context: 'MoneyReportView.Total',
         isTotalUpdated,
         isOffline,
+        isTotalPending,
     };
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
@@ -114,8 +125,6 @@ function MoneyReportView({
         StyleUtils.getFontSizeStyle(variables.fontSizeH1),
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
-
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
 
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
         const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
@@ -156,7 +165,7 @@ function MoneyReportView({
             ),
         [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
     );
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     return (
         <>
@@ -165,7 +174,7 @@ function MoneyReportView({
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
-                            policy?.areReportFieldsEnabled &&
+                            !!policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {
@@ -173,10 +182,10 @@ function MoneyReportView({
                                 }
 
                                 const fieldValue = resolveReportFieldValue(reportField, report, policy, fieldValues, fieldsByName);
-                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
+                                const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
-                                const violation = isFieldDisabled ? undefined : getFieldViolation(violations, reportField);
+                                const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);
                                 const violationTranslation = getFieldViolationTranslation(reportField, violation);
 
                                 return (
@@ -229,7 +238,7 @@ function MoneyReportView({
                                             />
                                         </View>
                                     )}
-                                    {!isTotalUpdated && !isOffline ? (
+                                    {!isTotalUpdated && (!isOffline || isTotalPending) ? (
                                         <ActivityIndicator
                                             style={[styles.moneyRequestLoadingHeight]}
                                             color={theme.textSupporting}

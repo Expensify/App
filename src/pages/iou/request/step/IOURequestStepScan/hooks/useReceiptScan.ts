@@ -1,7 +1,6 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useMemo, useState} from 'react';
-import TestReceipt from '@assets/images/fake-receipt.png';
+import {useMemo, useState} from 'react';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useOnyx from '@hooks/useOnyx';
@@ -12,17 +11,18 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import {getMoneyRequestParticipantOptions, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
-import setTestReceipt from '@libs/actions/setTestReceipt';
-import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getTaxValue, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import type {ReceiptFile, UseReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
-import {setMoneyRequestReceipt} from '@userActions/IOU';
-import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions} from '@userActions/TransactionEdit';
+import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import {validTransactionDraftsSelector} from '@src/selectors/TransactionDraft';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -37,8 +37,7 @@ function useReceiptScan({
     currentUserPersonalDetails,
     backTo,
     backToReport,
-    isMultiScanEnabled = false,
-    isStartingScan = false,
+    routeName,
     updateScanAndNavigate,
     getSource,
 }: UseReceiptScanParams) {
@@ -53,12 +52,11 @@ function useReceiptScan({
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${initialTransactionID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const isArchived = useReportIsArchived(report?.reportID);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const reportAttributesDerived = useReportAttributes();
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -66,17 +64,21 @@ function useReceiptScan({
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
+    const isStartingScan = routeName === SCREENS.MONEY_REQUEST.CREATE;
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isArchived = isArchivedReport(reportNameValuePairs);
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
-    const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = initialTransaction?.taxAmount ?? 0;
+    const transactionTaxValue = initialTransaction?.taxValue ?? getTaxValue(policy, initialTransaction, transactionTaxCode) ?? '';
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -86,20 +88,12 @@ function useReceiptScan({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
 
-    // Clear receipt files when multi-scan is disabled
-    useEffect(() => {
-        if (isMultiScanEnabled) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setReceiptFiles([]);
-    }, [isMultiScanEnabled]);
-
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const participants = useMemo(
-        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived),
-        [currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived],
+        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, isArchived, reportAttributesDerived],
     );
 
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
@@ -122,6 +116,7 @@ function useReceiptScan({
                 reportID: initialTransaction?.reportID,
                 taxCode: transactionTaxCode,
                 taxAmount: transactionTaxAmount,
+                taxValue: transactionTaxValue,
                 currency: initialTransaction?.currency,
                 isFromGlobalCreate: initialTransaction?.isFromGlobalCreate,
                 participants: initialTransaction?.participants,
@@ -133,7 +128,7 @@ function useReceiptScan({
             backToReport,
             shouldSkipConfirmation,
             defaultExpensePolicy,
-            shouldGenerateTransactionThreadReport,
+            shouldGenerateTransactionThreadReport: false,
             isArchivedExpenseReport: isArchived,
             isAutoReporting: !!personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,
@@ -141,7 +136,6 @@ function useReceiptScan({
             quickAction,
             policyRecentlyUsedCurrencies,
             introSelected,
-            activePolicyID,
             files,
             isTestTransaction,
             locationPermissionGranted,
@@ -154,14 +148,8 @@ function useReceiptScan({
             participants,
             participantsPolicyTags,
             amountOwed,
-        });
-    }
-
-    function setTestReceiptAndNavigate() {
-        setTestReceipt(TestReceipt, 'png', (source, file, filename) => {
-            setMoneyRequestReceipt(initialTransactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
-            removeDraftTransactions(true);
-            navigateToConfirmationStep([{file, source, transactionID: initialTransactionID}], false, true);
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
         });
     }
 
@@ -187,7 +175,7 @@ function useReceiptScan({
         }
 
         if (!isMultiScanEnabled && isStartingScan) {
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs(draftTransactionIDs, true);
         }
 
         for (const [index, file] of files.entries()) {
@@ -225,6 +213,9 @@ function useReceiptScan({
     });
     return {
         transactions,
+        isMultiScanEnabled,
+        setIsMultiScanEnabled,
+        isStartingScan,
         isEditing,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,
@@ -238,7 +229,6 @@ function useReceiptScan({
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        setTestReceiptAndNavigate,
     };
 }
 

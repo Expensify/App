@@ -8,5 +8,5 @@ outputs:
     NEW_VERSION:
         description: The new semver version of the application, updated in the JS and native layers.
 runs:
-    using: node20
+    using: node24
     main: ./index.js

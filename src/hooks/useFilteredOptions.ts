@@ -4,7 +4,6 @@ import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
 import useReportAttributes from './useReportAttributes';
@@ -20,8 +19,8 @@ type UseFilteredOptionsConfig = {
     batchSize?: number;
     /** Whether to enable dynamic loading/pagination (default: true) */
     enablePagination?: boolean;
-    /** Search term for filtering - when present, builds full report map for personal details (default: '') */
-    searchTerm?: string;
+    /** Whether search mode is active - when true, builds full report map for personal details (default: false) */
+    isSearching?: boolean;
     /** Beta features the user has access to */
     betas?: OnyxEntry<Beta[]>;
 };
@@ -67,16 +66,16 @@ type UseFilteredOptionsResult = {
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, searchTerm = '', betas} = config;
+    const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, isSearching = false, betas} = config;
 
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const reportAttributesDerived = useReportAttributes();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
@@ -84,14 +83,14 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const options: OptionList | null = useMemo(
         () =>
             enabled && allReports && allPersonalDetails
-                ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, {
+                ? createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, privateIsArchivedMap, allPolicies, {
                       maxRecentReports: reportsLimit,
                       includeP2P,
-                      searchTerm,
+                      isSearching,
                       betas,
                   })
                 : null,
-        [enabled, allReports, allPersonalDetails, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, reportsLimit, includeP2P, searchTerm, betas],
+        [enabled, allReports, allPersonalDetails, reportAttributesDerived, privateIsArchivedMap, allPolicies, reportsLimit, includeP2P, isSearching, betas],
     );
 
     const hasMore = options ? reportsLimit < totalReports : false;

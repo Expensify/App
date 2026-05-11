@@ -52,6 +52,54 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         spacersIndexes,
     } = useEmojiPickerMenu();
 
+    const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
+    const pendingHeaderFocusIndexRef = useRef<number | null>(null);
+    const [selectedHeaderIndex, setSelectedHeaderIndex] = useState<number | null>(null);
+
+    const getHeaderRef = useCallback((index: number) => {
+        if (!headerRefs.current[index]) {
+            headerRefs.current[index] = React.createRef<View>();
+        }
+        return headerRefs.current[index];
+    }, []);
+
+    const focusHeaderAtIndex = useCallback((headerIndex: number) => {
+        const headerRef = headerRefs.current[headerIndex];
+        if (!headerRef?.current) {
+            return false;
+        }
+        pendingHeaderFocusIndexRef.current = null;
+
+        (headerRef.current as unknown as HTMLElement).focus?.();
+        return true;
+    }, []);
+
+    const scheduleHeaderFocus = useCallback(
+        function schedule(headerIndex: number, attempt = 0) {
+            if (pendingHeaderFocusIndexRef.current !== headerIndex) {
+                return;
+            }
+            if (focusHeaderAtIndex(headerIndex)) {
+                return;
+            }
+            if (attempt >= 2) {
+                return;
+            }
+            setTimeout(() => schedule(headerIndex, attempt + 1), CONST.ANIMATED_TRANSITION);
+        },
+        [focusHeaderAtIndex],
+    );
+
+    const handleHeaderLayout = useCallback(
+        (index: number) => {
+            if (pendingHeaderFocusIndexRef.current !== index) {
+                return;
+            }
+            focusHeaderAtIndex(index);
+        },
+        [focusHeaderAtIndex],
+    );
+
     // Ref for the emoji search input
     const searchInputRef = useRef<BaseTextInputRef>(null);
 
@@ -134,7 +182,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
 
     // Stable throttled function that delegates to the latest callback via ref,
     // preventing re-renders from recreating the throttle timer.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     const filterEmojis = useMemo(() => throttle((text: string) => filterCallbackRef.current?.(text), throttleTime), []);
 
     const keyDownHandler = useCallback(
@@ -242,10 +290,15 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             }
 
             const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+            setSelectedHeaderIndex(headerIndex);
+            pendingHeaderFocusIndexRef.current = headerIndex;
             emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
             setFocusedIndex(headerIndex);
+            setTimeout(() => {
+                scheduleHeaderFocus(headerIndex);
+            }, CONST.ANIMATED_TRANSITION);
         },
-        [emojiListRef, setFocusedIndex],
+        [emojiListRef, setFocusedIndex, scheduleHeaderFocus],
     );
 
     /**
@@ -266,6 +319,10 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             if ('header' in item && item.header) {
                 return (
                     <View
+                        ref={getHeaderRef(index)}
+                        tabIndex={-1}
+                        role={CONST.ROLE.HEADING}
+                        onLayout={() => handleHeaderLayout(index)}
                         style={[
                             styles.emojiHeaderContainer,
                             styles.emojiHeaderContainerWidth(shouldUseNarrowLayout, windowWidth),
@@ -320,6 +377,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             onEmojiSelected,
             setFocusedIndex,
             activeEmoji,
+            getHeaderRef,
+            handleHeaderLayout,
         ],
     );
 
@@ -358,6 +417,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             <BaseEmojiPickerMenu
                 isFiltered={isListFiltered}
                 headerEmojis={headerEmojis}
+                selectedHeaderIndex={selectedHeaderIndex}
                 scrollToHeader={scrollToHeader}
                 listWrapperStyle={[listStyle, styles.flexShrink1]}
                 ref={emojiListRef}

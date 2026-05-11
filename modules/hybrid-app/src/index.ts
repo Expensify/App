@@ -46,6 +46,14 @@ const HybridAppModule: HybridAppModuleType = {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `signOutFromOldDot` should never be called on web');
     },
+    startSignOut() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `startSignOut` should never be called on web');
+    },
+    cancelSignOut() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `cancelSignOut` should never be called on web');
+    },
     clearOldDotAfterSignOut() {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `clearOldDotAfterSignOut` should never be called on web');

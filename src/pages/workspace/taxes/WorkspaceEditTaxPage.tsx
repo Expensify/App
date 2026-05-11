@@ -1,13 +1,14 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,8 +38,8 @@ function WorkspaceEditTaxPage({
     const {translate, localeCompare} = useLocalize();
     const currentTaxID = getCurrentTaxID(policy, taxID);
     const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const canEditTaxRate = policy && canEditTaxRateUtil(policy, currentTaxID ?? taxID);
 
     const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections(policy);
@@ -57,16 +58,25 @@ function WorkspaceEditTaxPage({
         Navigation.setParams({taxID: currentTaxID});
     }, [taxID, currentTaxID]);
 
+    useEffect(() => {
+        if (currentTaxRate || !policy?.taxRates?.taxes) {
+            return;
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+    }, [currentTaxRate, policy?.taxRates?.taxes, policyID]);
+
     const deleteTaxRate = () => {
         if (!policyID) {
             return;
         }
         deletePolicyTaxes(policy, [taxID], localeCompare);
-        setIsDeleteModalVisible(false);
         Navigation.goBack();
     };
 
     if (!currentTaxRate) {
+        if (policy?.taxRates?.taxes) {
+            return null;
+        }
         return <NotFoundPage />;
     }
     const taxCodeToShow = isControlPolicy(policy) ? taxID : '';
@@ -167,20 +177,21 @@ function WorkspaceEditTaxPage({
                         <MenuItem
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => setIsDeleteModalVisible(true)}
+                            onPress={async () => {
+                                const {action} = await showConfirmModal({
+                                    title: translate('workspace.taxes.actions.delete'),
+                                    prompt: translate('workspace.taxes.deleteTaxConfirmation'),
+                                    confirmText: translate('common.delete'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                });
+                                if (action === ModalActions.CONFIRM) {
+                                    deleteTaxRate();
+                                }
+                            }}
                         />
                     )}
                 </View>
-                <ConfirmModal
-                    title={translate('workspace.taxes.actions.delete')}
-                    isVisible={isDeleteModalVisible}
-                    onConfirm={deleteTaxRate}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={translate('workspace.taxes.deleteTaxConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

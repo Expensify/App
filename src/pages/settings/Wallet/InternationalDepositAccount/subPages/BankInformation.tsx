@@ -42,7 +42,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
     const styles = useThemeStyles();
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
-        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION]),
+        fieldIds: Object.keys(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION] ?? {}),
         onNext,
         shouldSaveDraft: isEditing,
     });
@@ -82,7 +82,7 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
         >
             <View style={styles.ph5}>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.bankInformationStepHeader')}</Text>
-                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION])
+                {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION] ?? {})
                     .sort((a, b) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(b.id))
                     .map((field, index) => (
                         <View

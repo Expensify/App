@@ -17,12 +17,13 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {IsFilterValues} from '@src/types/form/SearchAdvancedFiltersForm';
 
 function SearchFiltersIsPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [selectedItems, setSelectedItems] = useState<string[]>(() => {
+    const [selectedItems, setSelectedItems] = useState<IsFilterValues>(() => {
         if (!searchAdvancedFiltersForm?.is) {
             return [];
         }

@@ -6,7 +6,7 @@ type CustomSubPageProps = SubPageProps & {
     personalDetailsValues: PersonalDetailsForm;
 
     /** Whether the flow should collect a PIN */
-    shouldCollectPin: boolean;
+    shouldCollectPIN: boolean;
 };
 
 type CountryZipRegex = {
