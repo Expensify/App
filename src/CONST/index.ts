@@ -7630,6 +7630,7 @@ const CONST = {
         BULK_ACTION_TYPES: {
             EDIT: 'edit',
             EXPORT: 'export',
+            DOWNLOAD_PDF: 'downloadPDF',
             APPROVE: 'approve',
             CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
