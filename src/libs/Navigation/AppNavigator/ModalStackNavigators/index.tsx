@@ -33,7 +33,6 @@ import type {
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
-    ReportVerifyAccountNavigatorParamList,
     RestrictedActionParamList,
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
@@ -185,9 +184,7 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
 const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNavigatorParamList>({
     [SCREENS.MONEY_REQUEST.START]: () => require<ReactComponentModule>('../../../../pages/iou/request/IOURequestRedirectToStartPage').default,
     [SCREENS.MONEY_REQUEST.CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/IOURequestStartPage').default,
-    [SCREENS.MONEY_REQUEST.CREATE_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/MoneyRequestCreateVerifyAccountPage').default,
     [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepConfirmation').default,
-    [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/MoneyRequestStepConfirmationVerifyAccountPage').default,
     [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepAmount').default,
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxAmountPage').default,
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxRatePage').default,
@@ -318,12 +315,6 @@ const PolicyCopySettingsModalStackNavigator = createModalStackNavigator<PolicyCo
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
     [SCREENS.TASK.TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskTitlePage').default,
     [SCREENS.TASK.ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskAssigneeSelectorModal').default,
-});
-
-const ReportVerifyAccountModalStackNavigator = createModalStackNavigator<ReportVerifyAccountNavigatorParamList>({
-    [SCREENS.REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/ReportVerifyAccountPage').default,
-    [SCREENS.EXPENSE_REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/inbox/report/ExpenseReportVerifyAccountPage').default,
-    [SCREENS.SEARCH.REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchReportVerifyAccountPage').default,
 });
 
 const ReportDescriptionModalStackNavigator = createModalStackNavigator<ReportDescriptionNavigatorParamList>({
@@ -1071,8 +1062,6 @@ const MergeTransactionStackNavigator = createModalStackNavigator<MergeTransactio
 });
 
 const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchReportActionsParamList>({
-    [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRootVerifyAccountPage').default,
-    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportVerifyAccountPage').default,
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS]: () => require<ReactComponentModule>('../../../../pages/Search/SearchRejectReasonPage').default,
     [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchHoldReasonPage').default,
@@ -1229,7 +1218,6 @@ export {
     ReportDetailsModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
-    ReportVerifyAccountModalStackNavigator,
     RestrictedActionModalStackNavigator,
     RoomMembersModalStackNavigator,
     ScheduleCallModalStackNavigator,

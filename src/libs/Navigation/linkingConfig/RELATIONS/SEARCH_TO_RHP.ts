@@ -4,10 +4,8 @@ import SCREENS from '@src/SCREENS';
 // This file is used to define RHP screens that are in relation to the search screen.
 const SEARCH_TO_RHP: Partial<Record<keyof SearchFullscreenNavigatorParamList, string[]>> = {
     [SCREENS.SEARCH.ROOT]: [
-        SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT,
         SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP,
         SCREENS.SEARCH.ADVANCED_FILTERS_STATUS_RHP,
-        SCREENS.SEARCH.REPORT_VERIFY_ACCOUNT,
         SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP,
         SCREENS.SEARCH.TRANSACTION_HOLD_REASON_SEARCH,
         SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP,

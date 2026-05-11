@@ -81,7 +81,16 @@ type DynamicRoutes = Record<string, DynamicRouteConfig>;
 const DYNAMIC_ROUTES = {
     VERIFY_ACCOUNT: {
         path: 'verify-account',
-        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
+        entryScreens: [
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+        ],
     },
     ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'add-bank-account/verify-account',
@@ -494,7 +503,6 @@ const ROUTES = {
             return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}` as const;
         },
     },
-    SEARCH_ROOT_VERIFY_ACCOUNT: `search/${VERIFY_ACCOUNT}`,
     SEARCH_SAVE: 'search/save',
     SEARCH_SAVED_SEARCH_RENAME: {
         route: 'search/saved-search/rename',
@@ -535,10 +543,6 @@ const ROUTES = {
         },
     },
 
-    SEARCH_REPORT_VERIFY_ACCOUNT: {
-        route: `search/view/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `search/view/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
     SEARCH_MONEY_REQUEST_REPORT: {
         route: 'search/r/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
@@ -547,10 +551,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(baseRoute, backTo);
         },
-    },
-    SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT: {
-        route: `search/r/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `search/r/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
         route: 'search/r/:reportID/hold',
@@ -1164,14 +1164,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo);
         },
     },
-    REPORT_VERIFY_ACCOUNT: {
-        route: `r/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `r/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
-    EXPENSE_REPORT_VERIFY_ACCOUNT: {
-        route: `e/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (reportID: string) => `e/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
 
@@ -1386,11 +1378,6 @@ const ROUTES = {
             return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const;
         },
     },
-    MONEY_REQUEST_CREATE_VERIFY_ACCOUNT: {
-        route: `:action/:iouType/start/:transactionID/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/${VERIFY_ACCOUNT}` as const,
-    },
     MONEY_REQUEST_STEP_SEND_FROM: {
         route: 'create/:iouType/from/:transactionID/:reportID',
 
@@ -1416,11 +1403,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${optionalRoutePart}` as const, backTo);
         },
-    },
-    MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT: {
-        route: `:action/:iouType/confirmation/:transactionID/:reportID/${VERIFY_ACCOUNT}`,
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
-            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}/${VERIFY_ACCOUNT}` as const,
     },
     MONEY_REQUEST_STEP_AMOUNT: {
         route: ':action/:iouType/amount/:transactionID/:reportID/:reportActionID?/:pageIndex?/:backToReport?',

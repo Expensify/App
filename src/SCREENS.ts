@@ -45,13 +45,10 @@ const SCREENS = {
     },
     SEARCH: {
         ROOT: 'Search_Root',
-        ROOT_VERIFY_ACCOUNT: 'Search_Root_Verify_Account',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
-        MONEY_REQUEST_REPORT_VERIFY_ACCOUNT: 'Search_Money_Request_Report_Verify_Account',
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: 'Search_Money_Request_Report_Reject_Transactions',
         COLUMNS_RHP: 'Search_Columns_RHP',
-        REPORT_VERIFY_ACCOUNT: 'Search_Report_Verify_Account',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_TYPE_RHP: 'Search_Advanced_Filters_Type_RHP',
         ADVANCED_FILTERS_STATUS_RHP: 'Search_Advanced_Filters_Status_RHP',
@@ -343,7 +340,6 @@ const SCREENS = {
         ADD_EXISTING_EXPENSE: 'AddExistingExpense',
         SCHEDULE_CALL: 'ScheduleCall',
         REPORT_CHANGE_APPROVER: 'Report_Change_Approver',
-        REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
         MERGE_TRANSACTION: 'MergeTransaction',
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
         DOMAIN: 'Domain',
@@ -357,12 +353,10 @@ const SCREENS = {
 
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
-        CREATE_VERIFY_ACCOUNT: 'Money_Request_Create_Verify_Account',
         HOLD: 'Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
         REPORT_REJECT: 'Money_Request_Report_Reject',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
-        STEP_CONFIRMATION_VERIFY_ACCOUNT: 'Money_Request_Step_Confirmation_Verify_Account',
         START: 'Money_Request_Start',
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
@@ -974,8 +968,6 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT_NON_USD: 'Reimbursement_Account_Non_USD',
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',
-    REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
-    EXPENSE_REPORT_VERIFY_ACCOUNT: 'Expense_Report_Verify_Account',
     SHARE: {
         ROOT: 'Share_Root',
         SHARE_DETAILS: 'Share_Details',
