@@ -12,7 +12,6 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/tag/*/*/edit': '/settings/$1/tags/tag-settings/$2/$3/tag-edit',
     '/workspaces/*/tag/*/*/gl-code': '/settings/$1/tags/tag-settings/$2/$3/tag-gl-code',
     '/workspaces/*/tag/*/*/approver': '/settings/$1/tags/tag-settings/$2/$3/tag-approver',
-    '/workspaces/*/tag/*/*': '/settings/$1/tags/tag-settings/$2/$3',
     '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
     '/workspaces/*/connections/netsuite/export/invoice-item-preference/invoice-item/select': '/workspaces/$1/connections/netsuite/export/invoice-item-preference/select/invoice-item/select',
     '/workspaces/*/connections/xero/export/preferred-exporter/select': '/workspaces/$1/accounting/xero/export/xero-preferred-exporter/select',
