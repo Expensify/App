@@ -51,7 +51,7 @@ function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isRe
             return file;
         });
 
-        onPicked?.(files, Array.from(e.dataTransfer?.items ?? []));
+        onPicked(files, Array.from(e.dataTransfer?.items ?? []));
     };
 
     return (
@@ -92,11 +92,7 @@ function FileUpload({onPicked, shouldAcceptMultipleFiles = false, onLayout, isRe
                                     text={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                     accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                     style={[styles.p5]}
-                                    onPress={() => {
-                                        openPicker({
-                                            onPicked: (data) => onPicked?.(data, []),
-                                        });
-                                    }}
+                                    onPress={() => openPicker({onPicked})}
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
                                 />
                             )}

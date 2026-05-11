@@ -15,7 +15,7 @@ type CameraProps = {
      * or dropped onto the upload zone (desktop web). Files must be validated by the consumer
      * before being treated as receipts; the camera shutter path stays on `onCapture`.
      */
-    onPicked?: (files: FileObject[], items: DataTransferItem[]) => void;
+    onPicked: (files: FileObject[], items?: DataTransferItem[]) => void;
 
     /** Whether we are replacing an existing receipt (affects drop zone icon/title on desktop) */
     isReplacingReceipt?: boolean;

@@ -274,10 +274,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             });
     };
 
-    const emitPickedFiles = (files: FileObject[]) => {
-        onPicked?.(files, []);
-    };
-
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
         return null;
@@ -384,16 +380,16 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                                 accessibilityLabel={translate('receipt.gallery')}
                                 sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                                 style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
-                                onPress={() => {
+                                onPress={() =>
                                     openPicker({
-                                        onPicked: (data) => emitPickedFiles(data),
+                                        onPicked,
                                         onCanceled: () => onAttachmentPickerStatusChange?.(false),
                                         onClosed: () => {
                                             setIsAttachmentPickerActive(false);
                                             onAttachmentPickerStatusChange?.(false);
                                         },
-                                    });
-                                }}
+                                    })
+                                }
                             >
                                 <Icon
                                     height={variables.iconSizeMenuItem}

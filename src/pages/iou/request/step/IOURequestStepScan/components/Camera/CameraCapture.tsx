@@ -23,7 +23,6 @@ import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CameraProps} from './types';
 
@@ -128,10 +127,6 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
 
     const capturePhoto = () => {
         capturePhotoWithFlash(getScreenshot);
-    };
-
-    const emitPickedFiles = (files: FileObject[]) => {
-        onPicked?.(files, []);
     };
 
     return (
@@ -239,11 +234,7 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                                 accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                 role={CONST.ROLE.BUTTON}
                                 style={isMultiScanEnabled && styles.opacity0}
-                                onPress={() => {
-                                    openPicker({
-                                        onPicked: (data) => emitPickedFiles(data),
-                                    });
-                                }}
+                                onPress={() => openPicker({onPicked})}
                                 sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                             >
                                 <Icon

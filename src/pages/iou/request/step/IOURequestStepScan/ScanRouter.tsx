@@ -37,7 +37,7 @@ type NonGlobalCreateProps = {
 
 type NewReceiptProps = NonGlobalCreateProps;
 
-const policyRequiresTagOrCategorySelector = (policy: OnyxEntry<Policy>) => (policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false);
+const policyRequiresTagOrCategorySelector = (policy: OnyxEntry<Policy>) => !!policy?.requiresCategory || !!policy?.requiresTag;
 
 /**
  * Owns the policy + skip-confirmation subscriptions so the edit and global-create branches don't pay for them.
