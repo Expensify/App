@@ -54,7 +54,7 @@ export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayo
             success={item.isValidated}
             text={item.isValidated ? translate('common.verified') : translate('domain.notVerified')}
             textStyles={styles.textStrong}
-            badgeStyles={styles.alignSelfStart}
+            badgeStyles={[styles.alignSelfStart, styles.ml0]}
         />
     );
 
@@ -75,9 +75,9 @@ export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayo
                             <Icon
                                 src={icons.Globe}
                                 fill={theme.icon}
-                                additionalStyles={styles.domainIcon}
+                                additionalStyles={[shouldUseNarrowTableLayout ? styles.domainIconCompact : styles.domainIcon]}
                             />
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <View style={[styles.alignItemsCenter, !shouldUseNarrowTableLayout && styles.flexRow, shouldUseNarrowTableLayout ? styles.gap1 : styles.gap2]}>
                                 <TextWithTooltip
                                     text={item.title}
                                     shouldShowTooltip

@@ -5894,6 +5894,13 @@ const staticStyles = (theme: ThemeColors) =>
             width: 28,
             height: 28,
         },
+        domainIconCompact: {
+            backgroundColor: theme.border,
+            padding: 10,
+            borderRadius: 8,
+            width: 40,
+            height: 40,
+        },
         copyableTextField: {
             color: theme.textSupporting,
             flex: 1,
