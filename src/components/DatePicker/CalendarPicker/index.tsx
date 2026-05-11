@@ -43,7 +43,16 @@ type CalendarPickerProps = {
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
-    let initialCurrentDateView = typeof value === 'string' ? parseISO(value) : new Date(value);
+    let initialCurrentDateView: Date;
+    if (typeof value === 'string') {
+        if (!value) {
+            initialCurrentDateView = new Date();
+        } else {
+            initialCurrentDateView = parseISO(value);
+        }
+    } else {
+        initialCurrentDateView = new Date(value);
+    }
 
     if (maxDate < initialCurrentDateView) {
         initialCurrentDateView = maxDate;

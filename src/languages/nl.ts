@@ -1311,10 +1311,6 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: (formattedAmount: string) => `Betaal ${formattedAmount}`,
         settleBusiness: (formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} als bedrijf` : `Betalen met zakelijke rekening`),
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Markeer ${formattedAmount} als betaald` : `Markeren als betaald`),
-        confirmPaymentReceivedModalTitle: 'Ontvangst van betaling bevestigen',
-        receivedPayment: 'Betaling ontvangen',
-        receivedPaymentConfirmation: 'Ga alleen verder als je de betaling al buiten Expensify hebt ontvangen.',
-        confirmReceivedPayment: 'Ja, ik heb de betaling ontvangen.',
         settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met persoonlijke rekening ${last4Digits}` : `Betaald met privérekening`),
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `heeft ${amount} betaald met zakelijke rekening ${last4Digits}` : `Betaald met zakelijke rekening`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Betaal ${formattedAmount} via ${policyName}` : `Betaal via ${policyName}`),
@@ -6011,6 +6007,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             approvers: 'Fiatteurs',
             auditors: 'Accountants',
             emptyRoleFilter: {title: 'Geen leden komen overeen met dit filter', subtitle: 'Nodig een lid uit of wijzig het filter hierboven.'},
+            configureGustoSync: 'Gusto-synchronisatie configureren.',
+            syncWithGusto: 'Synchroniseren met Gusto',
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -6863,6 +6861,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             customRules: {
                 title: 'Declaratiebeleid',
                 cardSubtitle: 'Hier staat het declaratiebeleid van je team, zodat iedereen hetzelfde beeld heeft van wat er wordt vergoed.',
+                policyDocument: 'Beleidsdocument',
+                policyText: 'Beleidstekst',
             },
             spendRules: {
                 title: 'Uitgaven',

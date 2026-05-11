@@ -18,7 +18,7 @@ describe('getReportActionsListInitialNumToRender', () => {
     it('returns the platform-adjusted value for linked report actions', () => {
         const result = getReportActionsListInitialNumToRender({
             numToRender: 10,
-            initialScrollKey: '123',
+            linkedReportActionID: '123',
             shouldScrollToEndAfterLayout: false,
             hasCreatedActionAdded: true,
             sortedVisibleReportActionsLength: 500,

@@ -83,7 +83,7 @@ function WorkspaceCompanyCardTableRow({
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, onDismissError} = item;
+    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
 
     const isDeleting = !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -135,6 +135,7 @@ function WorkspaceCompanyCardTableRow({
                 interactive
                 rowIndex={rowIndex}
                 isLoading={isDeleting}
+                disabled={isCardDeleted}
                 skeletonReasonAttributes={reasonAttributes}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
                 LoadingComponent={WorkspaceCompanyCardsTableSkeleton}

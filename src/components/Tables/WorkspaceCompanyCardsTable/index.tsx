@@ -299,9 +299,8 @@ function WorkspaceCompanyCardsTable({
         />
     );
 
-    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-    const shouldRenderHeaderAsChild = !shouldUseNarrowTableLayout || ((isFeedPending || isLoadingPage) && !showCards);
+    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
 
     // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
     // When switching back to wide layout, we want to restore the previous sorting.
@@ -361,7 +360,7 @@ function WorkspaceCompanyCardsTable({
     const ListHeader = (
         <>
             {headerButtonsComponent}
-            {!isLoadingFeed && showCards && <Table.Header />}
+            {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
         </>
     );
 
@@ -378,10 +377,10 @@ function WorkspaceCompanyCardsTable({
             isItemInFilter={isItemInFilter}
             initialSortColumn="member"
             title={translate('workspace.common.companyCards')}
+            ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
             ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
-            ListHeaderComponent={!shouldRenderHeaderAsChild ? ListHeader : undefined}
         >
-            {shouldRenderHeaderAsChild && ListHeader}
+            {!shouldUseNarrowTableLayout && ListHeader}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
                 <ScrollView>

@@ -2541,6 +2541,10 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.tableRowHeight,
         },
 
+        tableHeaderContentHeight: {
+            minHeight: variables.tableHeaderContentHeight,
+        },
+
         borderBottom: {
             borderBottomWidth: 1,
             borderColor: theme.border,
