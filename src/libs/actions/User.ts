@@ -68,12 +68,10 @@ import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
-let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-        currentEmail = value?.email ?? '';
     },
 });
 
@@ -677,6 +675,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 function triggerNotifications<TKey extends OnyxKey>(
     onyxUpdates: Array<OnyxServerUpdate<TKey>>,
     currentUserAccountIDParam: number,
+    currentUserEmail: string,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
     for (const update of onyxUpdates) {
@@ -689,8 +688,8 @@ function triggerNotifications<TKey extends OnyxKey>(
 
         for (const action of reportActions) {
             if (action) {
-                // They aren't connected to a UI anywhere, it's OK to use currentEmail
-                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail, reportAttributes);
+                // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentUserEmail, reportAttributes);
             }
         }
     }
@@ -710,7 +709,7 @@ const isChannelMuted = (reportId: string, currentUserAccountIDParam: number) =>
         });
     });
 
-function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number) {
+function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number, currentUserEmail: string) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
@@ -757,7 +756,7 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
                 }
 
                 // mention user
-                if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentEmail}</mention-user>`)) {
+                if ('html' in message && typeof message.html === 'string' && message.html.includes(`<mention-user>@${currentUserEmail}</mention-user>`)) {
                     return playSound(SOUNDS.ATTENTION);
                 }
 
@@ -917,7 +916,7 @@ function initializePusherPingPong(currentUserAccountIDParam: number) {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function subscribeToUserEvents(currentUserAccountIDParam: number, currentUserEmail: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountIDParam) {
         return;
@@ -950,7 +949,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
     // See https://github.com/Expensify/App/issues/57961 for more details
     const debouncedPlaySoundForMessageType = debounce(
         (pushJSONMessage: AnyOnyxServerUpdate[]) => {
-            playSoundForMessageType(pushJSONMessage, currentUserAccountIDParam);
+            playSoundForMessageType(pushJSONMessage, currentUserAccountIDParam, currentUserEmail);
         },
         CONST.TIMING.PLAY_SOUND_MESSAGE_DEBOUNCE_TIME,
         {trailing: true},
@@ -972,7 +971,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttri
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam, getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountIDParam, currentUserEmail, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1256,13 +1255,13 @@ function updateCustomStatus(currentUserAccountIDParam: number, status: Status) {
 /**
  * Clears the custom status
  */
-function clearCustomStatus() {
+function clearCustomStatus(currentUserAccountIDParam: number) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {
+                [currentUserAccountIDParam]: {
                     status: null, // Clearing the field
                 },
             },
@@ -1509,9 +1508,9 @@ function lockAccount(accountID?: number, domainAccountID?: number, domainName?: 
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
-function requestUnlockAccount(accountID?: number) {
+function requestUnlockAccount(accountID: number) {
     const params: LockAccountParams = {
-        accountID: accountID ?? currentUserAccountID,
+        accountID,
     };
 
     API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
