@@ -492,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Volgende maand',
         previousYear: 'Vorig jaar',
         nextYear: 'Volgend jaar',
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -6010,6 +6011,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             approvers: 'Fiatteurs',
             auditors: 'Accountants',
             emptyRoleFilter: {title: 'Geen leden komen overeen met dit filter', subtitle: 'Nodig een lid uit of wijzig het filter hierboven.'},
+            configureGustoSync: 'Gusto-synchronisatie configureren.',
+            syncWithGusto: 'Synchroniseren met Gusto',
         },
         card: {
             getStartedIssuing: 'Begin met het uitgeven van je eerste virtuele of fysieke kaart.',
@@ -6862,6 +6865,8 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             customRules: {
                 title: 'Declaratiebeleid',
                 cardSubtitle: 'Hier staat het declaratiebeleid van je team, zodat iedereen hetzelfde beeld heeft van wat er wordt vergoed.',
+                policyDocument: 'Beleidsdocument',
+                policyText: 'Beleidstekst',
             },
             spendRules: {
                 title: 'Uitgaven',

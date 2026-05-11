@@ -2,6 +2,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
+import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import DisplayPopup from '@components/Search/FilterDropdowns/DisplayPopup';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -32,12 +33,14 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
     }
 
     const displayPopup = ({closeOverlay}: {closeOverlay: () => void}) => (
-        <DisplayPopup
-            queryJSON={queryJSON}
-            searchResults={searchResults}
-            closeOverlay={closeOverlay}
-            onSort={onSort}
-        />
+        <ListFilterHeightContextProvider>
+            <DisplayPopup
+                queryJSON={queryJSON}
+                searchResults={searchResults}
+                closeOverlay={closeOverlay}
+                onSort={onSort}
+            />
+        </ListFilterHeightContextProvider>
     );
 
     const displayIconButton: DropdownButtonProps['ButtonComponent'] = (props) => (

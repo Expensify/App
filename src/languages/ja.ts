@@ -492,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: '来月',
         previousYear: '前年',
         nextYear: '来年',
+        avatar: 'アバター',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -5963,6 +5964,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             approvers: '承認者',
             auditors: '監査担当者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
+            configureGustoSync: 'Gusto 同期を設定する。',
+            syncWithGusto: 'Gusto と同期',
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -6806,6 +6809,8 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                policyDocument: 'ポリシー文書',
+                policyText: 'ポリシーテキスト',
             },
             spendRules: {
                 title: '支出',

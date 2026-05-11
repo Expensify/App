@@ -183,6 +183,7 @@ const translations = {
         members: 'Members',
         invite: 'Invite',
         here: 'here',
+        avatar: 'Avatar',
         date: 'Date',
         dob: 'Date of birth',
         currentYear: 'Current year',
@@ -6035,6 +6036,8 @@ const translations = {
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,
             workspaceMembersCount: (count: number) => `Total workspace members: ${count}`,
+            configureGustoSync: 'Configure Gusto sync.',
+            syncWithGusto: 'Sync with Gusto',
             allMembers: 'All members',
             admins: 'Admins',
             approvers: 'Approvers',
@@ -6941,6 +6944,8 @@ const translations = {
             customRules: {
                 title: 'Expense policy',
                 cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
+                policyDocument: 'Policy document',
+                policyText: 'Policy text',
             },
             spendRules: {
                 title: 'Spend',

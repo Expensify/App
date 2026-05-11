@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Le mois prochain',
         previousYear: 'Année précédente',
         nextYear: 'L’an prochain',
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -6060,6 +6061,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             approvers: 'Approbateurs',
             auditors: 'Auditeurs',
             emptyRoleFilter: {title: 'Aucun membre ne correspond à ce filtre', subtitle: 'Invitez un membre ou modifiez le filtre ci-dessus.'},
+            configureGustoSync: 'Configurer la synchronisation Gusto.',
+            syncWithGusto: 'Synchroniser avec Gusto',
         },
         card: {
             getStartedIssuing: 'Commencez par émettre votre première carte virtuelle ou physique.',
@@ -6919,6 +6922,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             customRules: {
                 title: 'Politique de dépenses',
                 cardSubtitle: 'C’est ici que se trouve la politique de dépenses de votre équipe, pour que tout le monde soit d’accord sur ce qui est couvert.',
+                policyDocument: 'Document de politique',
+                policyText: 'Texte de politique',
             },
             spendRules: {
                 title: 'Dépenser',

@@ -491,6 +491,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Próximo mês',
         previousYear: 'Ano anterior',
         nextYear: 'Ano que vem',
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Siga-nos no Podcast',
@@ -6010,6 +6011,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             approvers: 'Aprovadores',
             auditors: 'Auditores',
             emptyRoleFilter: {title: 'Nenhum membro corresponde a este filtro', subtitle: 'Convide um membro ou altere o filtro acima.'},
+            configureGustoSync: 'Configurar sincronização com Gusto.',
+            syncWithGusto: 'Sincronizar com Gusto',
         },
         card: {
             getStartedIssuing: 'Comece emitindo seu primeiro cartão virtual ou físico.',
@@ -6861,6 +6864,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             customRules: {
                 title: 'Política de despesas',
                 cardSubtitle: 'Aqui é onde fica a política de despesas da sua equipe, para que todo mundo esteja alinhado sobre o que é coberto.',
+                policyDocument: 'Documento de política',
+                policyText: 'Texto da política',
             },
             spendRules: {
                 title: 'Gasto',
