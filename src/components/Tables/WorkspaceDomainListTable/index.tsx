@@ -4,6 +4,7 @@ import {ValueOf} from 'type-fest';
 import {PopoverMenuItem} from '@components/PopoverMenu';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -55,7 +56,10 @@ type WorkspaceListTableProps = {
 export default function WorkspaceDomainListTable({domains, workspaces}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<WorkspaceRowData, WorkspaceTableColumnKey>>(null);
+
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const columns: Array<TableColumn<WorkspaceTableColumnKey>> = [
         {
@@ -107,6 +111,7 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
             <WorkspaceRow
                 item={item}
                 rowIndex={index}
+                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             />
         );
     };

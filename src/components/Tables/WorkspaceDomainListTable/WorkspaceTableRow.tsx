@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {PopoverMenuItem} from '@components/PopoverMenu';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -13,33 +12,36 @@ import Tooltip from '@components/Tooltip';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getUserFriendlyWorkspaceType} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {WorkspaceRowData} from '.';
 
 type WorkspaceRowProps = {
+    /** The workspace data */
     item: WorkspaceRowData;
 
+    /** The index of the row relative to all other rows */
     rowIndex: number;
+
+    /** Whether to use narrow table row layout */
+    shouldUseNarrowTableLayout: boolean;
 };
 
-export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
+export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex}: WorkspaceRowProps) {
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
 
     const theme = useTheme();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Building', 'FallbackWorkspaceAvatar', 'DotIndicator', 'Hourglass']);
 
     const formattedOwnerName = item.ownerName ?? '';
-    const formattedWorkspaceName = getUserFriendlyWorkspaceType(item.type, translate);
+    const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
+    const narrowWorkspaceLabel = `${translate('common.owner')}: ${formattedOwnerName} • ${formattedWorkspaceType}`;
     const itemDeletedStyles = item.isDeleted ? [styles.offlineFeedbackDeleted] : [{}];
 
     const BrickRoadIndicator = item.brickRoadIndicator && (
@@ -50,6 +52,97 @@ export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
             />
         </View>
     );
+
+    const JoinRequestPendingBadge = (
+        <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+            <Badge
+                text={translate('workspace.common.requested')}
+                textStyles={styles.textStrong}
+                badgeStyles={styles.alignSelfCenter}
+                icon={icons.Hourglass}
+            />
+        </View>
+    );
+
+    const DefaultWorkspaceBadge = (
+        <Tooltip
+            numberOfLines={4}
+            maxWidth={variables.w184}
+            text={translate('workspace.common.defaultNote')}
+        >
+            <View style={[styles.flexRow]}>
+                <Badge
+                    text={translate('common.default')}
+                    textStyles={styles.textStrong}
+                    badgeStyles={styles.alignSelfCenter}
+                />
+            </View>
+        </Tooltip>
+    );
+
+    if (shouldUseNarrowTableLayout) {
+        return (
+            <Table.Row
+                interactive
+                rowIndex={rowIndex}
+                onPress={item.action}
+                skeletonReasonAttributes={{context: 'WorkspaceRow', reason: 'narrowLayout'}}
+            >
+                {({hovered}) => (
+                    <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                        <Avatar
+                            name={item.title}
+                            source={item.icon}
+                            avatarID={item.policyID}
+                            type={CONST.ICON_TYPE_WORKSPACE}
+                            size={CONST.AVATAR_SIZE.DEFAULT}
+                            imageStyles={styles.alignSelfCenter}
+                            fallbackIcon={icons.FallbackWorkspaceAvatar}
+                        />
+
+                        <View style={[styles.flexGrow1]}>
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                text={item.title}
+                                style={itemDeletedStyles}
+                            />
+
+                            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                                {item.isDefault && DefaultWorkspaceBadge}
+                                {item.isJoinRequestPending && JoinRequestPendingBadge}
+                                <Text numberOfLines={1}>{narrowWorkspaceLabel}</Text>
+                            </View>
+                        </View>
+
+                        {!item.isJoinRequestPending && (
+                            <View style={[styles.flexRow, styles.gap1]}>
+                                {item.brickRoadIndicator && BrickRoadIndicator}
+                                <ThreeDotsMenu
+                                    isNested
+                                    shouldOverlay
+                                    shouldSelfPosition
+                                    disabled={item.disabled}
+                                    isContainerFocused={isFocused}
+                                    threeDotsMenuRef={threeDotsMenuRef}
+                                    menuItems={item.threeDotMenuItems ?? []}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.THREE_DOT_MENU}
+                                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                />
+                            </View>
+                        )}
+
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
+                )}
+            </Table.Row>
+        );
+    }
 
     return (
         <Table.Row
@@ -76,21 +169,8 @@ export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
                                 text={item.title}
                                 style={itemDeletedStyles}
                             />
-                            {item.isDefault && (
-                                <Tooltip
-                                    numberOfLines={4}
-                                    maxWidth={variables.w184}
-                                    text={translate('workspace.common.defaultNote')}
-                                >
-                                    <View style={[styles.flexRow]}>
-                                        <Badge
-                                            text={translate('common.default')}
-                                            textStyles={styles.textStrong}
-                                            badgeStyles={styles.alignSelfCenter}
-                                        />
-                                    </View>
-                                </Tooltip>
-                            )}
+                            {item.isDefault && DefaultWorkspaceBadge}
+                            {item.isJoinRequestPending && JoinRequestPendingBadge}
                         </View>
                     </View>
 
@@ -112,7 +192,7 @@ export default function WorkspaceRow({item, rowIndex}: WorkspaceRowProps) {
                             numberOfLines={1}
                             style={itemDeletedStyles}
                         >
-                            {formattedWorkspaceName}
+                            {formattedWorkspaceType}
                         </Text>
                     </View>
 
