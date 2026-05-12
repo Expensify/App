@@ -166,7 +166,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
-import {isScanning} from '@libs/TransactionUtils';
+import {getMerchantOrDescription, isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -186,6 +186,7 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportMetadata,
+    Transaction,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -574,7 +575,12 @@ function getLatestVisibleMoneyRequestAction(
     );
 }
 
-function getExpenseReportPreviewText(report: OnyxEntry<Report>, moneyRequestAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>, translate: LocalizedTranslate): string {
+function getExpenseReportPreviewText(
+    report: OnyxEntry<Report>,
+    moneyRequestAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
+    translate: LocalizedTranslate,
+    transactions: Transaction[] = [],
+): string {
     const originalMessage = moneyRequestAction ? getOriginalMessage(moneyRequestAction) : undefined;
     const amount = originalMessage?.amount;
     const currency = originalMessage?.currency ?? report?.currency;
@@ -584,7 +590,10 @@ function getExpenseReportPreviewText(report: OnyxEntry<Report>, moneyRequestActi
     }
 
     const formattedAmount = convertToDisplayString(amount, currency);
-    const comment = Parser.htmlToText(originalMessage?.comment ?? '').trim();
+    const linkedTransaction = transactions.find((transaction) => transaction.transactionID === originalMessage?.IOUTransactionID);
+    const merchantOrDescription = linkedTransaction ? getMerchantOrDescription(linkedTransaction) : '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const comment = Parser.htmlToText(merchantOrDescription || originalMessage?.comment || '').trim();
 
     return formatReportLastMessageText(translate('iou.expenseAmount', formattedAmount, comment || undefined));
 }
@@ -985,7 +994,7 @@ function getLastMessageTextForReport({
                 visibleReportActionsDataParam,
             );
             if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
-                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate);
+                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions);
             } else if (!isExpenseReport(report)) {
                 lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
             } else if (!isCreatedAction(lastReportAction)) {
