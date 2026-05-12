@@ -184,7 +184,7 @@ function ScreenWrapper({
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldBlockSingleEntryOldAppExit = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
-    const activeRouteWithoutParams = Navigation.getActiveRouteWithoutParams();
+    const activeRouteWithoutParams = Navigation.getActiveRouteWithoutParams?.() ?? '';
     const initialURLWithoutParams = initialURL?.split('?').at(0);
     const doesInitialURLMatchActiveRoute = activeRouteWithoutParams !== '' && !!initialURLWithoutParams?.endsWith(activeRouteWithoutParams);
 
