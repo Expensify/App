@@ -1689,8 +1689,8 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // REPORTS_SPLIT_NAVIGATOR (e.g. the original transaction's thread). Those become stale
     // after the split because the original transaction's reportID is set to SPLIT_REPORT_ID,
     // and falling back on them would land the user on FullPageNotFoundView.
-    if (isSelfDMSplit && params.transactionReport?.reportID) {
-        const selfDMReportID = params.transactionReport.reportID;
+    const selfDMReportID = params.transactionReport?.reportID;
+    if (isSelfDMSplit && selfDMReportID) {
         Navigation.dismissModal({afterTransition: () => popToReportInReportsSplitNavigator(selfDMReportID)});
         requestAnimationFrame(() => {
             updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
