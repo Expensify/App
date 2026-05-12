@@ -17,7 +17,7 @@ import TextInputPopup from '@components/Search/FilterDropdowns/TextInputPopup';
 import UserSelectPopup from '@components/Search/FilterDropdowns/UserSelectPopup';
 import WorkspaceSelectPopup from '@components/Search/FilterDropdowns/WorkspaceSelectPopup';
 import {useSearchStateContext} from '@components/Search/SearchContext';
-import type {ReportFieldKey, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
+import type {ReportFieldKey, SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON, SearchWithdrawalStatus} from '@components/Search/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -359,6 +359,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                 case FILTER_KEYS.HAS:
                 case FILTER_KEYS.IS:
                 case FILTER_KEYS.EXPENSE_TYPE:
+                case FILTER_KEYS.WITHDRAWAL_STATUS:
                 case FILTER_KEYS.STATUS: {
                     let formValues = searchAdvancedFiltersForm[filterKey] ?? [];
 
@@ -381,7 +382,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
                                     return;
                                 }
                                 const update: Partial<SearchAdvancedFiltersForm> = {};
-                                update[filterKey] = selectedItems.map((item) => item.value) as ExpenseTypeValues & HasFilterValues & IsFilterValues;
+                                update[filterKey] = selectedItems.map((item) => item.value) as ExpenseTypeValues & HasFilterValues & IsFilterValues & SearchWithdrawalStatus;
                                 updateFilterForm(update);
                             }}
                         />
