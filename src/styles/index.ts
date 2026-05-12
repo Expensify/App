@@ -1655,16 +1655,17 @@ const staticStyles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
-            marginLeft: variables.sideBarWithLHBWidth,
+            marginLeft: variables.searchSidebarExpandedWidth,
         },
 
         searchSidebar: {
-            width: variables.sideBarWithLHBWidth,
+            width: variables.searchSidebarExpandedWidth,
             height: '100%',
             backgroundColor: theme.sidebar,
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
+            overflow: 'hidden',
         },
 
         // Sidebar Styles

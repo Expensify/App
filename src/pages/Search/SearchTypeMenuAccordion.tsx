@@ -5,8 +5,8 @@ import type {SharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
+import {collapseProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -75,6 +75,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isExpanded);
+    const {isCollapsed: isSidebarCollapsed} = useSearchSidebarCollapse();
 
     const arrowRotation = useSharedValue(getArrowRotation(isExpanded));
 
@@ -88,6 +89,18 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
 
     const arrowAnimatedStyle = useAnimatedStyle(() => ({transform: [{rotate: `${arrowRotation.get()}deg`}]}));
 
+    const headerFadeAnimatedStyle = useAnimatedStyle(() => {
+        const progress = collapseProgress.get();
+        return {
+            opacity: 1 - progress,
+            transform: [{translateX: -8 * progress}],
+        };
+    });
+
+    if (isSidebarCollapsed) {
+        return <View>{children}</View>;
+    }
+
     return (
         <View>
             <PressableWithoutFeedback
@@ -98,19 +111,22 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
                 sentryLabel={CONST.SENTRY_LABEL.ACCORDION_SECTION.TOGGLE}
                 hoverStyle={styles.hoveredComponentBG}
             >
-                <Text
-                    style={[styles.flex1, styles.mutedNormalTextLabel]}
+                <Animated.Text
+                    style={[styles.flex1, styles.mutedNormalTextLabel, headerFadeAnimatedStyle]}
                     accessibilityRole={CONST.ROLE.HEADER}
+                    numberOfLines={1}
                 >
                     {title}
-                </Text>
+                </Animated.Text>
                 {!!badgeText && (
-                    <AnimatedBadge
-                        text={badgeText}
-                        isExpanded={isAccordionExpanded}
-                    />
+                    <Animated.View style={headerFadeAnimatedStyle}>
+                        <AnimatedBadge
+                            text={badgeText}
+                            isExpanded={isAccordionExpanded}
+                        />
+                    </Animated.View>
                 )}
-                <Animated.View style={[arrowAnimatedStyle]}>
+                <Animated.View style={[arrowAnimatedStyle, headerFadeAnimatedStyle]}>
                     <Icon
                         fill={theme.icon}
                         src={icons.UpArrow}

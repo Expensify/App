@@ -1,7 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
+import {collapseProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -36,6 +38,15 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isCollapsed} = useSearchSidebarCollapse();
+
+    const labelAnimatedStyle = useAnimatedStyle(() => {
+        const progress = collapseProgress.get();
+        return {
+            opacity: 1 - progress,
+            transform: [{translateX: -8 * progress}],
+        };
+    });
 
     return (
         <PressableWithoutFeedback
@@ -63,20 +74,24 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                             />
                         </View>
                     )}
-                    <View style={[styles.justifyContentCenter, styles.flex1, styles.ml3]}>
-                        <Text
-                            style={[styles.popoverMenuText, styles.textStrong]}
-                            numberOfLines={1}
-                        >
-                            {title}
-                        </Text>
-                    </View>
-                    {!!badgeText && (
-                        <Badge
-                            text={badgeText}
-                            badgeStyles={styles.todoBadge}
-                            success
-                        />
+                    {!isCollapsed && (
+                        <Animated.View style={[styles.justifyContentCenter, styles.flex1, styles.ml3, labelAnimatedStyle]}>
+                            <Text
+                                style={[styles.popoverMenuText, styles.textStrong]}
+                                numberOfLines={1}
+                            >
+                                {title}
+                            </Text>
+                        </Animated.View>
+                    )}
+                    {!isCollapsed && !!badgeText && (
+                        <Animated.View style={labelAnimatedStyle}>
+                            <Badge
+                                text={badgeText}
+                                badgeStyles={styles.todoBadge}
+                                success
+                            />
+                        </Animated.View>
                     )}
                 </>
             )}
