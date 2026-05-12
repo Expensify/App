@@ -67,8 +67,9 @@ function useConciergeSidePanelReportActions({
         if (!isConciergeSidePanel || !hadUserMessageAtSessionStart || !sessionStartTime) {
             return false;
         }
-        return visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
-    }, [isConciergeSidePanel, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart]);
+        // Prior messages may be on older pages that have not been loaded yet.
+        return hasOlderActions || visibleReportActions.some((action) => !isCreatedAction(action) && action.created < sessionStartTime);
+    }, [isConciergeSidePanel, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasOlderActions]);
 
     const showConciergeSidePanelWelcome = isConciergeSidePanel && hadUserMessageAtSessionStart && !hasUserSentMessage && !showFullHistory;
     const showConciergeGreeting = isConciergeSidePanel && hadUserMessageAtSessionStart && !showFullHistory;
