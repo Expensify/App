@@ -1,9 +1,10 @@
 import {useEffect, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {applyPendingConciergeAction, discardPendingConciergeAction} from '@libs/actions/Report/SuggestedFollowup';
+import {applyPendingConciergeAction, clearPendingFollowupList, discardPendingConciergeAction} from '@libs/actions/Report/SuggestedFollowup';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 import {useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
@@ -21,6 +22,8 @@ const TRICKLE_HARD_CAP_MS = 60_000;
 const ACCELERATED_REMAINING_MS = 1_500;
 /** Minimum char-level anchors before we opt into the trickle reveal. Replies under this fall back to the binary reveal at `displayAfter`. */
 const MIN_TRICKLE_TOKEN_COUNT = 100;
+/** Hard cap on a pending followup-list skeleton. If the server never appends a real followup-list within this window, drop the marker so the UI stops showing a perpetual skeleton. */
+const PENDING_FOLLOWUP_LIST_HARD_CAP_MS = 60_000;
 
 function easeOut(t: number): number {
     const clamped = Math.max(0, Math.min(1, t));
@@ -33,12 +36,17 @@ function easeOut(t: number): number {
  */
 function usePendingConciergeResponse(reportID: string | undefined) {
     const [pendingResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${reportID}`);
+    const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
     const reportActionID = pendingResponse?.reportAction?.reportActionID;
     const fullHtml = pendingResponse?.reportAction ? getReportActionHtml(pendingResponse.reportAction) : '';
     // React Compiler auto-memoizes the selector closure and the tokenize result;
     // explicit useCallback/useMemo would just shadow the compiler's analysis.
     const persistedActionSelector = (actions: OnyxEntry<ReportActions>): ReportAction | undefined => (reportActionID && actions ? actions[reportActionID] : undefined);
     const [persistedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: persistedActionSelector});
+    const pendingFollowupActionID = pendingFollowupList?.reportActionID;
+    const pendingFollowupActionSelector = (actions: OnyxEntry<ReportActions>): ReportAction | undefined =>
+        pendingFollowupActionID && actions ? actions[pendingFollowupActionID] : undefined;
+    const [pendingFollowupAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: pendingFollowupActionSelector});
     const {dispatchLocalDraftEvent} = useConciergeDraftActions();
 
     const tokens = tokenizeForReveal(fullHtml);
@@ -64,6 +72,28 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         }
         accelerateRef.current(Date.now());
     }, [persistedAction]);
+
+    // Clear the pending followup-list skeleton flag as soon as
+    // the server reply (with <followup-list>) overwrites the optimistic action.
+    // A fallback guards against the case where no followup-list ever arrives
+    // so the skeleton won't get stuck.
+    useEffect(() => {
+        if (!reportID || !pendingFollowupList) {
+            return;
+        }
+        const html = pendingFollowupAction ? getReportActionHtml(pendingFollowupAction) : '';
+        if (parseFollowupsFromHtml(html)?.length) {
+            clearPendingFollowupList(reportID);
+            return;
+        }
+        const remainingTTL = pendingFollowupList.createdAt + PENDING_FOLLOWUP_LIST_HARD_CAP_MS - Date.now();
+        if (remainingTTL <= 0) {
+            clearPendingFollowupList(reportID);
+            return;
+        }
+        const ttlTimer = setTimeout(() => clearPendingFollowupList(reportID), remainingTTL);
+        return () => clearTimeout(ttlTimer);
+    }, [reportID, pendingFollowupList, pendingFollowupAction]);
 
     useEffect(() => {
         if (!reportID || !reportActionID) {

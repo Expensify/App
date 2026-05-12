@@ -3,6 +3,7 @@ import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
+import FollowupListSkeleton from '@components/ReportActionItem/FollowupListSkeleton';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
@@ -47,6 +48,9 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
+
+    const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
+    const hasPendingFollowupListSkeleton = pendingFollowupList?.reportActionID === action.reportActionID;
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -208,6 +212,9 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
     })();
 
     if (actionableItemButtons.length === 0) {
+        if (hasPendingFollowupListSkeleton) {
+            return <FollowupListSkeleton />;
+        }
         return null;
     }
 

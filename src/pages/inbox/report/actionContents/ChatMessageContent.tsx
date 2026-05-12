@@ -8,6 +8,7 @@ import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
@@ -25,6 +26,7 @@ import ReportActionItemMessage from '@pages/inbox/report/ReportActionItemMessage
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import ChatActionableButtons from './ChatActionableButtons';
 
@@ -88,13 +90,17 @@ function ChatMessageContent({
 
     const {hasBeenFlagged} = getModerationFlagState(action);
 
+    const [pendingFollowupList] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`);
+    const hasPendingFollowupListSkeleton = pendingFollowupList?.reportActionID === action.reportActionID;
+
     const messageHtml = getReportActionMessage(action)?.html;
     const mayHaveActionableButtons =
         isActionableAddPaymentCard(action) ||
         isConciergeCategoryOptions(action) ||
         isConciergeDescriptionOptions(action) ||
         isActionableTrackExpense(action) ||
-        !!(messageHtml && parseFollowupsFromHtml(messageHtml)?.length);
+        !!(messageHtml && parseFollowupsFromHtml(messageHtml)?.length) ||
+        hasPendingFollowupListSkeleton;
 
     return (
         <MentionReportContext.Provider value={mentionReportContextValue}>
