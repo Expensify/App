@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getArrayDepth from '@libs/getArrayDepth';
 import {getWaypointIndex} from '@libs/TransactionUtils';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
@@ -86,7 +87,8 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
         return stopMapboxToken;
     }, []);
 
-    const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
+    const hasCoordinates = getArrayDepth(coordinates) === 3 ? !!coordinates.flat().length : !!coordinates.length;
+    const shouldDisplayMap = !requireRouteToDisplayMap || hasCoordinates;
 
     return !isOffline && !!mapboxAccessToken?.token && shouldDisplayMap ? (
         <DistanceMapView
