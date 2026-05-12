@@ -100,6 +100,7 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
     const workspaceTable = useTable({
         data: workspaces,
         title: translate('common.workspaces'),
+        initialSortColumn: 'workspaces',
         compareItems: compareWorkspaceItems,
         isItemInSearch: isWorkspaceItemInSearch,
         columns: [
@@ -115,6 +116,7 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
         title: translate('common.domains'),
         compareItems: compareDomainItems,
         isItemInSearch: isDomainItemInSearch,
+        initialSortColumn: 'domains',
         columns: [
             {key: 'domains', label: translate('common.domains')},
             {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},

@@ -13,8 +13,8 @@ import type {FilterButtonItem} from './buildFilterItems';
 /**
  * Props for the TableFilterButtons component.
  */
-type TableFilterButtonsProps<DataType> = ViewProps & {
-    table: TableValue<DataType>;
+type TableFilterButtonsProps<DataType, ColumnKey extends string, FilterKey extends string> = ViewProps & {
+    table: TableValue<DataType, ColumnKey, FilterKey>;
 
     /** Optional custom styles for the horizontal FlatList content container. */
     contentContainerStyle?: StyleProp<ViewStyle>;
@@ -68,7 +68,7 @@ type TableFilterButtonsProps<DataType> = ViewProps & {
  * </Table>
  * ```
  */
-function TableFilterButtons<DataType>({table, contentContainerStyle, ...props}: TableFilterButtonsProps<DataType>) {
+function TableFilterButtons<DataType, ColumnKey extends string, FilterKey extends string>({table, contentContainerStyle, ...props}: TableFilterButtonsProps<DataType, ColumnKey, FilterKey>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {
@@ -77,7 +77,7 @@ function TableFilterButtons<DataType>({table, contentContainerStyle, ...props}: 
         tableMethods: {updateFilter},
     } = table;
 
-    const setFilter = (key: string, value: unknown) => {
+    const setFilter = (key: FilterKey, value: unknown) => {
         updateFilter({key, value});
     };
 

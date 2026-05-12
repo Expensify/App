@@ -30,7 +30,7 @@ type FilterButtonItem<FilterKey extends string = string> = {
 function buildFilterItems<FilterKey extends string = string>(
     filterConfigs: FilterConfig<FilterKey> | undefined,
     filters: Record<string, unknown>,
-    setFilter: (key: string, value: unknown) => void,
+    setFilter: (key: FilterKey, value: unknown) => void,
     filtersLabel: string,
 ): Array<FilterButtonItem<FilterKey>> {
     if (!filterConfigs) {
@@ -98,7 +98,7 @@ function createPopoverComponent<FilterKey extends string = string>(
     filterKey: FilterKey,
     filterConfig: FilterConfigEntry,
     currentFilterValue: unknown,
-    setFilter: (key: string, value: unknown) => void,
+    setFilter: (key: FilterKey, value: unknown) => void,
 ): (props: PopoverComponentProps) => ReactNode {
     if (filterConfig.filterType === 'multi-select') {
         return createMultiSelectPopover({filterKey, filterConfig, currentFilterValue, setFilter});
@@ -166,7 +166,7 @@ type SingleSelectPopoverFactoryProps<FilterKey extends string = string> = {
     filterKey: FilterKey;
     filterConfig: FilterConfigEntry;
     currentFilterValue: unknown;
-    setFilter: (key: string, value: unknown) => void;
+    setFilter: (key: FilterKey, value: unknown) => void;
 };
 
 /**

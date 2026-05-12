@@ -6,7 +6,7 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
-import Table from '@components/Table';
+import Table, {TableValue} from '@components/Table';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
@@ -26,10 +26,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
 const FEED_SELECTOR_SKELETON_WIDTH = 289;
 
-type WorkspaceCompanyCardsTableHeaderButtonsProps = {
+type WorkspaceCompanyCardsTableHeaderButtonsProps<ColumnKey extends string, FilterKey extends string> = {
+    /** The table instance from the parent component */
+    table: TableValue<WorkspaceCompanyCardTableItemData, ColumnKey, FilterKey>;
+
     /** Current policy id */
     policyID: string;
 
@@ -46,7 +50,14 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     CardFeedIcon: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, showTableControls, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons<ColumnKey extends string, FilterKey extends string>({
+    table,
+    policyID,
+    feedName,
+    isLoading,
+    showTableControls,
+    CardFeedIcon,
+}: WorkspaceCompanyCardsTableHeaderButtonsProps<ColumnKey, FilterKey>) {
     const styles = useThemeStyles();
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -154,6 +165,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     {!isLoading && showTableControls && (
                         <View style={[styles.mnw200]}>
                             <Table.SearchBar
+                                table={table}
                                 label={translate('workspace.companyCards.findCard')}
                                 style={[styles.mh0, styles.mb0]}
                             />
@@ -163,7 +175,12 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     <View style={[styles.flexRow, styles.gap3]}>
                         {!isLoading && (
                             <>
-                                {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
+                                {showTableControls && (
+                                    <Table.FilterButtons
+                                        table={table}
+                                        style={shouldShowNarrowLayout && [styles.flex1]}
+                                    />
+                                )}
                                 <ButtonWithDropdownMenu
                                     success={false}
                                     onPress={() => {}}
