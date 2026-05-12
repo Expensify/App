@@ -85,7 +85,7 @@ function useEditComposerToggle({selection, draftComment, composerRef, onFocus, o
                 applyComposerValue(draftComment ?? '', {selection: previousDraftSelectionRef.current, shouldForceNativeValueUpdate: true});
 
                 // Once the composer is no longer in edit mode, we can reset the manual composer height.
-                if (isEditingInComposer) {
+                if (wasEditingInComposerRef.current) {
                     setDidResetComposerHeight(false);
                 }
 
