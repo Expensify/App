@@ -770,10 +770,10 @@ describe('PersonalDetailsUtils', () => {
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1, displayName: 'Sam', login: 'sam@example.com'},
                     shouldAddCurrentUserPostfix: true,
-                    youAfterTranslation: 'vous',
+                    youAfterTranslation: 'anotherYou',
                     areTranslationsLoading: false,
                 }),
-            ).toBe('Sam (vous)');
+            ).toBe('Sam (anotherYou)');
         });
 
         test('should return concierge display name for concierge accountID', () => {
