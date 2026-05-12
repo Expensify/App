@@ -38,7 +38,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {getAllPersonalDetails, getAllTransactionViolations, getUserAccountID} from '.';
+import {getAllPersonalDetails, getAllTransactionViolations, getCurrentUserEmail, getUserAccountID} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
 import {getReportPreviewAction} from './MoneyRequestBuilder';
 
@@ -799,6 +799,9 @@ function markReportPaymentReceived(
         return;
     }
 
+    const allTransactionViolations = getAllTransactionViolations();
+    const currentUserAccountID = getUserAccountID();
+    const currentUserEmail = getCurrentUserEmail();
     const recipient = {accountID: iouReport.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const total = (iouReport.total ?? 0) - (iouReport.nonReimbursableTotal ?? 0);
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
@@ -828,7 +831,7 @@ function markReportPaymentReceived(
             value: {
                 ...chatReport,
                 iouReportID: null,
-                hasOutstandingChildRequest: false,
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport.reportID, currentUserEmail, currentUserAccountID, allTransactionViolations, undefined),
                 lastMessageText: getReportActionText(optimisticIOUReportAction),
                 lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
             },
