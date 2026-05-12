@@ -48,7 +48,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import type {MockFetch} from '../../utils/TestHelper';
-import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
+import {getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
 
@@ -4265,6 +4265,84 @@ describe('updateSplitTransactions', () => {
         const [splitTransactionID1, splitTransactionID2, splitTransactionID3] = await splitToN(3, expenseReport, originalTransactionID, firstIOU);
         return {splitTransactionID1, splitTransactionID2, splitTransactionID3};
     };
+
+    it('should send reportID and localized failure fallback when updating existing split transactions', async () => {
+        const {expenseReport, originalTransactionID} = await createBaseExpense();
+
+        if (!originalTransactionID || !expenseReport?.reportID) {
+            throw new Error('Missing original transaction data');
+        }
+
+        const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+        const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, iouAction);
+        const splitTransaction1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
+        const splitTransaction2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`);
+        const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
+        const policyTags = await getPolicyTags(expenseReport.reportID);
+        const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+
+        const APIlib = require('@libs/API') as {write: (...args: unknown[]) => Promise<void>};
+        const originalWrite = APIlib.write;
+        const writeSpy = jest.spyOn(APIlib, 'write').mockImplementation((...args) => originalWrite(...args));
+
+        updateSplitTransactions({
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: splitTransactionID1, reportID: splitTransaction1?.reportID, amount: amount / 2 + 100, created: DateUtils.getDBTime()},
+                    {transactionID: splitTransactionID2, reportID: splitTransaction2?.reportID, amount: amount / 2 - 100, created: DateUtils.getDBTime()},
+                ],
+                splitExpensesTotal: amount,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            iouReportNextStep: undefined,
+            betas: [CONST.BETAS.ALL],
+            policyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+        });
+
+        const updateSplitTransactionCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION);
+        writeSpy.mockRestore();
+
+        expect(updateSplitTransactionCall).toBeDefined();
+        const [, params, onyxData] = updateSplitTransactionCall ?? [];
+        const updateParams = params as Record<string, string | number | boolean>;
+        expect(updateParams['splits[0][reportID]']).toBe(splitTransaction1?.reportID);
+        expect(updateParams['splits[1][reportID]']).toBe(splitTransaction2?.reportID);
+
+        const failureData = (onyxData as {failureData?: Array<{key: string; value?: {errors?: Record<string, string | null> | null}}>})?.failureData ?? [];
+        const getFailureErrorUpdates = (key: string) =>
+            failureData.filter((update) => update.key === key && update.value && Object.hasOwn(update.value, 'errors')).map((update) => update.value?.errors);
+
+        const localizedFallback = translateLocal('iou.error.genericEditFailureMessage');
+        const draftFailureErrors = getFailureErrorUpdates(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const originalTransactionFailureErrors = getFailureErrorUpdates(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        const splitTransactionFailureErrors = getFailureErrorUpdates(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
+
+        expect(draftFailureErrors.slice(-2)).toEqual([null, expect.any(Object)]);
+        expect(Object.values(draftFailureErrors.at(-1) ?? {}).at(0)).toBe(localizedFallback);
+        expect(originalTransactionFailureErrors.slice(-2)).toEqual([null, expect.any(Object)]);
+        expect(Object.values(originalTransactionFailureErrors.at(-1) ?? {}).at(0)).toBe(localizedFallback);
+        expect(splitTransactionFailureErrors.slice(-2)).toEqual([null, expect.any(Object)]);
+        expect(Object.values(splitTransactionFailureErrors.at(-1) ?? {}).at(0)).toBe(localizedFallback);
+    });
 
     it('should keep all split transactions on hold when splitting a held transaction', async () => {
         const {expenseReport, transactionThreadReportID, originalTransactionID} = await createBaseExpense();

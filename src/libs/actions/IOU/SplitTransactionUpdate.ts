@@ -233,6 +233,7 @@ function updateSplitTransactions({
                 created: split.created,
                 merchant: split?.merchant ?? '',
                 transactionID: split.transactionID,
+                reportID: split.reportID,
                 comment: {
                     comment: currentDescription,
                 },
@@ -247,7 +248,7 @@ function updateSplitTransactions({
         }) ?? [];
     changesInReportTotal -= splitExpensesTotal;
 
-    const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys> = {
+    const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys | UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT> = {
         successData: [],
         failureData: [],
         optimisticData: [],
@@ -656,6 +657,7 @@ function updateSplitTransactions({
                 comment: currentSplit?.comment?.comment,
                 customUnitRateID: currentSplit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID,
             } as TransactionChanges;
+            delete transactionChanges.reportID;
 
             const existing = getTransactionDetails(splitTransaction);
             const oldTransactionChanges = {
@@ -1604,6 +1606,29 @@ function updateSplitTransactions({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitTransactionThreadReportID}`,
                     value: failureRestoredComments,
+                },
+            );
+        }
+    }
+
+    if (!isCreationOfSplits && !isReverseSplitOperation) {
+        const splitUpdateFailureDataKeys: Array<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` | `${typeof ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${string}`> = [
+            `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`,
+            `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+            ...splitExpenses.filter((splitExpense) => !!splitExpense.transactionID).map((splitExpense) => `${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense.transactionID}` as const),
+        ];
+
+        for (const key of new Set(splitUpdateFailureDataKeys)) {
+            onyxData.failureData?.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key,
+                    value: {errors: null},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key,
+                    value: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')},
                 },
             );
         }
