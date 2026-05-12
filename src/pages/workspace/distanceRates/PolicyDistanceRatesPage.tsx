@@ -28,6 +28,7 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -66,7 +67,7 @@ function PolicyDistanceRatesPage({
     },
 }: PolicyDistanceRatesPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -324,7 +325,6 @@ function PolicyDistanceRatesPage({
 
         deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedDistanceRates([]);
         });
@@ -428,15 +428,17 @@ function PolicyDistanceRatesPage({
         [icons.Gear, openSettings, translate],
     );
 
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     const headerButtons = (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+        <View style={[!isInLandscapeMode && styles.w100, styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
             {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
                         text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
+                        style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                         icon={icons.Plus}
                         success
                     />
@@ -459,8 +461,8 @@ function PolicyDistanceRatesPage({
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                    wrapperStyle={styles.w100}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1]}
+                    wrapperStyle={!isInLandscapeMode ? styles.w100 : undefined}
                     isSplitButton={false}
                     isDisabled={!selectedDistanceRates.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.BULK_ACTIONS_DROPDOWN}
@@ -517,9 +519,9 @@ function PolicyDistanceRatesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldUseNarrowLayout && headerButtons}
+                    {!shouldDisplayButtonsInSeparateLine && headerButtons}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.ph5]}>{headerButtons}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.ph5]}>{headerButtons}</View>}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -532,10 +534,9 @@ function PolicyDistanceRatesPage({
                         data={filteredDistanceRatesList}
                         ListItem={TableListItem}
                         onSelectRow={openRateDetails}
-                        onCheckboxPress={toggleRate}
+                        onSelectionButtonPress={toggleRate}
                         selectedItems={selectedDistanceRates}
                         customListHeader={getCustomListHeader()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}
                         onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}

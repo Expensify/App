@@ -5,7 +5,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -121,7 +121,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                 }}
                 initiallyFocusedItemKey={goalOptions.find((item) => item.keyForList === selectedGoal)?.keyForList}
                 shouldUpdateFocusedIndex
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 footerContent={footerContent}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}}
             />

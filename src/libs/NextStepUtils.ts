@@ -389,7 +389,6 @@ function getReportNextStep(
     }
 
     if (shouldShowNoFurtherAction) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- The report header still consumes the deprecated nextStep shape, so we intentionally reuse the legacy builder here to override stale server nextStep data for $0 reports.
         return buildNextStepNew({
             report: moneyRequestReport,
             policy,
@@ -842,6 +841,5 @@ export {
     buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
     buildOptimisticNextStepForDEWOffline,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStepNew,
 };

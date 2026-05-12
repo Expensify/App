@@ -98,10 +98,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
 }
 
 /**
- * This method returns read command and stage in progress for a given accounting integration.
- *
- * @param policyID - ID of the policy for which the sync is needed
- * @param connectionName - Name of the connection, QBO/Xero
+ * This method returns read command and stage in progress for a given policy connection.
  */
 function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
     switch (connectionName) {
@@ -120,16 +117,19 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBD: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.GUSTO: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_GUSTO, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE};
+        }
         default:
             return undefined;
     }
 }
 
 /**
- * This method helps in syncing policy to the connected accounting integration.
+ * This method helps in syncing policy to the connected integration.
  *
  * @param policy - Policy for which the sync is needed
- * @param connectionName - Name of the connection, QBO/Xero
+ * @param connectionName - Name of the connection
  * @param forceDataRefresh - If true, it will trigger a full data refresh
  */
 function syncConnection(policy: Policy | undefined, connectionName: PolicyConnectionName | undefined, forceDataRefresh = false) {

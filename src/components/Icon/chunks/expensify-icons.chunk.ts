@@ -19,6 +19,7 @@ import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-a
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
+import BankLock from '@assets/images/bank-lock.svg';
 import Bank from '@assets/images/bank.svg';
 import Basket from '@assets/images/basket.svg';
 import BedCircleSlash from '@assets/images/bed-circle-slash.svg';
@@ -68,6 +69,8 @@ import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCardLock from '@assets/images/credit-card-lock.svg';
+import CreditCardWithPlaneHourglass from '@assets/images/credit-card-with-plane-hourglass.svg';
+import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
@@ -278,6 +281,7 @@ const Expensicons = {
     AttachmentNotFound,
     BackArrow,
     Bank,
+    BankLock,
     Basket,
     CircularArrowBackwards,
     Bill,
@@ -317,6 +321,8 @@ const Expensicons = {
     CreditCardHourglass,
     CreditCardExclamation,
     CreditCardLock,
+    CreditCardWithPlane,
+    CreditCardWithPlaneHourglass,
     CircleSlash,
     Document,
     DocumentMerge,

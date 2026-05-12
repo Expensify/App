@@ -14,7 +14,6 @@ jest.mock('@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigat
 jest.mock('@libs/PolicyUtils');
 jest.mock('@libs/interceptAnonymousUser');
 jest.mock('@libs/Navigation/helpers/getPathFromState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
 }));

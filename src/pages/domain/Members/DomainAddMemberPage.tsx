@@ -87,7 +87,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             addErrorMessage(errors, 'email', translate('messages.errorMessageInvalidEmail'));
         }
         if (isUserAlreadyAMember && !!domainName) {
-            addErrorMessage(errors, 'email', translate('messages.userIsAlreadyMember', {login: fullEmail, name: domainName}));
+            addErrorMessage(errors, 'email', translate('messages.userIsAlreadyMember', fullEmail, domainName));
         }
 
         return errors;
