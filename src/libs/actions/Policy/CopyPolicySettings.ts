@@ -13,7 +13,7 @@ import type {CustomUnit} from '@src/types/onyx/Policy';
 type Part = 'overview' | 'members' | 'reports' | 'accounting' | 'categories' | 'tags' | 'taxes' | 'workflows' | 'rules' | 'distanceRates' | 'perDiem' | 'invoices' | 'travel';
 
 const PARTS_TO_POLICY_FIELDS = {
-    overview: ['outputCurrency', 'address'],
+    overview: ['outputCurrency', 'address', 'description'],
     members: ['employeeList'],
     reports: ['fieldList', 'areReportFieldsEnabled'],
     accounting: ['connections', 'areConnectionsEnabled'],

@@ -29,6 +29,7 @@ function makeSourcePolicy(overrides: Partial<Policy> = {}): Policy {
             state: 'CA',
             zipCode: '94105',
         },
+        description: 'Source workspace description',
         areCategoriesEnabled: true,
         areTagsEnabled: true,
         areReportFieldsEnabled: true,
@@ -65,6 +66,7 @@ function makeTargetPolicy(overrides: Partial<Policy> = {}): Policy {
             state: 'BE',
             zipCode: '10115',
         },
+        description: 'Target workspace description',
         areCategoriesEnabled: false,
         areTagsEnabled: false,
         areReportFieldsEnabled: false,
@@ -101,7 +103,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
     describe('buildCopyPolicySettingsData', () => {
         describe('per-part field patches and pendingFields', () => {
             it.each<[Part, readonly string[]]>([
-                ['overview', ['outputCurrency', 'address']],
+                ['overview', ['outputCurrency', 'address', 'description']],
                 ['members', ['employeeList']],
                 ['reports', ['fieldList', 'areReportFieldsEnabled']],
                 ['accounting', ['connections', 'areConnectionsEnabled']],
@@ -218,6 +220,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 // pendingFields entries are nulled out for every expanded field
                 expect(value.pendingFields?.outputCurrency).toBeNull();
                 expect(value.pendingFields?.address).toBeNull();
+                expect(value.pendingFields?.description).toBeNull();
                 expect(value.pendingFields?.maxExpenseAmount).toBeNull();
                 expect(value.errors).toBeDefined();
             });
