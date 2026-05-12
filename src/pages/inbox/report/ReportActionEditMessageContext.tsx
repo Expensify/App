@@ -1,9 +1,10 @@
-import React, {createContext, useContext, useState} from 'react';
+import React, {createContext, useContext, useEffect, useState} from 'react';
 import type {Dispatch, SetStateAction} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {TextSelection} from '@components/Composer/types';
 import useAncestors from '@hooks/useAncestors';
 import useOnyx from '@hooks/useOnyx';
+import {clearAllReportActionDrafts} from '@libs/actions/Report';
 import {getOriginalReportID, shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -224,6 +225,15 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         submitEdit,
         stopEditing,
     };
+
+    // When the report is navigated away from or the report changes, clear all report action edit drafts
+    useEffect(() => {
+        clearAllReportActionDrafts();
+
+        return () => {
+            clearAllReportActionDrafts();
+        };
+    }, [reportID]);
 
     return (
         <ReportActionEditMessageContext.Provider value={reportActionEditMessageContextValue}>

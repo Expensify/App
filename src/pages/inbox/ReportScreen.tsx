@@ -1,5 +1,5 @@
 import {PortalHost} from '@gorhom/portal';
-import React, {useEffect} from 'react';
+import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import {clearAllReportActionDrafts, removeFailedReport} from '@libs/actions/Report';
+import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -53,15 +53,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
-    // When the report screen is navigated away from or the report changes, clear all report action edit drafts
-    useEffect(() => {
-        clearAllReportActionDrafts();
-
-        return () => {
-            clearAllReportActionDrafts();
-        };
-    }, [reportIDFromRoute]);
-
     const shouldDeferNonEssentials = useDeferNonEssentials(reportIDFromRoute);
 
     useSubmitToDestinationVisible(
@@ -89,8 +80,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     };
 
     return (
-        <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
-            <ReportActionEditMessageContextProvider reportID={reportIDFromRoute}>
+        <ReportActionEditMessageContextProvider reportID={reportIDFromRoute}>
+            <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
                 <ActionListContext.Provider value={actionListValue}>
                     <ReactionListWrapper>
                         <ScreenWrapper
@@ -146,8 +137,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         </ScreenWrapper>
                     </ReactionListWrapper>
                 </ActionListContext.Provider>
-            </ReportActionEditMessageContextProvider>
-        </WideRHPOverlayWrapper>
+            </WideRHPOverlayWrapper>
+        </ReportActionEditMessageContextProvider>
     );
 }
 
