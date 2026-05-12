@@ -10,6 +10,7 @@ import {botAvatarIDs, botAvatars} from '@components/Icon/DefaultBotAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +24,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 function AddAgentPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const {displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
@@ -54,6 +56,7 @@ function AddAgentPage() {
             testID={AddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight={isInLandscapeMode}
         >
             <HeaderWithBackButton
                 title={translate('addAgentPage.title')}
@@ -65,8 +68,8 @@ function AddAgentPage() {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={false}
-                submitFlexEnabled={false}
+                shouldUseScrollView={isInLandscapeMode}
+                submitFlexEnabled={isInLandscapeMode ? undefined : false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
             >
@@ -93,7 +96,7 @@ function AddAgentPage() {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={[styles.flex1]}>
+                    <View style={[styles.flex1, isInLandscapeMode && styles.minHeight42]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}

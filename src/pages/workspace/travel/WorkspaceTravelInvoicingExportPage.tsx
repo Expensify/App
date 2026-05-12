@@ -245,6 +245,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             <FullPageOfflineBlockingView>
                 <DateFilterBase
                     ref={dateFilterBaseRef}
+                    style={styles.flex1}
                     defaultDateValues={defaultDateValues}
                     presets={presets}
                     onSubmit={onSubmit}
