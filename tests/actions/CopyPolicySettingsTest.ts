@@ -205,6 +205,20 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(optimisticData.some((u) => u.key === TARGET_CATEGORIES_KEY)).toBe(false);
                 expect(failureData.some((u) => u.key === TARGET_CATEGORIES_KEY)).toBe(false);
             });
+
+            it('falls back to empty object when source has no categories', () => {
+                const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['categories'], {}, {});
+
+                const optimisticSet = optimisticData.find((u) => u.key === TARGET_CATEGORIES_KEY && u.onyxMethod === Onyx.METHOD.SET);
+                expect(optimisticSet?.value).toEqual({});
+            });
+
+            it('falls back to empty object when source has no tags', () => {
+                const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy(), [makeTargetPolicy()], ['tags'], {}, {});
+
+                const optimisticSet = optimisticData.find((u) => u.key === TARGET_TAGS_KEY && u.onyxMethod === Onyx.METHOD.SET);
+                expect(optimisticSet?.value).toEqual({});
+            });
         });
 
         describe('failure data restores pre-copy state', () => {
@@ -322,6 +336,39 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(Object.keys(value.customUnits ?? {}).sort()).toEqual([targetExistingDistanceID, targetExistingPerDiemID].sort());
                 expect(value.customUnits?.[targetExistingDistanceID]?.rates).toEqual(sourceDistanceUnit.rates);
                 expect(value.customUnits?.[targetExistingPerDiemID]?.rates).toEqual(sourcePerDiemUnit.rates);
+            });
+        });
+
+        describe('multiple target policies', () => {
+            it('produces optimistic and failure updates for each target', () => {
+                const targetA = makeTargetPolicy({id: 'TARGET_A'});
+                const targetB = makeTargetPolicy({id: 'TARGET_B'});
+                const policyKeyA = `${ONYXKEYS.COLLECTION.POLICY}TARGET_A` as const;
+                const policyKeyB = `${ONYXKEYS.COLLECTION.POLICY}TARGET_B` as const;
+
+                const {optimisticData, failureData, successData} = buildCopyPolicySettingsData(makeSourcePolicy(), [targetA, targetB], ['overview'], {}, {});
+
+                const optimisticMerges = optimisticData.filter((u) => u.onyxMethod === Onyx.METHOD.MERGE && (u.key === policyKeyA || u.key === policyKeyB));
+                expect(optimisticMerges).toHaveLength(2);
+
+                const failureMerges = failureData.filter((u) => u.onyxMethod === Onyx.METHOD.MERGE && (u.key === policyKeyA || u.key === policyKeyB));
+                expect(failureMerges).toHaveLength(2);
+
+                const successMerges = successData.filter((u) => u.onyxMethod === Onyx.METHOD.MERGE && (u.key === policyKeyA || u.key === policyKeyB));
+                expect(successMerges).toHaveLength(2);
+            });
+
+            it('produces category SET updates for each target when categories selected', () => {
+                const targetA = makeTargetPolicy({id: 'TARGET_A'});
+                const targetB = makeTargetPolicy({id: 'TARGET_B'});
+                const catKeyA = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}TARGET_A` as const;
+                const catKeyB = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}TARGET_B` as const;
+                const sourceCategories: PolicyCategories = {Food: {name: 'Food', enabled: true, areCommentsRequired: false}};
+
+                const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy(), [targetA, targetB], ['categories'], {[SOURCE_CATEGORIES_KEY]: sourceCategories}, {});
+
+                expect(optimisticData.find((u) => u.key === catKeyA && u.onyxMethod === Onyx.METHOD.SET)?.value).toEqual(sourceCategories);
+                expect(optimisticData.find((u) => u.key === catKeyB && u.onyxMethod === Onyx.METHOD.SET)?.value).toEqual(sourceCategories);
             });
         });
 
