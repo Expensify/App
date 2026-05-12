@@ -298,6 +298,7 @@ function WorkspaceCompanyCardsTable({
     const headerButtonsComponent = showTableHeaderButtons ? (
         <View style={styles.mb3}>
             <WorkspaceCompanyCardsTableHeaderButtons
+                table={companyCardsTable}
                 isLoading={isLoading}
                 policyID={policyID}
                 feedName={feedName}
