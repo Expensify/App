@@ -40,7 +40,6 @@ function YourSpendSection() {
                 <SpendSummaryRow
                     state={approvalRowState}
                     testIDPrefix="your-spend-approval"
-                    skeletonWidth={160}
                     description={translate('homePage.yourSpend.awaitingApproval')}
                     totals={approvalTotals}
                     iconSrc={icons.ThumbsUpHourglass}
@@ -51,7 +50,6 @@ function YourSpendSection() {
                 <SpendSummaryRow
                     state={paymentRowState}
                     testIDPrefix="your-spend-payment"
-                    skeletonWidth={200}
                     description={translate('homePage.yourSpend.repaidLast30Days')}
                     totals={paymentTotals}
                     iconSrc={icons.MoneyBag}
