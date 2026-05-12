@@ -56,6 +56,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionIDRef = useRef<string | undefined>(undefined);
     const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
+    const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
     const reportActionsRef = useRef(reportActions);
@@ -177,6 +178,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * @param reportID - Active Report Id
      * @param reportActionID - ReportAction for ContextMenu
      * @param originalReportID - The current Report Id of the reportAction
+     * @param draftMessage - ReportAction draft message
      * @param [onShow] - Run a callback when Menu is shown
      * @param [onHide] - Run a callback when Menu is hidden
      * @param isArchivedRoom - Whether the provided report is an archived room
@@ -206,7 +208,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         }
 
         const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
-        const {reportActionID, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
+        const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
         setIsWithoutOverlay(withoutOverlay);
@@ -252,6 +254,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
             setIsPopoverVisible(true);
+            reportActionDraftMessageRef.current = draftMessage;
             setIsRoomArchived(isArchivedRoom);
             setIsChronosReportEnabled(isChronos);
             setIsChatPinned(isPinnedChat);
@@ -299,6 +302,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      */
     const performHide = () => {
         selectionRef.current = '';
+        reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
 
         transitionActionSheetState({
@@ -503,6 +507,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     type={typeRef.current}
                     reportID={reportIDRef.current}
                     reportActionID={reportActionIDRef.current}
+                    draftMessage={reportActionDraftMessageRef.current}
                     selection={selectionRef.current}
                     isArchivedRoom={isRoomArchived}
                     isChronosReport={isChronosReportEnabled}
