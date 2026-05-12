@@ -59,7 +59,9 @@ import {
     hasTransactionBeenRejected,
     isDeletedTransaction,
     isDistanceRequest,
+    isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isPending,
     isPerDiemRequest,
     isScanning,
 } from '@libs/TransactionUtils';
@@ -1246,6 +1248,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+                        return;
+                    }
+
+                    const allSelectedTransactionsList = selectedReports.length
+                        ? Object.values(allTransactions ?? {}).filter((t): t is NonNullable<typeof t> => !!t && selectedReports.some((report) => report.reportID === t.reportID))
+                        : selectedTransactionsKeys
+                              .map((id) => selectedTransactions[id]?.transaction ?? allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+                              .filter((t): t is NonNullable<typeof t> => !!t);
+
+                    if (allSelectedTransactionsList.length > 0 && allSelectedTransactionsList.every((t) => isExpensifyCardTransaction(t) && isPending(t))) {
+                        showConfirmModal({
+                            title: translate('iou.error.unableToSubmitReport'),
+                            prompt: translate('iou.error.allTransactionsPendingDescription'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
                         return;
                     }
 
