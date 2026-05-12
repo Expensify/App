@@ -1542,7 +1542,7 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 conciergeReportID,
             });
-            expect(result.messageText).toBe('This is your chat with Concierge, your personal AI agent. I can do almost anything, try me!');
+            expect(result.messageText).toBe('This is your chat with Concierge, your personal AI agent.');
         });
 
         it('does not return concierge welcome message when conciergeReportID does not match', async () => {
