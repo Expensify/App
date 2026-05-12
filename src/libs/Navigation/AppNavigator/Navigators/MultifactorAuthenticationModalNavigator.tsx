@@ -8,7 +8,7 @@ import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-nati
 import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
-import {handleInitialScreenLayout, INITIAL_SCREEN, mfaNavigationRef, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
+import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -149,7 +149,7 @@ function MultifactorAuthenticationModalNavigator() {
                             }}
                         >
                             <Stack.Screen
-                                name={INITIAL_SCREEN}
+                                name={MFA_INITIAL_SCREEN}
                                 component={TransparentScreen}
                                 options={{
                                     animation: Animations.NONE,

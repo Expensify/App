@@ -1,14 +1,14 @@
 import {createNavigationContainerRef, StackActions} from '@react-navigation/native';
 import type {MultifactorAuthenticationModalNavigatorParamList} from '@libs/Navigation/types';
 
-const INITIAL_SCREEN = 'MFA_Initial' as const;
+const MFA_INITIAL_SCREEN = 'MFA_Initial' as const;
 
-type MultifactorAuthenticationModalNavigatorInternalParamList = MultifactorAuthenticationModalNavigatorParamList & Record<typeof INITIAL_SCREEN, undefined>;
+type MultifactorAuthenticationModalNavigatorInternalParamList = MultifactorAuthenticationModalNavigatorParamList & Record<typeof MFA_INITIAL_SCREEN, undefined>;
 
 const mfaNavigationRef = createNavigationContainerRef<MultifactorAuthenticationModalNavigatorInternalParamList>();
 
 let pendingNavigation: {screen: string; params?: Record<string, unknown>} | undefined;
-// True once the placeholder INITIAL_SCREEN has laid out at least once. On iOS
+// True once the placeholder MFA_INITIAL_SCREEN has laid out at least once. On iOS
 // native-stack, INITIAL.onLayout fires synchronously on mount — before
 // process() reaches navigate() — so the buffer is empty when
 // handleInitialScreenLayout runs and the buffered push never fires. With this
@@ -22,7 +22,7 @@ function navigate<T extends keyof MultifactorAuthenticationModalNavigatorParamLi
     const params: Record<string, unknown> | undefined = args[0];
 
     // Navigator mounts only while the overlay is visible. Buffer the request
-    // until the placeholder INITIAL_SCREEN lays out and triggers the push.
+    // until the placeholder MFA_INITIAL_SCREEN lays out and triggers the push.
     if (!mfaNavigationRef.isReady()) {
         pendingNavigation = {screen: screen as string, params};
         return;
@@ -33,7 +33,7 @@ function navigate<T extends keyof MultifactorAuthenticationModalNavigatorParamLi
         return;
     }
 
-    if (currentRoute?.name === INITIAL_SCREEN) {
+    if (currentRoute?.name === MFA_INITIAL_SCREEN) {
         if (hasInitialLaidOut) {
             mfaNavigationRef.dispatch(StackActions.push(screen as string, params));
             return;
@@ -62,5 +62,5 @@ function resetMfaNavigation() {
     hasInitialLaidOut = false;
 }
 
-export {INITIAL_SCREEN, mfaNavigationRef, navigate, handleInitialScreenLayout, resetMfaNavigation};
+export {MFA_INITIAL_SCREEN, mfaNavigationRef, navigate, handleInitialScreenLayout, resetMfaNavigation};
 export type {MultifactorAuthenticationModalNavigatorInternalParamList};
