@@ -1650,12 +1650,12 @@ type DomainCardNavigatorParamList = {
 };
 
 type TwoFactorAuthNavigatorParamList = {
-    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: {policyID?: string};
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: undefined;
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: {policyID?: string};
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: undefined;
-    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: {policyID?: string};
-    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: {policyID?: string};
 };
 
 type NewChatNavigatorParamList = {

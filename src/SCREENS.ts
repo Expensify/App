@@ -273,12 +273,12 @@ const SCREENS = {
     TWO_FACTOR_AUTH: {
         DYNAMIC_ROOT: 'Dynamic_Settings_TwoFactorAuth_Root',
         DYNAMIC_VERIFY: 'Dynamic_Settings_TwoFactorAuth_Verify',
+        DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Settings_TwoFactorAuth_Verify_Account',
         DYNAMIC_SUCCESS: 'Dynamic_Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',
         REPLACE_VERIFY_OLD: 'Settings_TwoFactorAuth_Replace_VerifyOld',
         REPLACE_VERIFY_NEW: 'Settings_TwoFactorAuth_Replace_VerifyNew',
-        DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Settings_TwoFactorAuth_Verify_Account',
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',

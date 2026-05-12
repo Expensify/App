@@ -67,7 +67,6 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, 
         onValidationSuccess?.();
 
         if (navigateForwardTo) {
-            console.log('navigateForwardTo', navigateForwardTo);
             Navigation.navigate(navigateForwardTo, {forceReplace: true});
         } else {
             handleCloseWithFallback();

@@ -37,6 +37,8 @@ function SuccessPage({route}: SuccessPageProps) {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
     const goBack = useCallback(() => {
+        // we need redirect to 2fa here not to security
+        // and we need to rename this page to dynamic success page
         quitAndNavigateBack(dynamicBackPath ?? ROUTES.SETTINGS_SECURITY);
     }, [dynamicBackPath]);
 

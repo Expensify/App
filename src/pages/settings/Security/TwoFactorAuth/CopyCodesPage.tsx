@@ -46,7 +46,7 @@ function CopyCodesPage({navigateBackTo}: CopyCodesPageProps) {
     const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
 
-    const backTo = navigateBackTo;
+    const backPath = navigateBackTo;
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
@@ -66,6 +66,7 @@ function CopyCodesPage({navigateBackTo}: CopyCodesPageProps) {
     useEffect(() => {
         if (!isUserValidated) {
             Navigation.isNavigationReady().then(() => {
+                // maybe we need replace here
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path));
             });
             return;
@@ -95,7 +96,7 @@ function CopyCodesPage({navigateBackTo}: CopyCodesPageProps) {
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
-            onBackButtonPress={() => quitAndNavigateBack(backTo)}
+            onBackButtonPress={() => quitAndNavigateBack(backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {!!isUserValidated && (
@@ -199,7 +200,7 @@ function CopyCodesPage({navigateBackTo}: CopyCodesPageProps) {
                             if (!account?.codesAreCopied) {
                                 return setError(translate('twoFactorAuth.errorStepCodes'));
                             }
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backTo));
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath));
                         }}
                     />
                 </FixedFooter>

@@ -978,9 +978,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<TwoFactorAuthNavigatorParamList>({
-    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthVerifyAccountPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/VerifyPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthVerifyAccountPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisablePage').default,

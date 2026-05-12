@@ -9,7 +9,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {openLink} from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ConnectToXeroFlowProps} from './types';
 
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
@@ -37,7 +37,6 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 onSubmit={() => {
                     setIsRequire2FAModalOpen(false);
                     close(() => {
-                        const backTo = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
                         if (isUserValidated) {
                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path));
                             return;
