@@ -4,6 +4,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRevokeError, revokeDevice} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDeviceLogins, getLastLogin, getLoginKey} from '@libs/UserUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials} from '@src/types/onyx';
 import type {Login} from '@src/types/onyx/Logins';
@@ -53,23 +55,25 @@ function DeviceManagementPage() {
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID="DeviceManagementPage"
-        >
-            <HeaderWithBackButton
-                title={translate('deviceManagementPage.title')}
-                onBackButtonPress={Navigation.goBack}
-            />
-            <Text style={[styles.ph5, styles.pv3]}>{translate('deviceManagementPage.description')}</Text>
-            <FlashList
-                data={logins}
-                renderItem={renderItem}
-                keyExtractor={getLoginKey}
-                maintainVisibleContentPosition={{disabled: true}}
-                contentContainerStyle={[styles.ph5]}
-            />
-        </ScreenWrapper>
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom
+                testID="DeviceManagementPage"
+            >
+                <HeaderWithBackButton
+                    title={translate('deviceManagementPage.title')}
+                    onBackButtonPress={Navigation.goBack}
+                />
+                <Text style={[styles.ph5, styles.pv3]}>{translate('deviceManagementPage.description')}</Text>
+                <FlashList
+                    data={logins}
+                    renderItem={renderItem}
+                    keyExtractor={getLoginKey}
+                    maintainVisibleContentPosition={{disabled: true}}
+                    contentContainerStyle={[styles.ph5]}
+                />
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 

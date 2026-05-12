@@ -1,4 +1,5 @@
 import React from 'react';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,13 +39,15 @@ function LockAccountPage() {
     );
 
     return (
-        <LockAccountPageBase
-            testID="LockAccountPage"
-            onBackButtonPress={() => Navigation.goBack()}
-            confirmModalPrompt={confirmModalPrompt}
-            lockAccountPagePrompt={lockAccountPagePrompt}
-            handleLockRequestFinish={handleLockRequestFinish}
-        />
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <LockAccountPageBase
+                testID="LockAccountPage"
+                onBackButtonPress={() => Navigation.goBack()}
+                confirmModalPrompt={confirmModalPrompt}
+                lockAccountPagePrompt={lockAccountPagePrompt}
+                handleLockRequestFinish={handleLockRequestFinish}
+            />
+        </DelegateNoAccessWrapper>
     );
 }
 

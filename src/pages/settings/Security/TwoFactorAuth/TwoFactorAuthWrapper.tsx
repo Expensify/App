@@ -76,7 +76,7 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             testID={stepName}
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE, CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFound}
                     linkTranslationKey="securityPage.goToSecurity"

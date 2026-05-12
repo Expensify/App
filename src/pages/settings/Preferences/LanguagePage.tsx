@@ -1,5 +1,6 @@
 import React, {useMemo, useRef} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -8,6 +9,7 @@ import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import {setLocale} from '@userActions/App';
+import CONST from '@src/CONST';
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
 
@@ -43,24 +45,26 @@ function LanguagePage() {
     };
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID="LanguagePage"
-        >
-            <HeaderWithBackButton
-                title={translate('languagePage.language')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <FullPageOfflineBlockingView>
-                <SelectionList
-                    data={locales}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={updateLanguage}
-                    shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID="LanguagePage"
+            >
+                <HeaderWithBackButton
+                    title={translate('languagePage.language')}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
-            </FullPageOfflineBlockingView>
-        </ScreenWrapper>
+                <FullPageOfflineBlockingView>
+                    <SelectionList
+                        data={locales}
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={updateLanguage}
+                        shouldSingleExecuteRowSelect
+                        initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
+                    />
+                </FullPageOfflineBlockingView>
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 

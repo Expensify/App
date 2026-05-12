@@ -6,6 +6,7 @@ import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
@@ -221,10 +222,11 @@ function MergeResultPage() {
     } = results[result] || defaultResult;
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom
-            testID="MergeResultPage"
-        >
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom
+                testID="MergeResultPage"
+            >
             <HeaderWithBackButton
                 title={translate('mergeAccountsPage.mergeAccount')}
                 shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
@@ -252,6 +254,7 @@ function MergeResultPage() {
                 ctaComponent={ctaComponent}
             />
         </ScreenWrapper>
+    </DelegateNoAccessWrapper>
     );
 }
 
