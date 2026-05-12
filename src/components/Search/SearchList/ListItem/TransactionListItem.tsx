@@ -16,7 +16,9 @@ import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -173,6 +175,8 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
 
     const handleActionButtonPress = () => {
         handleActionButtonPressUtil({
@@ -190,6 +194,14 @@ function TransactionListItem<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
+            onPendingCardTransactionsBlock: () => {
+                showConfirmModal({
+                    title: translate('iou.error.unableToSubmitReport'),
+                    prompt: translate('iou.error.allTransactionsPendingDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
+            },
         });
     };
 

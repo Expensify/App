@@ -12,6 +12,7 @@ import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -136,6 +137,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const {showConfirmModal} = useConfirmModal();
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -153,6 +155,14 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onHoldMenuOpen,
             ownerBillingGracePeriodEnd,
             amountOwed,
+            onPendingCardTransactionsBlock: () => {
+                showConfirmModal({
+                    title: translate('iou.error.unableToSubmitReport'),
+                    prompt: translate('iou.error.allTransactionsPendingDescription'),
+                    confirmText: translate('common.buttonConfirm'),
+                    shouldShowCancelButton: false,
+                });
+            },
         });
     }, [
         currentSearchHash,
@@ -169,6 +179,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         onHoldMenuOpen,
         ownerBillingGracePeriodEnd,
         amountOwed,
+        showConfirmModal,
+        translate,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
