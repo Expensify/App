@@ -123,8 +123,9 @@ To manage MCC default categories:
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Categories**.
-4. Click **Settings** in the top-right.
-5. Update the default category for any MCC group (e.g., Airlines, Gas, Groceries).
+4.  Click **More**
+5. Click **Settings**. 
+6. Update the default category for any MCC group (e.g., Airlines, Gas, Groceries).
 
 ## Workspace Merchant Rules
 
