@@ -1086,6 +1086,14 @@ function updateSplitTransactions({
             value: originalTransaction ?? null,
         });
 
+        onyxData.successData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+            value: {
+                reportID: CONST.REPORT.SPLIT_REPORT_ID,
+            },
+        });
+
         if (firstIOU) {
             const updatedReportAction = {
                 [firstIOU.reportActionID]: {
