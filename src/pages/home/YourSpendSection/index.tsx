@@ -3,12 +3,9 @@ import {View} from 'react-native';
 import WidgetContainer from '@components/WidgetContainer';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDisplayableExpensifyCards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import CardRow from './CardRow';
 import SpendSummaryRow from './SpendSummaryRow';
@@ -19,7 +16,6 @@ function YourSpendSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['ThumbsUpHourglass', 'MoneyBag']);
 
     const isVisible =
@@ -63,20 +59,13 @@ function YourSpendSection() {
                     wrapperStyle={wrapperStyle}
                 />
 
-                {cardRows.map((cardRow) => {
-                    const card = getDisplayableExpensifyCards(cardList).find((c) => c.cardID === cardRow.cardID);
-                    if (!card) {
-                        return null;
-                    }
-                    return (
-                        <CardRow
-                            key={cardRow.cardID}
-                            cardRow={cardRow}
-                            card={card}
-                            wrapperStyle={wrapperStyle}
-                        />
-                    );
-                })}
+                {cardRows.map((cardRow) => (
+                    <CardRow
+                        key={cardRow.cardID}
+                        cardRow={cardRow}
+                        wrapperStyle={wrapperStyle}
+                    />
+                ))}
             </WidgetContainer>
         </View>
     );

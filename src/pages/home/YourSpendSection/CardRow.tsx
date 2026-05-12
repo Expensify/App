@@ -9,7 +9,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {getDisplayableExpensifyCards} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -19,20 +18,16 @@ import type {useYourSpendData} from './useYourSpendData';
 
 type CardRowProps = {
     cardRow: ReturnType<typeof useYourSpendData>['cardRows'][number];
-    card: NonNullable<ReturnType<typeof getDisplayableExpensifyCards>[number]>;
     wrapperStyle: StyleProp<ViewStyle>;
 };
 
-function CardRow({cardRow, card, wrapperStyle}: CardRowProps) {
+function CardRow({cardRow, wrapperStyle}: CardRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {hovered, bind} = useHover();
 
-    const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
-    const hasLimitData = !!unapprovedExpenseLimit;
-    const spentFraction = hasLimitData ? 1 - (card.availableSpend ?? 0) / unapprovedExpenseLimit : 0;
     const cardTotal = cardRow.total !== undefined ? convertToDisplayString(cardRow.total, cardRow.currency) : undefined;
 
     return (
@@ -49,7 +44,7 @@ function CardRow({cardRow, card, wrapperStyle}: CardRowProps) {
                 shouldShowRightComponent
                 rightComponent={
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap3]}>
-                        {hasLimitData && <RemainingLimitCircle spentFraction={spentFraction} />}
+                        {cardRow.spentFraction !== undefined && <RemainingLimitCircle spentFraction={cardRow.spentFraction} />}
                         <View style={!hovered && styles.opacitySemiTransparent}>
                             <Icon
                                 src={icons.ArrowRight}

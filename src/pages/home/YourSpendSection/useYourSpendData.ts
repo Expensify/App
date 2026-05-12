@@ -29,6 +29,10 @@ type YourSpendCardRow = {
     query: string;
     total: number | undefined;
     currency: string | undefined;
+    // Fraction (0–1) of the card's unapproved expense limit that has been spent.
+    // `undefined` when the card has no limit configured, in which case the consumer
+    // should not render the remaining-limit indicator.
+    spentFraction: number | undefined;
 };
 
 type YourSpendApplicability = {
@@ -155,12 +159,15 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 if (!entry || !snapshot?.search.count) {
                     return acc;
                 }
+                const unapprovedExpenseLimit = card.nameValuePairs?.unapprovedExpenseLimit;
+                const spentFraction = unapprovedExpenseLimit ? 1 - (card.availableSpend ?? 0) / unapprovedExpenseLimit : undefined;
                 acc.push({
                     cardID: card.cardID,
                     lastFour: card.lastFourPAN ?? '',
                     query: entry.query,
                     total: snapshot.search.total,
                     currency: snapshot.search.currency,
+                    spentFraction,
                 });
                 return acc;
             }, []),
