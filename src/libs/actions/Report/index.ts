@@ -81,7 +81,6 @@ import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import {getBackToOnLeaveReport} from '@libs/Navigation/helpers/shouldUseBackToOnLeaveReport';
 import Navigation from '@libs/Navigation/Navigation';
