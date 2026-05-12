@@ -18,6 +18,7 @@ import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import {updateLastRoute} from './libs/actions/App';
+import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import Log from './libs/Log';
@@ -248,6 +249,15 @@ function Expensify() {
             appStateChangeListener.current?.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+    }, []);
+
+    const didInitReconnectRef = useRef(false);
+    useEffect(() => {
+        if (didInitReconnectRef.current) {
+            return;
+        }
+        didInitReconnectRef.current = true;
+        initReconnect();
     }, []);
 
     useLayoutEffect(() => {
