@@ -5,6 +5,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -48,9 +49,10 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
         [qboConfig?.nonReimbursableExpensesExportDestination],
     );
 
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path);
     const goBack = useCallback(() => {
-        return goBackFromExportConnection(shouldShowVendorMenuItems, backTo);
-    }, [backTo, shouldShowVendorMenuItems]);
+        return goBackFromExportConnection(shouldShowVendorMenuItems, backTo, dynamicBackPath);
+    }, [backTo, dynamicBackPath, shouldShowVendorMenuItems]);
 
     const menuItems = [
         {
