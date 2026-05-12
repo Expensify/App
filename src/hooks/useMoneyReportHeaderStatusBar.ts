@@ -2,8 +2,7 @@ import {getArchiveReason} from '@selectors/Report';
 import type {ValueOf} from 'type-fest';
 import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 import {
@@ -19,12 +18,11 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useNetwork from './useNetwork';
+import useMoneyRequestReportPaginatedFilteredActions from './useMoneyRequestReportPaginatedFilteredActions';
 import useOnyx from './useOnyx';
-import usePaginatedReportActions from './usePaginatedReportActions';
 import useReportIsArchived from './useReportIsArchived';
-import useReportTransactionsCollection from './useReportTransactionsCollection';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
+import useTransactionThreadReport from './useTransactionThreadReport';
 import useTransactionViolations from './useTransactionViolations';
 
 type StatusBarType = ValueOf<typeof CONST.REPORT.STATUS_BAR_TYPE>;
@@ -34,25 +32,16 @@ type StatusBarResult = {
     statusBarType: StatusBarType | undefined;
 };
 
-function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportID: string | undefined): StatusBarResult {
-    const {isOffline} = useNetwork();
+function useMoneyReportHeaderStatusBar(reportID: string | undefined): StatusBarResult {
     const {accountID, email} = useCurrentUserPersonalDetails();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-    const visibleTransactions = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(moneyRequestReport?.reportID);
+    const {transactionThreadReport} = useTransactionThreadReport(reportID, reportActions ?? []);
 
     const requestParentReportAction = (() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {

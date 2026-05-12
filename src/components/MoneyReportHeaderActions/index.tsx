@@ -5,6 +5,7 @@ import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu
 import MoneyReportHeaderPrimaryAction from '@components/MoneyReportHeaderPrimaryAction';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import useExportAgainModal from '@hooks/useExportAgainModal';
+import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
@@ -40,7 +41,8 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
-    const {transactionThreadReportID} = useTransactionThreadReport(reportID);
+    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(reportID);
+    const {transactionThreadReportID} = useTransactionThreadReport(reportID, reportActions);
 
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
 

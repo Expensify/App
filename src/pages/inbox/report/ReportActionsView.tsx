@@ -14,9 +14,9 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -24,7 +24,6 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
-    getOneTransactionThreadReportID,
     getSortedReportActionsForDisplay,
     isCreatedAction,
     isDeletedParentAction,
@@ -106,21 +105,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
 
     const isReportTransactionThread = isReportTransactionThreadUtil(report);
 
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactionsForThreadID = useMemo(
-        () => getAllNonDeletedTransactions(allReportTransactions, allReportActions ?? [], isOffline, true),
-        [allReportTransactions, allReportActions, isOffline],
-    );
-    const visibleTransactionsForThreadID = useMemo(
-        () => reportTransactionsForThreadID?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        [reportTransactionsForThreadID, isOffline],
-    );
-    const reportTransactionIDsForThread = useMemo(() => visibleTransactionsForThreadID?.map((t) => t.transactionID), [visibleTransactionsForThreadID]);
-    const transactionThreadReportID = useMemo(
-        () => getOneTransactionThreadReportID(report, chatReport, allReportActions ?? [], isOffline, reportTransactionIDsForThread),
-        [report, chatReport, allReportActions, isOffline, reportTransactionIDsForThread],
-    );
+    const {transactionThreadReportID, transactionThreadReport} = useTransactionThreadReport(reportID, allReportActions ?? []);
 
     const isReportArchived = useReportIsArchived(reportID);
     const canPerformWriteAction = !!canUserPerformWriteAction(report, isReportArchived);
@@ -139,7 +124,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         },
         [canPerformWriteAction, transactionThreadReportID],
     );
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);

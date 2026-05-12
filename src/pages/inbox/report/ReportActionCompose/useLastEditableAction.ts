@@ -1,5 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
+import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
@@ -13,7 +14,8 @@ function useLastEditableAction(reportID: string): OnyxEntry<OnyxTypes.ReportActi
     const route = useRoute();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {reportActions, effectiveTransactionThreadReportID} = useTransactionThreadReport(reportID);
+    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(reportID);
+    const {effectiveTransactionThreadReportID} = useTransactionThreadReport(reportID, reportActions);
 
     const parentReportAction = useParentReportAction(report);
     const [transactionThreadReportActionsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);

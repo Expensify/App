@@ -12,10 +12,11 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePrevious from '@hooks/usePrevious';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getIOUActionForReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {
@@ -73,7 +74,6 @@ function ReportFetchHandler() {
     const didSubscribeToReportLeavingEvents = useRef(false);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -96,10 +96,8 @@ function ReportFetchHandler() {
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
 
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const {transactionThreadReportID, transactionThreadReport} = useTransactionThreadReport(reportIDFromRoute, reportActions ?? []);
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
 
     const isTransactionThreadView = isReportTransactionThread(report);

@@ -14,6 +14,7 @@ import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
+import useMoneyRequestReportPaginatedFilteredActions from './useMoneyRequestReportPaginatedFilteredActions';
 import useOnyx from './useOnyx';
 import useTransactionThreadReport from './useTransactionThreadReport';
 
@@ -38,7 +39,8 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const {transactionThreadReport} = useTransactionThreadReport(reportID);
+    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(reportID);
+    const {transactionThreadReport} = useTransactionThreadReport(reportID, reportActions);
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [reportActionsForParent] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`);

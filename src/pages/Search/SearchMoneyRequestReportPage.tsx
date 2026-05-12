@@ -26,19 +26,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {
-    getFilteredReportActionsForReportView,
-    getIOUActionForTransactionID,
-    getOneTransactionThreadReportID,
-    getOriginalMessage,
-    getReportAction,
-    isMoneyRequestAction,
-} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
@@ -123,7 +117,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const actionListValue = useActionListContextValue();
 
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportIDFromRoute);
@@ -134,8 +127,10 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
         [reportTransactions, isOffline],
     );
-    const reportTransactionIDs = useMemo(() => visibleTransactions?.map((transaction) => transaction.transactionID), [visibleTransactions]);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    const {transactionThreadReportID} = useTransactionThreadReport(reportIDFromRoute, reportActions ?? [], {
+        transactionsCollection: allReportTransactions,
+        includeOrphanedTransactions: false,
+    });
     const oneTransactionID = reportTransactions.at(0)?.transactionID;
 
     const reportID = report?.reportID;

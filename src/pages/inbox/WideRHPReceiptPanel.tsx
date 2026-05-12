@@ -5,16 +5,17 @@ import {Animated} from 'react-native';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
+import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView} from '@libs/MoneyRequestReportUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isTransactionThread} from '@libs/ReportActionsUtils';
+import {isTransactionThread} from '@libs/ReportActionsUtils';
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,18 +45,14 @@ function WideRHPReceiptPanelGate() {
     const {isOffline} = useNetwork();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const parentReportAction = useParentReportAction(report);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID, routeParams?.reportActionID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(report?.reportID, routeParams?.reportActionID);
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((transaction) => transaction.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const {transactionThreadReport} = useTransactionThreadReport(reportIDFromRoute, reportActions ?? []);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, visibleTransactions ?? []);

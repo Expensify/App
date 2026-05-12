@@ -3,15 +3,15 @@ import React, {useImperativeHandle, useState} from 'react';
 import type {Ref} from 'react';
 import type {ValueOf} from 'type-fest';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {changeMoneyRequestHoldStatus, rejectMoneyRequestReason} from '@libs/ReportUtils';
 import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
 import CONST from '@src/CONST';
@@ -44,18 +44,13 @@ function MoneyReportHeaderEducationalModals({reportID, ref}: MoneyReportHeaderEd
 
     // Fetch report data needed for educational modals
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(moneyRequestReport?.reportID);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    // Derive transaction thread and parent action
-    const nonDeletedTransactions = getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true);
-    const visibleTransactionsForThreadID = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
-    const reportTransactionIDs = visibleTransactionsForThreadID?.map((t) => t.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const {transactionThreadReport} = useTransactionThreadReport(moneyRequestReport?.reportID, reportActions ?? [], {
+        transactionsCollection: reportTransactions,
+    });
 
     const requestParentReportAction =
         reportActions && transactionThreadReport?.parentReportActionID

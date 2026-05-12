@@ -6,6 +6,7 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useOnyx from '@hooks/useOnyx';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
@@ -43,7 +44,8 @@ function useComposerSubmit(reportID: string) {
     const {scrollOffsetRef} = useContext(ActionListContext);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {effectiveTransactionThreadReportID} = useTransactionThreadReport(reportID);
+    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(reportID);
+    const {effectiveTransactionThreadReportID} = useTransactionThreadReport(reportID, reportActions);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
 
     const reportAncestors = useAncestors(report);

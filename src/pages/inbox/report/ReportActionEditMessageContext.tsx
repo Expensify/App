@@ -3,6 +3,7 @@ import type {Dispatch, SetStateAction} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {TextSelection} from '@components/Composer/types';
 import useAncestors from '@hooks/useAncestors';
+import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import {getOriginalReportID, shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
@@ -71,7 +72,8 @@ type ReportActionEditMessageContextProviderProps = {
 
 function ReportActionEditMessageContextProvider({reportID, children}: ReportActionEditMessageContextProviderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {transactionThreadReportID} = useTransactionThreadReport(reportID);
+    const {reportActions: filteredActionsForThread} = useMoneyRequestReportPaginatedFilteredActions(reportID);
+    const {transactionThreadReportID} = useTransactionThreadReport(reportID, filteredActionsForThread);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
