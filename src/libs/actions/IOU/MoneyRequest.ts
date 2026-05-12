@@ -407,7 +407,7 @@ function handleMoneyRequestStepScanParticipants({
                 splitReceipt.source = firstReceiptFile.source;
                 splitReceipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
 
-                startSplitBill({
+                const splitBaseParams = {
                     participants,
                     currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
@@ -423,10 +423,59 @@ function handleMoneyRequestStepScanParticipants({
                     taxValue: initialTransaction.taxValue,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
-                    // No need to update recently used tags because no tags are used when the confirmation step is skipped
                     policyRecentlyUsedTags: undefined,
                     participantsPolicyTags,
-                });
+                };
+
+                const shouldStayOnSearchForSplit = isSearchTopmostFullScreenRoute();
+
+                const startSplitReceiptTelemetry = (
+                    followUpAction: typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                    pendingReportID?: string,
+                ) => {
+                    startTracking(
+                        {
+                            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SPLIT_RECEIPT,
+                            iouType: CONST.IOU.TYPE.SPLIT,
+                            requestType: 'scan',
+                            isFromGlobalCreate: !report?.reportID,
+                            hasReceipt: true,
+                        },
+                        {skipSubmitExpenseSpan: true},
+                    );
+                    setFastPath(
+                        followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
+                            ? CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT
+                            : CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL,
+                        CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST,
+                    );
+                    setPendingSubmitFollowUpAction(followUpAction, pendingReportID);
+                };
+
+                if (shouldStayOnSearchForSplit) {
+                    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                    startSplitReceiptTelemetry(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+                    Navigation.dismissModal({
+                        afterTransition: () => startSplitBill({...splitBaseParams, shouldHandleNavigation: false, shouldDeferForSearch: true}),
+                    });
+                    return;
+                }
+
+                if (reportID) {
+                    startSplitReceiptTelemetry(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
+                    const isSplitDestinationLoaded = !!getReportOrDraftReport(reportID)?.reportID;
+                    if (!isSplitDestinationLoaded) {
+                        startSplitBill({...splitBaseParams, shouldHandleNavigation: false});
+                        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                        return;
+                    }
+                    Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {
+                        afterTransition: () => startSplitBill({...splitBaseParams, shouldHandleNavigation: false}),
+                    });
+                    return;
+                }
+
+                startSplitBill(splitBaseParams);
                 return;
             }
             const participant = participants.at(0);
