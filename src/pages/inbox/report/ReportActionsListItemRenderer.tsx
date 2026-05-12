@@ -61,11 +61,8 @@ type ReportActionsListItemRendererProps = {
     /** Whether the report is archived */
     isReportArchived: boolean;
 
-    /** Report name value pairs origin */
-    reportNameValuePairsOrigin?: string;
-
-    /** Report name value pairs originalID */
-    reportNameValuePairsOriginalID?: string;
+    /** Whether the action is the "Created" action of a harvest-created expense report */
+    isHarvestCreatedExpenseReport?: boolean;
 };
 
 function ReportActionsListItemRenderer({
@@ -86,8 +83,7 @@ function ReportActionsListItemRenderer({
     originalReportID,
     personalDetails,
     isReportArchived = false,
-    reportNameValuePairsOrigin,
-    reportNameValuePairsOriginalID,
+    isHarvestCreatedExpenseReport = false,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
 
@@ -203,8 +199,7 @@ function ReportActionsListItemRenderer({
             shouldHighlight={shouldHighlight}
             personalDetails={personalDetails}
             draftMessage={draftMessage}
-            reportNameValuePairsOrigin={reportNameValuePairsOrigin}
-            reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
+            isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
         />
     );
 }
