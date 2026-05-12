@@ -80,7 +80,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
-                currency: undefined,
+                currency: CONST.CURRENCY.USD,
                 isSelfTourViewed: false,
                 betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 hasActiveAdminPolicies: false,
@@ -125,6 +125,7 @@ describe('actions/Policy', () => {
             expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {email: ESH_EMAIL, submitsTo: ESH_EMAIL, errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
             expect(policy?.mccGroup).toBeDefined();
             expect(policy?.requiresCategory).toBe(true);
+            expect(policy?.outputCurrency).toBe(CONST.CURRENCY.USD);
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
@@ -955,7 +956,7 @@ describe('actions/Policy', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
-                currency: undefined,
+                currency: CONST.CURRENCY.EUR,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -975,6 +976,8 @@ describe('actions/Policy', () => {
 
             // Then the policy should have approval mode set to OPTIONAL
             expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            // And the explicit currency should be honored
+            expect(policy?.outputCurrency).toBe(CONST.CURRENCY.EUR);
         });
 
         it('does not reset NVP_INTRO_SELECTED.choice when a TRACK_WORKSPACE user creates a subsequent workspace', async () => {
