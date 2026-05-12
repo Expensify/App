@@ -47,6 +47,9 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
 
+    /** Whether to prevent auto-scrolling to the first index when selecting an item in multi-select mode */
+    shouldPreventAutoScrollOnSelect?: boolean;
+
     /** Whether to wrap long text in rows */
     isRowMultilineSupported?: boolean;
 
