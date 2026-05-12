@@ -4,7 +4,7 @@ import type {ComposerRef, TextSelection} from '@components/Composer/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import * as ComposerContext from '@pages/inbox/report/ReportActionCompose/ComposerContext';
-import type {ComposerEditState} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
+import type {ComposerActions, ComposerEditState} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
 import ReportActionComposeUtils from '@pages/inbox/report/ReportActionCompose/ReportActionComposeUtils';
 import useEditComposerToggle from '@pages/inbox/report/ReportActionCompose/useEditComposerToggle';
 
@@ -14,6 +14,8 @@ jest.mock('@pages/inbox/report/ReportActionCompose/ComposerContext', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
+        useComposerActions: jest.fn(),
+        useComposerEditActions: jest.fn(),
         useComposerEditState: jest.fn(),
     };
 });
@@ -33,6 +35,8 @@ jest.mock('@libs/getPlatform', () => ({
 }));
 
 const mockUseComposerEditState = jest.mocked(ComposerContext.useComposerEditState);
+const mockUseComposerActions = jest.mocked(ComposerContext.useComposerActions);
+const mockUseComposerEditActions = jest.mocked(ComposerContext.useComposerEditActions);
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 const mockUpdateNativeSelectionValue = jest.mocked(ReportActionComposeUtils.updateNativeSelectionValue);
 
@@ -59,6 +63,38 @@ function defaultComposerEditState(overrides?: Partial<ComposerEditState>): Compo
         editingMessage: null,
         currentEditMessageSelection: null,
         effectiveDraft: undefined,
+        didResetComposerHeightWhileEditing: false,
+        ...overrides,
+    };
+}
+
+function defaultComposerActions(overrides?: Partial<ComposerActions>): ComposerActions {
+    return {
+        setText: jest.fn(),
+        setMenuVisibility: jest.fn(),
+        setIsFullComposerAvailable: jest.fn(),
+        setComposerRef: jest.fn(),
+        onBlur: jest.fn(),
+        onFocus: jest.fn(),
+        onAddActionPressed: jest.fn(),
+        onItemSelected: jest.fn(),
+        onTriggerAttachmentPicker: jest.fn(),
+        clearComposer: jest.fn(),
+        ...overrides,
+    };
+}
+
+type MockComposerEditActions = {
+    publishDraft: (draftMessage: string) => void;
+    deleteDraft: () => void;
+    setDidResetComposerHeightWhileEditing: (value: boolean) => void;
+};
+
+function defaultComposerEditActions(overrides?: Partial<MockComposerEditActions>): MockComposerEditActions {
+    return {
+        publishDraft: jest.fn(),
+        deleteDraft: jest.fn(),
+        setDidResetComposerHeightWhileEditing: jest.fn(),
         ...overrides,
     };
 }
@@ -102,6 +138,8 @@ describe('useEditComposerToggle', () => {
         jest.clearAllMocks();
         composerEditStateRef.current = defaultComposerEditState();
         mockUseComposerEditState.mockImplementation(() => composerEditStateRef.current);
+        mockUseComposerActions.mockReturnValue(defaultComposerActions());
+        mockUseComposerEditActions.mockReturnValue(defaultComposerEditActions());
         mockUseResponsiveLayout.mockReturnValue(narrowLayoutResult());
     });
 
@@ -211,6 +249,36 @@ describe('useEditComposerToggle', () => {
         expect(onValueChange).toHaveBeenCalledWith('restored');
         expect(onSelectionChange).toHaveBeenCalledWith(priorSelection);
         expect(composerRef.current?.blur).toHaveBeenCalled();
+    });
+
+    it('resets the manual composer height after a submitted narrow composer edit ends', () => {
+        const setDidResetComposerHeight = jest.fn();
+        const composerRef = makeComposerRef();
+        mockUseComposerEditActions.mockReturnValue(defaultComposerEditActions({setDidResetComposerHeightWhileEditing: setDidResetComposerHeight}));
+
+        const {rerender} = renderHook(
+            (editingState: ComposerEditState['editingState']) => {
+                composerEditStateRef.current = defaultComposerEditState({
+                    editingState,
+                    isEditingInComposer: editingState === 'editing',
+                    editingMessage: 'edited message',
+                    editingReportActionID: '1',
+                });
+
+                return useEditComposerToggle({
+                    selection: {start: 0, end: 0},
+                    draftComment: '',
+                    composerRef,
+                });
+            },
+            {initialProps: 'off'},
+        );
+
+        rerender('editing');
+        rerender('submitted');
+        rerender('off');
+
+        expect(setDidResetComposerHeight).toHaveBeenCalledWith(false);
     });
 
     it('on narrow, when switching the message being edited, applies the new message', () => {
