@@ -86,4 +86,46 @@ describe('IOURequestStartPage', () => {
         });
         expect(iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
     });
+
+    it('uses the nested route screen over a stale selected tab', async () => {
+        // Given the previous selected tab is MANUAL
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.MANUAL);
+        });
+
+        // When the page is mounted from a nested route to the scan tab
+        render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <NavigationContainer>
+                        <IOURequestStartPage
+                            route={
+                                {params: {iouType: CONST.IOU.TYPE.SUBMIT, reportID: '1', transactionID: '', screen: CONST.TAB_REQUEST.SCAN}} as unknown as PlatformStackScreenProps<
+                                    MoneyRequestNavigatorParamList,
+                                    typeof SCREENS.MONEY_REQUEST.CREATE
+                                >['route']
+                            }
+                            report={undefined}
+                            reportDraft={undefined}
+                            navigation={{} as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']}
+                            defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
+                        />
+                    </NavigationContainer>
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+
+        const iouRequestType = await new Promise<OnyxEntry<IOURequestType>>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+                callback: (val) => {
+                    resolve(val?.iouRequestType);
+                    Onyx.disconnect(connection);
+                },
+            });
+        });
+        expect(iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+    });
 });

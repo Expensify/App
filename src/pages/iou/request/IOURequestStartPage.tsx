@@ -139,8 +139,8 @@ function IOURequestStartPage({
         }
         return tabs;
     }, [shouldUseTab, iouType, shouldShowPerDiemOption, shouldShowTimeOption]);
-    const routeWithState: typeof route & {state?: {index?: number; routes: Array<{name: SelectedTabRequest}>}} = route;
-    const routeSelectedTab = routeWithState.state?.routes.at(routeWithState.state.index ?? 0)?.name;
+    const routeWithTabState: typeof route & {state?: {index?: number; routes: Array<{name: SelectedTabRequest}>}; params: typeof route.params & {screen?: SelectedTabRequest}} = route;
+    const routeSelectedTab = routeWithTabState.state?.routes.at(routeWithTabState.state.index ?? 0)?.name ?? routeWithTabState.params.screen;
     const selectedTabOverride = routeSelectedTab && availableTabs.has(routeSelectedTab) ? routeSelectedTab : undefined;
 
     // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest

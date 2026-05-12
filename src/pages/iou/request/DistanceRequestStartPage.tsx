@@ -49,8 +49,8 @@ function DistanceRequestStartPage({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const routeWithState: typeof route & {state?: {index?: number; routes: Array<{name: SelectedTabRequest}>}} = route;
-    const routeSelectedTab = routeWithState.state?.routes.at(routeWithState.state.index ?? 0)?.name;
+    const routeWithTabState: typeof route & {state?: {index?: number; routes: Array<{name: SelectedTabRequest}>}; params: typeof route.params & {screen?: SelectedTabRequest}} = route;
+    const routeSelectedTab = routeWithTabState.state?.routes.at(routeWithTabState.state.index ?? 0)?.name ?? routeWithTabState.params.screen;
     const distanceTabs = useMemo(
         () => new Set<SelectedTabRequest>([CONST.TAB_REQUEST.DISTANCE_MAP, CONST.TAB_REQUEST.DISTANCE_MANUAL, CONST.TAB_REQUEST.DISTANCE_GPS, CONST.TAB_REQUEST.DISTANCE_ODOMETER]),
         [],
