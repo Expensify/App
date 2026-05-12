@@ -98,7 +98,7 @@ function useParticipantSubmission({
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(activePolicy) &&
         activePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed);
+        !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed);
 
     const dataRef = useRef({
         allPolicies,
@@ -297,10 +297,13 @@ function useParticipantSubmission({
 
         const newReportID = selectedReportID.current;
         const currentSelfDMReportID = dataRef.current.selfDMReportID;
-        const shouldUpdateTransactionReportID = effectiveParticipants?.at(0)?.reportID !== newReportID;
         const transactionReportID = newReportID === currentSelfDMReportID ? CONST.REPORT.UNREPORTED_REPORT_ID : newReportID;
         const firstParticipant = effectiveParticipants?.at(0);
+
         for (const transaction of drafts) {
+            // Check if the transaction's current reportID differs from what it should be
+            const shouldUpdateTransactionReportID = transaction?.reportID !== transactionReportID;
+
             const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
             setMoneyRequestTag(transaction.transactionID, tag);
             const policy = isPolicyExpenseChat && firstParticipant?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
@@ -308,19 +311,22 @@ function useParticipantSubmission({
             const defaultCategory = isDistanceRequest(transaction) && policyDistance?.defaultCategory ? policyDistance?.defaultCategory : '';
             const category = isMovingTransactionFromTrackExpense ? (transaction?.category ?? '') : defaultCategory;
             setMoneyRequestCategory(transaction.transactionID, category, isMovingTransactionFromTrackExpense ? movingPolicy : undefined, isMovingTransactionFromTrackExpense);
+
             if (shouldUpdateTransactionReportID) {
                 setTransactionReport(transaction.transactionID, {reportID: transactionReportID}, true);
             }
         }
+
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const email = userDetails.email ?? '';
             const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
-            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(
-                intro,
-                generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
-                userDetails.accountID,
-                email,
-            );
+            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
+                introSelected: intro,
+                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                currentUserAccountID: userDetails.accountID,
+                currentUserEmail: email,
+                currency: userDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            });
             for (const transaction of drafts) {
                 setMoneyRequestParticipants(transaction.transactionID, [
                     {

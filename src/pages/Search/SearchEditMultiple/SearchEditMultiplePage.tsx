@@ -8,30 +8,41 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {hasEnabledTags, shouldShowDependentTagList} from '@libs/TagsOptionsListUtils';
-import {getTagArrayFromName, getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
+import {getTagArrayFromName, getTaxName, hasSplitExpenseInSelection, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
-import {getTransactionEditContext, isBulkEditTaxTrackingEnabled, withSnapshotReportActions, withSnapshotReports, withSnapshotTransactions} from './SearchEditMultipleUtils';
+import {
+    areAllTransactionsExpenseCompatible,
+    getTransactionEditContext,
+    hasCustomUnitMerchantInSelection,
+    isBulkEditTaxTrackingEnabled,
+    withSnapshotReportActions,
+    withSnapshotReports,
+    withSnapshotTransactions,
+} from './SearchEditMultipleUtils';
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const {login: currentUserLogin, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
@@ -59,6 +70,8 @@ function SearchEditMultiplePage() {
 
     const hasPerDiemOrTimeTransaction = selectedTransactionContexts.some(({transaction}) => isPerDiemRequest(transaction) || isTimeRequest(transaction));
 
+    const hasSplitTransaction = hasSplitExpenseInSelection(selectedTransactionContexts.map(({transaction}) => transaction));
+
     const isFieldDisabledForAnyTransaction = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) =>
         selectedTransactionContexts.some(({transaction, report, reportAction, transactionPolicy}) => {
             // Unreported expenses have no report actions yet but are always editable
@@ -70,8 +83,7 @@ function SearchEditMultiplePage() {
 
     const hasPartiallyEditableTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.AMOUNT);
 
-    const hasPartiallyEditableMerchantTransaction =
-        isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.MERCHANT) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
+    const hasPartiallyEditableMerchantTransaction = isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.MERCHANT) || hasCustomUnitMerchantInSelection(selectedTransactionContexts);
 
     const hasPartiallyEditableTaxRateTransaction =
         isFieldDisabledForAnyTransaction(CONST.EDIT_REQUEST_FIELD.TAX_RATE) || selectedTransactionContexts.some(({transaction}) => isDistanceRequest(transaction));
@@ -102,14 +114,9 @@ function SearchEditMultiplePage() {
     const policyTagLists = getTagLists(policyTags);
 
     const isTaxTrackingEnabled = isBulkEditTaxTrackingEnabled(selectedTransactionContexts, policy, hasPerDiemOrTimeTransaction);
-    const areSelectedTransactionsExpenses = selectedTransactionContexts.every(({transaction, report}) => {
-        if (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            return true;
-        }
-        return !isIOUReport(report);
-    });
+    const areSelectedTransactionsExpenses = areAllTransactionsExpenseCompatible(selectedTransactionContexts);
     const areCategoriesEnabled = areSelectedTransactionsExpenses && !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
-    const areTagsEnabled = !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
+    const areTagsEnabled = areSelectedTransactionsExpenses && !!policy?.areTagsEnabled && hasEnabledTags(policyTagLists);
 
     useEffect(() => {
         return () => {
@@ -169,6 +176,8 @@ function SearchEditMultiplePage() {
             allPolicies: policies,
             introSelected,
             betas,
+            currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
         });
         // Bulk edit can start from report (ID-based selection) or search (map-based selection),
         // so clear both stores to keep deselection behavior consistent.
@@ -221,7 +230,7 @@ function SearchEditMultiplePage() {
             description: translate('iou.amount'),
             title: draftTransaction?.amount !== undefined ? convertToDisplayStringWithoutCurrency(draftTransaction.amount, currency) : '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
-            disabled: hasCustomUnitTransaction || hasPartiallyEditableTransaction,
+            disabled: hasCustomUnitTransaction || hasPartiallyEditableTransaction || hasSplitTransaction,
         },
         {
             description: translate('common.description'),
@@ -257,7 +266,7 @@ function SearchEditMultiplePage() {
                       description: policy?.taxRates?.name ?? translate('common.tax'),
                       title: draftTransaction?.taxCode ? (getTaxName(policy, draftTransaction) ?? '') : '',
                       route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
-                      disabled: hasPartiallyEditableTaxRateTransaction,
+                      disabled: hasPartiallyEditableTaxRateTransaction || hasSplitTransaction,
                   },
               ]
             : []),
