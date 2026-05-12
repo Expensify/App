@@ -223,16 +223,6 @@ type TransactionWeekGroupSorting = ColumnSortMapping<TransactionWeekGroupListIte
 type TransactionYearGroupSorting = ColumnSortMapping<TransactionYearGroupListItemType>;
 type TransactionQuarterGroupSorting = ColumnSortMapping<TransactionQuarterGroupListItemType>;
 
-function isPayActionSearch(queryJSON: SearchQueryJSON | undefined): boolean {
-    return (
-        queryJSON?.flatFilters.some(
-            (filter) =>
-                filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION &&
-                filter.filters.some((queryFilter) => queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && queryFilter.value.toString() === CONST.SEARCH.ACTION_FILTERS.PAY),
-        ) ?? false
-    );
-}
-
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
     policies: OnyxCollection<OnyxTypes.Policy>;
@@ -2059,7 +2049,6 @@ function getTransactionsSections({
     const transactionsSections: TransactionListItemType[] = [];
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
-    const isPaySearch = isPayActionSearch(currentQueryJSON);
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2107,9 +2096,6 @@ function getTransactionsSections({
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
-            if (isPaySearch && !allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY)) {
-                continue;
-            }
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -2663,7 +2649,6 @@ function getReportSections({
     } = classifyAndPreprocess(data);
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
-    const isPaySearch = isPayActionSearch(currentQueryJSON);
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
@@ -2704,9 +2689,6 @@ function getReportSections({
                 const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
                 const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
                 const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions, allReportTransactions);
-                if (isPaySearch && !allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY)) {
-                    continue;
-                }
 
                 const fromDetails =
                     mergedPersonalDetails?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
