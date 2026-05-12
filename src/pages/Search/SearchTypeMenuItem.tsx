@@ -6,6 +6,8 @@ import Icon from '@components/Icon';
 import {collapseProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+import TooltipSense from '@components/Tooltip/TooltipSense';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,9 +50,10 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
         };
     });
 
-    return (
+    const pressable = (
         <PressableWithoutFeedback
             onPress={onPress}
+            onHoverIn={isCollapsed ? () => TooltipSense.activate() : undefined}
             accessibilityLabel={title}
             accessibilityState={{selected: focused}}
             role={CONST.ROLE.TAB}
@@ -97,6 +100,12 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
             )}
         </PressableWithoutFeedback>
     );
+
+    if (isCollapsed) {
+        return <Tooltip text={title}>{pressable}</Tooltip>;
+    }
+
+    return pressable;
 }
 
 export default SearchTypeMenuItem;
