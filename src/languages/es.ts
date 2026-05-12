@@ -5817,7 +5817,7 @@ ${amount} para ${merchant} - ${date}`,
             error: 'Se produjo un error al duplicar tu nuevo espacio de trabajo. Inténtalo de nuevo.',
         },
         copyPolicySettings: {
-            error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Inténtalo de nuevo.',
+            error: 'Se produjo un error al copiar la configuración del espacio de trabajo. Por favor, inténtalo de nuevo.',
         },
         emptyWorkspace: {
             title: 'Aún no hay espacios de trabajo',
