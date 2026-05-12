@@ -327,7 +327,7 @@
     "link": "^2.1.1",
     "memfs": "^4.6.0",
     "mini-css-extract-plugin": "^2.9.4",
-    "nitrogen": "0.35.4",
+    "nitrogen": "0.35.5",
     "onchange": "^7.1.0",
     "openai": "^6.16.0",
     "patch-package": "^8.1.0-canary.1",
