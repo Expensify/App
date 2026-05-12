@@ -354,7 +354,7 @@ function IOURequestStepAmount({
                     const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
                     const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-                    requestMoney({
+                    const requestMoneyParams = {
                         report,
                         betas,
                         participantParams: {
@@ -382,7 +382,58 @@ function IOURequestStepAmount({
                         draftTransactionIDs,
                         isSelfTourViewed,
                         personalDetails,
-                    });
+                    };
+
+                    const requestDestinationReportID = report?.reportID;
+                    const shouldStayOnSearchForRequest = isSearchTopmostFullScreenRoute();
+
+                    const startRequestMoneyTracking = (
+                        followUpAction: typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                        pendingReportID?: string,
+                    ) => {
+                        startTracking(
+                            {
+                                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
+                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                requestType: 'manual',
+                                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                                hasReceipt: false,
+                            },
+                            {skipSubmitExpenseSpan: true},
+                        );
+                        setFastPath(
+                            followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
+                                ? CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT
+                                : CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL,
+                            CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST,
+                        );
+                        setPendingSubmitFollowUpAction(followUpAction, pendingReportID);
+                    };
+
+                    if (shouldStayOnSearchForRequest) {
+                        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                        startRequestMoneyTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+                        Navigation.dismissModal({
+                            afterTransition: () => requestMoney({...requestMoneyParams, shouldHandleNavigation: false, shouldDeferForSearch: true}),
+                        });
+                        return;
+                    }
+
+                    if (requestDestinationReportID) {
+                        startRequestMoneyTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, requestDestinationReportID);
+                        const isRequestDestinationLoaded = !!getReportOrDraftReport(requestDestinationReportID)?.reportID;
+                        if (!isRequestDestinationLoaded) {
+                            requestMoney({...requestMoneyParams, shouldHandleNavigation: false});
+                            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(requestDestinationReportID));
+                            return;
+                        }
+                        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(requestDestinationReportID), {
+                            afterTransition: () => requestMoney({...requestMoneyParams, shouldHandleNavigation: false}),
+                        });
+                        return;
+                    }
+
+                    requestMoney(requestMoneyParams);
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
@@ -416,9 +467,7 @@ function IOURequestStepAmount({
                     const shouldStayOnSearchForTrack = isSearchTopmostFullScreenRoute();
 
                     const startTrackExpenseTracking = (
-                        followUpAction:
-                            | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
-                            | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                        followUpAction: typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
                         pendingReportID?: string,
                     ) => {
                         startTracking(
