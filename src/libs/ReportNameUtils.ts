@@ -476,7 +476,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
-        return getReimbursementDeQueuedOrCanceledActionMessage(translate, parentReportAction, parentReport);
+        return getReimbursementDeQueuedOrCanceledActionMessage(translate, parentReportAction, parentReport?.ownerAccountID);
     }
     if (isRejectedAction(parentReportAction)) {
         return translate('iou.rejectedThisReport');
