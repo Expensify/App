@@ -386,7 +386,7 @@ function IOURequestStepAmount({
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
-                    trackExpense({
+                    const trackParams = {
                         report,
                         isDraftPolicy: false,
                         participantParams: {
@@ -410,7 +410,60 @@ function IOURequestStepAmount({
                         betas,
                         draftTransactionIDs,
                         isSelfTourViewed,
-                    });
+                    };
+
+                    const trackDestinationReportID = selfDMReport?.reportID;
+                    const shouldStayOnSearchForTrack = isSearchTopmostFullScreenRoute();
+
+                    const startTrackExpenseTracking = (
+                        followUpAction:
+                            | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
+                            | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                        pendingReportID?: string,
+                    ) => {
+                        startTracking(
+                            {
+                                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
+                                iouType: CONST.IOU.TYPE.TRACK,
+                                requestType: 'manual',
+                                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                                hasReceipt: false,
+                            },
+                            {skipSubmitExpenseSpan: true},
+                        );
+                        setFastPath(
+                            followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
+                                ? CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT
+                                : CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL,
+                            CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST,
+                        );
+                        setPendingSubmitFollowUpAction(followUpAction, pendingReportID);
+                    };
+
+                    if (shouldStayOnSearchForTrack) {
+                        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                        startTrackExpenseTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+                        Navigation.dismissModal({
+                            afterTransition: () => trackExpense({...trackParams, shouldHandleNavigation: false, shouldDeferForSearch: true}),
+                        });
+                        return;
+                    }
+
+                    if (trackDestinationReportID) {
+                        startTrackExpenseTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, trackDestinationReportID);
+                        const isTrackDestinationLoaded = !!getReportOrDraftReport(trackDestinationReportID)?.reportID;
+                        if (!isTrackDestinationLoaded) {
+                            trackExpense({...trackParams, shouldHandleNavigation: false});
+                            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(trackDestinationReportID));
+                            return;
+                        }
+                        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(trackDestinationReportID), {
+                            afterTransition: () => trackExpense({...trackParams, shouldHandleNavigation: false}),
+                        });
+                        return;
+                    }
+
+                    trackExpense(trackParams);
                     return;
                 }
             }

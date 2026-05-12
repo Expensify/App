@@ -470,7 +470,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
+    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint, shouldDeferForSearch?: boolean) {
         if (!transactions.length) {
             return;
         }
@@ -530,6 +530,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     accountant: item.accountant,
                 },
                 shouldHandleNavigation: shouldHandleNav && index === transactions.length - 1,
+                shouldDeferForSearch,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: email,
@@ -641,6 +642,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
         const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
+        const shouldDeferTrackForSearch = isTrackExpense && !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
@@ -790,24 +792,29 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                     if (userLocation) {
-                        trackExpense(selectedParticipantsArg, shouldHandleNavigation, {
-                            lat: userLocation.latitude,
-                            long: userLocation.longitude,
-                        });
+                        trackExpense(
+                            selectedParticipantsArg,
+                            shouldHandleNavigation,
+                            {
+                                lat: userLocation.latitude,
+                                long: userLocation.longitude,
+                            },
+                            shouldDeferTrackForSearch,
+                        );
                         markSubmitExpenseEnd();
                         return;
                     }
 
-                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipantsArg, shouldHandleNavigation, gpsCoords));
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipantsArg, shouldHandleNavigation, gpsCoords, shouldDeferTrackForSearch));
                     return;
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                trackExpense(selectedParticipantsArg, shouldHandleNavigation);
+                trackExpense(selectedParticipantsArg, shouldHandleNavigation, undefined, shouldDeferTrackForSearch);
                 markSubmitExpenseEnd();
                 return;
             }
-            trackExpense(selectedParticipantsArg, shouldHandleNavigation);
+            trackExpense(selectedParticipantsArg, shouldHandleNavigation, undefined, shouldDeferTrackForSearch);
             markSubmitExpenseEnd();
             return;
         }
