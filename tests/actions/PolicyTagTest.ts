@@ -7,10 +7,10 @@ import usePolicyData from '@hooks/usePolicyData';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {
     buildOptimisticPolicyRecentlyUsedTags,
+    cleanPolicyTags,
     clearPolicyTagErrors,
     clearPolicyTagListErrorField,
     clearPolicyTagListErrors,
-    cleanPolicyTags,
     createPolicyTag,
     deletePolicyTags,
     enablePolicyTags,
