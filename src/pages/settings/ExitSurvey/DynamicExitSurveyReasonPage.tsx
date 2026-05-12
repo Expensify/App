@@ -21,6 +21,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {saveResponse} from '@libs/actions/ExitSurvey';
+import {setErrorFields} from '@libs/actions/FormActions';
+import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import StatusBar from '@libs/StatusBar';
@@ -66,11 +68,20 @@ function DynamicExitSurveyReasonPage() {
 
     const switchToClassic = useCallback(() => {
         Log.info('[ExitSurvey] User chose Switch to Classic');
+        if (!draftResponse.trim()) {
+            setErrorFields(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
+                [INPUT_IDS.RESPONSE]: getMicroSecondOnyxErrorWithMessage(translate('common.error.fieldRequired')),
+            });
+            return;
+        }
+        if (draftResponse.length > CONST.MAX_COMMENT_LENGTH) {
+            setErrorFields(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
+                [INPUT_IDS.RESPONSE]: getMicroSecondOnyxErrorWithMessage(translate('common.error.characterLimitExceedCounter', draftResponse.length, CONST.MAX_COMMENT_LENGTH)),
+            });
+            return;
+        }
         submitForm();
-    }, [submitForm]);
-
-    const isSwitchToClassicDisabled = isOffline || !draftResponse.trim();
-    const isGoBackJustOnceDisabled = isOffline;
+    }, [draftResponse, submitForm, translate]);
 
     const formTopMarginsStyle = styles.mt3;
     const baseResponseInputContainerStyle = styles.mt3;
@@ -139,7 +150,7 @@ function DynamicExitSurveyReasonPage() {
                     large
                     text={translate('exitSurvey.goToExpensifyClassic')}
                     onPress={switchToClassic}
-                    isDisabled={isSwitchToClassicDisabled}
+                    isDisabled={isOffline}
                 />
                 <Button
                     success
@@ -147,7 +158,7 @@ function DynamicExitSurveyReasonPage() {
                     pressOnEnter
                     text={translate('exitSurvey.goBackJustOnce')}
                     onPress={goBackJustOnce}
-                    isDisabled={isGoBackJustOnceDisabled}
+                    isDisabled={isOffline}
                     style={styles.mt3}
                 />
             </FixedFooter>
