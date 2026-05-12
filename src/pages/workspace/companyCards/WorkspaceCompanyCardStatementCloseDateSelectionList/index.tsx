@@ -9,8 +9,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -110,7 +110,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
 
     return (
         <ScreenWrapper
-            testID={WorkspaceCompanyCardStatementCloseDateSelectionList.displayName}
+            testID="WorkspaceCompanyCardStatementCloseDateSelectionList"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -145,8 +145,10 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
                                             value: option,
                                             text: translate(`workspace.companyCards.statementCloseDate.${option}`),
                                             isSelected: selectedDate === option,
+                                            keyForList: option,
                                         }}
                                         onSelectRow={selectDateAndClearError}
+                                        keyForList={option}
                                     />
                                 ))}
                                 {selectedDate === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH && (
@@ -183,7 +185,5 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
         </ScreenWrapper>
     );
 }
-
-WorkspaceCompanyCardStatementCloseDateSelectionList.displayName = 'WorkspaceCompanyCardStatementCloseDateSelectionList';
 
 export default WorkspaceCompanyCardStatementCloseDateSelectionList;

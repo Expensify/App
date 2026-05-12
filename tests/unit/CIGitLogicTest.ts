@@ -2,7 +2,6 @@
  * @jest-environment node
  * @jest-config bail=true
  */
-
 /* eslint-disable no-console */
 import * as core from '@actions/core';
 import {execSync} from 'child_process';
@@ -251,7 +250,6 @@ function updateStagingFromMain() {
     try {
         execSync('git rev-parse --verify staging', {stdio: 'ignore'});
         exec('git branch -D staging');
-        // eslint-disable-next-line no-empty
     } catch (e) {}
     exec('git switch -c staging');
     exec('git push --force origin staging');
@@ -272,7 +270,6 @@ function updateProductionFromStaging() {
     try {
         execSync('git rev-parse --verify production', {stdio: 'ignore'});
         exec('git branch -D production');
-        // eslint-disable-next-line no-empty
     } catch (e) {}
 
     exec('git switch -c production');

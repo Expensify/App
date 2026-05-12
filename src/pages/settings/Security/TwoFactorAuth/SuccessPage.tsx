@@ -1,17 +1,22 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import LottieAnimations from '@components/LottieAnimations';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
+import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openLink} from '@userActions/Link';
 import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.SUCCESS>;
@@ -21,24 +26,14 @@ function SuccessPage({route}: SuccessPageProps) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
 
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
+    const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
+
     const goBack = useCallback(() => {
-        if (route.params?.backTo === ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
-            Navigation.dismissModal();
-            return;
-        }
         quitAndNavigateBack(route.params?.backTo ?? ROUTES.SETTINGS_2FA_ROOT.getRoute());
     }, [route.params?.backTo]);
-
-    useEffect(() => {
-        return () => {
-            // When the 2FA RHP is closed, we want to remove the 2FA required page from the navigation stack too.
-            if (route.params?.backTo !== ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
-                return;
-            }
-            Navigation.popRootToTop();
-        };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
 
     return (
         <TwoFactorAuthWrapper
@@ -57,6 +52,10 @@ function SuccessPage({route}: SuccessPageProps) {
                 shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
+                    if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed && !isClassicRedirectBlocked) {
+                        closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
+                        return;
+                    }
                     goBack();
                     if (route.params?.forwardTo) {
                         openLink(route.params.forwardTo, environmentURL);
@@ -67,7 +66,5 @@ function SuccessPage({route}: SuccessPageProps) {
         </TwoFactorAuthWrapper>
     );
 }
-
-SuccessPage.displayName = 'SuccessPage';
 
 export default SuccessPage;

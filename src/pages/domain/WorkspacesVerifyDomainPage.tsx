@@ -8,15 +8,14 @@ import BaseVerifyDomainPage from './BaseVerifyDomainPage';
 type WorkspacesVerifyDomainPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_VERIFY_DOMAIN>;
 
 function WorkspacesVerifyDomainPage({route}: WorkspacesVerifyDomainPageProps) {
-    const accountID = route.params.accountID;
+    const {domainAccountID} = route.params;
 
     return (
         <BaseVerifyDomainPage
-            accountID={accountID}
-            forwardTo={ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(accountID)}
+            domainAccountID={domainAccountID}
+            forwardTo={ROUTES.WORKSPACES_DOMAIN_VERIFIED.getRoute(domainAccountID)}
         />
     );
 }
 
-WorkspacesVerifyDomainPage.displayName = 'WorkspacesVerifyDomainPage';
 export default WorkspacesVerifyDomainPage;

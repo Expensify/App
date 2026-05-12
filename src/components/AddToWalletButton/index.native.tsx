@@ -4,11 +4,13 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {Alert, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Text from '@components/Text';
+import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 import CONST from '@src/CONST';
 import type AddToWalletButtonProps from './types';
@@ -61,6 +63,16 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
         checkIfCardIsInWallet();
     }, [checkIfCardIsInWallet, isCardAvailable, card]);
 
+    // Recheck card status when app regains focus in case user manually adds card to wallet outside the app
+    useAppFocusEvent(
+        useCallback(() => {
+            if (!isCardAvailable) {
+                return;
+            }
+            checkIfCardIsInWallet();
+        }, [checkIfCardIsInWallet, isCardAvailable]),
+    );
+
     useEffect(() => {
         if (!isCardAvailable) {
             return;
@@ -80,7 +92,13 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
     }
 
     if (isLoading) {
-        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'AddToWalletButton', isLoading};
+        return (
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                reasonAttributes={reasonAttributes}
+            />
+        );
     }
 
     if (isInWallet) {
@@ -101,7 +119,5 @@ function AddToWalletButton({card, cardHolderName, cardDescription, style}: AddTo
         />
     );
 }
-
-AddToWalletButton.displayName = 'AddToWalletButton';
 
 export default AddToWalletButton;

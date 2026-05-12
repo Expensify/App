@@ -1,16 +1,21 @@
-/* eslint-disable max-classes-per-file */
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 import * as core from '@actions/core';
 import '@shopify/flash-list/jestSetup';
+import type {ReactNode} from 'react';
+import {useMemo} from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
+import type {ReadDirItem} from 'react-native-fs';
 import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import type Animated from 'react-native-reanimated';
 import 'setimmediate';
-import type {RenderInfo} from '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue';
+import {TextDecoder, TextEncoder} from 'util';
+import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
+import '@src/polyfills/PromiseWithResolvers';
+import '@src/polyfills/requestIdleCallback';
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
-import setupMockReactNativeWorklets from './setupMockReactNativeWorklets';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
@@ -20,6 +25,8 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
+
+Object.assign(global, {TextDecoder, TextEncoder});
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
@@ -33,9 +40,43 @@ jest.mock('react-native-onyx/dist/storage', () => mockStorage);
 // Mock NativeEventEmitter as it is needed to provide mocks of libraries which include it
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
+// Mock expo-task-manager
+jest.mock('expo-task-manager', () => ({
+    defineTask: jest.fn(),
+    // Add other methods here if you use them
+}));
+
+// Mock expo-location — the jest-expo preset replaces all native module methods with jest.fn(async () => {}),
+// which returns undefined instead of a proper PermissionResponse. This causes crashes when code reads .status
+// from the result of requestForegroundPermissionsAsync().
+jest.mock('expo-location', () => ({
+    requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    requestBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getForegroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getBackgroundPermissionsAsync: jest.fn(() => Promise.resolve({status: 'granted', granted: true, canAskAgain: true, expires: 0})),
+    getCurrentPositionAsync: jest.fn(() => Promise.resolve({coords: {latitude: 0, longitude: 0, altitude: 0, accuracy: 0, altitudeAccuracy: 0, heading: 0, speed: 0}, timestamp: 0})),
+    hasStartedLocationUpdatesAsync: jest.fn(() => Promise.resolve(false)),
+    startLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    stopLocationUpdatesAsync: jest.fn(() => Promise.resolve()),
+    reverseGeocodeAsync: jest.fn(() => Promise.resolve([])),
+    hasServicesEnabledAsync: jest.fn(() => Promise.resolve(true)),
+    PermissionStatus: {
+        GRANTED: 'granted',
+        DENIED: 'denied',
+        UNDETERMINED: 'undetermined',
+    },
+    Accuracy: {
+        Lowest: 1,
+        Low: 2,
+        Balanced: 3,
+        High: 4,
+        Highest: 5,
+        BestForNavigation: 6,
+    },
+}));
+
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
 jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         ignoreLogs: jest.fn(),
@@ -70,16 +111,14 @@ jest.mock('react-native-fs', () => ({
                 res();
             }),
     ),
+    readDir: jest.fn(
+        () =>
+            new Promise<ReadDirItem[]>((res) => {
+                res([]);
+            }),
+    ),
     CachesDirectoryPath: jest.fn(),
 }));
-
-jest.mock('react-native-sound', () => {
-    class SoundMock {
-        play = jest.fn();
-    }
-
-    return SoundMock;
-});
 
 jest.mock('react-native-share', () => ({
     default: jest.fn(),
@@ -91,11 +130,12 @@ jest.mock('react-native-reanimated', () => ({
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),
-    LayoutAnimationConfig: jest.fn,
+    LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
     makeShareableCloneRecursive: jest.fn,
 }));
 
-setupMockReactNativeWorklets();
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
 
@@ -108,14 +148,7 @@ jest.mock('@libs/scheduleOnLiveMarkdownRuntime', () => {
     return scheduleOnLiveMarkdownRuntime;
 });
 
-jest.mock('@src/libs/actions/Timing', () => ({
-    start: jest.fn(),
-    end: jest.fn(),
-    clearData: jest.fn(),
-}));
-
 jest.mock('@src/setup/telemetry', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
     navigationIntegration: {
@@ -136,60 +169,74 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
     clearOldDotAfterSignOut: jest.fn(),
 }));
 
+const mockUseMemo = useMemo;
+
 // Mock lazy asset loading to be synchronous in tests
 jest.mock('../src/hooks/useLazyAsset.ts', () => ({
-    useMemoizedLazyAsset: jest.fn(() => {
-        // Return a mock asset immediately to avoid async loading in tests
-        const mockAsset = {
-            src: 'mock-icon',
-            testID: 'mock-asset',
-            // Add common icon properties that tests might expect
-            height: 20,
-            width: 20,
-        };
+    useMemoizedLazyAsset: jest.fn((importFn) =>
+        mockUseMemo(() => {
+            // Return a mock asset immediately to avoid async loading in tests
+            const mockAsset = {
+                src: 'mock-icon',
+                testID: 'mock-asset',
+                // Add common icon properties that tests might expect
+                height: 20,
+                width: 20,
+            };
 
-        return {
-            asset: mockAsset,
-            isLoaded: true,
-            isLoading: false,
-            hasError: false,
-        };
-    }),
-    useMemoizedLazyIllustrations: jest.fn((names: readonly string[]) => {
-        // Return a Record with all requested illustration names
-        const mockIllustrations: Record<string, unknown> = {};
-        for (const name of names) {
-            mockIllustrations[name] = {
-                src: `mock-${name}`,
-                testID: `mock-illustration-${name}`,
-                height: 20,
-                width: 20,
+            return {
+                asset: mockAsset,
+                isLoaded: true,
+                isLoading: false,
+                hasError: false,
             };
-        }
-        return mockIllustrations;
-    }),
-    useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) => {
-        // Return a Record with all requested icon names
-        const mockIcons: Record<string, unknown> = {};
-        for (const name of names) {
-            mockIcons[name] = {
-                src: `mock-${name}`,
-                testID: `mock-expensify-icon-${name}`,
-                height: 20,
-                width: 20,
+        }, [importFn]),
+    ),
+    useMemoizedLazyIllustrations: jest.fn((names: readonly string[]) =>
+        mockUseMemo(() => {
+            // Return a Record with all requested illustration names
+            const mockIllustrations: Record<string, unknown> = {};
+            for (const name of names) {
+                mockIllustrations[name] = {
+                    src: `mock-${name}`,
+                    testID: `mock-illustration-${name}`,
+                    height: 20,
+                    width: 20,
+                };
+            }
+            return mockIllustrations;
+
+            // Use a value-based dependency to avoid returning a new object caused by reference changes on names
+        }, [names.join(',')]),
+    ),
+    useMemoizedLazyExpensifyIcons: jest.fn((names: readonly string[]) =>
+        mockUseMemo(() => {
+            // Return a Record with all requested icon names
+            const mockIcons: Record<string, unknown> = {};
+            for (const name of names) {
+                mockIcons[name] = {
+                    src: `mock-${name}`,
+                    testID: `mock-expensify-icon-${name}`,
+                    height: 20,
+                    width: 20,
+                };
+            }
+            return mockIcons;
+
+            // Use a value-based dependency to avoid returning a new object caused by reference changes on names
+        }, [names.join(',')]),
+    ),
+    default: jest.fn((importFn) =>
+        mockUseMemo(() => {
+            const mockAsset = {src: 'mock-icon', testID: 'mock-asset'};
+            return {
+                asset: mockAsset,
+                isLoaded: true,
+                isLoading: false,
+                hasError: false,
             };
-        }
-        return mockIcons;
-    }),
-    default: jest.fn(() => {
-        const mockAsset = {src: 'mock-icon', testID: 'mock-asset'};
-        return {
-            asset: mockAsset,
-            isLoaded: true,
-            isLoading: false,
-            hasError: false,
-        };
-    }),
+        }, [importFn]),
+    ),
 }));
 
 // Mock icon loading functions to resolve immediately
@@ -203,21 +250,27 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
         };
         return Promise.resolve({default: mockIcon});
     }),
+    loadExpensifyIconsChunk: jest.fn(() => Promise.resolve({})),
+    getExpensifyIconsChunk: jest.fn(() => ({})),
+}));
+
+jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
+    loadIllustration: jest.fn(() => Promise.resolve({default: {src: 'mock-illustration', height: 20, width: 20}})),
+    loadIllustrationsChunk: jest.fn(() => Promise.resolve({})),
+    getIllustrationsChunk: jest.fn(() => ({})),
 }));
 
 jest.mock(
-    '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
+    '@components/FlatList/RenderTaskQueue',
     () =>
         class SyncRenderTaskQueue {
-            private handler: ((info: unknown) => void) | undefined = undefined;
+            private handler: (info: unknown) => void = () => {};
 
             add(info: RenderInfo) {
-                this.handler?.(info);
+                this.handler(info);
             }
 
-            start() {}
-
-            setHandler(handler: (info: unknown) => void) {
+            setHandler(handler: () => void) {
                 this.handler = handler;
             }
 
@@ -226,7 +279,6 @@ jest.mock(
 );
 
 jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn((command: string, data: Record<string, unknown>) => {
         const formData = new FormData();
@@ -234,7 +286,7 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
         for (const key of Object.keys(data)) {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 continue;
             }
 
@@ -249,13 +301,35 @@ jest.mock('@libs/prepareRequestPayload/index.native.ts', () => ({
 jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => jest.fn()), // Return a function that returns a function
 }));
 
 jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
+}));
+
+jest.mock('@shopify/react-native-skia', () => ({
+    useFont: jest.fn(() => null),
+    matchFont: jest.fn(() => null),
+    listFontFamilies: jest.fn(() => []),
+}));
+
+jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
+    isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
+    createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
+    deleteKeys: jest.fn(() => Promise.resolve({success: true})),
+    getAllKeys: jest.fn(() => Promise.resolve({keys: []})),
+    signWithOptions: jest.fn(() => Promise.resolve({success: false})),
+    sha256: jest.fn(() => Promise.resolve({hash: ''})),
+    InputEncoding: {Base64: 'base64', Utf8: 'utf8'},
+}));
+
+jest.mock('victory-native', () => ({
+    Bar: jest.fn(() => null),
+    CartesianChart: jest.fn(
+        ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
+    ),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up
@@ -277,3 +351,27 @@ if (typeof globalWithOptionalFetch.fetch !== 'function') {
         configurable: true,
     });
 }
+
+jest.mock('@components/ActionSheetAwareScrollView/index');
+jest.mock('@components/ActionSheetAwareScrollView/index.ios');
+jest.mock('@components/ActionSheetAwareScrollView/index.android');
+jest.mock('@components/ActionSheetAwareScrollView/ActionSheetAwareScrollViewContext');
+
+jest.mock('@src/components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext');
+
+// Mock document title hooks as no-ops in tests. The web implementation of setPageTitle uses
+// setTimeout(fn, 0) which accumulates in the fake timer queue. Combined with lodash debounce
+// in triggerUnreadUpdate (also timer-based), this creates excessive timer churn that causes
+// heavy integration tests like SessionTest to exceed their timeout.
+jest.mock('@src/hooks/useDocumentTitle', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useWorkspaceDocumentTitle', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));

@@ -63,8 +63,8 @@ function BillingBanner({
 }: BillingBannerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const rightIconComponent = useMemo(() => {
         if (rightIcon) {
@@ -74,6 +74,7 @@ function BillingBanner({
                     style={[styles.touchableButtonImage]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={rightIconAccessibilityLabel}
+                    sentryLabel={CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON}
                 >
                     <Icon
                         src={rightIcon}
@@ -110,7 +111,7 @@ function BillingBanner({
                 {typeof title === 'string' ? <Text style={[styles.textStrong, titleStyle]}>{title}</Text> : title}
                 {!!subtitle && (typeof subtitle === 'string' ? <Text style={subtitleStyle}>{subtitle}</Text> : subtitle)}
             </View>
-            {shouldUseNarrowLayout ? (
+            {shouldUseNarrowLayout && !isInLandscapeMode ? (
                 <>
                     {rightIconComponent}
                     {!!rightComponent && rightComponent}
@@ -124,8 +125,6 @@ function BillingBanner({
         </View>
     );
 }
-
-BillingBanner.displayName = 'BillingBanner';
 
 export default BillingBanner;
 export type {BillingBannerProps};

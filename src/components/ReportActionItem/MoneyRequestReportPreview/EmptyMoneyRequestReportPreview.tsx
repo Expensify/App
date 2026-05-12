@@ -9,7 +9,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 function EmptyMoneyRequestReportPreview() {
-    const icons = useMemoizedLazyExpensifyIcons(['Folder'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -31,7 +31,5 @@ function EmptyMoneyRequestReportPreview() {
         </View>
     );
 }
-
-EmptyMoneyRequestReportPreview.displayName = 'EmptyRequestReport';
 
 export default EmptyMoneyRequestReportPreview;

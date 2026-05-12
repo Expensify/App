@@ -1,14 +1,20 @@
 /* eslint-disable no-underscore-dangle */
-
 /* eslint-disable no-param-reassign */
-
 /* eslint-disable @typescript-eslint/naming-convention */
-import type Environment from 'config/webpack/types';
 import dotenv from 'dotenv';
+import {createRequire} from 'module';
 import path from 'path';
-import {DefinePlugin} from 'webpack';
+import {fileURLToPath} from 'url';
+import webpack from 'webpack';
 import type {Configuration, RuleSetRule} from 'webpack';
-import webpackMockPaths from './webpackMockPaths';
+// Storybook 10 loads TS files directly and requires .ts extension for ESM imports
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+// eslint-disable-next-line import/extensions
+import webpackMockPaths from './webpackMockPaths.ts';
+
+const require = createRequire(import.meta.url);
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 type CustomWebpackConfig = {
     resolve: {
@@ -18,12 +24,6 @@ type CustomWebpackConfig = {
     module: {
         rules: RuleSetRule[];
     };
-};
-
-type CustomWebpackFunction = ({file, platform}: Environment) => CustomWebpackConfig;
-
-type WebpackModule = {
-    default: CustomWebpackFunction;
 };
 
 let envFile: string;
@@ -38,12 +38,14 @@ switch (process.env.ENV) {
         envFile = '.env';
 }
 
-const env = dotenv.config({path: path.resolve(__dirname, `../${envFile}`)});
-const customFunction = require<WebpackModule>('../config/webpack/webpack.common').default;
+const env = dotenv.config({path: path.resolve(dirname, `../${envFile}`)});
 
-const custom: CustomWebpackConfig = customFunction({file: envFile});
-
-const webpackConfig = ({config}: {config: Configuration}) => {
+const webpackConfig = async ({config}: {config: Configuration}) => {
+    // Storybook 10 loads TS files directly and requires .ts extension for ESM imports
+    // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+    // eslint-disable-next-line import/extensions
+    const {default: customFunction} = await import('../config/webpack/webpack.common.ts');
+    const custom = customFunction({file: envFile}) as CustomWebpackConfig;
     if (!config.resolve) {
         config.resolve = {};
     }
@@ -64,9 +66,9 @@ const webpackConfig = ({config}: {config: Configuration}) => {
     config.ignoreWarnings = [{module: new RegExp('node_modules/lottie-react-native/lib/module/LottieView/index.web.js')}];
 
     // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values
-    const definePluginIndex = config.plugins.findIndex((plugin) => plugin instanceof DefinePlugin);
-    if (definePluginIndex !== -1 && config.plugins.at(definePluginIndex) instanceof DefinePlugin) {
-        const definePlugin = config.plugins.at(definePluginIndex) as DefinePlugin;
+    const definePluginIndex = config.plugins.findIndex((plugin) => plugin instanceof webpack.DefinePlugin);
+    if (definePluginIndex !== -1 && config.plugins.at(definePluginIndex) instanceof webpack.DefinePlugin) {
+        const definePlugin = config.plugins.at(definePluginIndex) as webpack.DefinePlugin;
         if (definePlugin.definitions) {
             definePlugin.definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
         }
@@ -98,7 +100,7 @@ const webpackConfig = ({config}: {config: Configuration}) => {
     });
 
     config.plugins.push(
-        new DefinePlugin({
+        new webpack.DefinePlugin({
             __DEV__: process.env.NODE_ENV === 'development',
         }),
     );

@@ -32,7 +32,7 @@ function USDVerifiedBankAccountFlow({
     setShouldShowConnectedVerifiedBankAccount,
 }: USDVerifiedBankAccountFlowProps) {
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     let CurrentStep: React.JSX.Element | null;
     switch (USDBankAccountStep) {
@@ -88,19 +88,10 @@ function USDVerifiedBankAccountFlow({
     }
 
     if (CurrentStep) {
-        return (
-            <View
-                style={styles.flex1}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
-            >
-                {CurrentStep}
-            </View>
-        );
+        return <View style={styles.flex1}>{CurrentStep}</View>;
     }
 
     return null;
 }
-
-USDVerifiedBankAccountFlow.displayName = 'USDVerifiedBankAccountFlow';
 
 export default USDVerifiedBankAccountFlow;

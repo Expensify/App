@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import {useCallback, useEffect, useState} from 'react';
 import type {PinchGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
@@ -69,7 +68,6 @@ const usePinchGesture = ({
     useAnimatedReaction(
         () => [pinchTranslateX.get(), pinchTranslateY.get(), pinchBounceTranslateX.get(), pinchBounceTranslateY.get()],
         ([translateX, translateY, bounceX, bounceY]) => {
-            // eslint-disable-next-line react-compiler/react-compiler
             totalPinchTranslateX.set(translateX + bounceX);
             totalPinchTranslateY.set(translateY + bounceY);
         },

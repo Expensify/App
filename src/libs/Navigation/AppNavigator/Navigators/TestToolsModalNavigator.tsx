@@ -67,6 +67,4 @@ function TestToolsModalNavigator() {
     );
 }
 
-TestToolsModalNavigator.displayName = 'TestToolsModalNavigator';
-
 export default TestToolsModalNavigator;

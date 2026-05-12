@@ -11,6 +11,4 @@ function SearchFiltersExportedPage() {
     );
 }
 
-SearchFiltersExportedPage.displayName = 'SearchFiltersExportedPage';
-
 export default SearchFiltersExportedPage;

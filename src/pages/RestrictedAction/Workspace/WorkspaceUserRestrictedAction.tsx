@@ -20,7 +20,7 @@ type WorkspaceUserRestrictedActionProps = {
 };
 
 function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedActionProps) {
-    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
@@ -35,7 +35,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={WorkspaceUserRestrictedAction.displayName}
+            testID="WorkspaceUserRestrictedAction"
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
@@ -51,9 +51,7 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
                         width={variables.restrictedActionIllustrationHeight}
                         height={variables.restrictedActionIllustrationHeight}
                     />
-                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>
-                        {translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', {workspaceName: policy?.name ?? ''})}
-                    </Text>
+                    <Text style={[styles.textHeadlineH1, styles.textAlignCenter]}>{translate('workspace.restrictedAction.actionsAreCurrentlyRestricted', policy?.name ?? '')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.textAlignCenter, styles.lh20, styles.mt2]}>
                         {translate('workspace.restrictedAction.pleaseReachOutToYourWorkspaceAdmin')}
                     </Text>
@@ -68,7 +66,5 @@ function WorkspaceUserRestrictedAction({policyID}: WorkspaceUserRestrictedAction
         </ScreenWrapper>
     );
 }
-
-WorkspaceUserRestrictedAction.displayName = 'WorkspaceUserRestrictedAction';
 
 export default WorkspaceUserRestrictedAction;

@@ -2,7 +2,7 @@ import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -45,7 +45,7 @@ function RulesReimbursableDefaultPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesReimbursableDefaultPage.displayName}
+                testID="RulesReimbursableDefaultPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.cashExpenseDefault')}
@@ -56,9 +56,9 @@ function RulesReimbursableDefaultPage({
                 </Text>
                 <SelectionList
                     data={reimbursableModes}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
-                        setPolicyReimbursableMode(policyID, item.value);
+                        setPolicyReimbursableMode(policyID, item.value, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
@@ -70,7 +70,5 @@ function RulesReimbursableDefaultPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesReimbursableDefaultPage.displayName = 'RulesReimbursableDefaultPage';
 
 export default RulesReimbursableDefaultPage;

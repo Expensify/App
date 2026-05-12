@@ -1,5 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
-import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable, hasVBBA} from '@libs/PolicyUtils';
+import {getCorrectedAutoReportingFrequency, getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
 import {getAutoReportingFrequencyDisplayNames} from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
 import {isAuthenticationError} from '@userActions/connections';
 import CONST from '@src/CONST';
@@ -8,10 +8,14 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 
 function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextProps['translate']) {
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
-    const autoPayApprovedReportsUnavailable = !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !hasVBBA(policy?.id);
+    const autoPayApprovedReportsUnavailable =
+        !policy?.areWorkflowsEnabled || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || !policy?.achAccount?.bankAccountID;
     const total: string[] = [];
     if (policy?.maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
         total.push(translate('workspace.rules.individualExpenseRules.receiptRequiredAmount'));
+    }
+    if (policy?.maxExpenseAmountNoItemizedReceipt !== undefined && policy?.maxExpenseAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
+        total.push(translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmount'));
     }
     if (policy?.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
         total.push(translate('workspace.rules.individualExpenseRules.maxExpenseAmount'));
@@ -68,8 +72,8 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
     return total.length > 0 ? total : null;
 }
 
-function getAllValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
-    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).filter(
+function getAllValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: readonly ConnectionName[]) {
+    return (accountingIntegrations ?? CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES).filter(
         (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
     );
 }

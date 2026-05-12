@@ -48,7 +48,7 @@ function PlaidStep({onNext}: SubStepProps) {
             return;
         }
         clearPersonalBankAccountSetupType();
-    }, [isFocused, plaidData]);
+    }, [isFocused, plaidData?.bankAccounts]);
 
     return (
         <FormProvider
@@ -57,7 +57,8 @@ function PlaidStep({onNext}: SubStepProps) {
             onSubmit={handleNextPress}
             scrollContextEnabled
             submitButtonText={translate('common.next')}
-            style={[styles.mh5, styles.flexGrow1]}
+            submitButtonStyles={styles.mh5}
+            style={styles.flexGrow1}
             isSubmitButtonVisible={(plaidData?.bankAccounts ?? []).length > 0}
             shouldHideFixErrorsAlert
         >
@@ -76,7 +77,5 @@ function PlaidStep({onNext}: SubStepProps) {
         </FormProvider>
     );
 }
-
-PlaidStep.displayName = 'PlaidStep';
 
 export default PlaidStep;

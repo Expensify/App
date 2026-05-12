@@ -20,11 +20,11 @@ function DisplayNamesWithToolTip({
     numberOfLines = 1,
     renderAdditionalText,
     forwardedFSClass,
+    accessibilityLabel,
 }: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
-    // eslint-disable-next-line react-compiler/react-compiler
     const isEllipsisActive = !!containerRef.current?.offsetWidth && !!containerRef.current?.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth;
 
     /**
@@ -60,10 +60,11 @@ function DisplayNamesWithToolTip({
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
+            accessibilityLabel={accessibilityLabel}
             style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
-            testID={DisplayNamesWithToolTip.displayName}
+            testID="DisplayNamesWithToolTip"
             fsClass={forwardedFSClass}
         >
             {shouldUseFullTitle
@@ -98,7 +99,5 @@ function DisplayNamesWithToolTip({
         </Text>
     );
 }
-
-DisplayNamesWithToolTip.displayName = 'DisplayNamesWithTooltip';
 
 export default DisplayNamesWithToolTip;

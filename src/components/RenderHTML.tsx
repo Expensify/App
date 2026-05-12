@@ -1,8 +1,12 @@
 import React, {useMemo} from 'react';
 import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
 import type {RenderersProps} from 'react-native-render-html';
+import useHasTextAncestor from '@hooks/useHasTextAncestor';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Parser from '@libs/Parser';
+import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
+import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';
+import ULRenderer from './HTMLEngineProvider/HTMLRenderers/ULRenderer';
 
 type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 
@@ -12,13 +16,21 @@ type RenderHTMLProps = {
 
     /** Callback to handle link press */
     onLinkPress?: LinkPressHandler;
+
+    /** Whether the rendered text should be selectable */
+    isSelectable?: boolean;
 };
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
-function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
+function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProps) {
+    const hasTextAncestor = useHasTextAncestor();
+    if (__DEV__ && hasTextAncestor) {
+        throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
+    }
+
     const {windowWidth} = useWindowDimensions();
     const html = useMemo(() => {
         return (
@@ -29,6 +41,9 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
                 // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
                 .replaceAll(/(<emoji[^>]*>)(?:<emoji[^>]*>)+/g, '$1')
                 .replaceAll(/(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g, '$1')
+                // Strip orphaned <br/> tags inside <ul> that would render as extra empty bullets
+                .replaceAll(/<br\s*\/?>\s*(<\/ul>)/gi, '$1')
+                .replaceAll(/(<\/li>)\s*<br\s*\/?>\s*(?=<(?:li|\/ul)>)/gi, '$1')
         );
     }, [htmlParam]);
 
@@ -40,6 +55,13 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
         };
     }, [onLinkPress]);
 
+    const renderers = {
+        /* eslint-disable @typescript-eslint/naming-convention */
+        'bullet-item': BulletItemRenderer,
+        'sparkles-icon': SparklesIconRenderer,
+        ul: ULRenderer,
+    };
+
     const htmlSource = (
         <RenderHTMLSource
             contentWidth={windowWidth * 0.8}
@@ -49,8 +71,9 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
 
     return onLinkPress ? (
         <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: true}}
+            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
             renderersProps={renderersProps}
+            renderers={renderers}
         >
             {htmlSource}
         </RenderHTMLConfigProvider>
@@ -58,7 +81,5 @@ function RenderHTML({html: htmlParam, onLinkPress}: RenderHTMLProps) {
         htmlSource
     );
 }
-
-RenderHTML.displayName = 'RenderHTML';
 
 export default RenderHTML;

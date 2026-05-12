@@ -4,8 +4,8 @@ import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
@@ -66,9 +66,21 @@ function StateSelectionPage() {
         [params?.backTo],
     );
 
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage,
+            // Label can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            label: label || translate('common.state'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+        }),
+        [headerMessage, label, searchValue, translate],
+    );
+
     return (
         <ScreenWrapper
-            testID={StateSelectionPage.displayName}
+            testID="StateSelectionPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -89,26 +101,18 @@ function StateSelectionPage() {
             />
             {/* This empty, non-harmful view fixes the issue with SelectionList scrolling and shouldUseDynamicMaxToRenderPerBatch. It can be removed without consequences if a solution for SelectionList is found. See comment https://github.com/Expensify/App/pull/36770#issuecomment-2017028096 */}
             <View />
-
             <SelectionList
+                data={searchResults}
+                ListItem={SingleSelectListItem}
                 onSelectRow={selectCountryState}
+                textInputOptions={textInputOptions}
+                initiallyFocusedItemKey={currentState}
                 shouldSingleExecuteRowSelect
-                headerMessage={headerMessage}
-                // Label can be an empty string
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                textInputLabel={label || translate('common.state')}
-                textInputValue={searchValue}
-                sections={[{data: searchResults}]}
-                onChangeText={setSearchValue}
-                initiallyFocusedOptionKey={currentState}
-                shouldUseDynamicMaxToRenderPerBatch
-                ListItem={RadioListItem}
+                disableMaintainingScrollPosition
                 addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );
 }
-
-StateSelectionPage.displayName = 'StateSelectionPage';
 
 export default StateSelectionPage;

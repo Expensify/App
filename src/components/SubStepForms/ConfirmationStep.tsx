@@ -3,15 +3,15 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 type SummaryItem = {
     description: string;
@@ -20,30 +20,41 @@ type SummaryItem = {
     onPress: () => void;
 };
 
-type ConfirmationStepProps = SubStepProps & {
-    /** The title of the step */
-    pageTitle: string;
+type ConfirmationStepProps = SubStepProps &
+    ForwardedFSClassProps & {
+        /** The title of the step */
+        pageTitle: string;
 
-    /** The summary items to display */
-    summaryItems: SummaryItem[];
+        /** The summary items to display */
+        summaryItems: SummaryItem[];
 
-    /** Whether show additional section with Onfido terms etc. */
-    showOnfidoLinks: boolean;
+        /** Whether show additional section with Onfido terms etc. */
+        showOnfidoLinks: boolean;
 
-    /** The title of the Onfido section */
-    onfidoLinksTitle?: string;
+        /** The title of the Onfido section */
+        onfidoLinksTitle?: string;
 
-    /** Whether the data is loading */
-    isLoading?: boolean;
+        /** Whether the data is loading */
+        isLoading?: boolean;
 
-    /** The error message to display */
-    error?: string;
+        /** The error message to display */
+        error?: string;
 
-    /** Whether to apply safe area padding bottom */
-    shouldApplySafeAreaPaddingBottom?: boolean;
-};
+        /** Whether to apply safe area padding bottom */
+        shouldApplySafeAreaPaddingBottom?: boolean;
+    };
 
-function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinksTitle, isLoading, error, onNext, shouldApplySafeAreaPaddingBottom = true}: ConfirmationStepProps) {
+function ConfirmationStep({
+    pageTitle,
+    summaryItems,
+    showOnfidoLinks,
+    onfidoLinksTitle,
+    isLoading,
+    error,
+    onNext,
+    shouldApplySafeAreaPaddingBottom = true,
+    forwardedFSClass,
+}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -63,33 +74,14 @@ function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinks
                     title={title}
                     shouldShowRightIcon={shouldShowRightIcon}
                     onPress={onPress}
+                    forwardedFSClass={forwardedFSClass}
                 />
             ))}
 
             {showOnfidoLinks && (
-                <Text style={[styles.mt3, styles.ph5, styles.textMicroSupporting]}>
-                    {onfidoLinksTitle}
-                    <TextLink
-                        href={CONST.ONFIDO_FACIAL_SCAN_POLICY_URL}
-                        style={[styles.textMicro]}
-                    >
-                        {translate('onfidoStep.facialScan')}
-                    </TextLink>
-                    {', '}
-                    <TextLink
-                        href={CONST.ONFIDO_PRIVACY_POLICY_URL}
-                        style={[styles.textMicro]}
-                    >
-                        {translate('common.privacy')}
-                    </TextLink>
-                    {` ${translate('common.and')} `}
-                    <TextLink
-                        href={CONST.ONFIDO_TERMS_OF_SERVICE_URL}
-                        style={[styles.textMicro]}
-                    >
-                        {translate('common.termsOfService')}
-                    </TextLink>
-                </Text>
+                <View style={[styles.renderHTML, styles.ph5, styles.mt3]}>
+                    <RenderHTML html={translate('onfidoStep.onfidoLinks', onfidoLinksTitle ?? '')} />
+                </View>
             )}
 
             <View style={[styles.ph5, styles.mt5, styles.flexGrow1, styles.justifyContentEnd]}>
@@ -113,7 +105,5 @@ function ConfirmationStep({pageTitle, summaryItems, showOnfidoLinks, onfidoLinks
         </ScrollView>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

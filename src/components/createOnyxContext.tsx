@@ -12,9 +12,7 @@ type CreateOnyxContext<TOnyxKey extends OnyxKey> = [ComponentType<ChildrenProps>
 export default <TOnyxKey extends OnyxKey>(onyxKeyName: TOnyxKey): CreateOnyxContext<TOnyxKey> => {
     const Context = createContext<OnyxValue<TOnyxKey>>(null as OnyxValue<TOnyxKey>);
     function Provider(props: ChildrenProps): ReactNode {
-        const [value] = useOnyx(onyxKeyName, {
-            canBeMissing: true,
-        });
+        const [value] = useOnyx(onyxKeyName);
         return <Context.Provider value={value as OnyxValue<TOnyxKey>}>{props.children}</Context.Provider>;
     }
 

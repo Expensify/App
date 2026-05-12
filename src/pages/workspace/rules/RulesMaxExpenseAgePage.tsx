@@ -53,7 +53,7 @@ function RulesMaxExpenseAgePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesMaxExpenseAgePage.displayName}
+                testID="RulesMaxExpenseAgePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.maxExpenseAge')}
@@ -63,7 +63,7 @@ function RulesMaxExpenseAgePage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AGE_FORM}
                     onSubmit={({maxExpenseAge}) => {
-                        setPolicyMaxExpenseAge(policyID, maxExpenseAge);
+                        setPolicyMaxExpenseAge(policyID, maxExpenseAge, policy?.maxExpenseAge);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}
@@ -91,7 +91,5 @@ function RulesMaxExpenseAgePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesMaxExpenseAgePage.displayName = 'RulesMaxExpenseAgePage';
 
 export default RulesMaxExpenseAgePage;

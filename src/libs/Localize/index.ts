@@ -9,11 +9,10 @@ import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // Current user mail is needed for handling missing translations
 let userEmail = '';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
+
 // TODO: Remove this Onyx.connectWithoutView after deprecating translateLocal (#64943) and completing Onyx.connect deprecation - see https://github.com/Expensify/App/issues/66329
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -105,8 +104,8 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, ph
 const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
     maxArgs: 2,
     equality: 'shallow',
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    skipCache: (params) => !isEmptyObject(params.at(2)),
+
+    skipCache: (params) => params.length > 2,
 });
 
 /**
@@ -143,7 +142,7 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
  * Uses the locale in this file updated by the Onyx subscriber.
  * @deprecated This function uses imperative Onyx data access patterns, similar to `Onyx.connect`. Use `useLocalize` hook instead for reactive data access in React components.
  */
-// eslint-disable-next-line @typescript-eslint/no-deprecated
+
 function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
     const currentLocale = IntlStore.getCurrentLocale();
     return translate(currentLocale, phrase, ...parameters);
@@ -200,5 +199,4 @@ function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestLanguageTag(Object.values(CONST.LOCALES))?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};

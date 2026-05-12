@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -13,14 +14,14 @@ import useDownloadAttachment from './hooks/useDownloadAttachment';
 function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.WORKSPACE_AVATAR>) {
     const {policyID, letter: fallbackLetter} = route.params;
 
+    const defaultAvatars = useDefaultAvatars();
     const policy = usePolicy(policyID);
-    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true, initWithStoredValues: false});
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const avatarURL = policy?.avatarURL ?? getDefaultWorkspaceAvatar(policy?.name ?? fallbackLetter);
-    const source = getFullSizeAvatar({avatarSource: avatarURL});
+    const source = getFullSizeAvatar({avatarSource: avatarURL, defaultAvatars});
     const policyKeysLength = Object.keys(policy ?? {}).length;
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = policyKeysLength === 0 && !isLoadingApp && (!policyID || !fallbackLetter);
     const isLoading = policyKeysLength === 0 && !!isLoadingApp;
     const originalFileName = policy?.originalFileName ?? policy?.id ?? policyID;
@@ -50,6 +51,5 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
         />
     );
 }
-WorkspaceAvatarModalContent.displayName = 'WorkspaceAvatarModalContent';
 
 export default WorkspaceAvatarModalContent;

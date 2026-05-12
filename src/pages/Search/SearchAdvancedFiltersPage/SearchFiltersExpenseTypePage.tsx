@@ -8,17 +8,19 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
+import {getExpenseTypeTranslationKey} from '@libs/TransactionUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ExpenseTypeValues} from '@src/types/form/SearchAdvancedFiltersForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersExpenseTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const initiallySelectedItems = useMemo(
         () =>
             searchAdvancedFiltersForm?.expenseType
@@ -38,11 +40,11 @@ function SearchFiltersExpenseTypePage() {
         });
     }, [allExpenseTypes, translate]);
 
-    const updateExpenseTypeFilter = useCallback((values: string[]) => updateAdvancedFilters({expenseType: values}), []);
+    const updateExpenseTypeFilter = useCallback((values: ExpenseTypeValues) => updateAdvancedFilters({expenseType: values}), []);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersExpenseTypePage.displayName}
+            testID="SearchFiltersExpenseTypePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom={false}
@@ -55,17 +57,17 @@ function SearchFiltersExpenseTypePage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={expenseTypesItems}
-                    initiallySelectedItems={initiallySelectedItems}
-                    onSaveSelection={updateExpenseTypeFilter}
-                    shouldShowTextInput={false}
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={expenseTypesItems}
+                        initiallySelectedItems={initiallySelectedItems}
+                        onSaveSelection={updateExpenseTypeFilter}
+                        shouldShowTextInput={false}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );
 }
-
-SearchFiltersExpenseTypePage.displayName = 'SearchFiltersExpenseTypePage';
 
 export default SearchFiltersExpenseTypePage;

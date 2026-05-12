@@ -40,7 +40,7 @@ type EmojiPickerRef = {
     resetEmojiPopoverAnchor: () => void;
 };
 
-type OnEmojiSelected = (emojiCode: string, emojiObject: Emoji) => void;
+type OnEmojiSelected = (emojiCode: string, emojiObject: Emoji, preferredSkinTone: number) => void;
 
 const emojiPickerRef = React.createRef<EmojiPickerRef>();
 

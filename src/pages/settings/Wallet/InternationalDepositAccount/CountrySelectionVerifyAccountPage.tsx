@@ -11,6 +11,4 @@ function CountrySelectionVerifyAccountPage() {
     );
 }
 
-CountrySelectionVerifyAccountPage.displayName = 'CountrySelectionVerifyAccountPage';
-
 export default CountrySelectionVerifyAccountPage;

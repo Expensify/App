@@ -1,18 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import CONST from '@src/CONST';
 import type {Network} from '@src/types/onyx';
 
-const networkStatusSelector = (networkData: OnyxEntry<Network>) => {
-    if (!networkData) {
-        return {...CONST.DEFAULT_NETWORK_DATA, networkStatus: CONST.NETWORK.NETWORK_STATUS.UNKNOWN};
-    }
+const shouldFailAllRequestsSelector = (network: OnyxEntry<Network>) => !!network?.shouldFailAllRequests;
 
-    return {
-        isOffline: networkData.isOffline,
-        networkStatus: networkData.networkStatus,
-        lastOfflineAt: networkData.lastOfflineAt,
-    };
-};
-
-// eslint-disable-next-line import/prefer-default-export
-export {networkStatusSelector};
+// eslint-disable-next-line import/prefer-default-export -- additional selectors may be added here
+export {shouldFailAllRequestsSelector};

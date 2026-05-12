@@ -2,11 +2,11 @@ import {useFocusEffect, useRoute} from '@react-navigation/native';
 import {compareAsc, parse} from 'date-fns';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -24,6 +24,7 @@ import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
+import {isAdminRoom, isTaskReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,21 +53,27 @@ function ScheduleCallPage() {
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
     const session = useSession();
 
-    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
+    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
     const reportID = route.params?.reportID;
 
-    const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+
+    // Task reports in #admins room have chatType as policyAdmins,
+    // So for a task report, we need to send the real #admins room i.e., the parent report.
+    const adminsRoomReportID = isTaskReport(report) && parentReport?.reportID && isAdminRoom(parentReport) ? parentReport.reportID : reportID;
+
+    const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${adminsRoomReportID}`, {
         selector: adminReportNameValuePairsSelector,
-        canBeMissing: true,
     });
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
 
     useEffect(() => {
-        if (!reportID) {
+        if (!adminsRoomReportID) {
             return;
         }
-        getGuideCallAvailabilitySchedule(reportID);
-    }, [reportID]);
+        getGuideCallAvailabilitySchedule(adminsRoomReportID);
+    }, [adminsRoomReportID]);
 
     // Clear selected time when user comes back to the selection screen
     useFocusEffect(
@@ -77,9 +84,9 @@ function ScheduleCallPage() {
 
     useEffect(() => {
         return () => {
-            sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
+            sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, adminsRoomReportID);
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
@@ -94,34 +101,33 @@ function ScheduleCallPage() {
 
         const allTimeSlots = guides.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
-            // eslint-disable-next-line unicorn/no-array-for-each
-            guideSchedule?.timeSlots.forEach((timeSlot) => {
-                allSlots.push({
-                    guideAccountID: Number(guideAccountID),
-                    guideEmail: guideSchedule.guideEmail,
-                    startTime: timeSlot.startTime,
-                    scheduleURL: timeSlot.schedulingURL,
-                });
-            });
+            if (guideSchedule) {
+                for (const timeSlot of guideSchedule.timeSlots) {
+                    allSlots.push({
+                        guideAccountID: Number(guideAccountID),
+                        guideEmail: guideSchedule.guideEmail,
+                        startTime: timeSlot.startTime,
+                        scheduleURL: timeSlot.schedulingURL,
+                    });
+                }
+            }
             return allSlots;
         }, [] as TimeSlot[]);
 
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
-        // eslint-disable-next-line unicorn/no-array-for-each
-        allTimeSlots.forEach((timeSlot) => {
+        for (const timeSlot of allTimeSlots) {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
             timeSlotMap[timeSlotDate].push(timeSlot);
-        });
+        }
 
         // Sort time slots within each date array to have in chronological order
-        // eslint-disable-next-line unicorn/no-array-for-each
-        Object.values(timeSlotMap).forEach((slots) => {
+        for (const slots of Object.values(timeSlotMap)) {
             slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-        });
+        }
 
         return timeSlotMap;
     }, [calendlySchedule?.data, userTimezone]);
@@ -134,7 +140,6 @@ function ScheduleCallPage() {
     const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (calendlySchedule?.isLoading || !firstDate || scheduleCallDraft?.date) {
             return;
         }
@@ -160,7 +165,7 @@ function ScheduleCallPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={ScheduleCallPage.displayName}
+            testID="ScheduleCallPage"
         >
             <HeaderWithBackButton
                 title={translate('scheduledCall.book.title')}
@@ -168,7 +173,12 @@ function ScheduleCallPage() {
             />
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
+                        />
+                    </View>
                 ) : (
                     <ScrollView style={styles.flexGrow1}>
                         <View style={styles.ph5}>
@@ -223,7 +233,7 @@ function ScheduleCallPage() {
                                                         accountID: timeSlot.guideAccountID,
                                                         email: timeSlot.guideEmail,
                                                     },
-                                                    reportID,
+                                                    reportID: adminsRoomReportID,
                                                 });
                                                 Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATION.getRoute(reportID));
                                             }}
@@ -242,7 +252,5 @@ function ScheduleCallPage() {
         </ScreenWrapper>
     );
 }
-
-ScheduleCallPage.displayName = 'ScheduleCallPage';
 
 export default ScheduleCallPage;

@@ -20,6 +20,7 @@ import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import KeyboardUtils from '@src/utils/keyboard';
 import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
@@ -44,8 +45,10 @@ function ThreeDotsMenu({
     isNested = false,
     shouldSelfPosition = false,
     threeDotsMenuRef,
+    sentryLabel,
+    isContainerFocused = true,
 }: ThreeDotsMenuProps) {
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -54,7 +57,7 @@ function ThreeDotsMenu({
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
@@ -62,29 +65,64 @@ function ThreeDotsMenu({
     };
 
     const hidePopoverMenu = useCallback((selectedItem?: PopoverMenuItem) => {
-        if (selectedItem && selectedItem.shouldKeepModalOpen) {
+        if (selectedItem?.shouldKeepModalOpen) {
             return;
         }
         setPopupMenuVisible(false);
     }, []);
-
-    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}> | undefined, () => ({
-        isPopupMenuVisible,
-        hidePopoverMenu,
-    }));
-
-    useEffect(() => {
-        if (!isBehindModal || !isPopupMenuVisible) {
-            return;
-        }
-        hidePopoverMenu();
-    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
 
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => calculatePopoverPosition(buttonRef, anchorAlignment), [anchorAlignment, calculatePopoverPosition]);
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
+
+    const onThreeDotsPress = () => {
+        if (isPopupMenuVisible) {
+            hidePopoverMenu();
+            return;
+        }
+        hideProductTrainingTooltip?.();
+        buttonRef.current?.blur();
+
+        // Dismiss the keyboard before opening the menu so the menu doesn't
+        // render while the keyboard is still animating closed (which creates
+        // a blank-space flash on mobile web).
+        onIconPress?.();
+
+        const openMenu = () => {
+            if (getMenuPosition) {
+                getMenuPosition?.().then((value) => {
+                    setPosition(value);
+                    showPopoverMenu();
+                });
+            } else {
+                showPopoverMenu();
+            }
+        };
+
+        // On mobile web, wait for the keyboard to fully close before opening the menu.
+        // KeyboardUtils.dismiss() uses visualViewport to detect keyboard state and resolves
+        // immediately if the keyboard is not open. On desktop, call openMenu() synchronously
+        // to preserve the original behavior (avoids async microtask deferral on desktop Chrome).
+        if (isMobile()) {
+            KeyboardUtils.dismiss().then(openMenu);
+        } else {
+            openMenu();
+        }
+    };
+
+    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({
+        isPopupMenuVisible,
+        hidePopoverMenu,
+        onThreeDotsPress,
+    }));
+    useEffect(() => {
+        if ((!isBehindModal || !isPopupMenuVisible) && isContainerFocused) {
+            return;
+        }
+        hidePopoverMenu();
+    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
         if (!getMenuPosition || !isPopupMenuVisible) {
@@ -95,26 +133,6 @@ function ThreeDotsMenu({
             setPosition(value);
         });
     }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
-
-    const onThreeDotsPress = () => {
-        if (isPopupMenuVisible) {
-            hidePopoverMenu();
-            return;
-        }
-        hideProductTrainingTooltip?.();
-        buttonRef.current?.blur();
-
-        if (getMenuPosition) {
-            getMenuPosition?.().then((value) => {
-                setPosition(value);
-                showPopoverMenu();
-            });
-        } else {
-            showPopoverMenu();
-        }
-
-        onIconPress?.();
-    };
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
@@ -148,10 +166,11 @@ function ThreeDotsMenu({
                             e.preventDefault();
                         }}
                         ref={buttonRef}
-                        style={[styles.touchableButtonImage, iconStyles]}
+                        style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth, iconStyles]}
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
+                        sentryLabel={sentryLabel}
                     >
                         <Icon
                             src={icon ?? expensifyIcons.ThreeDots}
@@ -163,7 +182,7 @@ function ThreeDotsMenu({
             <PopoverMenu
                 onClose={hidePopoverMenu}
                 onModalHide={() => setRestoreFocusType(undefined)}
-                isVisible={isPopupMenuVisible && !isBehindModal}
+                isVisible={isPopupMenuVisible && !isBehindModal && isContainerFocused}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item) => {
@@ -180,7 +199,5 @@ function ThreeDotsMenu({
         </>
     );
 }
-
-ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
 export default ThreeDotsMenu;

@@ -65,9 +65,8 @@ describe('PerDiemRequestUtils', () => {
                         tooltipText: 'Antigua and Barbuda',
                     },
                 ],
-                indexOffset: 1,
-                shouldShow: true,
                 title: '',
+                sectionIndex: 0,
             },
         ];
 
@@ -95,7 +94,7 @@ describe('PerDiemRequestUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-            const customUnitID = getCustomUnitID(report, parentReport);
+            const customUnitID = getCustomUnitID(report, parentReport, policy);
             expect(customUnitID.customUnitID).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
         });
 
@@ -107,7 +106,7 @@ describe('PerDiemRequestUtils', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-            const customUnitID = getCustomUnitID(report, parentReport);
+            const customUnitID = getCustomUnitID(report, parentReport, policy);
             expect(customUnitID.customUnitID).toBe(CONST.CUSTOM_UNITS.FAKE_P2P_ID);
         });
     });

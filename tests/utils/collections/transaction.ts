@@ -24,7 +24,6 @@ export default function createRandomTransaction(index: number): Transaction {
             },
             attendees: [{email: randWord(), displayName: 'Test User', avatarUrl: ''}],
         },
-        filename: randWord(),
         managedCard: randBoolean(),
         created: format(randPastDate(), CONST.DATE.FNS_DB_FORMAT_STRING),
         modifiedCreated: '',
@@ -39,17 +38,44 @@ export default function createRandomTransaction(index: number): Transaction {
         tag: randWord(),
         parentTransactionID: index.toString(),
         status: rand(Object.values(CONST.TRANSACTION.STATUS)),
-        receipt: {},
+        receipt: {filename: randWord()},
         reimbursable: randBoolean(),
         hasEReceipt: randBoolean(),
-        modifiedAmount: 0,
+        modifiedAmount: '',
     };
 }
 
-const createRandomDistanceRequestTransaction = (index: number): Transaction => {
+const createRandomDistanceRequestTransaction = (index: number, shouldIncludeWaypoints = false): Transaction => {
+    const fakeWayPoints = {
+        waypoint0: {
+            keyForList: '88 Kearny Street_1735023533854',
+            lat: 37.7886378,
+            lng: -122.4033442,
+            address: '88 Kearny Street, San Francisco, CA, USA',
+            name: '88 Kearny Street',
+        },
+        waypoint1: {
+            keyForList: 'Golden Gate Bridge Vista Point_1735023537514',
+            lat: 37.8077876,
+            lng: -122.4752007,
+            address: 'Golden Gate Bridge Vista Point, San Francisco, CA, USA',
+            name: 'Golden Gate Bridge Vista Point',
+        },
+    };
+
+    const randomTransaction = createRandomTransaction(index);
     return {
-        ...createRandomTransaction(index),
+        ...randomTransaction,
         iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+        comment: {
+            ...randomTransaction.comment,
+            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            customUnit: {
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            },
+            ...(shouldIncludeWaypoints ? {waypoints: fakeWayPoints} : {}),
+        },
     };
 };
 

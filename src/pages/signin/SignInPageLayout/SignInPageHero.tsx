@@ -36,6 +36,4 @@ function SignInPageHero({customHeadline, customHeroBody}: SignInPageHeroProps) {
     );
 }
 
-SignInPageHero.displayName = 'SignInPageHero';
-
 export default SignInPageHero;

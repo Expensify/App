@@ -1,26 +1,28 @@
 import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -53,14 +55,23 @@ function AttachmentModalBaseContent({
     shouldShowCarousel = true,
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = false,
+    shouldMinimizeMenuButton = true,
+    shouldShowRotateButton = false,
+    onRotateButtonPress,
+    isRotating = false,
     submitRef,
     onDownloadAttachment,
+    shouldAllowDownloadOutsideReportContext = false,
     onClose,
     onConfirm,
     AttachmentContent,
     onCarouselAttachmentChange = () => {},
     transaction: transactionProp,
     shouldCloseOnSwipeDown = false,
+    footerActionButtons,
+    customAttachmentContent,
+    attachmentViewContainerStyles,
+    pdfRotation,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -84,10 +95,14 @@ function AttachmentModalBaseContent({
 
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        addOfflineIndicatorBottomSafeAreaPadding: true,
+    });
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
     const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
@@ -153,29 +168,16 @@ function AttachmentModalBaseContent({
             return;
         }
 
-        if (onConfirm) {
-            onConfirm(Object.assign(files ?? {}, {source} as FileObject));
-        }
-
         onClose?.();
+
+        // Defer onConfirm to the next frame so the target screen has time to unfreeze and re-mount its refs (e.g. composerRef.clearWorklet)
+        requestAnimationFrame(() => {
+            onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
+        });
     }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
 
     // Close the modal when the escape key is pressed
-    useEffect(() => {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                onClose?.();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
-        return unsubscribeEscapeKey;
-    }, [onClose]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose?.(), {shouldBubble: true});
 
     const {setAttachmentError, isErrorInAttachment, clearAttachmentErrors} = useAttachmentErrors();
     useEffect(() => {
@@ -185,30 +187,50 @@ function AttachmentModalBaseContent({
     }, [clearAttachmentErrors]);
 
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
+    const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const shouldShowDownloadButton = useMemo(() => {
-        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
-        if (!isValidContext || isErrorInAttachment(source)) {
+        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || shouldAllowDownloadOutsideReportContext;
+        if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
             return false;
         }
 
         return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded?.(source);
-    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type]);
+    }, [
+        isAttachmentLoaded,
+        isDownloadButtonReadyToBeShown,
+        isErrorInAttachment,
+        isLocalSource,
+        isOffline,
+        onDownloadAttachment,
+        report,
+        shouldAllowDownloadOutsideReportContext,
+        shouldShowNotFoundPage,
+        source,
+        type,
+        isEReceipt,
+    ]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
-    const context = useMemo(
+    const stateValue = useMemo<AttachmentCarouselPagerStateContextType>(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
             activePage: 0,
             pagerRef: undefined,
             isPagerScrolling: falseSV,
             isScrollEnabled: falseSV,
+        }),
+        [falseSV, sourceForAttachmentView],
+    );
+
+    const actionsValue = useMemo<AttachmentCarouselPagerActionsContextType>(
+        () => ({
             onTap: () => {},
             onScaleChanged: () => {},
             onAttachmentError: setAttachmentError,
             ...(shouldCloseOnSwipeDown ? {onSwipeDown: onClose} : {}),
         }),
-        [falseSV, sourceForAttachmentView, setAttachmentError, shouldCloseOnSwipeDown, onClose],
+        [setAttachmentError, shouldCloseOnSwipeDown, onClose],
     );
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
@@ -236,30 +258,34 @@ function AttachmentModalBaseContent({
             />
         ) : (
             !!sourceForAttachmentView && (
-                <AttachmentCarouselPagerContext.Provider value={context}>
-                    <AttachmentView
-                        containerStyles={[styles.mh5]}
-                        source={sourceForAttachmentView}
-                        isAuthTokenRequired={isAuthTokenRequiredState}
-                        file={fileToDisplay}
-                        onToggleKeyboard={setIsConfirmButtonDisabled}
-                        isWorkspaceAvatar={isWorkspaceAvatar}
-                        maybeIcon={maybeIcon}
-                        fallbackSource={fallbackSource}
-                        isUsedInAttachmentModal
-                        transactionID={transaction?.transactionID}
-                        transaction={transaction}
-                        isUploaded={!isEmptyObject(report)}
-                        reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
-                    />
-                </AttachmentCarouselPagerContext.Provider>
+                <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
+                    <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
+                        <AttachmentView
+                            containerStyles={[styles.mh5]}
+                            source={sourceForAttachmentView}
+                            isAuthTokenRequired={isAuthTokenRequiredState}
+                            file={fileToDisplay}
+                            onToggleKeyboard={setIsConfirmButtonDisabled}
+                            isWorkspaceAvatar={isWorkspaceAvatar}
+                            maybeIcon={maybeIcon}
+                            fallbackSource={fallbackSource}
+                            isUsedInAttachmentModal
+                            transactionID={transaction?.transactionID}
+                            transaction={transaction}
+                            isUploaded={!isEmptyObject(report)}
+                            reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                            rotation={pdfRotation}
+                        />
+                    </AttachmentCarouselPagerActionsContext.Provider>
+                </AttachmentCarouselPagerStateContext.Provider>
             )
         );
     }, [
         AttachmentContent,
         accountID,
         attachmentID,
-        context,
+        stateValue,
+        actionsValue,
         currentAttachmentLink,
         fallbackSource,
         fileToDisplay,
@@ -268,6 +294,7 @@ function AttachmentModalBaseContent({
         isWorkspaceAvatar,
         maybeIcon,
         onNavigate,
+        pdfRotation,
         report,
         reportID,
         setAttachmentError,
@@ -282,12 +309,14 @@ function AttachmentModalBaseContent({
 
     return (
         <GestureHandlerRootView style={styles.flex1}>
-            {shouldUseNarrowLayout && <HeaderGap />}
             <HeaderWithBackButton
-                shouldMinimizeMenuButton
+                shouldMinimizeMenuButton={shouldMinimizeMenuButton}
                 title={headerTitle ?? translate('common.attachment')}
                 shouldShowBorderBottom
                 shouldShowDownloadButton={shouldShowDownloadButton}
+                shouldShowRotateButton={shouldShowRotateButton}
+                onRotateButtonPress={onRotateButtonPress}
+                isRotating={isRotating}
                 shouldDisplayHelpButton={shouldDisplayHelpButton}
                 onDownloadButtonPress={() => onDownloadAttachment?.({file: fileToDisplay, source})}
                 shouldShowCloseButton={!shouldUseNarrowLayout}
@@ -304,8 +333,16 @@ function AttachmentModalBaseContent({
                 shouldOverlayDots
                 subTitleLink={currentAttachmentLink ?? ''}
             />
-            <View style={styles.imageModalImageCenterContainer}>
-                {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
+            <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
+                {isLoading && (
+                    <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            testID="attachment-loading-spinner"
+                            reasonAttributes={{context: 'AttachmentModalBaseContent'}}
+                        />
+                    </View>
+                )}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
                         icon={illustrations.ToddBehindCloud}
@@ -317,38 +354,44 @@ function AttachmentModalBaseContent({
                         onLinkPress={onClose}
                     />
                 )}
-                {shouldDisplayContent && Content}
+                {shouldDisplayContent && (customAttachmentContent ?? Content)}
             </View>
+            {!!footerActionButtons && (
+                <LayoutAnimationConfig skipEntering>
+                    <Animated.View
+                        style={bottomSafeAreaPaddingStyle}
+                        entering={FadeIn}
+                    >
+                        {footerActionButtons}
+                    </Animated.View>
+                </LayoutAnimationConfig>
+            )}
             {/* If we have an onConfirm method show a confirmation button */}
             {!!onConfirm && !isConfirmButtonDisabled && (
                 <LayoutAnimationConfig skipEntering>
                     {!!onConfirm && !isConfirmButtonDisabled && (
-                        <SafeAreaConsumer>
-                            {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View
-                                    style={safeAreaPaddingBottomStyle}
-                                    entering={FadeIn}
-                                >
-                                    <Button
-                                        ref={submitRef ? viewRef(submitRef) : undefined}
-                                        success
-                                        large
-                                        style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                        textStyles={[styles.buttonConfirmText]}
-                                        text={translate('common.send')}
-                                        onPress={submitAndClose}
-                                        isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
-                                        pressOnEnter
-                                    />
-                                </Animated.View>
-                            )}
-                        </SafeAreaConsumer>
+                        <Animated.View
+                            style={bottomSafeAreaPaddingStyle}
+                            entering={FadeIn}
+                        >
+                            <Button
+                                ref={submitRef ? viewRef(submitRef) : undefined}
+                                success
+                                large
+                                style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
+                                textStyles={[styles.buttonConfirmText]}
+                                text={translate('common.send')}
+                                onPress={submitAndClose}
+                                isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
+                                pressOnEnter
+                                sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.SEND_BUTTON}
+                            />
+                        </Animated.View>
                     )}
                 </LayoutAnimationConfig>
             )}
         </GestureHandlerRootView>
     );
 }
-AttachmentModalBaseContent.displayName = 'AttachmentModalBaseContent';
 
 export default memo(AttachmentModalBaseContent);

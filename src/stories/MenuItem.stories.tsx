@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import Chase from '@assets/images/bank-icons/chase.svg';
 import MenuItem from '@components/MenuItem';
@@ -81,7 +81,7 @@ Selected.args = {
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
-    shouldShowSelectedState: true,
+    shouldShowRadioButton: true,
     isSelected: true,
 };
 

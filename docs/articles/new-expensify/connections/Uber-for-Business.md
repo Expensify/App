@@ -6,8 +6,6 @@ keywords: [New Expensify, Uber for Business, Uber integration, automate Uber rec
 
 <div id="new-expensify" markdown="1">
 
-**Note: This feature is currently in beta. Please reach out to Concierge to request access!**
-
 Connect your Expensify workspace to Uber for Business to automatically import Uber Rides and Uber Eats receipts for your team. This guide walks you through setup, employee management, and receipt import.
 
 # Connect the Uber for Business Integration
@@ -73,5 +71,8 @@ Yes! Go to **Manage invites**, find their name or email, and click **Resend**.
 - **Pending badge** – The invite has been accepted, but additional approval is required within Uber.
 - **Linked badge** – The employee has accepted the invite.
 - **Suspended badge** – The employee’s Uber account is linked, but has been temporarily suspended by Uber (i.e rider disputes, etc). 
+
+## Does Expensify support expense memos?
+Yes. If an expense memo is added to the trip in Uber, it will be added to the **Description** field on the expense created in Expensify.
 
 </div>

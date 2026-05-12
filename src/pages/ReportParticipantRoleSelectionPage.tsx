@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,8 +16,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import NotFoundPage from './ErrorPage/NotFoundPage';
-import withReportOrNotFound from './home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
+import withReportOrNotFound from './inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
 type ReportParticipantRoleSelectionPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROLE>;
 
@@ -58,7 +58,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     };
 
     return (
-        <ScreenWrapper testID={ReportParticipantRoleSelectionPage.displayName}>
+        <ScreenWrapper testID="ReportParticipantRoleSelectionPage">
             <HeaderWithBackButton
                 title={translate('common.role')}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -66,7 +66,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
             <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                 <SelectionList
                     data={items}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={changeRole}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={items.find((item) => item.isSelected)?.keyForList}
@@ -75,7 +75,5 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
         </ScreenWrapper>
     );
 }
-
-ReportParticipantRoleSelectionPage.displayName = 'ReportParticipantRoleSelectionPage';
 
 export default withReportOrNotFound()(ReportParticipantRoleSelectionPage);

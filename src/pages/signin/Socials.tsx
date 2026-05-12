@@ -1,46 +1,57 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openExternalLink} from '@libs/actions/Link';
 import variables from '@styles/variables';
-import * as Link from '@userActions/Link';
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
+import type {TranslationPaths} from '@src/languages/types';
 
 type Social = {
-    iconURL: IconAsset;
+    iconURL: Extract<ExpensifyIconName, 'Podcast' | 'Twitter' | 'Instagram' | 'Facebook' | 'Linkedin'>;
     link: string;
+    label: TranslationPaths;
 };
 
 const socialList: Social[] = [
     {
-        iconURL: Expensicons.Podcast,
+        iconURL: 'Podcast',
         link: CONST.SOCIALS.PODCAST,
+        label: 'socials.podcast',
     },
     {
-        iconURL: Expensicons.Twitter,
+        iconURL: 'Twitter',
         link: CONST.SOCIALS.TWITTER,
+        label: 'socials.twitter',
     },
     {
-        iconURL: Expensicons.Instagram,
+        iconURL: 'Instagram',
         link: CONST.SOCIALS.INSTAGRAM,
+        label: 'socials.instagram',
     },
     {
-        iconURL: Expensicons.Facebook,
+        iconURL: 'Facebook',
         link: CONST.SOCIALS.FACEBOOK,
+        label: 'socials.facebook',
     },
     {
-        iconURL: Expensicons.Linkedin,
+        iconURL: 'Linkedin',
         link: CONST.SOCIALS.LINKEDIN,
+        label: 'socials.linkedin',
     },
 ];
 
 function Socials() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Podcast', 'Twitter', 'Instagram', 'Facebook', 'Linkedin']);
+
     return (
         <View style={[styles.flexRow, styles.flexWrap]}>
             {socialList.map((social: Social) => (
@@ -49,15 +60,18 @@ function Socials() {
                     href={social.link}
                     onPress={(e) => {
                         e?.preventDefault();
-                        Link.openExternalLink(social.link);
+                        openExternalLink(social.link);
                     }}
-                    accessible={false}
+                    accessible
+                    accessibilityRole={CONST.ROLE.LINK}
+                    accessibilityLabel={translate(social.label)}
                     style={[styles.mr1, styles.mt1]}
                     shouldUseAutoHitSlop={false}
+                    sentryLabel={`${CONST.SENTRY_LABEL.SOCIALS.LINK}-${social.iconURL}`}
                 >
                     {({hovered, pressed}) => (
                         <Icon
-                            src={social.iconURL}
+                            src={icons[social.iconURL]}
                             height={variables.iconSizeLarge}
                             width={variables.iconSizeLarge}
                             fill={hovered || pressed ? theme.link : theme.textLight}
@@ -68,7 +82,5 @@ function Socials() {
         </View>
     );
 }
-
-Socials.displayName = 'Socials';
 
 export default Socials;

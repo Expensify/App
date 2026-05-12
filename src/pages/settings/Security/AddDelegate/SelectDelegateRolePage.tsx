@@ -3,7 +3,7 @@ import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -52,7 +52,7 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={SelectDelegateRolePage.displayName}
+            testID="SelectDelegateRolePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -71,13 +71,11 @@ function SelectDelegateRolePage({route}: SelectDelegateRolePageProps) {
                         Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, option.value));
                     }}
                     data={roleOptions}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                 />
             </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
-
-SelectDelegateRolePage.displayName = 'SelectDelegateRolePage';
 
 export default SelectDelegateRolePage;

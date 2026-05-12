@@ -1,31 +1,41 @@
 import React, {useCallback, useEffect} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearContactMethodErrors, clearUnvalidatedNewContactMethodAction, requestValidateCodeAction, validateSecondaryLogin} from '@libs/actions/User';
 import {getEarliestErrorField, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type VerifyAccountPageBaseProps = {navigateBackTo?: Route; navigateForwardTo?: Route};
+type VerifyAccountPageBaseProps = {
+    navigateBackTo?: Route;
+    navigateForwardTo?: Route;
+    handleClose?: () => void;
+    /** Callback called ONLY when user successfully validates their account (not on dismiss/back) */
+    onValidationSuccess?: () => void;
+};
 
 /**
  * This is a base page as RHP for account verification. The back & forward url logic should be handled on per case basis in higher component.
  */
-function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccountPageBaseProps) {
+function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose, onValidationSuccess}: VerifyAccountPageBaseProps) {
     const styles = useThemeStyles();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     // sometimes primaryLogin can be empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const contactMethod = (account?.primaryLogin || session?.email) ?? '';
+    const contactMethod = (account?.primaryLogin || currentUserPersonalDetails.email) ?? '';
     const {translate, formatPhoneNumber} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
@@ -35,14 +45,18 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber, true);
+            validateSecondaryLogin(contactMethod, validateCode, formatPhoneNumber, true);
         },
-        [loginList, contactMethod, formatPhoneNumber],
+        [contactMethod, formatPhoneNumber],
     );
 
-    const handleClose = useCallback(() => {
+    const handleCloseWithFallback = useCallback(() => {
+        if (handleClose) {
+            handleClose();
+            return;
+        }
         Navigation.goBack(navigateBackTo);
-    }, [navigateBackTo]);
+    }, [handleClose, navigateBackTo]);
 
     // Handle navigation once the user is validated
     useEffect(() => {
@@ -50,25 +64,32 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
             return;
         }
 
+        onValidationSuccess?.();
+
         if (navigateForwardTo) {
             Navigation.navigate(navigateForwardTo, {forceReplace: true});
         } else {
-            handleClose();
+            handleCloseWithFallback();
         }
-    }, [isUserValidated, navigateForwardTo, handleClose]);
+    }, [isUserValidated, navigateForwardTo, handleCloseWithFallback, handleClose, onValidationSuccess]);
 
     // Once user is validated or the modal is dismissed, we don't want to show empty content.
     if (isUserValidated) {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
-                testID={VerifyAccountPageBase.displayName}
+                testID="VerifyAccountPageBase"
             >
                 <HeaderWithBackButton
                     title={translate('contacts.validateAccount')}
-                    onBackButtonPress={handleClose}
+                    onBackButtonPress={handleCloseWithFallback}
                 />
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'VerifyAccountPageBase', isUserValidated} satisfies SkeletonSpanReasonAttributes}
+                    />
+                </View>
             </ScreenWrapper>
         );
     }
@@ -77,18 +98,16 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo}: VerifyAccoun
         <ValidateCodeActionContent
             title={translate('contacts.validateAccount')}
             descriptionPrimary={translate('contacts.featureRequiresValidate')}
-            descriptionSecondary={translate('contacts.enterMagicCode', {contactMethod})}
+            descriptionSecondary={translate('contacts.enterMagicCode', contactMethod)}
             sendValidateCode={requestValidateCodeAction}
             validateCodeActionErrorField="validateLogin"
             validatePendingAction={loginData?.pendingFields?.validateCodeSent}
             handleSubmitForm={handleSubmitForm}
             validateError={!isEmptyObject(validateLoginError) ? validateLoginError : getLatestErrorField(loginData, 'validateCodeSent')}
             clearError={() => clearContactMethodErrors(contactMethod, !isEmptyObject(validateLoginError) ? 'validateLogin' : 'validateCodeSent')}
-            onClose={handleClose}
+            onClose={handleCloseWithFallback}
         />
     );
 }
-
-VerifyAccountPageBase.displayName = 'VerifyAccountPageBase';
 
 export default VerifyAccountPageBase;

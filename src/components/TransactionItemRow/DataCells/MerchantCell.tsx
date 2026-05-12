@@ -27,10 +27,10 @@ function MerchantOrDescriptionCell({
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={text}
-            style={[!shouldUseNarrowLayout ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1]}
+            numberOfLines={1}
+            style={[shouldUseNarrowLayout ? styles.lh20 : styles.lineHeightLarge, shouldUseNarrowLayout && styles.pre, styles.justifyContentCenter, styles.flex1]}
         />
     );
 }
 
-MerchantOrDescriptionCell.displayName = 'MerchantOrDescriptionCell';
 export default MerchantOrDescriptionCell;

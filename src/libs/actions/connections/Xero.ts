@@ -131,7 +131,7 @@ function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero'
     settingValue: Partial<Connections['xero']['config'][TSettingName]>,
     oldSettingValue?: Partial<Connections['xero']['config'][TSettingName]> | null,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -149,7 +149,7 @@ function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero'
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -167,7 +167,7 @@ function prepareXeroOptimisticData<TSettingName extends keyof Connections['xero'
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -193,7 +193,7 @@ function prepareXeroExportOptimisticData<TSettingName extends keyof Connections[
     settingValue: Partial<Connections['xero']['config']['export'][TSettingName]>,
     oldSettingValue?: Partial<Connections['xero']['config']['export'][TSettingName]> | null,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -213,7 +213,7 @@ function prepareXeroExportOptimisticData<TSettingName extends keyof Connections[
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -233,7 +233,7 @@ function prepareXeroExportOptimisticData<TSettingName extends keyof Connections[
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -259,7 +259,7 @@ function prepareXeroSyncOptimisticData<TSettingName extends keyof Connections['x
     settingValue: Partial<Connections['xero']['config']['sync'][TSettingName]>,
     oldSettingValue?: Partial<Connections['xero']['config']['sync'][TSettingName]> | null,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -279,7 +279,7 @@ function prepareXeroSyncOptimisticData<TSettingName extends keyof Connections['x
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -299,7 +299,7 @@ function prepareXeroSyncOptimisticData<TSettingName extends keyof Connections['x
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,

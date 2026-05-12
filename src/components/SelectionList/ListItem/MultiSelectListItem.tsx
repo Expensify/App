@@ -1,16 +1,20 @@
-import React, {useCallback} from 'react';
-import Checkbox from '@components/Checkbox';
+import React from 'react';
+import {View} from 'react-native';
+import Avatar from '@components/Avatar';
 import useThemeStyles from '@hooks/useThemeStyles';
-import RadioListItem from './RadioListItem';
+import CONST from '@src/CONST';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
+import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
 /**
- * MultiSelectListItem mirrors the behavior of a default RadioListItem, but adds support
- * for the new style of multi selection lists.
+ * A compact row with a checkbox and optional avatar, used in multi-choice picker lists
+ * (e.g. search filters, feature toggles, category selection).
  */
 function MultiSelectListItem<TItem extends ListItem>({
     item,
     isFocused,
+    isFocusVisible,
     showTooltip,
     isDisabled,
     onSelectRow,
@@ -23,29 +27,28 @@ function MultiSelectListItem<TItem extends ListItem>({
     shouldSyncFocus,
     wrapperStyle,
     titleStyles,
+    shouldHighlightSelectedItem,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
+    const icon = item.icons?.at(0);
 
-    const checkboxComponent = useCallback(() => {
-        return (
-            <Checkbox
-                shouldSelectOnPressEnter
-                isChecked={item.isSelected}
-                accessibilityLabel={item.text ?? ''}
-                onPress={() => onSelectRow(item)}
-            />
-        );
-    }, [item, onSelectRow]);
+    const itemWithAvatar = {
+        ...item,
+        leftElement: icon ? <AvatarLeftElement icon={icon} /> : item.leftElement,
+    };
+    const computedWrapperStyle = [wrapperStyle, icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact];
 
     return (
-        <RadioListItem
-            item={item}
+        <BaseSelectListItem
+            item={itemWithAvatar}
             keyForList={item.keyForList}
             isFocused={isFocused}
+            isFocusVisible={isFocusVisible}
             showTooltip={showTooltip}
             isDisabled={isDisabled}
-            rightHandSideComponent={checkboxComponent}
+            canSelectMultiple
             onSelectRow={onSelectRow}
+            accessibilityRole={CONST.ROLE.CHECKBOX}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             isMultilineSupported={isMultilineSupported}
@@ -53,12 +56,28 @@ function MultiSelectListItem<TItem extends ListItem>({
             alternateTextNumberOfLines={alternateTextNumberOfLines}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={[wrapperStyle, styles.optionRowCompact]}
+            wrapperStyle={computedWrapperStyle}
             titleStyles={titleStyles}
+            shouldHighlightSelectedItem={shouldHighlightSelectedItem}
         />
     );
 }
 
-MultiSelectListItem.displayName = 'MultiSelectListItem';
+function AvatarLeftElement({icon}: {icon: Icon}) {
+    const styles = useThemeStyles();
+
+    return (
+        <View style={[styles.mentionSuggestionsAvatarContainer, styles.mr3]}>
+            <Avatar
+                source={icon.source}
+                size={CONST.AVATAR_SIZE.SMALLER}
+                name={icon.name}
+                avatarID={icon.id}
+                type={icon.type ?? CONST.ICON_TYPE_AVATAR}
+                fallbackIcon={icon.fallbackIcon}
+            />
+        </View>
+    );
+}
 
 export default MultiSelectListItem;

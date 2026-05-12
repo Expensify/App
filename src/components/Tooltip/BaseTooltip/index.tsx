@@ -132,6 +132,4 @@ function Tooltip({children, shouldHandleScroll = false, isFocused = true, ref, .
     );
 }
 
-Tooltip.displayName = 'Tooltip';
-
 export default memo(Tooltip);

@@ -1,11 +1,12 @@
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type ThreeDotsMenuProps = {
+type ThreeDotsMenuProps = WithSentryLabel & {
     /** Tooltip for the popup icon */
     iconTooltip?: TranslationPaths;
 
@@ -19,7 +20,7 @@ type ThreeDotsMenuProps = {
     iconFill?: string;
 
     /** Function to call on icon press */
-    onIconPress?: () => void;
+    onIconPress?: (() => void) | ((e?: GestureResponderEvent | KeyboardEvent | undefined) => void);
 
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: PopoverMenuItem[];
@@ -50,6 +51,9 @@ type ThreeDotsMenuProps = {
 
     /** Ref to the menu */
     threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>;
+
+    /** Whether the menu is focused */
+    isContainerFocused?: boolean;
 };
 
 type ThreeDotsMenuWithOptionalAnchorProps =

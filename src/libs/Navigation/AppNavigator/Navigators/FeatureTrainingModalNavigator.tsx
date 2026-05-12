@@ -21,7 +21,7 @@ function FeatureTrainingModalNavigator() {
                         component={TrackTrainingPage}
                     />
                     <Stack.Screen
-                        name={SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT}
+                        name={SCREENS.DYNAMIC_CHANGE_POLICY_EDUCATIONAL_ROOT}
                         component={ChangePolicyEducationalModal}
                     />
                     <Stack.Screen
@@ -33,7 +33,5 @@ function FeatureTrainingModalNavigator() {
         </NoDropZone>
     );
 }
-
-FeatureTrainingModalNavigator.displayName = 'FeatureTrainingModalNavigator';
 
 export default FeatureTrainingModalNavigator;

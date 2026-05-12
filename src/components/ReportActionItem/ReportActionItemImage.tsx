@@ -6,13 +6,14 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
+import {useShowContextMenuState} from '@components/ShowContextMenuContext';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEReceipt, hasReceiptSource, isDistanceRequest, isFetchingWaypointsFromServer, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -102,7 +103,6 @@ function ReportActionItemImage({
     isSingleImage = true,
     readonly = false,
     shouldMapHaveBorderRadius,
-    isFromReviewDuplicates = false,
     mergeTransactionID,
     onPress,
     shouldUseFullHeight,
@@ -113,14 +113,22 @@ function ReportActionItemImage({
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
+    const {report: contextReport, transactionThreadReport} = useShowContextMenuState();
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingWaypoints);
+    // After a distance/rate edit the BE regenerates the receipt and invalidates the prior URL, but
+    // the local `receipt.source` only refreshes when the Pusher push arrives. Render `ConfirmedRoute`
+    // (which draws the map from `routes.coordinates`, independent of the URL) while any of these
+    // edits are pending so the thumbnail doesn't briefly try to load the now-404'd URL.
+    const pf = transaction?.pendingFields as Record<string, unknown> | undefined;
+    const hasPendingReceiptRegeneration = !!pf && (!!pf.distance || !!pf.merchant || !!pf.customUnitRateID);
+    const showMapAsImage = isMapDistanceRequest && (hasErrors || !!hasPendingWaypoints || hasPendingReceiptRegeneration);
 
     if (showMapAsImage) {
         return (
-            <View style={[styles.w100, styles.h100]}>
+            <View style={[styles.w100, shouldUseFullHeight ? {aspectRatio: 1} : styles.h100]}>
                 <ConfirmedRoute
                     transaction={transaction}
                     isSmallerIcon={!isSingleImage}
@@ -132,8 +140,13 @@ function ReportActionItemImage({
         );
     }
 
-    const originalImageSource = tryResolveUrlFromApiRoot(image ?? '');
-    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
+    const localSource = transaction?.receipt?.localSource;
+    const effectiveIsLocalFile = isLocalFile || !!localSource;
+    const effectiveThumbnail = localSource ?? thumbnail;
+    const effectiveImage = localSource != null && typeof image === 'string' ? localSource : image;
+
+    const originalImageSource = tryResolveUrlFromApiRoot(effectiveImage ?? '');
+    const thumbnailSource = tryResolveUrlFromApiRoot(effectiveThumbnail ?? '');
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isPDF = filename && Str.isPDF(filename);
 
@@ -141,22 +154,19 @@ function ReportActionItemImage({
 
     if (isEReceipt) {
         propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize), shouldUseFullHeight};
-    } else if (thumbnail && !isLocalFile) {
+    } else if (effectiveThumbnail && !effectiveIsLocalFile) {
         propsObj = {
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
 
-            // PDF won't have originalImage that we can use. Use thumbnail instead
-            // We explicitly want to use || instead of nullish-coalescing because shouldUseThumbnailImage can be false.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            source: shouldUseThumbnailImage || isPDF ? thumbnailSource : originalImageSource,
-            fallbackIcon: Expensicons.Receipt,
+            source: thumbnailSource,
+            fallbackIcon: icons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
 
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
         };
-    } else if (isLocalFile && isPDF && typeof originalImageSource === 'string') {
+    } else if (effectiveIsLocalFile && isPDF && typeof originalImageSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: originalImageSource};
     } else {
         propsObj = {
@@ -164,7 +174,7 @@ function ReportActionItemImage({
             ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
             isAuthTokenRequired: false,
-            source: shouldUseThumbnailImage ? (thumbnail ?? image ?? '') : originalImageSource,
+            source: shouldUseThumbnailImage ? (effectiveThumbnail ?? effectiveImage ?? '') : originalImageSource,
 
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
@@ -177,33 +187,29 @@ function ReportActionItemImage({
 
     if (enablePreviewModal) {
         return (
-            <ShowContextMenuContext.Consumer>
-                {({report, transactionThreadReport}) => (
-                    <PressableWithoutFocus
-                        style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                        onPress={() =>
-                            Navigation.navigate(
-                                ROUTES.TRANSACTION_RECEIPT.getRoute(
-                                    transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID,
-                                    transaction?.transactionID,
-                                    readonly,
-                                    isFromReviewDuplicates,
-                                    mergeTransactionID,
-                                ),
-                            )
-                        }
-                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                    >
-                        <ReceiptImage
-                            {...propsObj}
-                            onLoad={onLoad}
-                            shouldUseFullHeight={shouldUseFullHeight}
-                            onLoadFailure={onLoadFailure}
-                        />
-                    </PressableWithoutFocus>
-                )}
-            </ShowContextMenuContext.Consumer>
+            <PressableWithoutFocus
+                style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
+                onPress={() =>
+                    Navigation.navigate(
+                        ROUTES.TRANSACTION_RECEIPT.getRoute(
+                            transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
+                            transaction?.transactionID,
+                            readonly,
+                            mergeTransactionID,
+                        ),
+                    )
+                }
+                accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                accessibilityRole={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}
+            >
+                <ReceiptImage
+                    {...propsObj}
+                    onLoad={onLoad}
+                    shouldUseFullHeight={shouldUseFullHeight}
+                    onLoadFailure={onLoadFailure}
+                />
+            </PressableWithoutFocus>
         );
     }
 
@@ -217,7 +223,5 @@ function ReportActionItemImage({
         />
     );
 }
-
-ReportActionItemImage.displayName = 'ReportActionItemImage';
 
 export default ReportActionItemImage;

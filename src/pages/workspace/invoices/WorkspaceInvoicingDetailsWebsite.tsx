@@ -34,14 +34,14 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values[INPUT_IDS.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        updateInvoiceCompanyWebsite(policyID, companyWebsite);
+        updateInvoiceCompanyWebsite(policyID, companyWebsite, policy?.invoice?.companyWebsite);
         Navigation.goBack();
     };
 
     const validate = (
         values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>,
     ): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM> => {
-        const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_WEBSITE]);
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_WEBSITE], translate);
 
         if (values.companyWebsite) {
             const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
@@ -68,7 +68,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceInvoicingDetailsWebsite.displayName}
+                testID="WorkspaceInvoicingDetailsWebsite"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -99,7 +99,5 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvoicingDetailsWebsite.displayName = 'WorkspaceInvoicingDetailsWebsite';
 
 export default WorkspaceInvoicingDetailsWebsite;

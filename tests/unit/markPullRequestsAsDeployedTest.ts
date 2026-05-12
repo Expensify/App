@@ -1,7 +1,6 @@
 /**
  * @jest-environment node
  */
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import CONST from '../../.github/libs/CONST';
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
@@ -85,6 +84,8 @@ function mockGetInputDefaultImplementation(key: string): boolean | string {
             return 'success';
         case 'DATE':
         case 'NOTE':
+        case 'ANDROID_SENTRY_URL':
+        case 'IOS_SENTRY_URL':
             return '';
         default:
             throw new Error(`Trying to access invalid input: ${key}`);
@@ -109,7 +110,6 @@ beforeAll(() => {
     const mockOctokit = {
         rest: {
             issues: {
-                // eslint-disable-next-line @typescript-eslint/require-await
                 listForRepo: jest.fn().mockImplementation(async () => ({
                     data: [
                         {
@@ -117,7 +117,7 @@ beforeAll(() => {
                         },
                     ],
                 })),
-                // eslint-disable-next-line @typescript-eslint/require-await
+
                 listEvents: jest.fn().mockImplementation(async () => ({
                     data: [{event: 'closed', actor: {login: 'thor'}}],
                 })),

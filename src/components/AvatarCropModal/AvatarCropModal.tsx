@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -8,22 +9,22 @@ import {interpolate, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Modal from '@components/Modal';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ImageCropView from './ImageCropView';
@@ -55,11 +56,16 @@ type AvatarCropModalProps = {
     buttonLabel?: string;
 };
 
+const LANDSCAPE_MODE_SLIDER_CONTAINER_MIN_WIDTH = 300;
+
 // This component can't be written using class since reanimated API uses hooks.
 function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage, buttonLabel}: AvatarCropModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Rotate', 'Zoom']);
+    const isInLandscapeMode = useIsInLandscapeMode();
+
     const originalImageWidth = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -71,7 +77,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
     const {translate} = useLocalize();
     const buttonText = buttonLabel ?? translate('common.save');
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Check if image cropping, saving or uploading is in progress
     const isLoading = useSharedValue(false);
@@ -320,7 +325,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
         cropOrRotateImage(imageUri, [{rotate: rotation.get() % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     onClose?.();
                 });
@@ -350,6 +354,15 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         updateImageOffset(newX, newY);
     };
 
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'AvatarCropModal',
+            isImageInitialized,
+            isImageContainerInitialized,
+        }),
+        [isImageInitialized, isImageContainerInitialized],
+    );
+
     return (
         <Modal
             onClose={() => onClose?.()}
@@ -365,9 +378,8 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
-                testID={AvatarCropModal.displayName}
+                testID="AvatarCropModal"
             >
-                {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
                     title={translate('avatarCropModal.title')}
                     onBackButtonPress={onClose}
@@ -383,6 +395,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                             <ActivityIndicator
                                 style={[styles.flex1]}
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                reasonAttributes={reasonAttributes}
                             />
                         ) : (
                             <>
@@ -398,9 +411,17 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                     rotation={rotation}
                                     maskImage={maskImage}
                                 />
-                                <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
+                                <View
+                                    style={[
+                                        styles.mt5,
+                                        styles.justifyContentBetween,
+                                        styles.alignItemsCenter,
+                                        styles.flexRow,
+                                        StyleUtils.getWidthStyle(isInLandscapeMode ? Math.max(imageContainerSize, LANDSCAPE_MODE_SLIDER_CONTAINER_MIN_WIDTH) : imageContainerSize),
+                                    ]}
+                                >
                                     <Icon
-                                        src={Expensicons.Zoom}
+                                        src={expensifyIcons.Zoom}
                                         fill={theme.icon}
                                     />
 
@@ -410,6 +431,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                         onPressIn={(e) => scheduleOnUI(sliderOnPress, e.nativeEvent.locationX)}
                                         accessibilityLabel="slider"
                                         role={CONST.ROLE.SLIDER}
+                                        sentryLabel={CONST.SENTRY_LABEL.AVATAR_CROP_MODAL.ZOOM_SLIDER}
                                     >
                                         <Slider
                                             sliderValue={translateSlider}
@@ -422,7 +444,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                                     >
                                         <View>
                                             <Button
-                                                icon={Expensicons.Rotate}
+                                                icon={expensifyIcons.Rotate}
                                                 iconFill={theme.icon}
                                                 onPress={rotateImage}
                                             />
@@ -445,7 +467,5 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         </Modal>
     );
 }
-
-AvatarCropModal.displayName = 'AvatarCropModal';
 
 export default AvatarCropModal;

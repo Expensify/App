@@ -6,7 +6,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getPolicy} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, buildOptimisticCreatedReportAction} from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -24,14 +23,15 @@ type ExpenseReportActionData = Record<string, OptimisticCreatedReportAction>;
 /**
  * @param publicRoomReportID - This is the global reportID for the public room, we'll ignore the optimistic one
  */
-function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string, policyID: string, publicRoomReportID: string) {
+function referTeachersUniteVolunteer(partnerUserID: string, firstName: string, lastName: string, policyID: string, publicRoomReportID: string, currentUserAccountID: number) {
     const optimisticPublicRoom = buildOptimisticChatReport({
         participantList: [],
         reportName: CONST.TEACHERS_UNITE.PUBLIC_ROOM_NAME,
         chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         policyID,
+        currentUserAccountID,
     });
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${publicRoomReportID}`,
@@ -87,9 +87,10 @@ function addSchoolPrincipal(
         isOwnPolicyExpenseChat: true,
         oldPolicyName: policyName,
         optimisticReportID,
+        currentUserAccountID: sessionAccountID,
     });
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(sessionEmail);
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: sessionEmail});
     const expenseReportActionData: ExpenseReportActionData = {
         [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
     };
@@ -99,7 +100,9 @@ function addSchoolPrincipal(
         reportActionID: expenseReportCreatedAction.reportActionID,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
@@ -118,9 +121,7 @@ function addSchoolPrincipal(
                 name: policyName,
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
-                // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                outputCurrency: getPolicy(policyID)?.outputCurrency ?? localCurrencyCode ?? CONST.CURRENCY.USD,
+                outputCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 employeeList: {
                     [sessionEmail]: {
                         role: CONST.POLICY.ROLE.USER,
@@ -147,7 +148,15 @@ function addSchoolPrincipal(
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM
+            | typeof ONYXKEYS.COLLECTION.POLICY
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        >
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,
@@ -188,7 +197,9 @@ function addSchoolPrincipal(
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM,

@@ -50,6 +50,8 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
                 },
                 trapStack: sharedTrapStack,
                 allowOutsideClick: true,
+                // Clicking outside should break the trap so side panel can remain interactive.
+                clickOutsideDeactivates: true,
                 fallbackFocus: document.body,
                 delayInitialFocus: CONST.ANIMATED_TRANSITION,
                 initialFocus: false,
@@ -61,7 +63,5 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
         </FocusTrap>
     );
 }
-
-FocusTrapForScreen.displayName = 'FocusTrapForScreen';
 
 export default FocusTrapForScreen;

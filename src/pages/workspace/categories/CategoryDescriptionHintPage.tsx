@@ -13,8 +13,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import Parser from '@libs/Parser';
+import {getParsedComment} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import {setWorkspaceCategoryDescriptionHint} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,12 +34,12 @@ function CategoryDescriptionHintPage({
 }: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const decodedCategoryName = getDecodedCategoryName(categoryName);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const commentHintDefaultValue = policyCategories?.[categoryName]?.commentHint;
+    const commentHintDefaultValue = Parser.htmlToMarkdown(policyCategories?.[categoryName]?.commentHint ?? '');
 
     return (
         <AccessOrNotFoundWrapper
@@ -47,7 +50,7 @@ function CategoryDescriptionHintPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryDescriptionHintPage.displayName}
+                testID="CategoryDescriptionHintPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -58,7 +61,7 @@ function CategoryDescriptionHintPage({
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM}
                     onSubmit={({commentHint}) => {
-                        setWorkspaceCategoryDescriptionHint(policyID, categoryName, commentHint, policyCategories);
+                        setWorkspaceCategoryDescriptionHint(policyID, categoryName, getParsedComment(commentHint), policyCategories);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                     submitButtonText={translate('common.save')}
@@ -67,7 +70,7 @@ function CategoryDescriptionHintPage({
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', {categoryName: decodedCategoryName})}</Text>
+                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.descriptionHintDescription', decodedCategoryName)}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.COMMENT_HINT}
@@ -75,6 +78,10 @@ function CategoryDescriptionHintPage({
                             label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
                             aria-label={translate('workspace.rules.categoryRules.descriptionHintLabel')}
                             ref={inputCallbackRef}
+                            type="markdown"
+                            autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            excludedMarkdownStyles={['mentionReport']}
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.descriptionHintSubtitle')}</Text>
                     </View>
@@ -83,7 +90,5 @@ function CategoryDescriptionHintPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryDescriptionHintPage.displayName = 'CategoryDescriptionHintPage';
 
 export default CategoryDescriptionHintPage;

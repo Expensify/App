@@ -14,6 +14,4 @@ function GrowlNotificationContainer({children, translateY}: GrowlNotificationCon
     );
 }
 
-GrowlNotificationContainer.displayName = 'GrowlNotificationContainer';
-
 export default GrowlNotificationContainer;

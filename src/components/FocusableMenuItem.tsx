@@ -19,6 +19,4 @@ function FocusableMenuItem(props: MenuItemProps) {
     );
 }
 
-FocusableMenuItem.displayName = 'FocusableMenuItem';
-
 export default FocusableMenuItem;

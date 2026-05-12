@@ -63,7 +63,7 @@ function googleSignInRequest(preferredLocale?: Locale) {
  * Google Sign In button for iOS.
  */
 function GoogleSignIn({onPress = () => {}}: GoogleSignInProps) {
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     return (
         <IconButton
             onPress={() => {
@@ -74,7 +74,5 @@ function GoogleSignIn({onPress = () => {}}: GoogleSignInProps) {
         />
     );
 }
-
-GoogleSignIn.displayName = 'GoogleSignIn';
 
 export default GoogleSignIn;

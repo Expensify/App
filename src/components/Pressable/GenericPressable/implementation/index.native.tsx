@@ -7,14 +7,12 @@ function NativeGenericPressable({ref, ...props}: PressableProps) {
         <GenericPressable
             focusable
             accessible
-            accessibilityHint={props.accessibilityHint ?? props.accessibilityLabel}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
+            accessibilityHint={props.accessibilityHint ?? props.accessibilityLabel}
         />
     );
 }
-
-NativeGenericPressable.displayName = 'NativeGenericPressable';
 
 export default NativeGenericPressable;

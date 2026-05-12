@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -16,7 +15,8 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Account, QBDNonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
@@ -37,9 +37,18 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT>>();
     const backTo = route.params?.backTo;
+    const defaultBackPath = useMemo(
+        () =>
+            `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.path}`,
+        [policyID],
+    );
 
-    const sections = useMemo(() => {
-        const options: MenuItem[] = [
+    const goBack = useCallback(() => {
+        Navigation.goBack((backTo ?? defaultBackPath) as Route);
+    }, [backTo, defaultBackPath]);
+
+    const data: MenuItem[] = useMemo(
+        () => [
             {
                 text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`),
                 value: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
@@ -64,13 +73,9 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
                 accounts: payableAccounts ?? [],
                 defaultVendor: vendors?.[0]?.id ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
             },
-        ];
-        return [{data: options}];
-    }, [translate, nonReimbursable, creditCardAccounts, bankAccounts, payableAccounts, vendors]);
-
-    const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)));
-    }, [backTo, policyID]);
+        ],
+        [translate, nonReimbursable, creditCardAccounts, bankAccounts, payableAccounts, vendors],
+    );
 
     const selectExportCompanyCard = useCallback(
         (row: MenuItem) => {
@@ -99,13 +104,12 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage.displayName}
+            displayName="QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage"
             title="workspace.accounting.exportAs"
-            sections={sections}
-            listItem={RadioListItem}
+            data={data}
             onSelectRow={(selection: SelectorType) => selectExportCompanyCard(selection as MenuItem)}
             shouldSingleExecuteRowSelect
-            initiallyFocusedOptionKey={sections.at(0)?.data.find((mode) => mode.isSelected)?.keyForList}
+            initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={goBack}
             errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE)}
@@ -115,7 +119,5 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
         />
     );
 }
-
-QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage.displayName = 'QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage';
 
 export default withPolicyConnections(QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage);

@@ -40,6 +40,9 @@ type ValidateCodeActionContentProps = {
 
     /** Method to trigger when pressing more options button of the header */
     onThreeDotsButtonPress?: () => void;
+
+    /** Whether the modal is used as a page modal. Used to determine input auto focus timing. */
+    isPageModal?: boolean;
 };
 
 type ValidateCodeActionModalProps = ValidateCodeActionContentProps & {

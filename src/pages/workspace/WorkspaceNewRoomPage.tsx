@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -36,7 +37,7 @@ function EmptyWorkspaceView() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, additionalPaddingBottom: styles.mb5.marginBottom, styleProperty: 'marginBottom'});
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     return (
         <>
@@ -61,6 +62,7 @@ function EmptyWorkspaceView() {
 
 type WorkspaceNewRoomPageRef = {
     focus?: () => void;
+    isValidInput?: () => boolean;
 };
 
 type WorkspaceNewRoomPageProps = {
@@ -73,10 +75,10 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
     const isFocused = useIsFocused();
     const {translate, localeCompare} = useLocalize();
     const [shouldEnableValidation, setShouldEnableValidation] = useState(false);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     const {top} = useSafeAreaInsets();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
@@ -86,6 +88,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 
     useImperativeHandle(ref, () => ({
         focus: () => roomPageInputRef.current?.focus(),
+        isValidInput: () => !!roomPageInputRef.current,
     }));
 
     const workspaceOptions = useMemo(
@@ -110,7 +113,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             return false;
         }
 
-        return isPolicyAdmin(policyID, policies);
+        return isPolicyAdmin(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]);
     }, [policyID, policies]);
 
     /**
@@ -118,7 +121,8 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
         setNewRoomFormLoading();
-        const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
+        const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        const participants = [currentUserAccountID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
         const policyReport = buildOptimisticChatReport({
             participantList: participants,
@@ -130,9 +134,9 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             writeCapability: writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
             description: parsedDescription,
+            currentUserAccountID,
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 addPolicyReport(policyReport);
@@ -191,17 +195,17 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (isReservedRoomName(values.roomName)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
             } else if (isExistingRoomName(values.roomName, reports, values.policyID)) {
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', values.roomName.length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             const descriptionLength = getCommentLength(values.reportDescription, {policyID});
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                addErrorMessage(errors, 'reportDescription', translate('common.error.characterLimitExceedCounter', {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH}));
+                addErrorMessage(errors, 'reportDescription', translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH));
             }
 
             if (!values.policyID) {
@@ -244,7 +248,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
-            testID={WorkspaceNewRoomPage.displayName}
+            testID="WorkspaceNewRoomPage"
         >
             {workspaceOptions.length === 0 ? (
                 <EmptyWorkspaceView />
@@ -320,6 +324,5 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
     );
 }
 
-WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
-
 export default WorkspaceNewRoomPage;
+export type {WorkspaceNewRoomPageRef};

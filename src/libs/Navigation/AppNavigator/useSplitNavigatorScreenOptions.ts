@@ -2,12 +2,15 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isMobileSafari} from '@libs/Browser';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
+
+const IS_MOBILE_SAFARI = isMobileSafari();
 
 type SplitNavigatorScreenOptions = {
     sidebarScreen: PlatformStackNavigationOptions;
@@ -31,16 +34,14 @@ const useSplitNavigatorScreenOptions = () => {
             ...commonScreenOptions,
             title: CONFIG.SITE_TITLE,
             headerShown: false,
+            animation: shouldUseNarrowLayout && !IS_MOBILE_SAFARI ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
             web: {
                 // Note: The card* properties won't be applied on mobile platforms, as they use the native defaults.
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props}),
                 cardStyle: {
                     ...StyleUtils.getNavigationModalCardStyle(),
-                    width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth + variables.navigationTabBarSize,
-
-                    // We need to shift the sidebar to not be covered by the StackNavigator so it can be clickable.
-                    marginLeft: shouldUseNarrowLayout ? 0 : -(variables.sideBarWithLHBWidth + variables.navigationTabBarSize),
-                    paddingLeft: shouldUseNarrowLayout ? 0 : variables.navigationTabBarSize,
+                    width: shouldUseNarrowLayout ? '100%' : variables.sideBarWithLHBWidth,
+                    marginLeft: shouldUseNarrowLayout ? 0 : -variables.sideBarWithLHBWidth,
                     ...(shouldUseNarrowLayout ? {} : themeStyles.borderRight),
                 },
             },
@@ -51,11 +52,15 @@ const useSplitNavigatorScreenOptions = () => {
             ...hideKeyboardOnSwipe,
             headerShown: false,
             title: CONFIG.SITE_TITLE,
-            animation: shouldUseNarrowLayout ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            animation: shouldUseNarrowLayout && !IS_MOBILE_SAFARI ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
             animationTypeForReplace: 'pop',
             web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true}),
-                cardStyle: shouldUseNarrowLayout ? StyleUtils.getNavigationModalCardStyle() : themeStyles.h100,
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, animationEnabled: !IS_MOBILE_SAFARI}),
+                cardStyle: shouldUseNarrowLayout
+                    ? StyleUtils.getNavigationModalCardStyle()
+                    : {
+                          ...themeStyles.h100,
+                      },
             },
         },
     } satisfies SplitNavigatorScreenOptions;

@@ -1,22 +1,11 @@
-import {useMemo} from 'react';
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
-import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
+import {getCombinedCardFeedsFromAllFeeds, getWorkspaceCardFeedsStatus} from '@libs/CardFeedUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {CustomCardFeedData, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeeds, CardFeedsStatusByDomainID, CombinedCardFeed, CombinedCardFeeds, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
-
-type CombinedCardFeed = CustomCardFeedData &
-    Partial<DirectCardFeedData> & {
-        /** Custom feed name, originally coming from settings.companyCardNicknames */
-        customFeedName?: string;
-
-        /** Feed name */
-        feed: CompanyCardFeed;
-    };
-
-type CombinedCardFeeds = Record<CompanyCardFeedWithDomainID, CombinedCardFeed>;
 
 /**
  * This is a custom hook that combines workspace and domain card feeds for a given policy.
@@ -31,52 +20,50 @@ type CombinedCardFeeds = Record<CompanyCardFeedWithDomainID, CombinedCardFeed>;
  *     1. Combined workspace and domain card feeds specific to the given policyID (or `undefined` if unavailable).
  *     2. The result metadata from the Onyx collection fetch.
  *     3. Card feeds specific to the given policyID (or `undefined` if unavailable).
+ *     4. Card feed status by domain ID.
+ *     5. Workspace account ID for the policy.
  */
-const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined] => {
+const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>, CardFeeds | undefined, CardFeedsStatusByDomainID, number] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
 
-    const workspaceFeeds = useMemo(() => {
-        if (!policyID || !allFeeds) {
-            return undefined;
-        }
-
-        const result: CombinedCardFeeds = {};
-
-        return Object.entries(allFeeds).reduce<CombinedCardFeeds>((acc, [onyxKey, feed]) => {
-            if (!feed?.settings?.companyCards) {
-                return acc;
+    // When workspaceAccountID is 0, find the domain ID by looking for a feed linked to this policy.
+    // This handles domain-based card accounts where no workspace account exists yet.
+    let effectiveWorkspaceAccountID = workspaceAccountID;
+    if (workspaceAccountID === CONST.DEFAULT_NUMBER_ID && policyID && allFeeds) {
+        const linkedDomainEntry = Object.entries(allFeeds).find(([onyxKey, feeds]) => {
+            const domainID = Number(onyxKey.split('_').at(-1));
+            if (!domainID) {
+                return false;
             }
+            const companyCards = feeds?.settings?.companyCards;
+            if (!companyCards) {
+                return false;
+            }
+            return Object.values(companyCards).some((feedSettings) => feedSettings?.preferredPolicy === policyID || (feedSettings?.linkedPolicyIDs ?? []).includes(policyID));
+        });
+        if (linkedDomainEntry) {
+            effectiveWorkspaceAccountID = Number(linkedDomainEntry[0].split('_').at(-1));
+        }
+    }
 
-            // eslint-disable-next-line unicorn/no-array-for-each
-            Object.entries(feed.settings.companyCards).forEach(([key, feedSettings]) => {
-                const feedName = key as CompanyCardFeed;
-                const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
-                const feedCompanyCardNickname = feed.settings.companyCardNicknames?.[feedName];
-                const domainID = onyxKey.split('_').at(-1);
-                const shouldAddFeed = domainID && (feedSettings.preferredPolicy ? feedSettings.preferredPolicy === policyID : domainID === workspaceAccountID.toString());
+    let workspaceFeeds: CombinedCardFeeds | undefined;
+    if (policyID && allFeeds) {
+        const shouldIncludeFeedPredicate = (combinedCardFeed: CombinedCardFeed) => {
+            const validLinkedPolicyIDs = combinedCardFeed?.linkedPolicyIDs?.filter(Boolean);
+            if (validLinkedPolicyIDs?.length) {
+                return validLinkedPolicyIDs.includes(policyID);
+            }
+            return combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === effectiveWorkspaceAccountID;
+        };
+        workspaceFeeds = getCombinedCardFeedsFromAllFeeds(allFeeds, shouldIncludeFeedPredicate, feedKeysWithCards);
+    }
 
-                if (!shouldAddFeed) {
-                    return;
-                }
+    const workspaceCardFeedsStatus = getWorkspaceCardFeedsStatus(allFeeds);
 
-                const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
-
-                acc[combinedFeedKey] = {
-                    ...feedSettings,
-                    ...feedOAuthAccountDetails,
-                    customFeedName: feedCompanyCardNickname,
-                    domainID: Number(domainID),
-                    feed: feedName,
-                };
-            });
-
-            return acc;
-        }, result);
-    }, [allFeeds, policyID, workspaceAccountID]);
-
-    return [workspaceFeeds, allFeedsResult, defaultFeed];
+    return [workspaceFeeds, allFeedsResult, defaultFeed, workspaceCardFeedsStatus, workspaceAccountID];
 };
 
 export default useCardFeeds;

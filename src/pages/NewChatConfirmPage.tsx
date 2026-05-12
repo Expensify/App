@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {RefObject} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Badge from '@components/Badge';
@@ -10,6 +11,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,11 +20,13 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
-import {generateReportID, getDefaultGroupAvatar, getGroupChatName} from '@libs/ReportUtils';
-import {navigateToAndOpenReport, setGroupDraft} from '@userActions/Report';
+import {getGroupChatName} from '@libs/ReportNameUtils';
+import {generateReportID, getDefaultGroupAvatar} from '@libs/ReportUtils';
+import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {Participant} from '@src/types/onyx/IOU';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -34,72 +38,18 @@ function navigateToEditChatName() {
     Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME);
 }
 
-function NewChatConfirmPage() {
-    const optimisticReportID = useRef<string>(generateReportID());
-    const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
-    const {translate, localeCompare} = useLocalize();
+type AvatarAndGroupNameSectionProps = {
+    setAvatarFile: (avatarFile: File | CustomRNImageManipulatorResult | undefined) => void;
+    optimisticReportID: RefObject<string>;
+};
+
+function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAndGroupNameSectionProps) {
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const personalData = useCurrentUserPersonalDetails();
-    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const icons = useMemoizedLazyExpensifyIcons(['Camera'] as const);
+    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
-    const selectedOptions = useMemo((): Participant[] => {
-        if (!newGroupDraft?.participants) {
-            return [];
-        }
-        const options: Participant[] = newGroupDraft.participants.map((participant) =>
-            getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
-        );
-        return options;
-    }, [allPersonalDetails, newGroupDraft?.participants]);
-
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(newGroupDraft?.participants);
-    const selectedParticipants: ListItem[] = useMemo(
-        () =>
-            selectedOptions
-                .map((selectedOption: Participant) => {
-                    const accountID = selectedOption.accountID;
-                    const isAdmin = personalData.accountID === accountID;
-                    const section: ListItem = {
-                        login: selectedOption?.login ?? '',
-                        text: selectedOption?.text ?? '',
-                        keyForList: selectedOption?.keyForList ?? '',
-                        isSelected: !isAdmin,
-                        isDisabled: isAdmin,
-                        accountID,
-                        icons: selectedOption?.icons,
-                        alternateText: selectedOption?.login ?? '',
-                        rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
-                    };
-                    return section;
-                })
-                .sort((a, b) => localeCompare(a.text?.toLowerCase() ?? '', b.text?.toLowerCase() ?? '')),
-        [selectedOptions, personalData.accountID, translate, localeCompare],
-    );
-
-    /**
-     * Removes a selected option from list if already selected.
-     */
-    const unselectOption = useCallback(
-        (option: ListItem) => {
-            if (!newGroupDraft) {
-                return;
-            }
-            const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant?.login !== option.login);
-            setGroupDraft({participants: newSelectedParticipants});
-        },
-        [newGroupDraft],
-    );
-
-    const createGroup = useCallback(() => {
-        if (!newGroupDraft) {
-            return;
-        }
-
-        const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndOpenReport(logins, true, newGroupDraft.reportName ?? '', newGroupDraft.avatarUri ?? '', avatarFile, optimisticReportID.current, true);
-    }, [newGroupDraft, avatarFile]);
+    const icons = useMemoizedLazyExpensifyIcons(['Camera']);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 
@@ -122,19 +72,14 @@ function NewChatConfirmPage() {
         readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
 
         // we only need to run this when the component re-mounted and when the onyx is loaded completely
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newGroupDraftMetaData]);
 
     return (
-        <ScreenWrapper testID={NewChatConfirmPage.displayName}>
-            <HeaderWithBackButton
-                title={translate('common.group')}
-                onBackButtonPress={navigateBack}
-            />
+        <>
             <View style={styles.avatarSectionWrapper}>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
                     onImageSelected={(image) => {
                         setAvatarFile(image);
@@ -159,6 +104,93 @@ function NewChatConfirmPage() {
                 description={translate('newRoomPage.groupName')}
                 wrapperStyle={[styles.ph4]}
             />
+        </>
+    );
+}
+
+function NewChatConfirmPage() {
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const optimisticReportID = useRef<string>(generateReportID());
+    const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
+    const {translate, localeCompare} = useLocalize();
+    const styles = useThemeStyles();
+    const personalData = useCurrentUserPersonalDetails();
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+
+    const participants = newGroupDraft?.participants ?? [];
+
+    const selectedOptions: Participant[] = participants.map((participant) =>
+        getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
+    );
+
+    const selectedParticipants: ListItem[] = selectedOptions
+        .map((selectedOption: Participant) => {
+            const accountID = selectedOption.accountID;
+            const isAdmin = personalData.accountID === accountID;
+            const section: ListItem = {
+                login: selectedOption?.login ?? '',
+                text: selectedOption?.text ?? '',
+                keyForList: selectedOption?.keyForList ?? '',
+                isSelected: !isAdmin,
+                isDisabled: isAdmin,
+                accountID,
+                icons: selectedOption?.icons,
+                alternateText: selectedOption?.login ?? '',
+                rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
+            };
+            return section;
+        })
+        .sort((a, b) => localeCompare(a.text?.toLowerCase() ?? '', b.text?.toLowerCase() ?? ''));
+
+    /**
+     * Removes a selected option from list if already selected.
+     */
+    const unselectOption = (option: ListItem) => {
+        if (!newGroupDraft) {
+            return;
+        }
+        const newSelectedParticipants = (newGroupDraft.participants ?? []).filter((participant) => participant?.login !== option.login);
+        setGroupDraft({participants: newSelectedParticipants});
+    };
+
+    const createGroup = () => {
+        if (!newGroupDraft) {
+            return;
+        }
+
+        const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
+        navigateToAndCreateGroupChat(
+            logins,
+            newGroupDraft.reportName ?? '',
+            personalData.login ?? '',
+            optimisticReportID.current,
+            introSelected,
+            isSelfTourViewed,
+            betas,
+            personalData.accountID,
+            newGroupDraft.avatarUri ?? '',
+            avatarFile,
+        );
+    };
+
+    return (
+        <ScreenWrapper testID="NewChatConfirmPage">
+            <HeaderWithBackButton
+                title={translate('common.group')}
+                onBackButtonPress={navigateBack}
+            />
+
+            {!isInLandscapeMode && (
+                <AvatarAndGroupNameSection
+                    setAvatarFile={setAvatarFile}
+                    optimisticReportID={optimisticReportID}
+                />
+            )}
+
             <View style={[styles.flex1, styles.mt3]}>
                 <SelectionList
                     data={selectedParticipants}
@@ -170,17 +202,24 @@ function NewChatConfirmPage() {
                         text: translate('newChatPage.startGroup'),
                         onConfirm: createGroup,
                     }}
+                    shouldHeaderBeInsideList={isInLandscapeMode}
                     customListHeader={
-                        <View style={[styles.mt8, styles.mb4, styles.justifyContentCenter]}>
-                            <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.members')}</Text>
-                        </View>
+                        <>
+                            {isInLandscapeMode && (
+                                <AvatarAndGroupNameSection
+                                    setAvatarFile={setAvatarFile}
+                                    optimisticReportID={optimisticReportID}
+                                />
+                            )}
+                            <View style={[styles.mt8, styles.mb4, styles.justifyContentCenter]}>
+                                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.members')}</Text>
+                            </View>
+                        </>
                     }
                 />
             </View>
         </ScreenWrapper>
     );
 }
-
-NewChatConfirmPage.displayName = 'NewChatConfirmPage';
 
 export default NewChatConfirmPage;

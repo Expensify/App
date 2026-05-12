@@ -1,19 +1,19 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import RenderHTML from '@components/RenderHTML';
 import Section from '@components/Section';
+import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -28,7 +28,6 @@ type IndividualExpenseRulesSectionProps = {
 type IndividualExpenseRulesSectionSubtitleProps = {
     policy?: Policy;
     translate: LocaleContextProps['translate'];
-    styles: ThemeStyles;
     environmentURL: string;
 };
 
@@ -39,7 +38,7 @@ type IndividualExpenseRulesMenuItem = {
     pendingAction?: PendingAction;
 };
 
-function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, environmentURL}: IndividualExpenseRulesSectionSubtitleProps) {
+function IndividualExpenseRulesSectionSubtitle({policy, translate, environmentURL}: IndividualExpenseRulesSectionSubtitleProps) {
     const policyID = policy?.id;
 
     const categoriesPageLink = useMemo(() => {
@@ -58,14 +57,11 @@ function IndividualExpenseRulesSectionSubtitle({policy, translate, styles, envir
         return `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)}`;
     }, [policy?.areTagsEnabled, policyID, environmentURL]);
 
-    return (
-        <View style={[styles.flexRow, styles.renderHTML, styles.w100, styles.mt2]}>
-            <RenderHTML html={translate('workspace.rules.individualExpenseRules.subtitle', {categoriesPageLink, tagsPageLink})} />
-        </View>
-    );
+    return <SectionSubtitleHTML html={translate('workspace.rules.individualExpenseRules.subtitle', categoriesPageLink, tagsPageLink)} />;
 }
 
 function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSectionProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -73,13 +69,20 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
+    const handleAttendeeTrackingToggle = useCallback(
+        (newValue: boolean) => {
+            setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
+        },
+        [policyID, policy?.isAttendeeTrackingEnabled],
+    );
+
     const maxExpenseAmountNoReceiptText = useMemo(() => {
         if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE) {
             return '';
         }
 
         return convertToDisplayString(policy?.maxExpenseAmountNoReceipt, policyCurrency);
-    }, [policy?.maxExpenseAmountNoReceipt, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoReceipt, policyCurrency]);
 
     const maxExpenseAmountText = useMemo(() => {
         if (policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -87,7 +90,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         }
 
         return convertToDisplayString(policy?.maxExpenseAmount, policyCurrency);
-    }, [policy?.maxExpenseAmount, policyCurrency]);
+    }, [convertToDisplayString, policy?.maxExpenseAmount, policyCurrency]);
 
     const maxExpenseAgeText = useMemo(() => {
         if (policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE) {
@@ -124,6 +127,10 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.tobacco'));
         }
 
+        if (policy?.prohibitedExpenses?.handwrittenReceipt) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.handwrittenReceipt'));
+        }
+
         // If no expenses are prohibited, return empty string
         if (!prohibitedExpensesList.length) {
             return '';
@@ -132,12 +139,26 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
         return prohibitedExpensesList.join(', ');
     }, [policy?.prohibitedExpenses, translate]);
 
+    const maxExpenseAmountNoItemizedReceiptText = useMemo(() => {
+        if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
+            return '';
+        }
+
+        return convertToDisplayString(policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency);
+    }, [convertToDisplayString, policy?.maxExpenseAmountNoItemizedReceipt, policyCurrency]);
+
     const individualExpenseRulesItems: IndividualExpenseRulesMenuItem[] = [
         {
             title: maxExpenseAmountNoReceiptText,
             descriptionTranslationKey: 'workspace.rules.individualExpenseRules.receiptRequiredAmount',
             action: () => Navigation.navigate(ROUTES.RULES_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
             pendingAction: policy?.pendingFields?.maxExpenseAmountNoReceipt,
+        },
+        {
+            title: maxExpenseAmountNoItemizedReceiptText,
+            descriptionTranslationKey: 'workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmount',
+            action: () => Navigation.navigate(ROUTES.RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT.getRoute(policyID)),
+            pendingAction: policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt,
         },
         {
             title: maxExpenseAmountText,
@@ -173,10 +194,10 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     });
 
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
+    const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
+    const disableRequireCompanyCardToggle = !policy?.areCompanyCardsEnabled && !policy?.areExpensifyCardsEnabled;
 
-    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
-    // Control policies if the policy does not contain the attribute
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
+    const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
     return (
         <Section
@@ -186,7 +207,6 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                 <IndividualExpenseRulesSectionSubtitle
                     policy={policy}
                     translate={translate}
-                    styles={styles}
                     environmentURL={environmentURL}
                 />
             )}
@@ -200,6 +220,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     >
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
                             title={item.title}
                             description={translate(item.descriptionTranslationKey)}
                             onPress={item.action}
@@ -208,6 +229,20 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                         />
                     </OfflineWithFeedback>
                 ))}
+                <ToggleSettingOptionRow
+                    title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
+                    switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    disabled={disableRequireCompanyCardToggle}
+                    showLockIcon={disableRequireCompanyCardToggle}
+                    disabledText={translate('workspace.rules.individualExpenseRules.requireCompanyCardDisabledTooltip')}
+                    wrapperStyle={[styles.mt3]}
+                    titleStyle={styles.pv2}
+                    subtitleStyle={styles.pt1}
+                    isActive={requireCompanyCardsEnabled}
+                    pendingAction={policy?.pendingFields?.requireCompanyCardsEnabled}
+                    onToggle={() => (policy ? setPolicyRequireCompanyCardsEnabled(policy, !requireCompanyCardsEnabled) : undefined)}
+                />
 
                 <ToggleSettingOptionRow
                     title={translate('workspace.rules.individualExpenseRules.eReceipts')}
@@ -220,7 +255,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     subtitleStyle={styles.pt1}
                     isActive={areEReceiptsEnabled}
                     disabled={policyCurrency !== CONST.CURRENCY.USD}
-                    onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                    onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts)}
                     pendingAction={policy?.pendingFields?.eReceipts}
                 />
                 <ToggleSettingOptionRow
@@ -231,8 +266,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     shouldPlaceSubtitleBelowSwitch
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
-                    isActive={isAttendeeTrackingEnabled}
-                    onToggle={() => setPolicyAttendeeTrackingEnabled(policyID, !isAttendeeTrackingEnabled)}
+                    isActive={isAttendeeTrackingEnabledForPolicy}
+                    onToggle={() => handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                 />
             </View>

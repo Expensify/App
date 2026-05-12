@@ -15,7 +15,6 @@ type OpenReportParams = {
     optimisticAccountIDList?: string;
     file?: File | CustomRNImageManipulatorResult;
     guidedSetupData?: string;
-    useLastUnreadReportAction?: boolean;
     /**
      * The ID of the unreported transaction to create a thread for.
      * Used when displaying unreported expenses that have no transaction thread associated with them.
@@ -26,6 +25,9 @@ type OpenReportParams = {
      * Used when we need to create a money request report action on the selfDM for an unreported expense.
      */
     moneyRequestPreviewReportActionID?: string;
+    includePartiallySetupBankAccounts?: boolean;
+    useLastUnreadReportAction?: boolean;
+    includeLockedBankAccounts?: boolean;
 };
 
 export default OpenReportParams;

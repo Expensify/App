@@ -29,7 +29,16 @@ function resetUSDBankAccount(
     const isLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.expense?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
     const isPreviousLastUsedPaymentMethodBBA = lastUsedPaymentMethod?.lastUsed?.name === CONST.IOU.PAYMENT_TYPE.VBBA;
 
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<
+        | typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT
+        | typeof ONYXKEYS.COLLECTION.POLICY
+        | typeof ONYXKEYS.ONFIDO_TOKEN
+        | typeof ONYXKEYS.ONFIDO_APPLICANT_ID
+        | typeof ONYXKEYS.PLAID_DATA
+        | typeof ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN
+        | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT
+        | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -67,7 +76,7 @@ function resetUSDBankAccount(
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
-                key: ONYXKEYS.PLAID_LINK_TOKEN,
+                key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
                 value: '',
             },
             {
@@ -157,7 +166,6 @@ function resetUSDBankAccount(
         WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP,
         {
             bankAccountID,
-            ownerEmail: session.email,
             policyID,
         },
         onyxData,

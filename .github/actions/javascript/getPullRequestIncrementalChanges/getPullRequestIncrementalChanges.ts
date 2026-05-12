@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import {context} from '@actions/github';
+import {RequestError} from '@octokit/request-error';
 import type {PullRequestEvent, PullRequestSynchronizeEvent} from '@octokit/webhooks-types';
 import {getJSONInput} from '@github/libs/ActionUtils';
 import CONST from '@github/libs/CONST';
@@ -89,7 +90,29 @@ async function run(): Promise<void> {
 
         // Now we know there are local changes - get PR diff from the GitHub API to compare
         console.log(`🌐 Using GitHub API to validate ${localChangedFiles.size} files with local changes`);
-        const prDiff = Git.parseDiff(await GitHubUtils.getPullRequestDiff(prNumber));
+
+        let prDiffString: string;
+        try {
+            prDiffString = await GitHubUtils.getPullRequestDiff(prNumber);
+        } catch (error) {
+            const isTooLarge =
+                error instanceof RequestError &&
+                typeof error.response?.data === 'object' &&
+                error.response.data !== null &&
+                'errors' in error.response.data &&
+                ((error.response.data as {errors?: Array<{code?: string}>}).errors ?? []).some((e) => e.code === 'too_large');
+
+            if (!isTooLarge) {
+                throw error;
+            }
+
+            core.warning(`PR #${prNumber} diff is too large for the GitHub API. Skipping incremental change detection.`);
+            core.setOutput('CHANGED_FILES', JSON.stringify([]));
+            core.setOutput('HAS_CHANGES', false);
+            return;
+        }
+
+        const prDiff = Git.parseDiff(prDiffString);
 
         // Compare the local push diff with the PR diff and collect changed files, checking for overlapping content changes at the line level
         for (const prFileDiff of prDiff.files) {

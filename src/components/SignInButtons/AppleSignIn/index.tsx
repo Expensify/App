@@ -64,7 +64,7 @@ const failureListener = (event: AppleIDSignInOnFailureEvent) => {
  * Apple Sign In button for Web.
  */
 function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
         // first mounted.
@@ -153,6 +153,5 @@ function AppleSignIn({isDesktopFlow = false, onPointerDown}: AppleSignInProps) {
     );
 }
 
-AppleSignIn.displayName = 'AppleSignIn';
 export default AppleSignIn;
 export type {AppleSignInProps};

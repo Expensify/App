@@ -4,6 +4,9 @@ import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,7 +58,7 @@ const useMagicCodePaste = (inputRef: React.RefObject<BaseTextInputRef | null>, o
     }, [inputRef, onChangeText]);
 };
 
-type AutoCompleteVariant = 'sms-otp' | 'one-time-code' | 'off';
+type AutoCompleteVariant = ValueOf<typeof CONST.AUTO_COMPLETE_VARIANTS>;
 
 type MagicCodeInputProps = {
     /** Name attribute for the input */
@@ -100,8 +103,14 @@ type MagicCodeInputProps = {
     /** TestID for test */
     testID?: string;
 
+    /** Accessibility label for the input */
+    accessibilityLabel?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<MagicCodeInputHandle>;
+
+    /** Whether to mask the input characters (display as dots) */
+    secureTextEntry?: boolean;
 };
 
 type MagicCodeInputHandle = {
@@ -150,10 +159,13 @@ function MagicCodeInput({
     autoComplete,
     hasError = false,
     testID = '',
+    accessibilityLabel,
     ref,
+    secureTextEntry = false,
 }: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const inputRef = useRef<BaseTextInputRef | null>(null);
     const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState<number | undefined>(autoFocus ? 0 : undefined);
@@ -165,11 +177,9 @@ function MagicCodeInput({
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
 
-    useMagicCodePaste(inputRef, onChangeTextProp);
-
     useEffect(() => {
         lastValue.current = input.length;
-    }, [input]);
+    }, [input.length]);
 
     useEffect(() => {
         // Note: there are circumstances where the value state isn't updated yet
@@ -184,7 +194,7 @@ function MagicCodeInput({
             return;
         }
         setWasSubmitted(false);
-    }, [value, maxLength]);
+    }, [value.length, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
@@ -203,6 +213,9 @@ function MagicCodeInput({
         setFocusedIndex(index);
         editIndex.current = index;
     };
+
+    const announcement = focusedIndex !== undefined ? translate('common.enterDigitLabel', {digitIndex: focusedIndex + 1, totalDigits: maxLength}) : undefined;
+    useAccessibilityAnnouncement(announcement, !!announcement, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
 
     useImperativeHandle(ref, () => ({
         focus() {
@@ -251,7 +264,7 @@ function MagicCodeInput({
         // We have not added:
         // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // + the onFulfill as the dependency because onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [value, shouldSubmitOnComplete]);
 
     /**
@@ -272,7 +285,6 @@ function MagicCodeInput({
      */
     const tapGesture = Gesture.Tap()
         .runOnJS(true)
-        // eslint-disable-next-line react-compiler/react-compiler
         .onBegin((event) => {
             const index = Math.floor(event.x / (inputWidth.current / maxLength));
             shouldFocusLast.current = false;
@@ -327,6 +339,8 @@ function MagicCodeInput({
         onChangeTextProp(finalInput);
         valueRef.current = finalInput;
     };
+
+    useMagicCodePaste(inputRef, onChangeText);
 
     /**
      * Handles logic related to certain key presses.
@@ -434,14 +448,14 @@ function MagicCodeInput({
 
         // We have not added:
         // + the onChangeText and onKeyPress as the dependencies because we only want to run this when lastPressedDigit changes.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastPressedDigit, isDisableKeyboard]);
 
     const cursorOpacity = useSharedValue(1);
 
     useEffect(() => {
         cursorOpacity.set(withRepeat(withSequence(withDelay(500, withTiming(0, {duration: 0})), withDelay(500, withTiming(1, {duration: 0}))), -1, false));
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const animatedCursorStyle = useAnimatedStyle(() => ({
@@ -457,7 +471,7 @@ function MagicCodeInput({
                 <GestureDetector gesture={tapGesture}>
                     {/* Android does not handle touch on invisible Views so I created a wrapper around invisible TextInput just to handle taps */}
                     <View
-                        style={[StyleSheet.absoluteFillObject, styles.w100, styles.h100, styles.invisibleOverlay]}
+                        style={[StyleSheet.absoluteFill, styles.w100, styles.h100, styles.invisibleOverlay]}
                         collapsable={false}
                     >
                         <TextInput
@@ -487,7 +501,7 @@ function MagicCodeInput({
                             }}
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
-                            role={CONST.ROLE.PRESENTATION}
+                            accessibilityLabel={`${accessibilityLabel ?? translate('common.magicCode')}, ${maxLength} ${translate('common.digits')}`}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}
@@ -496,11 +510,14 @@ function MagicCodeInput({
                 </GestureDetector>
                 {getInputPlaceholderSlots(maxLength).map((index) => {
                     const char = decomposeString(value, maxLength).at(index)?.trim() ?? '';
+                    const displayChar = secureTextEntry && char ? '•' : char;
                     const cursorMargin = char ? {marginLeft: 2} : {};
                     const isFocused = focusedIndex === index;
 
                     return (
                         <View
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
                             key={index}
                             style={maxLength === CONST.MAGIC_CODE_LENGTH ? [styles.w15] : [styles.flex1, index !== 0 && styles.ml3]}
                         >
@@ -515,9 +532,15 @@ function MagicCodeInput({
                                 ]}
                             >
                                 <View style={styles.magicCodeInputValueContainer}>
-                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{char}</Text>
+                                    <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{displayChar}</Text>
                                     {isFocused && !isDisableKeyboard && (
-                                        <View style={[styles.magicCodeInputCursorContainer]}>
+                                        <View
+                                            style={[styles.magicCodeInputCursorContainer]}
+                                            accessibilityElementsHidden
+                                            importantForAccessibility="no-hide-descendants"
+                                            accessible={false}
+                                            aria-hidden
+                                        >
                                             {!!char && <Text style={[styles.magicCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.magicCodeInput, {width: 1}]}> </Text>
                                             <Animated.Text style={[styles.magicCodeInputCursor, animatedCursorStyle, cursorMargin]}>│</Animated.Text>
@@ -538,8 +561,6 @@ function MagicCodeInput({
         </>
     );
 }
-
-MagicCodeInput.displayName = 'MagicCodeInput';
 
 export default MagicCodeInput;
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

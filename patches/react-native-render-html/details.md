@@ -5,7 +5,7 @@
 - Reason:
   
     ```
-    This patch fixes console warning from web/desktop.
+    This patch fixes console warning from web.
     ```
   
 - Upstream PR/issue: https://github.com/meliorence/react-native-render-html/issues/661
@@ -17,7 +17,7 @@
 - Reason:
   
     ```
-    This patch fixes console warning from web/desktop.
+    This patch fixes console warning from web.
     ```
   
 - Upstream PR/issue: https://github.com/meliorence/react-native-render-html/issues/661

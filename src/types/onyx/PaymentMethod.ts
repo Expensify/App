@@ -22,6 +22,9 @@ type PaymentMethod = (BankAccount | Fund) & {
 
     /** Icon wrapper styles */
     iconStyles?: StyleProp<ViewStyle>;
+
+    /** The fill color to pass into the icon. */
+    iconFill?: string | ((isHovered: boolean) => string);
 };
 
 export default PaymentMethod;

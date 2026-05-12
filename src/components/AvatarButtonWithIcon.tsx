@@ -2,6 +2,7 @@ import type {RefObject} from 'react';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -9,14 +10,14 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Avatar from './Avatar';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
-type AvatarButtonWithIconProps = {
+type AvatarButtonWithIconProps = WithSentryLabel & {
     /** Text to be used as a tooltip */
     text: string;
 
@@ -78,17 +79,19 @@ function AvatarButtonWithIcon({
     onPress,
     source = '',
     avatarID,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
     avatarStyle,
     disabled = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
     anchorRef,
     name = '',
+    sentryLabel,
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Pencil']);
 
     return (
         <Tooltip
@@ -103,6 +106,7 @@ function AvatarButtonWithIcon({
                 disabledStyle={disabledStyle}
                 style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
                 ref={anchorRef}
+                sentryLabel={sentryLabel}
             >
                 <OfflineWithFeedback pendingAction={pendingAction}>
                     {source ? (
@@ -111,7 +115,7 @@ function AvatarButtonWithIcon({
                             imageStyles={[styles.alignSelfCenter, avatarStyle]}
                             source={source}
                             avatarID={avatarID}
-                            fallbackIcon={fallbackIcon}
+                            fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
                             size={size}
                             type={type}
                             name={name}
@@ -124,7 +128,7 @@ function AvatarButtonWithIcon({
                     <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                         <Icon
                             testID="avatar-button-edit-icon"
-                            src={editIcon}
+                            src={editIcon ?? expensifyIcons.Pencil}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
                             fill={theme.icon}
@@ -135,8 +139,6 @@ function AvatarButtonWithIcon({
         </Tooltip>
     );
 }
-
-AvatarButtonWithIcon.displayName = 'AvatarButtonWithIcon';
 
 export default AvatarButtonWithIcon;
 export type {AvatarButtonWithIconProps};

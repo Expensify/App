@@ -1,5 +1,8 @@
-import {Keyboard, Platform} from 'react-native';
+import {Keyboard} from 'react-native';
 import {KeyboardEvents} from 'react-native-keyboard-controller';
+// eslint-disable-next-line no-restricted-imports
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {DismissKeyboardOptions} from './types';
 
 type SimplifiedKeyboardEvent = {
     height?: number;
@@ -20,28 +23,32 @@ const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => 
     return () => {};
 };
 
-const dismiss = (): Promise<void> => {
+const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
     return new Promise((resolve) => {
         if (!isVisible) {
+            options?.afterTransition?.();
             resolve();
 
             return;
         }
 
+        const transitionHandle = TransitionTracker.startTransition();
         const subscription = Keyboard.addListener('keyboardDidHide', () => {
             resolve();
+            TransitionTracker.endTransition(transitionHandle);
             subscription.remove();
         });
-
         Keyboard.dismiss();
+
+        if (options?.afterTransition) {
+            TransitionTracker.runAfterTransitions({callback: options.afterTransition});
+        }
     });
 };
 
 const dismissKeyboardAndExecute = (cb: () => void): Promise<void> => {
     return new Promise((resolve) => {
-        // This fixes a bug specific to Android < 16 (Platform.Version < 36)
-        // https://github.com/Expensify/App/issues/70692
-        if (!isVisible || Number(Platform.Version) >= 36) {
+        if (!isVisible) {
             cb();
             resolve();
             return;

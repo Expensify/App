@@ -2,9 +2,12 @@ import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown
 import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 import Animated, {useSharedValue} from 'react-native-reanimated';
+import useLandscapeOnBlurProxy from '@hooks/useLandscapeOnBlurProxy';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
@@ -23,8 +26,9 @@ type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> &
         ref?: ForwardedRef<AnimatedMarkdownTextInputRef>;
     };
 
-function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = CONST.FULLSTORY.CLASS.MASK, ...props}: RNMarkdownTextInputWithRefProps) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK, ...props}: RNMarkdownTextInputWithRefProps) {
     const theme = useTheme();
+    const styles = useThemeStyles();
 
     const {availableLoginsList, currentUserMentions} = useShortMentionsList();
     const mentionsSharedVal = useSharedValue<string[]>(availableLoginsList);
@@ -33,8 +37,10 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
     // Expose the ref to the parent component
     React.useImperativeHandle<AnimatedMarkdownTextInputRef | null, AnimatedMarkdownTextInputRef | null>(ref, () => inputRef.current);
 
+    const handleBlur = useLandscapeOnBlurProxy(inputRef, props.onBlur);
+
     // Check if the cursor is at the end of the text
-    const isCursorAtEnd = props.selection && props.value && props.selection.start === props.value.length;
+    const isCursorAtEnd = props.selection && props.selection.start === props.value?.length;
 
     // Automatically scroll to the end if the cursor was at the end after value changes
     useEffect(() => {
@@ -71,26 +77,33 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
     }, [availableLoginsList, mentionsSharedVal]);
 
     return (
-        <AnimatedMarkdownTextInput
-            allowFontScaling={false}
-            textBreakStrategy="simple"
-            keyboardAppearance={theme.colorScheme}
-            parser={parserWorklet}
-            ref={inputRef}
-            formatSelection={toggleSelectionFormat}
-            // eslint-disable-next-line react/forbid-component-props
+        // We need this wrapper view in order to apply Fullstory masking since the Markdown input
+        // only pass down specific props on Web. The 'display: "contents"' style is also applied
+        // so the View won't interfere with the layout tree.
+        <View
+            style={styles.dContents}
             fsClass={forwardedFSClass}
-            // eslint-disable-next-line
-            {...props}
-            /**
-             * If maxLength is not set, we should set it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text
-             */
-            maxLength={maxLength ?? CONST.MAX_COMMENT_LENGTH + 1}
-        />
+        >
+            <AnimatedMarkdownTextInput
+                allowFontScaling={false}
+                textBreakStrategy="simple"
+                keyboardAppearance={theme.colorScheme}
+                parser={parserWorklet}
+                ref={inputRef}
+                formatSelection={toggleSelectionFormat}
+                // eslint-disable-next-line react/forbid-component-props
+                fsClass={forwardedFSClass}
+                // eslint-disable-next-line
+                {...props}
+                /**
+                 * If maxLength is not set, we should set it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text
+                 */
+                maxLength={maxLength ?? CONST.MAX_COMMENT_LENGTH + 1}
+                onBlur={handleBlur}
+            />
+        </View>
     );
 }
-
-RNMarkdownTextInputWithRef.displayName = 'RNMarkdownTextInputWithRef';
 
 export default RNMarkdownTextInputWithRef;
 export type {AnimatedMarkdownTextInputRef};

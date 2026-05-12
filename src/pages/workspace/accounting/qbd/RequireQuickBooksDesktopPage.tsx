@@ -5,6 +5,7 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -20,16 +21,16 @@ function RequireQuickBooksDesktopModal() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={RequireQuickBooksDesktopModal.displayName}
+            testID="RequireQuickBooksDesktopModal"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.dismissModal()}
+                onBackButtonPress={() => Navigation.goBack()}
             />
-            <View style={[styles.flex1]}>
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.ph5]}>
+            <View style={[styles.flex1, styles.gap2]}>
+                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter, styles.ph5]}>
                     <View style={[styles.alignSelfCenter, styles.pendingStateCardIllustration]}>
                         <ImageSVG src={illustrations.LaptopWithSecondScreenX} />
                     </View>
@@ -37,12 +38,12 @@ function RequireQuickBooksDesktopModal() {
                     <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.requiredSetupDevice.title')}</Text>
                     <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.pt3]}>{translate('workspace.qbd.requiredSetupDevice.body1')}</Text>
                     <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.requiredSetupDevice.body2')}</Text>
-                </View>
+                </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
                     <Button
                         success
                         text={translate('common.buttonConfirm')}
-                        onPress={() => Navigation.dismissModal()}
+                        onPress={() => Navigation.goBack()}
                         pressOnEnter
                         large
                     />
@@ -51,7 +52,5 @@ function RequireQuickBooksDesktopModal() {
         </ScreenWrapper>
     );
 }
-
-RequireQuickBooksDesktopModal.displayName = 'RequireQuickBooksDesktopModal';
 
 export default RequireQuickBooksDesktopModal;

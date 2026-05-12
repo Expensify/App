@@ -11,16 +11,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
-import SelectionList from './SelectionListWithSections';
-import type RadioListItem from './SelectionListWithSections/RadioListItem';
-import type TableListItem from './SelectionListWithSections/TableListItem';
-import type {ListItem, SectionListDataType} from './SelectionListWithSections/types';
-import type UserListItem from './SelectionListWithSections/UserListItem';
+import SelectionList from './SelectionList';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
+import type SingleSelectWithAvatarListItem from './SelectionList/ListItem/SingleSelectWithAvatarListItem';
+import type {ListItem} from './SelectionList/types';
 
 type SelectorType<T = string> = ListItem & {
     value: T;
@@ -45,19 +43,19 @@ type SelectionScreenProps<T = string> = {
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
-    sections: Array<SectionListDataType<SelectorType<T>>>;
+    data: Array<SelectorType<T>>;
 
-    /** Default renderer for every item in the list */
-    listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+    /** Renderer for every item in the list. Defaults to SingleSelectListItem. */
+    ListItem?: typeof SingleSelectListItem | typeof SingleSelectWithAvatarListItem;
 
     /** The style is applied for the wrap component of list item */
     listItemWrapperStyle?: StyleProp<ViewStyle>;
 
     /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string | null | undefined;
+    initiallyFocusedOptionKey?: string | undefined;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (selection: SelectorType<T>) => void;
+    onSelectRow: (item: SelectorType<T>) => void;
 
     /** Callback to fire when back button is pressed */
     onBackButtonPress?: () => void;
@@ -101,14 +99,16 @@ type SelectionScreenProps<T = string> = {
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
-    /** Label for the text input */
-    textInputLabel?: string;
+    textInputOptions?: {
+        /** Label for the text input */
+        label?: string;
 
-    /** Value for the text input */
-    textInputValue?: string;
+        /** Value for the text input */
+        value?: string;
 
-    /** Callback to fire when the text input changes */
-    onChangeText?: (text: string) => void;
+        /** Callback to fire when the text input changes */
+        onChangeText?: (text: string) => void;
+    };
 };
 
 function SelectionScreen<T = string>({
@@ -117,8 +117,8 @@ function SelectionScreen<T = string>({
     headerContent,
     listEmptyContent,
     listFooterContent,
-    sections,
-    listItem,
+    data,
+    ListItem = SingleSelectListItem,
     listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
@@ -134,10 +134,8 @@ function SelectionScreen<T = string>({
     onClose,
     shouldSingleExecuteRowSelect,
     headerTitleAlreadyTranslated,
-    textInputLabel,
-    textInputValue,
-    onChangeText,
     shouldShowTextInput,
+    textInputOptions,
     shouldUpdateFocusedIndex = false,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
@@ -166,32 +164,29 @@ function SelectionScreen<T = string>({
                     pendingAction={pendingAction}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
-                    shouldDisableOpacity={!sections.length}
+                    shouldDisableOpacity={!data.length}
                 >
                     <SelectionList
+                        data={data}
+                        ListItem={ListItem}
                         onSelectRow={onSelectRow}
-                        sections={sections}
-                        ListItem={listItem}
                         showScrollIndicator
-                        onChangeText={onChangeText}
                         shouldShowTooltips={false}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                        textInputOptions={textInputOptions}
                         listEmptyContent={listEmptyContent}
-                        textInputLabel={textInputLabel}
-                        textInputValue={textInputValue}
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
+                        style={{listItemWrapperStyle}}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
-                        isAlternateTextMultilineSupported
-                        listItemWrapperStyle={listItemWrapperStyle}
-                        addBottomSafeAreaPadding={!errors || isEmptyObject(errors)}
+                        alternateNumberOfSupportedLines={2}
+                        addBottomSafeAreaPadding
                     >
                         <ErrorMessageRow
                             errors={errors}
                             errorRowStyles={errorRowStyles}
-                            onClose={onClose}
+                            onDismiss={onClose}
                         />
                     </SelectionList>
                 </OfflineWithFeedback>
@@ -202,5 +197,4 @@ function SelectionScreen<T = string>({
 
 export type {SelectorType};
 
-SelectionScreen.displayName = 'SelectionScreen';
 export default SelectionScreen;

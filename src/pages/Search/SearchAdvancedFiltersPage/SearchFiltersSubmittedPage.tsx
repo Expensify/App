@@ -11,6 +11,4 @@ function SearchFiltersSubmittedPage() {
     );
 }
 
-SearchFiltersSubmittedPage.displayName = 'SearchFiltersSubmittedPage';
-
 export default SearchFiltersSubmittedPage;

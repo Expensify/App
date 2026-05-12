@@ -70,7 +70,7 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
                     enabledWhenOffline
                     submitButtonText={translate('common.save')}
                     onSubmit={() => {
-                        updateMemberCustomField(params.policyID, memberLogin, customFieldType, customField.trim());
+                        updateMemberCustomField(params.policyID, memberLogin, customFieldType, customField.trim(), member?.[customFieldKey]);
                         goBack();
                     }}
                 >
@@ -89,7 +89,5 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceMemberCustomFieldPage.displayName = 'WorkspaceMemberCustomFieldPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceMemberCustomFieldPage);

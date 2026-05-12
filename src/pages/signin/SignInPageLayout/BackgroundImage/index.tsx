@@ -1,4 +1,5 @@
 import React, {lazy, Suspense, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -7,12 +8,12 @@ import CONST from '@src/CONST';
 import type BackgroundImageProps from './types';
 
 const BackgroundMobile = lazy(() =>
-    import('@assets/images/home-background--mobile.svg').catch(() => ({
+    import('@assets/images/home-background--mobile.svg').catch((): {default: React.FC} => ({
         default: () => null,
     })),
 );
 const BackgroundDesktop = lazy(() =>
-    import('@assets/images/home-background--desktop.svg').catch(() => ({
+    import('@assets/images/home-background--desktop.svg').catch((): {default: React.FC} => ({
         default: () => null,
     })),
 );
@@ -34,7 +35,6 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
@@ -42,7 +42,7 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
         return () => {
             interactionTask.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!isInteractionComplete && isAnonymous) {
@@ -60,7 +60,5 @@ function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
         </Suspense>
     );
 }
-
-BackgroundImage.displayName = 'BackgroundImage';
 
 export default BackgroundImage;

@@ -1,10 +1,10 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -19,6 +19,7 @@ type HotelTripDetailsProps = {
 };
 
 function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -46,6 +47,8 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 numberOfLinesTitle={2}
                 pressableTestID={CONST.RESERVATION_ADDRESS_TEST_ID}
                 copyValue={reservation.start.address}
+                copyable
+                interactive={false}
             />
             <MenuItemWithTopDescription
                 description={translate('travel.hotelDetails.checkIn')}
@@ -78,13 +81,15 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                     description={translate('travel.hotelDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value}
                     copyValue={reservation.confirmations?.at(0)?.value}
+                    copyable
+                    interactive={false}
                 />
             )}
             {!!displayName && (
                 <MenuItem
                     label={translate('travel.hotelDetails.guest')}
                     title={displayName}
-                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    icon={personalDetails?.avatar ?? icons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}
@@ -94,7 +99,5 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
         </>
     );
 }
-
-HotelTripDetails.displayName = 'HotelTripDetails';
 
 export default HotelTripDetails;

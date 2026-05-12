@@ -22,6 +22,4 @@ function AvailableBookingDay({disabled, selected, pressed, hovered, children}: D
     );
 }
 
-AvailableBookingDay.displayName = 'AvailableBookingDay';
-
 export default AvailableBookingDay;

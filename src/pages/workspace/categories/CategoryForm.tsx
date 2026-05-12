@@ -28,9 +28,12 @@ type CategoryFormProps = {
 
     /** Function to validate the edited values of the form */
     validateEdit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>;
+
+    /** Whether to add bottom safe area padding to the form. Should be false when the parent wrapper already handles it. */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: CategoryFormProps) {
+function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, addBottomSafeAreaPadding = true}: CategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -50,11 +53,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
                 errors.categoryName = translate('workspace.categories.invalidCategoryName');
             } else if ([...newCategoryName].length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                addErrorMessage(
-                    errors,
-                    'categoryName',
-                    translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH}),
-                );
+                addErrorMessage(errors, 'categoryName', translate('common.error.characterLimitExceedCounter', [...newCategoryName].length, CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH));
             }
 
             return errors;
@@ -80,7 +79,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
             shouldHideFixErrorsAlert
-            addBottomSafeAreaPadding
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
             <InputWrapper
                 ref={inputCallbackRef}
@@ -94,7 +93,5 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
         </FormProvider>
     );
 }
-
-CategoryForm.displayName = 'CategoryForm';
 
 export default CategoryForm;

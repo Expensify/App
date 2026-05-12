@@ -5,24 +5,27 @@ import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
-import type {BaseListItemProps, ExtendedTargetedEvent, ListItem} from './types';
+import type {ExtendedTargetedEvent, ListItem, SelectableListItemProps} from './types';
 
-type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow'> &
+type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
+        normalizedIndex?: number;
         selectRow: (item: TItem, indexToFocus?: number) => void;
         setFocusedIndex: ReturnType<typeof useArrowKeyFocusManager>[1];
-        normalizedIndex: number;
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
-        shouldHighlightSelectedItem: boolean;
+        isLastItem?: boolean;
+        shouldHighlightSelectedItem?: boolean;
+        shouldPreventEnterKeySubmit?: boolean;
     };
 
 function ListItemRenderer<TItem extends ListItem>({
     ListItem,
     item,
     index,
+    normalizedIndex,
     isFocused,
     isDisabled,
     showTooltip,
@@ -30,37 +33,41 @@ function ListItemRenderer<TItem extends ListItem>({
     onLongPressRow,
     shouldSingleExecuteRowSelect,
     selectRow,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
-    normalizedIndex,
     shouldSyncFocus,
+    titleNumberOfLines,
     wrapperStyle,
     titleStyles,
     singleExecution,
     titleContainerStyles,
-    shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
+    isFocusVisible,
     shouldDisableHoverStyle,
-    shouldStopMouseLeavePropagation,
+    shouldShowRightCaret,
+    selectionButtonPosition,
+    errorRowStyles,
+    isLastItem,
+    shouldPreventEnterKeySubmit = true,
 }: ListItemRendererProps<TItem>) {
-    const handleOnCheckboxPress = () => {
+    const handleOnSelectionButtonPress = () => {
         if (isTransactionGroupListItemType(item)) {
-            return onCheckboxPress;
+            return onSelectionButtonPress;
         }
-        return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
+        return onSelectionButtonPress ? () => onSelectionButtonPress(item) : undefined;
     };
 
     return (
         <>
             <ListItem
                 item={item}
+                index={index}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
@@ -73,18 +80,16 @@ function ListItemRenderer<TItem extends ListItem>({
                         selectRow(item, index);
                     }
                 }}
-                onCheckboxPress={handleOnCheckboxPress()}
+                onSelectionButtonPress={handleOnSelectionButtonPress()}
                 onDismissError={() => onDismissError?.(item)}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
-                shouldPreventEnterKeySubmit
+                shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
-                keyForList={item.keyForList ?? ''}
+                keyForList={item.keyForList}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
+                titleNumberOfLines={titleNumberOfLines}
                 onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
                         return;
                     }
@@ -92,22 +97,23 @@ function ListItemRenderer<TItem extends ListItem>({
                     if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
-                    setFocusedIndex(normalizedIndex);
+                    setFocusedIndex(normalizedIndex ?? index);
                 }}
                 shouldSyncFocus={shouldSyncFocus}
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}
-                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+                errorRowStyles={errorRowStyles}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                isFocusVisible={isFocusVisible}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
+                shouldShowRightCaret={shouldShowRightCaret}
+                selectionButtonPosition={selectionButtonPosition}
+                isLastItem={isLastItem}
             />
             {item.footerContent && item.footerContent}
         </>
     );
 }
-
-ListItemRenderer.displayName = 'BaseSelectionListItemRenderer';
 
 export default ListItemRenderer;

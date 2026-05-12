@@ -45,7 +45,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 
 function MyComponent() {
     // Load multiple illustrations at once
-    const illustrations = useMemoizedLazyIllustrations(['Building', 'FolderOpen', 'Tag'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Building', 'FolderOpen', 'Tag']);
 
     return (
         <View>
@@ -64,7 +64,7 @@ Same pattern as illustrations, but for Expensify icons:
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
 function NavigationBar() {
-    const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'MoneySearch'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'MoneySearch']);
 
     return (
         <View>
@@ -172,90 +172,4 @@ Check `src/components/Icon/chunks/expensify-icons.chunk.ts` for the complete lis
        // ... existing icons
        MyNewIcon,
    };
-   ```
-
-## Migration Guide
-
-### Migrating Existing Code
-
-If you're migrating existing code from direct loading to lazy loading:
-
-#### Step-by-Step Migration Process
-
-1. **Identify Direct Imports**
-   - Search for imports from `@components/Icon/Illustrations` or `@components/Icon/Expensicons`
-   - Run `npm run check-lazy-loading` to automatically detect all files that need migration
-
-
-2. **Replace with Lazy Loading**
-
-   **Before (Direct):**
-   ```tsx
-   import {Building} from '@components/Icon/Illustrations';
-
-   function Component() {
-       return <Icon src={Building} />;
-   }
-   ```
-
-   **After (Lazy - Single Asset):**
-   ```tsx
-   import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-
-   function Component() {
-       const illustrations = useMemoizedLazyIllustrations(['Building'] as const);
-       return <Icon src={illustrations.Building} />;
-   }
-   ```
-
-   **Before (Multiple Direct Imports):**
-   ```tsx
-   import {Building, Tag, Coins} from '@components/Icon/Illustrations';
-
-   function Component() {
-       return (
-           <View>
-               <Icon src={Building} />
-               <Icon src={Tag} />
-               <Icon src={Coins} />
-           </View>
-       );
-   }
-   ```
-
-   **After (Lazy - Multiple Assets):**
-   ```tsx
-   import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-
-   function Component() {
-       const illustrations = useMemoizedLazyIllustrations(['Building', 'Tag', 'Coins'] as const);
-       return (
-           <View>
-               <Icon src={illustrations.Building} />
-               <Icon src={illustrations.Tag} />
-               <Icon src={illustrations.Coins} />
-           </View>
-       );
-   }
-   ```
-
-3. **Handle Namespace Imports**
-
-   **Before (Namespace Import):**
-   ```tsx
-   import * as Expensicons from '@components/Icon/Expensicons';
-
-   function Component() {
-       return <Icon src={Expensicons.Home} />;
-   }
-   ```
-
-   **After (Lazy):**
-   ```tsx
-   import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-
-   function Component() {
-       const icons = useMemoizedLazyExpensifyIcons(['Home'] as const);
-       return <Icon src={icons.Home} />;
-   }
    ```

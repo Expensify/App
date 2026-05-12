@@ -3,7 +3,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import searchOptions from '@libs/searchOptions';
@@ -91,7 +91,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
             <ScreenWrapper
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={PushRowModal.displayName}
+                testID="PushRowModal"
             >
                 <HeaderWithBackButton
                     title={headerTitle}
@@ -99,7 +99,7 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
                 />
                 <SelectionList
                     data={searchResults}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={handleSelectRow}
                     textInputOptions={textInputOptions}
                     initiallyFocusedItemKey={selectedOption}
@@ -111,7 +111,5 @@ function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optio
         </Modal>
     );
 }
-
-PushRowModal.displayName = 'PushRowModal';
 
 export default PushRowModal;

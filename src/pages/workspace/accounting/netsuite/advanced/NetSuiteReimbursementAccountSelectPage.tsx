@@ -1,7 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -24,7 +23,7 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const {translate} = useLocalize();
 
     const policyID = policy?.id;
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteReimbursableAccountOptions = useMemo<SelectorType[]>(
@@ -72,10 +71,9 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteReimbursementAccountSelectPage.displayName}
+            displayName="NetSuiteReimbursementAccountSelectPage"
             headerContent={headerContent}
-            sections={netsuiteReimbursableAccountOptions.length ? [{data: netsuiteReimbursableAccountOptions}] : []}
-            listItem={RadioListItem}
+            data={netsuiteReimbursableAccountOptions}
             onSelectRow={updateReimbursementAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
@@ -90,7 +88,5 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
         />
     );
 }
-
-NetSuiteReimbursementAccountSelectPage.displayName = 'NetSuiteReimbursementAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteReimbursementAccountSelectPage);

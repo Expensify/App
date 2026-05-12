@@ -14,6 +14,15 @@ type ContactAction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the action is validated */
         actionVerified?: boolean;
+
+        /** Validation action code for adding secondary login */
+        validateActionCode?: string;
+
+        /** Whether the action is verified */
+        isVerifiedValidateActionCode?: boolean;
+
+        /** Whether the action is loading */
+        isLoading?: boolean;
     },
     'actionVerified'
 >;
@@ -21,5 +30,5 @@ type ContactAction = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Record of user login data, indexed by partnerUserID */
 type PendingContactAction = ContactAction;
 
-export default ContactAction;
+// eslint-disable-next-line import/prefer-default-export
 export type {PendingContactAction};

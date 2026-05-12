@@ -119,6 +119,17 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * Reference to the outer element.
          */
         ref?: ForwardedRef<View>;
+
+        /**
+         * Whether the modal should display under the side panel.
+         */
+        shouldDisplayBelowModals?: boolean;
+
+        /**
+         * Whether the modal should wrap the children in a scroll view if it is a bottom docked modal in landscape mode.
+         * Defaults to true.
+         */
+        shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
     };
 
 export default BaseModalProps;

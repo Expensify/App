@@ -63,24 +63,25 @@ else
 fi
 
 # Check if the argument is one of the desired values
-# RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 - force React Native to build from source to include our custom patches
 case "$BUILD" in
     --ios)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
+        npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --ipad)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
+        npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --ipad-sm)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
+        npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --android)
-        # Check if Cloudflare WARP is active and certificates need to be imported
-        if is_warp_active; then
-            "${SCRIPT_DIR}/import-cloudflare-certs-into-jdk.sh"
+        # Check if this is an Expensify developer with WARP (only they need cert import)
+        if [[ "${IS_EXPENSIFY_EMPLOYEE:-false}" == "true" ]]; then
+            if is_warp_active; then
+                "${SCRIPT_DIR}/import-cloudflare-certs-into-jdk.sh"
+            fi
         fi
 
-        npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server "${ROCK_FLAGS[@]}"
+        SENTRY_DISABLE_AUTO_UPLOAD=true npx rock run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose --dev-server "${ROCK_FLAGS[@]}"
         ;;
     *)
         print_error_and_exit

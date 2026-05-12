@@ -29,7 +29,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportPage.displayName}
+            displayName="NetSuiteImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={config?.subsidiary ?? ''}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -149,5 +149,4 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-NetSuiteImportPage.displayName = 'NetSuiteImportPage';
 export default withPolicyConnections(NetSuiteImportPage);

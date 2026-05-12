@@ -1,4 +1,5 @@
 import deburr from 'lodash/deburr';
+import type {KebabCase} from 'type-fest';
 import {isSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import decodeUnicode from './decodeUnicode';
@@ -106,7 +107,7 @@ function normalizeAccents(text: string) {
 function normalize(text: string): string {
     return removeInvisibleCharacters(text)
         .replaceAll(/[\u00A0\u1680\u2000-\u200A\u202F\u205F\u3000]/g, ' ') // space-like -> ' '
-        .replaceAll(/\s+/g, ' ') // collapse spaces
+        .replaceAll(CONST.REGEX.WHITESPACE, ' ') // collapse spaces
         .trim();
 }
 
@@ -182,6 +183,31 @@ function startsWithVowel(str: string): boolean {
     return /^[aeiouAEIOU]/.test(str);
 }
 
+function camelToHyphenCase(str: string) {
+    return str.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+}
+
+/**
+ * Converts a string to lowercase.
+ * In addition to the standard toLowerCase behavior, this function ensures
+ * that if a const string is provided, it is not converted to a primitive type.
+ */
+function toLowerCase<T extends string>(str: T) {
+    return str.toLowerCase() as Lowercase<T>;
+}
+
+/**
+ * Converts camelCase string to kebab-case format.
+ */
+function camelToKebabCase<T extends string>(str: T) {
+    return str.replaceAll(/([a-z])([A-Z])/g, '$1-$2').toLowerCase() as KebabCase<T>;
+}
+
+/** Escapes special regex characters in a string so it can be used as a literal pattern in a RegExp. */
+function escapeRegExp(str: string): string {
+    return str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export default {
     sanitizeString,
     isEmptyString,
@@ -200,4 +226,8 @@ export default {
     decodeUnicode,
     countWhiteSpaces,
     startsWithVowel,
+    camelToHyphenCase,
+    camelToKebabCase,
+    toLowerCase,
+    escapeRegExp,
 };

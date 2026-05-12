@@ -21,6 +21,4 @@ function CopyTextRenderer({tnode}: CopyTextRendererProps) {
     );
 }
 
-CopyTextRenderer.displayName = 'CopyTextRenderer';
-
 export default CopyTextRenderer;

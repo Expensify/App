@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -14,7 +15,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import Debug from '@userActions/Debug';
@@ -37,7 +38,7 @@ function DebugReportActionPage({
 
     const getReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
-            return reportActions?.[reportActionID];
+            return withDEWRoutedActionsObject(reportActions)?.[reportActionID];
         },
         [reportActionID],
     );
@@ -45,9 +46,7 @@ function DebugReportActionPage({
     const [reportAction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
         {
-            canEvict: false,
             selector: getReportActionSelector,
-            canBeMissing: true,
         },
         [getReportActionSelector],
     );
@@ -65,7 +64,6 @@ function DebugReportActionPage({
                     Navigation.goBack();
                     // We need to wait for navigation animations to finish before deleting an action,
                     // otherwise the user will see a not found page briefly.
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
                     });
@@ -113,7 +111,7 @@ function DebugReportActionPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugReportActionPage.displayName}
+            testID="DebugReportActionPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -130,7 +128,5 @@ function DebugReportActionPage({
         </ScreenWrapper>
     );
 }
-
-DebugReportActionPage.displayName = 'DebugReportActionPage';
 
 export default DebugReportActionPage;

@@ -3,11 +3,12 @@ import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Choice} from './RadioButtons';
 import RadioButtons from './RadioButtons';
 import Text from './Text';
 
-type SingleChoiceQuestionProps = {
+type SingleChoiceQuestionProps = ForwardedFSClassProps & {
     prompt: string;
     errorText?: string;
     possibleAnswers: Choice[];
@@ -16,27 +17,26 @@ type SingleChoiceQuestionProps = {
     ref?: ForwardedRef<RNText>;
 };
 
-function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange, ref}: SingleChoiceQuestionProps) {
+function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange, forwardedFSClass, ref}: SingleChoiceQuestionProps) {
     const styles = useThemeStyles();
 
     return (
         <>
             <Text
                 ref={ref}
-                style={[styles.mt3]}
+                style={[styles.mt3, styles.ph5]}
             >
                 {prompt}
             </Text>
             <RadioButtons
                 items={possibleAnswers}
                 key={currentQuestionIndex}
-                onPress={onInputChange}
+                onSelect={onInputChange}
                 errorText={errorText}
+                forwardedFSClass={forwardedFSClass}
             />
         </>
     );
 }
-
-SingleChoiceQuestion.displayName = 'SingleChoiceQuestion';
 
 export default SingleChoiceQuestion;

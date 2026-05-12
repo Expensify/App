@@ -25,7 +25,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel;
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const groupPaidPolicies = getActivePolicies(policies, currentUserLogin).filter(isPaidGroupPolicy);
 
@@ -45,7 +45,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator
-            testID={TravelUpgrade.displayName}
+            testID="TravelUpgrade"
             offlineIndicatorStyle={styles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen={!isUpgraded}
         >
@@ -73,7 +73,5 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
         </ScreenWrapper>
     );
 }
-
-TravelUpgrade.displayName = 'TravelUpgrade';
 
 export default TravelUpgrade;

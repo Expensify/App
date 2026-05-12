@@ -1,5 +1,6 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
 
@@ -15,7 +16,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
         promiseChain = promiseChain.then(() => {
             const value = data[key];
 
-            if (value === undefined) {
+            if (value === undefined || value === null) {
                 return Promise.resolve();
             }
 
@@ -24,6 +25,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 if (source) {
                     return checkFileExists(source).then((exists) => {
                         if (!exists) {
+                            Log.alert('[prepareRequestPayload] Receipt file missing at upload time', {command, source, fileName: name});
                             return;
                         }
                         const receiptFormData = {
@@ -38,14 +40,16 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
             }
 
             if (key === 'file' && initiatedOffline) {
-                const {uri: path = '', source} = value as File;
+                const {uri: path = '', source, name, type} = value as File;
                 if (!source) {
                     validateFormDataParameter(command, key, value);
                     formData.append(key, value as string | Blob);
 
                     return Promise.resolve();
                 }
-                return readFileAsync(source, path, () => {}).then((file) => {
+                // Use the actual file name if available, otherwise fall back to extracting from path/uri
+                const fileName = name || (path ? (path.split('/').pop() ?? '') : '') || '';
+                return readFileAsync(source, fileName, () => {}, undefined, type).then((file) => {
                     if (!file) {
                         return;
                     }

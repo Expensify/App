@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
@@ -16,9 +16,14 @@ function DisplayNames({
     displayNamesWithTooltips,
     renderAdditionalText,
     forwardedFSClass,
+    shouldParseFullTitle = true,
+    accessibilityLabel,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
-    const title = StringUtils.lineBreaksToSpaces(Parser.htmlToText(fullTitle)) || translate('common.hidden');
+    const title = useMemo(() => {
+        const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
+        return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
+    }, [fullTitle, shouldParseFullTitle, translate]);
 
     if (!tooltipEnabled) {
         return (
@@ -28,6 +33,7 @@ function DisplayNames({
                 fullTitle={title}
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
+                accessibilityLabel={accessibilityLabel}
             />
         );
     }
@@ -41,6 +47,7 @@ function DisplayNames({
                 numberOfLines={numberOfLines}
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
+                accessibilityLabel={accessibilityLabel}
             />
         );
     }
@@ -54,10 +61,9 @@ function DisplayNames({
             numberOfLines={numberOfLines}
             renderAdditionalText={renderAdditionalText}
             forwardedFSClass={forwardedFSClass}
+            accessibilityLabel={accessibilityLabel}
         />
     );
 }
-
-DisplayNames.displayName = 'DisplayNames';
 
 export default DisplayNames;

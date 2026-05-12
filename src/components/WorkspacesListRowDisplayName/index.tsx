@@ -16,6 +16,4 @@ function WorkspacesListRowDisplayName({isDeleted, ownerName}: WorkspacesListRowD
     );
 }
 
-WorkspacesListRowDisplayName.displayName = 'WorkspacesListRowDisplayName';
-
 export default WorkspacesListRowDisplayName;

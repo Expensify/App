@@ -67,6 +67,4 @@ function TextLinkBlock({text, style, prefixIcon, ...rest}: TextLinkBlockProps) {
     );
 }
 
-TextLinkBlock.displayName = 'TextLinkBlock';
-
 export default memo(TextLinkBlock);

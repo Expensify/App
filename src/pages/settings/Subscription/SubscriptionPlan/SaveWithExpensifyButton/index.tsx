@@ -15,11 +15,11 @@ function SaveWithExpensifyButton() {
         <Button
             small
             text={translate('subscription.yourPlan.saveWithExpensifyButton')}
+            accessibilityLabel={`${translate('subscription.yourPlan.saveWithExpensifyButton')}, ${translate('subscription.yourPlan.saveWithExpensifyTitle')}`}
             onPress={onLinkPress}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SAVE_WITH_EXPENSIFY}
         />
     );
 }
-
-SaveWithExpensifyButton.displayName = 'SaveWithExpensifyButton';
 
 export default SaveWithExpensifyButton;

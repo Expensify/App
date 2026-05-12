@@ -19,6 +19,4 @@ function EducationalTooltip({children, ...props}: TooltipExtendedProps) {
     );
 }
 
-EducationalTooltip.displayName = 'EducationalTooltip';
-
 export default EducationalTooltip;

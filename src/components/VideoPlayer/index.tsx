@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useState} from 'react';
 import uniqueIDForVideoWithoutReport from '@components/VideoPlayerContexts/PlaybackContext/uniqueID';
 import BaseVideoPlayer from './BaseVideoPlayer';
-import type {VideoPlayerProps} from './types';
+import type VideoPlayerProps from './types';
 
 function VideoPlayer(props: VideoPlayerProps) {
-    const {fakeReportID} = uniqueIDForVideoWithoutReport();
+    // `fakeReportID` is a getter that increments each access — freeze it per instance.
+    const [fakeReportID] = useState(() => uniqueIDForVideoWithoutReport().fakeReportID);
     const {reportID} = props;
 
     return (
@@ -15,7 +16,5 @@ function VideoPlayer(props: VideoPlayerProps) {
         />
     );
 }
-
-VideoPlayer.displayName = 'VideoPlayer';
 
 export default VideoPlayer;

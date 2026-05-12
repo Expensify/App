@@ -11,6 +11,7 @@ const TRANSACTION_ID_R98765 = 'TRANSACTION_ID_R98765';
 const receiptR14932 = {
     state: CONST.IOU.RECEIPT_STATE.OPEN,
     source: 'mockData/eReceiptBGs/eReceiptBG_pink.png',
+    filename: 'test.html',
 };
 
 const transactionR14932: Transaction = {
@@ -22,7 +23,6 @@ const transactionR14932: Transaction = {
     status: CONST.TRANSACTION.STATUS.POSTED,
     receipt: receiptR14932,
     merchant: 'Acme',
-    filename: 'test.html',
     created: '2025-02-14',
     inserted: '2025-02-14 08:12:19',
     billable: false,
@@ -30,7 +30,7 @@ const transactionR14932: Transaction = {
     reimbursable: true,
     hasEReceipt: true,
     cardID: 0,
-    modifiedAmount: 0,
+    modifiedAmount: '',
     originalAmount: 0,
     comment: {},
     bank: '',
@@ -59,14 +59,13 @@ const transactionR98765: Transaction = {
     hasEReceipt: true,
     managedCard: false,
     billable: false,
-    modifiedAmount: 0,
+    modifiedAmount: '',
     cardID: 0,
     originalAmount: 0,
     comment: {},
     bank: '',
     cardNumber: '',
     category: '',
-    filename: '',
     modifiedCreated: '',
     modifiedCurrency: '',
     modifiedMerchant: '',

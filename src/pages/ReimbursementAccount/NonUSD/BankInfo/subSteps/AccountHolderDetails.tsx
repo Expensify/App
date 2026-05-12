@@ -48,8 +48,8 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>,
     );
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const defaultValues = useMemo(
         () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
         [subStepKeys, reimbursementAccount, reimbursementAccountDraft],
@@ -138,6 +138,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                             city: 'accountHolderCity',
                         }}
                         hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 </View>
             );
@@ -160,7 +161,5 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         </FormProvider>
     );
 }
-
-AccountHolderDetails.displayName = 'AccountHolderDetails';
 
 export default AccountHolderDetails;
