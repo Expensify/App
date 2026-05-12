@@ -618,4 +618,5 @@ export {
     updateSplitExpenseField,
     updateSplitExpenseAmountField,
     clearSplitTransactionDraftErrors,
+    getDistanceMerchantFromDistance,
 };

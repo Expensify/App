@@ -5,6 +5,7 @@ import {calculateAmount} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getTransactionDetails, isOpenReport, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
@@ -14,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 import type {BillingGraceEndPeriod, Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
-import {initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
+import {getDistanceMerchantFromDistance, initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
 
 // We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
 // this avoids unnecessary re-rendering for components when any transaction changes. This data should ONLY
@@ -169,14 +170,17 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
     }
 
     const transactionDetails = getTransactionDetails(transaction);
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+    let transactionDetailsAmount = transactionDetails?.amount ?? 0;
 
-    const splitAmounts = [
+    let splitAmounts = [
         calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
         calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
     ];
     const splitCustomUnits: Array<TransactionCustomUnit | undefined> = [undefined, undefined];
     const splitMerchants: Array<string | undefined> = [undefined, undefined];
+    // When a self-DM distance split substitutes the original (deleted) rate with a fallback,
+    // override the draft transaction's stored merchant so the header reflects the new rate.
+    let draftMerchantOverride: string | undefined;
 
     if (isDistanceRequest(transaction)) {
         // When policy is undefined (e.g. viewing from self-DM), find the correct policy
@@ -193,8 +197,37 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
                 ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[customUnitRateID])) ?? undefined)
                 : undefined;
         const effectivePolicy = policy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: effectivePolicy ?? undefined});
-        const {unit, rate} = mileageRate;
+        const rawPolicyRate = isSelfDMReport && !isP2PRate && customUnitRateID && effectivePolicy ? getDistanceRateCustomUnitRate(effectivePolicy, customUnitRateID) : undefined;
+        const isOriginalRateDeleted =
+            isSelfDMReport &&
+            !isP2PRate &&
+            !!customUnitRateID &&
+            !!effectivePolicy &&
+            (!rawPolicyRate || rawPolicyRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate.enabled === false);
+
+        const baseMileageRate = DistanceRequestUtils.getRate({transaction, policy: effectivePolicy ?? undefined});
+        const fallbackRate = isOriginalRateDeleted ? DistanceRequestUtils.getDefaultMileageRate(effectivePolicy) : undefined;
+        const rate = fallbackRate?.rate ?? baseMileageRate.rate;
+        const unit = fallbackRate?.unit ?? baseMileageRate.unit;
+        const currency = fallbackRate?.currency ?? baseMileageRate.currency;
+
+        // When the original rate was deleted, the transaction's stored amount equals
+        // `distance × deleted_rate`, which is no longer meaningful. Recompute the total amount
+        // and per-split amounts against the fallback rate so distance × rate stays coherent.
+        // Also rebuild the draft's merchant string from the fallback so the split flow header
+        // doesn't keep displaying the deleted rate.
+        if (isOriginalRateDeleted && rate && rate > 0 && transaction?.comment?.customUnit?.quantity) {
+            const totalQuantity = transaction.comment.customUnit.quantity;
+            const fullDistanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(totalQuantity, unit);
+            const recomputedAmount = DistanceRequestUtils.getDistanceRequestAmount(fullDistanceInMeters, unit, rate);
+            const sign = transactionDetailsAmount < 0 ? -1 : 1;
+            transactionDetailsAmount = sign * Math.abs(recomputedAmount);
+            splitAmounts = [
+                calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', false),
+                calculateAmount(1, transactionDetailsAmount, transactionDetails?.currency ?? '', true),
+            ];
+            draftMerchantOverride = getDistanceMerchantFromDistance(totalQuantity, unit, rate, transactionDetails?.currency ?? currency ?? CONST.CURRENCY.USD);
+        }
 
         if (rate && rate > 0 && transaction?.comment?.customUnit) {
             for (let i = 0; i < splitAmounts.length; i++) {
@@ -205,7 +238,7 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
                         rate,
                         unit,
                         transaction.comment.customUnit,
-                        mileageRate,
+                        {currency},
                         transactionDetails?.currency,
                     );
 
@@ -242,7 +275,7 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
             splitExpensesTotal: splitExpenses.reduce((total, item) => total + item.amount, 0),
             amount: transactionDetailsAmount,
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
-            merchant: transactionDetails?.merchant ?? '',
+            merchant: draftMerchantOverride ?? transactionDetails?.merchant ?? '',
             participants: transaction?.participants,
             attendees: transactionDetails?.attendees as Attendee[],
             reportID,
