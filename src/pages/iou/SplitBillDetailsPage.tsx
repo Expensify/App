@@ -21,19 +21,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getPolicyExpenseReportOption} from '@libs/OptionsListUtils';
-import Parser from '@libs/Parser';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {
-    areRequiredFieldsEmpty,
-    hasReceipt,
-    isDistanceRequest as isDistanceRequestUtil,
-    isGPSDistanceRequest as isGPSDistanceRequestUtil,
-    isManualDistanceRequest as isManualDistanceRequestUtil,
-    isMapDistanceRequest as isMapDistanceRequestUtil,
-    isScanning,
-} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isMapDistanceRequest as isMapDistanceRequestUtil, isScanning} from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
@@ -86,23 +77,11 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isEditingSplitBill =
         session?.accountID === actorAccountID && (areRequiredFieldsEmpty(transaction, transactionReport) || (transaction?.amount === 0 && !hasReceipt(transaction))) && !isDistanceRequest;
-    const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
-    const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
     const isMapDistanceRequest = isMapDistanceRequestUtil(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const {
-        amount: splitAmount,
-        currency: splitCurrency,
-        comment: splitComment,
-        merchant: splitMerchant,
-        created: splitCreated,
-        category: splitCategory,
-        billable: splitBillable,
-    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
-
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
         completeSplitBill(
@@ -148,22 +127,12 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                             <MoneyRequestConfirmationList
                                 payeePersonalDetails={payeePersonalDetails}
                                 selectedParticipants={participantsExcludingPayee}
-                                iouAmount={splitAmount ?? 0}
-                                iouCurrencyCode={splitCurrency}
-                                iouComment={Parser.htmlToMarkdown(splitComment ?? '')}
-                                iouCreated={splitCreated}
                                 shouldDisplayReceipt
-                                iouMerchant={splitMerchant}
-                                iouCategory={splitCategory}
-                                iouIsBillable={splitBillable}
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
                                 shouldShowSmartScanFields
                                 receiptPath={transaction?.receipt?.source}
                                 receiptFilename={transaction?.receipt?.filename}
-                                isDistanceRequest={isDistanceRequest}
-                                isManualDistanceRequest={isManualDistanceRequest}
-                                isGPSDistanceRequest={isGPSDistanceRequest}
                                 isEditingSplitBill={isEditingSplitBill}
                                 hasSmartScanFailed={hasSmartScanFailed}
                                 reportID={reportID}

@@ -75,7 +75,7 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={translate(typeText)}
-            style={[styles.textMicroSupporting, styles.pre, styles.justifyContentCenter]}
+            style={[styles.mutedNormalTextLabel, styles.pre, styles.justifyContentCenter, styles.flexShrink0]}
         />
     ) : (
         <Tooltip text={getTooltipText()}>
@@ -83,8 +83,8 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
                 <Icon
                     src={typeIcon}
                     fill={theme.icon}
-                    height={variables.iconSizeNormal}
-                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeSmall}
+                    width={variables.iconSizeSmall}
                 />
             </View>
         </Tooltip>

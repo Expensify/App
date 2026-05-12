@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'blacksmith-12vcpu-macos-latest' || 'macos-latest' }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     strategy:
@@ -44,6 +44,12 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
+
+      - name: Setup Ruby
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
+        with:
+          bundler-cache: true
 
       - name: Checkout specific Mobile-Expensify PR
         if: ${{ matrix.is_hybrid_build && github.event.inputs.mobile_expensify_pr }}

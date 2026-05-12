@@ -200,7 +200,7 @@ describe('ProfilePage - SMS domain handling', () => {
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -240,7 +240,7 @@ describe('ProfilePage - SMS domain handling', () => {
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 
         await waitForBatchedUpdatesWithAct();

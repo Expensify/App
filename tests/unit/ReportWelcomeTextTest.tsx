@@ -56,7 +56,6 @@ jest.mock('@hooks/usePreferredPolicy', () =>
 jest.mock('@hooks/useReportIsArchived', () => jest.fn(() => false));
 
 jest.mock('@components/RenderHTML', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const ReactNative = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
     const {Text} = ReactNative;
     function MockRenderHTML({html}: {html: string}) {
@@ -162,7 +161,7 @@ describe('ReportWelcomeText', () => {
         expect(screen.getByText('Expensify')).toBeTruthy();
     });
 
-    it('uses personal details from Onyx via useMappedPersonalDetails', async () => {
+    it('uses personal details from Onyx', async () => {
         const report: Report = {
             reportID: '5',
             type: CONST.REPORT.TYPE.CHAT,

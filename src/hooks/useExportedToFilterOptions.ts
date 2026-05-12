@@ -62,7 +62,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
     }
 
     const combinedUniqueExportTemplates = Array.from(uniqueExportTemplatesByName.values());
-    const integrationConnectionNamesSet = new Set<string>(Object.values(CONST.POLICY.CONNECTIONS.NAME));
+    const integrationConnectionNamesSet = new Set<string>(CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
 
     const standardAndCustomExportTemplates: string[] = [];
     for (const template of combinedUniqueExportTemplates) {
@@ -76,7 +76,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
         standardAndCustomExportTemplates.push(filterValue);
     }
 
-    const connectedIntegrationNames = policyIDs && policyIDs.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
+    const connectedIntegrationNames = policyIDs?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
     const displayNameToConnectionName = new Map<string, string>(
         Object.entries(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY).map(([connectionName, displayName]) => [displayName, connectionName]),

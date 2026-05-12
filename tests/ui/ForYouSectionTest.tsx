@@ -99,12 +99,13 @@ describe('ForYouSection', () => {
             isExtraSmallScreenWidth: false,
             isSmallScreen: false,
             onboardingIsMediumOrLargerScreenWidth: true,
+            isInLandscapeMode: false,
         });
 
         await act(async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ACCOUNT_ID, email: 'test@example.com'},
-                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_APP]: false,
             });
         });
         await waitForBatchedUpdatesWithAct();
@@ -186,6 +187,7 @@ describe('ForYouSection', () => {
                     isExtraSmallScreenWidth: false,
                     isSmallScreen: false,
                     onboardingIsMediumOrLargerScreenWidth: true,
+                    isInLandscapeMode: false,
                 });
             });
 
@@ -279,6 +281,7 @@ describe('ForYouSection', () => {
                     isExtraSmallScreenWidth: false,
                     isSmallScreen: true,
                     onboardingIsMediumOrLargerScreenWidth: false,
+                    isInLandscapeMode: false,
                 });
             });
 

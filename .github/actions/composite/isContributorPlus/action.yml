@@ -1,0 +1,33 @@
+name: Is Contributor+
+description: Check whether a GitHub user is a member of the Expensify/contributor-plus team. Sets IS_CPLUS=true when the user is a member, IS_CPLUS=false otherwise.
+
+inputs:
+  USERNAME:
+    description: The GitHub login of the user to check.
+    required: true
+  OS_BOTIFY_TOKEN:
+    description: OSBotify token. Needed to read team memberships (the default GITHUB_TOKEN lacks the read:org scope).
+    required: true
+
+outputs:
+  IS_CPLUS:
+    description: "'true' if the user is a member of Expensify/contributor-plus, 'false' otherwise."
+    value: ${{ steps.check.outputs.IS_CPLUS }}
+
+runs:
+  using: composite
+  steps:
+    - name: Check Contributor+ membership
+      id: check
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.OS_BOTIFY_TOKEN }}
+        USERNAME: ${{ inputs.USERNAME }}
+      run: |
+        if gh api "/orgs/Expensify/teams/contributor-plus/memberships/$USERNAME" --silent; then
+          echo "::notice::✅ $USERNAME is a Contributor+ member"
+          echo "IS_CPLUS=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "::notice::$USERNAME is not a Contributor+ member"
+          echo "IS_CPLUS=false" >> "$GITHUB_OUTPUT"
+        fi

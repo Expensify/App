@@ -1,3 +1,4 @@
+import type {RotationDegrees} from 'react-fast-pdf';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AttachmentViewProps} from '..';
 
@@ -16,6 +17,9 @@ type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'is
 
     /** Whether the PDF is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
+
+    /** Controlled rotation angle for the PDF */
+    rotation?: RotationDegrees;
 };
 
 export default AttachmentViewPdfProps;

@@ -12,7 +12,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString, convertToFrontendAmountAsInteger, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsInteger, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -24,7 +24,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type CurrentMoney = {amount: string; currency: string; paymentMethod?: PaymentMethodType};
 
-type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad'> & {
+type MoneyRequestAmountFormProps = Omit<MoneyRequestAmountInputProps, 'shouldShowBigNumberPad' | 'onFormatAmount'> & {
     /** Calculated tax amount based on selected tax rate */
     taxAmount?: number;
 
@@ -103,7 +103,7 @@ function MoneyRequestAmountForm({
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const moneyRequestAmountInputRef = useRef<NumberWithSymbolFormRef | null>(null);
@@ -116,12 +116,20 @@ function MoneyRequestAmountForm({
 
     const absoluteAmount = Math.abs(amount);
 
+    const onFormatAmount = useCallback(
+        (amountAsInt: number, currencyParam?: string) => {
+            const decimals = getCurrencyDecimals(currencyParam);
+            return convertToFrontendAmountAsString(amountAsInt, decimals);
+        },
+        [getCurrencyDecimals],
+    );
+
     const initializeAmount = useCallback(
         (newAmount: number) => {
-            const frontendAmount = newAmount ? convertToFrontendAmountAsString(newAmount, currency) : '';
+            const frontendAmount = newAmount ? onFormatAmount(newAmount, currency) : '';
             moneyRequestAmountInputRef.current?.updateNumber(frontendAmount);
         },
-        [currency],
+        [currency, onFormatAmount],
     );
 
     const toggleNegative = useCallback(() => {
@@ -268,6 +276,7 @@ function MoneyRequestAmountForm({
                 shouldUseDynamicFontSize
                 isCurrencyPressable={isCurrencyPressable}
                 onCurrencyButtonPress={onCurrencyButtonPress}
+                onFormatAmount={onFormatAmount}
                 onAmountChange={() => {
                     if (!formError) {
                         return;

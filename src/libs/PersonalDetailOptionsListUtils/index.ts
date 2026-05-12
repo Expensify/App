@@ -389,7 +389,7 @@ function createOptionList(
     const allPersonalDetailsOptions = [] as OptionData[];
 
     for (const personalDetail of Object.values(personalDetails)) {
-        if (!personalDetail || !personalDetail.accountID) {
+        if (!personalDetail?.accountID) {
             continue;
         }
         const reportID = accountIDToReportIDMap[personalDetail.accountID];
@@ -434,6 +434,6 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
     return translate('common.noResultsFound');
 }
 
-export {createOption, getUserToInviteOption, canCreateOptimisticPersonalDetailOption, filterOption, matchesSearchTerms, getValidOptions, createOptionList, getHeaderMessage};
+export {createOption, canCreateOptimisticPersonalDetailOption, filterOption, matchesSearchTerms, getValidOptions, createOptionList, getHeaderMessage};
 
 export type {OptionData, Options};

@@ -19,13 +19,15 @@ import {useMultifactorAuthentication} from '@components/MultifactorAuthenticatio
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
@@ -42,13 +44,13 @@ import {
     maskPin,
     supportsPINManagementFeatures,
 } from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
@@ -87,7 +89,9 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
 }
 
 function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
+    const {isProduction} = useEnvironment();
     const {cardID} = route.params;
+    const {convertToDisplayString} = useCurrencyListActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const cardList = useNonPersonalCardList();
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
@@ -101,7 +105,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard', 'Key', 'Eye']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard', 'Key', 'Eye', 'CreditCardLock']);
 
     const cardsToShow = useMemo(() => {
         if (shouldDisplayCardDomain) {
@@ -155,8 +159,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const isCardHolder = currentCard?.accountID === session?.accountID;
     const frozenByAccountID = currentCard?.nameValuePairs?.frozen?.byAccountID;
 
-    const {isBetaEnabled} = usePermissions();
-    const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
+    const canManageCardFreeze = isCardHolder && !!currentCard && !isAccountLocked;
 
     const policySelector = useCallback(
         (allPolicies: OnyxCollection<Policy>): Policy | undefined => {
@@ -173,6 +176,35 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const policyIDForCurrentCard = policyForCurrentCard?.id;
     const isWorkspaceAdmin = isPolicyAdmin(policyForCurrentCard, session?.email);
     const canUnfreezeCard = canManageCardFreeze && (frozenByAccountID === session?.accountID || isWorkspaceAdmin);
+
+    const spendRule = useMemo(() => getSpendRuleByCardID(cardSettings ? {privateExpensifyCardSettings: cardSettings} : undefined, cardID), [cardSettings, cardID]);
+    const spendRulesSummary = useMemo(
+        () => (spendRule ? getSpendRuleSummaryText(spendRule.formValues, currency, translate, convertToDisplayString) : []),
+        [currency, spendRule, translate, convertToDisplayString],
+    );
+
+    const navigateToSpendRulesPage = useCallback(() => {
+        if (!policyIDForCurrentCard) {
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES.getRoute(policyIDForCurrentCard, spendRule?.ruleID));
+    }, [policyIDForCurrentCard, spendRule?.ruleID]);
+
+    const spendRulesTitleComponent = useMemo(
+        () => (
+            <View>
+                {spendRulesSummary.map((summary) => (
+                    <Text
+                        key={summary}
+                        numberOfLines={2}
+                    >
+                        {summary}
+                    </Text>
+                ))}
+            </View>
+        ),
+        [spendRulesSummary],
+    );
 
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
@@ -499,6 +531,17 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 />
                             </>
                         )}
+
+                        {!isProduction && isWorkspaceAdmin && spendRulesSummary.length > 0 && (
+                            <MenuItemWithTopDescription
+                                description={translate('cardPage.spendRules')}
+                                descriptionTextStyle={[styles.fontSizeLabel]}
+                                titleComponent={spendRulesTitleComponent}
+                                onPress={navigateToSpendRulesPage}
+                                accessibilityLabel={spendRulesSummary.join('. ')}
+                            />
+                        )}
+
                         <MenuItem
                             icon={expensifyIcons.MoneySearch}
                             title={translate('workspace.common.viewTransactions')}
@@ -511,6 +554,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 );
                             }}
                         />
+                        {!isProduction && isWorkspaceAdmin && (
+                            <MenuItem
+                                icon={expensifyIcons.CreditCardLock}
+                                title={translate('cardPage.editSpendRules')}
+                                onPress={navigateToSpendRulesPage}
+                            />
+                        )}
                         {canManageCardFreeze && !isCardFrozen(currentCard) && (
                             <MenuItem
                                 icon={expensifyIcons.FreezeCard}

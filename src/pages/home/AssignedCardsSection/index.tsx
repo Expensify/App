@@ -5,6 +5,7 @@ import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import WidgetContainer from '@components/WidgetContainer';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +13,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCardCurrency, getCardDescription, getDisplayableExpensifyCards} from '@libs/CardUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -22,6 +22,7 @@ import RemainingLimitCircle from './RemainingLimitCircle';
 
 function AssignedCardsSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();

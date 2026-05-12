@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'docs/**'
+      - '.github/workflows/deployExpensifyHelp.yml'
 
   # Run on any pull request (except PRs against staging or production) that has changes to the docs directory
   pull_request:
@@ -14,6 +15,7 @@ on:
     branches-ignore: [staging, production]
     paths:
       - 'docs/**'
+      - '.github/workflows/deployExpensifyHelp.yml'
 
   # Run on any manual trigger
   workflow_dispatch:
@@ -51,18 +53,23 @@ jobs:
 
       - name: Enforce that a redirect link has been created
         run: ./.github/scripts/enforceRedirect.sh
-      
+
       - name: Enforce iframe and Cloudflare CDN usage
         run: ./.github/scripts/enforceVideoFormats.sh
 
       - name: Generate allowed URLs whitelist for AI search
         run: npx ts-node .github/scripts/generateAllowedUrls.ts
 
-      - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@0143c158f4fa0c5dcd99499a5d00859d79f70b0e
+      - name: Set up Ruby
+        # v1.306.0
+        uses: ruby/setup-ruby@c4e5b1316158f92e3d49443a9d58b31d25ac0f8f
         with:
-          source: ./docs/
-          destination: ./docs/_site
+          bundler-cache: true
+          working-directory: ./docs
+
+      - name: Build Jekyll site
+        run: bundle exec jekyll build --source ./ --destination ./_site
+        working-directory: ./docs
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@f0a1cd58cd66095dee69bfa18fa5efd1dde93bca

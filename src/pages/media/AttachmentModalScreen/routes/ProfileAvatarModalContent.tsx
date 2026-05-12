@@ -26,7 +26,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = getDisplayNameOrDefault(personalDetail);
 
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const isLoading = personalDetailsMetadata?.[accountID]?.isLoading ?? (isLoadingApp && !Object.keys(personalDetail ?? {}).length);
 
     useEffect(() => {
@@ -42,7 +42,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
     const headerTitle = formatPhoneNumber(displayName);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = !avatarURL;
 
     const onDownloadAttachment = useDownloadAttachment();

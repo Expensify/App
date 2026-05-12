@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -15,6 +16,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -26,11 +28,14 @@ import {canActionTask, completeTask, getTaskAssigneeAccountID, reopenTask} from 
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -39,9 +44,6 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The ID of the associated policy */
     // eslint-disable-next-line react/no-unused-prop-types
     policyID: string | undefined;
-
-    /** The task report associated with this action, if any */
-    taskReport: OnyxEntry<Report>;
 
     /** Whether the task preview is hovered so we can modify its style */
     isHovered: boolean;
@@ -69,7 +71,6 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 };
 
 function TaskPreview({
-    taskReport,
     action,
     contextMenuAnchor,
     chatReportID,
@@ -86,6 +87,9 @@ function TaskPreview({
     const {translate} = useLocalize();
     const theme = useTheme();
     const {originalReportID} = useShowContextMenuState();
+    const originalMessage = getOriginalMessage(action);
+    const taskReportIDFromOriginalMessage = originalMessage && 'taskReportID' in originalMessage ? originalMessage.taskReportID : undefined;
+    const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(taskReportIDFromOriginalMessage)}`);
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     // Prefer the live task report name so offline title edits are reflected immediately.
     const taskTitle = taskReport?.reportName ?? action?.childReportName ?? '';
@@ -114,6 +118,7 @@ function TaskPreview({
     const parentReport = useParentReport(taskContextReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasOutstandingChildTask = useHasOutstandingChildTask(taskContextReport);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(taskContextReport, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
     const personalDetails = usePersonalDetails();
@@ -163,9 +168,9 @@ function TaskPreview({
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
-                                    reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, taskReportID);
+                                    reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
                                 } else {
-                                    completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskReportID);
+                                    completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}

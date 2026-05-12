@@ -33,9 +33,12 @@ import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/Transacti
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
-import {getCleanUpTransactionThreadReportOnyxData, getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
-import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU';
+import {getPolicyTagsData} from './IOU';
+import type {UpdateMoneyRequestData} from './IOU';
+import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
+import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
+import type {UpdateMoneyRequestDataKeys} from './IOU/UpdateMoneyRequest';
 
 /**
  * Setup merge transaction data for merging flow
@@ -269,6 +272,8 @@ function getOnyxTargetTransactionData({
             transactionChanges: filteredTransactionChanges,
             policy,
             policyTagList: policyTags,
+            // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
+            reportPolicyTags: getPolicyTagsData(targetTransactionThreadParentReport?.policyID),
             policyCategories,
             violations: targetTransactionViolations ?? [],
             shouldBuildOptimisticModifiedExpenseReportAction,
@@ -298,6 +303,10 @@ function getOnyxTargetTransactionData({
                 comment: {
                     waypoints: mergeTransaction.waypoints ?? null,
                     customUnit: mergeTransaction.customUnit ?? null,
+                    ...(mergeTransaction.odometerStart !== undefined && {odometerStart: mergeTransaction.odometerStart}),
+                    ...(mergeTransaction.odometerEnd !== undefined && {odometerEnd: mergeTransaction.odometerEnd}),
+                    ...(mergeTransaction.odometerStartImage !== undefined && {odometerStartImage: mergeTransaction.odometerStartImage}),
+                    ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
                 },
                 routes: mergeTransaction.routes ?? null,
                 iouRequestType: mergeTransaction.iouRequestType ?? null,
@@ -365,6 +374,10 @@ function mergeTransactionRequest({
             waypoints: mergeTransaction.waypoints ?? null,
             attendees: mergeTransaction.attendees,
             originalTransactionID: mergeTransaction.originalTransactionID,
+            ...(mergeTransaction.odometerStart !== undefined && {odometerStart: mergeTransaction.odometerStart}),
+            ...(mergeTransaction.odometerEnd !== undefined && {odometerEnd: mergeTransaction.odometerEnd}),
+            ...(mergeTransaction.odometerStartImage !== undefined && {odometerStartImage: mergeTransaction.odometerStartImage}),
+            ...(mergeTransaction.odometerEndImage !== undefined && {odometerEndImage: mergeTransaction.odometerEndImage}),
         }),
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
@@ -428,14 +441,13 @@ function mergeTransactionRequest({
                   ]
                 : [];
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         const failureReportDeletionData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> =
             transactionsOfDeletableReport.length === 1
                 ? [
                       {
                           onyxMethod: Onyx.METHOD.SET,
                           key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
-                          value: getReportOrDraftReport(transactionToDelete.reportID),
+                          value: getReportOrDraftReport(transactionToDelete.reportID) ?? null,
                       },
                   ]
                 : [];
@@ -534,6 +546,7 @@ function mergeTransactionRequest({
                 sourceTransaction.transactionID,
                 sourceIouAction,
                 false,
+                currentUserAccountIDParam,
                 undefined,
                 undefined,
                 actionableWhisperReportActionID,
@@ -577,7 +590,6 @@ function mergeTransactionRequest({
         },
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const optimisticData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION>> = [
         ...(onyxTargetTransactionData.optimisticData ?? []),
         optimisticMergeTransactionData,
@@ -585,7 +597,6 @@ function mergeTransactionRequest({
         ...sourceTransactionOptimisticData,
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const failureData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [...(onyxTargetTransactionData.failureData ?? []), ...failureTransactionViolations, ...sourceTransactionFailureData];
 
     const successData: Array<OnyxUpdate<UpdateMoneyRequestDataKeys>> = [];

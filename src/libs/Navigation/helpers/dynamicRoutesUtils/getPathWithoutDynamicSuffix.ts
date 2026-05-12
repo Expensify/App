@@ -7,10 +7,12 @@ import splitPathAndQuery from './splitPathAndQuery';
  * (derived from the matching DYNAMIC_ROUTES.getRoute output) and preserving any remaining ones.
  *
  * @param fullPath - The full URL path possibly containing query params (e.g., '/settings/profile/address/country?country=US')
- * @param dynamicSuffix - The dynamic suffix to strip (e.g., 'country')
+ * @param dynamicSuffix - The actual dynamic suffix to strip (e.g., 'country' or 'flag/123/abc')
+ * @param patternSuffix - Optional registered pattern suffix for parametric routes (e.g. 'flag/:reportID/:reportActionID').
+ *                         Used for looking up queryParams config. Falls back to dynamicSuffix if not provided.
  * @returns The path without the suffix and with only base-path query params preserved
  */
-function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string): Route {
+function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string, patternSuffix?: string): Route {
     const [pathWithoutQuery, query] = splitPathAndQuery(fullPath);
     const pathWithoutDynamicSuffix = pathWithoutQuery?.slice(0, -(dynamicSuffix.length + 1)) ?? '';
 
@@ -18,7 +20,9 @@ function getPathWithoutDynamicSuffix(fullPath: string, dynamicSuffix: string): R
         return '';
     }
 
-    const paramsToStrip = getDynamicRouteQueryParams(dynamicSuffix);
+    // Use the pattern suffix (if provided) to look up query params to strip,
+    // since the actual suffix contains concrete values, not the config key.
+    const paramsToStrip = getDynamicRouteQueryParams(patternSuffix ?? dynamicSuffix);
     let filteredQuery = query;
     if (paramsToStrip?.length && query) {
         const params = new URLSearchParams(query);

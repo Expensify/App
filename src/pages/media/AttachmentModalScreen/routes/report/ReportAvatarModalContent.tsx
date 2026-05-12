@@ -18,7 +18,7 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
     const defaultAvatars = useDefaultAvatars();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const reportAttributes = useReportAttributes();
 
     const attachment: AttachmentModalBaseContentProps = useMemo(() => {
@@ -48,7 +48,6 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
 
     const onDownloadAttachment = useDownloadAttachment();
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = !report?.reportID && !isLoadingApp;
     const isLoading = (!report?.reportID || !policy?.id) && !!isLoadingApp;
 

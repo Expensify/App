@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
@@ -83,6 +84,9 @@ function TextInput({
         disableAutoCorrect,
         shouldInterceptSwipe,
     } = options ?? {};
+
+    const isInLandscapeMode = useIsInLandscapeMode();
+
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
     const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
@@ -110,7 +114,7 @@ function TextInput({
 
     useFocusEffect(
         useCallback(() => {
-            if (!shouldShowTextInput || disableAutoFocus || isScreenReaderEnabled) {
+            if (!shouldShowTextInput || disableAutoFocus || isScreenReaderEnabled || isInLandscapeMode) {
                 return;
             }
 
@@ -123,7 +127,7 @@ function TextInput({
                 clearTimeout(focusTimeoutRef.current);
                 focusTimeoutRef.current = null;
             };
-        }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isScreenReaderEnabled]),
+        }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isInLandscapeMode, isScreenReaderEnabled]),
     );
 
     const handleFocus = useCallback(() => {

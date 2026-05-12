@@ -24,6 +24,8 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import BulkDuplicateHandler from './BulkDuplicateHandler';
+import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import type {BulkPaySelectionData, SearchQueryJSON} from './types';
 
@@ -37,7 +39,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     // We need isSmallScreenWidth (not just shouldUseNarrowLayout) because DecisionModal requires it for correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, areAllMatchingItemsSelected, shouldShowSelectAllMatchingItems} = useSearchStateContext();
+    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected, shouldShowSelectAllMatchingItems} = useSearchStateContext();
     const {selectAllMatchingItems} = useSearchActionsContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
@@ -59,15 +61,20 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         confirmPayment,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
-        isNonReimbursablePaymentErrorModalVisible,
         isHoldEducationalModalVisible,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        handleNonReimbursablePaymentErrorModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
+        isDuplicateOptionVisible,
+        setDuplicateHandler,
+        isDuplicateReportOptionVisible,
+        setDuplicateReportHandler,
+        allTransactions,
+        allReports,
+        searchData,
     } = useSearchBulkActions({queryJSON});
     const currentSelectedPolicyID = selectedPolicyIDs?.at(0);
     const currentSelectedReportID = selectedTransactionReportIDs?.at(0) ?? selectedReportIDs?.at(0);
@@ -101,6 +108,23 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
 
     return (
         <>
+            {isDuplicateOptionVisible && (
+                <BulkDuplicateHandler
+                    selectedTransactionsKeys={selectedTransactionsKeys}
+                    allTransactions={allTransactions}
+                    allReports={allReports}
+                    searchData={searchData}
+                    onHandlerReady={setDuplicateHandler}
+                />
+            )}
+            {isDuplicateReportOptionVisible && (
+                <BulkDuplicateReportHandler
+                    selectedReports={selectedReports}
+                    allReports={allReports}
+                    searchData={searchData}
+                    onHandlerReady={setDuplicateReportHandler}
+                />
+            )}
             <KYCWall
                 ref={kycWallRef}
                 chatReportID={currentSelectedReportID}
@@ -158,11 +182,10 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                             />
                         </View>
                     ) : (
-                        <View style={[styles.flexRow, styles.gap3]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             <ButtonWithDropdownMenu
                                 onPress={() => null}
                                 shouldAlwaysShowDropdownMenu
-                                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
@@ -227,15 +250,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={handleDownloadErrorModalClose}
-            />
-            <DecisionModal
-                title={translate('iou.error.nonReimbursablePayment')}
-                prompt={translate('iou.error.nonReimbursablePaymentDescription', selectedItemsCount > 1)}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={handleNonReimbursablePaymentErrorModalClose}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isNonReimbursablePaymentErrorModalVisible}
-                onClose={handleNonReimbursablePaymentErrorModalClose}
             />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal

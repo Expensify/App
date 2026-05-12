@@ -1,15 +1,16 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
 function GenericPressable({
@@ -141,13 +142,12 @@ function GenericPressable({
         [onPressHandler],
     );
 
-    useEffect(() => {
-        if (!keyboardShortcut) {
-            return () => {};
-        }
-        const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut;
-        return KeyboardShortcut.subscribe(shortcutKey, onKeyboardShortcutPressHandler, descriptionKey, modifiers, true, false, 0, false);
-    }, [keyboardShortcut, onKeyboardShortcutPressHandler]);
+    const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut ?? {};
+    useKeyboardShortcut({shortcutKey, descriptionKey, modifiers} as ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>, onKeyboardShortcutPressHandler, {
+        isActive: !!keyboardShortcut,
+        shouldBubble: false,
+        shouldPreventDefault: false,
+    });
 
     const isRoleLink = rest.role === CONST.ROLE.LINK;
 
@@ -177,7 +177,7 @@ function GenericPressable({
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
-            disabled={fullDisabled}
+            disabled={fullDisabled || undefined}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}

@@ -27,8 +27,8 @@ function MerchantOrDescriptionCell({
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={text}
-            numberOfLines={shouldUseNarrowLayout ? 1 : 2}
-            style={[shouldUseNarrowLayout ? styles.lh20 : styles.lineHeightLarge, shouldUseNarrowLayout ? styles.pre : styles.preWrap, styles.justifyContentCenter, styles.flex1]}
+            numberOfLines={1}
+            style={[shouldUseNarrowLayout ? styles.lh20 : styles.lineHeightLarge, shouldUseNarrowLayout && styles.pre, styles.justifyContentCenter, styles.flex1]}
         />
     );
 }

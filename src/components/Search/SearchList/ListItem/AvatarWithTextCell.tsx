@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -10,11 +9,11 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 type AvatarWithTextCellProps = {
     reportName?: string;
     icon?: Icon;
+    isLargeScreenWidth?: boolean;
 };
 
-function AvatarWithTextCell({reportName, icon}: AvatarWithTextCellProps) {
+function AvatarWithTextCell({reportName, icon, isLargeScreenWidth}: AvatarWithTextCellProps) {
     const styles = useThemeStyles();
-    const {isLargeScreenWidth} = useResponsiveLayout();
 
     if (!reportName || !icon) {
         return null;

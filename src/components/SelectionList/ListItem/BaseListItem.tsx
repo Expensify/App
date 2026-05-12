@@ -6,6 +6,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
+import {getItemRole} from '@components/SelectionList/utils/getItemRole';
+import {getSelectableState} from '@components/SelectionList/utils/getSelectableState';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -13,6 +15,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getBrowser, isMobile} from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
@@ -21,6 +24,7 @@ type AccessibilityProps = Pick<PressableWithFeedbackProps, 'accessible' | 'role'
 
 type CalculatedAccessibilityProps = Pick<PressableWithFeedbackProps, 'role' | 'tabIndex' | 'accessibilityState'> & {
     accessibleAndAccessibilityLabel: Pick<PressableWithFeedbackProps, 'accessible' | 'accessibilityLabel'>;
+    ariaCurrent: boolean | undefined;
 };
 
 function getAccessibilityProps<TItem extends ListItem>({
@@ -31,7 +35,14 @@ function getAccessibilityProps<TItem extends ListItem>({
     isFocused,
     canSelectMultiple,
 }: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
-    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
+    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
+    // For multi-select (checkbox/radio), keep existing role and state.
+    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+    const effectiveRole = getItemRole(role, isSelectableOption);
+
+    const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
+    const accessibilityState = isCheckableRole ? {checked: !!item.isSelected, selected: !!isFocused} : getSelectableState(!!item.isSelected);
+    const ariaCurrent = !isCheckableRole && item.isSelected && getBrowser() === CONST.BROWSER.CHROME && !isMobile() ? true : undefined;
 
     if (accessible === false) {
         return {
@@ -39,24 +50,26 @@ function getAccessibilityProps<TItem extends ListItem>({
             tabIndex: -1,
             accessibilityState,
             accessibleAndAccessibilityLabel: {accessible: false},
+            ariaCurrent,
         } satisfies CalculatedAccessibilityProps;
     }
 
     const accessibilityLabel = getAccessibilityLabel(item);
-
-    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
-    // For multi-select (checkbox/radio), keep existing role and state.
-    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
-    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
 
     return {
         role: effectiveRole,
         tabIndex,
         accessibilityState,
         accessibleAndAccessibilityLabel: {accessible: undefined, accessibilityLabel},
+        ariaCurrent,
     } satisfies CalculatedAccessibilityProps;
 }
 
+/**
+ * The foundational pressable row that all list items build on. Handles press/hover/focus states,
+ * error indicators, and accessibility roles. Use SelectableListItem when a selection button
+ * (checkbox or radio) is needed.
+ */
 function BaseListItem<TItem extends ListItem>({
     item,
     pressableStyle,
@@ -76,20 +89,20 @@ function BaseListItem<TItem extends ListItem>({
     FooterComponent,
     children,
     isFocused,
+    isFocusVisible = isFocused,
     shouldSyncFocus = true,
     shouldDisplayRBR = true,
     shouldShowBlueBorderOnFocus = false,
     onFocus = () => {},
     hoverStyle,
     onLongPressRow,
-    testID,
-    shouldUseDefaultRightHandSideCheckmark = true,
-    shouldHighlightSelectedItem = true,
+    shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
     shouldShowRightCaret = false,
     accessible,
     accessibilityRole = getButtonRole(true),
     forwardedFSClass,
+    testID,
 }: BaseListItemProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -98,7 +111,6 @@ function BaseListItem<TItem extends ListItem>({
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
-
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
@@ -132,7 +144,7 @@ function BaseListItem<TItem extends ListItem>({
     };
 
     const rightHandSideComponentRender = () => {
-        if (canSelectMultiple || !rightHandSideComponent) {
+        if (!rightHandSideComponent) {
             return null;
         }
 
@@ -143,13 +155,9 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
-    const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
-
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
-    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark && !!item.canShowSeveralIndicators;
-
-    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel} = getAccessibilityProps({
+    const {role, tabIndex, accessibilityState, accessibleAndAccessibilityLabel, ariaCurrent} = getAccessibilityProps({
         role: accessibilityRole,
         accessible,
         tabIndex: item.tabIndex,
@@ -191,7 +199,7 @@ function BaseListItem<TItem extends ListItem>({
                 isNested
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
-                hoverStyle={!shouldDisableHoverStyle ? [!item.isDisabled && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
+                hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || item.isSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: shouldShowBlueBorderOnFocus}}
                 onMouseDown={(e) => {
                     if ((e?.target as HTMLElement)?.tagName === CONST.ELEMENT_NAME.INPUT) {
@@ -200,11 +208,17 @@ function BaseListItem<TItem extends ListItem>({
                     e.preventDefault();
                 }}
                 id={keyForList ?? ''}
+                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                 style={[
                     pressableStyle,
-                    isFocused &&
-                        shouldHighlightSelectedItem &&
-                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isFocusVisible &&
+                        StyleUtils.getItemBackgroundColorStyle(
+                            shouldHighlightSelectedItem && !!item.isSelected,
+                            !!isFocusVisible,
+                            !!item.isDisabled,
+                            theme.activeComponentBG,
+                            theme.hoverComponentBG,
+                        ),
                 ]}
                 onFocus={onFocus}
                 role={role}
@@ -212,21 +226,16 @@ function BaseListItem<TItem extends ListItem>({
                 // eslint-disable-next-line react/jsx-props-no-spreading -- we can't pass those props here on their own because this Component expects a discriminated Union
                 {...accessibleAndAccessibilityLabel}
                 accessibilityState={accessibilityState}
+                aria-current={ariaCurrent}
                 onMouseLeave={handleMouseLeave}
                 // When the list-level Enter shortcut is disabled (disableKeyboardShortcuts), items with role="option"
                 // won't natively fire click on Enter, so we handle it manually via onKeyDown.
                 onKeyDown={!shouldPreventEnterKeySubmit ? handleKeyDown : undefined}
                 wrapperStyle={pressableWrapperStyle}
-                testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >
                 <View
                     testID={testID}
-                    style={[
-                        wrapperStyle,
-                        isFocused &&
-                            shouldHighlightSelectedItem &&
-                            StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
-                    ]}
+                    style={wrapperStyle}
                     fsClass={forwardedFSClass}
                 >
                     {typeof children === 'function' ? children(hovered) : children}
@@ -238,20 +247,6 @@ function BaseListItem<TItem extends ListItem>({
                                 src={icons.DotIndicator}
                                 fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
                             />
-                        </View>
-                    )}
-
-                    {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
-                        <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
-                            accessible={false}
-                        >
-                            <View>
-                                <Icon
-                                    src={icons.Checkmark}
-                                    fill={theme.success}
-                                />
-                            </View>
                         </View>
                     )}
 

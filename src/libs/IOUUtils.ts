@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
@@ -11,9 +11,9 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
-import {getReportTransactions, isSelfDM} from './ReportUtils';
+import {generateReportID, getChatByParticipants, isProcessingReport, isReportOutstanding, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
-import {getCurrency, getTagArrayFromName} from './TransactionUtils';
+import {getTagArrayFromName} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction, backToReport?: string): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -252,16 +252,6 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
 }
 
 /**
- * Returns whether or not an IOU report contains expenses in a different currency
- * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
- */
-function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
-    const reportTransactions = getReportTransactions(iouReport.reportID);
-    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
-    return pendingRequestsInDifferentCurrency.length > 0;
-}
-
-/**
  * Checks if the iou type is one of request, send, invoice or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
@@ -294,8 +284,15 @@ function insertTagIntoTransactionTagsString(transactionTags: string, tag: string
         return tag;
     }
 
-    const tagArray = getTagArrayFromName(transactionTags);
+    const tagArray = transactionTags ? getTagArrayFromName(transactionTags) : [];
     tagArray[tagIndex] = tag;
+
+    // Fill any sparse slots created when tagIndex > tagArray.length
+    for (let i = 0; i < tagArray.length; i++) {
+        if (tagArray.at(i) === undefined) {
+            tagArray[i] = '';
+        }
+    }
 
     while (tagArray.length > 0 && !tagArray.at(-1)) {
         tagArray.pop();
@@ -359,7 +356,7 @@ function navigateToConfirmationPage(
     startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT, {
         name: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
         op: CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT,
-        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
+        parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION) ?? getSpan(CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION),
     });
     switch (iouType) {
         case CONST.IOU.TYPE.REQUEST:
@@ -459,13 +456,49 @@ function getInitialPerDiemTargetReport(
     return {targetReport, targetIouType, transactionReportID};
 }
 
+/**
+ * Resolves the chat report ID for navigation, generating an optimistic ID if no existing chat is found.
+ */
+function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>) {
+    const existingChat = existingReport?.reportID ? existingReport : getChatByParticipants(participantAccountIDs);
+    const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
+    const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
+    return {optimisticChatReportID, chatReportID};
+}
+
+/** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
+function resolveReportForMoneyRequest({
+    transaction,
+    transactionReport,
+    routeReport,
+    policy,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    transactionReport: OnyxEntry<Report>;
+    routeReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+}): OnyxEntry<Report> {
+    if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        return undefined;
+    }
+    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
+    const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
+    if (shouldUseTransactionReport) {
+        return transactionReport;
+    }
+    const isTransactionReportDifferentFromRoute = !!transaction?.reportID && !!routeReport?.reportID && transaction.reportID !== routeReport.reportID;
+    if (isTransactionReportDifferentFromRoute) {
+        return undefined;
+    }
+    return routeReport;
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
     calculateSplitPercentagesFromAmounts,
     getExistingTransactionID,
     insertTagIntoTransactionTagsString,
-    isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
     shouldUseTransactionDraft,
     isValidMoneyRequestType,
@@ -477,4 +510,6 @@ export {
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
+    resolveOptimisticChatReportID,
+    resolveReportForMoneyRequest,
 };

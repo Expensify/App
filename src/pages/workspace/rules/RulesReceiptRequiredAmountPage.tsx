@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,11 +35,12 @@ function RulesReceiptRequiredAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const defaultValue =
         policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmountNoReceipt
             ? ''
-            : convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, policy?.outputCurrency);
+            : convertToFrontendAmountAsString(policy?.maxExpenseAmountNoReceipt, getCurrencyDecimals(policy?.outputCurrency));
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM> => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM> = {};
@@ -55,7 +57,7 @@ function RulesReceiptRequiredAmountPage({
                 maxExpenseAmountNoReceiptInCents > maxExpenseAmountNoItemizedReceipt
             ) {
                 errors.maxExpenseAmountNoReceipt = translate('workspace.rules.individualExpenseRules.receiptRequiredAmountError', {
-                    amount: convertToFrontendAmountAsString(maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency),
+                    amount: convertToFrontendAmountAsString(maxExpenseAmountNoItemizedReceipt, getCurrencyDecimals(policy?.outputCurrency)),
                 });
             }
         }

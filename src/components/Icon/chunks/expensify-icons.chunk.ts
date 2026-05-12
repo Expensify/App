@@ -19,6 +19,7 @@ import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-a
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
+import BankLock from '@assets/images/bank-lock.svg';
 import Bank from '@assets/images/bank.svg';
 import Basket from '@assets/images/basket.svg';
 import BedCircleSlash from '@assets/images/bed-circle-slash.svg';
@@ -29,6 +30,7 @@ import Binoculars from '@assets/images/binoculars.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
+import Bot from '@assets/images/bot.svg';
 import Box from '@assets/images/box.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
@@ -130,6 +132,7 @@ import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
+import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -224,6 +227,7 @@ import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
+import TablePencil from '@assets/images/table-pencil.svg';
 import Table from '@assets/images/table.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
@@ -275,6 +279,7 @@ const Expensicons = {
     AttachmentNotFound,
     BackArrow,
     Bank,
+    BankLock,
     Basket,
     CircularArrowBackwards,
     Bill,
@@ -282,6 +287,7 @@ const Expensicons = {
     Bell,
     Binoculars,
     Bolt,
+    Bot,
     Box,
     Bug,
     Building,
@@ -455,6 +461,7 @@ const Expensicons = {
     Workflows,
     Workspace,
     XeroSquare,
+    GustoSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,
     Zoom,
@@ -491,6 +498,7 @@ const Expensicons = {
     UserPlus,
     Feed,
     Table,
+    TablePencil,
     SpreadsheetComputer,
     Bookmark,
     Sparkles,

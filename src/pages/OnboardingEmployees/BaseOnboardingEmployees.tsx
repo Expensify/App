@@ -4,7 +4,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -38,7 +38,11 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
         const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
-            .filter((size) => !isSmb || size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO)
+            .filter(
+                (size) =>
+                    // Always hide the deprecated 1-10 option. For SMB-qualified users, also hide 1-4 and 5-10 since they already indicated they manage a team.
+                    size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && (!isSmb || (size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM)),
+            )
             .map((companySize): OnboardingListItem => {
                 return {
                     text: translate(`onboarding.employees.${companySize}`),
@@ -103,7 +107,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 }}
                 initiallyFocusedItemKey={companySizeOptions.find((item) => item.keyForList === selectedCompanySize)?.keyForList}
                 shouldUpdateFocusedIndex
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 footerContent={footerContent}
                 style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}}
             />

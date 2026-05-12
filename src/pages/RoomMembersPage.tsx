@@ -1,5 +1,6 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
@@ -151,7 +152,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             removeFromRoom(report, selectedMembers);
         }
         setSearchValue('');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
@@ -462,7 +462,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         data={data}
                         ListItem={TableListItem}
                         onSelectRow={openRoomMemberDetails}
-                        onCheckboxPress={toggleUser}
+                        onSelectionButtonPress={toggleUser}
                         textInputOptions={textInputOptions}
                         shouldShowTextInput={shouldShowTextInput}
                         shouldShowLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}

@@ -89,6 +89,7 @@ import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cl
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
 import TopiaryDollarSign from '@assets/images/product-illustrations/topiary-dollar-sign.svg';
+import TvScreenRobot from '@assets/images/product-illustrations/tv-screen-robot.svg';
 import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
@@ -99,6 +100,7 @@ import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 // Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import AiBot from '@assets/images/simple-illustrations/simple-illustration__ai-bot.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
@@ -109,10 +111,12 @@ import BlueShield from '@assets/images/simple-illustrations/simple-illustration_
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
+import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustration__calculator-money.svg';
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
+import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
@@ -135,6 +139,7 @@ import Filters from '@assets/images/simple-illustrations/simple-illustration__fi
 import FishbowlBlue from '@assets/images/simple-illustrations/simple-illustration__fishbowl--blue.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
+import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
 import HeadSet from '@assets/images/simple-illustrations/simple-illustration__headset.svg';
@@ -154,6 +159,7 @@ import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illus
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import NewUser from '@assets/images/simple-illustrations/simple-illustration__newuser.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
 import PaperAirplane from '@assets/images/simple-illustrations/simple-illustration__paperairplane.svg';
@@ -282,6 +288,7 @@ const Illustrations = {
     ToddInCar,
     ToddWithPhones,
     TopiaryDollarSign,
+    TvScreenRobot,
     WorkspaceScene,
     UpgradeRocket,
 
@@ -299,6 +306,7 @@ const Illustrations = {
 
     // Simple Illustrations
     Accounting,
+    AiBot,
     Building,
     BankCoin,
     Coins,
@@ -354,6 +362,7 @@ const Illustrations = {
     Approval,
     Binoculars,
     Buildings,
+    CalculatorMoney,
     CalendarMonthly,
     Car,
     ChatBubbles,
@@ -379,6 +388,7 @@ const Illustrations = {
     LockClosedOrange,
     LockOpen,
     Mailbox,
+    NewUser,
     ShieldYellow,
     Clock,
     Members,
@@ -396,6 +406,8 @@ const Illustrations = {
     Target,
     Trophy,
     Trophy1,
+    FoodTruck,
+    Chalkboard,
 
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,
