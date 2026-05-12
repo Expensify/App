@@ -30,10 +30,12 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path);
 
+    const sanitizeCategoryName = useCallback((name: string) => name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim(), []);
+
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const newCategoryName = values.categoryName.trim();
+            const newCategoryName = sanitizeCategoryName(values.categoryName);
 
             if (!newCategoryName) {
                 errors.categoryName = translate('workspace.categories.categoryRequiredError');
@@ -45,15 +47,15 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             }
             return errors;
         },
-        [policyCategories, currentCategoryName, translate],
+        [policyCategories, currentCategoryName, translate, sanitizeCategoryName],
     );
 
     const editCategory = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const newCategoryName = values.categoryName.trim();
+            const newCategoryName = sanitizeCategoryName(values.categoryName);
             // Do not call the API if the edited category name is the same as the current category name
             if (currentCategoryName !== newCategoryName) {
-                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: values.categoryName});
+                renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName});
             }
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
@@ -61,7 +63,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
                 Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, currentCategoryName), {compareParams: false});
             });
         },
-        [currentCategoryName, policyData, isQuickSettingsFlow, backPath, policyID],
+        [currentCategoryName, policyData, isQuickSettingsFlow, backPath, policyID, sanitizeCategoryName],
     );
 
     return (
