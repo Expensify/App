@@ -1174,6 +1174,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.TAX_CREATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TAX_CREATE_VALUE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.TAX_EDIT]: {
         policyID: string;
         taxID: string;

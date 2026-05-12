@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import AmountPicker from '@components/AmountPicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextPicker from '@components/TextPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {createPolicyTax, getNextTaxCode, getTaxValueWithPercentage, validateTaxName, validateTaxValue} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -19,9 +20,9 @@ import {isExistingTaxName} from '@libs/ValidationUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {TaxRate} from '@src/types/onyx';
@@ -36,6 +37,8 @@ function WorkspaceCreateTaxPage({
 }: WorkspaceCreateTaxPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM), []);
 
     const validateTaxNameCustom = (inputID: string) => {
         return (values: Record<string, string>) => {
@@ -121,16 +124,7 @@ function WorkspaceCreateTaxPage({
                                     title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
                                     description={translate('workspace.taxes.value')}
                                     rightLabel={translate('common.required')}
-                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                                    maxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
-                                    isSymbolPressable={false}
-                                    symbol="%"
-                                    symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
-                                    autoGrowExtraSpace={variables.w80}
-                                    autoGrowMarginSide="left"
-                                    style={[styles.iouAmountTextInput, styles.textAlignRight]}
-                                    containerStyle={styles.iouAmountTextInputContainer}
-                                    touchableInputWrapperStyle={styles.heightUndefined}
+                                    amountRoute={ROUTES.WORKSPACE_TAX_CREATE_VALUE.getRoute(policyID)}
                                 />
                             </View>
                         </FormProvider>
