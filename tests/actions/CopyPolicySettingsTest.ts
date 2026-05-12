@@ -128,6 +128,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                         'shouldShowAutoReimbursementLimitOption',
                     ],
                 ],
+                ['distanceRates', ['areDistanceRatesEnabled']],
+                ['perDiem', ['arePerDiemRatesEnabled']],
                 ['invoices', ['areInvoicesEnabled', 'invoice']],
                 ['travel', ['isTravelEnabled', 'travelSettings']],
             ])('marks %s fields pending and patches values from source', (part, expectedFields) => {
