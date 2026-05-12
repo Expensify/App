@@ -70,7 +70,7 @@ All rows except `<Group>` auto-hide outside the active sub-level.
 - **`<Header>children</Header>`** — heading-role title (`accessibilityRole="heading"`, level 3). To title a sub, render inside `<Sub.Content>`.
 - **`<Label text>`** — non-interactive labelled row.
 - **`<Separator />`** — horizontal divider.
-- **`<Group>children</Group>`** — ARIA `role="group"` wrapper. Stays mounted across sub-navigation so nested `<Sub>` descendants don't unmount when the user drills in or out.
+- **`<Group>children</Group>`** — ARIA `role="group"` wrapper (web-only — react-native-web maps the `role` prop to the DOM attribute; iOS / Android RN don't expose ARIA grouping). Stays mounted across sub-navigation so nested `<Sub>` descendants don't unmount when the user drills in or out.
 
 ### Sub-menus
 

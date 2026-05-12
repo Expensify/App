@@ -6,7 +6,7 @@ import type {PropsWithChildren, ReactNode} from 'react';
 import type {View as RNViewType} from 'react-native';
 import {View} from 'react-native';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
-import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContentNavigation, useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 // Test-only: harness publishes `activeAnchor` synthetically so we don't need a real measurable trigger.
 import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
 import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
@@ -1778,6 +1778,38 @@ describe('PopoverMenu V2', () => {
 
             expect(findItemByTitle('Back')?.focused).toBe(false);
             expect(findItemByTitle('Inner')?.focused).toBe(false);
+        });
+
+        // Stricter than the integration test below — fails first if RC ever regresses on the actions-object memoization.
+        it('keeps registerSub identity stable across unrelated parent re-renders (RC mutation guard)', () => {
+            const registerSubCaptures: unknown[] = [];
+            function RegisterSubProbe() {
+                const {registerSub} = useContentSubActions('RegisterSubProbe');
+                registerSubCaptures.push(registerSub);
+                return null;
+            }
+            function TickHarness({tick}: {tick: number}) {
+                return (
+                    <Harness initialOpen>
+                        <PopoverMenu.Content>
+                            <PopoverMenu.Item
+                                text={`tick-${tick}`}
+                                onSelect={() => {}}
+                            />
+                            <RegisterSubProbe />
+                        </PopoverMenu.Content>
+                    </Harness>
+                );
+            }
+            const tree = render(<TickHarness tick={0} />);
+            const first = registerSubCaptures.at(0);
+            for (let i = 1; i <= 3; i += 1) {
+                tree.rerender(<TickHarness tick={i} />);
+            }
+            for (const captured of registerSubCaptures) {
+                expect(captured).toBe(first);
+            }
+            expect(registerSubCaptures.length).toBeGreaterThan(1);
         });
 
         // Guards `Sub`'s useLayoutEffect cleanup + `ContentSubActions` identity stability across unrelated re-renders.
