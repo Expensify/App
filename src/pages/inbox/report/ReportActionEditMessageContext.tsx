@@ -71,19 +71,21 @@ type ReportActionEditMessageContextProviderProps = {
 
 function ReportActionEditMessageContextProvider({reportID, children}: ReportActionEditMessageContextProviderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {transactionThreadReportID} = useTransactionThreadReport(reportID);
+    const {effectiveTransactionThreadReportID} = useTransactionThreadReport(reportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const additionalReportIDs = useMemo(() => {
         // In one-transaction reports, the visible action can belong to the transaction thread report.
         // Edit drafts are stored against that owner report ID, so the edit state has to watch it too.
-        if (!transactionThreadReportID || transactionThreadReportID === CONST.FAKE_REPORT_ID || transactionThreadReportID === reportID) {
+        // Sent-money reports do not surface transaction-thread actions in this view; use the effective ID so we
+        // never pull drafts from a thread that is not editable here.
+        if (!effectiveTransactionThreadReportID || effectiveTransactionThreadReportID === CONST.FAKE_REPORT_ID || effectiveTransactionThreadReportID === reportID) {
             return [];
         }
 
-        return [transactionThreadReportID];
-    }, [reportID, transactionThreadReportID]);
+        return [effectiveTransactionThreadReportID];
+    }, [reportID, effectiveTransactionThreadReportID]);
 
     const additionalReportActionsSelector = (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
         if (!allReportActions) {
