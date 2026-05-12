@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -57,23 +57,35 @@ function isSimpleMessageAction(action: OnyxTypes.ReportAction): boolean {
 
 function ReceiptScanFailedContent({action, report}: {action: OnyxTypes.ReportAction; report: OnyxEntry<OnyxTypes.Report>}) {
     const {translate} = useLocalize();
-    // In one-transaction-thread reports, `report` is the IOU report — but the RECEIPT_SCAN_FAILED
-    // action's reportID points to the transaction thread.  Use that as the base for the parent-chain
-    // traversal so we always reach the IOU action regardless of how the report is displayed.
+    // IOU action lives in the IOU report's actions — `report` itself if it's IOU/Expense/Invoice, else its parent.
+    const isIouReport = report?.type === CONST.REPORT.TYPE.IOU || report?.type === CONST.REPORT.TYPE.EXPENSE || report?.type === CONST.REPORT.TYPE.INVOICE;
+    const iouReportID = isIouReport ? report?.reportID : report?.parentReportID;
+    const parentReportActionID = report?.parentReportActionID;
     const actionReportID = action.reportID;
-    const [actionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(actionReportID)}`);
-    const baseReport = actionReportID && actionReportID !== report?.reportID ? actionReport : report;
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(baseReport?.parentReportID)}`);
-    // Subscribe to the parent and grandparent report actions so the component re-renders when they arrive
-    // — getReportAction reads a static snapshot and would otherwise leave us with stale data on first paint.
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(baseReport?.parentReportID)}`);
-    const [grandparentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
-    // The action's parent isn't always the IOU action (it can be the CREATED action when the thread spans an extra layer),
-    // so fall back to the grandparent action — this matches the lookup in ReportNameUtils.
-    let iouAction: OnyxTypes.ReportAction | undefined = baseReport?.parentReportActionID ? parentReportActions?.[baseReport.parentReportActionID] : undefined;
-    if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
-        iouAction = parentReport?.parentReportActionID ? grandparentReportActions?.[parentReport.parentReportActionID] : undefined;
-    }
+    // Prefer parentReportActionID (specific IOU action when `report` is a transaction thread).
+    // Fall back to childReportID match, then to the only IOU action for one-transaction reports.
+    const getIouActionSelector = useCallback(
+        (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction | undefined => {
+            if (!isIouReport && parentReportActionID) {
+                const candidate = reportActions?.[parentReportActionID];
+                if (isActionOfType(candidate, CONST.REPORT.ACTIONS.TYPE.IOU)) {
+                    return candidate;
+                }
+            }
+            const iouActions = Object.values(reportActions ?? {}).filter((a): a is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                isActionOfType(a, CONST.REPORT.ACTIONS.TYPE.IOU),
+            );
+            if (actionReportID) {
+                const match = iouActions.find((a) => a.childReportID === actionReportID);
+                if (match) {
+                    return match;
+                }
+            }
+            return iouActions.length === 1 ? iouActions.at(0) : undefined;
+        },
+        [isIouReport, parentReportActionID, actionReportID],
+    );
+    const [iouAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {selector: getIouActionSelector});
     const transactionID = getLinkedTransactionID(iouAction);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
