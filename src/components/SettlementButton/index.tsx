@@ -426,6 +426,7 @@ function SettlementButton({
                     activePolicy,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: email,
+                    currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                     betas,
                     isSelfTourViewed,
                     hasActiveAdminPolicies: !!activeAdminPolicies.length,

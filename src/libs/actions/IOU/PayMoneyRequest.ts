@@ -138,7 +138,7 @@ function getPayMoneyRequestParams({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
-    currentUserLocalCurrency?: string;
+    currentUserLocalCurrency: string | undefined;
 }): PayMoneyRequestData {
     const allTransactionViolations = getAllTransactionViolations();
 
@@ -778,6 +778,8 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         iouReportCurrentNextStepDeprecated,
         currentUserAccountIDParam: currentUserAccountID,
         currentUserEmailParam: currentUserLogin,
+        // payMoneyRequest never creates a payer workspace (no payAsBusiness branch), so currency is unused here.
+        currentUserLocalCurrency: undefined,
         betas,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
