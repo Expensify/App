@@ -28,9 +28,6 @@ type TransactionDetailsFieldsProps = {
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
 
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Active policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -116,7 +113,6 @@ function TransactionDetailsFields({
     transactionID,
     reportID,
     reportActionID,
-    transaction,
     policy,
     isReadOnly,
     didConfirm,
@@ -160,7 +156,6 @@ function TransactionDetailsFields({
                     shouldShowTimeRequestFields={fieldVisibility.time}
                     shouldDisplayFieldError={shouldDisplayFieldError}
                     formError={formError}
-                    transaction={transaction}
                     transactionID={transactionID}
                     iouType={iouType}
                     reportID={reportID}
@@ -181,7 +176,6 @@ function TransactionDetailsFields({
                 reportID={reportID}
                 reportActionID={reportActionID}
                 policy={policy}
-                transaction={transaction}
                 isEditingSplitBill={isEditingSplitBill}
             />
 
@@ -238,14 +232,12 @@ function TransactionDetailsFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    transaction={transaction}
                     isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
             {!isCompactMode && fieldVisibility.time && (
                 <TimeFields
-                    transaction={transaction}
                     isReadOnly={isReadOnly}
                     didConfirm={didConfirm}
                     transactionID={transactionID}

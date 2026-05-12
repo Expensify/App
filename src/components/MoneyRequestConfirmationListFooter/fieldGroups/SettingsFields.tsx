@@ -24,7 +24,7 @@ type SettingsFieldsProps = {
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
 
-    /** Active transaction */
+    /** Active transaction (still needed by ReportField until it reads its own slice) */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Selected participants (drives ReportField presentation) */
@@ -93,7 +93,7 @@ function SettingsFields({
                     shouldShowBillable={shouldShowBillable}
                     onToggleReimbursable={onToggleReimbursable}
                     onToggleBillable={onToggleBillable}
-                    transaction={transaction}
+                    transactionID={transactionID}
                 />
             )}
             {fieldVisibility.report && (

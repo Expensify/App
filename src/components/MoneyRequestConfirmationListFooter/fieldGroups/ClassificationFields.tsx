@@ -42,9 +42,6 @@ type TagFieldRowProps = {
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
 
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-
     /** Form-level error message */
     formError: string;
 };
@@ -60,7 +57,6 @@ function TagFieldRow({
     iouType,
     reportID,
     reportActionID,
-    transaction,
     formError,
 }: TagFieldRowProps) {
     const policyTagList = policyTagLists.at(index);
@@ -80,7 +76,6 @@ function TagFieldRow({
             iouType={iouType}
             reportID={reportID}
             reportActionID={reportActionID}
-            transaction={transaction}
             formError={formError}
         />
     );
@@ -101,9 +96,6 @@ type ClassificationFieldsProps = {
 
     /** ID of the originating report action when editing */
     reportActionID: string | undefined;
-
-    /** Active transaction */
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Active policy */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -160,7 +152,6 @@ function ClassificationFields({
     transactionID,
     reportID,
     reportActionID,
-    transaction,
     policy,
     policyForMovingExpenses,
     policyTagLists,
@@ -188,7 +179,6 @@ function ClassificationFields({
         iouType,
         reportID,
         reportActionID,
-        transaction,
         formError,
     };
 
@@ -205,7 +195,6 @@ function ClassificationFields({
                     reportID={reportID}
                     reportActionID={reportActionID}
                     policy={policy}
-                    transaction={transaction}
                     formError={formError}
                     shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                     shouldSelectPolicy={shouldSelectPolicy}
@@ -222,7 +211,6 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    transaction={transaction}
                 />
             )}
 
@@ -239,7 +227,6 @@ function ClassificationFields({
                     iouType={tagRowSharedProps.iouType}
                     reportID={tagRowSharedProps.reportID}
                     reportActionID={tagRowSharedProps.reportActionID}
-                    transaction={tagRowSharedProps.transaction}
                     formError={tagRowSharedProps.formError}
                 />
             ))}
@@ -258,7 +245,6 @@ function ClassificationFields({
                         iouType={tagRowSharedProps.iouType}
                         reportID={tagRowSharedProps.reportID}
                         reportActionID={tagRowSharedProps.reportActionID}
-                        transaction={tagRowSharedProps.transaction}
                         formError={tagRowSharedProps.formError}
                     />
                 ))}
@@ -267,7 +253,6 @@ function ClassificationFields({
                 <TaxFields
                     policy={policy}
                     policyForMovingExpenses={policyForMovingExpenses}
-                    transaction={transaction}
                     iouCurrencyCode={iouCurrencyCode}
                     canModifyTaxFields={canModifyTaxFields}
                     didConfirm={didConfirm}
@@ -288,7 +273,6 @@ function ClassificationFields({
                     iouType={iouType}
                     reportID={reportID}
                     formError={formError}
-                    transaction={transaction}
                 />
             )}
         </>
