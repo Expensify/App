@@ -29,7 +29,7 @@ You can add expenses in two ways:
 3. Enter the expense details and click **Save**.
 3. The new expense appears instantly in the report.
 
-**Add existing unreported (tracked) expenses**
+**Add existing unreported expenses**
 
 1. Open the report.
 2. Select **Add expense** > **Add unreported expenses**.
