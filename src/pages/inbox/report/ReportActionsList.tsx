@@ -315,6 +315,7 @@ function ReportActionsList({
     const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction), [parentReportAction]);
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
+    const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
     const renderedVisibleReportActions = useMemo(() => {
         if (!draftReportAction) {
             return sortedVisibleReportActions;
@@ -851,6 +852,31 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
+    // Data is ready at the moment FlashList finishes its first render.
+    // Wait one frame so the initial autoscroll-to-top can settle, then disable it.
+    const onLoad = () => {
+        if (!shouldFocusToTopOnMount) {
+            return;
+        }
+        if (!reportLoadingState?.hasOnceLoadedReportActions && !isOffline) {
+            return;
+        }
+        requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
+    };
+    const prevHasOnceLoadedReportActions = usePrevious(reportLoadingState?.hasOnceLoadedReportActions);
+
+    // Data finished initial loading after the list mounted. onLoad has already fired, so we need
+    // a separate trigger to turn off autoscroll-to-top.
+    useEffect(() => {
+        if (!shouldFocusToTopOnMount || !shouldAutoscrollToBottom) {
+            return;
+        }
+        if (prevHasOnceLoadedReportActions || !reportLoadingState?.hasOnceLoadedReportActions) {
+            return;
+        }
+        requestAnimationFrame(() => setShouldAutoscrollToBottom(false));
+    }, [shouldFocusToTopOnMount, shouldAutoscrollToBottom, prevHasOnceLoadedReportActions, reportLoadingState?.hasOnceLoadedReportActions]);
+
     return (
         <>
             <FloatingMessageCounter
@@ -894,8 +920,9 @@ function ReportActionsList({
                     initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
                     initialScrollIndexParams={shouldFocusToTopOnMount ? {viewOffset: windowHeight} : undefined}
                     maintainVisibleContentPosition={
-                        shouldFocusToTopOnMount ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : undefined
+                        shouldAutoscrollToBottom ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : undefined
                     }
+                    onLoad={onLoad}
                     initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
