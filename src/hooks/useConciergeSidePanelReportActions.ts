@@ -107,11 +107,11 @@ function useConciergeReportActions({
     const showConciergeGreeting = isConciergeChat && hadUserMessageAtSessionStart && !showFullHistory;
 
     const conciergeGreetingAction = useMemo(() => {
-        if (!showConciergeGreeting) {
+        if (!showConciergeGreeting && !hasUnreadMessages) {
             return undefined;
         }
         return buildConciergeGreetingReportAction({reportID: report?.reportID, greetingText, created: report?.lastReadTime ?? DateUtils.getDBTime()});
-    }, [showConciergeGreeting, report?.reportID, report?.lastReadTime, greetingText]);
+    }, [showConciergeGreeting, report?.reportID, report?.lastReadTime, greetingText, hasUnreadMessages]);
 
     const firstUserMessageCreated = useMemo(() => {
         if (showConciergeWelcome || !isConciergeChat || !hasUserSentMessage || !sessionStartTime) {
@@ -173,7 +173,10 @@ function useConciergeReportActions({
             if (filtered.length === 0) {
                 return actions;
             }
-            if (conciergeGreetingAction) {
+            // Only splice greeting when there are no unread messages (user-initiated
+            // fresh session). When unread messages exist (e.g. mark-as-unread), the
+            // greeting is not appropriate since the conversation was not freshly started.
+            if (conciergeGreetingAction && !hasUnreadMessages) {
                 const createdIndex = filtered.findIndex(isCreatedAction);
                 filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
             }
