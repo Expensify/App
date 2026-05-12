@@ -8,8 +8,8 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {createTransactionThreadReport} from '@libs/actions/Report';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {createTransactionThreadReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -46,7 +46,15 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, onSelect
             return;
         }
 
-        const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, betas, report, action);
+        const transactionThreadReport = createTransactionThreadReport(
+            introSelected,
+            currentUserPersonalDetails.login ?? '',
+            currentUserPersonalDetails.accountID,
+            betas,
+            report,
+            action,
+            transaction,
+        );
         if (!transactionThreadReport?.reportID) {
             return;
         }
