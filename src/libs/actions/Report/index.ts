@@ -3317,6 +3317,9 @@ function saveReportActionDraft(reportID: string | undefined, reportAction: Repor
     }
 
     const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
+    if (!originalReportID) {
+        return;
+    }
 
     Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`]: {
