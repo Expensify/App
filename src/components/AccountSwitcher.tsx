@@ -238,7 +238,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <Avatar
                             type={CONST.ICON_TYPE_AVATAR}
-                            size={CONST.AVATAR_SIZE.SMALL_NORMAL}
+                            size={CONST.AVATAR_SIZE.SMALL}
                             avatarID={currentUserPersonalDetails?.accountID}
                             source={currentUserPersonalDetails?.avatar}
                             fallbackIcon={currentUserPersonalDetails.fallbackIcon}
