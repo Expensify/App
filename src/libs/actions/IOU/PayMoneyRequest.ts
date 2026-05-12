@@ -142,6 +142,7 @@ function getPayMoneyRequestParams({
     conciergeReportID?: string;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);

@@ -150,6 +150,7 @@ function mergeDuplicates({
     const allParams: MergeDuplicatesParams = {...params};
     const allTransactions = getAllTransactions();
     // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
@@ -417,6 +418,7 @@ function resolveDuplicates({taxAmount, taxValue, ...params}: MergeDuplicatesPara
 
     const allTransactions = getAllTransactions();
     // TODO: https://github.com/Expensify/App/issues/66512
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const allTransactionViolations = getAllTransactionViolations();
 
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
