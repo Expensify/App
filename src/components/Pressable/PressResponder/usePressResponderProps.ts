@@ -15,8 +15,8 @@ type ConsumablePressProps = {
 };
 
 /**
- * Sequentially chains the consumer handler then the responder handler — no implicit `defaultPrevented` gate.
- * Publishers (e.g. `<Trigger>`) that want consumer-cancellation read `event.defaultPrevented` themselves.
+ * Sequentially chains the consumer handler then the responder handler. No implicit cancellation gate;
+ * publishers (e.g. `<Trigger>`) that want consumer-cancellation read `event.defaultPrevented` themselves.
  */
 function usePressResponderProps(consumer: ConsumablePressProps, kind: RegisterKind = 'press'): ConsumablePressProps {
     const responder = use(PressResponderContext);

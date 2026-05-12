@@ -1,8 +1,8 @@
-import {use} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import {ContentNavigationContext, ContentSubActionsContext} from '@components/PopoverMenu/v2/content/ContentContext';
 import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
+import useAssertedContext from '@hooks/useAssertedContext';
 import {SubContext} from './SubContext';
 
 const HOOK_NAME = 'useSubTrigger';
@@ -17,18 +17,9 @@ type UseSubTriggerResult = {
 
 /** Sub-level trigger hook; opens the enclosing `<Sub>`. `<Sub.Trigger>` is the opinionated `MenuItem` shape. */
 function useSubTrigger({disabled = false, text}: {disabled?: boolean; text?: string} = {}): UseSubTriggerResult {
-    const subContext = use(SubContext);
-    if (!subContext) {
-        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Sub>.`);
-    }
-    const navigation = use(ContentNavigationContext);
-    if (!navigation) {
-        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Content>.`);
-    }
-    const subActions = use(ContentSubActionsContext);
-    if (!subActions) {
-        throw new Error(`${HOOK_NAME}() must be called inside <PopoverMenu.Content>.`);
-    }
+    const subContext = useAssertedContext(SubContext, HOOK_NAME, '<PopoverMenu.Sub>');
+    const navigation = useAssertedContext(ContentNavigationContext, HOOK_NAME, '<PopoverMenu.Content>');
+    const subActions = useAssertedContext(ContentSubActionsContext, HOOK_NAME, '<PopoverMenu.Content>');
 
     const isAtActiveLevel = navigation.currentSubID === subContext.parentSubID;
 

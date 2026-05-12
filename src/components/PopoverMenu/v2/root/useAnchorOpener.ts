@@ -1,5 +1,6 @@
-import {use, useRef} from 'react';
+import {useRef} from 'react';
 import type {View} from 'react-native';
+import useAssertedContext from '@hooks/useAssertedContext';
 import Log from '@libs/Log';
 import {RootActionsContext} from './RootContext';
 import type {AnchorRect, AnchorRef} from './RootContext';
@@ -10,11 +11,7 @@ type UseAnchorOpenerResult = {
 };
 
 function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
-    const actions = use(RootActionsContext);
-    if (!actions) {
-        throw new Error(`${callerName}() must be called inside <PopoverMenu.Root>.`);
-    }
-    const {setIsVisible, setActiveAnchor} = actions;
+    const {setIsVisible, setActiveAnchor} = useAssertedContext(RootActionsContext, callerName, '<PopoverMenu.Root>');
     const ownRef: AnchorRef = useRef<View | null>(null);
 
     const open = (overrideRect?: AnchorRect) => {

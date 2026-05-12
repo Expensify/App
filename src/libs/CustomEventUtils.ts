@@ -1,0 +1,47 @@
+type CustomEventMethods = {
+    preventDefault(): void;
+    isDefaultPrevented(): boolean;
+    stopPropagation(): void;
+    isPropagationStopped(): boolean;
+};
+
+type CustomEvent<T extends object = object> = T & CustomEventMethods;
+
+type CustomEventHandler<T extends object = object> = (event: CustomEvent<T>) => void;
+
+function createCustomEvent<T extends object>(data: T): CustomEvent<T> {
+    let defaultPrevented = false;
+    let propagationStopped = false;
+
+    const methods: CustomEventMethods = {
+        preventDefault() {
+            defaultPrevented = true;
+        },
+        isDefaultPrevented() {
+            return defaultPrevented;
+        },
+        stopPropagation() {
+            propagationStopped = true;
+        },
+        isPropagationStopped() {
+            return propagationStopped;
+        },
+    };
+
+    return Object.assign(Object.create(methods), data) as CustomEvent<T>;
+}
+
+/** Variadic handler composition; later handlers stop running after one calls `event.stopPropagation()`. */
+function composeHandlers<T extends object>(...handlers: Array<CustomEventHandler<T> | undefined | null>): CustomEventHandler<T> {
+    return (event) => {
+        for (const handler of handlers) {
+            if (event.isPropagationStopped()) {
+                break;
+            }
+            handler?.(event);
+        }
+    };
+}
+
+export {createCustomEvent, composeHandlers};
+export type {CustomEvent, CustomEventHandler, CustomEventMethods};
