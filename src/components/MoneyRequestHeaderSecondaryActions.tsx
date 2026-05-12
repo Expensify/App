@@ -503,11 +503,12 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     };
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action): action is NonNullable<typeof action> => !!action);
-    const popoverUseScrollView = shouldPopoverUseScrollView(applicableSecondaryActions);
 
     if (!applicableSecondaryActions.length) {
         return null;
     }
+
+    const popoverUseScrollView = shouldPopoverUseScrollView(applicableSecondaryActions);
 
     return (
         <>
