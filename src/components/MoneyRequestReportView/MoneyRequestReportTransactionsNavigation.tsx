@@ -136,15 +136,15 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!nextThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(
+            const transactionThreadReport = createTransactionThreadReport({
                 introSelected,
-                currentUserEmail ?? '',
+                currentUserLogin: currentUserEmail ?? '',
                 currentUserAccountID,
                 betas,
-                parentReport,
-                nextParentReportAction,
-                nextTransaction,
-            );
+                iouReport: parentReport,
+                iouReportAction: nextParentReportAction,
+                transaction: nextTransaction,
+            });
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
@@ -172,15 +172,15 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         }
         // The transaction thread doesn't exist yet, so we should create it
         if (!prevThreadReportID) {
-            const transactionThreadReport = createTransactionThreadReport(
+            const transactionThreadReport = createTransactionThreadReport({
                 introSelected,
-                currentUserEmail ?? '',
+                currentUserLogin: currentUserEmail ?? '',
                 currentUserAccountID,
                 betas,
-                parentReport,
-                prevParentReportAction,
-                prevTransaction,
-            );
+                iouReport: parentReport,
+                iouReportAction: prevParentReportAction,
+                transaction: prevTransaction,
+            });
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating

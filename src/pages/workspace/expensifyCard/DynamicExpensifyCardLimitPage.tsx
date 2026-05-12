@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,25 +24,23 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitForm';
 
 type ConfirmationWarningTranslationPaths = 'workspace.expensifyCard.smartLimitWarning' | 'workspace.expensifyCard.monthlyLimitWarning' | 'workspace.expensifyCard.fixedLimitWarning';
 
-type WorkspaceEditCardLimitPageProps = PlatformStackScreenProps<
-    SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT
->;
+type DynamicExpensifyCardLimitPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT>;
 
-function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
-    const {policyID, cardID, backTo} = route.params;
+function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPageProps) {
+    const {policyID, cardID} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const styles = useThemeStyles();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const defaultFundID = useDefaultFundID(policyID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path);
 
     const currency = useCurrencyForExpensifyCard({policyID});
 
@@ -68,15 +67,9 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         return newLimit - currentSpend;
     };
 
-    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT;
-
     const goBack = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
-    }, [backTo, isWorkspaceRhp, policyID, cardID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const updateCardLimit = (newLimit: number) => {
         const newAvailableSpend = getNewAvailableSpend(newLimit);
@@ -112,7 +105,6 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM> => {
             const errors = getFieldRequiredErrors(values, [INPUT_IDS.LIMIT], translate);
 
-            // We only want integers to be sent as the limit
             if (!Number(values.limit)) {
                 errors.limit = translate('iou.error.invalidAmount');
             } else if (!Number.isInteger(Number(values.limit))) {
@@ -134,7 +126,7 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID="WorkspaceEditCardLimitPage"
+                testID="DynamicExpensifyCardLimitPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -163,6 +155,8 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
                                 inputID={INPUT_IDS.LIMIT}
                                 ref={inputCallbackRef}
                             />
+                            {/* We migrated https://github.com/Expensify/App/issues/83836 to a dynamic card limit page.`ConfirmModal` is deprecated, so we temporarily disabled the ESLint warning for this component. */}
+                            {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
                             <ConfirmModal
                                 title={translate('workspace.expensifyCard.changeCardLimit')}
                                 isVisible={isConfirmModalVisible}
@@ -182,4 +176,4 @@ function WorkspaceEditCardLimitPage({route}: WorkspaceEditCardLimitPageProps) {
     );
 }
 
-export default WorkspaceEditCardLimitPage;
+export default DynamicExpensifyCardLimitPage;
