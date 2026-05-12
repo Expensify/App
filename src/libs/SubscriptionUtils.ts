@@ -52,15 +52,6 @@ type SubscriptionPlanIllustrations = {
     ShieldYellow: IconAsset;
 };
 
-// TODO: Remove this one eventually
-let deprecatedCurrentUserAccountID = -1;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        deprecatedCurrentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
 /**
  * @returns Whether the workspace owner's grace period is overdue.
  */
@@ -487,7 +478,7 @@ function shouldRestrictUserBillableActions(
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
-    currentUserAccountID: number = deprecatedCurrentUserAccountID,
+    currentUserAccountID: number,
 ): boolean {
     const currentDate = new Date();
 
