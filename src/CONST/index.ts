@@ -1932,8 +1932,8 @@ const CONST = {
             DEFAULT_OUT: Platform.OS === 'web' ? 1 : 200,
             DEFAULT_RIGHT_DOCKED_IOS_IN: Platform.OS === 'web' ? 1 : 500,
             DEFAULT_RIGHT_DOCKED_IOS_OUT: Platform.OS === 'web' ? 1 : 400,
-            FAB_IN: 350,
-            FAB_OUT: 200,
+            FAB_IN: Platform.OS === 'web' ? 1 : 350,
+            FAB_OUT: Platform.OS === 'web' ? 1 : 200,
         },
     },
     FAB_MENU_ITEM_IDS: {
