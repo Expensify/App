@@ -4,11 +4,13 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {calculateDefaultReimbursable, formatCurrentUserToAttendee, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import Log from '@libs/Log';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
@@ -25,6 +27,7 @@ import {
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getDefaultTaxCode, getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
@@ -86,6 +89,8 @@ type CreateTransactionParams = {
     betas: OnyxEntry<Beta[]>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
+    shouldHandleNavigationOverride?: boolean;
+    shouldDeferForSearch?: boolean;
 };
 
 type InitialTransactionParams = {
@@ -209,6 +214,8 @@ function createTransaction({
     betas,
     personalDetails,
     recentWaypoints,
+    shouldHandleNavigationOverride,
+    shouldDeferForSearch,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -221,6 +228,7 @@ function createTransaction({
         const defaultTaxCode = getDefaultTaxCode(policy, transaction);
         const taxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
         const taxAmount = transaction?.taxAmount ?? 0;
+        const shouldHandleNav = shouldHandleNavigationOverride ?? index === files.length - 1;
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
                 report,
@@ -242,7 +250,8 @@ function createTransaction({
                     taxAmount,
                 },
                 ...(policyParams ?? {}),
-                shouldHandleNavigation: index === files.length - 1,
+                shouldHandleNavigation: shouldHandleNav,
+                shouldDeferForSearch,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
@@ -279,7 +288,8 @@ function createTransaction({
                     taxCode,
                     taxAmount,
                 },
-                shouldHandleNavigation: index === files.length - 1,
+                shouldHandleNavigation: shouldHandleNav,
+                shouldDeferForSearch,
                 backToReport,
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
@@ -430,71 +440,35 @@ function handleMoneyRequestStepScanParticipants({
                 participant,
                 transactionReportID: initialTransaction?.reportID,
             });
-            if (locationPermissionGranted) {
-                getCurrentPosition(
-                    (successData) => {
-                        const policyParams = {policy};
-                        const gpsPoint = {
-                            lat: successData.coords.latitude,
-                            long: successData.coords.longitude,
-                        };
-                        createTransaction({
-                            transactions,
-                            iouType,
-                            report,
-                            currentUserAccountID,
-                            currentUserEmail: currentUserLogin,
-                            backToReport,
-                            shouldGenerateTransactionThreadReport,
-                            isASAPSubmitBetaEnabled,
-                            transactionViolations,
-                            quickAction,
-                            policyRecentlyUsedCurrencies,
-                            introSelected,
-                            files,
-                            participant,
-                            gpsPoint,
-                            policyParams,
-                            billable: false,
-                            reimbursable: defaultReimbursable,
-                            isSelfTourViewed,
-                            allTransactionDrafts,
-                            betas,
-                            personalDetails,
-                            recentWaypoints,
-                        });
+
+            const scanScenario = iouType === CONST.IOU.TYPE.TRACK ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_SCAN;
+            const destinationReportID = iouType === CONST.IOU.TYPE.TRACK ? selfDMReport?.reportID : report?.reportID;
+            const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
+
+            const startScannedExpenseTracking = (
+                followUpAction: typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                pendingReportID?: string,
+            ) => {
+                startTracking(
+                    {
+                        scenario: scanScenario,
+                        iouType,
+                        requestType: 'scan',
+                        isFromGlobalCreate: !report?.reportID,
+                        hasReceipt: true,
                     },
-                    (errorData) => {
-                        Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
-                        // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                        createTransaction({
-                            transactions,
-                            iouType,
-                            report,
-                            currentUserAccountID,
-                            currentUserEmail: currentUserLogin,
-                            backToReport,
-                            shouldGenerateTransactionThreadReport,
-                            isASAPSubmitBetaEnabled,
-                            transactionViolations,
-                            quickAction,
-                            policyRecentlyUsedCurrencies,
-                            introSelected,
-                            files,
-                            participant,
-                            policyParams: {policy},
-                            reimbursable: defaultReimbursable,
-                            isSelfTourViewed,
-                            allTransactionDrafts,
-                            betas,
-                            personalDetails,
-                            recentWaypoints,
-                        });
-                    },
+                    {skipSubmitExpenseSpan: true},
                 );
-                return;
-            }
-            createTransaction({
+                setFastPath(
+                    followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
+                        ? CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT
+                        : CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL,
+                    CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST,
+                );
+                setPendingSubmitFollowUpAction(followUpAction, pendingReportID);
+            };
+
+            const baseCreateTransactionParams = {
                 transactions,
                 iouType,
                 report,
@@ -509,14 +483,57 @@ function handleMoneyRequestStepScanParticipants({
                 introSelected,
                 files,
                 participant,
-                policyParams: {policy},
+                billable: false,
                 reimbursable: defaultReimbursable,
                 isSelfTourViewed,
                 allTransactionDrafts,
                 betas,
                 personalDetails,
                 recentWaypoints,
-            });
+            };
+
+            const executeWrite = (overrides: {shouldHandleNavigationOverride?: boolean; shouldDeferForSearch?: boolean} = {}) => {
+                const runCreate = (gpsPoint?: GpsPoint) => {
+                    createTransaction({...baseCreateTransactionParams, policyParams: {policy}, gpsPoint, ...overrides});
+                };
+
+                if (locationPermissionGranted) {
+                    getCurrentPosition(
+                        (successData) => runCreate({lat: successData.coords.latitude, long: successData.coords.longitude}),
+                        (errorData) => {
+                            Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
+                            runCreate();
+                        },
+                    );
+                } else {
+                    runCreate();
+                }
+            };
+
+            if (shouldStayOnSearch) {
+                reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                startScannedExpenseTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+                Navigation.dismissModal({
+                    afterTransition: () => executeWrite({shouldHandleNavigationOverride: false, shouldDeferForSearch: true}),
+                });
+                return;
+            }
+
+            if (destinationReportID) {
+                startScannedExpenseTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
+                const isDestinationLoaded = !!getReportOrDraftReport(destinationReportID)?.reportID;
+                if (!isDestinationLoaded) {
+                    executeWrite({shouldHandleNavigationOverride: false});
+                    Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID));
+                    return;
+                }
+                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
+                    afterTransition: () => executeWrite({shouldHandleNavigationOverride: false}),
+                });
+                return;
+            }
+
+            executeWrite();
             return;
         }
         const transactionIDs = files.map((receiptFile) => receiptFile.transactionID);
