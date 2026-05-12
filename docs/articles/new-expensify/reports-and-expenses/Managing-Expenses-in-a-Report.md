@@ -36,8 +36,7 @@ You can add expenses in two ways:
 3. Select one or more expenses.
 4. Click **Add to report**.
 
-_Tip: To add more later, go to More > Add expense.
-_
+_Tip: To add more later, go to More > Add expense._
 
 ---
 
