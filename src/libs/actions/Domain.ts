@@ -1969,7 +1969,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             },
         },
@@ -1990,7 +1990,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    pendingAction: null,
+                    deleteGroup: null,
                 },
             },
         },
@@ -2020,7 +2020,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    pendingAction: null,
+                    deleteGroup: null,
                 },
             },
         },

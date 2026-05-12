@@ -900,10 +900,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, []);
 
     const isDuplicateReportOptionVisible = useMemo(() => {
-        if (!isBetaEnabled(CONST.BETAS.BULK_DUPLICATE_REPORT)) {
-            return false;
-        }
-
         if (!isExpenseReportType || !defaultExpensePolicy || selectedReports.length === 0) {
             return false;
         }
@@ -914,7 +910,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             return report.ownerAccountID === accountID && report.type === CONST.REPORT.TYPE.EXPENSE;
         });
-    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID, isBetaEnabled]);
+    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
