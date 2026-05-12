@@ -474,6 +474,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
                     currentUserEmailParam,
                     currentUserAccountIDParam,
                     // TODO: https://github.com/Expensify/App/issues/66512
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     getAllTransactionViolations(),
                     undefined,
                 ),

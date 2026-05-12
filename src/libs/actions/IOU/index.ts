@@ -646,6 +646,7 @@ export {
     setMoneyRequestReimbursable,
     getAllPersonalDetails,
     getAllTransactions,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getAllTransactionViolations,
     getAllReports,
     getAllReportActionsFromIOU,
