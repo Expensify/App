@@ -22,9 +22,9 @@ import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
-type SuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS>;
+type DynamicSuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS>;
 
-function SuccessPage({route}: SuccessPageProps) {
+function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
@@ -77,4 +77,4 @@ function SuccessPage({route}: SuccessPageProps) {
     );
 }
 
-export default SuccessPage;
+export default DynamicSuccessPage;

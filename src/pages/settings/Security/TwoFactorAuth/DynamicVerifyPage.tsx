@@ -33,10 +33,10 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TROUBLESHOOTING_LINK = 'https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication';
 
-type VerifyPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY>;
+type DynamicVerifyPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY>;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function VerifyPage(_props: VerifyPageProps) {
+function DynamicVerifyPage(_props: DynamicVerifyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -98,7 +98,7 @@ function VerifyPage(_props: VerifyPageProps) {
                 text: translate('twoFactorAuth.stepVerify'),
                 total: 3,
             }}
-            onBackButtonPress={() => Navigation.goBack()}
+            onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backPath))}
             shouldEnableMaxHeight={false}
         >
             <ScrollView
@@ -167,4 +167,4 @@ function VerifyPage(_props: VerifyPageProps) {
     );
 }
 
-export default VerifyPage;
+export default DynamicVerifyPage;

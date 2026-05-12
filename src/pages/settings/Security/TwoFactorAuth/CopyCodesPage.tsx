@@ -66,8 +66,7 @@ function CopyCodesPage({navigateBackTo}: CopyCodesPageProps) {
     useEffect(() => {
         if (!isUserValidated) {
             Navigation.isNavigationReady().then(() => {
-                // maybe we need replace here
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, navigateBackTo), {forceReplace: true});
             });
             return;
         }
@@ -200,7 +199,7 @@ function CopyCodesPage({navigateBackTo}: CopyCodesPageProps) {
                             if (!account?.codesAreCopied) {
                                 return setError(translate('twoFactorAuth.errorStepCodes'));
                             }
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath));
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path, backPath), {forceReplace: true});
                         }}
                     />
                 </FixedFooter>
