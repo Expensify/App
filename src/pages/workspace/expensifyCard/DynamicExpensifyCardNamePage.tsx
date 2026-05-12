@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,15 +21,16 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-type WorkspaceEditCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_NAME>;
+type DynamicExpensifyCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME>;
 
-function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
-    const {policyID, cardID, backTo} = route.params;
+function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps) {
+    const {policyID, cardID} = route.params;
     const defaultFundID = useDefaultFundID(policyID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -37,15 +39,9 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const card = cardsList?.[cardID];
 
-    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME;
-
     const goBack = useCallback(() => {
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        Navigation.goBack(isWorkspaceRhp ? ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID) : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
-    }, [backTo, isWorkspaceRhp, policyID, cardID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
         updateExpensifyCardTitle(defaultFundID, Number(cardID), values[INPUT_IDS.NAME], card?.nameValuePairs?.cardTitle);
@@ -103,4 +99,4 @@ function WorkspaceEditCardNamePage({route}: WorkspaceEditCardNamePageProps) {
     );
 }
 
-export default WorkspaceEditCardNamePage;
+export default DynamicExpensifyCardNamePage;

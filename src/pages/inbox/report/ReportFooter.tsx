@@ -48,17 +48,15 @@ function ReportFooter() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- isSmallScreenWidth guards composer visibility on mobile during keyboard events, shouldUseNarrowLayout would wrongly hide it in RHP
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
-    const isAnonymousUser = useIsAnonymousUser();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const isAnonymousUser = useIsAnonymousUser();
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: isBlockedFromChatSelector,
     });
@@ -87,7 +85,7 @@ function ReportFooter() {
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
 
     // Happy path — user can compose
-    if (!shouldHideComposer && (shouldShowComposeInput || !isSmallScreenWidth)) {
+    if (!shouldHideComposer) {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                 <SwipeableView onSwipeDown={Keyboard.dismiss}>
