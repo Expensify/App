@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
 import {
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
@@ -17,15 +18,20 @@ import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from 
 import {formatPhoneNumber} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/Localize', () => ({
-    translateLocal: jest.fn((phraseKey: string) => {
-        if (phraseKey === 'common.hidden') {
-            return 'Hidden';
-        }
-        if (phraseKey === 'common.you') {
-            return 'You';
-        }
-        return phraseKey;
+const mockTranslate = jest.fn((key: string) => {
+    if (key === 'common.hidden') {
+        return 'Hidden';
+    }
+    if (key === 'common.you') {
+        return 'you';
+    }
+    return key;
+});
+
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({
+        translate: mockTranslate,
     }),
 }));
 
@@ -719,11 +725,13 @@ describe('PersonalDetailsUtils', () => {
     });
 
     describe('temporaryGetDisplayNameOrDefault', () => {
+        const {translate} = useLocalize();
+
         test('should return displayName when present', () => {
             expect(
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1, displayName: 'Ada Lovelace', login: 'ada@example.com'},
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe('Ada Lovelace');
         });
@@ -736,7 +744,7 @@ describe('PersonalDetailsUtils', () => {
                         displayName: 'MERGED_99@visible.name@example.com',
                         login: 'user@example.com',
                     },
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe('visible.name@example.com');
         });
@@ -750,17 +758,17 @@ describe('PersonalDetailsUtils', () => {
                         login: smsLogin,
                         displayName: smsLogin,
                     },
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe(Str.removeSMSDomain(smsLogin));
         });
 
-        test('should append current-user postfix using localized "you" when translations are ready', () => {
+        test('should append current-user postfix using localized "you"', () => {
             expect(
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1, displayName: 'Sam', login: 'sam@example.com'},
                     shouldAddCurrentUserPostfix: true,
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe('Sam (you)');
         });
@@ -771,7 +779,7 @@ describe('PersonalDetailsUtils', () => {
                     passedPersonalDetails: {accountID: 1, displayName: 'Sam', login: 'sam@example.com'},
                     shouldAddCurrentUserPostfix: true,
                     youAfterTranslation: 'anotherYou',
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe('Sam (anotherYou)');
         });
@@ -784,7 +792,7 @@ describe('PersonalDetailsUtils', () => {
                         displayName: 'Ignored',
                         login: CONST.EMAIL.CONCIERGE,
                     },
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
@@ -794,7 +802,7 @@ describe('PersonalDetailsUtils', () => {
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1, login: 'only@example.com'},
                     defaultValue: 'Custom default',
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe('Custom default');
         });
@@ -803,33 +811,18 @@ describe('PersonalDetailsUtils', () => {
             expect(
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1, login: 'fallback@example.com'},
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe('fallback@example.com');
         });
 
-        test('should return hidden translation when nothing else applies and translations are ready', () => {
+        test('should return hidden translation when nothing else applies', () => {
             expect(
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1},
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe('Hidden');
-        });
-
-        test('should return empty string for hidden fallback when translations are not ready', () => {
-            expect(
-                temporaryGetDisplayNameOrDefault({
-                    passedPersonalDetails: {accountID: 1},
-                    areTranslationsLoading: true,
-                }),
-            ).toBe('');
-            expect(
-                temporaryGetDisplayNameOrDefault({
-                    passedPersonalDetails: {accountID: 1},
-                    areTranslationsLoading: undefined,
-                }),
-            ).toBe('');
         });
 
         test('should return empty string when shouldFallbackToHidden is false and nothing else applies', () => {
@@ -837,7 +830,7 @@ describe('PersonalDetailsUtils', () => {
                 temporaryGetDisplayNameOrDefault({
                     passedPersonalDetails: {accountID: 1},
                     shouldFallbackToHidden: false,
-                    areTranslationsLoading: false,
+                    translate,
                 }),
             ).toBe('');
         });

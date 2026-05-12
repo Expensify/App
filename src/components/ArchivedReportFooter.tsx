@@ -24,21 +24,20 @@ function ArchivedReportFooter({reportID}: ArchivedReportFooterProps) {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [areTranslationsLoading] = useOnyx(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
 
     const [personalDetails = getEmptyObject<PersonalDetailsList>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getLastClosedReportAction});
     const originalMessage = isClosedAction(reportClosedAction) ? getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID];
-    let displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorPersonalDetails, areTranslationsLoading});
+    let displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorPersonalDetails, translate});
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
         const oldAccountID = originalMessage?.oldAccountID;
-        displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[newAccountID ?? CONST.DEFAULT_NUMBER_ID], areTranslationsLoading});
-        oldDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[oldAccountID ?? CONST.DEFAULT_NUMBER_ID], areTranslationsLoading});
+        displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[newAccountID ?? CONST.DEFAULT_NUMBER_ID], translate});
+        oldDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[oldAccountID ?? CONST.DEFAULT_NUMBER_ID], translate});
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT && archiveReason !== CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED;

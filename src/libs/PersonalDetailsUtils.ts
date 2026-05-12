@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
@@ -105,23 +105,15 @@ function temporaryGetDisplayNameOrDefault(params: {
     defaultValue?: string;
     shouldFallbackToHidden?: boolean;
     shouldAddCurrentUserPostfix: true;
-    youAfterTranslation: string;
-    areTranslationsLoading: true | undefined;
-}): string;
-function temporaryGetDisplayNameOrDefault(params: {
-    passedPersonalDetails?: Partial<PersonalDetails> | null;
-    defaultValue?: string;
-    shouldFallbackToHidden?: boolean;
-    shouldAddCurrentUserPostfix: true;
     youAfterTranslation?: string;
-    areTranslationsLoading: false;
+    translate: LocalizedTranslate;
 }): string;
 function temporaryGetDisplayNameOrDefault(params: {
     passedPersonalDetails?: Partial<PersonalDetails> | null;
     defaultValue?: string;
     shouldFallbackToHidden?: boolean;
     shouldAddCurrentUserPostfix?: false;
-    areTranslationsLoading: boolean | undefined;
+    translate: LocalizedTranslate;
 }): string;
 function temporaryGetDisplayNameOrDefault({
     passedPersonalDetails,
@@ -129,21 +121,17 @@ function temporaryGetDisplayNameOrDefault({
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
     youAfterTranslation,
-    areTranslationsLoading,
+    translate,
 }: {
     passedPersonalDetails?: Partial<PersonalDetails> | null;
     defaultValue?: string;
     shouldFallbackToHidden?: boolean;
     shouldAddCurrentUserPostfix?: boolean;
     youAfterTranslation?: string;
-    areTranslationsLoading: boolean | undefined;
+    translate: LocalizedTranslate;
 }): string {
-    let temporaryHiddenTranslation = '';
-    let temporaryYouTranslation = '';
-    if (areTranslationsLoading === false) {
-        temporaryHiddenTranslation = translateLocal('common.hidden');
-        temporaryYouTranslation = translateLocal('common.you').toLowerCase();
-    }
+    const temporaryHiddenTranslation = translate('common.hidden');
+    const temporaryYouTranslation = translate('common.you').toLowerCase();
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     let login = passedPersonalDetails?.login ?? '';
