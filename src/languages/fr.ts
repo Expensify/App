@@ -1142,7 +1142,6 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laisse tomber',
         dropMessage: 'Déposez votre fichier ici',
         flash: 'flash',
-        flipCamera: 'Retourner la caméra',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
         gallery: 'galerie',
@@ -2875,6 +2874,8 @@ ${amount} pour ${merchant} - ${date}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Vous n'avez pas reçu de code magique ?",
+        avoidScamsMessage:
+            '<strong>Évitez les arnaques. Ne partagez votre code avec personne.</strong> Notre équipe ne vous appellera, ne vous enverra jamais de SMS ni d’e-mail pour demander ce code.',
         enterAuthenticatorCode: 'Veuillez saisir votre code d’authentification',
         enterRecoveryCode: 'Veuillez saisir votre code de récupération',
         requiredWhen2FAEnabled: 'Obligatoire lorsque l’authentification à deux facteurs est activée',

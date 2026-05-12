@@ -9,7 +9,8 @@ import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/Poli
 import {isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
-import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
