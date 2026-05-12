@@ -227,34 +227,34 @@ function MergeResultPage() {
                 includeSafeAreaPaddingBottom
                 testID="MergeResultPage"
             >
-            <HeaderWithBackButton
-                title={translate('mergeAccountsPage.mergeAccount')}
-                shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
-                onBackButtonPress={() => {
-                    Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
-                }}
-            />
-            <ConfirmationPage
-                containerStyle={{...styles.flexGrow1, ...styles.mt3}}
-                heading={heading}
-                headingStyle={headingStyle}
-                onButtonPress={onButtonPress}
-                shouldShowButton
-                buttonText={buttonText}
-                shouldShowSecondaryButton={shouldShowSecondaryButton}
-                secondaryButtonText={secondaryButtonText}
-                onSecondaryButtonPress={onSecondaryButtonPress}
-                description={description}
-                descriptionStyle={[descriptionStyle, styles.textSupporting]}
-                illustration={illustration}
-                illustrationStyle={illustrationStyle}
-                cta={cta}
-                ctaStyle={ctaStyle}
-                descriptionComponent={descriptionComponent}
-                ctaComponent={ctaComponent}
-            />
-        </ScreenWrapper>
-    </DelegateNoAccessWrapper>
+                <HeaderWithBackButton
+                    title={translate('mergeAccountsPage.mergeAccount')}
+                    shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
+                    }}
+                />
+                <ConfirmationPage
+                    containerStyle={{...styles.flexGrow1, ...styles.mt3}}
+                    heading={heading}
+                    headingStyle={headingStyle}
+                    onButtonPress={onButtonPress}
+                    shouldShowButton
+                    buttonText={buttonText}
+                    shouldShowSecondaryButton={shouldShowSecondaryButton}
+                    secondaryButtonText={secondaryButtonText}
+                    onSecondaryButtonPress={onSecondaryButtonPress}
+                    description={description}
+                    descriptionStyle={[descriptionStyle, styles.textSupporting]}
+                    illustration={illustration}
+                    illustrationStyle={illustrationStyle}
+                    cta={cta}
+                    ctaStyle={ctaStyle}
+                    descriptionComponent={descriptionComponent}
+                    ctaComponent={ctaComponent}
+                />
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 
