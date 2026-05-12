@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import * as Sentry from '@sentry/react-native';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -18,7 +19,7 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
@@ -84,6 +85,14 @@ function DistanceRequestStartPage({
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
     }, []);
 
+    const handleTabFocused = useCallback((tabName: SelectedTabRequest) => {
+        Sentry.startInactiveSpan({
+            name: `${SCREENS.MONEY_REQUEST.DISTANCE_CREATE}.tab.${tabName}`,
+            op: 'ui.tab.focus',
+            forceTransaction: true,
+        })?.end();
+    }, []);
+
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
@@ -126,6 +135,7 @@ function DistanceRequestStartPage({
                         tabBar={TabSelector}
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                         onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
+                        onTabFocused={handleTabFocused}
                         lazyLoadEnabled
                     >
                         <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>

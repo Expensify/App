@@ -61,6 +61,11 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
 
     /** Whether tabs should have equal width */
     equalWidth?: boolean;
+
+    /** Fires when a tab becomes active, including the initial mount. Deduplicated so it fires at most
+     *  once per distinct active tab. Intended for side-effects like telemetry where consumers want to
+     *  observe focus events without duplicating React Navigation state-listener noise. */
+    onTabFocused?: (tabName: TTabName) => void;
 };
 
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
@@ -105,10 +110,12 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     lazyLoadEnabled = false,
     onTabSelect,
     equalWidth = false,
+    onTabFocused,
     ...rest
 }: OnyxTabNavigatorProps<TTabName>) {
     const styles = useThemeStyles();
     const isFirstMountRef = useRef(true);
+    const lastFocusedTabRef = useRef<string | null>(null);
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
@@ -193,6 +200,10 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                             isFirstMountRef.current = false;
                         }
                         const newSelectedTab = routeNames.at(index);
+                        if (newSelectedTab && newSelectedTab !== lastFocusedTabRef.current) {
+                            lastFocusedTabRef.current = newSelectedTab;
+                            onTabFocused?.(newSelectedTab as TTabName);
+                        }
                         if (selectedTab === newSelectedTab) {
                             return;
                         }
