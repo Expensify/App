@@ -107,6 +107,7 @@ function BaseContentInner({
                                     <ContentCloseContext.Provider value={close}>
                                         <View
                                             role={CONST.ROLE.MENU}
+                                            aria-orientation="vertical"
                                             nativeID={contentID}
                                             accessibilityLabelledBy={triggerID}
                                             onLayout={onLayout}

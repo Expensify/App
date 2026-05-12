@@ -6,7 +6,7 @@ import PressResponderContext from './PressResponderContext';
 /** Single-purpose ref hook: merges the consumer's ref with any ancestor `<PressResponder>`'s ref. Kept separate from `usePressResponderProps` so React Compiler can verify the ref flow narrowly. */
 function useResponderRef(consumerRef: PressableProps['ref']): PressableProps['ref'] {
     const responder = use(PressResponderContext);
-    if (!responder?.ref) {
+    if (!responder) {
         return consumerRef;
     }
     responder.registerRef();

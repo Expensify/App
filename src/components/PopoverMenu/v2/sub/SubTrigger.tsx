@@ -1,4 +1,5 @@
 import React from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import type {MenuItemForwardProps} from '@components/PopoverMenu/v2/rows/types';
@@ -14,21 +15,31 @@ type SubTriggerOwnProps = {
     disabled?: boolean;
     rightIcon?: IconAsset;
     testID?: string;
+    /** Call `event.preventDefault()` to gate drilling into the sub. */
+    onPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 };
 
 type SubTriggerProps = SubTriggerOwnProps & MenuItemForwardProps;
 
 /** For non-`MenuItem` shapes, call `useSubTrigger()` directly. */
-function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconHeight, ...rest}: SubTriggerProps): React.ReactElement | null {
+function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconHeight, onPress: consumerOnPress, ...rest}: SubTriggerProps): React.ReactElement | null {
     useSubContext(SubTrigger.displayName);
     useContentSubActions(SubTrigger.displayName);
 
-    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubTrigger({disabled, text});
+    const {ref, focused, onPress: enterSub, onFocus, isAtActiveLevel} = useSubTrigger({disabled, text});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     if (!isAtActiveLevel) {
         return null;
     }
+
+    const handlePress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        consumerOnPress?.(event);
+        if (event?.defaultPrevented) {
+            return;
+        }
+        enterSub();
+    };
 
     return (
         <MenuItem
@@ -42,7 +53,7 @@ function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconH
             interactive
             iconRight={rightIcon ?? icons.ArrowRight}
             shouldShowRightIcon
-            onPress={onPress}
+            onPress={handlePress}
             onFocus={onFocus}
             focused={focused}
             shouldCheckActionAllowedOnPress={false}

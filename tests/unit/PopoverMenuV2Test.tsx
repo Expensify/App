@@ -1359,6 +1359,39 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Sub option')).toBeUndefined();
         });
 
+        it("Sub.Trigger runs consumer onPress before drilling; event.preventDefault() gates the drill (parity with Trigger's contract)", () => {
+            const consumerOnPress = jest.fn((event: {preventDefault: () => void}) => event.preventDefault());
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Sub id="sub-gated">
+                            <PopoverMenu.Sub.Trigger
+                                text="Drill"
+                                onPress={consumerOnPress}
+                            />
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Sub.BackButton text="Back" />
+                                <PopoverMenu.Item
+                                    text="Inner"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            const event = {
+                defaultPrevented: false,
+                preventDefault() {
+                    event.defaultPrevented = true;
+                },
+            };
+            act(() => findItemByTitle('Drill')?.onPress?.(event));
+            expect(consumerOnPress).toHaveBeenCalledTimes(1);
+            expect(event.defaultPrevented).toBe(true);
+            expect(findItemByTitle('Inner')).toBeUndefined();
+        });
+
         it('selecting a sub item closes the menu by default', () => {
             const onOpenChange = jest.fn();
             render(

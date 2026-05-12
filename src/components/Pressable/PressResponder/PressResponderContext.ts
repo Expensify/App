@@ -16,7 +16,7 @@ type PressResponderContextValue = {
     accessibilityHasPopup?: AccessibilityHasPopup;
     nativeID?: string;
     accessibilityControls?: string | string[];
-    ref?: PressableProps['ref'];
+    ref: PressableProps['ref'];
     register: (kind: RegisterKind) => void;
     registerRef: () => void;
 };
