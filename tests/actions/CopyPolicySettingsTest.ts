@@ -304,7 +304,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(unitIDs.at(0)).not.toBe(sourceDistanceUnit.customUnitID);
                 expect(unitIDs.at(0)).toMatch(/^[0-9A-F]{13}$/);
                 // A freshly generated ID should be reused as the customUnitID inside the unit
-                expect(value.customUnits?.[unitIDs[0]]?.customUnitID).toBe(unitIDs.at(0));
+                expect(value.customUnits?.[unitIDs.at(0) ?? '']?.customUnitID).toBe(unitIDs.at(0));
             });
 
             it("preserves target's existing per-diem unit ID independently of distance", () => {
