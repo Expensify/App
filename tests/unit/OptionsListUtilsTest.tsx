@@ -4460,6 +4460,67 @@ describe('OptionsListUtils', () => {
                 expect(lastMessage).toBe('');
             });
 
+            it('should format non-expense IOU fallback with the requestor name when the latest visible action is not an IOU action', async () => {
+                const report: Report = {
+                    ...createRandomReport(0, undefined),
+                    reportID: 'iou-report-created-last-action',
+                    type: CONST.REPORT.TYPE.IOU,
+                    currency: CONST.CURRENCY.USD,
+                    transactionCount: 1,
+                    ownerAccountID: 1,
+                    managerID: CURRENT_USER_ACCOUNT_ID,
+                    isWaitingOnBankAccount: false,
+                };
+                const createdAction: ReportAction = {
+                    ...createRandomReportAction(17),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                    created: '2026-04-01 09:00:00.000',
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {},
+                };
+                const transaction: Transaction = {
+                    ...createRandomTransaction(1),
+                    amount: 2500,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: 'Coffee',
+                    modifiedMerchant: '',
+                };
+                const moneyRequestAction: ReportAction = {
+                    ...createRandomReportAction(18),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    actorAccountID: 1,
+                    created: '2026-04-01 10:00:00.000',
+                    message: [{type: 'COMMENT', text: ''}],
+                    originalMessage: {
+                        amount: -2500,
+                        currency: CONST.CURRENCY.USD,
+                        IOUTransactionID: transaction.transactionID,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    },
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                    [createdAction.reportActionID]: createdAction,
+                    [moneyRequestAction.reportActionID]: moneyRequestAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                const lastMessage = getLastMessageTextForReport({
+                    translate: translateLocal,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    lastAction: createdAction,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                });
+
+                expect(lastMessage).toBe('Mister Fantastic: $25.00 for Coffee');
+            });
+
             it('should fall back to the report currency when the canonical money request is missing currency', async () => {
                 const report: Report = {
                     ...createRandomReport(0, undefined),
