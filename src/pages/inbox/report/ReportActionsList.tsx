@@ -423,18 +423,6 @@ function ReportActionsList({
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
 
-    const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
-    const prevHasOnceLoadedReportActions = usePrevious(hasOnceLoadedReportActions);
-    const [shouldDisplayCreatedActionOnly, setShouldDisplayCreatedActionOnly] = useState(shouldFocusToTopOnMount && !hasOnceLoadedReportActions);
-
-    // Defer hiding the created-action-only view until the next frame so the full list in place, preventing a visual jump when report actions finish loading
-    useEffect(() => {
-        if (!shouldDisplayCreatedActionOnly || prevHasOnceLoadedReportActions || !hasOnceLoadedReportActions) {
-            return;
-        }
-        requestAnimationFrame(() => setShouldDisplayCreatedActionOnly(false));
-    }, [hasOnceLoadedReportActions, prevHasOnceLoadedReportActions, shouldDisplayCreatedActionOnly]);
-
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
         reportID: report.reportID,
         currentVerticalScrollingOffsetRef: scrollOffsetRef,
@@ -863,8 +851,6 @@ function ReportActionsList({
         loadOlderChats(false);
     }, [loadOlderChats]);
 
-    const data = shouldDisplayCreatedActionOnly ? renderedVisibleReportActions.slice(renderedVisibleReportActions.length - 1) : renderedVisibleReportActions;
-
     return (
         <>
             <FloatingMessageCounter
@@ -881,7 +867,7 @@ function ReportActionsList({
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={data}
+                    data={renderedVisibleReportActions}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
@@ -905,8 +891,11 @@ function ReportActionsList({
                     }}
                     getItemType={(item) => item.actionName}
                     shouldMaintainVisibleContentPosition={shouldMaintainVisibleContentPosition}
-                    initialScrollIndex={shouldFocusToTopOnMount ? data.length - 1 : undefined}
+                    initialScrollIndex={shouldFocusToTopOnMount ? renderedVisibleReportActions.length - 1 : undefined}
                     initialScrollIndexParams={shouldFocusToTopOnMount ? {viewOffset: windowHeight} : undefined}
+                    maintainVisibleContentPosition={
+                        shouldFocusToTopOnMount ? {autoscrollToBottomThreshold: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD, animateAutoScrollToBottom: false} : undefined
+                    }
                     initialScrollKey={initialScrollKey}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
