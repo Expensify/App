@@ -55,7 +55,6 @@ function ComposerSendButton({reportID}: {reportID: string}) {
                         icon={icons.Send}
                         label={translate('common.send')}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT.SEND_BUTTON}
-                        onPress={submitDraftAndClearComposer}
                         // Since the parent View has accessible, we need to set accessible to false here to avoid duplicate accessibility elements.
                         // On Android when TalkBack is enabled, only the parent element should be accessible, otherwise the button will not work.
                         accessible={false}
