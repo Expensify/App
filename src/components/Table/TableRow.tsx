@@ -73,7 +73,7 @@ export default function TableRow<DataType>({
         isInteractive && styles.userSelectNone,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
-        !shouldUseNarrowTableLayout && !isLoading && styles.pv3,
+        !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         isLastRow ? styles.tableBottomRadius : styles.borderBottom,
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
     ];
