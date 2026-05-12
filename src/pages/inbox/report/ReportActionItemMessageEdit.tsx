@@ -161,6 +161,19 @@ function ReportActionItemMessageEdit({
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close']);
 
     useEffect(() => {
+        focusComposerWithDelay(textInputRef.current)(true);
+    }, []);
+
+    // If the underlying action becomes deleted while the user has it open in
+    // edit mode, clean up the draft so a stale draft does not linger.
+    useEffect(() => {
+        if (!isDeletedAction(action)) {
+            return;
+        }
+        deleteReportActionDraft(reportID, action);
+    }, [action, reportID]);
+
+    useEffect(() => {
         draftMessageVideoAttributeCache.clear();
 
         const originalMessage = Parser.htmlToMarkdown(getReportActionHtml(action), {
