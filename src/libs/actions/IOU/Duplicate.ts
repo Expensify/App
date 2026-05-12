@@ -22,7 +22,9 @@ import {
     buildTransactionThread,
     canAddTransaction,
     generateReportID,
+    getReportOrDraftReport,
     getTransactionDetails,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -45,7 +47,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getMoneyRequestParticipantsFromReport} from '.';
+import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getMoneyRequestParticipantsFromReport, getMoneyRequestPolicyTags} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import type {RequestMoneyInformation} from './MoneyRequestBuilder';
 import type {PerDiemExpenseInformation} from './PerDiem';
@@ -646,11 +648,22 @@ function createExpenseByType({
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
+            const isMoneyRequestReport = isMoneyRequestReportReportUtils(params.report);
+            const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(params.report?.chatReportID) : params.report;
+            const moneyRequestReportID = isMoneyRequestReport ? params.report?.reportID : '';
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const policyTagList = getMoneyRequestPolicyTags({
+                existingIOUReport: params.existingIOUReport,
+                moneyRequestReportID,
+                parentChatReport: currentChatReport,
+                participant: participants.at(0) ?? {},
+            });
             const distanceParams: CreateDistanceRequestInformation = {
                 ...params,
                 participants,
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
+                policyParams: {...params.policyParams, policyTagList},
                 existingTransaction: {
                     ...(params.transactionParams ?? {}),
                     comment: {

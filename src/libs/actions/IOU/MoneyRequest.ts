@@ -13,7 +13,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
-import {generateReportID, getPolicyExpenseChat, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
+import {
+    generateReportID,
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isSelfDM,
+} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -51,6 +58,7 @@ import type {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transac
 import type {GpsPoint, IOURequestType} from './index';
 import {
     getMoneyRequestParticipantsFromReport,
+    getMoneyRequestPolicyTags,
     setCustomUnitRateID,
     setMoneyRequestDistance,
     setMoneyRequestMerchant,
@@ -726,6 +734,16 @@ function handleMoneyRequestStepDistanceNavigation({
                 return;
             }
 
+            const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+            const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+            const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const policyTagList = getMoneyRequestPolicyTags({
+                moneyRequestReportID,
+                parentChatReport: currentChatReport,
+                participant: participants.at(0) ?? {},
+            });
+
             createDistanceRequest({
                 report,
                 participants,
@@ -761,6 +779,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 recentWaypoints,
                 betas,
                 previousOdometerDraft,
+                policyParams: {policyTagList},
             });
             return;
         }

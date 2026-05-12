@@ -25,7 +25,14 @@ import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterEx
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {
+    findSelfDMReportID,
+    generateReportID,
+    getReportOrDraftReport,
+    hasViolations as hasViolationsReportUtils,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isSelectedManagerMcTest,
+} from '@libs/ReportUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {
@@ -176,6 +183,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Policy-scoped Onyx data
     const policyID = policy?.id;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const [policyRecentlyUsedCurrenciesOnyx] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -187,6 +195,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
     const reportTransactions = useReportTransactions(report?.reportID);
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`);
 
     // Invoice data
     const receiverParticipant = transaction?.participants?.find((p) => p?.accountID) ?? report?.invoiceReceiver;
@@ -399,7 +412,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 shouldHandleNavigation: shouldHandleNav,
             });
         } else {
-            const isExpenseReport = isMoneyRequestReport(report);
+            const isExpenseReport = isMoneyRequestReportReportUtils(report);
             let existingChatReport = report;
             if (isExpenseReport) {
                 existingChatReport = getReportOrDraftReport(report?.chatReportID);
@@ -545,6 +558,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
+        const iouReportPolicyID =
+            (moneyRequestReportID ? moneyRequestReport?.policyID : undefined) ??
+            currentChatReport?.policyID ??
+            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedParticipantsArg.at(0)?.reportID}`]?.policyID;
+        const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${iouReportPolicyID}`];
+
         createDistanceRequestIOUActions({
             report,
             participants: selectedParticipantsArg,
@@ -555,7 +574,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             policyParams: {
                 policy,
                 policyCategories,
-                policyTagList: policyTags,
+                policyTagList,
                 policyRecentlyUsedCategories,
                 policyRecentlyUsedTags,
             },
