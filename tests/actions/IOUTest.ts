@@ -8,7 +8,6 @@ import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {
-    initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
@@ -21,6 +20,7 @@ import {
     setMoneyRequestTag,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
+import {initMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {calculateDiffAmount} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
 import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
