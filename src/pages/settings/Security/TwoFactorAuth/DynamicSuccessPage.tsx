@@ -17,8 +17,9 @@ import {quitAndNavigateBack} from '@userActions/TwoFactorAuthActions';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
@@ -37,9 +38,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
     const goBack = useCallback(() => {
-        // we need redirect to 2fa here not to security
-        // and we need to rename this page to dynamic success page
-        quitAndNavigateBack(dynamicBackPath ?? ROUTES.SETTINGS_SECURITY);
+        quitAndNavigateBack(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, dynamicBackPath));
     }, [dynamicBackPath]);
 
     return (

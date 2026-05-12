@@ -95,6 +95,7 @@ function CopyCodesPage({navigateBackTo}: CopyCodesPageProps) {
             }}
             shouldEnableKeyboardAvoidingView={false}
             stepName={CONST.TWO_FACTOR_AUTH_STEPS.COPY_CODES}
+            // verify here
             onBackButtonPress={() => quitAndNavigateBack(backPath)}
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>

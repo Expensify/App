@@ -75,6 +75,7 @@ function Finish() {
                         {
                             title: translate('finishStep.secure'),
                             onPress: () => {
+                                // hmm
                                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID})));
                             },
                             icon: icons.Shield,

@@ -33,6 +33,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
                 {
                     title: translate('connectBankAccountStep.secureYourAccount'),
                     // Assuming user is validated here, validation is checked at the beginning of ConnectBank Flow
+                    // hmm
                     onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID}))),
                     icon: icons.Shield,
                     shouldShowRightIcon: true,
