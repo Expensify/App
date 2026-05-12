@@ -67,14 +67,6 @@ import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 
-let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    },
-});
-
 type DomainOnyxUpdate =
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>
     | OnyxUpdate<`${typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${string}`>
@@ -674,7 +666,7 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 
 function triggerNotifications<TKey extends OnyxKey>(
     onyxUpdates: Array<OnyxServerUpdate<TKey>>,
-    currentUserAccountIDParam: number,
+    currentUserAccountID: number,
     currentUserEmail: string,
     reportAttributes?: ReportAttributesDerivedValue['reports'],
 ) {
@@ -689,27 +681,27 @@ function triggerNotifications<TKey extends OnyxKey>(
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentUserEmail
-                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentUserEmail, reportAttributes);
+                showReportActionNotification(reportID, action, currentUserAccountID, currentUserEmail, reportAttributes);
             }
         }
     }
 }
 
-const isChannelMuted = (reportId: string, currentUserAccountIDParam: number) =>
+const isChannelMuted = (reportId: string, currentUserAccountID: number) =>
     new Promise((resolve) => {
         // We use `connectWithoutView` here since this connection is non-reactive in nature.
         const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
                 Onyx.disconnect(connection);
-                const notificationPreference = report?.participants?.[currentUserAccountIDParam]?.notificationPreference;
+                const notificationPreference = report?.participants?.[currentUserAccountID]?.notificationPreference;
 
                 resolve(!notificationPreference || notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE || ReportUtils.isHiddenForCurrentUser(notificationPreference));
             },
         });
     });
 
-function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number, currentUserEmail: string) {
+function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServerUpdate<TKey>>, currentUserAccountID: number, currentUserEmail: string) {
     const reportActionsOnly = pushJSON.filter((update) => update.key?.includes('reportActions_'));
     // "reportActions_5134363522480668" -> "5134363522480668"
     const reportID = reportActionsOnly
@@ -720,7 +712,7 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
         return;
     }
 
-    isChannelMuted(reportID, currentUserAccountIDParam).then((isSoundMuted) => {
+    isChannelMuted(reportID, currentUserAccountID).then((isSoundMuted) => {
         if (isSoundMuted) {
             return;
         }
@@ -799,13 +791,13 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
 let pongHasBeenMissed = false;
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
-function subscribeToPusherPong(currentUserAccountIDParam: number) {
+function subscribeToPusherPong(currentUserAccountID: number) {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
-    if (!currentUserAccountIDParam) {
+    if (!currentUserAccountID) {
         return;
     }
 
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountIDParam.toString(), (pushJSON) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.PONG, currentUserAccountID.toString(), (pushJSON) => {
         Log.info(`[Pusher PINGPONG] Received a PONG event from the server`, false, pushJSON);
         lastPongReceivedTimestamp = Date.now();
 
@@ -879,7 +871,7 @@ function checkForLatePongReplies() {
 
 let pingPusherIntervalID: ReturnType<typeof setInterval>;
 let checkForLatePongRepliesIntervalID: ReturnType<typeof setInterval>;
-function initializePusherPingPong(currentUserAccountIDParam: number) {
+function initializePusherPingPong(currentUserAccountID: number) {
     // Only run the ping pong from the leader client
     if (!ActiveClientManager.isClientTheLeader()) {
         Log.info("[Pusher PINGPONG] Not starting PING PONG because this instance isn't the leader client");
@@ -890,7 +882,7 @@ function initializePusherPingPong(currentUserAccountIDParam: number) {
 
     // Subscribe to the pong event from Pusher. Unfortunately, there is no way of knowing when the client is actually subscribed
     // so there could be a little delay before the client is actually listening to this event.
-    subscribeToPusherPong(currentUserAccountIDParam);
+    subscribeToPusherPong(currentUserAccountID);
 
     // If things are initializing again (which is fine because it will reinitialize each time Pusher authenticates), clear the old intervals
     if (pingPusherIntervalID) {
@@ -916,15 +908,15 @@ function initializePusherPingPong(currentUserAccountIDParam: number) {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number, currentUserEmail: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
+function subscribeToUserEvents(currentUserAccountID: number, currentUserEmail: string, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
-    if (!currentUserAccountIDParam) {
+    if (!currentUserAccountID) {
         return;
     }
 
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
-    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountIDParam.toString(), (pushJSON) => {
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
         const pushEventData = pushJSON;
         // If this is not the main client, we shouldn't process any data received from pusher.
         if (!ActiveClientManager.isClientTheLeader()) {
@@ -949,7 +941,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, currentUserEma
     // See https://github.com/Expensify/App/issues/57961 for more details
     const debouncedPlaySoundForMessageType = debounce(
         (pushJSONMessage: AnyOnyxServerUpdate[]) => {
-            playSoundForMessageType(pushJSONMessage, currentUserAccountIDParam, currentUserEmail);
+            playSoundForMessageType(pushJSONMessage, currentUserAccountID, currentUserEmail);
         },
         CONST.TIMING.PLAY_SOUND_MESSAGE_DEBOUNCE_TIME,
         {trailing: true},
@@ -962,7 +954,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, currentUserEma
         return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) or this is not the
             // main client we don't want to update Onyx with data from Pusher
-            if (!currentUserAccountIDParam) {
+            if (!currentUserAccountID) {
                 return;
             }
             if (!ActiveClientManager.isClientTheLeader()) {
@@ -971,7 +963,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, currentUserEma
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam, currentUserEmail, getReportAttributes?.());
+                triggerNotifications(pushJSON, currentUserAccountID, currentUserEmail, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -987,7 +979,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number, currentUserEma
         return Promise.resolve();
     });
 
-    initializePusherPingPong(currentUserAccountIDParam);
+    initializePusherPingPong(currentUserAccountID);
 }
 
 /**
@@ -1232,13 +1224,13 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
 /**
  * Sets a custom status
  */
-function updateCustomStatus(currentUserAccountIDParam: number, status: Status) {
+function updateCustomStatus(currentUserAccountID: number, status: Status) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountIDParam]: {
+                [currentUserAccountID]: {
                     status,
                 },
             },
@@ -1255,13 +1247,13 @@ function updateCustomStatus(currentUserAccountIDParam: number, status: Status) {
 /**
  * Clears the custom status
  */
-function clearCustomStatus(currentUserAccountIDParam: number) {
+function clearCustomStatus(currentUserAccountID: number) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountIDParam]: {
+                [currentUserAccountID]: {
                     status: null, // Clearing the field
                 },
             },
@@ -1365,7 +1357,7 @@ function setShouldShowBranchNameInTitle(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
 }
 
-function lockAccount(accountID?: number, domainAccountID?: number, domainName?: string) {
+function lockAccount(currentUserAccountID: number, accountID: number | undefined, domainAccountID: number | undefined, domainName: string | undefined) {
     let domainOptimisticData: DomainOnyxUpdate[] = [];
     let domainFailureData: DomainOnyxUpdate[] = [];
     let domainSuccessData: DomainOnyxUpdate[] = [];

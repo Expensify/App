@@ -35,11 +35,25 @@ type SingleSelectProps<T> = {
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
 
+    /** Custom height for each item in the list */
+    itemHeight?: number;
+
     hasTitle?: boolean;
     hasHeader?: boolean;
 };
 
-function SingleSelect<T extends string>({value, items, isSearchable, searchPlaceholder, selectionListStyle, shouldShowList = true, hasTitle, hasHeader, onChange}: SingleSelectProps<T>) {
+function SingleSelect<T extends string>({
+    value,
+    items,
+    isSearchable,
+    searchPlaceholder,
+    selectionListStyle,
+    shouldShowList = true,
+    hasTitle,
+    hasHeader,
+    onChange,
+    itemHeight,
+}: SingleSelectProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
@@ -99,7 +113,7 @@ function SingleSelect<T extends string>({value, items, isSearchable, searchPlace
             hasHeader={hasHeader}
             hasTitle={hasTitle}
             isSearchable={isSearchable}
-            itemHeight={variables.optionRowHeight}
+            itemHeight={itemHeight ?? variables.optionRowHeight}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                 <SelectionList
@@ -108,7 +122,11 @@ function SingleSelect<T extends string>({value, items, isSearchable, searchPlace
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
-                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                    style={{
+                        contentContainerStyle: [styles.pb0],
+                        ...selectionListStyle,
+                        listItemWrapperStyle: [itemHeight !== undefined && {minHeight: itemHeight}, selectionListStyle?.listItemWrapperStyle],
+                    }}
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
