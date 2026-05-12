@@ -23,6 +23,7 @@ const useNavigation = isJestEnv
           getState: () => ({
               routes: [],
           }),
+          isFocused: () => true,
           addListener,
       });
 
