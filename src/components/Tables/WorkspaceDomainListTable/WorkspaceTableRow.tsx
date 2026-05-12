@@ -213,7 +213,7 @@ export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex
                                     </Text>
                                 </View>
 
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3, styles.wAuto]}>
                                     {!item.isJoinRequestPending && (
                                         <View style={[styles.flexRow, styles.gap1]}>
                                             {item.brickRoadIndicator && BrickRoadIndicator}
