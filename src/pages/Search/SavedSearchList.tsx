@@ -28,6 +28,7 @@ import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
 type SavedSearchListProps = {
     hash: number | undefined;
+    areAllSectionsExpanded: boolean;
 };
 
 type SavedSearchMenuItemBuilderParams = {
@@ -89,7 +90,7 @@ function buildSavedSearchMenuItem({
     };
 }
 
-function SavedSearchList({hash}: SavedSearchListProps) {
+function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -111,7 +112,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
         renderProductTrainingTooltip: renderSavedSearchTooltip,
         hideProductTrainingTooltip: hideSavedSearchTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused);
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused && areAllSectionsExpanded);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan']);
 

@@ -29,6 +29,7 @@ import type {
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {
+    DecisionName,
     JoinWorkspaceResolution,
     OriginalMessageChangeLog,
     OriginalMessageExportIntegration,
@@ -220,7 +221,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
     const isLegacyDeletedComment = message.length === 0 || message.at(0)?.html === '';
 
-    return isLegacyDeletedComment || !!message.at(0)?.deleted || (!!originalMessage && 'deleted' in originalMessage && !!originalMessage?.deleted);
+    return isLegacyDeletedComment || !!message.at(0)?.deleted || (!!originalMessage && typeof originalMessage === 'object' && 'deleted' in originalMessage && !!originalMessage?.deleted);
 }
 
 /**
@@ -257,6 +258,23 @@ function isReversedTransaction(reportAction: OnyxInputOrEntry<ReportAction | Opt
 
 function isPendingRemove(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return getReportActionMessage(reportAction)?.moderationDecision?.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+}
+
+/**
+ * Derives the moderation decision and whether the action is flagged from the action itself.
+ * Used by leaves that previously received the equivalent values as props from PureReportActionItem.
+ */
+function getModerationFlagState(reportAction: OnyxInputOrEntry<ReportAction>): {latestDecision: DecisionName | undefined; hasBeenFlagged: boolean} {
+    // Moderation only applies to ADD_COMMENT actions
+    if (reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
+        return {latestDecision: undefined, hasBeenFlagged: false};
+    }
+    const latestDecision = getReportActionMessage(reportAction)?.moderationDecision?.decision;
+    const hasBeenFlagged =
+        !!latestDecision &&
+        ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === latestDecision) &&
+        !isPendingRemove(reportAction);
+    return {latestDecision, hasBeenFlagged};
 }
 
 function isMoneyRequestAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
@@ -420,10 +438,16 @@ function isCardBrokenConnectionAction(reportAction: OnyxInputOrEntry<ReportActio
 }
 
 function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputOrEntry<ReportAction<T>>): OriginalMessage<T> | undefined {
-    if (!Array.isArray(reportAction?.message)) {
-        return reportAction?.message ?? reportAction?.originalMessage;
+    const candidate = !Array.isArray(reportAction?.message) ? (reportAction?.message ?? reportAction?.originalMessage) : reportAction?.originalMessage;
+
+    // Some legacy/OldDot report actions (e.g. card-imported expense updates) store a plain notification
+    // string in `message`/`originalMessage` instead of the object shape declared by `OriginalMessage<T>`.
+    // Downstream callers use the JS `in` operator on the result, which throws a TypeError on non-objects.
+    // Normalize non-object values to undefined so the runtime matches the declared TypeScript contract.
+    if (candidate === null || typeof candidate !== 'object') {
+        return undefined;
     }
-    return reportAction?.originalMessage;
+    return candidate as OriginalMessage<T>;
 }
 
 function getCardConnectionBrokenMessage(card: Card | undefined, originalCardName: string | undefined, translate: LocaleContextProps['translate'], connectionLink?: string) {
@@ -767,12 +791,7 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
  * Returns a sorted and filtered list of report actions from a report and it's associated child
  * transaction thread report in order to correctly display reportActions from both reports in the one-transaction report view.
  */
-function getCombinedReportActions(
-    reportActions: ReportAction[],
-    transactionThreadReportID: string | null,
-    transactionThreadReportActions: ReportAction[],
-    reportID?: string,
-): ReportAction[] {
+function getCombinedReportActions(reportActions: ReportAction[], transactionThreadReportID: string | null, transactionThreadReportActions: ReportAction[], isSelfDM = false): ReportAction[] {
     const isSentMoneyReport = reportActions.some((action) => isSentMoneyReportAction(action));
 
     // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
@@ -795,8 +814,6 @@ function getCombinedReportActions(
         filteredParentReportActions = reportActions?.filter((action) => action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
     }
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
     const filteredReportActions = [...filteredParentReportActions, ...filteredTransactionThreadReportActions].filter((action) => {
         if (!isMoneyRequestAction(action)) {
@@ -1130,7 +1147,7 @@ const supportedActionTypes = new Set<ReportActionName>([...Object.values(otherAc
  * Checks whether an action is actionable track expense and resolved.
  *
  */
-function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>, allActionsForReport?: OnyxEntry<ReportActions>): boolean {
+function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>): boolean {
     const originalMessage = getOriginalMessage(reportAction);
     if (!originalMessage || typeof originalMessage !== 'object') {
         return false;
@@ -1143,25 +1160,6 @@ function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>, allA
     const deleted = 'deleted' in originalMessage ? originalMessage?.deleted : null;
     if (!deleted) {
         return false;
-    }
-
-    // For mention whispers, only treat as deleted if the parent comment is also deleted.
-    // This distinguishes cascade deletion (parent deleted -> whisper should hide) from
-    // the backend's one-per-user cleanup (parent still exists -> whisper should stay visible).
-    if (reportAction?.reportActionID && (isActionableMentionWhisper(reportAction) || isActionableReportMentionWhisper(reportAction))) {
-        const reportID = reportAction.reportID;
-        const actions = allActionsForReport ?? (reportID ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] : undefined);
-        if (actions) {
-            // Prefer the stored reportActionID from the whisper's originalMessage when available (set for
-            // whispers created during message edits, which don't follow the parentID+1 ID convention).
-            // Fall back to offset arithmetic for legacy whispers that predate this field.
-            const storedParentID = isActionableMentionWhisper(reportAction) ? (originalMessage as {parentReportActionID?: string}).parentReportActionID : undefined;
-            const parentActionID = storedParentID ?? String(BigInt(reportAction.reportActionID) - (isActionableReportMentionWhisper(reportAction) ? 2n : 1n));
-            const parentAction = actions[parentActionID];
-            if (parentAction && !isDeletedAction(parentAction)) {
-                return false;
-            }
-        }
     }
 
     return true;
@@ -1189,13 +1187,7 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
-function shouldReportActionBeVisible(
-    reportAction: OnyxEntry<ReportAction>,
-    key: string | number,
-    canUserPerformWriteAction?: boolean,
-    reportsParam?: OnyxCollection<Report>,
-    allActionsForReport?: OnyxEntry<ReportActions>,
-): boolean {
+function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key: string | number, canUserPerformWriteAction?: boolean, reportsParam?: OnyxCollection<Report>): boolean {
     if (!reportAction) {
         return false;
     }
@@ -1275,7 +1267,7 @@ function shouldReportActionBeVisible(
     }
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
-    if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction, allActionsForReport)) {
+    if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction)) {
         return false;
     }
 
@@ -1319,27 +1311,22 @@ function isReportActionVisible(
         return false;
     }
 
-    // Look up all actions for this report so the parent-check in isResolvedActionableWhisper
-    // can determine whether a whisper's `deleted` flag reflects a real cascade deletion
-    // (parent comment deleted) vs. the backend's one-per-user cleanup (parent still exists).
-    const reportActionsForReport = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-
     // Actions with pendingAction are optimistic or in-flight, so their visibility may differ
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
+        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
+            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
         }
         if (!staticVisibility) {
             return false;
@@ -1349,7 +1336,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction);
 }
 
 /**
@@ -2366,13 +2353,6 @@ function getUpdateRoomDescriptionFragment(translate: LocalizedTranslate, reportA
 }
 
 function getReportActionMessageFragments(translate: LocalizedTranslate, action: ReportAction): Message[] {
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-        const reportID = action.reportID;
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        const message = getReimbursedMessage(translate, action, report, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
-        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
-    }
-
     if (isOldDotReportAction(action)) {
         const oldDotMessage = getMessageOfOldDotReportAction(translate, action);
         const html = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT) ? Parser.replace(oldDotMessage) : oldDotMessage;
@@ -4664,6 +4644,7 @@ export {
     isOldDotReportAction,
     isPayAction,
     isPendingRemove,
+    getModerationFlagState,
     isPolicyChangeLogAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,

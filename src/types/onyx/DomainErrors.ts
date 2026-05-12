@@ -79,6 +79,11 @@ type DomainSecurityGroupErrors = {
      * Errors related to the restricted default login selection
      */
     enableRestrictedPrimaryLoginErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the override preferred policy with card policy setting
+     */
+    overridePreferredPolicyWithCardPolicyErrors?: OnyxCommon.Errors;
 };
 
 /**

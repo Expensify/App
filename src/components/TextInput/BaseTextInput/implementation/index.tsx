@@ -60,6 +60,7 @@ function BaseTextInput({
     hideFocusedState = false,
     maxLength = undefined,
     hint = '',
+    shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
     shouldInterceptSwipe = false,
@@ -583,6 +584,7 @@ function BaseTextInput({
                         nativeID={helpMessageTextID}
                         isError={!!errorText}
                         message={inputHelpText}
+                        shouldRenderMessageAsHTML={!errorText && shouldRenderHintAsHTML}
                     />
                 )}
             </View>

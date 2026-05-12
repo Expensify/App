@@ -441,6 +441,10 @@ const staticStyles = (theme: ThemeColors) =>
             verticalAlign: 'top',
         },
 
+        textAlignVerticalTop: {
+            textAlignVertical: 'top',
+        },
+
         lineHeightUndefined: {
             lineHeight: undefined,
         },
@@ -5632,6 +5636,12 @@ const staticStyles = (theme: ThemeColors) =>
         todoBadge: {
             alignItems: 'center',
             justifyContent: 'center',
+        },
+
+        searchSectionBadge: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: 16,
         },
 
         stickToBottom: {

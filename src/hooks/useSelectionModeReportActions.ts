@@ -114,6 +114,7 @@ function useSelectionModeReportActions({
     const {isOffline} = useNetwork();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [invoiceReceiverPolicy] = useOnyx(
@@ -163,7 +164,7 @@ function useSelectionModeReportActions({
     const nonPendingDeleteTransactions = transactions.filter((t): t is OnyxTypes.Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE));
 
     const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
-        canIOUBePaidAction(report, chatReport, policy, bankAccountList, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy);
+        canIOUBePaidAction(report, chatReport, policy, bankAccountList, currentUserLogin ?? '', currentUserAccountID, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy);
 
     const canIOUBePaid = getCanIOUBePaid();
     const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
@@ -396,6 +397,7 @@ function useSelectionModeReportActions({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                conciergeReportID,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

@@ -28,6 +28,7 @@ import {
     getClearedPendingFields,
     getMerchant,
     getUpdatedTransaction,
+    haveWaypointAddressesChanged,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isFetchingWaypointsFromServer,
     isOnHold,
@@ -46,16 +47,8 @@ import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Routes, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {UpdateMoneyRequestData} from '.';
-import {
-    getAllReports,
-    getAllTransactions,
-    getAllTransactionViolations,
-    getPolicyTagsData,
-    getRecentAttendees,
-    getUpdatedMoneyRequestReportData,
-    mergePolicyRecentlyUsedCategories,
-    mergePolicyRecentlyUsedCurrencies,
-} from '.';
+import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTagsData, getRecentAttendees} from '.';
+import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
 
 type UpdateMoneyRequestDateParams = {
     transactionID: string;
@@ -530,7 +523,10 @@ function updateMoneyRequestDistance({
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
         // Sanitization happens when building API params
         ...(waypoints && {waypoints}),
-        routes,
+        // Only include routes when the caller explicitly provided them. Including `routes: undefined`
+        // would make the optimistic merge wipe the existing route, briefly blanking the map thumbnail
+        // and report preview before the server response restores it.
+        ...(routes !== undefined && {routes}),
         ...(distance && {distance}),
         ...(odometerStart !== undefined && {odometerStart}),
         ...(odometerEnd !== undefined && {odometerEnd}),
@@ -975,20 +971,53 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         >
     > = [];
 
-    // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
-    const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
-    const clearedPendingFields = getClearedPendingFields(transactionChanges);
-    const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]));
-
-    // Step 2: Get all the collections being updated
+    // Step 1: Get the transaction being updated
     const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+    // The manual-distance submit path always sends waypoints to keep the BE in sync, even when the user
+    // only edited the distance number. Detect whether the addresses actually changed so we can skip the
+    // optimistic side effects (pending field, route clearing, render-path swap to interactive map) that
+    // would otherwise make the parent map briefly disappear on a pure distance edit.
+    const hasWaypointAddressesChanged = 'waypoints' in transactionChanges && haveWaypointAddressesChanged(transaction?.comment?.waypoints, transactionChanges.waypoints);
+    const shouldSuppressWaypointsAsPending = 'waypoints' in transactionChanges && !hasWaypointAddressesChanged;
+
+    // Step 2: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
+    const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(
+        Object.keys(transactionChanges)
+            .filter((key) => !(shouldSuppressWaypointsAsPending && key === 'waypoints'))
+            .map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]),
+    );
+    // Flag `merchant` as pending on any edit that causes the BE to regenerate the receipt
+    // (waypoints / distance / rate). It bridges the gap between API ack and the Pusher push that
+    // delivers the new `receipt.source`, keeping `ReportActionItemImage` on `ConfirmedRoute` so the
+    // stale receipt URL doesn't briefly render. It also drives the Distance row's offline-feedback
+    // strikethrough for pure distance edits.
+    const shouldFlagMerchantPending = 'waypoints' in transactionChanges || 'distance' in transactionChanges || 'customUnitRateID' in transactionChanges;
+    if (shouldFlagMerchantPending) {
+        pendingFields.merchant = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    }
+    const clearedPendingFields = getClearedPendingFields(transactionChanges);
+    // `getClearedPendingFields` only clears `merchant` for distance edits, so when we artificially
+    // flag it for waypoint/rate edits we must also clear it here. Otherwise the flag persists past
+    // API ack if the Pusher receipt push is missed/delayed (e.g. flaky subscription, incognito),
+    // leaving the receipt frame stuck on `ConfirmedRoute` instead of switching to the new image.
+    if (shouldFlagMerchantPending) {
+        clearedPendingFields.merchant = null;
+    }
+    const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]));
 
     const isTransactionOnHold = isOnHold(transaction);
     const isFromExpenseReport = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
+    // Drop the waypoints from the changes fed to getUpdatedTransaction when they didn't actually change,
+    // so we skip the waypoints branch that flips isLoading and clobbers amount/merchant before being
+    // re-overridden by the distance branch.
+    const transactionChangesForOptimisticMerge: TransactionChanges = shouldSuppressWaypointsAsPending
+        ? Object.fromEntries(Object.entries(transactionChanges).filter(([key]) => key !== 'waypoints'))
+        : transactionChanges;
     const updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction
         ? getUpdatedTransaction({
               transaction,
-              transactionChanges,
+              transactionChanges: transactionChangesForOptimisticMerge,
               isFromExpenseReport,
               isSplitTransaction,
               policy,
@@ -1002,6 +1031,12 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     }
 
     const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => key in transactionChanges));
+
+    // Preserve the caller's full-precision distance so the server doesn't fire `increasedDistance`
+    // when the rounded display value drifts above the exact route distance.
+    if ('distance' in transactionChanges && typeof transactionChanges.distance === 'number') {
+        dataToIncludeInParams.distance = transactionChanges.distance;
+    }
 
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
@@ -1017,6 +1052,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // For split transactions, the merchant and amount are already computed in transactionChanges,
     // so we can build a valid optimistic MODIFIED_EXPENSE even when waypoints are pending.
     const hasSplitDistanceMessageFields = !!isSplitTransaction && hasModifiedMerchant && hasModifiedAmount;
+    // When distance is provided alongside waypoints (route was already calculated), we have valid
+    // merchant/amount data to build the optimistic report action instead of waiting for the server.
+    const hasDistanceWithWaypoints = hasPendingWaypoints && 'distance' in transactionChanges;
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
@@ -1052,7 +1090,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
         ? buildOptimisticModifiedExpenseReportAction(transactionThreadReport, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative)
         : null;
-    if ((!hasPendingWaypoints || hasSplitDistanceMessageFields) && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
+    if (
+        (!hasPendingWaypoints || hasSplitDistanceMessageFields || hasDistanceWithWaypoints) &&
+        !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) &&
+        updatedReportAction
+    ) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
@@ -1264,7 +1306,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         apiParams.attendees = JSON.stringify(apiParams?.attendees);
     }
 
-    // Clear out the error fields and loading states on success
+    // Clear out the error fields and loading states on success. Keep `routes`: the BE never returns it,
+    // so it's the only source `ConfirmedRoute`/the preview can draw the map from while the receipt
+    // regenerates after a rate/distance edit (GH #90057); a waypoint edit clears + re-fetches it anyway.
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -1272,7 +1316,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
-            routes: null,
         },
     });
 
@@ -1341,9 +1384,13 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         if (hasPendingWaypoints) {
             optimisticViolations = optimisticViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.NO_ROUTE);
         }
-        if (hasModifiedDistanceRate || hasModifiedDistance) {
+        if (hasModifiedDistanceRate || hasModifiedDistance || hasPendingWaypoints) {
+            // Clear stale distance-related violations while the server reprocesses.
+            // The server will re-evaluate and re-add any that legitimately apply.
             optimisticViolations = optimisticViolations.filter(
-                (violation) => !(violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && violation.data?.type === CONST.MODIFIED_AMOUNT_VIOLATION_DATA.DISTANCE),
+                (violation) =>
+                    !(violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && violation.data?.type === CONST.MODIFIED_AMOUNT_VIOLATION_DATA.DISTANCE) &&
+                    violation.name !== CONST.VIOLATIONS.INCREASED_DISTANCE,
             );
         }
 
@@ -1619,7 +1666,7 @@ function getUpdateTrackExpenseParams(
         });
     }
 
-    // Clear out the error fields and loading states on success
+    // Clear out the error fields and loading states on success. Keep `routes` (see `getUpdateMoneyRequestParams`) — GH #90057.
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -1627,7 +1674,6 @@ function getUpdateTrackExpenseParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
-            routes: null,
         },
     });
 

@@ -649,6 +649,42 @@ jobs:
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
+  postSlackMessageOnCancellation:
+    name: Post a Slack message when the deploy is cancelled manually
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: ${{ cancelled() }}
+    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy]
+    steps:
+      - name: Check whether a newer deploy run exists
+        id: check
+        run: |
+          # If a newer run exists, the cherry-pick workflow already announced this. Skip to avoid double-posting.
+          LATEST=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/deploy.yml/runs?branch=${{ github.ref_name }}&per_page=1" \
+            --jq '.workflow_runs[0].id')
+          if [ "$LATEST" != "${{ github.run_id }}" ]; then
+            echo "SKIP=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Post Slack message on manual cancellation
+        if: ${{ steps.check.outputs.SKIP != 'true' }}
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'warning',
+                text: `⚠️ ${{ github.ref == 'refs/heads/production' && 'Production' || 'Staging' }} <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> cancelled manually`
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
   checkDeploymentSuccess:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:

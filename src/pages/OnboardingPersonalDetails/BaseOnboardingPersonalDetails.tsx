@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import {hasURL} from '@libs/Url';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
@@ -150,15 +151,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 return;
             }
 
-            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
+            if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
                 updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
                 autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected);
-                return;
-            }
-
-            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-                updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
                 return;
             }
 

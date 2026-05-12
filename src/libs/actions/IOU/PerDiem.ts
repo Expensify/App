@@ -49,17 +49,16 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getAllPersonalDetails, getAllReports, getPolicyTags} from '.';
+import type {BaseTransactionParams, RequestMoneyParticipantParams} from './index';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    getAllPersonalDetails,
-    getAllReports,
-    getPolicyTags,
     getReportPreviewAction,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
-} from '.';
-import type {BaseTransactionParams, MoneyRequestInformation, RequestMoneyParticipantParams} from './index';
+} from './MoneyRequestBuilder';
+import type {MoneyRequestInformation} from './MoneyRequestBuilder';
 import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import type BasePolicyParams from './types/BasePolicyParams';
 

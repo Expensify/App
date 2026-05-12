@@ -76,6 +76,17 @@ jobs:
     needs: createNewVersion
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Check for in-progress deploy on target branch
+        id: checkInProgressDeploy
+        run: |
+          # Capture in-progress deploy URL before we push. The actual Slack post is gated on a successful target-branch push.
+          DEPLOY_RUN_URL=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/deploy.yml/runs?branch=${{ inputs.TARGET }}&per_page=5" \
+            --jq '.workflow_runs[] | select(.status != "completed") | .html_url' | head -n 1)
+          echo "DEPLOY_RUN_URL=$DEPLOY_RUN_URL" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Extract PR information
         # Note: this step is only skipped when there's no PULL_REQUEST_URL, which is only ever be the case when we're CPing just a version bump.
         if: ${{ inputs.PULL_REQUEST_URL != '' }}
@@ -228,6 +239,22 @@ jobs:
             # Push E/App changes
             git push origin ${{ inputs.TARGET }}
           fi
+
+      - name: Warn that previous deploy was superseded
+        if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' && steps.checkInProgressDeploy.outputs.DEPLOY_RUN_URL != '' }}
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'warning',
+                text: `⚠️ ${{ inputs.TARGET == 'production' && 'Production' || 'Staging' }} <${{ steps.checkInProgressDeploy.outputs.DEPLOY_RUN_URL }}|deploy> cancelled by new cherry-pick`
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: Find deploy workflow run
         # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset

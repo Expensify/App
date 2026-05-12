@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
@@ -11,10 +12,10 @@ import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericE
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MessagesRow from '@components/MessagesRow';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
-import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -22,6 +23,7 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -36,9 +38,11 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearAddMemberError,
@@ -118,7 +122,7 @@ type WorkspaceMemberFilterOption = SingleSelectItem<WorkspaceMemberFilterValue>;
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Table', 'User', 'UserEye']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'User', 'UserEye']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -168,6 +172,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const selectionListRef = useRef<SelectionListHandle<MemberOption>>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler', 'EmptyShelves']);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
@@ -566,7 +571,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     }
 
-    const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | null) => {
+    const handleRoleFilterChange = (item: WorkspaceMemberFilterOption | undefined) => {
         setSelectedEmployees([]);
 
         if (!item || item.value === WORKSPACE_MEMBER_FILTER_VALUES.ALL) {
@@ -623,6 +628,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     }, [isLoading, policy?.employeeList, translate, isOfflineAndNoMemberDataAvailable]);
 
     const memberCount = data.filter((member) => member.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    const hasGustoConnection = !!policy?.connections?.gusto;
+    const shouldShowGustoSyncLink = isPolicyAdmin && hasGustoConnection;
+    const isGustoSyncInProgress =
+        hasGustoConnection && connectionSyncProgress?.connectionName === CONST.POLICY.CONNECTIONS.NAME.GUSTO && isConnectionInProgress(connectionSyncProgress, policy);
     const isPendingAddOrDelete =
         isOffline && data?.some((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const shouldShowSearchBar = data.length > CONST.SEARCH_ITEM_LIMIT;
@@ -644,11 +653,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         <SingleSelectPopup
             label={translate('common.role')}
             items={roleFilterOptions}
-            value={selectedRoleFilter ?? roleFilterOptions.at(0) ?? null}
+            value={selectedRoleFilter ?? roleFilterOptions.at(0)}
             closeOverlay={closeOverlay}
             onChange={handleRoleFilterChange}
             defaultValue={roleFilterOptions.at(0)?.value}
-            selectionListStyle={{listItemWrapperStyle: styles.mnh40}}
+            itemHeight={variables.optionRowHeightCompact}
         />
     );
 
@@ -667,9 +676,22 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const getHeaderContent = () => (
         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
-            <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
-                {translate('workspace.people.workspaceMembersCount', memberCount)}
-            </Text>
+            <View style={[styles.pl5, styles.mb5, styles.mt3, styles.flexRow, styles.alignItemsCenter]}>
+                <Text style={[styles.textSupporting, styles.flexShrink1, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
+                    {translate('workspace.people.workspaceMembersCount', memberCount)}
+                    {shouldShowGustoSyncLink && '. '}
+                    {shouldShowGustoSyncLink && (
+                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID))}>{translate('workspace.people.configureGustoSync')}</TextLink>
+                    )}
+                </Text>
+                {shouldShowGustoSyncLink && isGustoSyncInProgress && (
+                    <ActivityIndicator
+                        size="small"
+                        style={styles.ml2}
+                        reasonAttributes={{context: 'WorkspaceMembersPage.gustoSync'}}
+                    />
+                )}
+            </View>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
                     type="success"
@@ -825,7 +847,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return [];
         }
 
-        const menuItems = [
+        const menuItems: Array<DropdownOption<ValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
             {
                 icon: icons.Table,
                 text: translate('spreadsheet.importSpreadsheet'),
@@ -865,8 +887,41 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             },
         ];
 
+        if (hasGustoConnection) {
+            menuItems.push({
+                icon: icons.Sync,
+                text: translate('workspace.people.syncWithGusto'),
+                onSelected: () => {
+                    if (isOffline) {
+                        close(showRequiresInternetModal);
+                        return;
+                    }
+
+                    close(() => syncConnection(policy, CONST.POLICY.CONNECTIONS.NAME.GUSTO));
+                },
+                value: CONST.POLICY.SECONDARY_ACTIONS.SYNC_WITH_GUSTO,
+                disabled: isGustoSyncInProgress,
+            });
+        }
+
         return menuItems;
-    }, [isPolicyAdmin, icons.Table, icons.Download, translate, isAccountLocked, isOffline, policyID, showLockedAccountModal, showRequiresInternetModal]);
+    }, [
+        isPolicyAdmin,
+        icons.Table,
+        icons.Download,
+        icons.Sync,
+        translate,
+        isAccountLocked,
+        isOffline,
+        policyID,
+        showLockedAccountModal,
+        showRequiresInternetModal,
+        hasGustoConnection,
+        isGustoSyncInProgress,
+        policy,
+    ]);
+
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
         if (!isPolicyAdmin) {
@@ -880,7 +935,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
-                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceMembersPage-header-dropdown-menu-button"
@@ -893,8 +948,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_BUTTON}
                     text={translate('workspace.invite.member')}
                     icon={icons.Plus}
-                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 />
                 <ButtonWithDropdownMenu
                     success={false}
@@ -962,7 +1017,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
             route={route}
             icon={!selectionModeHeader ? illustrations.ReceiptWrangler : undefined}
-            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
+            headerContent={!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
             testID="WorkspaceMembersPage"
             shouldShowLoading={false}
             shouldUseHeadlineHeader={!selectionModeHeader}
@@ -979,7 +1034,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         >
             {() => (
                 <>
-                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                     <DecisionModal
                         title={translate('common.downloadFailedTitle')}
                         prompt={translate('common.downloadFailedDescription')}
@@ -1000,7 +1055,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onSelectAll={displayedFilteredData.length > 0 ? () => toggleAllUsers(displayedFilteredData) : undefined}
                         style={{
                             listItemTitleContainerStyles: shouldUseNarrowLayout ? undefined : styles.pr3,
-                            contentContainerStyle: shouldShowRoleFilterEmptyState ? [styles.flex1, styles.mh100] : undefined,
+                            contentContainerStyle: shouldShowRoleFilterEmptyState ? styles.flexGrow1 : undefined,
                             listFooterContentStyle: shouldShowRoleFilterEmptyState ? styles.flex1 : undefined,
                         }}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item.login)}

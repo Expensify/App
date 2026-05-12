@@ -36,7 +36,10 @@ function WorkspaceConfirmationPage() {
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
-        const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        const isDifferentOwner = !!params.owner && params.owner !== (currentUserPersonalDetails.email ?? '');
+        const shouldShowSuccessPage = isDifferentOwner && !params.makeMeAdmin;
+        const workspaceRoute = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        const routeToNavigate = shouldShowSuccessPage ? ROUTES.WORKSPACE_CONFIRMATION_SUCCESS : workspaceRoute;
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
             policyOwnerEmail: params.owner,

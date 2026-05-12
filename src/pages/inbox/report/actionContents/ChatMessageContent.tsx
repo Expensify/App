@@ -1,5 +1,4 @@
 import React from 'react';
-import type {TextInput} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -9,15 +8,16 @@ import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
+    getModerationFlagState,
     getReportActionMessage,
     isActionableAddPaymentCard,
     isActionableTrackExpense,
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
-    isPendingRemove,
 } from '@libs/ReportActionsUtils';
 import {chatIncludesConcierge, isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -38,12 +38,9 @@ type ChatMessageContentProps = {
     draftMessage: string | undefined;
     index: number;
     isHidden: boolean;
-    moderationDecision: OnyxTypes.DecisionName;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isArchivedRoom?: boolean;
-    composerTextInputRef: React.RefObject<TextInput | HTMLTextAreaElement | null>;
     isOnSearch: boolean;
-    currentSearchHash: number | undefined;
     contextMenuStateValue: {
         anchor: ContextMenuAnchor | null;
         report: OnyxEntry<OnyxTypes.Report>;
@@ -71,12 +68,9 @@ function ChatMessageContent({
     draftMessage,
     index,
     isHidden,
-    moderationDecision,
     updateHiddenState,
     isArchivedRoom,
-    composerTextInputRef,
     isOnSearch,
-    currentSearchHash,
     contextMenuStateValue,
     contextMenuActionsValue,
     userBillingFundID,
@@ -85,13 +79,14 @@ function ChatMessageContent({
     const styles = useThemeStyles();
 
     const blockedFromConcierge = useBlockedFromConcierge();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
     const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
 
-    const attachmentContextValue = isOnSearch ? {type: CONST.ATTACHMENT_TYPE.SEARCH, currentSearchHash} : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
+    const attachmentContextValue = isOnSearch ? {type: CONST.ATTACHMENT_TYPE.SEARCH} : {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
 
-    const hasBeenFlagged =
-        ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
+    const {hasBeenFlagged} = getModerationFlagState(action);
 
     const messageHtml = getReportActionMessage(action)?.html;
     const mayHaveActionableButtons =
@@ -106,7 +101,19 @@ function ChatMessageContent({
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <AttachmentContext.Provider value={attachmentContextValue}>
-                        {draftMessage === undefined ? (
+                        {isEditingInline ? (
+                            <ReportActionItemMessageEdit
+                                action={action}
+                                reportID={reportID}
+                                originalReportID={originalReportID}
+                                policyID={report?.policyID}
+                                index={index}
+                                shouldDisableEmojiPicker={
+                                    (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
+                                }
+                                isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                            />
+                        ) : (
                             <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                                 <ReportActionItemMessage
                                     reportID={reportID}
@@ -140,20 +147,6 @@ function ChatMessageContent({
                                     />
                                 )}
                             </View>
-                        ) : (
-                            <ReportActionItemMessageEdit
-                                action={action}
-                                draftMessage={draftMessage}
-                                reportID={reportID}
-                                originalReportID={originalReportID}
-                                policyID={report?.policyID}
-                                index={index}
-                                ref={composerTextInputRef}
-                                shouldDisableEmojiPicker={
-                                    (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
-                                }
-                                isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
-                            />
                         )}
                     </AttachmentContext.Provider>
                 </ShowContextMenuActionsContext.Provider>
