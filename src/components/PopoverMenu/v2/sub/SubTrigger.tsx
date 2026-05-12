@@ -20,7 +20,7 @@ type SubTriggerProps = SubTriggerOwnProps & MenuItemForwardProps;
 
 /** For non-`MenuItem` shapes, call `useSubTrigger()` directly. */
 function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconHeight, ...rest}: SubTriggerProps): React.ReactElement | null {
-W    useSubContext(SubTrigger.displayName);
+    useSubContext(SubTrigger.displayName);
     useContentSubActions(SubTrigger.displayName);
 
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubTrigger({disabled, text});
