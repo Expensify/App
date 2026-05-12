@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -228,24 +229,29 @@ function TransactionDuplicateReview() {
     }
 
     return (
-        <ScreenWrapper testID="TransactionDuplicateReview">
+        <ScreenWrapper
+            testID="TransactionDuplicateReview"
+            shouldEnableMaxHeight
+            includeSafeAreaPaddingBottom
+        >
             <FullPageNotFoundView shouldShow={shouldShowNotFound}>
                 <HeaderWithBackButton
                     title={translate('iou.reviewDuplicates')}
                     onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
                 />
-                {!!hasSettledOrApprovedTransaction && (
-                    <View style={[styles.ph5, styles.pt3]}>
-                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('iou.someDuplicatesArePaid')}</Text>
-                    </View>
-                )}
                 <View style={styles.flex1}>
-                    <DuplicateTransactionsList
-                        transactions={transactions}
-                        selectedTransactionID={effectiveSelectedTransactionID}
-                        onSelectTransaction={setSelectedTransactionID}
-                        onPreviewPressed={onPreviewPressed}
-                    />
+                    <ScrollView
+                        style={styles.flex1}
+                        contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pt3, styles.pb5]}
+                    >
+                        {!!hasSettledOrApprovedTransaction && <Text style={[styles.textNormal, styles.colorMuted, styles.mb5]}>{translate('iou.someDuplicatesArePaid')}</Text>}
+                        <DuplicateTransactionsList
+                            transactions={transactions}
+                            selectedTransactionID={effectiveSelectedTransactionID}
+                            onSelectTransaction={setSelectedTransactionID}
+                            onPreviewPressed={onPreviewPressed}
+                        />
+                    </ScrollView>
                     <FixedFooter style={[styles.mtAuto, styles.gap3]}>
                         <Button
                             large
