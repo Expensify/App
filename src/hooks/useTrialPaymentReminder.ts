@@ -135,9 +135,11 @@ function useTrialPaymentReminder() {
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [billingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [dismissedTimestamp, dismissedTimestampResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER);
+    const [modal] = useOnyx(ONYXKEYS.MODAL);
     const {shouldShowModal: shouldShowProactiveAppReviewModal} = useProactiveAppReview();
 
     const [readinessState, setReadinessState] = useState<ReadinessState>(READINESS_STATE.LOADING);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         if (isLoadingOnyxValue(firstDayFreeTrialResult)) {
@@ -209,7 +211,7 @@ function useTrialPaymentReminder() {
         return () => clearInterval(interval);
     }, [currentVariation?.variant, lastDayFreeTrial]);
 
-    const shouldShowModal = useMemo(() => {
+    const isEligibleToShow = useMemo(() => {
         if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
             return false;
         }
@@ -225,7 +227,8 @@ function useTrialPaymentReminder() {
         if (!currentVariation) {
             return false;
         }
-        // Defer to ProactiveAppReviewModal — opening both at once breaks modal stacking.
+        // Defer to ProactiveAppReviewModal — its eligibility is derived from the same Onyx state as ours,
+        // so this check avoids the race where ONYXKEYS.MODAL hasn't yet propagated AppReview's visibility.
         if (shouldShowProactiveAppReviewModal) {
             return false;
         }
@@ -239,14 +242,24 @@ function useTrialPaymentReminder() {
         return true;
     }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult, shouldShowProactiveAppReviewModal]);
 
+    const isOtherModalActive = !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible;
+    
+    if (isEligibleToShow && !isOtherModalActive && !isModalOpen) {
+        setIsModalOpen(true);
+    }
+    if (!isEligibleToShow && isModalOpen) {
+        setIsModalOpen(false);
+    }
+
     const dismiss = useCallback(() => {
+        setIsModalOpen(false);
         if (!currentVariation) {
             return;
         }
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_TRIAL_PAYMENT_REMINDER, new Date().toISOString(), dismissedTimestamp ?? '');
     }, [currentVariation, dismissedTimestamp]);
 
-    return {shouldShowModal, currentVariation, countdownTime, dismiss};
+    return {shouldShowModal: isModalOpen, currentVariation, countdownTime, dismiss};
 }
 
 export default useTrialPaymentReminder;

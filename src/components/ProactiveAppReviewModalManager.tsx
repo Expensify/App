@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
@@ -15,26 +15,10 @@ const CONCIERGE_NEGATIVE_MESSAGE = "Hi there! I'm sorry to hear you aren't fully
 function ProactiveAppReviewModalManager() {
     const {shouldShowModal, proactiveAppReview} = useProactiveAppReview();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails?.email;
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const isOtherModalActive = !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible;
-
-    // Latch: open the modal when eligible and no other modal is visible.
-    // Once open, it stays open even when BaseModal writes to ONYXKEYS.MODAL
-    // for the AppReview modal itself (which would otherwise self-dismiss).
-    // Using setState-during-render (React-recommended derived state pattern)
-    // instead of useEffect to satisfy react-hooks/set-state-in-effect.
-    if (shouldShowModal && !isOtherModalActive && !isModalOpen) {
-        setIsModalOpen(true);
-    }
-    if (!shouldShowModal && isModalOpen) {
-        setIsModalOpen(false);
-    }
 
     const handleResponse = useCallback(
         (response: AppReviewResponse, message?: string) => {
@@ -45,7 +29,6 @@ function ProactiveAppReviewModalManager() {
     );
 
     const handlePositive = useCallback(() => {
-        setIsModalOpen(false);
         handleResponse('positive', CONCIERGE_POSITIVE_MESSAGE);
 
         // Trigger native app store review prompt
@@ -53,18 +36,16 @@ function ProactiveAppReviewModalManager() {
     }, [handleResponse]);
 
     const handleNegative = useCallback(() => {
-        setIsModalOpen(false);
         handleResponse('negative', CONCIERGE_NEGATIVE_MESSAGE);
     }, [handleResponse]);
 
     const handleSkip = useCallback(() => {
-        setIsModalOpen(false);
         handleResponse('skip');
     }, [handleResponse]);
 
     return (
         <ProactiveAppReviewModal
-            isVisible={isModalOpen}
+            isVisible={shouldShowModal}
             onPositive={handlePositive}
             onNegative={handleNegative}
             onSkip={handleSkip}
