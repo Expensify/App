@@ -11,7 +11,6 @@ import {arePaymentsEnabled, hasApprovalFlow, isPaidGroupPolicy} from '@libs/Poli
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {CardList} from '@src/types/onyx/Card';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import YOUR_SPEND_ROW_STATE from './const';
 import {buildAwaitingApprovalQuery, buildRecentCardTransactionsQuery, buildRepaidLast30DaysQuery} from './queries';
@@ -35,15 +34,13 @@ type YourSpendCardRow = {
 type YourSpendApplicability = {
     isApprovalApplicable: boolean;
     isPaymentApplicable: boolean;
-    isCardApplicable: boolean;
 };
 
-function getYourSpendApplicability(policies: OnyxCollection<Policy> | undefined, cardList: CardList | undefined): YourSpendApplicability {
+function getYourSpendApplicability(policies: OnyxCollection<Policy> | undefined): YourSpendApplicability {
     const policyList = Object.values(policies ?? {});
     const isApprovalApplicable = policyList.some((policy) => hasApprovalFlow(policy));
     const isPaymentApplicable = policyList.some((policy) => isPaidGroupPolicy(policy) && arePaymentsEnabled(policy ?? undefined));
-    const isCardApplicable = getDisplayableExpensifyCards(cardList).length > 0;
-    return {isApprovalApplicable, isPaymentApplicable, isCardApplicable};
+    return {isApprovalApplicable, isPaymentApplicable};
 }
 
 type YourSpendRowTotals = {
@@ -94,7 +91,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const [paymentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${paymentQueryJSON?.hash}`);
     const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
 
-    const {isApprovalApplicable, isPaymentApplicable} = useMemo(() => getYourSpendApplicability(policies, cardList), [policies, cardList]);
+    const {isApprovalApplicable, isPaymentApplicable} = useMemo(() => getYourSpendApplicability(policies), [policies]);
 
     const displayableCards = useMemo(() => getDisplayableExpensifyCards(cardList), [cardList]);
 
@@ -110,12 +107,13 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [displayableCards],
     );
 
-    // Map cardID → snapshot hash so we can look up totals from allSnapshots
-    const cardQueryHashByCardID = useMemo(
+    // For each displayable card, precompute the query string and its parsed JSON exactly once.
+    // Reused below for snapshot lookup, card-row construction, and firing the search.
+    const cardQueryByCardID = useMemo(
         () =>
-            displayableCards.reduce<Record<number, number | undefined>>((acc, card) => {
-                const cardQuery = buildRecentCardTransactionsQuery(accountID, card.cardID);
-                acc[card.cardID] = buildSearchQueryJSON(cardQuery)?.hash;
+            displayableCards.reduce<Record<number, {query: string; queryJSON: ReturnType<typeof buildSearchQueryJSON>}>>((acc, card) => {
+                const query = buildRecentCardTransactionsQuery(accountID, card.cardID);
+                acc[card.cardID] = {query, queryJSON: buildSearchQueryJSON(query)};
                 return acc;
             }, {}),
         [displayableCards, accountID],
@@ -124,22 +122,23 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
             displayableCards.reduce<YourSpendCardRow[]>((acc, card) => {
-                const hash = cardQueryHashByCardID[card.cardID];
+                const entry = cardQueryByCardID[card.cardID];
+                const hash = entry?.queryJSON?.hash;
                 const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
                 const snapshot = snapshotKey ? allSnapshots?.[snapshotKey] : undefined;
-                if (!snapshot?.search.count) {
+                if (!entry || !snapshot?.search.count) {
                     return acc;
                 }
                 acc.push({
                     cardID: card.cardID,
                     lastFour: card.lastFourPAN ?? '',
-                    query: buildRecentCardTransactionsQuery(accountID, card.cardID),
+                    query: entry.query,
                     total: snapshot.search.total,
                     currency: snapshot.search.currency,
                 });
                 return acc;
             }, []),
-        [displayableCards, accountID, cardQueryHashByCardID, allSnapshots],
+        [displayableCards, cardQueryByCardID, allSnapshots],
     );
 
     const approvalRowStateRaw = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
@@ -189,8 +188,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
             return;
         }
         for (const card of displayableCards) {
-            const cardQuery = buildRecentCardTransactionsQuery(accountID, card.cardID);
-            const cardQueryJSON = buildSearchQueryJSON(cardQuery);
+            const cardQueryJSON = cardQueryByCardID[card.cardID]?.queryJSON;
             if (!cardQueryJSON) {
                 continue;
             }
