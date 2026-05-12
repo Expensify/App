@@ -20,8 +20,8 @@ const NUMBER_OF_TOGGLES_BEFORE_RESET = 2;
 /**
  * Props for the TableHeader component.
  */
-type TableHeaderProps<DataType> = ViewProps & {
-    table: TableValue<DataType>;
+type TableHeaderProps<DataType, ColumnKey extends string, FilterKey extends string> = ViewProps & {
+    table: TableValue<DataType, ColumnKey, FilterKey>;
 
     /** Hide table header when search returns no results. */
     shouldHideHeaderWhenEmptySearch?: boolean;
@@ -50,7 +50,12 @@ type TableHeaderProps<DataType> = ViewProps & {
  * </Table>
  * ```
  */
-function TableHeader<DataType>({table, style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps<DataType>) {
+function TableHeader<DataType, ColumnKey extends string = string, FilterKey extends string = string>({
+    table,
+    style,
+    shouldHideHeaderWhenEmptySearch = true,
+    ...props
+}: TableHeaderProps<DataType, ColumnKey, FilterKey>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {columns, isEmptyResult, title, shouldUseNarrowTableLayout} = table;
@@ -109,8 +114,8 @@ function TableHeader<DataType>({table, style, shouldHideHeaderWhenEmptySearch = 
     );
 }
 
-type TableHeaderColumnProps<DataType, ColumnKey extends string = string> = {
-    table: TableValue<DataType>;
+type TableHeaderColumnProps<DataType, ColumnKey extends string, FilterKey extends string> = {
+    table: TableValue<DataType, ColumnKey, FilterKey>;
 
     column: TableColumn<ColumnKey>;
 };
@@ -121,7 +126,7 @@ type TableHeaderColumnProps<DataType, ColumnKey extends string = string> = {
  * @template T - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
-function TableHeaderColumn<DataType, ColumnKey extends string = string>({column, table}: TableHeaderColumnProps<DataType, ColumnKey>) {
+function TableHeaderColumn<DataType, ColumnKey extends string = string, FilterKey extends string = string>({column, table}: TableHeaderColumnProps<DataType, ColumnKey, FilterKey>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);

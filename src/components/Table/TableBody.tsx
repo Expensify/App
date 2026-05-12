@@ -10,8 +10,8 @@ import {SharedListProps, TableValue} from './types';
 /**
  * Props for the TableBody component.
  */
-type TableBodyProps<DataType> = SharedListProps<DataType> & {
-    table: TableValue<DataType>;
+type TableBodyProps<DataType, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<DataType> & {
+    table: TableValue<DataType, ColumnKey, FilterKey>;
 };
 
 /**
@@ -42,7 +42,12 @@ type TableBodyProps<DataType> = SharedListProps<DataType> & {
  * </Table>
  * ```
  */
-function TableBody<DataType>({table, contentContainerStyle, ListEmptyComponent, ...props}: TableBodyProps<DataType>) {
+function TableBody<DataType, ColumnKey extends string = string, FilterKey extends string = string>({
+    table,
+    contentContainerStyle,
+    ListEmptyComponent,
+    ...props
+}: TableBodyProps<DataType, ColumnKey, FilterKey>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {processedData: filteredAndSortedData, activeSearchString, hasActiveFilters, hasSearchString, isEmptyResult} = table;
