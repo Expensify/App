@@ -112,6 +112,7 @@ function BaseSelectionList<TItem extends ListItem>({
     const listRef = useRef<FlashListRef<TItem> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);
+    const suppressNextFocusScrollRef = useRef(false);
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
@@ -211,6 +212,10 @@ function BaseSelectionList<TItem extends ListItem>({
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
+            if (suppressNextFocusScrollRef.current) {
+                suppressNextFocusScrollRef.current = false;
+                return;
+            }
             if (!shouldScrollToFocusedIndex) {
                 return;
             }
@@ -244,6 +249,9 @@ function BaseSelectionList<TItem extends ListItem>({
                 }
             }
             if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+                if (indexToFocus !== focusedIndex) {
+                    suppressNextFocusScrollRef.current = true;
+                }
                 setFocusedIndex(indexToFocus);
             }
             onSelectRow(item);
@@ -256,6 +264,7 @@ function BaseSelectionList<TItem extends ListItem>({
             isFocused,
             canSelectMultiple,
             shouldUpdateFocusedIndex,
+            focusedIndex,
             onSelectRow,
             shouldShowTextInput,
             shouldClearInputOnSelect,
@@ -526,6 +535,10 @@ function BaseSelectionList<TItem extends ListItem>({
         setFocusedIndex,
     });
 
+    const suppressNextFocusScroll = useCallback(() => {
+        suppressNextFocusScrollRef.current = true;
+    }, []);
+
     useSearchFocusSync({
         searchValue: syncedSearchValue,
         data,
@@ -535,6 +548,8 @@ function BaseSelectionList<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
+        focusedIndex,
+        suppressNextFocusScroll,
     });
 
     useEffect(() => {
