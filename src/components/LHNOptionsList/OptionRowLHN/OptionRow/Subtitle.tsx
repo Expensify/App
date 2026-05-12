@@ -12,14 +12,14 @@ import CONST from '@src/CONST';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
-type OptionRowAlternateTextProps = {
+type SubtitleProps = {
     optionItem: OptionData;
     viewMode: OptionMode;
     isOptionFocused: boolean;
     style?: StyleProp<TextStyle>;
 };
 
-function OptionRowAlternateText({optionItem, viewMode, isOptionFocused, style}: OptionRowAlternateTextProps) {
+function Subtitle({optionItem, viewMode, isOptionFocused, style}: SubtitleProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -57,6 +57,6 @@ function OptionRowAlternateText({optionItem, viewMode, isOptionFocused, style}: 
     );
 }
 
-OptionRowAlternateText.displayName = 'OptionRowAlternateText';
+Subtitle.displayName = 'OptionRow.Subtitle';
 
-export default OptionRowAlternateText;
+export default Subtitle;
