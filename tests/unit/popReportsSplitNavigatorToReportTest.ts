@@ -1,5 +1,5 @@
 import {StackActions} from '@react-navigation/native';
-import popToReportInReportsSplitNavigator from '@libs/Navigation/helpers/popToReportInReportsSplitNavigator';
+import popReportsSplitNavigatorToReport from '@libs/Navigation/helpers/popReportsSplitNavigatorToReport';
 import navigationRef from '@libs/Navigation/navigationRef';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -49,20 +49,20 @@ function buildRootStateWithSplitNavRoutes(splitRoutes: Array<{reportID: string} 
     };
 }
 
-describe('popToReportInReportsSplitNavigator', () => {
+describe('popReportsSplitNavigatorToReport', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     it('no-ops when targetReportID is undefined', () => {
-        popToReportInReportsSplitNavigator(undefined);
+        popReportsSplitNavigatorToReport(undefined);
         expect(mockedGetRootState).not.toHaveBeenCalled();
         expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
     it('no-ops when there is no TAB_NAVIGATOR in the root state', () => {
         mockedGetRootState.mockReturnValue({routes: [{name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]});
-        popToReportInReportsSplitNavigator(SELF_DM_REPORT_ID);
+        popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
@@ -70,31 +70,31 @@ describe('popToReportInReportsSplitNavigator', () => {
         mockedGetRootState.mockReturnValue({
             routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}]}}],
         });
-        popToReportInReportsSplitNavigator(SELF_DM_REPORT_ID);
+        popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
     it('no-ops when REPORTS_SPLIT_NAVIGATOR has no state key', () => {
         mockedGetRootState.mockReturnValue(buildRootStateWithSplitNavRoutes([null, {reportID: SELF_DM_REPORT_ID}], undefined));
-        popToReportInReportsSplitNavigator(SELF_DM_REPORT_ID);
+        popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
     it('no-ops when the target report is not in the split navigator', () => {
         mockedGetRootState.mockReturnValue(buildRootStateWithSplitNavRoutes([null, {reportID: OTHER_REPORT_ID}]));
-        popToReportInReportsSplitNavigator(SELF_DM_REPORT_ID);
+        popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
     it('no-ops when the target report is already on top of the split navigator', () => {
         mockedGetRootState.mockReturnValue(buildRootStateWithSplitNavRoutes([null, {reportID: SELF_DM_REPORT_ID}]));
-        popToReportInReportsSplitNavigator(SELF_DM_REPORT_ID);
+        popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
     it('pops exactly one screen when one report is stacked above the target', () => {
         mockedGetRootState.mockReturnValue(buildRootStateWithSplitNavRoutes([null, {reportID: SELF_DM_REPORT_ID}, {reportID: OTHER_REPORT_ID}]));
-        popToReportInReportsSplitNavigator(SELF_DM_REPORT_ID);
+        popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).toHaveBeenCalledTimes(1);
         expect(mockedDispatch).toHaveBeenCalledWith({...StackActions.pop(1), target: SPLIT_NAV_KEY});
     });
@@ -103,7 +103,7 @@ describe('popToReportInReportsSplitNavigator', () => {
         mockedGetRootState.mockReturnValue(
             buildRootStateWithSplitNavRoutes([null, {reportID: SELF_DM_REPORT_ID}, {reportID: OTHER_REPORT_ID}, {reportID: 'thread-1'}, {reportID: 'thread-2'}]),
         );
-        popToReportInReportsSplitNavigator(SELF_DM_REPORT_ID);
+        popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).toHaveBeenCalledTimes(1);
         expect(mockedDispatch).toHaveBeenCalledWith({...StackActions.pop(3), target: SPLIT_NAV_KEY});
     });
@@ -143,7 +143,7 @@ describe('popToReportInReportsSplitNavigator', () => {
                 },
             ],
         });
-        popToReportInReportsSplitNavigator(SELF_DM_REPORT_ID);
+        popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).toHaveBeenCalledWith({...StackActions.pop(1), target: SPLIT_NAV_KEY});
     });
 
@@ -153,7 +153,7 @@ describe('popToReportInReportsSplitNavigator', () => {
         mockedGetRootState.mockReturnValue(
             buildRootStateWithSplitNavRoutes([null, {reportID: SELF_DM_REPORT_ID}, {reportID: OTHER_REPORT_ID}, {reportID: SELF_DM_REPORT_ID}, {reportID: 'thread'}]),
         );
-        popToReportInReportsSplitNavigator(SELF_DM_REPORT_ID);
+        popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         // Note: helper uses findIndex (first match) — pop count is therefore based on the first occurrence.
         // Adjust this expectation if/when the helper switches to findLastIndex.
         expect(mockedDispatch).toHaveBeenCalledWith({...StackActions.pop(3), target: SPLIT_NAV_KEY});

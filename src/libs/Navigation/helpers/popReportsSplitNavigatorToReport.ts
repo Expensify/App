@@ -21,7 +21,7 @@ import SCREENS from '@src/SCREENS';
  * targeted at the `REPORTS_SPLIT_NAVIGATOR` itself. If the target report is
  * already on top (or not present in the split navigator), the call is a no-op.
  */
-function popToReportInReportsSplitNavigator(targetReportID: string | undefined): void {
+function popReportsSplitNavigatorToReport(targetReportID: string | undefined): void {
     if (!targetReportID) {
         return;
     }
@@ -51,4 +51,4 @@ function popToReportInReportsSplitNavigator(targetReportID: string | undefined):
     navigationRef.dispatch({...StackActions.pop(popCount), target: splitNavKey});
 }
 
-export default popToReportInReportsSplitNavigator;
+export default popReportsSplitNavigatorToReport;

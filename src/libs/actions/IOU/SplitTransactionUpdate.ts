@@ -11,7 +11,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import popToReportInReportsSplitNavigator from '@libs/Navigation/helpers/popToReportInReportsSplitNavigator';
+import popReportsSplitNavigatorToReport from '@libs/Navigation/helpers/popReportsSplitNavigatorToReport';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
@@ -1716,7 +1716,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // and falling back on them would land the user on FullPageNotFoundView.
     const selfDMReportID = params.transactionReport?.reportID;
     if (isSelfDMSplit && selfDMReportID) {
-        Navigation.dismissModal({afterTransition: () => popToReportInReportsSplitNavigator(selfDMReportID)});
+        Navigation.dismissModal({afterTransition: () => popReportsSplitNavigatorToReport(selfDMReportID)});
         requestAnimationFrame(() => {
             updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
         });
