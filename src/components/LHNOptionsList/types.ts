@@ -76,12 +76,6 @@ type OptionRowLHNDataProps = {
 };
 
 type OptionRowLHNProps = {
-    /** The ID of the report that the option is for */
-    reportID: string;
-
-    /** The report for this option */
-    report?: Report;
-
     /** Whether this option is currently in focus so we can modify its style */
     isOptionFocused?: boolean;
 

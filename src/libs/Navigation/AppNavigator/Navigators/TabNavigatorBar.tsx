@@ -49,6 +49,12 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         return () => cancelAnimationFrame(frameId);
     }, [stateKey]);
 
+    // Cancel any in-flight tab-navigation span that doesn't match the new focused tab.
+    // The span for the new tab is started by the tab button before navigation, so we keep it via `except`.
+    useEffect(() => {
+        cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPAN[selectedTab]);
+    }, [selectedTab]);
+
     const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
 
     if (shouldUseNarrowLayout) {

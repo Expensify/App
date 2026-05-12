@@ -32,7 +32,6 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -44,7 +43,6 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
-import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -75,7 +73,6 @@ import {
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
-    isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isIOURequestReportAction,
     isMessageDeleted,
@@ -210,9 +207,6 @@ type PureReportActionItemProps = {
     /** Original report from which the given reportAction is first created */
     originalReport?: OnyxTypes.Report;
 
-    /** Function to deletes the draft for a comment report action. */
-    deleteReportActionDraft?: (reportID: string | undefined, action: OnyxTypes.ReportAction) => void;
-
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
 
@@ -269,7 +263,6 @@ function PureReportActionItem({
     personalDetails,
     originalReportID = '-1',
     originalReport,
-    deleteReportActionDraft = () => {},
     isArchivedRoom,
     isChronosReport,
     isClosedExpenseReportWithNoExpenses,
@@ -298,13 +291,12 @@ function PureReportActionItem({
     const [isHidden, setIsHidden] = useState(false);
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
-    const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
-    const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isReportArchived = useReportIsArchived(reportID);
+    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
 
@@ -406,14 +398,6 @@ function PureReportActionItem({
     }, [isDeletedParentAction, action.reportActionID]);
 
     useEffect(() => {
-        if (prevDraftMessage !== undefined || draftMessage === undefined) {
-            return;
-        }
-
-        focusComposerWithDelay(composerTextInputRef.current)(true);
-    }, [prevDraftMessage, draftMessage]);
-
-    useEffect(() => {
         if (!Permissions.canUseLinkPreviews()) {
             return;
         }
@@ -426,13 +410,6 @@ function PureReportActionItem({
         downloadedPreviews.current = urls;
         expandURLPreview(reportID, action.reportActionID);
     }, [action, reportID]);
-
-    useEffect(() => {
-        if (draftMessage === undefined || !isDeletedAction(action)) {
-            return;
-        }
-        deleteReportActionDraft(reportID, action);
-    }, [draftMessage, action, reportID, deleteReportActionDraft]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
@@ -483,6 +460,11 @@ function PureReportActionItem({
 
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
 
+    const hasErrors = !isEmptyValueObject(action.errors);
+    const isContextMenuDisabled = useMemo(() => {
+        return draftMessage !== undefined || hasErrors || !shouldDisplayContextMenuValue;
+    }, [draftMessage, hasErrors, shouldDisplayContextMenuValue]);
+
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -491,7 +473,7 @@ function PureReportActionItem({
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
             // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenuValue) {
+            if (isContextMenuDisabled) {
                 return;
             }
 
@@ -511,7 +493,6 @@ function PureReportActionItem({
                     },
                     reportAction: {
                         reportActionID: action.reportActionID,
-                        draftMessage,
                         isThreadReportParentAction,
                     },
                     callbacks: {
@@ -524,17 +505,15 @@ function PureReportActionItem({
             });
         },
         [
-            draftMessage,
-            action.errors,
             action.reportActionID,
             reportID,
             toggleContextMenuFromActiveReportAction,
             originalReportID,
-            shouldDisplayContextMenuValue,
             disabledActions,
             isArchivedRoom,
             isChronosReport,
             handleShowContextMenu,
+            isContextMenuDisabled,
             isThreadReportParentAction,
         ],
     );
@@ -565,10 +544,9 @@ function PureReportActionItem({
      * Get the content of ReportActionItem
      * @param hovered whether the ReportActionItem is hovered
      * @param isWhisper whether the report action is a whisper
-     * @param hasErrors whether the report action has any errors
      * @returns child component(s)
      */
-    const renderItemContent = (hovered = false, isWhisper = false, hasErrors = false): React.JSX.Element => {
+    const renderItemContent = (hovered = false, isWhisper = false): React.JSX.Element => {
         let children;
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
         const moneyRequestActionType = moneyRequestOriginalMessage?.type;
@@ -891,7 +869,6 @@ function PureReportActionItem({
                     isHidden={isHidden}
                     updateHiddenState={updateHiddenState}
                     isArchivedRoom={isArchivedRoom}
-                    composerTextInputRef={composerTextInputRef}
                     isOnSearch={isOnSearch}
                     contextMenuStateValue={contextMenuStateValue}
                     contextMenuActionsValue={contextMenuActionsValue}
@@ -907,7 +884,7 @@ function PureReportActionItem({
                 ?.split(',')
                 .map((accountID) => Number(accountID))
                 .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
-        const draftMessageRightAlign = draftMessage !== undefined ? styles.chatItemReactionsDraftRight : {};
+        const draftMessageRightAlign = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
         const itemContent = (
             <>
@@ -952,18 +929,17 @@ function PureReportActionItem({
      * Get ReportActionItem with a proper wrapper
      * @param hovered whether the ReportActionItem is hovered
      * @param isWhisper whether the ReportActionItem is a whisper
-     * @param hasErrors whether the report action has any errors
      * @returns report action item
      */
 
-    const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
-        const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
+    const renderReportActionItem = (hovered: boolean, isWhisper: boolean): React.JSX.Element => {
+        const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper);
 
         if (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses)) {
             return emptyHTML;
         }
 
-        if (draftMessage !== undefined) {
+        if (!shouldUseNarrowLayout && draftMessage !== undefined) {
             return <ReportActionItemDraft>{content}</ReportActionItemDraft>;
         }
 
@@ -971,7 +947,7 @@ function PureReportActionItem({
             return (
                 <ReportActionItemSingle
                     action={action}
-                    showHeader={draftMessage === undefined}
+                    showHeader={draftMessage === undefined || shouldUseNarrowLayout}
                     wrapperStyle={{
                         ...(isOnSearch && styles.p0),
                         ...(isWhisper && styles.pt1),
@@ -1038,7 +1014,6 @@ function PureReportActionItem({
         return null;
     }
 
-    const hasErrors = !isEmptyValueObject(action.errors);
     const whisperedTo = getWhisperedTo(action);
 
     const iouReportID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUReportID ? getOriginalMessage(action)?.IOUReportID?.toString() : undefined;
@@ -1068,7 +1043,7 @@ function PureReportActionItem({
                 onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={showPopover}
-                preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
+                preventDefaultContextMenu={!isContextMenuDisabled}
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={accessibilityLabel}
                 accessibilityHint={translate('accessibilityHints.chatMessage')}
@@ -1089,7 +1064,7 @@ function PureReportActionItem({
                     {(hovered) => (
                         <View style={highlightedBackgroundColorIfNeeded}>
                             {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                            {shouldDisplayContextMenuValue && (
+                            {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && draftMessage === undefined && !hasErrors && (
                                 <MiniReportActionContextMenu
                                     reportID={reportID}
                                     reportActionID={action.reportActionID}
@@ -1098,9 +1073,8 @@ function PureReportActionItem({
                                     isArchivedRoom={isArchivedRoom}
                                     displayAsGroup={displayAsGroup}
                                     disabledActions={disabledActions}
-                                    isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                    isVisible={hovered}
                                     isThreadReportParentAction={isThreadReportParentAction}
-                                    draftMessage={draftMessage}
                                     isChronosReport={isChronosReport}
                                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                                     setIsEmojiPickerActive={setIsEmojiPickerActive}
@@ -1131,7 +1105,7 @@ function PureReportActionItem({
                                         onPress={onPress}
                                     >
                                         {isWhisper && <WhisperBanner whisperedTo={whisperedTo} />}
-                                        {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
+                                        {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper)}
                                     </SearchActionHeader>
                                 </OfflineWithFeedback>
                             </View>

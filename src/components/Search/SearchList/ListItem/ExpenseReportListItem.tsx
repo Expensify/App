@@ -144,6 +144,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
+            policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
             currentSearchKey,
@@ -160,6 +161,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         onSelectRow,
         snapshotReport,
         snapshotPolicy,
+        parentPolicy,
         lastPaymentMethod,
         userBillingGracePeriodEnds,
         personalPolicyID,
@@ -307,46 +309,22 @@ function ExpenseReportListItem<TItem extends ListItem>({
                             isSelected={!!reportItem.isSelected}
                         />
                     )}
-                    {!isLargeScreenWidth && (
-                        <View style={styles.pt3}>
-                            <ExpenseReportListItemRow
-                                item={reportItem}
-                                columns={columns}
-                                reportActions={reportActions}
-                                isActionLoading={isActionLoading ?? isLoading}
-                                showTooltip={showTooltip}
-                                canSelectMultiple={canSelectMultiple}
-                                onCheckboxPress={handleSelectionButtonPress}
-                                onButtonPress={handleOnButtonPress}
-                                isSelectAllChecked={!!reportItem.isSelected}
-                                isIndeterminate={false}
-                                isDisabledCheckbox={isDisabledCheckbox}
-                                isHovered={hovered}
-                                isFocused={isFocused}
-                                isPendingDelete={isPendingDelete}
-                                isLargeScreenWidth={isLargeScreenWidth}
-                            />
-                        </View>
-                    )}
-                    {isLargeScreenWidth && (
-                        <ExpenseReportListItemRow
-                            item={reportItem}
-                            columns={columns}
-                            reportActions={reportActions}
-                            isActionLoading={isActionLoading ?? isLoading}
-                            showTooltip={showTooltip}
-                            canSelectMultiple={canSelectMultiple}
-                            onCheckboxPress={handleSelectionButtonPress}
-                            onButtonPress={handleOnButtonPress}
-                            isSelectAllChecked={!!reportItem.isSelected}
-                            isIndeterminate={false}
-                            isDisabledCheckbox={isDisabledCheckbox}
-                            isHovered={hovered}
-                            isFocused={isFocused}
-                            isPendingDelete={isPendingDelete}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
-                    )}
+                    <ExpenseReportListItemRow
+                        item={reportItem}
+                        columns={columns}
+                        reportActions={reportActions}
+                        isActionLoading={isActionLoading ?? isLoading}
+                        showTooltip={showTooltip}
+                        canSelectMultiple={canSelectMultiple}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        onButtonPress={handleOnButtonPress}
+                        isSelectAllChecked={!!reportItem.isSelected}
+                        isIndeterminate={false}
+                        isDisabledCheckbox={isDisabledCheckbox}
+                        isHovered={hovered}
+                        isFocused={isFocused}
+                        isPendingDelete={isPendingDelete}
+                    />
                     {getDescription}
                 </View>
             )}

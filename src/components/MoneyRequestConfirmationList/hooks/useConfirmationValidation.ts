@@ -174,7 +174,9 @@ function useConfirmationValidation({
             return {errorKey: 'iou.error.invalidCategoryLength'};
         }
 
-        if (iouCategory && policyCategories && !policyCategories[iouCategory]?.enabled) {
+        const isCategoryBeingCreated = policyCategories?.[iouCategory]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+        if (iouCategory && policyCategories && !policyCategories[iouCategory]?.enabled && !isCategoryBeingCreated) {
             return {errorKey: 'violations.categoryOutOfPolicy'};
         }
 
