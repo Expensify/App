@@ -1,5 +1,6 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -88,33 +89,35 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID="PronounsPage"
-        >
-            {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'PronounsPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes} />
-            ) : (
-                <>
-                    <CollapsibleHeaderOnKeyboard>
-                        <HeaderWithBackButton
-                            title={translate('pronounsPage.pronouns')}
-                            onBackButtonPress={() => Navigation.goBack()}
-                        />
-                        <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
-                    </CollapsibleHeaderOnKeyboard>
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                testID="PronounsPage"
+            >
+                {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
+                    <FullScreenLoadingIndicator reasonAttributes={{context: 'PronounsPage', isLoadingApp} satisfies SkeletonSpanReasonAttributes} />
+                ) : (
+                    <>
+                        <CollapsibleHeaderOnKeyboard>
+                            <HeaderWithBackButton
+                                title={translate('pronounsPage.pronouns')}
+                                onBackButtonPress={() => Navigation.goBack()}
+                            />
+                            <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
+                        </CollapsibleHeaderOnKeyboard>
 
-                    <SelectionList
-                        data={filteredPronounsList}
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={updatePronouns}
-                        textInputOptions={textInputOptions}
-                        initiallyFocusedItemKey={currentPronounsKey}
-                        shouldSingleExecuteRowSelect
-                    />
-                </>
-            )}
-        </ScreenWrapper>
+                        <SelectionList
+                            data={filteredPronounsList}
+                            ListItem={SingleSelectListItem}
+                            onSelectRow={updatePronouns}
+                            textInputOptions={textInputOptions}
+                            initiallyFocusedItemKey={currentPronounsKey}
+                            shouldSingleExecuteRowSelect
+                        />
+                    </>
+                )}
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 

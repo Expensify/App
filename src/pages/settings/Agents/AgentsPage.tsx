@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -116,48 +117,50 @@ function AgentsPage() {
     }
 
     return (
-        <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
-            style={[styles.defaultModalContainer]}
-            testID={AgentsPage.displayName}
-            shouldShowOfflineIndicatorInWideScreen
-            shouldMobileOfflineIndicatorStickToBottom={false}
-            offlineIndicatorStyle={styles.mtAuto}
-        >
-            <HeaderWithBackButton
-                icon={illustrations.AiBot}
-                onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                title={translate('agentsPage.title')}
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                style={[styles.defaultModalContainer]}
+                testID={AgentsPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+                shouldMobileOfflineIndicatorStickToBottom={false}
+                offlineIndicatorStyle={styles.mtAuto}
             >
-                {!shouldUseNarrowLayout && newAgentButton}
-            </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
-            {hasAgents ? (
-                <>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.pb3, styles.pt3]}>{translate('agentsPage.subtitle')}</Text>
-                    <FlatList
-                        data={agentItems}
-                        renderItem={renderItem}
-                        keyExtractor={keyExtractor}
-                    />
-                </>
-            ) : (
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                    <GenericEmptyStateComponent
-                        headerMedia={illustrations.TvScreenRobot}
-                        title={translate('agentsPage.emptyAgents.title')}
-                        subtitle={translate('agentsPage.emptyAgents.subtitle')}
-                        subtitleStyles={styles.agentsPageEmptyStateSubtitle}
-                        headerStyles={styles.emptyStateCardIllustrationContainer}
-                        headerContentStyles={styles.agentsPageEmptyStateIllustration}
-                    />
-                </ScrollView>
-            )}
-        </ScreenWrapper>
+                <HeaderWithBackButton
+                    icon={illustrations.AiBot}
+                    onBackButtonPress={() => Navigation.goBack()}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    title={translate('agentsPage.title')}
+                >
+                    {!shouldUseNarrowLayout && newAgentButton}
+                </HeaderWithBackButton>
+                {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
+                {hasAgents ? (
+                    <>
+                        <Text style={[styles.textSupporting, styles.ph5, styles.pb3, styles.pt3]}>{translate('agentsPage.subtitle')}</Text>
+                        <FlatList
+                            data={agentItems}
+                            renderItem={renderItem}
+                            keyExtractor={keyExtractor}
+                        />
+                    </>
+                ) : (
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                        <GenericEmptyStateComponent
+                            headerMedia={illustrations.TvScreenRobot}
+                            title={translate('agentsPage.emptyAgents.title')}
+                            subtitle={translate('agentsPage.emptyAgents.subtitle')}
+                            subtitleStyles={styles.agentsPageEmptyStateSubtitle}
+                            headerStyles={styles.emptyStateCardIllustrationContainer}
+                            headerContentStyles={styles.agentsPageEmptyStateIllustration}
+                        />
+                    </ScrollView>
+                )}
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 

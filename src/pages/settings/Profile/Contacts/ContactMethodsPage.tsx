@@ -3,6 +3,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
@@ -60,48 +61,50 @@ function ContactMethodsPage({route}: ContactMethodsPageProps) {
     }, [navigateBackTo, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, isUserValidated, showLockedAccountModal]);
 
     return (
-        <ScreenWrapper
-            shouldEnableKeyboardAvoidingView={false}
-            testID="ContactMethodsPage"
-        >
-            <HeaderWithBackButton
-                title={translate('contacts.contactMethods')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <RenderHTML html={translate('contacts.helpText', {email: CONST.EMAIL.RECEIPTS})} />
-                </View>
-                {options.map(
-                    (option) =>
-                        !!option && (
-                            <OfflineWithFeedback
-                                pendingAction={option.pendingAction}
-                                key={option.partnerUserID}
-                            >
-                                <MenuItem
-                                    title={option.menuItemTitle}
-                                    description={option.description}
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID, navigateBackTo))}
-                                    brickRoadIndicator={option.indicator}
-                                    shouldShowBasicTitle
-                                    shouldShowRightIcon
-                                    disabled={!!option.pendingAction}
-                                />
-                            </OfflineWithFeedback>
-                        ),
-                )}
-                <FixedFooter style={[styles.mtAuto, styles.pt5]}>
-                    <Button
-                        large
-                        success
-                        text={translate('contacts.newContactMethod')}
-                        onPress={onNewContactMethodButtonPress}
-                        pressOnEnter
-                    />
-                </FixedFooter>
-            </ScrollView>
-        </ScreenWrapper>
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper
+                shouldEnableKeyboardAvoidingView={false}
+                testID="ContactMethodsPage"
+            >
+                <HeaderWithBackButton
+                    title={translate('contacts.contactMethods')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
+                        <RenderHTML html={translate('contacts.helpText', {email: CONST.EMAIL.RECEIPTS})} />
+                    </View>
+                    {options.map(
+                        (option) =>
+                            !!option && (
+                                <OfflineWithFeedback
+                                    pendingAction={option.pendingAction}
+                                    key={option.partnerUserID}
+                                >
+                                    <MenuItem
+                                        title={option.menuItemTitle}
+                                        description={option.description}
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID, navigateBackTo))}
+                                        brickRoadIndicator={option.indicator}
+                                        shouldShowBasicTitle
+                                        shouldShowRightIcon
+                                        disabled={!!option.pendingAction}
+                                    />
+                                </OfflineWithFeedback>
+                            ),
+                    )}
+                    <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                        <Button
+                            large
+                            success
+                            text={translate('contacts.newContactMethod')}
+                            onPress={onNewContactMethodButtonPress}
+                            pressOnEnter
+                        />
+                    </FixedFooter>
+                </ScrollView>
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 

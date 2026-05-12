@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,48 +28,50 @@ function TimezoneInitialPage({currentUserPersonalDetails}: TimezoneInitialPagePr
     const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone as SelectedTimezone;
 
     return (
-        <ScreenWrapper testID="TimezoneInitialPage">
-            <HeaderWithBackButton
-                title={translate('timezonePage.timezone')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <View style={styles.flex1}>
-                <View style={[styles.ph5]}>
-                    <Text style={[styles.mb5]}>{translate('timezonePage.isShownOnProfile')}</Text>
-                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text
-                            style={[styles.flexShrink1, styles.mr2]}
-                            accessible={false}
-                            aria-hidden
-                        >
-                            {translate('timezonePage.getLocationAutomatically')}
-                        </Text>
-                        <Switch
-                            accessibilityLabel={translate('timezonePage.getLocationAutomatically')}
-                            isOn={!!timezone.automatic}
-                            onToggle={(isAutomatic: boolean) => {
-                                // Updates setting for automatic timezone selection.
-                                // Note: If we are updating automatically, we'll immediately calculate the user's timezone.
-                                updateAutomaticTimezone(
-                                    {
-                                        automatic: isAutomatic,
-                                        selected: isAutomatic && !isEmptyObject(currentTimezone) ? currentTimezone : timezone.selected,
-                                    },
-                                    currentUserPersonalDetails.accountID,
-                                );
-                            }}
-                        />
-                    </View>
-                </View>
-                <MenuItemWithTopDescription
-                    title={timezone.selected}
-                    description={translate('timezonePage.timezone')}
-                    shouldShowRightIcon
-                    disabled={!!timezone.automatic}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper testID="TimezoneInitialPage">
+                <HeaderWithBackButton
+                    title={translate('timezonePage.timezone')}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
-            </View>
-        </ScreenWrapper>
+                <View style={styles.flex1}>
+                    <View style={[styles.ph5]}>
+                        <Text style={[styles.mb5]}>{translate('timezonePage.isShownOnProfile')}</Text>
+                        <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text
+                                style={[styles.flexShrink1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('timezonePage.getLocationAutomatically')}
+                            </Text>
+                            <Switch
+                                accessibilityLabel={translate('timezonePage.getLocationAutomatically')}
+                                isOn={!!timezone.automatic}
+                                onToggle={(isAutomatic: boolean) => {
+                                    // Updates setting for automatic timezone selection.
+                                    // Note: If we are updating automatically, we'll immediately calculate the user's timezone.
+                                    updateAutomaticTimezone(
+                                        {
+                                            automatic: isAutomatic,
+                                            selected: isAutomatic && !isEmptyObject(currentTimezone) ? currentTimezone : timezone.selected,
+                                        },
+                                        currentUserPersonalDetails.accountID,
+                                    );
+                                }}
+                            />
+                        </View>
+                    </View>
+                    <MenuItemWithTopDescription
+                        title={timezone.selected}
+                        description={translate('timezonePage.timezone')}
+                        shouldShowRightIcon
+                        disabled={!!timezone.automatic}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_TIMEZONE_SELECT)}
+                    />
+                </View>
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 
