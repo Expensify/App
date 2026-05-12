@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -55,7 +54,7 @@ import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
-import {isPublicDomain} from './ValidationUtils';
+import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -73,14 +72,6 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
-
-let allPolicies: OnyxCollection<Policy>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
 
 /**
  * Returns true if the policy has no fieldList or its fieldList is empty.
@@ -309,6 +300,50 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
+/**
+ * Pick the rate that the expense flow will treat as default for a distance custom unit's rates
+ * dictionary: filter enabled rates, sort by `index` (treating missing index as CONST.DEFAULT_NUMBER_ID),
+ * and take the first. Mirrors `getDefaultMileageRate`'s selection so optimistic state stays aligned
+ * with the rate the expense flow later picks.
+ */
+function getDefaultDistanceRate(rates: Record<string, Rate> | undefined): Rate | undefined {
+    if (!rates) {
+        return undefined;
+    }
+    return Object.values(rates)
+        .filter((rate) => rate.enabled !== false)
+        .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+        .at(0);
+}
+
+function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, newDefaultRateID?: string): CustomUnit {
+    if (newDefaultRateID) {
+        // Mirror DUPLICATE_POLICY: rebind the source default to newDefaultRateID, keep other rates
+        // under their source IDs (the server preserves them). Preserve source iteration order so
+        // getDefaultMileageRate's stable sort still picks the original default when rates tie on
+        // index (e.g. a rate with no index falls back to CONST.DEFAULT_NUMBER_ID).
+        const defaultRate = getDefaultDistanceRate(unit.rates);
+        const rates: Record<string, Rate> = {};
+        for (const rate of Object.values(unit.rates)) {
+            if (rate.customUnitRateID === defaultRate?.customUnitRateID) {
+                rates[newDefaultRateID] = {...rate, customUnitRateID: newDefaultRateID};
+            } else {
+                rates[rate.customUnitRateID] = rate;
+            }
+        }
+        return {
+            ...unit,
+            customUnitID: newCustomUnitID,
+            rates,
+        };
+    }
+
+    return {
+        ...unit,
+        customUnitID: newCustomUnitID,
+    };
+}
+
 function getCustomUnitsForDuplication(
     policy: Policy,
     isDistanceRatesOptionSelected: boolean,
@@ -316,39 +351,58 @@ function getCustomUnitsForDuplication(
     customUnitIDs: {
         distanceCustomUnitID: string;
         perDiemCustomUnitID: string;
+        customUnitRateID?: string;
     },
 ): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
-    const {distanceCustomUnitID, perDiemCustomUnitID} = customUnitIDs ?? {};
+    const {distanceCustomUnitID, perDiemCustomUnitID, customUnitRateID} = customUnitIDs ?? {};
 
     if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
     }
 
-    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+    const getUnitWithoutPendingDeleteRates = (customUnit: CustomUnit | undefined, customUnitID: string) => {
+        if (!customUnit) {
+            return undefined;
+        }
+        return {
+            ...customUnit,
+            customUnitID,
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+        };
+    };
 
+    const distanceCustomUnit = getUnitWithoutPendingDeleteRates(
+        Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
+        distanceCustomUnitID,
+    );
+    const perDiemUnit = getUnitWithoutPendingDeleteRates(
+        Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL),
+        perDiemCustomUnitID,
+    );
+
+    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
         if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
             return undefined;
         }
 
-        return {[distanceCustomUnitID]: distanceCustomUnit, [perDiemCustomUnitID]: perDiemUnit};
+        return {
+            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID),
+            [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID),
+        };
     }
 
     if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
-        return {[distanceCustomUnitID]: distanceCustomUnit};
+        return {[distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID)};
     }
 
-    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
-    return {[perDiemCustomUnitID]: perDiemUnit};
+    return {[perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID)};
 }
 
 /**
@@ -405,10 +459,6 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
     }
 
     return policy?.employeeList?.[currentUserLogin]?.role;
-}
-
-function getPolicyNameByID(policyID: string): string {
-    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '';
 }
 
 /**
@@ -1244,17 +1294,29 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     return getManagerAccountID(policy, expenseReport);
 }
 
-function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number {
-    const existingManagerID = expenseReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number | undefined {
     const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const existingManagerID = expenseReport?.managerID;
+    const approvalRules = policy?.rules?.approvalRules;
+    const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport) : '';
+    const submitToAccountID = ruleApprover ? (getAccountIDsByLogins([ruleApprover]).at(0) ?? -1) : getManagerAccountID(policy, expenseReport);
+    const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
+    const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
+    const employeeLogin = getLoginByAccountID(ownerAccountID) ?? '';
+    const hasReliablePolicyRoute =
+        ([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy)) ||
+        !!ruleApprover ||
+        !!policy?.employeeList?.[employeeLogin];
 
-    if (existingManagerID > CONST.DEFAULT_NUMBER_ID && existingManagerID !== ownerAccountID) {
-        // Existing reports may already have a server-computed or manually changed approver.
+    if (hasReliablePolicyRoute && isValidSubmitToAccountID) {
+        return submitToAccountID;
+    }
+
+    if (!hasReliablePolicyRoute && isValidExistingManagerID) {
         return existingManagerID;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, expenseReport);
-    return submitToAccountID > CONST.DEFAULT_NUMBER_ID ? submitToAccountID : existingManagerID;
+    return isValidSubmitToAccountID ? submitToAccountID : existingManagerID;
 }
 
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
@@ -1291,11 +1353,6 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
-/** @deprecated Please use ONYXKEYS.PERSONAL_POLICY_ID to find the personal policyID */
-function getPersonalPolicy() {
-    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
-}
-
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     if (!policy?.employeeList) {
         return [];
@@ -1321,7 +1378,7 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
  * Checks whether the current user has a policy with admin access
  */
 function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
-    return getActiveAdminWorkspaces(policies ?? allPolicies, currentUserLogin).length > 0;
+    return getActiveAdminWorkspaces(policies, currentUserLogin).length > 0;
 }
 
 /**
@@ -1874,31 +1931,6 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string)
     );
 }
 
-function areAllGroupPoliciesExpenseChatDisabled(policies: OnyxCollection<Policy> | null) {
-    let foundGroupPolicy = false;
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            continue;
-        }
-
-        if (policy.isJoinRequestPending || !shouldShowPolicy(policy, false, undefined)) {
-            continue;
-        }
-
-        foundGroupPolicy = true;
-
-        if (policy.isPolicyExpenseChatEnabled) {
-            return false;
-        }
-    }
-
-    if (!foundGroupPolicy) {
-        return false;
-    }
-
-    return true;
-}
-
 function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
@@ -2069,13 +2101,6 @@ function isPreferredExporter(policy: Policy, currentUserLogin: string) {
 }
 
 /**
- * Checks if the current user is a member of any policyExpenseChatEnabled policy
- */
-function isCurrentUserMemberOfAnyPolicy(): boolean {
-    return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
-}
-
-/**
  * Determines which travel step should be shown based on policy state
  */
 function getTravelStep(
@@ -2186,9 +2211,6 @@ export {
     getSoftExclusionsForGuideAndAccountManager,
     filterGuideAndAccountManager,
     isMultiLevelTags,
-    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getPersonalPolicy,
     getPolicyBrickRoadIndicatorStatus,
     getSortedTagKeys,
     getTagList,
@@ -2315,16 +2337,14 @@ export {
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
-    getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
     isPreferredExporter,
     getCustomUnitsForDuplication,
-    areAllGroupPoliciesExpenseChatDisabled,
+    getDefaultDistanceRate,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
-    isCurrentUserMemberOfAnyPolicy,
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,

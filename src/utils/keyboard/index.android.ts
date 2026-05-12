@@ -23,7 +23,6 @@ const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => 
     return () => {};
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const dismiss = (options?: DismissKeyboardOptions): Promise<void> => {
     return new Promise((resolve) => {
         if (!isVisible) {

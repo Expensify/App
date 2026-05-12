@@ -43,11 +43,10 @@ function useOnboardingFlowRouter() {
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector});
 
-    useEffect(() => {
-        const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
 
+    useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const handle = InteractionManager.runAfterInteractions(() => {
             // Prevent showing onboarding if we are logging in as a new user with short lived token
             if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
@@ -66,11 +65,6 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (currentUrl.endsWith('/r')) {
-                // Don't trigger onboarding if we are in the middle of a redirect to a report
-                return;
-            }
-
             if (CONFIG.IS_HYBRID_APP) {
                 // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
                 if (isSingleNewDotEntry) {
@@ -83,11 +77,11 @@ function useOnboardingFlowRouter() {
                 }
             }
 
-            // Skip onboarding for migrated users or users who were invited/have workspace policies
             const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
-            if (isMigratedUser || isInvitedOrGroupMember) {
+            // OD signup sets inviteType + creates a workspace, so invited/group members can still need NewDot onboarding.
+            if (isMigratedUser || (isInvitedOrGroupMember && isOnboardingCompleted)) {
                 return;
             }
 
@@ -134,6 +128,7 @@ function useOnboardingFlowRouter() {
         hasBeenAddedToNudgeMigration,
         hasNonPersonalPolicy,
         wasInvitedToNewDot,
+        isOnboardingCompleted,
     ]);
 
     return {

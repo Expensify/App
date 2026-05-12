@@ -11,9 +11,10 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
+import cancelTabNavigationSpans from '@libs/telemetry/cancelTabNavigationSpans';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import ROOT_TAB_SCREENS from './ROOT_TAB_SCREENS';
 
 const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
     [SCREENS.HOME]: NAVIGATION_TABS.HOME,
@@ -21,6 +22,11 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NAVIGATION_TABS.SEARCH,
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NAVIGATION_TABS.SETTINGS,
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NAVIGATION_TABS.WORKSPACES,
+};
+
+const NAVIGATION_TAB_TO_SPAN: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, string>> = {
+    [NAVIGATION_TABS.INBOX]: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+    [NAVIGATION_TABS.SEARCH]: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
 };
 
 // Count as tab-root when they surface as the resolved leaf.
@@ -31,7 +37,21 @@ const TAB_WRAPPER_NAVIGATORS = new Set<string>([
     NAVIGATORS.WORKSPACE_NAVIGATOR,
 ]);
 
-const isAtTabRootLevel = (name: string | undefined): boolean => !name || ROOT_TAB_SCREENS.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
+/**
+ * Leaf screen names that represent the root/landing view of each tab.
+ * Used to decide tab-bar visibility.
+ */
+const SCREENS_WITH_TAB_BAR = new Set<string>([
+    SCREENS.HOME,
+    SCREENS.INBOX,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.SETTINGS.ROOT,
+    SCREENS.WORKSPACES_LIST,
+    SCREENS.WORKSPACE.INITIAL,
+    SCREENS.DOMAIN.INITIAL,
+]);
+
+const isAtTabRootLevel = (name: string | undefined): boolean => !name || SCREENS_WITH_TAB_BAR.has(name) || TAB_WRAPPER_NAVIGATORS.has(name);
 
 // Deepest `screen` in a `{screen, params}` chain (e.g. WORKSPACE_NAV → WORKSPACE_SPLIT_NAV → WORKSPACE.INITIAL).
 const getPushTargetLeaf = (params: unknown): string | undefined => {
@@ -55,8 +75,11 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const StyleUtils = useStyleUtils();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
-    // Check both leaves so wrapper hydration doesn't flash the tab bar on the push target (Android).
-    const isAtRoot = isAtTabRootLevel(getFocusedLeafScreenName(activeRoute?.state)) && isAtTabRootLevel(getPushTargetLeaf(activeRoute?.params));
+    // Trust the focused leaf as the source of truth. Fall back to the push target only when the navigator
+    // state hasn't hydrated yet (Android), so the tab bar doesn't flash on the push target during the transition.
+    // Tab-level params can be stale after within-tab back navigation, so they must not override an already-hydrated focused leaf.
+    const focusedLeaf = getFocusedLeafScreenName(activeRoute?.state);
+    const isAtRoot = isAtTabRootLevel(focusedLeaf ?? getPushTargetLeaf(activeRoute?.params));
     // --- Narrow-only animation logic (hooks must run unconditionally per Rules of Hooks) ---
     // On native, screens also render the tab bar via bottomContent for swipe-back animations.
     // Delay showing this navigator's tab bar only when navigating back from a deeper screen
@@ -78,6 +101,12 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         });
         return () => cancelAnimationFrame(frameId);
     }, [stateKey]);
+
+    // Cancel any in-flight tab-navigation span that doesn't match the new focused tab.
+    // The span for the new tab is started by the tab button before navigation, so we keep it via `except`.
+    useEffect(() => {
+        cancelTabNavigationSpans(NAVIGATION_TAB_TO_SPAN[selectedTab]);
+    }, [selectedTab]);
 
     const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
 

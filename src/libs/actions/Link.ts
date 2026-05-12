@@ -277,7 +277,6 @@ function openReportFromDeepLink(
     }
 
     // Navigate to the report after sign-in/sign-up.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
@@ -353,7 +352,6 @@ function openReportFromDeepLink(
                                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
-                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                         if (report?.errorFields?.notFound || report?.reportID || (report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);

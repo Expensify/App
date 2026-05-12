@@ -1,5 +1,14 @@
 import Onyx from 'react-native-onyx';
-import {addDelegate, clearDelegateErrorsByField, clearDelegatorErrors, isConnectedAsDelegate, removeDelegate, updateDelegateRole} from '@libs/actions/Delegate';
+import {
+    addDelegate,
+    clearDelegateErrorsByField,
+    clearDelegatorErrors,
+    clearOnyxForDelegateTransition,
+    isConnectedAsDelegate,
+    removeDelegate,
+    updateDelegateRole,
+} from '@libs/actions/Delegate';
+import DateUtils from '@libs/DateUtils';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -230,6 +239,95 @@ describe('actions/Delegate', () => {
                     callback: (account) => {
                         expect(isConnectedAsDelegate({delegatedAccess: account?.delegatedAccess})).toBe(false);
                         Onyx.disconnect(connection);
+                        resolve();
+                    },
+                });
+            });
+        });
+    });
+
+    describe('clearOnyxForDelegateTransition', () => {
+        it('keeps IS_LOADING_APP=true after the clear so DelegateAccessHandler does not see HAS_LOADED_APP=true && IS_LOADING_APP=undefined and fire a duplicate openApp', async () => {
+            // Simulate the pre-switch state: app is fully loaded with the previous account.
+            await Onyx.multiSet({
+                [ONYXKEYS.HAS_LOADED_APP]: true,
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+            });
+            await waitForBatchedUpdates();
+
+            await clearOnyxForDelegateTransition();
+            await waitForBatchedUpdates();
+
+            await new Promise<void>((resolve) => {
+                const conn = Onyx.connect({
+                    key: ONYXKEYS.IS_LOADING_APP,
+                    callback: (value) => {
+                        expect(value).toBe(true);
+                        Onyx.disconnect(conn);
+                        resolve();
+                    },
+                });
+            });
+
+            // HAS_LOADED_APP is in the preserve list and should remain true.
+            await new Promise<void>((resolve) => {
+                const conn = Onyx.connect({
+                    key: ONYXKEYS.HAS_LOADED_APP,
+                    callback: (value) => {
+                        expect(value).toBe(true);
+                        Onyx.disconnect(conn);
+                        resolve();
+                    },
+                });
+            });
+
+            // A non-preserved key should have been cleared.
+            await new Promise<void>((resolve) => {
+                const conn = Onyx.connect({
+                    key: ONYXKEYS.NVP_PRIORITY_MODE,
+                    callback: (value) => {
+                        expect(value).toBeUndefined();
+                        Onyx.disconnect(conn);
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('seeds LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect does not fire a duplicate ReconnectApp before OpenApp successData arrives', async () => {
+            // Simulate the pre-switch state: timestamp is empty, mimicking the post-clear baseline.
+            await Onyx.multiSet({
+                [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: null,
+                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+            });
+            await waitForBatchedUpdates();
+
+            const before = DateUtils.getDBTime();
+            await clearOnyxForDelegateTransition();
+            await waitForBatchedUpdates();
+
+            // The timestamp must be a non-empty DB time string seeded at-or-after `before`.
+            await new Promise<void>((resolve) => {
+                const conn = Onyx.connect({
+                    key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
+                    callback: (value) => {
+                        expect(typeof value).toBe('string');
+                        expect(value && value.length > 0).toBe(true);
+                        expect((value ?? '') >= before).toBe(true);
+                        Onyx.disconnect(conn);
+                        resolve();
+                    },
+                });
+            });
+
+            // A non-preserved key should still have been cleared alongside the seed.
+            await new Promise<void>((resolve) => {
+                const conn = Onyx.connect({
+                    key: ONYXKEYS.NVP_PRIORITY_MODE,
+                    callback: (value) => {
+                        expect(value).toBeUndefined();
+                        Onyx.disconnect(conn);
                         resolve();
                     },
                 });
