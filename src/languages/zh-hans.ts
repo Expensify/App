@@ -500,6 +500,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
+        enableNotifications: {
+            prompt: '当 Concierge 回复时获取通知。',
+            cta: '通知我',
+        },
     },
     supportalNoAccess: {
         title: '先别急',

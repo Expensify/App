@@ -503,6 +503,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Recolher raciocínio',
         expandReasoning: 'Expandir raciocínio',
+        enableNotifications: {
+            prompt: 'Receba uma notificação quando o Concierge responder.',
+            cta: 'Me avise',
+        },
     },
     supportalNoAccess: {
         title: 'Calma aí',

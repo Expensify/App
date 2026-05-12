@@ -505,6 +505,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: 'Réduire le raisonnement',
         expandReasoning: 'Développer le raisonnement',
+        enableNotifications: {
+            prompt: 'Soyez averti dès que Concierge répond.',
+            cta: 'Me prévenir',
+        },
     },
     supportalNoAccess: {
         title: 'Pas si vite',

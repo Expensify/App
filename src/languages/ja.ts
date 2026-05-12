@@ -504,6 +504,10 @@ const translations: TranslationDeepObject<typeof en> = {
     concierge: {
         collapseReasoning: '推論を折りたたむ',
         expandReasoning: '推論を展開',
+        enableNotifications: {
+            prompt: 'Conciergeからの返信を通知で受け取りましょう。',
+            cta: '通知する',
+        },
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
