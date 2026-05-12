@@ -112,7 +112,6 @@ function DebugTabView() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
@@ -134,13 +133,13 @@ function DebugTabView() {
         }
         const focusedLeaf = getFocusedLeafScreenName(activeRoute.state) ?? activeRoute.name;
         return {
-            tabName: activeRoute.name,
+            selectedTab: ROUTE_TO_NAVIGATION_TAB[activeRoute.name],
             isAtRoot: isTabRouteAtRoot(activeRoute),
             isOnFullWidthTabRoot: focusedLeaf === SCREENS.WORKSPACES_LIST,
         };
     });
 
-    const selectedTab = tabRootInfo ? ROUTE_TO_NAVIGATION_TAB[tabRootInfo.tabName] : undefined;
+    const selectedTab = tabRootInfo?.selectedTab;
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
@@ -190,7 +189,6 @@ function DebugTabView() {
     }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
 
     if (
-        !isDebugModeEnabled ||
         !tabRootInfo ||
         (shouldUseNarrowLayout && !tabRootInfo.isAtRoot) ||
         !([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') ||
@@ -202,7 +200,8 @@ function DebugTabView() {
 
     const getPositionStyle = () => {
         if (shouldUseNarrowLayout) {
-            return {bottom: variables.bottomTabHeight + safeAreaPaddingBottom, left: 0, right: 0};
+            // Offset above the FAB, which protrudes above the tab bar by componentSizeLarge + 16.
+            return {bottom: variables.bottomTabHeight + safeAreaPaddingBottom + variables.componentSizeLarge + 16, left: 0, right: 0};
         }
         if (tabRootInfo.isOnFullWidthTabRoot) {
             return {bottom: 0, left: variables.navigationTabBarSize, right: 0};
