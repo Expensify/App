@@ -19,6 +19,7 @@ function PressResponder({
     accessibilityControls,
 }: PressResponderProps): React.ReactElement {
     const consumedKindsRef = useRef<Set<RegisterKind>>(new Set());
+    const refAttachedRef = useRef(false);
 
     const value: PressResponderContextValue = {
         ref,
@@ -31,11 +32,15 @@ function PressResponder({
         register: (kind: RegisterKind) => {
             consumedKindsRef.current.add(kind);
         },
+        registerRef: () => {
+            refAttachedRef.current = true;
+        },
     };
 
     // Stable boolean deps so identity churn from fresh handler closures doesn't re-run the dev-warn each render.
     const hasOnPress = !!onPress;
     const hasOnSecondary = !!onSecondaryInteraction;
+    const hasRef = !!ref;
     useEffect(() => {
         if (!__DEV__) {
             return;
@@ -48,13 +53,18 @@ function PressResponder({
             required.push('secondary');
         }
         const missing = required.filter((kind) => !consumedKindsRef.current.has(kind));
-        if (missing.length === 0) {
+        if (missing.length > 0) {
+            Log.warn(
+                `[PressResponder] published ${missing.join(', ')} handler(s) but no descendant pressable consumed them. Use <PressableWithFeedback> for 'press' and <PressableWithSecondaryInteraction> for 'secondary'.`,
+            );
             return;
         }
-        Log.warn(
-            `[PressResponder] published ${missing.join(', ')} handler(s) but no descendant pressable consumed them. Use <PressableWithFeedback> for 'press' and <PressableWithSecondaryInteraction> for 'secondary'.`,
-        );
-    }, [hasOnPress, hasOnSecondary]);
+        if (hasRef && !refAttachedRef.current) {
+            Log.warn(
+                '[PressResponder] published a ref but no descendant called `useResponderRef`. The anchor will not be measurable on press; use <PressableWithFeedback> or call useResponderRef in your custom pressable.',
+            );
+        }
+    }, [hasOnPress, hasOnSecondary, hasRef]);
 
     return <PressResponderContext.Provider value={value}>{children}</PressResponderContext.Provider>;
 }

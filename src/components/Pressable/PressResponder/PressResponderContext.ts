@@ -18,6 +18,7 @@ type PressResponderContextValue = {
     accessibilityControls?: string | string[];
     ref?: PressableProps['ref'];
     register: (kind: RegisterKind) => void;
+    registerRef: () => void;
 };
 
 const PressResponderContext = createContext<PressResponderContextValue | null>(null);

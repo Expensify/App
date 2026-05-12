@@ -12,6 +12,7 @@ import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
 import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import usePressResponderPropsImport from '@components/Pressable/PressResponder/usePressResponderProps';
+import useResponderRefImport from '@components/Pressable/PressResponder/useResponderRef';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Log from '@libs/Log';
 
@@ -572,6 +573,7 @@ describe('PopoverMenu V2', () => {
             const captured: Array<ReturnType<typeof usePressResponderPropsImport>> = [];
             function CapturePressResponderSlot() {
                 captured.push(usePressResponderPropsImport({}));
+                useResponderRefImport(null);
                 return null;
             }
             render(
@@ -717,6 +719,25 @@ describe('PopoverMenu V2', () => {
                 </NavigationContext.Provider>,
             );
             expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('secondary'));
+            warnSpy.mockRestore();
+        });
+
+        it('warns when a descendant pressable consumes props but never calls useResponderRef', () => {
+            const warnSpy = jest.spyOn(Log, 'warn');
+            function BrokenPressable() {
+                usePressResponderPropsImport({});
+                return <View testID="broken" />;
+            }
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger>
+                            <BrokenPressable />
+                        </PopoverMenu.Trigger>
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('useResponderRef'));
             warnSpy.mockRestore();
         });
     });

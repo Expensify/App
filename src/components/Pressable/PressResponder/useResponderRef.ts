@@ -9,6 +9,7 @@ function useResponderRef(consumerRef: PressableProps['ref']): PressableProps['re
     if (!responder?.ref) {
         return consumerRef;
     }
+    responder.registerRef();
     return mergeRefs(consumerRef, responder.ref) as PressableProps['ref'];
 }
 
