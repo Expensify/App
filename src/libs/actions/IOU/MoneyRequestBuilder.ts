@@ -835,7 +835,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 value: {
                     pendingAction: null,
                     pendingFields: clearedPendingFields,
-                    routes: null,
+                    // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
                 },
             },
             {
@@ -895,10 +895,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 value: {
                     pendingAction: null,
                     pendingFields: clearedPendingFields,
-                    // The routes contains the distance in meters. Clearing the routes ensures we use the distance
-                    // in the correct unit stored under the transaction customUnit once the request is created.
-                    // The route is also not saved in the backend, so we can't rely on it.
-                    routes: null,
+                    // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
                 },
             },
 
@@ -943,74 +940,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             },
         );
     }
-
-    onyxData.successData?.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
-            value: {
-                participants: redundantParticipants,
-                pendingFields: null,
-                errorFields: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
-            value: {
-                isOptimisticReport: false,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: {
-                pendingAction: null,
-                pendingFields: clearedPendingFields,
-                // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
-            },
-        },
-
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
-            value: {
-                ...(isNewChatReport
-                    ? {
-                          [chat.createdAction.reportActionID]: {
-                              pendingAction: null,
-                              errors: null,
-                              isOptimisticAction: null,
-                          },
-                      }
-                    : {}),
-                [chat.reportPreviewAction.reportActionID]: {
-                    pendingAction: null,
-                    isOptimisticAction: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
-            value: {
-                ...(shouldCreateNewMoneyRequestReport
-                    ? {
-                          [iou.createdAction.reportActionID]: {
-                              pendingAction: null,
-                              errors: null,
-                              isOptimisticAction: null,
-                          },
-                      }
-                    : {}),
-                [iou.action.reportActionID]: {
-                    pendingAction: null,
-                    errors: null,
-                    isOptimisticAction: null,
-                },
-            },
-        },
-    );
 
     if (shouldGenerateTransactionThreadReport) {
         onyxData.successData?.push(
