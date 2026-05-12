@@ -243,7 +243,7 @@ function useTrialPaymentReminder() {
     }, [firstDayFreeTrial, lastDayFreeTrial, billingFundID, readinessState, currentVariation, dismissedTimestamp, dismissedTimestampResult, shouldShowProactiveAppReviewModal]);
 
     const isOtherModalActive = !!modal?.isVisible || !!modal?.willAlertModalBecomeVisible;
-    
+
     if (isEligibleToShow && !isOtherModalActive && !isModalOpen) {
         setIsModalOpen(true);
     }
