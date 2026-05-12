@@ -1,7 +1,6 @@
 import {getActionFromState} from '@react-navigation/core';
 import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
 import {CommonActions, findFocusedRoute} from '@react-navigation/native';
-import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
@@ -72,6 +71,17 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
     return currentParams?.reportID === newParams?.reportID;
 }
 
+function isNavigatingToReportActionWithinSameReport(currentRoute: NavigationPartialRoute, newRoute: NavigationPartialRoute) {
+    if (currentRoute.name !== SCREENS.REPORT || newRoute.name !== SCREENS.REPORT) {
+        return false;
+    }
+
+    const currentParams = currentRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+    const newParams = newRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+
+    return currentParams?.reportID === newParams?.reportID && currentParams.reportActionID !== newParams.reportActionID;
+}
+
 /**
  * Returns true when both current and target states are within TabNavigator (tab switching).
  * In this case we must keep NAVIGATE (not PUSH) because tab navigators use jumpTo/navigate.
@@ -118,7 +128,7 @@ function shouldChangeToMatchingFullScreen(
     return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastActiveScreen !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
-export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, shouldChangeToMatchingFullScreen};
+export {isSwitchingTabsWithinTabNavigator, getActiveScreenInRoute, shouldChangeToMatchingFullScreen, isNavigatingToReportActionWithinSameReport};
 
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
@@ -158,16 +168,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         return;
     }
 
-    const isDynamicRoute = !!findMatchingDynamicSuffix(normalizedPath);
     const typedPayload = (action as {payload: {name?: string; params?: ActionPayloadParams}}).payload;
-
-    // If a RIGHT_MODAL_NAVIGATOR already sits below the focused TAB_NAVIGATOR, NAVIGATE pops back to it
-    // (dropping the tab above) instead of stacking - anchoring the new RHP on the wrong tab.
-    // PUSH so the new RHP lands above the current tab. See https://github.com/Expensify/App/issues/88965.
-    const targetIsRightModal = typedPayload?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-    const focusIsOnTabNavigator = currentState.routes[currentState.index]?.name === NAVIGATORS.TAB_NAVIGATOR;
-    const isRhpNavigationFromStackedTab =
-        targetIsRightModal && focusIsOnTabNavigator && currentState.routes.some((route, index) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && index < currentState.index);
 
     if (forceReplace) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.REPLACE;
@@ -181,10 +182,15 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name) &&
         !isNavigatingToReportWithSameReportID(currentFocusedRoute, focusedRouteFromPath) &&
-        !isSwitchingTabsWithinTabNavigator(currentState, stateFromPath) &&
-        (!isDynamicRoute || isRhpNavigationFromStackedTab)
+        !isSwitchingTabsWithinTabNavigator(currentState, stateFromPath)
     ) {
         // We want to PUSH by default to add entries to the browser history.
+        action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
+    }
+
+    // When we link to a report action in the current report, we want to push instead of replace so that back navigation
+    // works naturally.
+    else if (isNavigatingToReportActionWithinSameReport(currentFocusedRoute, focusedRouteFromPath)) {
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 

@@ -492,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'W przyszłym miesiącu',
         previousYear: 'Poprzedni rok',
         nextYear: 'W przyszłym roku',
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -2195,6 +2196,12 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Porozmawiaj z Concierge, aby rozwiązać problemy z bezpieczeństwem i odblokować swoje konto.',
         chatWithConcierge: 'Czat z Concierge',
     },
+    deviceManagementPage: {
+        title: 'Zarządzanie urządzeniami',
+        description: 'Zarządzaj wszystkimi urządzeniami, na których zalogowałeś się za pomocą swojego konta Expensify.',
+        revoke: 'Cofnąć',
+        unknownDevice: 'Nieznane Urządzenie',
+    },
     twoFactorAuth: {
         headerTitle: 'Uwierzytelnianie dwuskładnikowe',
         twoFactorAuthEnabled: 'Włączono uwierzytelnianie dwuskładnikowe',
@@ -2576,6 +2583,10 @@ ${amount} dla ${merchant} - ${date}`,
             approverSubtitle: 'Wszyscy zatwierdzający należą do istniejącego przepływu pracy.',
             bulkApproverSubtitle: 'Żaden akceptujący nie spełnia kryteriów dla wybranych raportów.',
         },
+        configureViaGusto: 'Skonfiguruj przez Gusto.',
+        gustoApprovalWorkflowLockedPrompt:
+            'Zatwierdzanie jest zarządzane przez Twoją integrację z Gusto. Aby zaktualizować swój proces zatwierdzania, przejdź do ustawień połączenia z Gusto.',
+        goToGustoSettings: 'Przejdź do ustawień Gusto',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Nie udało się zmienić częstotliwości wysyłania. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
@@ -2844,6 +2855,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Nie otrzymano magicznego kodu?',
+        avoidScamsMessage: '<strong>Unikaj oszustw. Nie udostępniaj nikomu swojego kodu.</strong> Nasz zespół nigdy nie zadzwoni, nie wyśle SMS-a ani e-maila z prośbą o ten kod.',
         enterAuthenticatorCode: 'Wprowadź swój kod z aplikacji uwierzytelniającej',
         enterRecoveryCode: 'Wprowadź swój kod odzyskiwania',
         requiredWhen2FAEnabled: 'Wymagane, gdy włączone jest 2FA',
@@ -2909,10 +2921,10 @@ ${amount} dla ${merchant} - ${date}`,
             title: 'Co chcesz dzisiaj zrobić?',
             errorContinue: 'Naciśnij „Kontynuuj”, aby się skonfigurować',
             errorBackButton: 'Dokończ pytania konfiguracyjne, aby zacząć korzystać z aplikacji',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Otrzymuj zwrot od pracodawcy',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Zgłoś wydatki pracodawcy',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Zarządzaj wydatkami mojego zespołu',
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Śledź i planuj wydatki',
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Czatuj i dziel wydatki ze znajomymi',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Śledź wydatki firmowe',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizuj swoje wydatki osobiste',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Coś innego',
         },
         employees: {
@@ -5701,6 +5713,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 subtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
                 defaultHourlyRate: 'Domyślna stawka godzinowa',
             },
+            hrWarningModal: {disconnectText: 'Aby wyłączyć HR, najpierw odłącz Gusto od tego miejsca pracy.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -5992,6 +6005,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             approvers: 'Osoby zatwierdzające',
             auditors: 'Audytorzy',
             emptyRoleFilter: {title: 'Żadni członkowie nie pasują do tego filtra', subtitle: 'Zaproś członka lub zmień filtr powyżej.'},
+            configureGustoSync: 'Skonfiguruj synchronizację z Gusto.',
+            syncWithGusto: 'Synchronizuj z Gusto',
         },
         card: {
             getStartedIssuing: 'Zacznij od wydania swojej pierwszej wirtualnej lub fizycznej karty.',
@@ -6743,6 +6758,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 gambling: 'Hazard',
                 tobacco: 'Tytoń',
                 adultEntertainment: 'Rozrywka dla dorosłych',
+                handwrittenReceipt: 'Odręczne paragony',
                 requireCompanyCard: 'Wymagaj kart służbowych dla wszystkich zakupów',
                 requireCompanyCardDescription: 'Oznacz wszystkie wydatki gotówkowe, w tym koszty za przejechane kilometry i ryczałty dzienne.',
                 requireCompanyCardDisabledTooltip: 'Włącz karty firmowe (w sekcji Więcej funkcji), aby odblokować.',
@@ -6842,6 +6858,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             customRules: {
                 title: 'Polityka wydatków',
                 cardSubtitle: 'To tutaj znajduje się polityka wydatków Twojego zespołu, aby wszyscy mieli jasność co do tego, co jest objęte.',
+                policyDocument: 'Dokument polityki',
+                policyText: 'Tekst polityki',
             },
             spendRules: {
                 title: 'Wydatki',
@@ -8208,13 +8226,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         stopped: 'Zatrzymano',
         start: 'Start',
         stop: 'Zatrzymaj',
+        save: 'Zapisz',
+        resume: 'Wznów',
         discard: 'Odrzuć',
-        stopGpsTrackingModal: {
-            title: 'Zatrzymaj śledzenie GPS',
-            prompt: 'Na pewno? Spowoduje to zakończenie Twojej obecnej ścieżki.',
-            cancel: 'Wznów śledzenie',
-            confirm: 'Zatrzymaj śledzenie GPS',
-        },
         discardDistanceTrackingModal: {
             title: 'Odrzuć śledzenie dystansu',
             prompt: 'Na pewno? Spowoduje to porzucenie Twojej bieżącej ścieżki i nie będzie można tego cofnąć.',
@@ -8389,6 +8403,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                         return `rozrywka dla dorosłych`;
                     case 'hotelIncidentals':
                         return `dodatkowe opłaty hotelowe`;
+                    case 'handwrittenReceipt':
+                        return `odręczne paragony`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -9180,6 +9196,12 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             noWorkspacesMessage: 'W tej domenie nie ma żadnych obszarów roboczych. Obszar roboczy jest wymagany, aby włączyć to ograniczenie.',
             restrictDefaultLoginSelection: 'Ogranicz wybór domyślnego logowania',
             restrictDefaultLoginSelectionDescription: 'Zapobiega zmianie adresu e-mail do logowania przez członków na adres spoza domeny firmowej, aby obejść ograniczenia zasad.',
+            expensifyCardPreferredWorkspace: 'Preferowana przestrzeń robocza dla Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Wszystkie transakcje Expensify Card będą tworzone w preferowanej przestrzeni roboczej dla Expensify Card zamiast w preferowanej przestrzeni roboczej. Włączenie tej funkcji zastąpi ustawienie preferowanej przestrzeni roboczej wyłącznie dla transakcji Expensify Card.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'Aby korzystać z tego ustawienia, preferowana przestrzeń robocza musi być włączona, a domena musi mieć skonfigurowaną Expensify Card.',
+            findGroup: 'Znajdź grupę',
         },
     },
     proactiveAppReview: {
