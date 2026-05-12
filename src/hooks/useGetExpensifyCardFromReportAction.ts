@@ -22,7 +22,8 @@ function useGetExpensifyCardFromReportAction({reportAction, policyID}: {reportAc
     // Travel Invoicing cards on the `_TRAVEL_US` variant. Check both.
     return (
         allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`]?.[cardID] ??
-        allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`]?.[cardID]
+        allExpensifyCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`]?.[cardID] ??
+        allUserCards?.[cardID]
     );
 }
 
