@@ -19,6 +19,7 @@ import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpa
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {useMultiScanActions, useMultiScanState} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
+import ReceiptPreviews from '@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import variables from '@styles/variables';
@@ -33,7 +34,7 @@ const BLINK_DURATION_MS = 80;
  * Renders a camera viewfinder, shutter button, flash toggle and gallery picker.
  * Calls `onCapture(file, source)` for each photo taken or file picked from the gallery.
  */
-function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout}: CameraProps) {
+function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayout, submitMultiScan}: CameraProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -294,6 +295,12 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                     )}
                 </View>
             </View>
+            {canUseMultiScan && !!submitMultiScan && (
+                <ReceiptPreviews
+                    isMultiScanEnabled={isMultiScanEnabled}
+                    submit={submitMultiScan}
+                />
+            )}
         </View>
     );
 }
