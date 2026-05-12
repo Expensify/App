@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {PopoverMenuItem} from '@components/PopoverMenu';
+import ScrollView from '@components/ScrollView';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -133,22 +134,10 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
         );
     };
 
-    // <Table
-    //         data={domains}
-    //         columns={domainTableColumns}
-    //         renderItem={renderDomainItem}
-    //         compareItems={compareDomainItems}
-    //         isItemInSearch={isDomainItemInSearch}
-    //         keyExtractor={(row) => row.domainAccountID.toString()}
-    //         title={translate('common.domains')}
-    //     >
-    //         <Table.Header />
-    //         <Table.Body />
-    //     </Table>
-
     return (
-        <>
+        <ScrollView>
             <Table
+                scrollEnabled={false}
                 data={workspaces}
                 columns={workspaceTableColumns}
                 renderItem={renderWorkspaceItem}
@@ -163,6 +152,19 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
                 <Table.Header />
                 <Table.Body />
             </Table>
-        </>
+
+            <Table
+                data={domains}
+                columns={domainTableColumns}
+                renderItem={renderDomainItem}
+                compareItems={compareDomainItems}
+                isItemInSearch={isDomainItemInSearch}
+                keyExtractor={(row) => row.domainAccountID.toString()}
+                title={translate('common.domains')}
+            >
+                <Table.Header />
+                <Table.Body />
+            </Table>
+        </ScrollView>
     );
 }

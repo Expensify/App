@@ -77,20 +77,14 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     );
 
     return (
-        <View
-            style={styles.flex1}
+        <FlashList<T>
+            data={filteredAndSortedData}
+            ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
+            contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, contentContainerStyle]}
+            keyboardShouldPersistTaps="handled"
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        >
-            <FlashList<T>
-                data={filteredAndSortedData}
-                ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, contentContainerStyle]}
-                keyboardShouldPersistTaps="handled"
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...restListProps}
-            />
-        </View>
+            {...restListProps}
+        />
     );
 }
 
