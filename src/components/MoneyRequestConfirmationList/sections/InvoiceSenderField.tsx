@@ -56,9 +56,11 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, iouTy
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     // canSendInvoice needs the full policy collection to check all admin workspaces
-    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: createCanUpdateSenderWorkspaceSelector(selectedParticipants, currentUserLogin, isFromGlobalCreate),
-    });
+    const [canUpdateSenderWorkspace] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createCanUpdateSenderWorkspaceSelector(selectedParticipants, currentUserLogin, isFromGlobalCreate)}, [
+        selectedParticipants,
+        currentUserLogin,
+        isFromGlobalCreate,
+    ]);
 
     return (
         <MenuItem
