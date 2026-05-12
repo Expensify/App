@@ -40,11 +40,11 @@ function useComposerSubmit(reportID: string) {
     const delegateAccountID = useDelegateAccountID();
 
     const {composerRef, attachmentFileRef} = useComposerMeta();
-    const {didResetComposerHeight, draftComment} = useComposerState();
-    const {setDidResetComposerHeight, clearComposer} = useComposerActions();
+    const {draftComment} = useComposerState();
+    const {clearComposer} = useComposerActions();
     const {isSendDisabled, debouncedCommentMaxLengthValidation} = useComposerSendState();
-    const {isEditingInComposer, editingMessage, effectiveDraft} = useComposerEditState();
-    const {publishDraft} = useComposerEditActions();
+    const {isEditingInComposer, editingMessage, effectiveDraft, didResetComposerHeightWhileEditing} = useComposerEditState();
+    const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useContext(ActionListContext);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -72,7 +72,7 @@ function useComposerSubmit(reportID: string) {
     const validateAndSubmitDraft = (draftMessage: string) => {
         const draftMessageTrimmed = draftMessage.trim();
 
-        const isSubmittingEdit = isEditingInComposer || didResetComposerHeight;
+        const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;
         if (isSubmittingEdit && !attachmentFileRef.current) {
             publishDraft(draftMessageTrimmed);
             return;
@@ -190,7 +190,7 @@ function useComposerSubmit(reportID: string) {
         if (effectiveDraft !== null && effectiveDraft !== '') {
             composerRef.current?.resetHeight();
             if (isEditingInComposer) {
-                setDidResetComposerHeight(true);
+                setDidResetComposerHeightWhileEditing(true);
             }
         }
 
