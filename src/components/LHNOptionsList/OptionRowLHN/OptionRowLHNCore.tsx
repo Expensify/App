@@ -1,35 +1,27 @@
 import React, {useRef} from 'react';
 import type {ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
-import DisplayNames from '@components/DisplayNames';
-import Icon from '@components/Icon';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
-import FS from '@libs/Fullstory';
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
-import {isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isGroupChat, isSystemChat} from '@libs/ReportUtils';
-import FreeTrial from '@pages/settings/Subscription/FreeTrial';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import DescriptiveText from './OptionRow/DescriptiveText';
 import DraftIndicator from './OptionRow/DraftIndicator';
-import OptionRowAlternateText from './OptionRowAlternateText';
+import ErrorBadge from './OptionRow/ErrorBadge';
+import InfoBadge from './OptionRow/InfoBadge';
+import OnboardingBadge from './OptionRow/OnboardingBadge';
+import PinIndicator from './OptionRow/PinIndicator';
+import Status from './OptionRow/Status';
+import Subtitle from './OptionRow/Subtitle';
+import Title from './OptionRow/Title';
 import OptionRowAvatar from './OptionRowAvatar';
-import OptionRowErrorBadge from './OptionRowErrorBadge';
-import OptionRowInfoBadge from './OptionRowInfoBadge';
 import OptionRowPressable from './OptionRowPressable';
 import OptionRowTooltipLayer from './OptionRowTooltipLayer';
 
@@ -39,14 +31,10 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pin']);
 
-    const {onboardingPurpose, onboarding, isScreenFocused} = useLHNTooltipContext();
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(optionItem, onboarding, conciergeReportID, onboardingPurpose);
+    const {isScreenFocused} = useLHNTooltipContext();
 
     const {translate} = useLocalize();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
         isInFocusMode
@@ -72,18 +60,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
-    const emojiCode = optionItem.status?.emojiCode ?? '';
-    const statusText = optionItem.status?.text ?? '';
-    const statusClearAfterDate = optionItem.status?.clearAfter ?? '';
-    const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
-    const formattedDate = DateUtils.getStatusUntilDate(translate, statusClearAfterDate, optionItem?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
-    const statusContent = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
-    const isStatusVisible = !!emojiCode && !!optionItem.isOneOnOneChat;
-
     const subscriptAvatarBorderColor = isOptionFocused ? focusedBackgroundColor : theme.sidebar;
-
-    // This is used to ensure that we display the text exactly as the user entered it when displaying LHN title, instead of parsing their text to HTML.
-    const shouldParseFullTitle = optionItem?.parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat(optionItem);
 
     const accessibilityLabel = [
         `${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`,
@@ -133,81 +110,41 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                                 />
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
-                                        <DisplayNames
-                                            accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
-                                            fullTitle={optionItem.text ?? ''}
-                                            shouldParseFullTitle={shouldParseFullTitle}
-                                            displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                            textStyles={displayNameStyle}
-                                            shouldUseFullTitle={
-                                                !!optionItem.isChatRoom ||
-                                                !!optionItem.isPolicyExpenseChat ||
-                                                !!optionItem.isTaskReport ||
-                                                !!optionItem.isThread ||
-                                                !!optionItem.isMoneyRequestReport ||
-                                                !!optionItem.isInvoiceReport ||
-                                                !!optionItem.private_isArchived ||
-                                                isGroupChat(optionItem) ||
-                                                isSystemChat(optionItem)
-                                            }
+                                        <Title
+                                            optionItem={optionItem}
+                                            displayNameStyle={displayNameStyle}
                                             testID={testID}
                                         />
-                                        {isChatUsedForOnboarding && <FreeTrial badgeStyles={[styles.mnh0, styles.pl2, styles.pr2, styles.ml1, styles.flexShrink1]} />}
-                                        {isStatusVisible && (
-                                            <Tooltip
-                                                text={statusContent}
-                                                shiftVertical={-4}
-                                            >
-                                                <Text style={styles.ml1}>{emojiCode}</Text>
-                                            </Tooltip>
-                                        )}
+                                        <OnboardingBadge optionItem={optionItem} />
+                                        <Status optionItem={optionItem} />
                                     </View>
-                                    <OptionRowAlternateText
+                                    <Subtitle
                                         optionItem={optionItem}
                                         viewMode={viewMode}
                                         isOptionFocused={isOptionFocused}
                                         style={style}
                                     />
                                 </View>
-                                {optionItem?.descriptiveText ? (
-                                    <View
-                                        style={[styles.flexWrap]}
-                                        fsClass={FS.getChatFSClass(optionItem)}
-                                    >
-                                        <Text style={[styles.textLabel]}>{optionItem.descriptiveText}</Text>
-                                    </View>
-                                ) : null}
-                                <OptionRowErrorBadge
+                                <DescriptiveText optionItem={optionItem} />
+                                <ErrorBadge
                                     brickRoadIndicator={brickRoadIndicator}
-                                    actionBadgeText={actionBadgeText}
+                                    actionBadge={optionItem.actionBadge}
                                 />
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <OptionRowInfoBadge
+                            <InfoBadge
                                 brickRoadIndicator={brickRoadIndicator}
-                                actionBadgeText={actionBadgeText}
+                                actionBadge={optionItem.actionBadge}
                             />
                             <DraftIndicator
                                 hasDraftComment={hasDraftComment}
                                 isAllowedToComment={optionItem.isAllowedToComment}
                             />
-                            {!brickRoadIndicator && !!optionItem.isPinned && (
-                                <View
-                                    style={styles.ml2}
-                                    accessibilityLabel={translate('sidebarScreen.chatPinned')}
-                                >
-                                    <Icon
-                                        testID="Pin Icon"
-                                        fill={theme.icon}
-                                        src={expensifyIcons.Pin}
-                                        width={variables.iconSizeSmall}
-                                        height={variables.iconSizeSmall}
-                                    />
-                                </View>
-                            )}
+                            <PinIndicator
+                                isPinned={optionItem.isPinned}
+                                brickRoadIndicator={brickRoadIndicator}
+                            />
                         </View>
                     </>
                 );
