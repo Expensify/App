@@ -1100,7 +1100,6 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: '随它去',
         dropMessage: '将文件拖放到此处',
         flash: '闪光',
-        flipCamera: '切换相机',
         multiScan: '多重扫描',
         shutter: '快门',
         gallery: '图库',
@@ -2520,6 +2519,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             approverSubtitle: '所有审批人都属于一个现有的工作流。',
             bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
+        configureViaGusto: '通过 Gusto 配置。',
+        gustoApprovalWorkflowLockedPrompt: '审批由你的 Gusto 集成管理。若要更新审批流程，请前往 Gusto 连接设置。',
+        goToGustoSettings: '前往 Gusto 设置',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提交频率无法更改。请重试或联系支持团队。',
@@ -2784,6 +2786,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: '没有收到验证码？',
+        avoidScamsMessage: '<strong>谨防诈骗。不要与任何人分享您的验证码。</strong> 我们的团队绝不会打电话、发短信或发送电子邮件向您索取此验证码。',
         enterAuthenticatorCode: '请输入您的认证器验证码',
         enterRecoveryCode: '请输入您的恢复代码',
         requiredWhen2FAEnabled: '启用双重验证时必填',
@@ -2849,10 +2852,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             title: '你今天想做什么？',
             errorContinue: '请按“继续”完成设置',
             errorBackButton: '请完成设置问题以开始使用此应用程序',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '由我的雇主报销',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '向雇主提交费用',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: '管理我团队的报销',
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: '跟踪和预算开销',
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: '与朋友聊天并平摊费用',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: '跟踪我的商务开销',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '管理我的个人支出',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: '其他原因',
         },
         employees: {
@@ -6590,6 +6593,7 @@ ${reportName}
                 gambling: '赌博',
                 tobacco: '烟草',
                 adultEntertainment: '成人娱乐',
+                giftCard: '礼品卡购买',
                 handwrittenReceipt: '手写收据',
                 requireCompanyCard: '所有消费均需使用公司卡',
                 requireCompanyCardDescription: '标记所有现金支出，包括里程和每日津贴报销。',
@@ -6805,6 +6809,10 @@ ${reportName}
                 corporate: {
                     label: '控制',
                     description: '适用于具有高级需求的组织。',
+                },
+                submit2026: {
+                    label: '提交',
+                    description: '适用于希望向雇主提交费用的员工。',
                 },
             },
             description: '选择适合您的方案。要查看详细的功能和价格列表，请访问我们的',
@@ -8195,6 +8203,8 @@ ${reportName}
                         return `成人娱乐`;
                     case 'hotelIncidentals':
                         return `酒店杂费`;
+                    case 'giftCard':
+                        return `礼品卡购买`;
                     case 'handwrittenReceipt':
                         return `手写收据`;
                     default:
