@@ -165,8 +165,6 @@ type PersonalBankAccountUpdateData = Pick<
 >;
 
 function updatePersonalBankAccountInfo(bankAccountID: number, accountData: PersonalBankAccountUpdateData) {
-    const formattedStreet = getFormattedStreet(accountData.addressStreet, accountData.addressStreet2);
-
     const bankAccountKey = String(bankAccountID);
     const prevData = bankAccountList?.[bankAccountKey]?.accountData?.additionalData;
 
@@ -176,7 +174,7 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
     const additionalDataUpdate: AdditionalDataFields = {
         firstName: accountData.legalFirstName,
         lastName: accountData.legalLastName,
-        addressStreet: formattedStreet,
+        addressStreet: accountData.addressStreet,
         addressCity: accountData.addressCity,
         addressState: accountData.addressState,
         addressZipCode: accountData.addressZipCode,
@@ -188,7 +186,8 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
         companyPhone: accountData.phoneNumber,
         legalFirstName: accountData.legalFirstName,
         legalLastName: accountData.legalLastName,
-        addressStreet: formattedStreet,
+        addressStreet: accountData.addressStreet,
+        addressStreet2: accountData.addressStreet2 ?? '',
         addressCity: accountData.addressCity,
         addressState: accountData.addressState,
         addressZip: accountData.addressZipCode,
