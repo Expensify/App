@@ -2,8 +2,6 @@ import type {PusherAuthorizerResult, PusherChannel} from '@pusher/pusher-websock
 import {Pusher} from '@pusher/pusher-websocket-react-native';
 import * as Sentry from '@sentry/react-native';
 import isObject from 'lodash/isObject';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
@@ -227,7 +225,7 @@ function subscribe<EventName extends PusherEventName>(
     const promise = initPromise.then(
         () =>
             new Promise<void>((resolve, reject) => {
-                InteractionManager.runAfterInteractions(() => {
+                requestIdleCallback(() => {
                     if (disposed) {
                         resolve();
                         return;
@@ -243,7 +241,7 @@ function subscribe<EventName extends PusherEventName>(
 
                         // In production, report to Sentry without crashing the app.
                         // This can happen when disconnect() is called (e.g. during the "Upgrade Required"
-                        // teardown) before this deferred InteractionManager callback runs.
+                        // teardown) before this deferred requestIdleCallback callback runs.
                         Sentry.captureException(error, {
                             tags: {source: 'Pusher.subscribe'},
                             extra: {channelName, eventName},
