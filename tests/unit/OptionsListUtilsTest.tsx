@@ -4460,7 +4460,7 @@ describe('OptionsListUtils', () => {
                 expect(lastMessage).toBe('');
             });
 
-            it('should format non-expense IOU fallback with the requestor name when the latest visible action is not an IOU action', async () => {
+            it('should preserve last visible message fallback for non-expense IOU reports', async () => {
                 const report: Report = {
                     ...createRandomReport(0, undefined),
                     reportID: 'iou-report-created-last-action',
@@ -4518,7 +4518,7 @@ describe('OptionsListUtils', () => {
                     currentUserLogin: CURRENT_USER_EMAIL,
                 });
 
-                expect(lastMessage).toBe('Mister Fantastic: $25.00 for Coffee');
+                expect(lastMessage).toBe('');
             });
 
             it('should fall back to the report currency when the canonical money request is missing currency', async () => {

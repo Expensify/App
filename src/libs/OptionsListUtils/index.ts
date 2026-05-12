@@ -984,10 +984,10 @@ function getLastMessageTextForReport({
                 deprecatedAllSortedReportActions[reportID],
                 visibleReportActionsDataParam,
             );
-            if (latestVisibleMoneyRequestAction) {
-                lastMessageTextFromReport = isExpenseReport(report)
-                    ? getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate)
-                    : formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, conciergeReportID, latestVisibleMoneyRequestAction, true, false, null, true)));
+            if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
+                lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate);
+            } else if (!isExpenseReport(report)) {
+                lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
             } else if (!isCreatedAction(lastReportAction)) {
                 lastMessageTextFromReport =
                     formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, conciergeReportID, lastReportAction, true, false, null, true))) ||
