@@ -117,13 +117,15 @@ export default function TableRow<DataType, ColumnKey extends string = string, Fi
             >
                 {(state) =>
                     !!isLoading && LoadingComponent ? (
-                        <SkeletonViewContentLoader
-                            backgroundColor={theme.skeletonLHNIn}
-                            foregroundColor={theme.skeletonLHNOut}
-                            height={shouldUseNarrowTableLayout ? variables.tableRowHeightCompact : variables.tableRowHeight}
-                        >
-                            <LoadingComponent />
-                        </SkeletonViewContentLoader>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <SkeletonViewContentLoader
+                                height={32}
+                                backgroundColor={theme.skeletonLHNIn}
+                                foregroundColor={theme.skeletonLHNOut}
+                            >
+                                <LoadingComponent />
+                            </SkeletonViewContentLoader>
+                        </View>
                     ) : (
                         <View style={tableRowContentStyles}>{renderChildren(state)}</View>
                     )

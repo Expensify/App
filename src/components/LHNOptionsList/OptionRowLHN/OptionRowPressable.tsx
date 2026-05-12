@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import useLHNRowProductTrainingTooltip from './useLHNRowProductTrainingTooltip';
 
 type OptionRowPressableProps = {
-    reportID: string;
     optionItem: OptionData;
     isOptionFocused: boolean;
     isScreenFocused: boolean;
@@ -31,7 +30,6 @@ type OptionRowPressableProps = {
 };
 
 function OptionRowPressable({
-    reportID,
     optionItem,
     isOptionFocused,
     isScreenFocused,
@@ -44,6 +42,7 @@ function OptionRowPressable({
     children,
 }: OptionRowPressableProps) {
     const {hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
+    const reportID = optionItem.reportID;
     const onPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         hideProductTrainingTooltip();
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {

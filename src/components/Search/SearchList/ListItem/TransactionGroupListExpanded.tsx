@@ -274,7 +274,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     >
                         <PressableWithFeedback
                             onPress={isDeletedOrPendingDelete && !canSelectMultiple ? undefined : () => handleOnPress(transaction)}
-                            disabled={isDeletedOrPendingDelete && !transaction.isSelected}
+                            disabled={isTransactionPendingDelete(transaction) && !transaction.isSelected}
                             onLongPress={() => onLongPress?.(transaction)}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={transaction.text ?? ''}

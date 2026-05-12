@@ -1142,7 +1142,6 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laisse tomber',
         dropMessage: 'Déposez votre fichier ici',
         flash: 'flash',
-        flipCamera: 'Retourner la caméra',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
         gallery: 'galerie',
@@ -2601,6 +2600,10 @@ ${amount} pour ${merchant} - ${date}`,
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
             bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
+        configureViaGusto: 'Configurer via Gusto.',
+        gustoApprovalWorkflowLockedPrompt:
+            'Les validations sont gérées par votre intégration Gusto. Pour mettre à jour votre workflow de validation, accédez aux paramètres de connexion Gusto.',
+        goToGustoSettings: 'Aller aux paramètres Gusto',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "La fréquence de soumission n'a pas pu être modifiée. Veuillez réessayer ou contacter l'assistance.",
@@ -2871,6 +2874,8 @@ ${amount} pour ${merchant} - ${date}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Vous n'avez pas reçu de code magique ?",
+        avoidScamsMessage:
+            '<strong>Évitez les arnaques. Ne partagez votre code avec personne.</strong> Notre équipe ne vous appellera, ne vous enverra jamais de SMS ni d’e-mail pour demander ce code.',
         enterAuthenticatorCode: 'Veuillez saisir votre code d’authentification',
         enterRecoveryCode: 'Veuillez saisir votre code de récupération',
         requiredWhen2FAEnabled: 'Obligatoire lorsque l’authentification à deux facteurs est activée',
@@ -2938,10 +2943,10 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Que voulez-vous faire aujourd’hui ?',
             errorContinue: 'Veuillez appuyer sur Continuer pour procéder à la configuration',
             errorBackButton: 'Veuillez terminer les questions de configuration pour commencer à utiliser l’application',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Me faire rembourser par mon employeur',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Soumettre des dépenses à mon employeur',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gérer les dépenses de mon équipe',
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Suivre et budgéter les dépenses',
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Discutez et partagez les dépenses avec des amis',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Suivre les dépenses de mon entreprise',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organiser mes dépenses personnelles',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Autre chose',
         },
         employees: {
@@ -6817,6 +6822,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 gambling: 'Jeux d’argent',
                 tobacco: 'Tabac',
                 adultEntertainment: 'Divertissement pour adultes',
+                giftCard: 'Achats de cartes-cadeaux',
                 handwrittenReceipt: 'Reçus manuscrits',
                 requireCompanyCard: "Exiger l'utilisation de cartes d'entreprise pour tous les achats",
                 requireCompanyCardDescription: 'Signaler toutes les dépenses en espèces, y compris le kilométrage et les indemnités journalières.',
@@ -7036,6 +7042,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 corporate: {
                     label: 'Contrôle',
                     description: 'Pour les organisations ayant des exigences avancées.',
+                },
+                submit2026: {
+                    label: 'Soumettre',
+                    description: 'Pour les employés souhaitant soumettre des dépenses à leur employeur.',
                 },
             },
             description: 'Choisissez l’offre qui vous convient. Pour une liste détaillée des fonctionnalités et des tarifs, consultez notre',
@@ -8472,6 +8482,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                         return `divertissement pour adultes`;
                     case 'hotelIncidentals':
                         return `Frais annexes d'hôtel`;
+                    case 'giftCard':
+                        return `achats de cartes-cadeaux`;
                     case 'handwrittenReceipt':
                         return `reçus manuscrits`;
                     default:

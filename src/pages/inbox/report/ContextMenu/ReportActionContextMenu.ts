@@ -32,7 +32,6 @@ type ShowContextMenuParams = {
     };
     reportAction?: {
         reportActionID?: string;
-        draftMessage?: string;
         isThreadReportParentAction?: boolean;
     };
     callbacks?: {
@@ -121,7 +120,6 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
  * @param reportID - Active Report Id
  * @param reportActionID - ReportActionID for ContextMenu
  * @param originalReportID - The current Report Id of the reportAction
- * @param draftMessage - ReportAction draft message
  * @param [onShow=() => {}] - Run a callback when Menu is shown
  * @param [onHide=() => {}] - Run a callback when Menu is hidden
  * @param isArchivedRoom - Whether the provided report is an archived room
