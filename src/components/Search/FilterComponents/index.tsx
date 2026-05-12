@@ -29,6 +29,7 @@ type FilterComponentsProps = SearchFilterSelectionListStyleProps & {
     filterKey: FilterKeys;
     value: SearchAdvancedFiltersForm[FilterKeys] | undefined;
     policyIDQuery: string[] | undefined;
+    scrollViewOffset?: number;
     onChange: (value: SearchAdvancedFiltersForm[FilterKeys]) => void;
 };
 
@@ -123,7 +124,7 @@ function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle,
     );
 }
 
-function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInputStyle, selectionListStyle, onChange}: FilterComponentsProps) {
+function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInputStyle, selectionListStyle, scrollViewOffset, onChange}: FilterComponentsProps) {
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -226,6 +227,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     key={filterKey}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
+                    scrollViewOffset={scrollViewOffset}
                     onChange={onChange}
                 />
             );

@@ -81,6 +81,7 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
             policyIDQuery={policyIDQuery}
             selectionListTextInputStyle={[styles.pb1, styles.pt2]}
             selectionListStyle={{contentContainerStyle: [styles.pv2]}}
+            scrollViewOffset={-styles.pv2.paddingVertical}
             onChange={(newValue) => {
                 if (fullscreen) {
                     setValue(newValue);

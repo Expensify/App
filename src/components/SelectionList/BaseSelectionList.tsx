@@ -178,7 +178,7 @@ function BaseSelectionList<TItem extends ListItem>({
     }, [handleNavigationKeyDown]);
 
     const scrollToIndex = useCallback(
-        (index: number, animated = true) => {
+        (index: number, animated = true, viewOffset?: number) => {
             // Bounds check: ensure index is valid for current data
             if (index < 0 || index >= data.length) {
                 return;
@@ -188,7 +188,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 return;
             }
             try {
-                listRef.current.scrollToIndex({index, animated});
+                listRef.current.scrollToIndex({index, animated, viewOffset});
             } catch (error) {
                 // FlashList may throw if layout for this index doesn't exist yet
                 // This can happen when data changes rapidly (e.g., during search filtering)

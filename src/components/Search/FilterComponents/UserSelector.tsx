@@ -20,10 +20,11 @@ import ListFilterWrapper from './ListFilterViewWrapper';
 
 type UserSelectorProps = SearchFilterSelectionListStyleProps & {
     value: string[] | undefined;
+    scrollViewOffset?: number;
     onChange: (options: string[]) => void;
 };
 
-function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, onChange}: UserSelectorProps) {
+function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, scrollViewOffset, onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -127,7 +128,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
 
     const selectUser = (option: OptionData) => {
         toggleSelection(option);
-        selectionListRef?.current?.scrollToIndex(0);
+        selectionListRef?.current?.scrollToIndex(0, true, scrollViewOffset);
     };
 
     const isLoadingNewOptions = !!isSearchingForReports;
