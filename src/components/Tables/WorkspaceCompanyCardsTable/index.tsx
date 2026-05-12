@@ -281,6 +281,7 @@ function WorkspaceCompanyCardsTable({
             key={`${item.cardName}_${index}`}
             item={item}
             rowIndex={index}
+            table={companyCardsTable}
             policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
             CardFeedIcon={cardFeedIcon}
             onAssignCard={onAssignCard}

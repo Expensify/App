@@ -14,8 +14,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {TableValue} from './types';
 
-type TableRowProps<DataType> = Omit<PressableWithFeedbackProps, 'accessible'> & {
-    table: TableValue<DataType>;
+type TableRowProps<DataType, ColumnKey extends string, FilterKey extends string> = Omit<PressableWithFeedbackProps, 'accessible'> & {
+    table: TableValue<DataType, ColumnKey, FilterKey>;
 
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
     accessible?: boolean;
@@ -39,7 +39,7 @@ type TableRowProps<DataType> = Omit<PressableWithFeedbackProps, 'accessible'> & 
     offlineWithFeedback?: OfflineWithFeedbackProps;
 };
 
-export default function TableRow<DataType>({
+export default function TableRow<DataType, ColumnKey extends string = string, FilterKey extends string = string>({
     table,
     children,
     accessible,
@@ -52,7 +52,7 @@ export default function TableRow<DataType>({
     offlineWithFeedback,
     onPress,
     ...props
-}: TableRowProps<DataType>) {
+}: TableRowProps<DataType, ColumnKey, FilterKey>) {
     useSkeletonSpan('TableRowSkeleton', skeletonReasonAttributes);
 
     const theme = useTheme();

@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import Table from '@components/Table';
+import Table, {TableValue} from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -36,7 +36,9 @@ type WorkspaceCompanyCardTableRowData = CardAssignmentData & {
     onDismissError?: () => void;
 };
 
-type WorkspaceCompanyCardTableRowProps = {
+type WorkspaceCompanyCardTableRowProps<ColumnKey extends string, FilterKey extends string> = {
+    table: TableValue<WorkspaceCompanyCardTableRowData, ColumnKey, FilterKey>;
+
     /** The workspace company card table item */
     item: WorkspaceCompanyCardTableRowData;
 
@@ -63,7 +65,16 @@ type WorkspaceCompanyCardTableRowProps = {
     onAssignCard: (cardName: string, cardID: string) => void;
 };
 
-function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNarrowTableLayout, rowIndex, isAssigningCardDisabled, onAssignCard}: WorkspaceCompanyCardTableRowProps) {
+function WorkspaceCompanyCardTableRow<ColumnKey extends string, FilterKey extends string>({
+    table,
+    item,
+    policyID,
+    CardFeedIcon,
+    shouldUseNarrowTableLayout,
+    rowIndex,
+    isAssigningCardDisabled,
+    onAssignCard,
+}: WorkspaceCompanyCardTableRowProps<ColumnKey, FilterKey>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -113,6 +124,7 @@ function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNa
     return (
         <Table.Row
             interactive
+            table={table}
             rowIndex={rowIndex}
             isLoading={isDeleting}
             disabled={isCardDeleted}
