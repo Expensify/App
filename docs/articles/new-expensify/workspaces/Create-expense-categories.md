@@ -114,7 +114,7 @@ Expensify learns your category preferences over time and suggests them automatic
 - Existing expenses are not updated retroactively.
 - These suggestions are based on patterns and may vary by user.
 
-## MCC Default Categories
+## How to set default categories by MCC code
 
 Expensify can automatically assign a default category based on the merchant's MCC (Merchant Category Code). For example, you can set all airline expenses to default to a "Flights" category.
 
