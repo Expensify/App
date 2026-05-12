@@ -3,7 +3,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
 import Text from '@components/Text';
@@ -112,98 +111,91 @@ function WorkspaceCompanyCardTableRow({item, policyID, CardFeedIcon, shouldUseNa
     };
 
     return (
-        <OfflineWithFeedback
-            errorRowStyles={[styles.ph5, styles.mb4]}
-            errors={errors}
-            pendingAction={pendingAction}
-            onClose={onDismissError}
-            shouldHideOnDelete={false}
+        <Table.Row
+            interactive
+            rowIndex={rowIndex}
+            isLoading={isDeleting}
+            disabled={isCardDeleted}
+            skeletonReasonAttributes={reasonAttributes}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
+            LoadingComponent={WorkspaceCompanyCardsTableSkeleton}
+            onPress={handleRowPress}
+            offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
         >
-            <Table.Row
-                interactive
-                rowIndex={rowIndex}
-                isLoading={isDeleting}
-                disabled={isCardDeleted}
-                skeletonReasonAttributes={reasonAttributes}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
-                LoadingComponent={WorkspaceCompanyCardsTableSkeleton}
-                onPress={handleRowPress}
-            >
-                {({hovered}) => (
-                    <>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                            {isAssigned ? (
-                                <ReportActionAvatars
-                                    noRightMarginOnSubscriptContainer
-                                    size={avatarSize}
-                                    accountIDs={cardholder?.accountID ? [cardholder.accountID] : []}
-                                    subscriptCardFeed={assignedCard?.bank as CompanyCardFeed}
-                                    subscriptCardFeedIconSize={subscriptCardFeedIconSize}
-                                    subscriptAvatarBorderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
-                                />
-                            ) : (
-                                CardFeedIcon
-                            )}
-
-                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
-                                <TextWithTooltip
-                                    text={memberColumnTitle}
-                                    style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter]}
-                                />
-                                {!!memberCardSubtitle && (
-                                    <TextWithTooltip
-                                        text={memberCardSubtitle}
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
-                                    />
-                                )}
-                            </View>
-                        </View>
-
-                        {!shouldUseNarrowTableLayout && (
-                            <View style={[styles.flex1]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                                >
-                                    {formattedCardDetails}
-                                </Text>
-                            </View>
-                        )}
-
-                        {!shouldUseNarrowTableLayout && (
-                            <View style={[styles.flex1]}>
-                                <Text
-                                    numberOfLines={1}
-                                    style={[styles.lh16, styles.optionDisplayName, styles.pre]}
-                                >
-                                    {customCardName}
-                                </Text>
-                            </View>
-                        )}
-
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
-                            {!isAssigned && (
-                                <Button
-                                    small
-                                    success
-                                    text={translate('workspace.companyCards.assign')}
-                                    onPress={handleRowPress}
-                                    isDisabled={isAssigningCardDisabled}
-                                />
-                            )}
-
-                            <Icon
-                                src={Expensicons.ArrowRight}
-                                fill={theme.icon}
-                                additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
+            {({hovered}) => (
+                <>
+                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                        {isAssigned ? (
+                            <ReportActionAvatars
+                                noRightMarginOnSubscriptContainer
+                                size={avatarSize}
+                                accountIDs={cardholder?.accountID ? [cardholder.accountID] : []}
+                                subscriptCardFeed={assignedCard?.bank as CompanyCardFeed}
+                                subscriptCardFeedIconSize={subscriptCardFeedIconSize}
+                                subscriptAvatarBorderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                             />
+                        ) : (
+                            CardFeedIcon
+                        )}
+
+                        <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, shouldUseNarrowTableLayout && styles.gap1]}>
+                            <TextWithTooltip
+                                text={memberColumnTitle}
+                                style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter]}
+                            />
+                            {!!memberCardSubtitle && (
+                                <TextWithTooltip
+                                    text={memberCardSubtitle}
+                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
+                                />
+                            )}
                         </View>
-                    </>
-                )}
-            </Table.Row>
-        </OfflineWithFeedback>
+                    </View>
+
+                    {!shouldUseNarrowTableLayout && (
+                        <View style={[styles.flex1]}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            >
+                                {formattedCardDetails}
+                            </Text>
+                        </View>
+                    )}
+
+                    {!shouldUseNarrowTableLayout && (
+                        <View style={[styles.flex1]}>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.lh16, styles.optionDisplayName, styles.pre]}
+                            >
+                                {customCardName}
+                            </Text>
+                        </View>
+                    )}
+
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                        {!isAssigned && (
+                            <Button
+                                small
+                                success
+                                text={translate('workspace.companyCards.assign')}
+                                onPress={handleRowPress}
+                                isDisabled={isAssigningCardDisabled}
+                            />
+                        )}
+
+                        <Icon
+                            src={Expensicons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
+                </>
+            )}
+        </Table.Row>
     );
 }
 

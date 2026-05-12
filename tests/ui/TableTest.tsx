@@ -52,7 +52,7 @@ jest.mock('@hooks/useThemeStyles', () =>
         textNormal: {},
         colorMuted: {},
         getSelectionListPopoverHeight: jest.fn(() => ({})),
-        ml3: {marginLeft: 0},
+        ml3: {marginLeft: 12},
     })),
 );
 
