@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import {type CustomRendererProps, type TBlock, TNodeChildrenRenderer} from 'react-native-render-html';
-import {Bar, CartesianChart} from 'victory-native';
+import {Bar, CartesianChart, Line} from 'victory-native';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';

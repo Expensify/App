@@ -61,12 +61,4 @@ export default (): CustomTagRendererRecord => ({
     // Using `require` loads the components only when this function is executed,
     // unlike `import` they'd be imported on module execution BEFORE Skia WASM is loaded.
     victorychart: require('./VictoryChartRenderer').default,
-    victorybar: require('./VictoryChartRenderer/VictoryBarRenderer').default,
-    /*victoryline: VictoryLineRenderer,
-    victorypie: VictoryPieRenderer,
-    victoryaxis: VictoryAxisRenderer,
-    victorylegend: VictoryLegendRenderer,
-    victorylabel: VictoryLabelRenderer,
-    victorytooltip: VictoryTooltipRenderer,
-    victorygroup: VictoryGroupRenderer,*/
 });
