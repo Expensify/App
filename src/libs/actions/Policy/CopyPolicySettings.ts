@@ -140,6 +140,9 @@ function snapshotTargetFields(targetPolicy: Policy, parts: Part[]): Partial<Poli
     const snapshot: Partial<Policy> = {};
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
+            if (field === 'customUnits') {
+                continue;
+            }
             (snapshot as Record<string, unknown>)[field] = targetPolicy[field as keyof Policy];
         }
     }
@@ -259,7 +262,9 @@ function buildCopyPolicySettingsData(
         },
     });
 
-    // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself
+    // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself.
+    // Success intentionally omits this key — the backend transitions currentStep
+    // to 'complete' via the bulkCopySettings NVP push.
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
