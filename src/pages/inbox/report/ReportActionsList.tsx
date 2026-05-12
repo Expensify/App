@@ -516,7 +516,7 @@ function ReportActionsList({
             return undefined;
         }
 
-        return -Math.max((listHeight - INITIAL_TARGET_REPORT_ACTION_ESTIMATED_HEIGHT) / 2, 0);
+        return -Math.max(listHeight / 2, 0);
     }, [hasInitialScrollTarget, listHeight]);
     const initialScrollIndexParams = useMemo(() => (initialScrollIndexViewOffset === undefined ? undefined : {viewOffset: initialScrollIndexViewOffset}), [initialScrollIndexViewOffset]);
     const initialViewportRange = useMemo<InitialViewportRange | undefined>(() => {

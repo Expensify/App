@@ -6,9 +6,6 @@ import type {FlatListRefType} from '@pages/inbox/ReportScreenContext';
 import FlashList from '..';
 import CellRendererComponent from './CellRendererComponent';
 
-/** Approximate row height for `initialScrollIndexParams.viewOffset` (FlashList uses `layout.y + viewOffset`). */
-const ESTIMATED_ITEM_HEIGHT_PX = 50;
-
 type InvertedFlashListProps<T> = FlashListProps<T> & {
     /** Key of the item to initially scroll to when the list first renders. */
     initialScrollKey?: string | null;
@@ -42,7 +39,7 @@ function InvertedFlashList<T>({
     const targetIndex = initialScrollKey == null ? -1 : data.findIndex((item, index) => keyExtractor(item, index) === initialScrollKey);
     const initialScrollIndex = targetIndex < 0 ? undefined : targetIndex;
 
-    const viewOffset = initialScrollIndex === undefined ? undefined : -Math.max((windowHeight - ESTIMATED_ITEM_HEIGHT_PX) / 2, 0);
+    const viewOffset = initialScrollIndex === undefined ? undefined : -Math.max(windowHeight / 2, 0);
     const defaultInitialScrollIndexParams: FlashListProps<T>['initialScrollIndexParams'] = viewOffset === undefined ? undefined : {viewOffset};
     const initialScrollIndexParams = initialScrollIndexParamsProp === undefined ? defaultInitialScrollIndexParams : initialScrollIndexParamsProp;
 
