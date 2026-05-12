@@ -89,7 +89,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [approvalSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}`);
     const [paymentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${paymentQueryJSON?.hash}`);
-    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
 
     const {isApprovalApplicable, isPaymentApplicable} = useMemo(() => getYourSpendApplicability(policies), [policies]);
 
@@ -119,13 +118,40 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [displayableCards, accountID],
     );
 
+    // Onyx subscribes to the snapshot collection but the selector narrows the
+    // observed data to only the snapshots for our displayable cards. useOnyx
+    // does a deep equality check on selector output, so unrelated snapshot
+    // mutations elsewhere in the app no longer re-render this hook's consumers.
+    const cardSnapshotKeys = useMemo(
+        () =>
+            Object.values(cardQueryByCardID)
+                .map((entry) => entry.queryJSON?.hash)
+                .filter((hash): hash is number => hash !== undefined)
+                .map((hash) => `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`),
+        [cardQueryByCardID],
+    );
+    const cardSnapshotsSelector = useMemo(
+        () => (snapshots: OnyxCollection<SearchResults> | undefined) => {
+            if (!snapshots || cardSnapshotKeys.length === 0) {
+                return undefined;
+            }
+            const filtered: OnyxCollection<SearchResults> = {};
+            for (const key of cardSnapshotKeys) {
+                filtered[key] = snapshots[key];
+            }
+            return filtered;
+        },
+        [cardSnapshotKeys],
+    );
+    const [cardSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {selector: cardSnapshotsSelector});
+
     const cardRows: YourSpendCardRow[] = useMemo(
         () =>
             displayableCards.reduce<YourSpendCardRow[]>((acc, card) => {
                 const entry = cardQueryByCardID[card.cardID];
                 const hash = entry?.queryJSON?.hash;
                 const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
-                const snapshot = snapshotKey ? allSnapshots?.[snapshotKey] : undefined;
+                const snapshot = snapshotKey ? cardSnapshots?.[snapshotKey] : undefined;
                 if (!entry || !snapshot?.search.count) {
                     return acc;
                 }
@@ -138,7 +164,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 });
                 return acc;
             }, []),
-        [displayableCards, cardQueryByCardID, allSnapshots],
+        [displayableCards, cardQueryByCardID, cardSnapshots],
     );
 
     const approvalRowStateRaw = getYourSpendRowState({isApplicable: isApprovalApplicable, isOffline, searchResults: approvalSearchResults});
