@@ -221,6 +221,18 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(value.pendingFields?.maxExpenseAmount).toBeNull();
                 expect(value.errors).toBeDefined();
             });
+
+            it('surfaces an RBR error on the source policy', () => {
+                const sourcePolicy = makeSourcePolicy();
+                const targetPolicy = makeTargetPolicy();
+                const sourcePolicyKey = `${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}` as const;
+
+                const {failureData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['overview'], {}, {});
+
+                const sourceFailure = failureData.find((u) => u.key === sourcePolicyKey && u.onyxMethod === Onyx.METHOD.MERGE);
+                expect(sourceFailure).toBeDefined();
+                expect((sourceFailure?.value as {errors?: unknown})?.errors).toBeDefined();
+            });
         });
 
         describe('customUnits preservation', () => {

@@ -250,6 +250,15 @@ function buildCopyPolicySettingsData(
         }
     }
 
+    // Surface an RBR on the source policy row so the admin knows the bulk copy failed
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}` as const,
+        value: {
+            errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
+        },
+    });
+
     // Step 4: drive currentStep on the COPY_POLICY_SETTINGS key itself
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
