@@ -16,7 +16,7 @@ function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScree
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const policy = usePolicy(policyID);
-    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initWithStoredValues: false});
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const policyKeysLength = Object.keys(policy ?? {}).length;
 
@@ -38,6 +38,7 @@ function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScree
             shouldShowNotFoundPage: !isDocumentAvailable,
             isLoading,
             onDownloadAttachment,
+            shouldAllowDownloadOutsideReportContext: true,
             shouldCloseOnSwipeDown: true,
         }),
         [rulesDocumentSourceURL, translate, policyID, isDocumentAvailable, isLoading, onDownloadAttachment],

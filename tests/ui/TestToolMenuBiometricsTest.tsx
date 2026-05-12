@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import TestToolMenu from '@components/TestToolMenu';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
@@ -18,7 +17,6 @@ let mockBiometricStatus = {
 jest.mock('@hooks/useBiometricRegistrationStatus', () => {
     const actual = require('@libs/MultifactorAuthentication/shared/VALUES') as {default: {REGISTRATION_STATUS: Record<string, string>}};
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: () => mockBiometricStatus,
         REGISTRATION_STATUS: actual.default.REGISTRATION_STATUS,
@@ -26,13 +24,11 @@ jest.mock('@hooks/useBiometricRegistrationStatus', () => {
 });
 
 jest.mock('@hooks/useIsAuthenticated', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => true,
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         translate: (key: string, params?: Record<string, string | number>) => {
@@ -48,7 +44,6 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => [undefined],
 }));
@@ -58,13 +53,11 @@ jest.mock('@hooks/useSidebarOrderedReports', () => ({
 }));
 
 jest.mock('@hooks/useSingleExecution', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({singleExecution: (fn: () => void) => fn}),
 }));
 
 jest.mock('@hooks/useThemeStyles', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () =>
         new Proxy(
@@ -76,7 +69,6 @@ jest.mock('@hooks/useThemeStyles', () => ({
 }));
 
 jest.mock('@hooks/useWaitForNavigation', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => (fn: () => void) => fn,
 }));

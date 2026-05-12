@@ -4,20 +4,24 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
+import Icon from '@components/Icon';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
 import MagicCodeInput from '@components/MagicCodeInput';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -63,6 +67,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
     const [isCountdownRunning, setIsCountdownRunning] = useState(true);
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation']);
 
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
@@ -402,6 +408,18 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                                 </Text>
                             </PressableWithFeedback>
                         )}
+                    </View>
+                    <View style={[styles.mt5, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.mr3]}>
+                            <Icon
+                                src={expensifyIcons.Exclamation}
+                                fill={theme.icon}
+                                medium
+                            />
+                        </View>
+                        <View style={styles.flex1}>
+                            <RenderHTML html={translate('validateCodeForm.avoidScamsMessage')} />
+                        </View>
                     </View>
                 </View>
             )}

@@ -33,7 +33,7 @@ function getOptionDataFromAttendee(attendee: Attendee): OptionData {
         login: attendee.email || attendee.displayName,
         displayName: attendee.displayName,
         accountID: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        // eslint-disable-next-line rulesdir/no-default-id-values
+
         reportID: '-1',
         keyForList: `${attendee.accountID ?? attendee.email}`,
         selected: true,
@@ -265,7 +265,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate, 
                         login: identifier,
                         displayName: identifier,
                         accountID: CONST.DEFAULT_NUMBER_ID,
-                        // eslint-disable-next-line rulesdir/no-default-id-values
+
                         reportID: '-1',
                         selected: true,
                         icons: [],

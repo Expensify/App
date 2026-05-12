@@ -2,13 +2,14 @@ import type {EventHint, Log, TransactionEvent} from '@sentry/core';
 import copyTagsToChildSpans from './copyTagsToChildSpans';
 import emailDomainFilter from './emailDomainFilter';
 import httpClientCancelledFilter from './httpClientCancelledFilter';
+import maxDurationFilter from './maxDurationFilter';
 import minDurationFilter from './minDurationFilter';
 import onyxLogFilter from './onyxLogFilter';
 
 type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => TransactionEvent | null | Promise<TransactionEvent | null>;
 type TelemetryBeforeSendLog = (log: Log) => Log | null;
 
-const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, minDurationFilter, httpClientCancelledFilter, copyTagsToChildSpans];
+const middlewares: TelemetryBeforeSend[] = [emailDomainFilter, minDurationFilter, maxDurationFilter, httpClientCancelledFilter, copyTagsToChildSpans];
 const logMiddlewares: TelemetryBeforeSendLog[] = [onyxLogFilter];
 
 function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {

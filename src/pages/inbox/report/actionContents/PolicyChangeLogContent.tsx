@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {
     getAddedApprovalRuleMessage,
@@ -29,12 +30,14 @@ import {
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
     getRenamedCardFeedMessage,
+    getRequireCompanyCardsEnabledMessage,
     getSetAutoJoinMessage,
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
@@ -81,6 +84,7 @@ import {
 import {getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type PolicyChangeLogMessageResult = string | {html: string};
@@ -133,6 +137,7 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD]: (translate, action) => getWorkspaceUpdateFieldMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED]: (translate, action) => getWorkspaceFeatureEnabledMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED]: (translate, action) => getWorkspaceAttendeeTrackingUpdateMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED]: (translate, action) => getRequireCompanyCardsEnabledMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER]: (translate, action) => getDefaultApproverUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO]: (translate, action) => getSubmitsToUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO]: (translate, action) => getForwardsToUpdateMessage(translate, action),
@@ -145,6 +150,8 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT]: (translate, action) => getUpdateACHAccountMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS]: (translate, action) => getCompanyAddressUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT]: (translate, action) => getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT]: (translate, action) =>
+        getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT]: (translate, action) => getPolicyChangeLogMaxExpenseAmountMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE]: (translate, action) => getPolicyChangeLogMaxExpenseAgeMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE]: (translate, action) => getPolicyChangeLogDefaultBillableMessage(translate, action),
@@ -214,11 +221,12 @@ function isHandledPolicyChangeLogAction(action: OnyxTypes.ReportAction): boolean
 
 type PolicyChangeLogContentProps = {
     action: OnyxTypes.ReportAction;
-    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyID: string | undefined;
 };
 
-function PolicyChangeLogContent({action, policy}: PolicyChangeLogContentProps) {
+function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps) {
     const {translate} = useLocalize();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const resolver = POLICY_CHANGE_LOG_RESOLVERS[action.actionName];
     if (!resolver) {

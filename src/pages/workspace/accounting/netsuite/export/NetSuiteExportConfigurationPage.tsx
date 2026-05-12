@@ -1,9 +1,9 @@
-import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -23,8 +23,6 @@ import {
 } from '@libs/PolicyUtils';
 import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideExportForeignCurrencyAmount,
@@ -42,27 +40,24 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 
 type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT>>();
-    const backTo = route?.params?.backTo;
     const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
     const {isBetaEnabled} = usePermissions();
 
     const config = policy?.connections?.netsuite?.options.config;
     const shouldGoBackToSpecificRoute =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
         config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path);
 
     const goBack = () => {
-        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
+        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backPath);
     };
 
     const {subsidiaryList, receivableList, taxAccountsList, items, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
@@ -147,6 +142,14 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             ],
         },
         {
+            type: 'menuitem',
+            title: travelPayableAccount?.name,
+            description: translate('workspace.common.travelInvoicing'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+            shouldHide: !isTravelInvoicingEnabled,
+        },
+        {
             type: 'divider',
             key: 'divider2',
         },
@@ -183,14 +186,6 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT],
             shouldHide: shouldHideTaxPostingAccountSelect(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary, config),
-        },
-        {
-            type: 'menuitem',
-            title: travelPayableAccount?.name,
-            description: translate('workspace.common.travelInvoicing'),
-            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
-            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
-            shouldHide: !isTravelInvoicingEnabled,
         },
         {
             type: 'toggle',
