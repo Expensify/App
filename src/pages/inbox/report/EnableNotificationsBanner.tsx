@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Onyx from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
@@ -9,6 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {dismissForSession} from '@libs/actions/ConciergeNotificationBanner';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import type {NotificationPermissionStatus} from '@libs/Notification/notificationPermission/types';
 import {isConciergeChatReport} from '@libs/ReportUtils';
@@ -48,14 +48,14 @@ function EnableNotificationsBanner({reportID}: EnableNotificationsBannerProps) {
     }, [isConcierge, hasDismissed]);
 
     const dismiss = useCallback(() => {
-        Onyx.set(ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER, true);
+        dismissForSession();
     }, []);
 
     const handleNotifyMe = useCallback(() => {
         NotificationPermission.request().then((status) => {
             setPermissionStatus(status);
             if (status === 'granted') {
-                Onyx.set(ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER, true);
+                dismissForSession();
             }
         });
     }, []);
