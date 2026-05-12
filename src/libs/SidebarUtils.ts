@@ -762,6 +762,8 @@ function getOptionData({
     reportAttributesDerived,
     policyTags,
     currentUserLogin,
+    allTransactions,
+    allTransactionViolations,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -786,6 +788,8 @@ function getOptionData({
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
+    allTransactions?: OnyxCollection<Transaction>;
+    allTransactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -944,6 +948,8 @@ function getOptionData({
             policyTags,
             currentUserLogin,
             lastAction,
+            allTransactions,
+            allTransactionViolations,
         });
     }
 

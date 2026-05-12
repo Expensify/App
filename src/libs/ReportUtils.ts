@@ -5761,6 +5761,8 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         parentReport,
         personalDetails as PersonalDetailsList,
         conciergeReportID,
+        undefined,
+        undefined,
     );
 
     if (parentReportActionBasedName) {

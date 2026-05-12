@@ -19,6 +19,7 @@ import type {
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
+    TransactionViolation,
 } from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -169,6 +170,7 @@ type ComputeReportName = {
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
     transactions?: OnyxCollection<Transaction>;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     personalDetailsList?: PersonalDetailsList;
@@ -420,6 +422,8 @@ function computeReportNameBasedOnReportAction(
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
+    allTransactions: OnyxCollection<Transaction> | undefined,
+    allTransactionViolations: OnyxCollection<TransactionViolation[]> | undefined,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -474,7 +478,7 @@ function computeReportNameBasedOnReportAction(
         if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
             iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
         }
-        const missingFields = getSmartscanFailedMissingFields(getLinkedTransactionID(iouAction));
+        const missingFields = getSmartscanFailedMissingFields(getLinkedTransactionID(iouAction), allTransactions, allTransactionViolations);
         return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     }
 
@@ -875,6 +879,7 @@ function computeReportName({
     reports,
     policies,
     transactions,
+    transactionViolations,
     allReportNameValuePairs,
     personalDetailsList,
     reportActions,
@@ -900,6 +905,8 @@ function computeReportName({
         parentReport,
         personalDetailsList,
         conciergeReportID,
+        transactions,
+        transactionViolations,
     );
 
     if (parentReportActionBasedName) {
@@ -918,6 +925,7 @@ function computeReportName({
             reports,
             policies,
             transactions,
+            transactionViolations,
             allReportNameValuePairs,
             personalDetailsList,
             reportActions,

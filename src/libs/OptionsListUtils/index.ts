@@ -187,6 +187,8 @@ import type {
     ReportActions,
     ReportAttributesDerivedValue,
     ReportMetadata,
+    Transaction,
+    TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -438,6 +440,8 @@ type GetAlternateTextConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     conciergeReportID: string | undefined;
+    allTransactions?: OnyxCollection<Transaction>;
+    allTransactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
 /**
@@ -446,7 +450,18 @@ type GetAlternateTextConfig = {
 function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
-    {isReportArchived, policy, lastActorDetails = {}, visibleReportActionsData = {}, translate, reportAttributesDerived, policyTags, conciergeReportID}: GetAlternateTextConfig,
+    {
+        isReportArchived,
+        policy,
+        lastActorDetails = {},
+        visibleReportActionsData = {},
+        translate,
+        reportAttributesDerived,
+        policyTags,
+        conciergeReportID,
+        allTransactions,
+        allTransactionViolations,
+    }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -466,6 +481,8 @@ function getAlternateText(
             reportAttributesDerived,
             policyTags,
             conciergeReportID,
+            allTransactions,
+            allTransactionViolations,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -612,6 +629,8 @@ function getLastMessageTextForReport({
     policyTags,
     currentUserLogin,
     conciergeReportID,
+    allTransactions,
+    allTransactionViolations,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -629,6 +648,8 @@ function getLastMessageTextForReport({
     currentUserLogin?: string;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    allTransactions?: OnyxCollection<Transaction>;
+    allTransactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -813,7 +834,7 @@ function getLastMessageTextForReport({
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
         // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
         const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        const missingFields = getSmartscanFailedMissingFields(getLinkedTransactionID(iouAction));
+        const missingFields = getSmartscanFailedMissingFields(getLinkedTransactionID(iouAction), allTransactions, allTransactionViolations);
         lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
@@ -996,6 +1017,8 @@ type CreateOptionParams = {
     translate?: LocalizedTranslate;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    allTransactions?: OnyxCollection<Transaction>;
+    allTransactionViolations?: OnyxCollection<TransactionViolation[]>;
 };
 
 /**
@@ -1013,6 +1036,8 @@ function createOption({
     visibleReportActionsData = {},
     translate,
     conciergeReportID,
+    allTransactions,
+    allTransactionViolations,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
 
@@ -1095,6 +1120,8 @@ function createOption({
             reportAttributesDerived,
             policyTags,
             conciergeReportID,
+            allTransactions,
+            allTransactionViolations,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -1111,6 +1138,8 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
+                          allTransactions,
+                          allTransactionViolations,
                       },
                   );
 
