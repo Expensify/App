@@ -50,6 +50,7 @@ type PayInvoiceArgs = {
     invoiceReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
+    currentUserLocalCurrency: string;
     payAsBusiness?: boolean;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     methodID?: number;
@@ -116,6 +117,7 @@ function getPayMoneyRequestParams({
     betas,
     isSelfTourViewed,
     defaultWorkspaceName,
+    currentUserLocalCurrency,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -136,6 +138,7 @@ function getPayMoneyRequestParams({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
+    currentUserLocalCurrency?: string;
 }): PayMoneyRequestData {
     const allTransactionViolations = getAllTransactionViolations();
 
@@ -171,6 +174,7 @@ function getPayMoneyRequestParams({
             policyName: defaultWorkspaceName,
             makeMeAdmin: true,
             policyID: payerPolicyID,
+            currency: currentUserLocalCurrency,
             currentUserAccountIDParam: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentUserEmailParam ?? '',
             introSelected,
@@ -797,6 +801,7 @@ function payInvoice({
     introSelected,
     currentUserAccountIDParam,
     currentUserEmailParam,
+    currentUserLocalCurrency,
     payAsBusiness = false,
     existingB2BInvoiceReport,
     methodID,
@@ -835,6 +840,7 @@ function payInvoice({
         activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
+        currentUserLocalCurrency,
         introSelected,
         betas,
         isSelfTourViewed,
