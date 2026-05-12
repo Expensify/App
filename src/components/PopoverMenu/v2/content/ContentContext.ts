@@ -23,7 +23,7 @@ type ContentSubActions = {
     enterSub: (id: string) => void;
     /** `null` pops to root. */
     exitSub: (target?: string | null) => void;
-    registerSub: (subID: string, parentSubID: string | null) => void;
+    registerSub: (subID: string) => void;
     /** Pops to the nearest still-mounted ancestor when an active sub unmounts. */
     unregisterSub: (subID: string) => void;
 };

@@ -19,9 +19,9 @@ function Sub({children, id: subID}: SubProps): React.ReactElement {
 
     // Layout effect: post-paint cleanup would render a ghost frame pointing at the unmounted Sub.
     useLayoutEffect(() => {
-        registerSub(subID, parentSubID);
+        registerSub(subID);
         return () => unregisterSub(subID);
-    }, [subID, parentSubID, registerSub, unregisterSub]);
+    }, [subID, registerSub, unregisterSub]);
 
     return <SubContext.Provider value={value}>{children}</SubContext.Provider>;
 }

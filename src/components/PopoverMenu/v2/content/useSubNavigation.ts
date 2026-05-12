@@ -1,9 +1,9 @@
-import {useLayoutEffect, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 
 type SubNavigationActions = {
     enterSub: (id: string) => void;
     exitSub: (target?: string | null) => void;
-    registerSub: (subID: string, parentSubID: string | null) => void;
+    registerSub: (subID: string) => void;
     /** Pops to the nearest still-mounted ancestor when an active sub unmounts. */
     unregisterSub: (subID: string) => void;
 };
@@ -15,55 +15,54 @@ type UseSubNavigationResult = {
     resetToRoot: () => void;
 };
 
-/** `parentLinks` is append-only so cascade-on-unmount can walk through deleted intermediates; `mountedSubs` is the authoritative mount-state set. */
 function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubNavigationResult {
-    const [currentSubID, setCurrentSubID] = useState<string | null>(null);
-    const parentLinks = useRef<Map<string, string | null>>(new Map());
+    // Stack of sub IDs from outermost to active level. Empty = top level.
+    const [pathStack, setPathStack] = useState<string[]>([]);
     const mountedSubs = useRef<Set<string>>(new Set());
 
-    // Mirror so `unregisterSub`'s cascade-pop check reads the committed level, not a stale closure.
-    const currentSubIDRef = useRef(currentSubID);
-    useLayoutEffect(() => {
-        currentSubIDRef.current = currentSubID;
-    });
+    const currentSubID = pathStack.length > 0 ? (pathStack.at(-1) ?? null) : null;
 
     const isAncestorOfCurrent = (subID: string): boolean => {
-        if (currentSubID === null) {
-            return false;
-        }
-        let cursor = parentLinks.current.get(currentSubID) ?? null;
-        while (cursor !== null) {
-            if (cursor === subID) {
-                return true;
-            }
-            cursor = parentLinks.current.get(cursor) ?? null;
-        }
-        return false;
+        const idx = pathStack.indexOf(subID);
+        return idx >= 0 && idx < pathStack.length - 1;
     };
 
     const actions: SubNavigationActions = {
         enterSub: (id) => {
-            setCurrentSubID(id);
+            setPathStack((prev) => [...prev, id]);
             onLevelChange();
         },
         exitSub: (target = null) => {
-            setCurrentSubID(target);
+            setPathStack((prev) => {
+                if (target === null) {
+                    return [];
+                }
+                const idx = prev.indexOf(target);
+                return idx < 0 ? prev : prev.slice(0, idx + 1);
+            });
             onLevelChange();
         },
-        registerSub: (subID, parentSubID) => {
-            parentLinks.current.set(subID, parentSubID);
+        registerSub: (subID) => {
             mountedSubs.current.add(subID);
         },
         unregisterSub: (subID) => {
             mountedSubs.current.delete(subID);
-            if (currentSubIDRef.current !== subID) {
-                return;
-            }
-            let cursor = parentLinks.current.get(subID) ?? null;
-            while (cursor !== null && !mountedSubs.current.has(cursor)) {
-                cursor = parentLinks.current.get(cursor) ?? null;
-            }
-            setCurrentSubID(cursor);
+            setPathStack((prev) => {
+                // Only act if the unmounted sub was the active level.
+                if (prev.at(-1) !== subID) {
+                    return prev;
+                }
+                // Pop unmounted entries from the top.
+                let next = prev.slice(0, -1);
+                while (next.length > 0) {
+                    const top = next.at(-1);
+                    if (top !== undefined && mountedSubs.current.has(top)) {
+                        break;
+                    }
+                    next = next.slice(0, -1);
+                }
+                return next;
+            });
             onLevelChange();
         },
     };
@@ -72,7 +71,7 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
         currentSubID,
         isAncestorOfCurrent,
         actions,
-        resetToRoot: () => setCurrentSubID(null),
+        resetToRoot: () => setPathStack([]),
     };
 }
 
