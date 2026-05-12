@@ -44,9 +44,9 @@ export default function TableSkeleton({renderSkeletonItem, reasonAttributes, row
             style={[tableSkeletonRowStyles, index !== rowCount - 1 && styles.borderBottom]}
         >
             <SkeletonViewContentLoader
+                height={32}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
-                height={isSmallView ? variables.tableRowHeightCompact : variables.tableRowHeight}
             >
                 {renderSkeletonItem()}
             </SkeletonViewContentLoader>
