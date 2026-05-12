@@ -103,7 +103,6 @@ function DatePicker({
     };
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             calculatePopoverPosition();
         });

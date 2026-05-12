@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
@@ -146,8 +147,8 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
 
-    /** Whether to show the selected option checkmark */
-    shouldShowSelectedItemCheck?: boolean;
+    /** Whether to show a radio button on each item to indicate which one is currently selected */
+    shouldShowRadioButton?: boolean;
 
     /** The style of content container which wraps all child views */
     containerStyles?: StyleProp<ViewStyle>;
@@ -293,7 +294,7 @@ function BasePopoverMenu({
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
     restoreFocusType,
-    shouldShowSelectedItemCheck = false,
+    shouldShowRadioButton = false,
     containerStyles,
     badgeStyle,
     headerStyles,
@@ -320,9 +321,51 @@ function BasePopoverMenu({
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: currentMenuItemsFocusedIndex,
+        maxIndex: currentMenuItems.length - 1,
+        isActive: isVisible,
+    });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
+    const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
+
+    const getPreviousSubMenu = () => {
+        let currentItems = menuItems;
+        for (let i = 0; i < enteredSubMenuIndexes.length - 1; i++) {
+            const nextItems = currentItems[enteredSubMenuIndexes[i]].subMenuItems;
+            if (!nextItems) {
+                return currentItems;
+            }
+            currentItems = nextItems;
+        }
+        return currentItems;
+    };
+
+    const isRadioButtonMode = enteredSubMenuIndexes.length === 0 ? shouldShowRadioButton : !!getPreviousSubMenu().at(enteredSubMenuIndexes.at(-1) ?? -1)?.shouldShowRadioButton;
+
+    // In radio-button mode, suppress the visual highlight until the user starts navigating,
+    // even though the selected item is already focused (for immediate Enter/arrow support).
+    useEffect(() => {
+        if (!isVisible || !isRadioButtonMode) {
+            return;
+        }
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const isNavigationKey = [
+                CONST.KEYBOARD_SHORTCUTS.ARROW_UP,
+                CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN,
+                CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT,
+                CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT,
+                CONST.KEYBOARD_SHORTCUTS.TAB,
+            ].some(({shortcutKey}) => shortcutKey === e.key);
+            if (!isNavigationKey) {
+                return;
+            }
+            setHasKeyBeenPressed(true);
+        };
+        addKeyDownPressListener(handleKeyDown);
+        return () => removeKeyDownPressListener(handleKeyDown);
+    }, [isVisible, isRadioButtonMode]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -334,6 +377,9 @@ function BasePopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+            if (selectedItem.shouldShowRadioButton) {
+                setHasKeyBeenPressed(false);
+            }
         } else if (selectedItem.shouldCloseModalOnSelect === false) {
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
@@ -351,18 +397,6 @@ function BasePopoverMenu({
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
         }
-    };
-
-    const getPreviousSubMenu = () => {
-        let currentItems = menuItems;
-        for (let i = 0; i < enteredSubMenuIndexes.length - 1; i++) {
-            const nextItems = currentItems[enteredSubMenuIndexes[i]].subMenuItems;
-            if (!nextItems) {
-                return currentItems;
-            }
-            currentItems = nextItems;
-        }
-        return currentItems;
     };
 
     const renderBackButtonItem = () => {
@@ -412,6 +446,8 @@ function BasePopoverMenu({
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
 
         const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
+        // In radio-button mode, suppress visual focus highlight until the user starts keyboard navigation.
+        const isVisuallyFocused = focusedIndex === menuIndex && (!isRadioButtonMode || hasKeyBeenPressed);
         return (
             <OfflineWithFeedback
                 key={reactKey}
@@ -422,8 +458,7 @@ function BasePopoverMenu({
                     pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={(event) => selectItem(menuIndex, event)}
-                    focused={focusedIndex === menuIndex}
-                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                    focused={isVisuallyFocused}
                     shouldCheckActionAllowedOnPress={false}
                     iconRight={item.rightIcon}
                     shouldShowRightIcon={!!item.rightIcon}
@@ -437,7 +472,13 @@ function BasePopoverMenu({
                     badgeText={badgeText}
                     badgeStyle={StyleSheet.flatten(badgeStyle)}
                     wrapperStyle={[
-                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
+                        StyleUtils.getItemBackgroundColorStyle(
+                            !isRadioButtonMode && !!item.isSelected,
+                            isVisuallyFocused,
+                            item.disabled ?? false,
+                            theme.activeComponentBG,
+                            theme.hoverComponentBG,
+                        ),
                         shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
                     ]}
                     shouldRemoveHoverBackground={item.isSelected}
@@ -446,6 +487,7 @@ function BasePopoverMenu({
                     role={CONST.ROLE.BUTTON}
                     // Spread other props dynamically
                     {...menuItemProps}
+                    shouldShowRadioButton={isRadioButtonMode}
                     hasSubMenuItems={!!subMenuItems?.length}
                     shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
                 />
@@ -496,6 +538,7 @@ function BasePopoverMenu({
 
     const handleModalHide = () => {
         onModalHide?.();
+        setHasKeyBeenPressed(false);
         const keyPath = buildKeyPathFromIndexPath(menuItems, enteredSubMenuIndexes);
         const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
 

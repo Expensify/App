@@ -36,7 +36,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
-import {startMoneyRequest} from '@userActions/IOU';
+import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -99,8 +99,13 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
             if (!transactions) {
                 return [];
             }
+            const isIOU = isIOUReport(report);
             return Object.values(transactions || {}).filter((item) => {
                 const isUnreported = isUnreportedTransaction(item);
+                if (isIOU && !isUnreported) {
+                    return false;
+                }
+
                 const isOnOpenExpenseReport = !!(item?.reportID && (allOpenReports?.[item.reportID] ?? openReportDrafts?.[item.reportID]));
                 if (!isUnreported && !isOnOpenExpenseReport) {
                     return false;
@@ -121,13 +126,13 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
 
                 const transactionAmount = getTransactionDetails(item)?.amount ?? 0;
 
-                // Negative values are not allowed for unreported expenses
-                if (transactionAmount < 0) {
+                // Only block negative amounts for unreported expenses.
+                if (transactionAmount < 0 && isUnreported) {
                     return false;
                 }
 
                 // Zero amount expenses are not allowed in IOU reports
-                if (isIOUReport(report) && transactionAmount === 0) {
+                if (isIOU && transactionAmount === 0) {
                     return false;
                 }
 

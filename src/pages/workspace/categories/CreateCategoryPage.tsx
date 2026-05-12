@@ -20,7 +20,7 @@ import SCREENS from '@src/SCREENS';
 import CategoryForm from './CategoryForm';
 
 type CreateCategoryPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_CREATE>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_CREATE>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE>;
 
 function CreateCategoryPage({route}: CreateCategoryPageProps) {
@@ -28,8 +28,8 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const backTo = route.params?.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_CREATE;
+    const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {
         taskReport: setupCategoryTaskReport,

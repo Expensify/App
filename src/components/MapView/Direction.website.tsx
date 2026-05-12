@@ -8,15 +8,54 @@ import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {DirectionProps} from './MapViewTypes';
+import utils from './utils';
 
 function Direction({coordinates}: DirectionProps) {
     const styles = useThemeStyles();
     const layerLayoutStyle: Record<string, string> = styles.mapDirectionLayer.layout;
     const layerPointStyle: Record<string, string | number> = styles.mapDirectionLayer.paint;
 
-    if (coordinates.length < 1) {
+    if (!utils.isSingleSegmentRoute(coordinates)) {
+        const validSegments = coordinates.filter((segment) => segment.length >= 2);
+        if (validSegments.length === 0) {
+            return null;
+        }
+
+        return (
+            <View>
+                {validSegments.map((segmentCoordinates, index) => (
+                    <Source
+                        // Using index as key is safe because we are not reordering the routes
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
+                        id={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
+                        type="geojson"
+                        data={{
+                            type: 'Feature',
+                            properties: {},
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: segmentCoordinates,
+                            },
+                        }}
+                    >
+                        <Layer
+                            id={`${CONST.MAP_VIEW_LAYERS.ROUTE_FILL}-segment-${index}`}
+                            type="line"
+                            source={`${CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}-segment-${index}`}
+                            paint={layerPointStyle}
+                            layout={layerLayoutStyle}
+                        />
+                    </Source>
+                ))}
+            </View>
+        );
+    }
+
+    if (coordinates.length < 2) {
         return null;
     }
+
     return (
         <View>
             {!!coordinates && (

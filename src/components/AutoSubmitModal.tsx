@@ -39,7 +39,6 @@ function AutoSubmitModal() {
     );
 
     const onClose = useCallback((willShowAgain: boolean) => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (!willShowAgain) {
                 dismissASAPSubmitExplanation(true);

@@ -326,7 +326,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it("should return false if the user isn't a workspace's owner or isn't a member of any past due billing workspace", () => {
-            expect(shouldRestrictUserBillableActions('1', undefined, undefined, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(undefined, undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', () => {
