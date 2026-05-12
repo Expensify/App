@@ -150,6 +150,8 @@ let prevReportID: string | null = null;
  * random enough to avoid collisions
  */
 function keyExtractor(item: OnyxTypes.ReportAction): string {
+    // A report has exactly one CREATED action. Using a stable key lets FlashList recycle the same cell
+    // when the optimistic CREATED is swapped for the server one, avoiding a remount-induced scroll jump.
     if (item.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return CONST.REPORT.ACTIONS.TYPE.CREATED;
     }
