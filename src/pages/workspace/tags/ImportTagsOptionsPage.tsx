@@ -21,7 +21,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {
     getTagLists,
     goBackFromInvalidPolicy,
@@ -71,30 +70,8 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         return Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     }, [isMultiLevelTags, policyTagLists]);
 
-    const shouldPreventSwitchingTagLevels =
-        !!policy?.requiresTag &&
-        policyTagLists.some((policyTagList) => {
-            const enabledTags = Object.values(policyTagList.tags ?? {}).filter((tag) => tag.enabled);
-            return isDisablingOrDeletingLastEnabledTag(policyTagList, enabledTags);
-        });
-
-    const showDeleteOrDisableAllTagsBlockedModal = () => {
-        showConfirmModal({
-            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
-            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    };
-
     const handlePostConfirmTagSwitch = () => {
-        if (shouldPreventSwitchingTagLevels) {
-            setImportedSpreadsheetIsImportingMultiLevelTags(false);
-            showDeleteOrDisableAllTagsBlockedModal();
-            return;
-        }
-
-        cleanPolicyTags(policyID);
+        cleanPolicyTags(policyID, !!policy?.requiresTag);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),

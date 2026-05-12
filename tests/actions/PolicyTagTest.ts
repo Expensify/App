@@ -10,6 +10,7 @@ import {
     clearPolicyTagErrors,
     clearPolicyTagListErrorField,
     clearPolicyTagListErrors,
+    cleanPolicyTags,
     createPolicyTag,
     deletePolicyTags,
     enablePolicyTags,
@@ -275,6 +276,49 @@ describe('actions/Policy', () => {
             expect(policyTags?.[newTagListName]).toBeFalsy();
             expect(policyTags?.[oldTagListName]).toBeTruthy();
             expect(policyTags?.[oldTagListName]?.errors).toBeTruthy();
+        });
+    });
+
+    describe('cleanPolicyTags', () => {
+        it('should optimistically disable required tags when cleaning all tags', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+            fakePolicy.requiresTag = true;
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            cleanPolicyTags(fakePolicy.id, true);
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(updatedPolicy?.requiresTag).toBe(false);
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('should restore required tags when cleaning all tags fails', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+            fakePolicy.requiresTag = true;
+
+            mockFetch.pause();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            mockFetch.fail();
+            cleanPolicyTags(fakePolicy.id, true);
+            await waitForBatchedUpdates();
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            expect(updatedPolicy?.requiresTag).toBe(true);
         });
     });
 

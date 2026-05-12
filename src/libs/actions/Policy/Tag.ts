@@ -856,9 +856,31 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
     }
 }
 
-function cleanPolicyTags(policyID: string) {
-    // We do not have any optimistic data or success data for this command as this action cannot be done offline
-    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID});
+function cleanPolicyTags(policyID: string, currentRequiresTag = false) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> | undefined = currentRequiresTag
+        ? {
+              optimisticData: [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                      value: {
+                          requiresTag: false,
+                      },
+                  },
+              ],
+              failureData: [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                      value: {
+                          requiresTag: currentRequiresTag,
+                      },
+                  },
+              ],
+          }
+        : undefined;
+
+    API.write(WRITE_COMMANDS.CLEAN_POLICY_TAGS, {policyID}, onyxData);
 }
 
 function setImportedSpreadsheetIsImportingMultiLevelTags(isImportingMultiLevelTags: boolean) {
