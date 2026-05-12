@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import type {ListItem} from '@components/SelectionList/types';
@@ -8,16 +7,14 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksDesktopExportDate} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
-import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type CardListItem = ListItem & {
     value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
@@ -28,8 +25,6 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
     const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const exportDate = qbdConfig?.export?.exportDate;
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT>>();
-    const backTo = route.params.backTo;
 
     const data: CardListItem[] = useMemo(
         () =>
@@ -44,8 +39,8 @@ function QuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnectionsPr
     );
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID));
-    }, [policyID, backTo]);
+        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
+    }, [policyID]);
 
     const selectExportDate = useCallback(
         (row: CardListItem) => {

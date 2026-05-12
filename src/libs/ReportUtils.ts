@@ -86,17 +86,10 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
-import {
-    createDraftTransaction,
-    getUserAccountID,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReportID,
-    startDistanceRequest,
-    startMoneyRequest,
-} from './actions/IOU';
+import {getUserAccountID, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReportID} from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
+import {createDraftTransaction, startDistanceRequest, startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, getBadgeFromIOUReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
@@ -4166,9 +4159,9 @@ type ReasonAndReportActionThatRequiresAttention = {
 /**
  * Returns the unresolved card fraud alert action for a given report.
  */
-function getUnresolvedCardFraudAlertAction(reportID: string): OnyxEntry<ReportAction> {
-    const reportActions = getAllReportActions(reportID);
-    return Object.values(reportActions).find((action): action is ReportAction => isActionableCardFraudAlert(action) && !getOriginalMessage(action)?.resolution);
+function getUnresolvedCardFraudAlertAction(reportID: string, reportActions?: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> {
+    const actions = reportActions ?? getAllReportActions(reportID);
+    return Object.values(actions).find((action): action is ReportAction => isActionableCardFraudAlert(action) && !getOriginalMessage(action)?.resolution);
 }
 
 /**
@@ -4589,7 +4582,6 @@ function getTransactionDetails(
     }
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
-    const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isPaidGroupPolicyPolicyUtils(policy);
 
     return {
@@ -4616,7 +4608,7 @@ function getTransactionDetails(
         convertedAmount: getConvertedAmount(transaction, isFromExpenseReport, transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, allowNegativeAmount, disableOppositeConversion),
         postedDate: getFormattedPostedDate(transaction),
         transactionID: transaction.transactionID,
-        ...(isManualDistanceRequest && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
+        ...(isDistanceRequest(transaction) && {distance: transaction.comment?.customUnit?.quantity ?? undefined}),
     };
 }
 
@@ -4811,11 +4803,6 @@ function canEditMultipleTransactions(
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         if (isUnreportedExpense) {
             continue;
-        }
-
-        // Do not allow editing split expenses in bulk
-        if (transaction.comment?.source === CONST.IOU.TYPE.SPLIT || transaction.comment?.splits) {
-            return false;
         }
 
         const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}` as const;
@@ -10018,7 +10005,7 @@ function getMoneyRequestOptions(
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policyOwnerAccountID = getPolicy(report?.policyID)?.ownerAccountID;
     const isPolicyOwnedByExpensifyAccounts = policyOwnerAccountID ? CONST.EXPENSIFY_ACCOUNT_IDS.includes(policyOwnerAccountID) : false;
-    if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts) {
+    if (doParticipantsIncludeExpensifyAccounts && !isPolicyOwnedByExpensifyAccounts && !isPolicyExpenseChat(report) && !isExpenseReport(report)) {
         // Allow create expense option for Manager McTest report
         if (
             canRequestMoney(report, policy, otherParticipants) &&
@@ -11113,6 +11100,7 @@ function shouldCreateNewMoneyRequestReport(
     isScanRequest: boolean,
     betas: OnyxEntry<Beta[]>,
     action?: IOUAction,
+    isFromExistingReport?: boolean,
 ): boolean {
     if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {
         return true;
@@ -11123,7 +11111,7 @@ function shouldCreateNewMoneyRequestReport(
         !existingIOUReport ||
         hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
         !canAddTransaction(existingIOUReport) ||
-        (action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
+        (!isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
     );
 }
 
@@ -11600,8 +11588,11 @@ type PrepareOnboardingOnyxDataParams = {
     selectedInterestedFeatures?: string[];
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
-    isSelfTourViewed?: boolean;
     betas: OnyxEntry<Beta[]>;
+    // TODO: isSelfTourViewed will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
+    isSelfTourViewed?: boolean;
+    // TODO: hasCompletedGuidedSetupFlow will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
+    hasCompletedGuidedSetupFlow?: boolean;
 };
 
 function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined, userReportedIntegration?: OnboardingAccounting): string {
@@ -11657,6 +11648,7 @@ function prepareOnboardingOnyxData({
     onboardingPurposeSelected,
     isSelfTourViewed,
     betas,
+    hasCompletedGuidedSetupFlow,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -11794,12 +11786,19 @@ function prepareOnboardingOnyxData({
             if (([CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION, CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS] as string[]).includes(task.type) && !userReportedIntegration) {
                 return false;
             }
-            type SkipViewTourOnboardingChoices = 'newDotSubmit' | 'newDotSplitChat' | 'newDotPersonalSpend' | 'newDotEmployer';
+            type SkipViewTourOnboardingChoices =
+                | typeof CONST.ONBOARDING_CHOICES.SUBMIT
+                | typeof CONST.ONBOARDING_CHOICES.CHAT_SPLIT
+                | typeof CONST.ONBOARDING_CHOICES.PERSONAL_SPEND
+                | typeof CONST.ONBOARDING_CHOICES.EMPLOYER
+                | typeof CONST.ONBOARDING_CHOICES.TRACK_PERSONAL
+                | typeof CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
             if (
                 task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR &&
                 [
                     CONST.ONBOARDING_CHOICES.EMPLOYER,
                     CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                    CONST.ONBOARDING_CHOICES.TRACK_PERSONAL,
                     CONST.ONBOARDING_CHOICES.SUBMIT,
                     CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                     CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
@@ -12213,7 +12212,7 @@ function prepareOnboardingOnyxData({
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {hasCompletedGuidedSetupFlow: onboarding?.hasCompletedGuidedSetupFlow ?? null},
+            value: {hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlow ?? onboarding?.hasCompletedGuidedSetupFlow ?? null},
         });
     }
 
@@ -12266,7 +12265,9 @@ function prepareOnboardingOnyxData({
     let selfDMParameters: SelfDMParameters = {};
     if (
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
-        (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND))
+        engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL ||
+        (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE &&
+            (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL))
     ) {
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
@@ -13647,6 +13648,7 @@ export {
     hasMissingInvoiceBankAccount,
     reasonForReportToBeInOptionList,
     getReasonAndReportActionThatRequiresAttention,
+    getUnresolvedCardFraudAlertAction,
     buildOptimisticChangeFieldAction,
     isPolicyRelatedReport,
     hasReportErrorsOtherThanFailedReceipt,
