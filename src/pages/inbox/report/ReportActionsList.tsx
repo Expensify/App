@@ -507,14 +507,28 @@ function ReportActionsList({
         return sortedVisibleReportActions.findIndex((item) => keyExtractor(item) === initialScrollKey);
     }, [initialScrollKey, sortedVisibleReportActions]);
     const hasInitialScrollTarget = initialScrollIndex >= 0;
+    const shouldMeasureLinkedAnchorScrollPosition = !!linkedReportActionID && hasInitialScrollTarget;
     const [listHeight, setListHeight] = useState(0);
     const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
     const mountedInitialViewportIndicesRef = useRef(new Set<number>());
     const hasInitialViewportLoadedRef = useRef(!hasInitialScrollTarget);
-    /** After we measure the anchor row and run a corrective scroll; keeps skeleton visible until then. */
-    const [hasAppliedMeasuredAnchorScroll, setHasAppliedMeasuredAnchorScroll] = useState(!hasInitialScrollTarget);
+    /** Linked deeplink opens need post-layout corrective scroll so the inverted anchor lands correctly; skips unread-only flows (mark unread). */
+    const [hasAppliedMeasuredAnchorScroll, setHasAppliedMeasuredAnchorScroll] = useState(() => !shouldMeasureLinkedAnchorScrollPosition);
     /** Prevents repeated corrective scrollToIndex calls when onLayout repeats. */
     const hasCommittedMeasuredAnchorScrollRef = useRef(false);
+    /**
+     * Last scroll/viewport-reset session identifiers. Avoids resetting the initial viewport skeleton + measured-anchor
+     * scroll when only the unread marker action ID changes during mark-as-unread (same FlashList/listID).
+     */
+    const initialViewportResetSessionRef = useRef<
+        | {
+              listID: number;
+              reportID: string;
+              linkedReportActionID: string;
+              initialScrollKey: string;
+          }
+        | undefined
+    >(undefined);
     const initialScrollIndexViewOffset = useMemo(() => {
         if (!hasInitialScrollTarget) {
             return undefined;
@@ -540,12 +554,12 @@ function ReportActionsList({
         };
     }, [hasInitialScrollTarget, initialScrollIndex, listHeight, sortedVisibleReportActions.length]);
     const shouldRenderFlashList = !hasInitialScrollTarget || listHeight > 0;
-    const shouldShowInitialViewportSkeleton = hasInitialScrollTarget && (isInitialViewportLoading || !hasAppliedMeasuredAnchorScroll);
+    const shouldShowInitialViewportSkeleton = hasInitialScrollTarget && (isInitialViewportLoading || (shouldMeasureLinkedAnchorScrollPosition && !hasAppliedMeasuredAnchorScroll));
 
-    /** Correct initial anchor position using the laid-out row height (inverted list pins the wrong edge with viewport-only offsets). */
+    /** Correct inverted linked-message positioning using the laid-out row height (not needed for unread-anchor-only scroll). */
     const handleInitialScrollTargetLayout = useCallback(
         (layoutHeight: number) => {
-            if (!hasInitialScrollTarget || layoutHeight <= 0 || listHeight <= 0) {
+            if (!shouldMeasureLinkedAnchorScrollPosition || layoutHeight <= 0 || listHeight <= 0) {
                 return;
             }
 
@@ -579,7 +593,7 @@ function ReportActionsList({
                     });
             });
         },
-        [hasInitialScrollTarget, initialScrollIndex, listHeight, reportScrollManager.ref],
+        [shouldMeasureLinkedAnchorScrollPosition, initialScrollIndex, listHeight, reportScrollManager.ref],
     );
 
     const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
@@ -587,15 +601,48 @@ function ReportActionsList({
         setIsListInitiallyLoaded(true);
     }, []);
     useLayoutEffect(() => {
+        const normalizedLinkedReportActionID = linkedReportActionID ?? '';
+        const normalizedInitialScrollKey = initialScrollKey ?? '';
+        const previousSession = initialViewportResetSessionRef.current;
+
+        const isFirstViewportResetCycle = previousSession === undefined;
+        const listIDBumped = isFirstViewportResetCycle ? true : previousSession.listID !== listID;
+        const reportSwitched = isFirstViewportResetCycle ? true : previousSession.reportID !== report.reportID;
+        const linkedTargetingChanged = isFirstViewportResetCycle ? false : previousSession.linkedReportActionID !== normalizedLinkedReportActionID;
+
+        const hadScrollAnchor = !!previousSession?.initialScrollKey;
+        const hasScrollAnchor = !!normalizedInitialScrollKey;
+
+        const isUnreadMarkerOnlyShuffle =
+            hasScrollAnchor &&
+            hadScrollAnchor &&
+            previousSession !== undefined &&
+            previousSession.initialScrollKey !== normalizedInitialScrollKey &&
+            !normalizedLinkedReportActionID &&
+            !listIDBumped &&
+            !reportSwitched &&
+            !linkedTargetingChanged;
+
+        initialViewportResetSessionRef.current = {
+            listID,
+            reportID: report.reportID,
+            linkedReportActionID: normalizedLinkedReportActionID,
+            initialScrollKey: normalizedInitialScrollKey,
+        };
+
+        if (isUnreadMarkerOnlyShuffle) {
+            return;
+        }
+
         mountedInitialViewportIndicesRef.current.clear();
         hasInitialViewportLoadedRef.current = !hasInitialScrollTarget;
         hasCommittedMeasuredAnchorScrollRef.current = false;
-        setHasAppliedMeasuredAnchorScroll(!hasInitialScrollTarget);
+        setHasAppliedMeasuredAnchorScroll(!shouldMeasureLinkedAnchorScrollPosition);
         setIsInitialViewportLoading(hasInitialScrollTarget);
-    }, [hasInitialScrollTarget, initialScrollIndex, initialScrollKey, listID]);
+    }, [hasInitialScrollTarget, initialScrollKey, linkedReportActionID, listID, report.reportID, shouldMeasureLinkedAnchorScrollPosition]);
 
     useEffect(() => {
-        if (!hasInitialScrollTarget || hasAppliedMeasuredAnchorScroll) {
+        if (!linkedReportActionID || !hasInitialScrollTarget || hasAppliedMeasuredAnchorScroll) {
             return undefined;
         }
 
@@ -606,7 +653,7 @@ function ReportActionsList({
         return () => {
             clearTimeout(fallbackTimer);
         };
-    }, [hasAppliedMeasuredAnchorScroll, hasInitialScrollTarget, initialScrollKey, listID]);
+    }, [hasAppliedMeasuredAnchorScroll, hasInitialScrollTarget, linkedReportActionID, listID, report.reportID]);
 
     const handleReportActionsListLayout = useCallback(
         (event: LayoutChangeEvent) => {
@@ -1089,9 +1136,9 @@ function ReportActionsList({
                 );
             }
 
-            const isInitialScrollAnchorRow = target === 'Cell' && hasInitialScrollTarget && reportAction.reportActionID === initialScrollKey;
+            const isMeasuredLinkedAnchorRow = target === 'Cell' && !!linkedReportActionID && reportAction.reportActionID === linkedReportActionID && hasInitialScrollTarget;
 
-            if (isInitialScrollAnchorRow) {
+            if (isMeasuredLinkedAnchorRow) {
                 return (
                     <View
                         collapsable={false}
@@ -1138,7 +1185,6 @@ function ReportActionsList({
             isInitialViewportLoading,
             handleInitialViewportItemMounted,
             hasInitialScrollTarget,
-            initialScrollKey,
             handleInitialScrollTargetLayout,
         ],
     );

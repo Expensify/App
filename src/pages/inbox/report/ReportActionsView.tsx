@@ -182,19 +182,38 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     }, [isOffline, report?.reportID, reportID, reportActionIDFromRoute]);
 
     const previousOldestUnreadReportActionID = usePrevious(oldestUnreadReportAction?.reportActionID);
+    const previousReportID = usePrevious(reportID);
 
-    // Change the list ID only for comment linking to get the positioning right
+    // Bump listID remounts FlashList so `initialScrollIndex` can run again. Do that for comment linking / first unread
+    // anchor resolution, but not when the unread anchor changes while staying on the same report (e.g. mark as unread).
     const listID = useMemo(() => {
-        if (!reportActionIDFromRoute && !prevReportActionID && oldestUnreadReportAction?.reportActionID === previousOldestUnreadReportActionID) {
-            // Keep the old list ID since we're not in the Comment Linking flow
+        const oldestUnreadID = oldestUnreadReportAction?.reportActionID;
+        const isCommentLinking = !!(reportActionIDFromRoute ?? prevReportActionID);
+        const isSameReportNavigation = reportID !== undefined && previousReportID !== undefined && reportID === previousReportID;
+
+        if (isCommentLinking) {
+            const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
+            listOldID = newID;
+
+            return newID;
+        }
+
+        if (oldestUnreadID === previousOldestUnreadReportActionID) {
             return listOldID;
         }
+
+        const oldestUnreadAnchoringChangedWhileMounted = !isCommentLinking && isSameReportNavigation && didLayout.current && oldestUnreadID !== previousOldestUnreadReportActionID;
+
+        if (oldestUnreadAnchoringChangedWhileMounted) {
+            return listOldID;
+        }
+
         const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
         listOldID = newID;
 
         return newID;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route, reportActionIDFromRoute, oldestUnreadReportAction?.reportActionID, previousOldestUnreadReportActionID]);
+    }, [route, reportID, reportActionIDFromRoute, prevReportActionID, oldestUnreadReportAction?.reportActionID, previousOldestUnreadReportActionID, previousReportID]);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
