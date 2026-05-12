@@ -129,7 +129,7 @@ index c37c4f3..fd2ff94 100644
  /**
   * Ref interface for ViewHolderCollection that exposes methods to control layout updates
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
-index 8e3db51..f3aa0d8 100644
+index 8e3db51..8e23c83 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/ViewHolderCollection.js
 @@ -3,17 +3,81 @@
@@ -216,7 +216,7 @@ index 8e3db51..f3aa0d8 100644
      const [renderId, setRenderId] = React.useState(0);
      const containerLayout = getChildContainerLayout();
      const fixedContainerSize = horizontal
-@@ -72,9 +136,130 @@ export const ViewHolderCollection = (props) => {
+@@ -72,9 +136,126 @@ export const ViewHolderCollection = (props) => {
      //     return `${index} => ${reactKey}`;
      //   })
      // );
@@ -228,7 +228,7 @@ index 8e3db51..f3aa0d8 100644
 +    const shouldSortOnNextFocusRef = useRef(false);
 +    const renderEntriesRef = useRef(Array.from(renderStack.entries()));
 +    const [, bumpSortVersion] = useReducer((x) => x + 1, 0);
-+    const doSort = useCallback(() => {
++    const sortItems = useCallback(() => {
 +        const entries = renderEntriesRef.current;
 +        const direction = inverted ? -1 : 1;
 +        const isSorted = entries.every((entry, i) => i === 0 || direction * (entries[i - 1][1].index - entry[1].index) <= 0);
@@ -237,9 +237,8 @@ index 8e3db51..f3aa0d8 100644
 +        }
 +        entries.sort(([, a], [, b]) => direction * (a.index - b.index));
 +        bumpSortVersion();
-+        // eslint-disable-next-line react-hooks/exhaustive-deps
 +    }, [inverted]);
-+    const [schedulePendingSort, clearPendingSort] = useDeferredCallback(doSort, SORT_DELAY_MS, isScrolling);
++    const [schedulePendingSort, clearPendingSort] = useDeferredCallback(sortItems, SORT_DELAY_MS, isScrolling);
 +    const maybeDoSortOnFocus = useCallback(() => {
 +        clearPendingSort();
 +        if (isScrollingProgrammatically()) {
@@ -248,17 +247,15 @@ index 8e3db51..f3aa0d8 100644
 +        }
 +        if (shouldSortOnNextFocusRef.current) {
 +            shouldSortOnNextFocusRef.current = false;
-+            doSort();
++            sortItems();
 +        }
 +        schedulePendingSort();
 +    }, [
 +        isScrollingProgrammatically,
-+        isScrolling,
 +        runAfterProgrammaticScroll,
 +        schedulePendingSort,
 +        clearPendingSort,
-+        doSort,
-+        getLastScrollTime,
++        sortItems,
 +    ]);
 +    const maybeDoSortOnScroll = useCallback(() => {
 +        shouldSortOnNextFocusRef.current = true;
@@ -278,7 +275,7 @@ index 8e3db51..f3aa0d8 100644
 +            const scrollNow = scrollSinceFocus >= 0 &&
 +                scrollSinceFocus < FOCUS_INDUCED_SCROLL_WINDOW_MS;
 +            if (scrollNow) {
-+                doSort();
++                sortItems();
 +                shouldSortOnNextFocusRef.current = false;
 +                return;
 +            }
@@ -290,7 +287,7 @@ index 8e3db51..f3aa0d8 100644
 +        runAfterProgrammaticScroll,
 +        schedulePendingSort,
 +        clearPendingSort,
-+        doSort,
++        sortItems,
 +        getLastScrollTime,
 +    ]);
 +    if (Platform.OS === "web") {
@@ -332,8 +329,7 @@ index 8e3db51..f3aa0d8 100644
 +        };
 +        container.addEventListener("focusin", onFocusIn);
 +        return () => container.removeEventListener("focusin", onFocusIn);
-+        // eslint-disable-next-line react-hooks/exhaustive-deps
-+    }, []);
++    }, [maybeDoSortOnFocus]);
 +    useEffect(() => {
 +        if (Platform.OS !== "web") {
 +            return;
