@@ -3,12 +3,12 @@ import type {RefObject} from 'react';
 import type {BlurEvent, View} from 'react-native';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import type {SuggestionsRef} from './ComposerContext';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 type UseComposerFocusParams = {
-    composerRef: RefObject<ComposerRef | null>;
+    composerRef: RefObject<ComposerWithSuggestionsRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
     initialFocused: boolean;
@@ -18,13 +18,6 @@ function useComposerFocus({composerRef, suggestionsRef, actionButtonRef, initial
     const [isFocused, setIsFocused] = useState(initialFocused);
     const isKeyboardVisibleWhenShowingModalRef = useRef(false);
     const isNextModalWillOpenRef = useRef(false);
-
-    const focus = () => {
-        if (composerRef.current === null) {
-            return;
-        }
-        composerRef.current?.focus(true);
-    };
 
     const onAddActionPressed = () => {
         if (!willBlurTextInputOnTapOutside) {
@@ -57,7 +50,7 @@ function useComposerFocus({composerRef, suggestionsRef, actionButtonRef, initial
         setIsFocused(true);
     };
 
-    return {isFocused, onBlur, onFocus, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, isNextModalWillOpenRef};
+    return {isFocused, onBlur, onFocus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, isNextModalWillOpenRef};
 }
 
 export default useComposerFocus;
