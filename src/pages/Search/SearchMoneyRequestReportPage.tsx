@@ -45,6 +45,7 @@ import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
+import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -377,38 +378,40 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     ]);
 
     return (
-        <WideRHPOverlayWrapper>
-            <ActionListContext.Provider value={actionListValue}>
-                <ReactionListWrapper>
-                    <ScreenWrapper
-                        testID="SearchMoneyRequestReportPage"
-                        shouldEnableMaxHeight
-                        offlineIndicatorStyle={styles.mtAuto}
-                    >
-                        <FullPageNotFoundView
-                            shouldShow={shouldShowAccessErrorPage}
-                            subtitleKey="notFound.noAccess"
-                            subtitleStyle={[styles.textSupporting]}
-                            shouldDisplaySearchRouter
-                            shouldShowBackButton={shouldUseNarrowLayout}
-                            onBackButtonPress={Navigation.goBack}
+        <ReportActionEditMessageContextProvider reportID={reportIDFromRoute}>
+            <WideRHPOverlayWrapper>
+                <ActionListContext.Provider value={actionListValue}>
+                    <ReactionListWrapper>
+                        <ScreenWrapper
+                            testID="SearchMoneyRequestReportPage"
+                            shouldEnableMaxHeight
+                            offlineIndicatorStyle={styles.mtAuto}
                         >
-                            <DragAndDropProvider isDisabled={isEditingDisabled}>
-                                <MoneyRequestReportView
-                                    report={report}
-                                    reportLoadingState={reportLoadingState}
-                                    shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                                    key={report?.reportID}
-                                    onLayout={handleSubmitToDestinationVisibleLayout}
-                                    backToRoute={route.params.backTo}
-                                />
-                                <PortalHost name="suggestions" />
-                            </DragAndDropProvider>
-                        </FullPageNotFoundView>
-                    </ScreenWrapper>
-                </ReactionListWrapper>
-            </ActionListContext.Provider>
-        </WideRHPOverlayWrapper>
+                            <FullPageNotFoundView
+                                shouldShow={shouldShowAccessErrorPage}
+                                subtitleKey="notFound.noAccess"
+                                subtitleStyle={[styles.textSupporting]}
+                                shouldDisplaySearchRouter
+                                shouldShowBackButton={shouldUseNarrowLayout}
+                                onBackButtonPress={Navigation.goBack}
+                            >
+                                <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                    <MoneyRequestReportView
+                                        report={report}
+                                        reportLoadingState={reportLoadingState}
+                                        shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                        key={report?.reportID}
+                                        onLayout={handleSubmitToDestinationVisibleLayout}
+                                        backToRoute={route.params.backTo}
+                                    />
+                                    <PortalHost name="suggestions" />
+                                </DragAndDropProvider>
+                            </FullPageNotFoundView>
+                        </ScreenWrapper>
+                    </ReactionListWrapper>
+                </ActionListContext.Provider>
+            </WideRHPOverlayWrapper>
+        </ReportActionEditMessageContextProvider>
     );
 }
 
