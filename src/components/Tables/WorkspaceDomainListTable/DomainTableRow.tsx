@@ -4,6 +4,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PopoverMenuItem} from '@components/PopoverMenu';
+import {TableValue} from '@components/Table';
 import TableRow from '@components/Table/TableRow';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -17,20 +18,21 @@ import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 import {DomainRowData} from '.';
 
-type DomainTableRowProps = {
+type DomainTableRowProps<ColumnKey extends string, FilterKey extends string> = {
+    table: TableValue<DomainRowData, ColumnKey, FilterKey>;
+
     item: DomainRowData;
 
     rowIndex: number;
-
-    shouldUseNarrowTableLayout: boolean;
 };
 
-export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayout}: DomainTableRowProps) {
+export default function DomainTableRow<ColumnKey extends string, FilterKey extends string>({table, item, rowIndex}: DomainTableRowProps<ColumnKey, FilterKey>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'ArrowRight']);
 
+    const shouldUseNarrowTableLayout = table.shouldUseNarrowTableLayout;
     const threeDotMenuItems: PopoverMenuItem[] = [];
 
     if (item.isAdmin) {
@@ -66,6 +68,7 @@ export default function DomainTableRow({item, rowIndex, shouldUseNarrowTableLayo
         >
             <TableRow
                 interactive
+                table={table}
                 rowIndex={rowIndex}
                 skeletonReasonAttributes={{context: 'domainTableRow'}}
                 onPress={item.action}

@@ -31,13 +31,13 @@ import {TableValue} from './types';
  * </Table>
  * ```
  */
-type TableSearchBarProps<DataType> = {
-    table: TableValue<DataType>;
+type TableSearchBarProps<DataType, ColumnKey extends string, FilterKey extends string> = {
+    table: TableValue<DataType, ColumnKey, FilterKey>;
     label: string;
     style?: StyleProp<ViewStyle>;
 };
 
-function TableSearchBar<DataType>({label, style, table}: TableSearchBarProps<DataType>) {
+function TableSearchBar<DataType, ColumnKey extends string, FilterKey extends string>({table, label, style}: TableSearchBarProps<DataType, ColumnKey, FilterKey>) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const {
         activeSearchString,
