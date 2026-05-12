@@ -11,6 +11,8 @@ Workspace Rules let Admins enforce expense policies by setting custom requiremen
 
 **Note:** Rules are only available on the **Control** plan. You must be a **Workspace Admin** to enable or manage them.
 
+You can also [upload a PDF expense policy document](/articles/new-expensify/workspaces/Upload-an-expense-policy-document) to your workspace overview page so members can reference your company's expense guidelines.
+
 ---
 
 ## How to enable Workspace Rules
