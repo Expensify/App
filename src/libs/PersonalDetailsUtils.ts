@@ -100,6 +100,29 @@ function getDisplayNameOrDefault(
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
+function temporaryGetDisplayNameOrDefault(params: {
+    passedPersonalDetails?: Partial<PersonalDetails> | null;
+    defaultValue?: string;
+    shouldFallbackToHidden?: boolean;
+    shouldAddCurrentUserPostfix: true;
+    youAfterTranslation: string;
+    areTranslationsLoading: true | undefined;
+}): string;
+function temporaryGetDisplayNameOrDefault(params: {
+    passedPersonalDetails?: Partial<PersonalDetails> | null;
+    defaultValue?: string;
+    shouldFallbackToHidden?: boolean;
+    shouldAddCurrentUserPostfix: true;
+    youAfterTranslation?: string;
+    areTranslationsLoading: false;
+}): string;
+function temporaryGetDisplayNameOrDefault(params: {
+    passedPersonalDetails?: Partial<PersonalDetails> | null;
+    defaultValue?: string;
+    shouldFallbackToHidden?: boolean;
+    shouldAddCurrentUserPostfix?: false;
+    areTranslationsLoading: boolean | undefined;
+}): string;
 function temporaryGetDisplayNameOrDefault({
     passedPersonalDetails,
     defaultValue = '',
