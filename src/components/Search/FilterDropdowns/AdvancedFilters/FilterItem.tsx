@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
@@ -23,13 +24,26 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
 
     const {labelKey, icon} = FILTER_VIEW_MAP[filterKey];
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', icon]);
 
+    const getPressableBackgroundStyle = (pressed: boolean, isSelected: boolean) => {
+        if (pressed) {
+            return styles.buttonHoveredBG;
+        }
+
+        if (isSelected) {
+            return styles.hoveredComponentBG;
+        }
+
+        return undefined;
+    };
+
     return (
         <PressableWithFeedback
-            style={({pressed}) => [styles.typeFilterMenu, StyleUtils.getButtonBackgroundColorStyle(getButtonState(isSelected, pressed), true)]}
+            style={({pressed}) => [styles.typeFilterMenu, getPressableBackgroundStyle(pressed, !!isSelected)]}
             accessible
             accessibilityLabel={filterKey}
             onHoverIn={onHoverIn}
@@ -41,7 +55,7 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
                 <>
                     <Icon
                         src={icons[icon]}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isSelected, pressed))}
+                        fill={theme.icon}
                         width={variables.iconSizeSmall}
                         height={variables.iconSizeSmall}
                     />
