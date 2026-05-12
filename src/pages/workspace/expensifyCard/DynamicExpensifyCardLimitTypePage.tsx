@@ -33,18 +33,15 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitTypeForm';
 import type {CardLimitType} from '@src/types/onyx/Card';
 
-type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<
-    SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE | typeof SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE
->;
+type WorkspaceEditCardLimitTypePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE>;
 
-function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
-    const {policyID, cardID, backTo} = route.params;
+function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageProps) {
+    const {policyID, cardID} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -65,7 +62,6 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [expirationToggle, setExpirationToggle] = useState(!!card?.nameValuePairs?.validFrom);
     const currency = useCurrencyForExpensifyCard({policyID});
-    const isWorkspaceRhp = route.name === SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE;
     const personalDetails = usePersonalDetails();
     const assigneePersonalDetails = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
@@ -75,20 +71,10 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
 
     const validThru = card?.nameValuePairs?.validThru;
     const validThruDefaultValue = validThru ? DateUtils.formatUTCDateTimeToDateInTimezone(validThru, assigneeTimeZone) : undefined;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.path);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path);
 
     const goBack = () => {
-        if (isWorkspaceRhp) {
-            Navigation.goBack(backPath);
-            return;
-        }
-
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-
-        Navigation.goBack(ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
+        Navigation.goBack(backPath);
     };
 
     const fetchCardLimitTypeData = () => {
@@ -297,6 +283,8 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                             </>
                         )}
                     </FormProvider>
+                    {/* We migrated https://github.com/Expensify/App/issues/83836 to a dynamic card limit type page.`ConfirmModal` is deprecated, so we temporarily disabled the ESLint warning for this component. */}
+                    {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
                     <ConfirmModal
                         title={translate('workspace.expensifyCard.changeCardLimitType')}
                         isVisible={isConfirmModalVisible}
@@ -314,4 +302,4 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     );
 }
 
-export default WorkspaceEditCardLimitTypePage;
+export default DynamicExpensifyCardLimitTypePage;
