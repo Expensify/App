@@ -6,24 +6,24 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import FS from '@libs/Fullstory';
+import type {OptionData} from '@libs/ReportUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
 
-type OptionRowAlternateTextProps = {
-    alternateText: string | undefined;
-    report?: Report;
+type SubtitleProps = {
+    optionItem: OptionData;
     viewMode: OptionMode;
     isOptionFocused: boolean;
     style?: StyleProp<TextStyle>;
 };
 
-function OptionRowAlternateText({alternateText, report, viewMode, isOptionFocused, style}: OptionRowAlternateTextProps) {
+function Subtitle({optionItem, viewMode, isOptionFocused, style}: SubtitleProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
+    const alternateText = optionItem.alternateText;
     if (!alternateText) {
         return null;
     }
@@ -33,7 +33,7 @@ function OptionRowAlternateText({alternateText, report, viewMode, isOptionFocuse
     const alternateTextStyle = isInFocusMode
         ? [textStyle, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2, style]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, style];
-    const alternateTextFSClass = FS.getChatFSClass(report);
+    const alternateTextFSClass = FS.getChatFSClass(optionItem);
 
     const containsCustomEmojiWithText = containsCustomEmojiUtils(alternateText) && !containsOnlyCustomEmoji(alternateText);
 
@@ -57,6 +57,6 @@ function OptionRowAlternateText({alternateText, report, viewMode, isOptionFocuse
     );
 }
 
-OptionRowAlternateText.displayName = 'OptionRowAlternateText';
+Subtitle.displayName = 'OptionRow.Subtitle';
 
-export default OptionRowAlternateText;
+export default Subtitle;

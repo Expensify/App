@@ -12,12 +12,11 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {FILTER_LABEL_MAP, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {FILTER_LABEL_MAP, isAmountFilterKey, isDateFilterKey, mapFiltersFormToLabelValueList, SKIPPED_SEARCH_FILTERS} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
@@ -41,18 +40,6 @@ type FilterPopupProps = {
     closeOverlay: () => void;
     setPopoverWidth: PopoverComponentProps['setPopoverWidth'];
 };
-
-const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([
-    FILTER_KEYS.GROUP_BY,
-    FILTER_KEYS.GROUP_CURRENCY,
-    FILTER_KEYS.LIMIT,
-    FILTER_KEYS.TYPE,
-    FILTER_KEYS.VIEW,
-    FILTER_KEYS.PAYER,
-    FILTER_KEYS.ACTION,
-    FILTER_KEYS.COLUMNS,
-    FILTER_KEYS.KEYWORD,
-]);
 
 function getFilterSentryLabel(filterKey: SearchAdvancedFiltersKey | SearchFilterKey | ReportFieldKey) {
     return `Search-Filter-${filterKey}`;
@@ -132,7 +119,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
     const filters = mapFiltersFormToLabelValueList<FilterItem>(
         searchAdvancedFiltersForm,
         queryJSON.policyID,
-        SKIPPED_FILTERS,
+        SKIPPED_SEARCH_FILTERS,
         translate,
         localeCompare,
         convertToDisplayStringWithoutCurrency,
@@ -192,4 +179,3 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
 
 export default useSearchFiltersBar;
 export type {FilterItem};
-export {SKIPPED_FILTERS};

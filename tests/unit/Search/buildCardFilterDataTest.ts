@@ -337,17 +337,17 @@ describe('buildIndividualCardsData', () => {
             companyCardIconsMock,
         );
 
-        expect(result.unselected.length + result.selected.length).toEqual(13);
+        expect(result.length).toEqual(13);
 
         // Check if Expensify card was built correctly
-        const expensifyCard = result.selected.find((card) => card.keyForList === '21588678');
+        const expensifyCard = result.find((card) => card.keyForList === '21588678');
         expect(expensifyCard).toMatchObject({
             lastFourPAN: '1138',
             isSelected: true,
         });
 
         // Check if company card was built correctly
-        const companyCard = result.unselected.find((card) => card.keyForList === '21604933');
+        const companyCard = result.find((card) => card.keyForList === '21604933');
         expect(companyCard).toMatchObject({
             lastFourPAN: '1601',
             isSelected: false,
@@ -362,7 +362,7 @@ describe('buildIndividualCardsData', () => {
             illustrationsMock as IllustrationsType,
             companyCardIconsMock,
         );
-        expect(result.unselected.length + result.selected.length).toEqual(0);
+        expect(result.length).toEqual(0);
     });
 });
 
@@ -377,17 +377,17 @@ describe('buildCardsData closed cards', () => {
             companyCardIconsMock,
             true,
         );
-        expect(result.unselected.length + result.selected.length).toEqual(4);
+        expect(result.length).toEqual(4);
 
         // Check if Expensify card was built correctly
-        const expensifyCard = result.selected.find((card) => card.keyForList === '21539012');
+        const expensifyCard = result.find((card) => card.keyForList === '21539012');
         expect(expensifyCard).toMatchObject({
             lastFourPAN: '3211',
             isSelected: true,
         });
 
         // Check if company card was built correctly
-        const companyCard = result.unselected.find((card) => card.keyForList === '21534525');
+        const companyCard = result.find((card) => card.keyForList === '21534525');
         expect(companyCard).toMatchObject({
             lastFourPAN: '',
             isSelected: false,
@@ -398,7 +398,7 @@ describe('buildCardsData closed cards', () => {
 describe('buildCardsData with empty argument objects', () => {
     it('Returns empty array when cardList and workspaceCardFeeds are empty', () => {
         const result = buildCardsData({}, {}, {}, [], illustrationsMock as IllustrationsType, companyCardIconsMock);
-        expect(result).toEqual({selected: [], unselected: []});
+        expect(result).toEqual([]);
     });
 });
 
@@ -415,32 +415,32 @@ describe('buildCardFeedsData', () => {
 
     it('Build domain card feed properly', () => {
         // Check if external domain feed was built properly
-        expect(result.unselected.at(0)).toMatchObject({
+        expect(result.at(0)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21589168', '21589182'],
         });
         expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'mockDomain.com'});
 
         // Check if domain card feed was built properly
-        expect(result.unselected.at(1)).toMatchObject({
+        expect(result.at(1)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21593492', '21604933', '21638320', '21638598'],
         });
         expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: 'Visa', cardFeedLabel: undefined});
         // Check if workspace card feed that comes from company cards was built properly.
-        expect(result.unselected.at(2)).toMatchObject({
+        expect(result.at(2)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21588678', '21588684'],
         });
         expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'test1'});
         // Check if workspace card feed that comes from expensify cards was built properly
-        expect(result.unselected.at(3)).toMatchObject({
+        expect(result.at(3)).toMatchObject({
             isCardFeed: true,
             correspondingCards: ['21589168', '21589182', '21589202', '21638322'],
         });
         expect(translateMock).toHaveBeenCalledWith('search.filters.card.cardFeedName', {cardFeedBankName: undefined, cardFeedLabel: 'test2'});
         // Check if domain card feed was built properly
-        expect(result.unselected.length).toEqual(4);
+        expect(result.length).toEqual(4);
     });
 });
 
@@ -461,7 +461,7 @@ describe('buildCardsData isPersonal with customCardNames', () => {
             customCardNames,
         );
 
-        const personalCard = result.unselected.find((card) => card.keyForList === '11111111') ?? result.selected.find((card) => card.keyForList === '11111111');
+        const personalCard = result.find((card) => card.keyForList === '11111111');
         expect(personalCard).toBeDefined();
         expect(personalCard?.cardName).toBe('My Custom Card Label');
     });
@@ -476,7 +476,7 @@ describe('buildCardsData isPersonal with customCardNames', () => {
             companyCardIconsMock,
         );
 
-        const personalCard = result.unselected.find((card) => card.keyForList === '11111111') ?? result.selected.find((card) => card.keyForList === '11111111');
+        const personalCard = result.find((card) => card.keyForList === '11111111');
         expect(personalCard).toBeDefined();
         expect(personalCard?.cardName).toBe('455594XXXXXX1138');
     });
@@ -485,6 +485,6 @@ describe('buildCardsData isPersonal with customCardNames', () => {
 describe('buildIndividualCardsData with empty argument objects', () => {
     it('Return empty array when domainCardFeeds and workspaceCardFeeds are empty', () => {
         const result = buildCardFeedsData({}, {}, mockPolicies, [], translateMock as LocaleContextProps['translate'], illustrationsMock as IllustrationsType, companyCardIconsMock);
-        expect(result).toEqual({selected: [], unselected: []});
+        expect(result).toEqual([]);
     });
 });
