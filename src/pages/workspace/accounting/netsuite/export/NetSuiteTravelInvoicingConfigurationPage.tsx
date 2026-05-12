@@ -24,6 +24,7 @@ type NetSuiteSectionType = {
 };
 
 const payableAccountSetting = [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT];
+const journalPostingPreferenceSetting = [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE];
 
 function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -49,6 +50,21 @@ function NetSuiteTravelInvoicingConfigurationPage({policy}: WithPolicyConnection
             subscribedSettings: payableAccountSetting,
             pendingAction: settingsPendingAction(payableAccountSetting, config?.pendingFields),
             brickRoadIndicator: areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
+        {
+            title: config?.travelInvoicingJournalPostingPreference
+                ? translate(`workspace.netsuite.journalPostingPreference.values.${config.travelInvoicingJournalPostingPreference}`)
+                : translate(`workspace.netsuite.journalPostingPreference.values.${CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE}`),
+            description: translate('workspace.netsuite.journalPostingPreference.label'),
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT.getRoute(policyID));
+            },
+            subscribedSettings: journalPostingPreferenceSetting,
+            pendingAction: settingsPendingAction(journalPostingPreferenceSetting, config?.pendingFields),
+            brickRoadIndicator: areSettingsInErrorFields(journalPostingPreferenceSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
     ];
 
