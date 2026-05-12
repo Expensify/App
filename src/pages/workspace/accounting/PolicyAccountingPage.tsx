@@ -149,8 +149,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           icon: icons.Key,
                           text: translate(isSageIntacct && !hasAuthError ? 'workspace.accounting.updateCredentials' : 'workspace.accounting.enterCredentials'),
                           onSelected: () => {
-                              if (isSageIntacct) {
-                                  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID ?? '-1'));
+                              if (isSageIntacct && policyID) {
+                                  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID));
                                   return;
                               }
                               startIntegrationFlow({name: connectedIntegration});
