@@ -1,6 +1,7 @@
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -11,7 +12,14 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
+import cancelTabNavigationSpans from '@libs/telemetry/cancelTabNavigationSpans';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+
+const NAVIGATION_TAB_TO_SPAN: Partial<Record<ValueOf<typeof NAVIGATION_TABS>, string>> = {
+    [NAVIGATION_TABS.INBOX]: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+    [NAVIGATION_TABS.SEARCH]: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
+};
 
 /**
  * Custom tab bar rendered by the BottomTabNavigator. Only receives `state` (not the
