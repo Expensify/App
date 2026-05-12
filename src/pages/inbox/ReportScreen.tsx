@@ -30,6 +30,7 @@ import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionComposePlaceholder from './report/ReportActionCompose/ReportActionComposePlaceholder';
 import {ReportActionEditMessageContextProvider} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
+import useClearReportActionDraftsOnReportChange from './report/useClearReportActionDraftsOnReportChange';
 import ReportActionsList from './ReportActionsList';
 import ReportDragAndDropProvider from './ReportDragAndDropProvider';
 import ReportFetchHandler from './ReportFetchHandler';
@@ -78,6 +79,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             afterTransition: () => removeFailedReport(reportIDFromRoute),
         });
     };
+
+    useClearReportActionDraftsOnReportChange(reportIDFromRoute);
 
     return (
         <ReportActionEditMessageContextProvider reportID={reportIDFromRoute}>

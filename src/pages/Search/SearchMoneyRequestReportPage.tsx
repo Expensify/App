@@ -46,6 +46,7 @@ import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionD
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/inbox/ReactionListWrapper';
 import {ReportActionEditMessageContextProvider} from '@pages/inbox/report/ReportActionEditMessageContext';
+import useClearReportActionDraftsOnReportChange from '@pages/inbox/report/useClearReportActionDraftsOnReportChange';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, openReport, updateLastVisitTime} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -376,6 +377,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         isThreadReportDeletedForReview,
         shouldUseSnapshotTransaction,
     ]);
+
+    useClearReportActionDraftsOnReportChange(reportIDFromRoute);
 
     return (
         <ReportActionEditMessageContextProvider reportID={reportIDFromRoute}>
