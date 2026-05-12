@@ -187,6 +187,7 @@ const iouTripReport = {
 
 const iouActionOne = {
     ...actionR14932,
+    actorAccountID: LOGGED_USER_ID,
     originalMessage: {
         ...getOriginalMessage(actionR14932),
         IOUTransactionID: 'TRANSACTION_NUMBER_ONE',
@@ -196,6 +197,7 @@ const iouActionOne = {
 
 const iouActionTwo = {
     ...actionR14932,
+    actorAccountID: SECOND_USER_ID,
     originalMessage: {
         ...getOriginalMessage(actionR14932),
         IOUTransactionID: 'TRANSACTION_NUMBER_TWO',
@@ -205,6 +207,7 @@ const iouActionTwo = {
 
 const iouActionThree = {
     ...actionR14932,
+    actorAccountID: LOGGED_USER_ID,
     originalMessage: {
         ...getOriginalMessage(actionR14932),
         IOUTransactionID: 'TRANSACTION_NUMBER_THREE',
@@ -250,11 +253,11 @@ const reportActionCollectionDataSet = {
         [reportPreviewDMAction.reportActionID]: reportPreviewDMAction,
         [reportPreviewSingleTransactionDMAction.reportActionID]: reportPreviewSingleTransactionDMAction,
     },
-    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportPreviewDMAction.reportID}`]: {
+    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouDMReport.reportID}`]: {
         [iouActionOne.reportActionID]: iouActionOne,
         [iouActionTwo.reportActionID]: iouActionTwo,
     },
-    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportPreviewSingleTransactionDMAction.reportID}`]: {
+    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouDMSingleExpenseReport.reportID}`]: {
         [iouActionThree.reportActionID]: iouActionThree,
     },
 };
