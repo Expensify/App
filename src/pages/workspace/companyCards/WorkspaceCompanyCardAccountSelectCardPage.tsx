@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import RenderHTML from '@components/RenderHTML';
@@ -22,7 +22,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import {getExportMenuItem} from './utils';
 
 type WorkspaceCompanyCardAccountSelectCardProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARD_EXPORT>;
@@ -54,6 +54,17 @@ function WorkspaceCompanyCardAccountSelectCardPage({route}: WorkspaceCompanyCard
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feed]);
+
+    useEffect(() => {
+        if (exportMenuItem?.shouldShowMenuItem !== false) {
+            return;
+        }
+        Navigation.removeScreenFromNavigationState(SCREENS.WORKSPACE.COMPANY_CARD_EXPORT);
+    }, [exportMenuItem?.shouldShowMenuItem]);
+
+    if (exportMenuItem?.shouldShowMenuItem === false) {
+        return null;
+    }
 
     const searchedListOptions = tokenizedSearch(exportMenuItem?.data ?? [], searchText, (option) => [option.text ?? option.value]);
 
