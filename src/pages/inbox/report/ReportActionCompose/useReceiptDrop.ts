@@ -9,8 +9,7 @@ import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/Poli
 import {isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
-import {setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
-import {initMoneyRequest} from '@userActions/IOU/MoneyRequest';
+import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
 import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -38,7 +37,6 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
     const [hasOnlyPersonalPolicies = true] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
 
     const onFilesValidated = (files: FileObject[]) => {
         if (files.length === 0) {
@@ -47,14 +45,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
 
         if (shouldAddOrReplaceReceipt && transactionID) {
             const source = URL.createObjectURL(files.at(0) as Blob);
-            replaceReceipt({
-                transactionID,
-                file: files.at(0) as File,
-                source,
-                transactionPolicy: policy,
-                transactionPolicyCategories: policyCategories,
-                transactionPolicyTagList: policyTagList,
-            });
+            replaceReceipt({transactionID, file: files.at(0) as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
             return;
         }
 
