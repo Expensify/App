@@ -219,3 +219,5 @@ Video demo available [here 🧵](https://expensify.slack.com/archives/C02NK2DQWU
 This site is hosted on Cloudflare pages. Whenever code is merged to main, the github action `deployExpensifyHelp` will run.
 
 It will generate routes.yml using the script `createDocsRoutes`, build the Jekyll site housed in the `/docs` directory and deploy it straight to production. The help site is publicly discoverable at https://help.expensify.com/
+
+> Note: This documentation is maintained by the Expensify team and external contributors.
