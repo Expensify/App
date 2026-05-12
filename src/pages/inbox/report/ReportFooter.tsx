@@ -31,6 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
+import EnableNotificationsBanner from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
@@ -88,6 +89,7 @@ function ReportFooter() {
     if (!shouldHideComposer) {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+                <EnableNotificationsBanner reportID={reportIDFromRoute} />
                 <SwipeableView onSwipeDown={Keyboard.dismiss}>
                     <ReportActionCompose reportID={reportIDFromRoute} />
                 </SwipeableView>
