@@ -1,17 +1,16 @@
 import React, {useRef} from 'react';
-import type {ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
 import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
+import Container from './OptionRow/Container';
 import DescriptiveText from './OptionRow/DescriptiveText';
 import DraftIndicator from './OptionRow/DraftIndicator';
 import ErrorBadge from './OptionRow/ErrorBadge';
@@ -30,17 +29,11 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
-    const StyleUtils = useStyleUtils();
 
     const {isScreenFocused} = useLHNTooltipContext();
 
     const {translate} = useLocalize();
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
-    const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
-        isInFocusMode
-            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
-            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
-    );
 
     const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
 
@@ -56,7 +49,6 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0, style];
 
-    const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
@@ -99,39 +91,37 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                 }
                 return (
                     <>
-                        <View style={sidebarInnerRowStyle}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <OptionRowAvatar
-                                    optionItem={optionItem}
-                                    isInFocusMode={isInFocusMode}
-                                    subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                    secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
-                                    singleAvatarContainerStyle={singleAvatarContainerStyle}
-                                />
-                                <View style={contentContainerStyles}>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
-                                        <Title
-                                            optionItem={optionItem}
-                                            displayNameStyle={displayNameStyle}
-                                            testID={testID}
-                                        />
-                                        <OnboardingBadge optionItem={optionItem} />
-                                        <Status optionItem={optionItem} />
-                                    </View>
-                                    <Subtitle
+                        <Container viewMode={viewMode}>
+                            <OptionRowAvatar
+                                optionItem={optionItem}
+                                isInFocusMode={isInFocusMode}
+                                subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
+                                singleAvatarContainerStyle={singleAvatarContainerStyle}
+                            />
+                            <Container.Content viewMode={viewMode}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
+                                    <Title
                                         optionItem={optionItem}
-                                        viewMode={viewMode}
-                                        isOptionFocused={isOptionFocused}
-                                        style={style}
+                                        displayNameStyle={displayNameStyle}
+                                        testID={testID}
                                     />
+                                    <OnboardingBadge optionItem={optionItem} />
+                                    <Status optionItem={optionItem} />
                                 </View>
-                                <DescriptiveText optionItem={optionItem} />
-                                <ErrorBadge
-                                    brickRoadIndicator={brickRoadIndicator}
-                                    actionBadge={optionItem.actionBadge}
+                                <Subtitle
+                                    optionItem={optionItem}
+                                    viewMode={viewMode}
+                                    isOptionFocused={isOptionFocused}
+                                    style={style}
                                 />
-                            </View>
-                        </View>
+                            </Container.Content>
+                            <DescriptiveText optionItem={optionItem} />
+                            <ErrorBadge
+                                brickRoadIndicator={brickRoadIndicator}
+                                actionBadge={optionItem.actionBadge}
+                            />
+                        </Container>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <InfoBadge
                                 brickRoadIndicator={brickRoadIndicator}
