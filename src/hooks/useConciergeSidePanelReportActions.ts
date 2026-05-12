@@ -2,11 +2,11 @@ import {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {setConciergeShowFullHistory} from '@libs/actions/ConciergeSession';
 import DateUtils from '@libs/DateUtils';
-import Log from '@libs/Log';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
 
 type UseConciergeReportActionsParams = {
@@ -34,14 +34,16 @@ function useConciergeReportActions({
     greetingText,
     loadOlderChats,
 }: UseConciergeReportActionsParams) {
+    const isInSidePanel = useIsInSidePanel();
     const [persistedShowFullHistory = false] = useOnyx(ONYXKEYS.RAM_ONLY_CONCIERGE_SHOW_FULL_HISTORY);
 
-    const [showFullHistory, setShowFullHistoryState] = useState(persistedShowFullHistory);
+    const [showFullHistory, setShowFullHistoryState] = useState(() => (isInSidePanel ? false : persistedShowFullHistory));
     const [prevPersistedShowFullHistory, setPrevPersistedShowFullHistory] = useState(persistedShowFullHistory);
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
 
-    if (prevPersistedShowFullHistory !== persistedShowFullHistory) {
+    // Only sync from persisted Onyx key for the main DM, not the side panel.
+    if (!isInSidePanel && prevPersistedShowFullHistory !== persistedShowFullHistory) {
         setPrevPersistedShowFullHistory(persistedShowFullHistory);
         setShowFullHistoryState(persistedShowFullHistory);
     }
@@ -51,11 +53,15 @@ function useConciergeReportActions({
     if (hasSessionChanged) {
         setPrevSessionStartTime(sessionStartTime);
         setShowFullHistoryState(false);
-        setConciergeShowFullHistory(false);
+        if (!isInSidePanel) {
+            setConciergeShowFullHistory(false);
+        }
     } else if (prevHasUserSentMessage && !hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
         setShowFullHistoryState(false);
-        setConciergeShowFullHistory(false);
+        if (!isInSidePanel) {
+            setConciergeShowFullHistory(false);
+        }
     } else if (prevHasUserSentMessage !== hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
     }
@@ -100,19 +106,6 @@ function useConciergeReportActions({
     const showConciergeWelcome = isConciergeChat && hadUserMessageAtSessionStart && !hasUserSentMessage && !hasUnreadMessages && !showFullHistory;
     const showConciergeGreeting = isConciergeChat && hadUserMessageAtSessionStart && !showFullHistory;
 
-    if (isConciergeChat) {
-        Log.info('[ConciergeHistory] state', false, {
-            showConciergeWelcome,
-            showConciergeGreeting,
-            showFullHistory,
-            hasUserSentMessage,
-            hasUnreadMessages,
-            hadUserMessageAtSessionStart,
-            sessionStartTime,
-            visibleActionsCount: visibleReportActions.length,
-        });
-    }
-
     const conciergeGreetingAction = useMemo(() => {
         if (!showConciergeGreeting) {
             return undefined;
@@ -155,38 +148,27 @@ function useConciergeReportActions({
     const filterActions = useCallback(
         (actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] => {
             if (showConciergeWelcome && conciergeGreetingAction) {
-                Log.info('[ConciergeHistory] filter path=welcome', false, {actionsCount: actions.length});
                 const createdAction = actions.find(isCreatedAction);
                 return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
             }
             if (!isConciergeChat || showFullHistory) {
-                Log.info('[ConciergeHistory] filter path=all', false, {isConciergeChat, showFullHistory});
                 return actions;
             }
             if (!sessionStartTime) {
-                Log.info('[ConciergeHistory] filter path=created-only', false);
                 return actions.filter(isCreatedAction);
             }
             if (!hadUserMessageAtSessionStart) {
-                Log.info('[ConciergeHistory] filter path=no-prior-messages', false);
                 return actions;
             }
 
             if (hasUnreadMessages && !hasUserSentMessage) {
-                Log.info('[ConciergeHistory] filter path=unread-only', false);
                 return actions.filter(isUnreadAction);
             }
 
             const filtered = actions.filter(isCurrentSessionAction);
             if (filtered.length === 0) {
-                Log.info('[ConciergeHistory] filter path=session-empty-fallback', false, {actionsCount: actions.length});
                 return actions;
             }
-            Log.info('[ConciergeHistory] filter path=session-actions', false, {
-                filteredCount: filtered.length,
-                hasGreeting: !!conciergeGreetingAction,
-                firstUserMessageCreated,
-            });
             if (conciergeGreetingAction) {
                 const createdIndex = filtered.findIndex(isCreatedAction);
                 filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
@@ -204,7 +186,6 @@ function useConciergeReportActions({
             hasUnreadMessages,
             hasUserSentMessage,
             isUnreadAction,
-            firstUserMessageCreated,
         ],
     );
 
@@ -213,9 +194,11 @@ function useConciergeReportActions({
 
     const handleShowPreviousMessages = useCallback(() => {
         setShowFullHistoryState(true);
-        setConciergeShowFullHistory(true);
+        if (!isInSidePanel) {
+            setConciergeShowFullHistory(true);
+        }
         loadOlderChats(true);
-    }, [loadOlderChats]);
+    }, [loadOlderChats, isInSidePanel]);
 
     return {
         filteredVisibleActions,
