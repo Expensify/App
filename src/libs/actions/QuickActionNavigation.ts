@@ -5,7 +5,7 @@ import type {DistanceExpenseType} from '@src/types/onyx/IOU';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type QuickAction from '@src/types/onyx/QuickAction';
 import type {IOURequestType} from './IOU';
-import {startDistanceRequest, startMoneyRequest} from './IOU';
+import {startDistanceRequest, startMoneyRequest} from './IOU/MoneyRequest';
 import {startOutCreateTaskQuickAction} from './Task';
 
 type NavigateToQuickActionParams = {
