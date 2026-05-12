@@ -1,25 +1,27 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {getJoinRequestMessage, getOriginalMessage} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
-import type {Policy, ReportAction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 
 type JoinRequestContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>;
     reportID: string | undefined;
     originalReportID: string;
-    policy: OnyxEntry<Policy>;
+    policyID: string | undefined;
 };
 
-function JoinRequestContent({action, reportID, originalReportID, policy}: JoinRequestContentProps) {
+function JoinRequestContent({action, reportID, originalReportID, policyID}: JoinRequestContentProps) {
     const {translate} = useLocalize();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const reportActionReportID = originalReportID ?? reportID;
     const buttons: ActionableItem[] =

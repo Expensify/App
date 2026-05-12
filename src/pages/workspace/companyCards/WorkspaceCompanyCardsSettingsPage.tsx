@@ -1,5 +1,6 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -105,7 +106,6 @@ function WorkspaceCompanyCardsSettingsPage({
             const feedToOpen = (Object.keys(companyFeeds) as CompanyCardFeedWithDomainID[]).find(
                 (feedWithDomainID) => feedWithDomainID !== selectedFeed && companyFeeds[feedWithDomainID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteWorkspaceCompanyCardFeed(policyID, domainOrWorkspaceAccountID, feed, cardIDs, feedToOpen);
             });

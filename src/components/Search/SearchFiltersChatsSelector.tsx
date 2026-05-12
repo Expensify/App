@@ -68,7 +68,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const cleanSearchTerm = searchTerm.trim().toLowerCase();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const sortedActions = useSortedActions();
 
@@ -89,7 +88,6 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             : getSearchOptions({
                   options: listOptions,
                   draftComments,
-                  nvpDismissedProductTraining,
                   betas: undefined,
                   isUsedInChatFinder: false,
                   countryCode,

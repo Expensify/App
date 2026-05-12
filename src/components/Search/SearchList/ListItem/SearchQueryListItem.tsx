@@ -13,6 +13,8 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 type SearchQueryItem = ListItem & {
     singleIcon?: IconAsset;
+    /** Whether to apply the theme fill color to the icon. Set to false for multi-colored icons like avatars. Defaults to true. */
+    shouldIconApplyFill?: boolean;
     searchItemType?: ValueOf<typeof CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE>;
     searchQuery?: string;
     autocompleteID?: string;
@@ -34,6 +36,10 @@ function isSearchQueryItem(item: OptionData | SearchQueryItem): item is SearchQu
     return 'searchItemType' in item;
 }
 
+/**
+ * A row with an optional icon, title, and subtitle used in the search router for autocomplete
+ * suggestions, saved searches, and recent queries.
+ */
 function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus, shouldDisableHoverStyle}: SearchQueryListItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -51,12 +57,13 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             shouldSyncFocus={shouldSyncFocus}
             showTooltip={showTooltip}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
+            shouldHighlightSelectedItem
         >
             <>
                 {!!item.singleIcon && (
                     <Icon
                         src={item.singleIcon}
-                        fill={theme.icon}
+                        fill={item.shouldIconApplyFill !== false ? theme.icon : undefined}
                         additionalStyles={styles.mr3}
                         medium
                     />

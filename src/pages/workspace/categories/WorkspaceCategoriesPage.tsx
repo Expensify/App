@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Avatar from '@components/Avatar';
@@ -36,6 +37,7 @@ import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -403,11 +405,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const navigateToCategoriesSettings = useCallback(() => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
     }, [isQuickSettingsFlow, policyId, backTo]);
 
     const navigateToCreateCategoryPage = () => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
     };
 
     const dismissError = (item: ListItem) => {
@@ -428,7 +430,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             );
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedCategories([]);
         });
@@ -513,6 +514,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         isOffline,
         policyId,
     ]);
+
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
@@ -631,7 +634,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     customText={translate('workspace.common.selected', {count: selectedCategories.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedCategories.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
                     testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
@@ -640,7 +643,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         const shouldShowAddCategory = !policyHasAccountingConnections && hasVisibleCategories;
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                 {shouldShowAddCategory && (
                     <Button
                         success
@@ -648,7 +651,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ADD_BUTTON}
                         icon={icons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
+                        style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                     />
                 )}
                 <ButtonWithDropdownMenu
@@ -659,7 +662,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
                     options={secondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={shouldShowAddCategory ? styles.flexGrow0 : styles.flexGrow1}
+                    wrapperStyle={shouldShowAddCategory || !shouldDisplayButtonsInSeparateLine ? styles.flexGrow0 : styles.flexGrow1}
                 />
             </View>
         );
@@ -747,9 +750,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldUseNarrowLayout && getHeaderButtons()}
+                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleCategories || isLoading) && headerContent}
                 {isLoading && (
                     <ActivityIndicator
@@ -762,14 +765,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <SelectionListWithModal
                         data={filteredCategoryList}
                         ListItem={TableListItem}
-                        onCheckboxPress={toggleCategory}
+                        onSelectionButtonPress={toggleCategory}
                         selectedItems={selectedCategories}
                         onSelectRow={navigateToCategorySettings}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
                         onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         turnOnSelectionModeOnLongPress={isSmallScreenWidth}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}

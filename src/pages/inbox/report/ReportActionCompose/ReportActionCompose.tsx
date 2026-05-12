@@ -26,20 +26,16 @@ type ReportActionComposeProps = {
     reportID: string;
 };
 
-function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
+function ComposerInner({reportID}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
-    if (!report) {
-        return null;
-    }
-
     return (
         <View style={[isComposerFullSize && styles.chatItemFullComposeRow]}>
-            <ComposerLocalTime reportID={reportID} />
+            <Composer.LocalTime reportID={reportID} />
             <View style={isComposerFullSize ? styles.flex1 : {}}>
                 <OfflineWithFeedback
                     shouldDisableOpacity
@@ -47,33 +43,45 @@ function ReportActionComposeInner({reportID}: ReportActionComposeProps) {
                     style={isComposerFullSize ? styles.chatItemFullComposeRow : {}}
                     contentContainerStyle={isComposerFullSize ? styles.flex1 : {}}
                 >
-                    <ComposerDropZone reportID={reportID}>
-                        <ComposerBox reportID={reportID}>
-                            <ComposerActionMenu reportID={reportID} />
-                            <ComposerInput reportID={reportID} />
-                            <ComposerEmojiPicker reportID={reportID} />
-                            <ComposerSendButton />
-                        </ComposerBox>
-                    </ComposerDropZone>
-                    <ComposerFooter>
+                    <Composer.DropZone reportID={reportID}>
+                        <Composer.Box reportID={reportID}>
+                            <Composer.ActionMenu reportID={reportID} />
+                            <Composer.Input reportID={reportID} />
+                            <Composer.EmojiPicker reportID={reportID} />
+                            <Composer.SendButton />
+                        </Composer.Box>
+                    </Composer.DropZone>
+                    <Composer.Footer>
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <AgentZeroAwareTypingIndicator reportID={reportID} />
-                        <ComposerExceededLength />
-                    </ComposerFooter>
+                        <Composer.TypingIndicator reportID={reportID} />
+                        <Composer.ExceededLength />
+                    </Composer.Footer>
                 </OfflineWithFeedback>
-                <ComposerImportedState />
+                <Composer.ImportedState />
             </View>
         </View>
     );
 }
 
-function ReportActionCompose({reportID}: ReportActionComposeProps) {
+function Composer({reportID}: ReportActionComposeProps) {
     return (
         <ComposerProvider reportID={reportID}>
-            <ReportActionComposeInner reportID={reportID} />
+            <ComposerInner reportID={reportID} />
         </ComposerProvider>
     );
 }
 
-export default ReportActionCompose;
+Composer.LocalTime = ComposerLocalTime;
+Composer.DropZone = ComposerDropZone;
+Composer.Box = ComposerBox;
+Composer.ActionMenu = ComposerActionMenu;
+Composer.Input = ComposerInput;
+Composer.EmojiPicker = ComposerEmojiPicker;
+Composer.SendButton = ComposerSendButton;
+Composer.Footer = ComposerFooter;
+Composer.TypingIndicator = AgentZeroAwareTypingIndicator;
+Composer.ExceededLength = ComposerExceededLength;
+Composer.ImportedState = ComposerImportedState;
+
+export default Composer;
 export type {SuggestionsRef, ComposerRef, ReportActionComposeProps};

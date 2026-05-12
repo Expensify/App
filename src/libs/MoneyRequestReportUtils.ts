@@ -1,9 +1,10 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
-import {convertToDisplayString} from './CurrencyUtils';
+import {hasDeferredWriteForReport} from './deferredLayoutWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -136,7 +137,12 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
 
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    const isStillLoadingData = transactions?.length === 0 && ((!!reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions) || report?.total !== 0);
+    // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
+    // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
+    const hasPendingDismissWrite = hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
+    const isStillLoadingData =
+        transactions?.length === 0 &&
+        ((!!reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&
@@ -159,6 +165,7 @@ const getTotalAmountForIOUReportPreviewButton = (
     policy: OnyxEntry<Policy>,
     reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>,
     transactions: Transaction[],
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
     const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
@@ -198,6 +205,7 @@ export {
     getReportIDForTransaction,
     getTotalAmountForIOUReportPreviewButton,
     getAllNonDeletedTransactions,
+    isSingleTransactionReport,
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,

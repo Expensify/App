@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
@@ -8,7 +7,6 @@ import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report';
-// eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -34,6 +32,11 @@ import {getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestH
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
+
+function chatReportPolicyFromChat(chatReport: OnyxEntry<Report>): Policy {
+    return {...createRandomPolicy(0), id: chatReport?.policyID ?? CONST.POLICY.ID_FAKE};
+}
+
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -58,7 +61,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -123,6 +125,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const amount = 10000;
             const comment = 'Giv money plz';
             const currentUserAccountID = 123;
+            const currentUserLogin = 'existing@example.com';
             let chatReport: OnyxEntry<Report>;
             let iouReport: OnyxEntry<Report>;
             let createIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
@@ -146,7 +149,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 shouldGenerateTransactionThreadReport: true,
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: currentUserAccountID,
-                currentUserEmailParam: 'existing@example.com',
+                currentUserEmailParam: currentUserLogin,
                 transactionViolations: {},
                 policyRecentlyUsedCurrencies: [],
                 existingTransactionDraft: undefined,
@@ -233,20 +236,23 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 )
                 .then(() => {
                     mockFetch?.pause?.();
-                    if (chatReport && iouReport) {
-                        payMoneyRequest({
-                            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                            chatReport,
-                            iouReport,
-                            introSelected: undefined,
-                            iouReportCurrentNextStepDeprecated: undefined,
-                            currentUserAccountID,
-                            betas: [CONST.BETAS.ALL],
-                            isSelfTourViewed: false,
-                            userBillingGracePeriodEnds: undefined,
-                            amountOwed: 0,
-                        });
+                    if (!chatReport || !iouReport) {
+                        return waitForBatchedUpdates();
                     }
+                    payMoneyRequest({
+                        paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        chatReport,
+                        iouReport,
+                        introSelected: undefined,
+                        iouReportCurrentNextStepDeprecated: undefined,
+                        currentUserAccountID,
+                        currentUserLogin,
+                        betas: [CONST.BETAS.ALL],
+                        isSelfTourViewed: false,
+                        userBillingGracePeriodEnds: undefined,
+                        amountOwed: 0,
+                        chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -374,6 +380,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        activePolicy: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -441,20 +448,23 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         }),
                 )
                 .then(() => {
-                    if (chatReport && expenseReport) {
-                        payMoneyRequest({
-                            paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
-                            chatReport,
-                            iouReport: expenseReport,
-                            introSelected: undefined,
-                            iouReportCurrentNextStepDeprecated: undefined,
-                            currentUserAccountID: CARLOS_ACCOUNT_ID,
-                            betas: [CONST.BETAS.ALL],
-                            isSelfTourViewed: false,
-                            userBillingGracePeriodEnds: undefined,
-                            amountOwed: 0,
-                        });
+                    if (!chatReport || !expenseReport) {
+                        return waitForBatchedUpdates();
                     }
+                    payMoneyRequest({
+                        paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                        chatReport,
+                        iouReport: expenseReport,
+                        introSelected: undefined,
+                        iouReportCurrentNextStepDeprecated: undefined,
+                        currentUserAccountID: CARLOS_ACCOUNT_ID,
+                        currentUserLogin: CARLOS_EMAIL,
+                        betas: [CONST.BETAS.ALL],
+                        isSelfTourViewed: false,
+                        userBillingGracePeriodEnds: undefined,
+                        amountOwed: 0,
+                        chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -535,6 +545,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        activePolicy: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -603,20 +614,23 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 )
                 .then(() => {
                     mockFetch?.fail?.();
-                    if (chatReport && expenseReport) {
-                        payMoneyRequest({
-                            paymentType: 'ACH',
-                            chatReport,
-                            iouReport: expenseReport,
-                            introSelected: undefined,
-                            iouReportCurrentNextStepDeprecated: undefined,
-                            currentUserAccountID: CARLOS_ACCOUNT_ID,
-                            betas: [CONST.BETAS.ALL],
-                            isSelfTourViewed: false,
-                            userBillingGracePeriodEnds: undefined,
-                            amountOwed: 0,
-                        });
+                    if (!chatReport || !expenseReport) {
+                        return waitForBatchedUpdates();
                     }
+                    payMoneyRequest({
+                        paymentType: 'ACH',
+                        chatReport,
+                        iouReport: expenseReport,
+                        introSelected: undefined,
+                        iouReportCurrentNextStepDeprecated: undefined,
+                        currentUserAccountID: CARLOS_ACCOUNT_ID,
+                        currentUserLogin: CARLOS_EMAIL,
+                        betas: [CONST.BETAS.ALL],
+                        isSelfTourViewed: false,
+                        userBillingGracePeriodEnds: undefined,
+                        amountOwed: 0,
+                        chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -656,6 +670,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             jest.advanceTimersByTime(10);
 
             // When paying the IOU report
+            const chatReportPolicy = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
@@ -663,10 +678,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                chatReportPolicy,
             });
 
             await waitForBatchedUpdates();
@@ -769,18 +786,21 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 })
                 .then(() => {
                     // When partially paying  an iou report from the chat report via the report preview
+                    const partialPayChatReport = {reportID: topMostReportID, policyID: CONST.POLICY.ID_FAKE};
                     payMoneyRequest({
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                        chatReport: {reportID: topMostReportID},
+                        chatReport: partialPayChatReport,
                         iouReport,
                         introSelected: undefined,
                         iouReportCurrentNextStepDeprecated: undefined,
                         currentUserAccountID: CARLOS_ACCOUNT_ID,
+                        currentUserLogin: CARLOS_EMAIL,
                         full: false,
                         betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
+                        chatReportPolicy: chatReportPolicyFromChat(partialPayChatReport),
                     });
                     return waitForBatchedUpdates();
                 })
@@ -870,8 +890,10 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 full: false,
                 policy,
+                chatReportPolicy: policy,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
@@ -899,6 +921,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             jest.advanceTimersByTime(10);
 
+            const chatReportPolicyTrueTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
@@ -906,10 +929,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                chatReportPolicy: chatReportPolicyTrueTour,
             });
 
             await waitForBatchedUpdates();
@@ -946,6 +971,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             jest.advanceTimersByTime(10);
 
+            const chatReportPolicyFalseTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
@@ -953,10 +979,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                chatReportPolicy: chatReportPolicyFalseTour,
             });
 
             await waitForBatchedUpdates();
@@ -1020,16 +1048,141 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
+                policy,
+                chatReportPolicy: policy,
             });
 
             await waitForBatchedUpdates();
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
+        });
+
+        it('should navigate to restricted using chatReportPolicy when IOU policy id differs from chat workspace policy id', async () => {
+            const workspacePolicyID = generatePolicyID();
+            const expensePolicyID = generatePolicyID();
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+
+            const workspacePolicy = {
+                ...createRandomPolicy(9001),
+                id: workspacePolicyID,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const expensePolicy = {
+                ...createRandomPolicy(9002),
+                id: expensePolicyID,
+                ownerAccountID: 999,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workspacePolicyID}`, workspacePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${expensePolicyID}`, expensePolicy);
+
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, pastDate);
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                policyID: workspacePolicyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+                policyID: expensePolicyID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+            (Navigation.navigate as jest.Mock).mockClear();
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 100,
+                ownerBillingGracePeriodEnd: pastDate,
+                policy: expensePolicy,
+                chatReportPolicy: workspacePolicy,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(workspacePolicyID));
+        });
+
+        it('should not navigate to restricted when chatReportPolicy passes billing check with future owner grace period', async () => {
+            const policyID = generatePolicyID();
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            const workspacePolicy = {
+                ...createRandomPolicy(9003),
+                id: policyID,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, workspacePolicy);
+
+            const futureGraceEnd = Math.floor(Date.now() / 1000) + 86400 * 30;
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, futureGraceEnd);
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+                policyID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+
+            (Navigation.navigate as jest.Mock).mockClear();
+
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 100,
+                ownerBillingGracePeriodEnd: futureGraceEnd,
+                chatReportPolicy: workspacePolicy,
+                policy: workspacePolicy,
+            });
+
+            await waitForBatchedUpdates();
+
+            expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
         });
 
         it('should pay successfully when amountOwed is 0', async () => {
@@ -1047,6 +1200,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             mockFetch?.pause?.();
             jest.advanceTimersByTime(10);
 
+            const chatReportPolicyAmountZero = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                 chatReport,
@@ -1054,10 +1208,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: undefined,
                 iouReportCurrentNextStepDeprecated: undefined,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                chatReportPolicy: chatReportPolicyAmountZero,
             });
 
             await waitForBatchedUpdates();
@@ -1107,6 +1263,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         isSelfTourViewed: false,
                         betas: undefined,
                         hasActiveAdminPolicies: false,
+                        activePolicy: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1165,20 +1322,23 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 )
                 .then(() => {
                     // When the expense report is paid elsewhere (but really, any payment option would work)
-                    if (chatReport && expenseReport) {
-                        payMoneyRequest({
-                            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                            chatReport,
-                            iouReport: expenseReport,
-                            introSelected: undefined,
-                            iouReportCurrentNextStepDeprecated: undefined,
-                            currentUserAccountID: CARLOS_ACCOUNT_ID,
-                            betas: [CONST.BETAS.ALL],
-                            isSelfTourViewed: false,
-                            userBillingGracePeriodEnds: undefined,
-                            amountOwed: 0,
-                        });
+                    if (!chatReport || !expenseReport) {
+                        return waitForBatchedUpdates();
                     }
+                    payMoneyRequest({
+                        paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                        chatReport,
+                        iouReport: expenseReport,
+                        introSelected: undefined,
+                        iouReportCurrentNextStepDeprecated: undefined,
+                        currentUserAccountID: CARLOS_ACCOUNT_ID,
+                        currentUserLogin: CARLOS_EMAIL,
+                        betas: [CONST.BETAS.ALL],
+                        isSelfTourViewed: false,
+                        userBillingGracePeriodEnds: undefined,
+                        amountOwed: 0,
+                        chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    });
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -1229,6 +1389,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
+                activePolicy: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1328,7 +1489,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
-                activePolicyID: '123',
+                activePolicy: undefined,
                 isSelfTourViewed: false,
                 betas: undefined,
                 hasActiveAdminPolicies: false,
@@ -1396,10 +1557,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     introSelected: undefined,
                     iouReportCurrentNextStepDeprecated: undefined,
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
+                    currentUserLogin: CARLOS_EMAIL,
                     betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
+                    chatReportPolicy: chatReportPolicyFromChat(chatReport),
                 });
             }
             await waitForBatchedUpdates();
@@ -1425,7 +1588,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
         let completeOnboardingSpy: jest.SpyInstance;
 
         beforeEach(async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             completeOnboardingSpy = jest.spyOn(require('@libs/actions/Report'), 'completeOnboarding').mockImplementation(jest.fn());
             await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {

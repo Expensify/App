@@ -70,7 +70,14 @@ function ChatTransactionPreview({action, reportID, originalReportID, chatReportI
 
                     // If no childReportID exists, create transaction thread on-demand
                     if (!action.childReportID) {
-                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, personalDetail.email ?? '', personalDetail.accountID, betas, iouReport, action);
+                        const createdTransactionThreadReport = createTransactionThreadReport({
+                            introSelected,
+                            currentUserLogin: personalDetail.email ?? '',
+                            currentUserAccountID: personalDetail.accountID,
+                            betas,
+                            iouReport,
+                            iouReportAction: action,
+                        });
                         if (createdTransactionThreadReport?.reportID) {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
                             return;
