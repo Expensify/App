@@ -1,18 +1,15 @@
 # PopoverMenu (v2)
 
-Compound popover-menu primitives — uncontrolled by design. Inspired by [Radix DropdownMenu](https://www.radix-ui.com/primitives/docs/components/dropdown-menu) — same anatomy, same composition rules — adapted for React Native and React Compiler.
+Compound popover-menu primitives. Inspired by Radix DropdownMenu, adapted for React Native.
 
-## Goals
+## Contract
 
-- **Uncontrolled by design.** Visibility lives inside `<Root>`. `<Trigger>` and `<SecondaryInteractionTrigger>` open it on press; item selection / item-handler `event.preventDefault()` / screen blur / modal-stack cover close it. Callers observe via `useIsPopoverVisible()` when they need to coordinate UI (e.g. keep video controls visible while menu is open).
-- **Composition over configuration.** Behaviour is selected by which components you compose, not by boolean props on a monolithic component (`Content` vs `ScrollableContent`, `<Header>` instead of `headerText`, etc.).
-- **Structural insulation from content-state re-renders.** Triggers don't re-render when content state (sub navigation, focus) changes. Achieved by splitting state into separate contexts (`RootVisibility`, `RootMeta`, `RootActions`, `ContentNavigation/Focus/SubActions/ItemActions/Close`, `Sub`). `useIsPopoverVisible()` reads only `RootVisibility`, so anchor swaps inside `RootMeta` don't re-render observers either; visibility flips reach triggers (to drive `accessibilityState.expanded` / `accessibilityControls`) at a once-per-open/close cadence.
-- **Always-on hierarchy assertions.** Misuse fails loud at render time with a descriptive error (`<PopoverMenu.Item> must be rendered inside <PopoverMenu.Content>`), in dev *and* staging. The throws are emitted by the existing context-consumer hooks (`useRootVisibility`, `useRootMeta`, `useContentClose`, `useSubContext`, …) — no separate assertion layer.
-- **No manual memoization.** All files in this folder compile under React Compiler — no `useCallback` / `useMemo` / `React.memo`.
-- **Trigger props flow via context, not `cloneElement`.** `<Trigger>` and `<SecondaryInteractionTrigger>` publish their props (`onPress`/`onSecondaryInteraction`/`ref`/`accessibilityState`/`nativeID`/`accessibilityControls`) into `PressResponderContext` (project-level primitive at `src/components/Pressable/PressResponder/`). Any descendant `<PressableWithFeedback>` (or `<PressableWithSecondaryInteraction>`) consumes the context automatically — works through arbitrary wrapper depth (Tooltip, IconButton, conditional renders) because the actual pressable reads from context rather than relying on its parent to forward injected props. Mirrors React Aria's `<PressResponder>` pattern.
-- **Sub-level wrapper-plus-hook.** `<Sub.Trigger>` / `useSubTrigger` and `<Sub.BackButton>` / `useSubBackButton` ship in two layers — opinionated `MenuItem` wrapper for the canonical row, hook for non-`MenuItem` shapes. Same intent as React Aria's `useMenuTrigger` + `<MenuTrigger>`.
+- **Uncontrolled.** Visibility lives inside `<Root>`; seed the initial state with `<Root defaultOpen?>`. Triggers open it; item selection (unless its handler calls `event.preventDefault()`), screen blur, or modal-stack cover close it. Observe via `useIsPopoverVisible()`.
+- **Hierarchy enforced at render.** Misuse throws synchronously in dev *and* staging — e.g. `<PopoverMenu.Item> must be rendered inside <PopoverMenu.Content>`.
+- **Triggers publish via context, not `cloneElement`.** `<Trigger>` and `<SecondaryInteractionTrigger>` publish their handler plus shared accessibility metadata into `PressResponderContext` — see the [pressable consumption table](#pressables-that-consume-pressrespondercontext).
+- **Sub-level: wrapper + hook.** `<Sub.Trigger>` / `useSubTrigger` and `<Sub.BackButton>` / `useSubBackButton` ship both layers — opinionated `MenuItem` for the canonical row, hook for non-`MenuItem` shapes.
 
-## Public API
+## Usage
 
 ```tsx
 import * as PopoverMenu from '@components/PopoverMenu/v2';
@@ -33,10 +30,10 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
         <PopoverMenu.Item text="Edit" onSelect={...} />
         <PopoverMenu.Separator />
 
-        <PopoverMenu.Sub>
+        <PopoverMenu.Sub id="more">
             <PopoverMenu.Sub.Trigger text="More" />
             <PopoverMenu.Sub.Content>
-                <PopoverMenu.Sub.BackButton text="Back" />
+                <PopoverMenu.Sub.BackButton />
                 <PopoverMenu.Item text="Archive" onSelect={...} />
             </PopoverMenu.Sub.Content>
         </PopoverMenu.Sub>
@@ -44,109 +41,101 @@ import * as PopoverMenu from '@components/PopoverMenu/v2';
 </PopoverMenu.Root>
 ```
 
+### Root — `<Root defaultOpen?: boolean>`
+
+Owns visibility state. `defaultOpen` seeds the initial open state; there is no `open` / `onOpenChange` (uncontrolled-only).
+
 ### Triggers
 
-`<Trigger>` and `<SecondaryInteractionTrigger>` are context providers — they don't render their own pressable. They publish `onPress` / `onSecondaryInteraction` / `ref` / `accessibilityState` / `nativeID` / `accessibilityControls` into `PressResponderContext`; the consuming pressable reads the context and merges those props into itself. The pressable can be at any depth in the subtree.
+- **`<Trigger>`** — primary trigger. Render any subtree containing a `<PressableWithFeedback>`. The pressable's `onPress` (if supplied) runs *before* the popover opens; call `event.preventDefault()` synchronously inside `onPress` to gate the open.
+- **`<SecondaryInteractionTrigger>`** — long-press (native) / right-click (web). Same `event.preventDefault()` gating. Web anchors at a 1×1 rect at the cursor position; native at the pressable's bounding rect.
+- **`<Sub.Trigger>` / `useSubTrigger({disabled?, text?})`** — drill-down row inside `<Sub>`. The hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
+- **`<Sub.BackButton>` / `useSubBackButton({text?})`** — back row inside `<Sub.Content>`. `text` defaults to a localized "Go back". Self-gates to the active sub-level. Hook returns the same shape as `useSubTrigger`.
 
-- **`<PopoverMenu.Trigger>`** — primary trigger. Render any subtree containing a `<PressableWithFeedback>`. The pressable's `onPress` (if supplied) runs *before* the popover opens; consumers can call `event.preventDefault()` inside their `onPress` to gate the open (matches `<Item onSelect>`'s contract).
-- **`<PopoverMenu.SecondaryInteractionTrigger>`** — long-press (native) / right-click (web) variant. Render any subtree containing a `<PressableWithSecondaryInteraction>`. Same gating contract via `event.preventDefault()`. Web right-click anchors at the cursor position (Radix `<ContextMenu>` parity); native long-press anchors at the pressable's bounding rect.
-- **`<PopoverMenu.Sub.Trigger>` / `useSubTrigger({disabled?})`** — sub-level analogue. The wrapper renders an opinionated `MenuItem` drill-down row; the hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` to compose any pressable as a sub trigger.
-- **`<PopoverMenu.Sub.BackButton>` / `useSubBackButton()`** — sub-level back button. Render it as a child of `<Sub.Content>` (matches Radix / React Aria explicit-composition); the wrapper self-gates to the active level so siblings at ancestor levels stay mounted without rendering. Hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
+#### Pressables that consume `PressResponderContext`
 
-#### Which pressables consume `PressResponderContext`
+| Pressable | Consumes |
+|---|---|
+| `<PressableWithFeedback>` | `onPress`, `ref`, `accessibilityState`, `accessibilityHasPopup`, `nativeID`, `accessibilityControls` |
+| `<PressableWithSecondaryInteraction>` | `onSecondaryInteraction` (its inner `<PressableWithFeedback>` independently consumes the remaining props from the same context) |
 
-The context is published by the trigger and consumed by Pressable variants that call `usePressResponderProps` + `useResponderRef` internally:
+Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder — wrap them in one of the above or call the hooks directly. `<Trigger>` dev-warns on the first commit, and again if the published handler set changes, when a published handler has no descendant consumer.
 
-| Pressable | Consumes | Use with |
-|---|---|---|
-| `<PressableWithFeedback>` | `onPress`, `ref`, `accessibilityState`, `nativeID`, `accessibilityControls` | `<Trigger>` |
-| `<PressableWithSecondaryInteraction>` | `onSecondaryInteraction` (delegates remaining props to its inner `<PressableWithFeedback>`) | `<SecondaryInteractionTrigger>` |
+### Rows
 
-Raw RN `<Pressable>`, `<TouchableOpacity>`, or any other pressable component will **not** pick up the responder's props. They must be wrapped in `<PressableWithFeedback>` / `<PressableWithSecondaryInteraction>` or call the responder hooks directly. `<Trigger>` dev-warns in development if it publishes a handler that no descendant consumes (e.g. `<SecondaryInteractionTrigger>` paired with `<PressableWithFeedback>` only). The warning fires once on mount; if your pressable mounts lazily after a state flip, you may see a one-time false-positive — matches Aria's `<PressResponder>` semantics.
+All rows except `<Item>` / `<CheckmarkItem>` auto-hide outside the active sub-level.
 
-### Row composition — `useSelectableRow({onSelect?, disabled?})`
+- **`<Item text onSelect? disabled?>`** — selectable row. Closes the menu after `onSelect`; consumer's `event.preventDefault()` synchronously inside `onSelect` keeps it open.
+- **`<CheckmarkItem text isSelected? onSelect? disabled? rightIcon?>`** — selectable row with a radio indicator. Pass `rightIcon` to replace the indicator.
+- **`<Header>children</Header>`** — heading-role title (`accessibilityRole="heading"`, level 3). To title a sub, render inside `<Sub.Content>`.
+- **`<Label text>`** — non-interactive labelled row.
+- **`<Separator />`** — horizontal divider.
+- **`<Group>children</Group>`** — ARIA `role="group"` wrapper. Stays mounted across sub-navigation so nested `<Sub>` descendants don't unmount when the user drills in or out.
 
-Returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` to compose any pressable as a selectable row inside `<Content>` / `<ScrollableContent>`. The menu closes after `onSelect` fires; call `event.preventDefault()` inside `onSelect` to keep it open. The opinionated `MenuItem` shapes ship as `<Item>` and `<CheckmarkItem>` for the canonical cases; reach for the hook when you need a non-`MenuItem` row (a `Button`-styled option, custom layout, etc.).
+### Sub-menus
 
-#### Conditional opening (gating via `preventDefault`)
+`<Sub>` declares one nested sub-menu level and provides its identity context. Each `<Sub>` accepts:
 
-The pressable's `onPress` runs first, then the trigger's open — unless the pressable called `event.preventDefault()`. Mirrors `<Item onSelect>`'s existing pattern.
+- **`<Sub.Trigger>`** — the row that drills into the sub.
+- **`<Sub.Content>`** — wraps the sub's content. Stays mounted at ancestor levels so deeper subs survive when a shallower sub is the currently-active level (back-button pops one level instead of collapsing to root).
+- **`<Sub.BackButton>`** — back row that pops one level.
 
-> **`preventDefault()` must be called synchronously**, before any `await`. The composed handler checks `event.defaultPrevented` immediately after the consumer's `onPress` returns; a deferred call (after `await` or in a promise callback) lands too late and the popover will already be open. Same constraint as Radix's `composeEventHandlers`. For async pre-press validation, gate at the layer above the trigger.
+**`<Sub id?>`** — pin a stable id when the parent `<Root>` may remount (a fresh key, screen tear-down, etc.). Without `id`, the fallback `useId()` value rotates on remount and any in-flight sub-navigation state is lost.
 
-```tsx
-function MoreMenuTrigger({videoPlayerRef, url}) {
-    const handlePress = (event) => {
-        if (!videoPlayerRef.current) {
-            event?.preventDefault();
-            return;
-        }
-        updateSource(url);
-    };
-    // <IconButton> wraps <Tooltip><PressableWithFeedback /></Tooltip> internally — the popover's props
-    // still reach the inner PressableWithFeedback because it reads them from PressResponderContext.
-    return (
-        <PopoverMenu.Trigger>
-            <IconButton onPress={handlePress} src={ThreeDots} tooltipText="..." />
-        </PopoverMenu.Trigger>
-    );
-}
-```
+### Row composition — `useSelectableRow({onSelect?, disabled?, text?})`
+
+Returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for composing any pressable as a selectable row inside `<Content>`. The menu closes after `onSelect` fires; call `event.preventDefault()` synchronously inside `onSelect` to keep it open. `text` is stored on the registered focusable item (for the focus registry's label). `<Item>` and `<CheckmarkItem>` ship the canonical `MenuItem` shapes.
+
+### Custom non-row content — `useIsAtActiveLevel()`
+
+Hook for self-gating custom (non-row) content rendered directly inside `<Content>` or `<Sub.Content>`. Returns `true` when the enclosing `<Sub>`'s id is the current sub-level (or when the consumer is at the top level and no sub is active). Custom content should render `null` when this is `false` so siblings at other levels don't show through. Requires `<Content>`; `<Sub>` is optional (top-level use returns `true` when no sub is active).
 
 ### Visibility observation — `useIsPopoverVisible()`
 
-Reads `Root`'s `isVisible` for descendants that want to render trigger UI based on popover state (active-state icon color, video controls staying visible while menu is open, etc.). Throws if called outside `<Root>`.
+Reads `Root`'s `isVisible`. Throws outside `<Root>`. Use to drive trigger UI that depends on menu state (active-state icon color, controls staying visible while open).
 
 ### Programmatic close — `useClosePopover()`
 
-Returns `() => void` for descendants that need to close the popover from custom logic (async work completion, deep-link change, app entering background, etc.). Throws if called outside `<Content>`. Item selection's built-in close already routes through this — only reach for the hook when no item-press triggered the close.
+Returns `() => void` for descendants that need to close from custom logic (async work completion, deep-link change). Throws outside `<Content>`. Item selection already routes through close; only reach for this hook when no item triggered the close.
 
-### Lifecycle closes (built into `<Root>`)
+### Keyboard (web)
 
-- **Screen blur** — subscribes via `navigation.addListener('blur', …)` (per [react-navigation guidance](https://reactnavigation.org/docs/use-focus-effect/)) so navigating away never leaves a stranded menu.
-- **Modal-stack cover** — when a non-popover alert modal is about to cover the popover (`willAlertModalBecomeVisible && !isPopover`), `<Root>` closes via render-phase auto-correction.
+When `<Content>` is open, ArrowUp / ArrowDown move focus among registered rows in DOM order; Enter activates the focused row. Disabled rows are skipped by Enter. Native platforms rely on OS focus traversal — these key handlers are no-ops.
 
-No `shouldOverlay` opt-out: item selection closes the popover synchronously in the event handler, so no v1-style timing race exists.
+### Lifecycle closes (handled by `<Root>`)
+
+- **Screen blur** — via `navigation.addListener('blur', …)`.
+- **Modal-stack cover** — when a non-popover alert modal becomes visible over the popover (`willAlertModalBecomeVisible && !isPopover`).
 
 ### Content variants
 
-Two variants cover the bounded-N regime:
-
-- **`<Content>`** — fits content; default. Use when the menu has bounded rows that comfortably fit (≤ ~20 typical).
-- **`<ScrollableContent>`** — wraps children in a `<ScrollView>` capped at window height. Use when N is bounded but might exceed viewport.
+- **`<Content>`** — for menus that fit the viewport.
+- **`<ScrollableContent>`** — wraps children in a `<ScrollView>` capped at window height; use when the row count is bounded but may exceed the viewport.
 
 ### Anchor
 
-The pressable consuming the `<Trigger>` / `<SecondaryInteractionTrigger>` context is the anchor — there is no separate `<Anchor>` slot, no `anchorRef` prop, no `anchorPosition` prop. The trigger captures `getBoundingClientRect()` on press and publishes the rect to context. (`<SecondaryInteractionTrigger>` on web substitutes `MouseEvent.pageX`/`pageY` for a 1×1 cursor rect.) Multiple triggers in one `<Root>` are supported; the popover anchors to whichever was pressed last.
+The pressable consuming the `<Trigger>` / `<SecondaryInteractionTrigger>` context is the anchor — no separate `<Anchor>` slot, no `anchorRef` prop. The trigger captures `getBoundingClientRect()` on press; `<SecondaryInteractionTrigger>` on web captures a 1×1 rect at `MouseEvent.pageX/pageY` instead. Multiple triggers in one `<Root>` are supported; the popover anchors to whichever was pressed last.
 
-> **Runtime requirement.** Anchor measurement uses `View.getBoundingClientRect()` and keyboard-nav order uses `View.compareDocumentPosition()` — both exposed by `ReadOnlyElement` on Fabric (React Native ≥ 0.82). Old Architecture is not supported.
+> **Runtime requirement.** Uses `View.getBoundingClientRect()` and `View.compareDocumentPosition()` — exposed by `ReadOnlyElement` on Fabric (React Native ≥ 0.82). Old Architecture is not supported.
 
 ## Folder layout
 
-Grouped by feature, not by file type. Each subfolder owns its components, contexts, and hooks, and re-exports its public surface through a barrel (`index.ts`); the top-level [`index.tsx`](./index.tsx) re-exports each barrel.
+Grouped by feature. Each subfolder re-exports its public surface through a barrel (`index.ts`); the top-level [`index.tsx`](./index.tsx) re-exports each barrel.
 
-- **`root/`** — `<Root>` provider, the `<PressResponder>`-based trigger wrappers (`<Trigger>`, `<SecondaryInteractionTrigger>`), the visibility hook (`useIsPopoverVisible`), and the shared anchor-opener helper.
-- **`content/`** — public surface variants (`<Content>`, `<ScrollableContent>`) plus the internal scaffolding they share.
-- **`rows/`** — leaf rows rendered inside content (`<Item>`, `<CheckmarkItem>`, `<Label>`, `<Header>`, `<Separator>`, `<Group>`).
-- **`sub/`** — `<Sub>` plus its compound members `<Sub.Trigger>` and `<Sub.Content>`.
+- **`root/`** — `<Root>`, the trigger wrappers (`<Trigger>`, `<SecondaryInteractionTrigger>`), `useIsPopoverVisible`, and `useAnchorOpener` (internal).
+- **`content/`** — `<Content>`, `<ScrollableContent>`, `<BaseContent>` (internal), `useContentController` (internal), and the close-lifecycle hooks.
+- **`rows/`** — leaf rows (`<Item>`, `<CheckmarkItem>`, `<Label>`, `<Header>`, `<Separator>`, `<Group>`), `useSelectableRow`, and `useFocusableRow` (internal).
+- **`sub/`** — `<Sub>` and its compound members `<Sub.Trigger>` / `<Sub.Content>` / `<Sub.BackButton>`, plus `useSubTrigger` / `useSubBackButton` and `useIsAtActiveLevel`.
 
-Each file carries a high-level header comment describing its role; treat that as the source of truth, not this README.
-
-### Conventions
-
-- **Public vs private boundary is a barrel.** Anything not re-exported from a folder's `index.ts` is implementation detail. External consumers should only deep-import in tests, and only after a deliberate review.
-- **Hooks live next to the data they touch.** `useFocusableRow` lives in `rows/` because it's the registration API rows use; `useOrderedIDs` lives in `content/` because the registry it sorts is owned by `Content`.
-- **Dependency direction (file-level, no cycles).** `root/` imports nothing else in v2; `content/` imports from `root/`; `sub/` and `rows/` import from `content/` and `root/`, plus a narrow cross-edge: `rows/useSelectableRow` reads `sub/SubContext`, and `sub/SubTrigger` + `sub/SubBackButton` read `rows/useFocusableRow`.
+Each file carries a header comment describing its role — treat that as the source of truth, not this README.
 
 ## Architectural rules
-
-These are enforced at runtime — not just by convention.
 
 | Component / Hook | Must be rendered / called inside |
 |---|---|
 | `Trigger`, `SecondaryInteractionTrigger`, `useIsPopoverVisible` | `Root` |
 | `Content`, `ScrollableContent` | `Root` |
-| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub`, `useSelectableRow`, `useClosePopover` | `Content` or `ScrollableContent` (transitively, including inside `<Sub.Content>`) |
-| `Sub.Trigger`, `Sub.Content`, `Sub.BackButton`, `useSubTrigger`, `useSubBackButton` | `Sub` |
+| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub`, `useSelectableRow`, `useClosePopover`, `useIsAtActiveLevel` | `Content` (anywhere inside it, including within `<Sub.Content>`) |
+| `Sub.Trigger`, `Sub.Content`, `Sub.BackButton`, `useSubTrigger`, `useSubBackButton` | `Sub` (which itself must be inside `Content`) |
 
-Violating any of these throws synchronously during render. The exception isn't `__DEV__`-gated, so a slip past local dev fails loudly on staging instead of silently corrupting layout.
+Violations throw synchronously during render — not `__DEV__`-gated.
