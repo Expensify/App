@@ -1,11 +1,12 @@
-import React, {ForwardedRef} from 'react';
+import React from 'react';
+import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import {MenuItemBaseProps} from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import {Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import callOrReturn from '@src/types/utils/callOrReturn';
+import type {MenuItemBaseProps} from './MenuItem';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type AmountPickerProps = {
     /** Item to display */
@@ -16,9 +17,6 @@ type AmountPickerProps = {
 
     /** Form Error description */
     errorText?: string;
-
-    /** Callback to call when the input changes */
-    onInputChange?: (value: string | undefined) => void;
 
     /** Route to navigate to for the amount form page */
     amountRoute: Route;
