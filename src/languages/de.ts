@@ -4799,8 +4799,8 @@ ${amount} für ${merchant} – ${date}`,
             journalPostingPreference: {
                 label: 'Bevorzugte Verbuchung von Journalbuchungen',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Einzelner, aufgeschlüsselter Eintrag für jeden Bericht',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Einzelner Eintrag für jede Ausgabe',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Einzelner Eintrag für jede Ausgabe',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Einzelner, aufgegliederter Eintrag für jeden Bericht',
                 },
             },
             invoiceItem: {
@@ -5314,6 +5314,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     duplicateColumns: (duplicateColumn: string) =>
                         `Ups! Du hast ein einzelnes Feld („${duplicateColumn}“) mehreren Spalten zugeordnet. Bitte überprüfe die Zuordnung und versuche es erneut.`,
                 },
+                fileImportDescription: 'Eine manuelle Option, falls Ihre Bank keinen Feed senden kann.',
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Letzter Tag des Monats',
@@ -6801,6 +6802,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 gambling: 'Glücksspiel',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Erwachsenenunterhaltung',
+                giftCard: 'Geschenkkartenkäufe',
                 handwrittenReceipt: 'Handschriftliche Belege',
                 requireCompanyCard: 'Firmenkarten für alle Käufe vorschreiben',
                 requireCompanyCardDescription: 'Kennzeichne alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
@@ -7019,6 +7021,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 corporate: {
                     label: 'Steuerung',
                     description: 'Für Organisationen mit erweiterten Anforderungen.',
+                },
+                submit2026: {
+                    label: 'Einreichen',
+                    description: 'Für Mitarbeiter, die Ausgaben bei ihrem Arbeitgeber einreichen möchten.',
                 },
             },
             description: 'Wähle ein passendes Abo für dich. Eine detaillierte Liste der Funktionen und Preise findest du in unserem',
@@ -7726,6 +7732,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         deleteSavedSearchConfirm: 'Möchtest du diese Suche wirklich löschen?',
         searchName: 'Namen suchen',
         savedSearchesMenuItemTitle: 'Gespeichert',
+        urlCopied: 'URL kopiert',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
             editMultiple: 'Mehrere bearbeiten',
@@ -8230,6 +8237,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         companyCard: 'Firmenkarte',
         expensifyCard: 'Expensify Karte',
         centralInvoicing: 'Zentrale Rechnungsstellung',
+        travelCard: 'Reisekarte',
     },
     distance: {
         addStop: 'Stopp hinzufügen',
@@ -8454,6 +8462,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                         return `Erwachsenenunterhaltung`;
                     case 'hotelIncidentals':
                         return `Nebenkosten im Hotel`;
+                    case 'giftCard':
+                        return `Geschenkkartenkäufe`;
                     case 'handwrittenReceipt':
                         return `handschriftliche Belege`;
                     default:
@@ -9235,7 +9245,13 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 `Möchtest du ${newName} wirklich zur Standardgruppe machen? Neue Mitglieder werden zu dieser Gruppe anstelle der bisherigen Standardgruppe (${currentName}) eingeladen. `,
             makeDefault: 'Als Standard festlegen',
             neverMind: 'Vergiss es',
+            createGroupError: 'Diese Gruppe konnte nicht erstellt werden. Bitte versuche es erneut.',
             permissions: 'Gruppenberechtigungen',
+            createNewGroupButton: 'Neue Gruppe',
+            createGroupSubmitButton: 'Gruppe erstellen',
+            expensifyCardPreferredWorkspace: 'Expensify Card bevorzugter Arbeitsbereich',
+            expensifyCardPreferredWorkspaceDescription:
+                'Alle Expensify Card-Transaktionen werden im bevorzugten Expensify Card-Arbeitsbereich anstelle des bevorzugten Arbeitsbereichs erstellt. Durch Aktivieren dieser Funktion wird die Einstellung des bevorzugten Arbeitsbereichs nur für Expensify Card-Transaktionen überschrieben.',
             strictlyEnforceWorkspaceRules: 'Workspace-Regeln strikt durchsetzen',
             strictlyEnforceWorkspaceRulesDescription: 'Alle Workspace-Regeln müssen erfüllt sein, bevor ein Bericht eingereicht wird. Manuelle Ausnahmen sind nicht zulässig.',
             restrictExpenseWorkspaceCreation: 'Erstellen/Entfernen von Ausgaben-Workspaces einschränken',
@@ -9253,9 +9269,6 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             restrictDefaultLoginSelection: 'Standard-Login-Auswahl einschränken',
             restrictDefaultLoginSelectionDescription:
                 'Verhindert, dass Mitglieder ihre Login-E-Mail-Adresse außerhalb der Unternehmensdomäne ändern, um Richtlinienbeschränkungen zu umgehen.',
-            expensifyCardPreferredWorkspace: 'Bevorzugter Workspace für die Expensify Card',
-            expensifyCardPreferredWorkspaceDescription:
-                'Alle Expensify-Card-Transaktionen werden im bevorzugten Workspace für die Expensify Card statt im bevorzugten Workspace erstellt. Die Aktivierung dieser Funktion überschreibt die Einstellung des bevorzugten Workspace ausschließlich für Expensify-Card-Transaktionen.',
             expensifyCardPreferredWorkspaceDisabledMessage:
                 'Um diese Einstellung zu verwenden, muss der bevorzugte Workspace aktiviert und für die Domain die Expensify Card eingerichtet sein.',
             findGroup: 'Gruppe suchen',

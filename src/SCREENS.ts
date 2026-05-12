@@ -560,6 +560,7 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Online_Travel_Invoicing_Payable_Account_Select',
             NETSUITE_TRAVEL_INVOICING_CONFIGURATION: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Configuration',
             NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Payable_Account_Select',
+            NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT: 'Workspace_Accounting_NetSuite_Travel_Invoicing_Journal_Posting_Preference_Select',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Select',
             DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: 'Dynamic_Workspace_Accounting_Quickbooks_Online_Export_Out_Of_Pocket_Expenses_Account_Select',
@@ -1037,6 +1038,8 @@ const SCREENS = {
         GROUP_DETAILS: 'Domain_Group_Details',
         GROUP_EDIT_NAME: 'Domain_Group_Edit_Name',
         SECURITY_GROUPS_PREFERRED_WORKSPACE: 'Domain_Security_Groups_Preferred_Workspace',
+        GROUP_CREATE: 'Domain_Group_Create',
+        GROUP_CREATE_PREFERRED_WORKSPACE: 'Domain_Group_Create_Preferred_Workspace',
     },
     MULTIFACTOR_AUTHENTICATION: {
         MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',

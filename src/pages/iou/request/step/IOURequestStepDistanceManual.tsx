@@ -114,7 +114,7 @@ function IOURequestStepDistanceManual({
     const mileageRate = DistanceRequestUtils.getRate({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
-        useTransactionDistanceUnit: false,
+        useTransactionDistanceUnit: isEditing,
     });
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;

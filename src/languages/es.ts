@@ -4696,8 +4696,8 @@ ${amount} para ${merchant} - ${date}`,
             journalPostingPreference: {
                 label: 'Preferencia de registro de asientos contables',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Entrada única y detallada para cada informe',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Entrada única para cada gasto individual',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Entrada única para cada gasto individual',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Entrada única y detallada para cada informe',
                 },
             },
             invoiceItem: {
@@ -5067,6 +5067,7 @@ ${amount} para ${merchant} - ${date}`,
             addNewCard: {
                 other: 'Otros',
                 fileImport: 'Importar transacciones desde un archivo',
+                fileImportDescription: 'Una opción manual si tu banco no puede enviar un feed.',
                 createFileFeedHelpText: `<muted-text>Siga este <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guía de ayuda</a> para importar las transacciones de su tarjeta de empresa!</muted-text>`,
                 companyCardLayoutName: 'Nombre del layout de la tarjeta de empresa',
                 cardLayoutNameRequired: 'El nombre del layout de la tarjeta de empresa es requerido',
@@ -6444,6 +6445,10 @@ ${amount} para ${merchant} - ${date}`,
                     label: 'Controlar',
                     description: 'Para organizaciones con requisitos avanzados.',
                 },
+                submit2026: {
+                    label: 'Enviar',
+                    description: 'Para empleados que buscan enviar gastos a su empleador.',
+                },
             },
             description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
             subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
@@ -6707,6 +6712,7 @@ ${amount} para ${merchant} - ${date}`,
                 gambling: 'Juegos de apuestas',
                 tobacco: 'Tabaco',
                 adultEntertainment: 'Entretenimiento para adultos',
+                giftCard: 'Compras de tarjetas regalo',
                 handwrittenReceipt: 'Recibos escritos a mano',
                 requireCompanyCard: 'Requerir que todas las compras se hagan con la tarjeta de empresa',
                 requireCompanyCardDescription: 'Marca todo gasto en efectivo, incluyendo kilometraje y gastos per diem.',
@@ -7568,6 +7574,7 @@ ${amount} para ${merchant} - ${date}`,
         view: {label: 'Ver', table: 'Tabla', bar: 'Barra', line: 'Línea', pie: 'Circular'},
         saveSearch: 'Guardar búsqueda',
         savedSearchesMenuItemTitle: 'Guardadas',
+        urlCopied: 'URL copiada',
         spendOverTime: 'Evolución de gastos',
         searchName: 'Nombre de la búsqueda',
         deleteSavedSearch: 'Eliminar búsqueda guardada',
@@ -8500,6 +8507,7 @@ ${amount} para ${merchant} - ${date}`,
         companyCard: 'Tarjeta corporativa',
         expensifyCard: 'Tarjeta Expensify',
         centralInvoicing: 'Facturación centralizada',
+        travelCard: 'Tarjeta de viaje',
     },
     distance: {
         addStop: 'Añadir parada',
@@ -8651,6 +8659,8 @@ ${amount} para ${merchant} - ${date}`,
                         return `entretenimiento para adultos`;
                     case 'hotelIncidentals':
                         return `gastos adicionales de hotel`;
+                    case 'giftCard':
+                        return `compras de tarjetas regalo`;
                     case 'handwrittenReceipt':
                         return `recibos escritos a mano`;
                     default:
@@ -9434,7 +9444,13 @@ ${amount} para ${merchant} - ${date}`,
                 `¿Estás seguro de que quieres establecer ${newName} como el grupo predeterminado? Los nuevos miembros serán invitados a este grupo en lugar del grupo predeterminado anterior (${currentName}). `,
             makeDefault: 'Establecer como predeterminado',
             neverMind: 'No importa',
+            createGroupError: 'No se pudo crear este grupo. Inténtalo de nuevo.',
             permissions: 'Permisos de grupo',
+            createNewGroupButton: 'Nuevo grupo',
+            createGroupSubmitButton: 'Crear grupo',
+            expensifyCardPreferredWorkspace: 'Espacio de trabajo preferido para Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Todas las transacciones de Expensify Card se crearán en el espacio de trabajo preferido de Expensify Card en lugar del espacio de trabajo preferido. Al habilitar esta función, la configuración de espacio de trabajo preferido se aplicará solo a las transacciones de Expensify Card.',
             strictlyEnforceWorkspaceRules: 'Hacer cumplir estrictamente las reglas del espacio de trabajo',
             strictlyEnforceWorkspaceRulesDescription: 'Todas las reglas del espacio de trabajo deben cumplirse antes de enviar un informe. No se permiten excepciones manuales.',
             restrictExpenseWorkspaceCreation: 'Restringir la creación/eliminación de espacios de trabajo de gastos',
@@ -9452,9 +9468,6 @@ ${amount} para ${merchant} - ${date}`,
             noWorkspacesMessage: 'No hay espacios de trabajo en este dominio. Se requiere un espacio de trabajo para habilitar esta restricción.',
             restrictDefaultLoginSelection: 'Restringir el inicio de sesión predeterminado',
             restrictDefaultLoginSelectionDescription: 'Evita que los miembros cambien su correo de inicio de sesión fuera del dominio de la empresa para eludir restricciones de políticas.',
-            expensifyCardPreferredWorkspace: 'Espacio de trabajo preferido para Expensify Card',
-            expensifyCardPreferredWorkspaceDescription:
-                'Todas las transacciones de Expensify Card se crearán en el espacio de trabajo preferido de Expensify Card en lugar del espacio de trabajo preferido. Al habilitar esta función, la configuración de espacio de trabajo preferido se aplicará solo a las transacciones de Expensify Card.',
             expensifyCardPreferredWorkspaceDisabledMessage:
                 'Para usar esta configuración, el espacio de trabajo preferido debe estar habilitado y el dominio debe tener Expensify Card configurada.',
             findGroup: 'Encontrar grupo',

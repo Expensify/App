@@ -1,52 +1,26 @@
 import React, {Fragment} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import SearchReportAvatar from '@components/ReportActionAvatars/SearchReportAvatar';
-import type {SearchColumnType} from '@components/Search/types';
-import Text from '@components/Text';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import DeferredActionCell from '@components/Search/SearchList/ListItem/ActionCell/DeferredActionCell';
+import DateCell from '@components/Search/SearchList/ListItem/DateCell';
+import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
+import StatusCell from '@components/Search/SearchList/ListItem/StatusCell';
+import TextCell from '@components/Search/SearchList/ListItem/TextCell';
+import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
+import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
+import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
-import ActionCell from './ActionCell';
-import DateCell from './DateCell';
-import ExportedIconCell from './ExportedIconCell';
-import StatusCell from './StatusCell';
-import TextCell from './TextCell';
-import TotalCell from './TotalCell';
-import type {ExpenseReportListItemType} from './types';
-import UserInfoCell from './UserInfoCell';
-import WorkspaceCell from './WorkspaceCell';
+import ExpenseReportListItemAvatar from './ExpenseReportListItemAvatar';
+import type {ExpenseReportListItemRowWideProps} from './types';
 
-type ExpenseReportListItemRowProps = {
-    item: ExpenseReportListItemType;
-    reportActions?: ReportAction[];
-    showTooltip: boolean;
-    canSelectMultiple?: boolean;
-    isActionLoading?: boolean;
-    onButtonPress?: () => void;
-    onCheckboxPress?: () => void;
-    containerStyle?: StyleProp<ViewStyle>;
-    isSelectAllChecked?: boolean;
-    isIndeterminate?: boolean;
-    isDisabledCheckbox?: boolean;
-    isHovered?: boolean;
-    isFocused?: boolean;
-    isPendingDelete?: boolean;
-    columns?: SearchColumnType[];
-    isLargeScreenWidth?: boolean;
-};
-
-function ExpenseReportListItemRow({
+function ExpenseReportListItemRowWide({
     item,
     reportActions,
     onCheckboxPress = () => {},
@@ -62,36 +36,24 @@ function ExpenseReportListItemRow({
     isHovered = false,
     isFocused = false,
     isPendingDelete = false,
-    isLargeScreenWidth = false,
-}: ExpenseReportListItemRowProps) {
+}: ExpenseReportListItemRowWideProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
 
-    // Calculate the correct border color for avatars based on hover and focus states
-    const finalAvatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
-
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
-            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>
-                <SearchReportAvatar
-                    primaryAvatar={item.primaryAvatar}
-                    secondaryAvatar={item.secondaryAvatar}
-                    avatarType={item.avatarType}
-                    shouldShowTooltip={showTooltip}
-                    subscriptAvatarBorderColor={finalAvatarBorderColor}
-                    reportID={item.reportID}
-                    isLargeScreenWidth={isLargeScreenWidth}
-                />
-            </View>
+            <ExpenseReportListItemAvatar
+                item={item}
+                showTooltip={showTooltip}
+                isHovered={isHovered}
+                isFocused={isFocused}
+                isLargeScreenWidth
+            />
         ),
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
@@ -143,7 +105,7 @@ function ExpenseReportListItemRow({
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                 <TextCell
                     text={item.reportName ?? ''}
-                    isLargeScreenWidth={isLargeScreenWidth}
+                    isLargeScreenWidth
                 />
             </View>
         ),
@@ -154,7 +116,7 @@ function ExpenseReportListItemRow({
                         accountID={item.from.accountID}
                         avatar={item.from.avatar}
                         displayName={item.formattedFrom ?? ''}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        isLargeScreenWidth
                     />
                 )}
             </View>
@@ -166,7 +128,7 @@ function ExpenseReportListItemRow({
                         accountID={item.to.accountID}
                         avatar={item.to.avatar}
                         displayName={item.formattedTo ?? ''}
-                        isLargeScreenWidth={isLargeScreenWidth}
+                        isLargeScreenWidth
                     />
                 )}
             </View>
@@ -226,7 +188,7 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
-                <ActionCell
+                <DeferredActionCell
                     action={item.action}
                     onButtonPress={onButtonPress}
                     isSelected={item.isSelected}
@@ -248,58 +210,6 @@ function ExpenseReportListItemRow({
             </View>
         ),
     };
-
-    if (!isLargeScreenWidth) {
-        const filteredTransactions = item.transactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const expenseCount = (filteredTransactions?.length ? filteredTransactions.length : undefined) ?? item.transactionCount ?? 0;
-        const expenseCountText = translate('iou.expenseCount', {count: expenseCount});
-        const formattedDate = DateUtils.formatWithUTCTimeZone(
-            item.created ?? '',
-            DateUtils.doesDateBelongToAPastYear(item.created ?? '') ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-        );
-
-        const amountText = isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(totalDisplaySpend, currency);
-        const groupAccessibilityLabel = [item.reportName, amountText, formattedDate, expenseCountText].filter(Boolean).join(', ');
-        return (
-            <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
-                accessible
-                accessibilityLabel={groupAccessibilityLabel}
-                role={CONST.ROLE.BUTTON}
-            >
-                {!!canSelectMultiple && (
-                    <Checkbox
-                        onPress={onCheckboxPress}
-                        isChecked={isSelectAllChecked}
-                        isIndeterminate={isIndeterminate}
-                        containerStyle={styles.m0}
-                        disabled={isDisabledCheckbox}
-                        accessibilityLabel={item.text ?? ''}
-                        shouldStopMouseDownPropagation
-                        style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
-                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
-                    />
-                )}
-                <View style={[styles.flexColumn, styles.gap1, styles.flex1]}>
-                    <View style={[styles.flexRow, styles.gap2]}>
-                        <Text
-                            numberOfLines={2}
-                            style={[styles.lh20, styles.flex1]}
-                        >
-                            {item.reportName ?? ''}
-                        </Text>
-                        <Text style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}>
-                            {isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(totalDisplaySpend, currency)}
-                        </Text>
-                    </View>
-                    <View style={[styles.flexRow, styles.gap2]}>
-                        <Text style={[styles.mutedNormalTextLabel, styles.flex1]}>{formattedDate}</Text>
-                        <Text style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}>{expenseCountText}</Text>
-                    </View>
-                </View>
-            </View>
-        );
-    }
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, containerStyle]}>
@@ -333,4 +243,4 @@ function ExpenseReportListItemRow({
     );
 }
 
-export default ExpenseReportListItemRow;
+export default ExpenseReportListItemRowWide;
