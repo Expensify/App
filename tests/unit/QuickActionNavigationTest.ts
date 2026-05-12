@@ -1,11 +1,11 @@
-import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
+import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {startOutCreateTaskQuickAction} from '@libs/actions/Task';
 import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import createPersonalDetails from '../utils/collections/personalDetails';
 
-jest.mock('@libs/actions/IOU', () => ({
+jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     startMoneyRequest: jest.fn(),
     startDistanceRequest: jest.fn(),
 }));

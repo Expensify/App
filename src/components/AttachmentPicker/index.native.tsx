@@ -24,9 +24,27 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AttachmentCamera from './AttachmentCamera';
-import type {CapturedPhoto} from './AttachmentCamera';
+import launchCamera from './launchCamera/launchCamera';
 import type AttachmentPickerProps from './types';
+
+const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
+    pdf: String(types.pdf),
+    doc: String(types.doc),
+    docx: String(types.docx),
+    zip: String(types.zip),
+    txt: String(types.plainText),
+    json: String(types.json),
+    xls: String(types.xls),
+    xlsx: String(types.xlsx),
+    jpg: String(types.images),
+    jpeg: String(types.images),
+    png: String(types.images),
+    gif: String(types.images),
+    heif: String(types.images),
+    heic: String(types.images),
+    tif: String(types.images),
+    tiff: String(types.images),
+};
 
 type LocalCopy = {
     name: string | null;
@@ -35,23 +53,14 @@ type LocalCopy = {
     type: string | null;
 };
 
-type Item =
-    | {
-          /** The icon associated with the item. */
-          icon: IconAsset;
-          /** The key in the translations file to use for the title */
-          textTranslationKey: TranslationPaths;
-          /** Function to call when the user clicks the item */
-          pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
-      }
-    | {
-          /** The icon associated with the item. */
-          icon: IconAsset;
-          /** The key in the translations file to use for the title */
-          textTranslationKey: TranslationPaths;
-          /** Direct action that doesn't go through the promise-based selectItem flow */
-          onPress: () => void;
-      };
+type Item = {
+    /** The icon associated with the item. */
+    icon: IconAsset;
+    /** The key in the translations file to use for the title */
+    textTranslationKey: TranslationPaths;
+    /** Function to call when the user clicks the item */
+    pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
+};
 
 /**
  * Ensures asset has proper fileName and type properties
@@ -131,13 +140,14 @@ function AttachmentPicker({
     shouldHideCameraOption = false,
     shouldValidateImage = true,
     shouldHideGalleryOption = false,
+    acceptedFileTypes,
     fileLimit = 1,
     onOpenPicker,
+    shouldSkipAttachmentTypeModal = false,
 }: AttachmentPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
-    const [showAttachmentCamera, setShowAttachmentCamera] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
@@ -161,19 +171,9 @@ function AttachmentPicker({
     );
 
     /**
-     * Launch the in-app VisionCamera instead of the external system camera.
-     * Opens the camera modal directly — bypasses the promise-based selectItem flow.
-     * handleCameraCapture / handleCameraClose handle completion.
-     */
-    const launchInAppCamera = useCallback(() => {
-        onOpenPicker?.();
-        setShowAttachmentCamera(true);
-    }, [onOpenPicker]);
-
-    /**
      * Common image picker handling
      *
-     * @param {function} imagePickerFunc - RNImagePicker.launchImageLibrary
+     * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
      */
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
@@ -272,8 +272,25 @@ function AttachmentPicker({
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
+        let pickerTypes: string[];
+        if (acceptedFileTypes && acceptedFileTypes.length > 0) {
+            const mappedTypes = acceptedFileTypes.reduce<string[]>((result, extension) => {
+                const nativeType = EXTENSION_TO_NATIVE_TYPE[String(extension)];
+                if (nativeType !== undefined && !result.includes(nativeType)) {
+                    result.push(nativeType);
+                }
+                return result;
+            }, []);
+            // If any extension has no native type mapping, fall back to allFiles so those
+            // file types remain selectable. Downstream validation handles the type check.
+            const hasUnmappedExtensions = acceptedFileTypes.some((ext) => EXTENSION_TO_NATIVE_TYPE[String(ext)] === undefined);
+            pickerTypes = mappedTypes.length > 0 && !hasUnmappedExtensions ? mappedTypes : [types.allFiles];
+        } else {
+            pickerTypes = [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles];
+        }
+
         const pickedFiles = await pick({
-            type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
+            type: pickerTypes,
             allowMultiSelection: fileLimit !== 1,
         });
 
@@ -301,7 +318,7 @@ function AttachmentPicker({
                 type: file.type,
             };
         });
-    }, [fileLimit, type]);
+    }, [acceptedFileTypes, fileLimit, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
@@ -322,12 +339,12 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                onPress: launchInAppCamera,
+                pickAttachment: () => showImagePicker(launchCamera),
             });
         }
 
         return data;
-    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, launchInAppCamera, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -356,19 +373,6 @@ function AttachmentPicker({
         },
         [showGeneralAlert, showImageCorruptionAlert, translate],
     );
-
-    /**
-     * Opens the attachment modal
-     *
-     * @param onPickedHandler A callback that will be called with the selected attachment
-     * @param onCanceledHandler A callback that will be called without a selected attachment
-     */
-    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
-        completeAttachmentSelection.current = onPickedHandler;
-        onCanceled.current = onCanceledHandler;
-        onClosed.current = onClosedHandler;
-        setIsVisible(true);
-    };
 
     /**
      * Closes the attachment modal
@@ -463,30 +467,32 @@ function AttachmentPicker({
         [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
-    const handleCameraCapture = useCallback(
-        (photos: CapturedPhoto[]) => {
-            setShowAttachmentCamera(false);
-            const assets: Asset[] = photos.map((photo) => ({
-                uri: photo.uri,
-                fileName: photo.fileName,
-                type: photo.type,
-                width: photo.width,
-                height: photo.height,
-            }));
-            Promise.resolve(pickAttachment(assets)).finally(() => {
-                onClosed.current();
-                delete onModalHide.current;
-            });
-        },
-        [pickAttachment],
-    );
+    /**
+     * Opens the attachment modal, or directly launches the document picker when shouldSkipAttachmentTypeModal is true.
+     */
+    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
+        completeAttachmentSelection.current = onPickedHandler;
+        onCanceled.current = onCanceledHandler;
+        onClosed.current = onClosedHandler;
 
-    const handleCameraClose = useCallback(() => {
-        setShowAttachmentCamera(false);
-        onCanceled.current();
-        onClosed.current();
-        delete onModalHide.current;
-    }, []);
+        if (shouldSkipAttachmentTypeModal) {
+            onOpenPicker?.();
+            showDocumentPicker()
+                .catch((error: Error) => {
+                    if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                        return;
+                    }
+                    showGeneralAlert(error.message);
+                    throw error;
+                })
+                .then((result) => pickAttachment(result))
+                .catch(console.error)
+                .finally(() => onClosedHandler());
+            return;
+        }
+
+        setIsVisible(true);
+    };
 
     /**
      * Setup native attachment selection to start after this popover closes
@@ -496,14 +502,6 @@ function AttachmentPicker({
      */
     const selectItem = useCallback(
         (item: Item) => {
-            /* Items with onPress (e.g. in-app camera) handle their own flow
-             * and don't go through the promise-based pickAttachment chain. */
-            if ('onPress' in item) {
-                close();
-                item.onPress();
-                return;
-            }
-
             onOpenPicker?.();
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
@@ -580,11 +578,6 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            <AttachmentCamera
-                isVisible={showAttachmentCamera}
-                onCapture={handleCameraCapture}
-                onClose={handleCameraClose}
-            />
             {renderChildren()}
         </>
     );

@@ -7,6 +7,7 @@ import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
+import {initReconnect} from '@libs/actions/Reconnect';
 import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
@@ -57,6 +58,7 @@ Onyx.init({
 });
 
 OnyxUpdateManager();
+initReconnect();
 beforeEach(() => {
     setHasRadio(true);
     return Onyx.clear().then(waitForBatchedUpdates);
