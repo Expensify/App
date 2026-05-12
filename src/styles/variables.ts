@@ -118,7 +118,7 @@ export default {
     sideBarWithLHBWidth: 280,
     inboxSidebarWidth: 320,
     searchSidebarExpandedWidth: 280,
-    searchSidebarCollapsedWidth: 76,
+    searchSidebarCollapsedWidth: 72,
     navigationTabBarSize: 72,
     popoverMargin: 18,
     pdfPageMaxWidth: 992,
