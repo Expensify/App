@@ -48,6 +48,9 @@ type Session = {
 
     /** Timestamp of the session creation date */
     creationDate?: number;
+
+    /** How the user authenticated for the current session, forwarded to the fraud protection backend */
+    authMethod?: string;
 };
 
 export default Session;

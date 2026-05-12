@@ -199,8 +199,8 @@ type GeometryType = 'LineString';
 
 /** Geometry data */
 type Geometry = {
-    /** Matrix of points, indexed by their coordinates */
-    coordinates: number[][] | null;
+    /** Matrix of points, indexed by their coordinates, GPS trip is represented as a 3 dimensional array to support multiple routes in a single trip */
+    coordinates: number[][] | number[][][] | null;
 
     /** Type of connections between coordinates */
     type?: GeometryType;
