@@ -1,24 +1,21 @@
 import React from 'react';
 import type {ColorValue, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import LHNAvatar from '@components/LHNOptionsList/LHNAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
 
 type OptionRowAvatarProps = {
     optionItem: OptionData;
-    report: OnyxEntry<Report>;
     isInFocusMode: boolean;
     subscriptAvatarBorderColor: ColorValue;
     secondaryAvatarBackgroundColor: ColorValue;
     singleAvatarContainerStyle: ViewStyle[];
 };
 
-function OptionRowAvatarInner({optionItem, report, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: OptionRowAvatarProps) {
+function OptionRowAvatarInner({optionItem, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: OptionRowAvatarProps) {
     const personalDetails = usePersonalDetails();
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(optionItem?.parentReportAction);
@@ -26,7 +23,7 @@ function OptionRowAvatarInner({optionItem, report, isInFocusMode, subscriptAvata
     // Match the header's delegate avatar logic: when a delegate exists on the
     // parent report action, the header (useReportActionAvatars) shows the
     // delegate's avatar as primary instead of the report owner's.
-    const skipDelegate = report?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !report?.chatReportID);
+    const skipDelegate = optionItem?.type === CONST.REPORT.TYPE.INVOICE || (optionItem?.isTaskReport && !optionItem?.chatReportID);
 
     let icons = optionItem?.icons ?? [];
     if (!skipDelegate && delegateAccountID && personalDetails && icons.length > 0) {
@@ -69,7 +66,7 @@ function OptionRowAvatarInner({optionItem, report, isInFocusMode, subscriptAvata
 
 OptionRowAvatarInner.displayName = 'OptionRowAvatarInner';
 
-function OptionRowAvatar({optionItem, report, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: OptionRowAvatarProps) {
+function OptionRowAvatar({optionItem, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: OptionRowAvatarProps) {
     // Bail out before subscribing to personal details when the row has no avatar to render.
     if (!optionItem.icons?.length || !optionItem.icons.at(0)) {
         return null;
@@ -77,7 +74,6 @@ function OptionRowAvatar({optionItem, report, isInFocusMode, subscriptAvatarBord
     return (
         <OptionRowAvatarInner
             optionItem={optionItem}
-            report={report}
             isInFocusMode={isInFocusMode}
             subscriptAvatarBorderColor={subscriptAvatarBorderColor}
             secondaryAvatarBackgroundColor={secondaryAvatarBackgroundColor}
