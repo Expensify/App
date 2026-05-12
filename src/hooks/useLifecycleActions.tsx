@@ -20,12 +20,11 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
-import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
+import {cancelPayment} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -43,9 +42,8 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
 type UseLifecycleActionsParams = {
     reportID: string | undefined;
     startApprovedAnimation: () => void;
-    startAnimation: () => void;
     startSubmittingAnimation: () => void;
-    onHoldMenuOpen: (requestType: ActionHandledType, onConfirm?: () => void, paymentType?: PaymentMethodType) => void;
+    onHoldMenuOpen: (requestType: ActionHandledType, onConfirm?: () => void) => void;
 };
 
 type UseLifecycleActionsResult = {
@@ -60,7 +58,7 @@ type UseLifecycleActionsResult = {
  * Provides report lifecycle transition actions (submit, approve, unapprove, cancel payment, retract, reopen)
  * and their associated guards (delegate access, hold, pending RTER, strict policy rules).
  */
-function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, startSubmittingAnimation, onHoldMenuOpen}: UseLifecycleActionsParams): UseLifecycleActionsResult {
+function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingAnimation, onHoldMenuOpen}: UseLifecycleActionsParams): UseLifecycleActionsResult {
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
@@ -97,7 +95,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const {clearSelectedTransactions} = useSearchActionsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear', 'MoneyBag']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear']);
 
     const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
     const isSubmitterSameAsNextApprover =
@@ -252,44 +250,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             icon: expensifyIcons.ThumbsUp,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
             onSelected: confirmApproval,
-        },
-        [CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT]: {
-            value: CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT,
-            text: translate('iou.receivedPayment'),
-            icon: expensifyIcons.MoneyBag,
-            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RECEIVED_PAYMENT,
-            onSelected: async () => {
-                if (isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-
-                const result = await showConfirmModal({
-                    title: translate('iou.confirmPaymentReceivedModalTitle'),
-                    prompt: translate('iou.receivedPaymentConfirmation'),
-                    confirmText: translate('iou.confirmReceivedPayment'),
-                    cancelText: translate('common.cancel'),
-                });
-
-                if (result.action !== ModalActions.CONFIRM) {
-                    return;
-                }
-
-                if (isAnyTransactionOnHold) {
-                    onHoldMenuOpen(
-                        CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                        () => {
-                            startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, nextStep);
-                        },
-                        CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                    );
-                    return;
-                }
-
-                startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, nextStep);
-            },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE,

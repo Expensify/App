@@ -1251,7 +1251,6 @@ function Search({
             markReportIDAsExpense,
             toggleTransaction,
             handleSearch,
-            currentSearchKey,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
@@ -1261,6 +1260,7 @@ function Search({
             queryJSON,
             offset,
             searchResults?.search?.hasMoreResults,
+            currentSearchKey,
         ],
     );
 
@@ -1588,6 +1588,15 @@ function Search({
         wasRearmedRef.current = false;
         onContentReady?.();
     }, [sortedData, onContentReady]);
+
+    // Empty deps so this fires only on blur — merging with the body would cancel the span on every shouldShowLoadingState flip.
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+            };
+        }, []),
+    );
 
     // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths)
     // sets it to true. Must happen during render since it coordinates with the
