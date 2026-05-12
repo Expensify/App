@@ -4,6 +4,25 @@ import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformS
 import CONST from '@src/CONST';
 import {enhanceStateWithHistory} from './utils';
 
+const CUSTOM_HISTORY_MARKERS: ReadonlySet<string> = new Set([CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR]);
+
+/**
+ * Walks a history array from the end and collects the contiguous run of known
+ * custom-history markers (e.g. `[...routes, SIDE_PANEL, MFA_MODAL_NAVIGATOR]` →
+ * `[SIDE_PANEL, MFA_MODAL_NAVIGATOR]`).
+ *
+ * `enhanceStateWithHistory` regenerates `history` purely from `routes` and drops
+ * any non-route entries; this helper lets the rehydration step re-append the
+ * markers that were on top before rebuild.
+ */
+function extractTrailingCustomMarkers(history: readonly unknown[] | undefined): string[] {
+    if (!history?.length) {
+        return [];
+    }
+    const cutoff = history.findLastIndex((entry) => typeof entry !== 'string' || !CUSTOM_HISTORY_MARKERS.has(entry));
+    return history.slice(cutoff + 1).filter((entry): entry is string => typeof entry === 'string');
+}
+
 function isReplaceFullscreenUnderRHPAction(action: RootStackNavigatorAction): action is ReplaceFullscreenUnderRHPActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP;
 }
@@ -18,8 +37,9 @@ function isRemoveFullscreenUnderRHPAction(action: RootStackNavigatorAction): act
  *
  * It maintains a `history` array mirroring the routes and handles two concerns:
  *
- * 1. **Side panel** – preserves the CUSTOM_HISTORY_ENTRY_SIDE_PANEL entry through
- *    rehydration so the side panel open/close state survives navigation state rebuilds.
+ * 1. **Custom history markers** – preserves trailing `CUSTOM_HISTORY_ENTRY_*` markers
+ *    (side panel, MFA modal navigator) through rehydration so their open/close state
+ *    survives navigation state rebuilds.
  *
  * 2. **REPLACE/REMOVE_FULLSCREEN_UNDER_RHP** - freezes the history array for these
  *    actions so that useLinking sees historyDelta=0 and does NOT push/pop any browser
@@ -41,9 +61,9 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             const state = router.getRehydratedState(partialState, configOptions);
             const stateWithInitialHistory = enhanceStateWithHistory(state);
 
-            if (state.history?.at(-1) === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
-                stateWithInitialHistory.history = [...stateWithInitialHistory.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL];
-                return stateWithInitialHistory;
+            const trailingMarkers = extractTrailingCustomMarkers(state.history);
+            if (trailingMarkers.length > 0) {
+                stateWithInitialHistory.history = [...stateWithInitialHistory.history, ...trailingMarkers];
             }
 
             return stateWithInitialHistory;

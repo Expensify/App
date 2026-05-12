@@ -5,9 +5,11 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
 import {handleInitialScreenLayout, INITIAL_SCREEN, mfaNavigationRef, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
+import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -58,6 +60,8 @@ function MultifactorAuthenticationModalNavigator() {
     const [isClosing, setIsClosing] = useState(false);
     const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const {isCancelConfirmVisible, hideCancelConfirm, confirmCancel} = useSyncMfaModalNavigatorWithHistory(isModalOpen, cancel);
+    const CancelConfirmModal = state.scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     // Mirror isModalOpen transitions during render so the slide-out animation can
     // outlast isModalOpen=false. Cleared by the close-animation completion callback.
@@ -176,6 +180,11 @@ function MultifactorAuthenticationModalNavigator() {
                     </BaseNavigationContainer>
                 </NavigationIndependentTree>
             </View>
+            <CancelConfirmModal
+                isVisible={isCancelConfirmVisible}
+                onConfirm={confirmCancel}
+                onCancel={hideCancelConfirm}
+            />
         </View>
     );
 }
