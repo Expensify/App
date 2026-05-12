@@ -4,7 +4,7 @@ import Log from '@libs/Log';
 import PressResponderContext from './PressResponderContext';
 import type {PressResponderContextValue, RegisterKind} from './PressResponderContext';
 
-type PressResponderProps = Omit<PressResponderContextValue, 'register'> & {
+type PressResponderProps = Omit<PressResponderContextValue, 'register' | 'registerRef'> & {
     children: ReactNode;
 };
 
