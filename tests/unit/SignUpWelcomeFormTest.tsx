@@ -79,7 +79,7 @@ describe('SignUpWelcomeForm', () => {
         await renderForm();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByLabelText('I agree to receive marketing texts from Expensify')).not.toBeNull();
+        expect(screen.getByLabelText('I agree to receive marketing texts from Expensify')).toBeOnTheScreen();
     });
 
     it('hides the marketing consent checkbox when login is an email', async () => {
@@ -90,7 +90,7 @@ describe('SignUpWelcomeForm', () => {
         expect(screen.queryByLabelText('I agree to receive marketing texts from Expensify')).toBeNull();
     });
 
-    it('passes marketingSmsConsent=true to signUpUser when checkbox is checked and Join is pressed', async () => {
+    it('passes hasSMSMarketingConsent=true to signUpUser when checkbox is checked and Join is pressed', async () => {
         await setCredentialsLogin(PHONE_LOGIN);
         await renderForm();
         await waitForBatchedUpdatesWithAct();
@@ -101,7 +101,7 @@ describe('SignUpWelcomeForm', () => {
         expect(signUpUserSpy).toHaveBeenCalledWith(undefined, true);
     });
 
-    it('passes marketingSmsConsent=false to signUpUser when checkbox is unchecked and Join is pressed', async () => {
+    it('passes hasSMSMarketingConsent=false to signUpUser when checkbox is unchecked and Join is pressed', async () => {
         await setCredentialsLogin(PHONE_LOGIN);
         await renderForm();
         await waitForBatchedUpdatesWithAct();
