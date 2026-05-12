@@ -1,7 +1,7 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights, Getting started, onboarding checklist]
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights, Getting started, onboarding checklist, track and budget my expenses]
 internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Spend over time, Discover, Announcements, Time-sensitive, Getting started, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
@@ -88,9 +88,11 @@ The **Getting started** section shows a checklist of key setup steps to help Wor
 This section appears only if:
 
  - The workspace is on a free trial
- - The workspace owner selected **manage my team** during setup
+ - The workspace owner selected **manage my team** or **track and budget my expenses** during setup
 
 If these conditions aren’t met, the section won’t appear.
+
+The checklist items vary based on the intent selected during onboarding. Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, and inviting an accountant.
 
 ---
 
@@ -154,7 +156,7 @@ The **Discover** section only appears until you’ve watched the demo. Once you�
 
 ## Why don’t I see the Getting started section?
 
-The **Getting started** section only appears if you selected the **manage my team** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
+The **Getting started** section only appears if you selected the **manage my team** or **track and budget my expenses** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
 
 ## Why don’t I see the Assigned cards section?
 

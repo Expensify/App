@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';

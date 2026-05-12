@@ -74,13 +74,13 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
+    getReimbursedMessage,
     getReimburserUpdateMessage,
     getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
     getReportAction,
-    getReportActionMessageFragments,
     getReportActionMessageText,
     getRequireCompanyCardsEnabledMessage,
     getRoomAvatarUpdatedMessage,
@@ -188,7 +188,6 @@ import {
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {setDownload} from '@userActions/Download';
 import {
-    deleteReportActionDraft,
     explain,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
@@ -277,7 +276,6 @@ type ContextMenuActionPayload = {
     currentUserAccountID: number;
     report: OnyxEntry<ReportType>;
     policy?: OnyxEntry<Policy>;
-    draftMessage: string;
     selection: string;
     close: () => void;
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
@@ -317,7 +315,7 @@ type ContextMenuActionPayload = {
     delegateAccountID: number | undefined;
 };
 
-type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
+type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string) => void;
 
 type RenderContent = (closePopover: boolean, payload: ContextMenuActionPayload) => React.ReactElement;
 
@@ -556,7 +554,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             (canEditReportAction(reportAction, iouTransaction) || canEditReportAction(moneyRequestAction, iouTransaction)) &&
             !isArchivedRoom &&
             !isChronosReport,
-        onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction, introSelected, betas}) => {
+        onPress: (closePopover, {reportID, reportAction, moneyRequestAction, introSelected, betas}) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
@@ -571,11 +569,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
             const editAction = () => {
-                if (!draftMessage) {
-                    saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
-                } else {
-                    deleteReportActionDraft(reportID, reportAction);
-                }
+                saveReportActionDraft(reportID, reportAction, Parser.htmlToMarkdown(getActionHtml(reportAction)));
             };
 
             if (closePopover) {
@@ -1002,7 +996,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(getMarkedReimbursedMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-                    Clipboard.setString(getReportActionMessageFragments(translate, reportAction).at(0)?.text ?? '');
+                    Clipboard.setString(getReimbursedMessage(translate, reportAction, report, currentUserPersonalDetails.accountID));
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(
                         getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report, shouldUseShortDisplayName: false}),

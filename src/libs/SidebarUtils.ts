@@ -865,6 +865,7 @@ function getOptionData({
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
+    result.chatReportID = report.chatReportID;
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;
@@ -877,6 +878,7 @@ function getOptionData({
     result.keyForList = String(report.reportID);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID;
+    result.parentReportActionID = report.parentReportActionID;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = getReportNotificationPreference(report);
     result.isAllowedToComment = canUserPerformWriteActionUtil(report, isReportArchived);
@@ -895,8 +897,11 @@ function getOptionData({
 
     const status = personalDetail?.status ?? '';
 
+    const isOneOnOneChatReport = isOneOnOneChat(report);
+    result.isOneOnOneChat = isOneOnOneChatReport;
+
     // For 1:1 DMs, add the other participant's selected timezone
-    if (isOneOnOneChat(report)) {
+    if (isOneOnOneChatReport) {
         const recipientPersonalDetail = participantPersonalDetailListExcludeCurrentUser.at(0);
         result.timezone = recipientPersonalDetail?.timezone;
     }

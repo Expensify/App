@@ -39,10 +39,10 @@ function OptionRowLHNData({
     policy,
     invoiceReceiverPolicy,
     viewMode = 'default',
+    reportID,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const styles = useThemeStyles();
-    const reportID = propsToForward.reportID;
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
     const {translate, localeCompare} = useLocalize();
@@ -207,7 +207,6 @@ function OptionRowLHNData({
             viewMode={viewMode}
             isOptionFocused={isReportFocused}
             optionItem={finalOptionItem}
-            report={fullReport}
             hasDraftComment={hasDraftComment}
             isMarkAsDone={shouldUseMarkAsDone}
         />

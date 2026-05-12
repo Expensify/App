@@ -4,7 +4,6 @@ import type {OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -18,6 +17,7 @@ import type Credentials from '@src/types/onyx/Credentials';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
 import {confirmReadyToOpenApp, openApp} from './App';
+import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
 
@@ -43,25 +43,17 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 ];
 
 /**
- * Atomically reset Onyx for a delegate-access transition while seeding two values that
- * subscribers would otherwise misinterpret on the post-clear state and double up calls
- * the caller is about to make explicitly:
+ * Atomically reset Onyx for a delegate-access transition. The IS_LOADING_APP=true
+ * seed is delegate-specific: without it, consumers observe HAS_LOADED_APP=true and
+ * IS_LOADING_APP=undefined together, which looks like a stuck app and triggers
+ * DelegateAccessHandler's recovery effect, queueing a duplicate openApp.
  *
- * - IS_LOADING_APP=true: without it, consumers observe HAS_LOADED_APP=true and
- *   IS_LOADING_APP=undefined together, which looks like a stuck app and triggers
- *   DelegateAccessHandler's recovery effect, queueing a duplicate openApp.
- * - LAST_FULL_RECONNECT_TIME=now: subscribeToFullReconnect compares this against the
- *   server-supplied NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE that lands in OpenApp's
- *   response.onyxData. Because applyHTTPSOnyxUpdates applies response.onyxData before
- *   successData, the timestamp would still be empty when the comparison runs, falsely
- *   triggering a duplicate ReconnectApp. Seeding to `now` short-circuits the subscriber
- *   until OpenApp's successData refreshes it.
+ * The reconnect-time seed is handled by clearOnyxAndSeedFullReconnect.
  */
 function clearOnyxForDelegateTransition(): Promise<void> {
-    return Onyx.multiSet({
+    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, {
         [ONYXKEYS.IS_LOADING_APP]: true,
-        [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: DateUtils.getDBTime(),
-    }).then(() => Onyx.clear([...KEYS_TO_PRESERVE_DELEGATE_ACCESS, ONYXKEYS.IS_LOADING_APP, ONYXKEYS.LAST_FULL_RECONNECT_TIME]));
+    });
 }
 
 type WithDelegatedAccess = {
