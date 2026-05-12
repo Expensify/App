@@ -3,17 +3,19 @@ import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
-import {useTableContext} from '@components/Table/TableContext';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {TableValue} from '../types';
 import buildFilterItems from './buildFilterItems';
 import type {FilterButtonItem} from './buildFilterItems';
 
 /**
  * Props for the TableFilterButtons component.
  */
-type TableFilterButtonsProps = ViewProps & {
+type TableFilterButtonsProps<DataType> = ViewProps & {
+    table: TableValue<DataType>;
+
     /** Optional custom styles for the horizontal FlatList content container. */
     contentContainerStyle?: StyleProp<ViewStyle>;
 };
@@ -66,14 +68,14 @@ type TableFilterButtonsProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableFilterButtons({contentContainerStyle, ...props}: TableFilterButtonsProps) {
+function TableFilterButtons<DataType>({table, contentContainerStyle, ...props}: TableFilterButtonsProps<DataType>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {
         filterConfig: filterConfigs,
         activeFilters: filters,
         tableMethods: {updateFilter},
-    } = useTableContext();
+    } = table;
 
     const setFilter = (key: string, value: unknown) => {
         updateFilter({key, value});

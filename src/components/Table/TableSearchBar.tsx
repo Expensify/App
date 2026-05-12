@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import SearchBar from '@components/SearchBar';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import {useTableContext} from './TableContext';
+import {TableValue} from './types';
 
 /**
  * Renders a search input that filters table data.
@@ -31,17 +31,18 @@ import {useTableContext} from './TableContext';
  * </Table>
  * ```
  */
-type TableSearchBarProps = {
+type TableSearchBarProps<DataType> = {
+    table: TableValue<DataType>;
     label: string;
     style?: StyleProp<ViewStyle>;
 };
 
-function TableSearchBar({label, style}: TableSearchBarProps) {
+function TableSearchBar<DataType>({label, style, table}: TableSearchBarProps<DataType>) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const {
         activeSearchString,
         tableMethods: {updateSearchString},
-    } = useTableContext();
+    } = table;
 
     return (
         <SearchBar
