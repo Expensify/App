@@ -34,8 +34,8 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **Itemized receipt required over** – Require itemized receipts for expenses over a specific amount.
 - **Max expense amount** – Set a per-expense spending cap (supports decimals).
 - **Max expense age (Days)** – Define how old an expense can be (whole numbers only).
-- **Cash expense default** - Choose whether cash expenses are reimbursable by default. Note: [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
-- **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
+- **Cash expense default** - Choose whether cash expenses are reimbursable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set reimbursable status on a per-merchant basis.
+- **Billable default** – Choose whether expenses are billable by default. Note: [Workspace Merchant Rules](/articles/new-expensify/workspaces/Workspace-Merchant-Rules) can also set billable status on a per-merchant basis.
 - **Require company cards for all purchases** - Flag out-of-pocket expenses that should have been made with a company card. Only available after company cards are connected to the workspace.
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
 - **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
@@ -110,7 +110,7 @@ To manage them:
 Available options:
 
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Default tax rate** – Set a default tax percentage ([Taxes](/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
 - **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
@@ -139,7 +139,7 @@ Available option:
 
 You can set workspace-wide defaults to automate categorization and tagging. 
 
-- **Default categories** – Auto-assign a category based on the merchant’s MCC (Merchant Category Code). This is configured under **Categories > Settings**, not under Rules. See [Create Expense Categories](/articles/new-expensify/workspaces/Create-expense-categories) for step-by-step instructions.
+- **Default categories** – Auto-assign a category based on the merchant’s MCC (Merchant Category Code). This is configured under **Categories > Settings**, not under Rules. See [Create Expense Categories](/articles/new-expensify/workspaces/Create-expense-categories). 
 - **Billable expenses** – Decide when tagging is required based on whether an expense is marked billable. Set this under **Tags > Settings**.
 
 **Note:** Default category and billable settings use general automation logic. If you need consistent, merchant-specific outcomes that apply across all members, use **Workspace Merchant Rules** instead.
