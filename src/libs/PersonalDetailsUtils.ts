@@ -100,6 +100,68 @@ function getDisplayNameOrDefault(
     return shouldFallbackToHidden ? hiddenTranslation : '';
 }
 
+function temporaryGetDisplayNameOrDefault({
+    passedPersonalDetails,
+    defaultValue = '',
+    shouldFallbackToHidden = true,
+    shouldAddCurrentUserPostfix = false,
+    youAfterTranslation,
+    areTranslationsLoading,
+}: {
+    passedPersonalDetails?: Partial<PersonalDetails> | null;
+    defaultValue?: string;
+    shouldFallbackToHidden?: boolean;
+    shouldAddCurrentUserPostfix?: boolean;
+    youAfterTranslation?: string;
+    areTranslationsLoading: boolean | undefined;
+}): string {
+    let temporaryHiddenTranslation = '';
+    let temporaryYouTranslation = '';
+    if (areTranslationsLoading === false) {
+        temporaryHiddenTranslation = translateLocal('common.hidden');
+        temporaryYouTranslation = translateLocal('common.you').toLowerCase();
+    }
+    let displayName = passedPersonalDetails?.displayName ?? '';
+
+    let login = passedPersonalDetails?.login ?? '';
+
+    // If the displayName starts with the merged account prefix, remove it.
+    if (regexMergedAccount.test(displayName)) {
+        // Remove the merged account prefix from the displayName.
+        displayName = displayName.replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    }
+
+    // If the displayName is not set by the user, the backend sets the displayName same as the login so
+    // we need to remove the sms domain from the displayName if it is an sms login.
+    if (Str.isSMSLogin(login)) {
+        if (displayName === login) {
+            displayName = Str.removeSMSDomain(displayName);
+        }
+        login = Str.removeSMSDomain(login);
+    }
+
+    if (shouldAddCurrentUserPostfix && !!displayName) {
+        displayName = `${displayName} (${youAfterTranslation ?? temporaryYouTranslation})`;
+    }
+
+    if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
+        displayName = CONST.CONCIERGE_DISPLAY_NAME;
+    }
+
+    if (displayName) {
+        return displayName;
+    }
+
+    if (defaultValue) {
+        return defaultValue;
+    }
+
+    if (login) {
+        return login;
+    }
+    return shouldFallbackToHidden ? temporaryHiddenTranslation : '';
+}
+
 /**
  * Given a list of account IDs (as number) it will return an array of personal details objects.
  * @param accountIDs  - Array of accountIDs
@@ -477,4 +539,5 @@ export {
     arePersonalDetailsMissing,
     areTravelPersonalDetailsMissing,
     createPersonalDetailsLookupByAccountID,
+    temporaryGetDisplayNameOrDefault,
 };
