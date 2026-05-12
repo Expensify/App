@@ -57,6 +57,7 @@ import MentionWhisperContent from './MentionWhisperContent';
 import ModifiedExpenseContent from './ModifiedExpenseContent';
 import PaymentContent from './PaymentContent';
 import PolicyChangeLogContent, {isHandledPolicyChangeLogAction} from './PolicyChangeLogContent';
+import ReceiptScanFailedContent from './ReceiptScanFailedContent';
 import ReimbursedContent from './ReimbursedContent';
 import ReimbursementDeQueuedContent from './ReimbursementDeQueuedContent';
 import ReimbursementQueuedContent from './ReimbursementQueuedContent';
@@ -286,13 +287,16 @@ function ActionContentRouter({
             />
         );
     }
-    if (isSimpleMessageAction(action)) {
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
         return (
-            <SimpleMessageContent
-                action={action}
-                report={report}
+            <ReceiptScanFailedContent
+                parentReportID={report?.parentReportID}
+                parentReportActionID={report?.parentReportActionID}
             />
         );
+    }
+    if (isSimpleMessageAction(action)) {
+        return <SimpleMessageContent action={action} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
         const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
