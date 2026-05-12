@@ -605,7 +605,7 @@ function buildOnyxDataToCleanUpAnonymousUser(): OnyxUpdate<typeof ONYXKEYS.PERSO
  * Creates an account for the new user and signs them into the application with the newly created account.
  *
  */
-function signUpUser(preferredLocale: Locale | undefined, smsMarketingConsent?: boolean) {
+function signUpUser(preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -641,8 +641,8 @@ function signUpUser(preferredLocale: Locale | undefined, smsMarketingConsent?: b
     ];
 
     const params: SignUpUserParams = {email: credentials.login, preferredLocale: preferredLocale ?? null};
-    if (smsMarketingConsent !== undefined) {
-        params.smsMarketingConsent = smsMarketingConsent;
+    if (hasSMSMarketingConsent !== undefined) {
+        params.hasSMSMarketingConsent = hasSMSMarketingConsent;
     }
 
     API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});

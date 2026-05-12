@@ -25,7 +25,7 @@ function SignUpWelcomeForm() {
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
     const isPhoneSignup = Str.isSMSLogin(credentials?.login ?? '');
-    const [marketingSmsConsent, setMarketingSmsConsent] = useState(false);
+    const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
 
     return (
         <>
@@ -33,8 +33,8 @@ function SignUpWelcomeForm() {
                 <View style={[styles.mt3]}>
                     <CheckboxWithLabel
                         label={translate('welcomeSignUpForm.marketingSMSConsent')}
-                        isChecked={marketingSmsConsent}
-                        onInputChange={(value) => setMarketingSmsConsent(!!value)}
+                        isChecked={hasSMSMarketingConsent}
+                        onInputChange={(value) => setHasSMSMarketingConsent(!!value)}
                         accessibilityLabel={translate('welcomeSignUpForm.marketingSMSConsent')}
                     />
                 </View>
@@ -47,7 +47,7 @@ function SignUpWelcomeForm() {
                     text={translate('welcomeSignUpForm.join')}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser(preferredLocale, isPhoneSignup ? marketingSmsConsent : undefined);
+                        signUpUser(preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined);
                         setReadyToShowAuthScreens(true);
                     }}
                     pressOnEnter
