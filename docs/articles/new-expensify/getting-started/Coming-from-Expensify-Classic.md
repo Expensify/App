@@ -1,65 +1,62 @@
 ---
 title: Coming from Expensify Classic
-description: Learn how familiar Expensify Classic features map to New Expensify so you can find what you need without contacting support.
-keywords: [Expensify Classic, migration, switch to New Expensify, coming from Classic, Classic to New Expensify, where did feature go, feature mapping, Classic equivalent]
-internalScope: Audience is all Expensify members transitioning from Expensify Classic to New Expensify. Covers mapping Classic concepts and features to their New Expensify equivalents. Does not cover detailed setup instructions for individual features or how to switch between Classic and New Expensify.
+description: Learn where familiar Expensify Classic features live in New Expensify so you can quickly adjust to the new navigation and workflows.
+keywords: [Expensify Classic, New Expensify, Classic to New Expensify, migration guide, where did feature go, feature mapping, switching from Classic]
+internalScope: Audience is all Expensify members transitioning from Expensify Classic to New Expensify. Covers how Classic concepts, navigation, and workflows map to New Expensify. Does not cover detailed setup instructions for individual features or how to permanently enable or disable either experience.
 ---
 
 # Coming from Expensify Classic
 
-New Expensify reimagines expense management around real-time chat and collaboration. If you're used to Expensify Classic, this guide maps the features you already know to where they live in New Expensify so you can get up to speed quickly.
+New Expensify reorganizes expense management around chat, collaboration, automation, and real-time workflows. If you're used to Expensify Classic, this guide shows where familiar features, tasks, and settings now live so you can get comfortable navigating New Expensify quickly.
+
 
 ---
 
 ## How key concepts have changed in New Expensify
 
-Some familiar Expensify Classic concepts have been renamed or reorganized in New Expensify.
+Some familiar Expensify Classic concepts have been reorganized in New Expensify to reduce navigation and make important actions easier to find.
 
-| Classic concept | New Expensify equivalent | What changed |
+Instead of separating tasks, expenses, reports, and conversations across multiple pages, New Expensify brings related activity together into more centralized workflows.
+
+| Expensify Classic | New Expensify | What changed |
 |---|---|---|
-| Reports | Individual expenses | Expenses are tracked individually rather than grouped into manual reports. Reports are auto-generated for approval. |
-| Policy | Workspace | Same functionality, renamed. |
-| Inbox (task list) | **Inbox** tab (chat-based) | Action items surface as chat messages instead of a task queue. |
-| Reports page | **Spend** tab | Where you find your expenses and financial activity. |
-| Settings > Policies | **Workspaces** tab | Workspace configuration moved to its own top-level navigation tab. |
+| **Reports** tab and **Expenses** tab | **Spend** tab | Expenses and reports now live together on the **Spend** tab. Use filters to switch between expenses, reports, reimbursements, card transactions, and other financial activity. The **Spend** tab also includes advanced search filters, pre-built reports, and custom saved reports. |
+| Inbox task list | **Home** tab and **Spend** tab | Tasks are now consolidated on the **Home** tab, with items requiring action surfaced automatically. Spend-related actions also appear directly on the **Spend** tab so you can review and take action in the same workflow. |
+| System alerts and operational issues | **Home** tab | Time-sensitive issues like broken bank connections, failed reimbursements, export errors, and other important alerts are surfaced directly on the **Home** tab so they can be resolved quickly. |
+| Separate navigation areas | Unified navigation tabs | New Expensify uses persistent navigation tabs for **Home**, **Inbox**, **Spend**, **Workspaces**, and **Account** so common actions are easier to access from anywhere in the app. |
+| Manual navigation and menu hunting | Concierge-assisted workflows | Instead of remembering where features live, you can ask Concierge questions, get guidance, or have Concierge help complete actions for you directly inside Expensify. |
 
 ---
 
-## How to find Classic features in New Expensify
+## How to find familiar Expensify Classic features in New Expensify
 
-Use the table below to locate familiar actions in New Expensify.
+Use the table below to understand how common Expensify Classic actions work in New Expensify.
 
-| I want to... | In Classic | In New Expensify |
+| I want to... | In New Expensify | You can also... |
 |---|---|---|
-| Create an expense | Reports > New Report > Add Expense | Tap the green **Receipt** button or the **➕ Create** button > **Submit expense** |
-| Submit expenses for approval | Open report > Submit | Expenses submit through your workspace's approval flow |
-| Approve expenses | Inbox > Click report > Approve | **Inbox** tab > Open expense chat > **Approve** |
-| View my expenses | Reports tab | **Spend** tab |
-| Scan a receipt | SmartScan camera icon | Tap the green **Receipt** button |
-| Split a bill | Manual expense > Split | **➕ Create** button > **Split expense** (works in any chat) |
-| Configure workspace rules | Settings > Policies > [Policy] | **Workspaces** tab > [Workspace] > settings |
-| Set up categories or tags | Policy > Categories / Tags | **Workspaces** tab > [Workspace] > **Categories** or **Tags** |
-| Connect accounting software | Policy > Connections | **Workspaces** tab > [Workspace] > **Accounting** |
-| Manage company cards | Domain > Company Cards | **Workspaces** tab > [Workspace] > **Company cards** |
-| Chat with Concierge | Concierge chat | Concierge chat (find it in your chat list on the **Home** tab) |
-| Switch back to Classic | N/A | Tap your profile picture > **Troubleshoot** > **Switch to Expensify Classic** |
-
-<!-- SCREENSHOT:
-Suggestion: Show the New Expensify navigation tabs highlighting the Home, Inbox, Spend, Workspaces, and Account tabs
-Location: After the feature mapping table
-Purpose: Helps Classic users orient themselves in the new navigation layout
--->
+| Create an expense | Tap the green **Receipt** button or select the **➕ Create** button > **Submit expense** | Ask Concierge to help create, edit, or categorize expenses for you. Learn what actions Concierge can take on [expenses](/articles/new-expensify/concierge-ai/What-Concierge-Can-Do#what-actions-concierge-can-take-on-expenses). |
+| Submit a report | Open expenses are automatically grouped into reports for approval and reimbursement based on your workspace workflow | Ask Concierge to help submit reports for you. Learn what actions Concierge can take on [reports](/articles/new-expensify/concierge-ai/What-Concierge-Can-Do#what-actions-concierge-can-take-on-reports). |
+| Approve reports | On the **Spend** tab, select the **Needs approval** filter to review reports requiring action | Review approval requests directly from highlighted tasks on the **Home** tab. |
+| View my expenses and reports | Open the **Spend** tab and use filters to switch between **Expenses** and **Reports** | Apply advanced filters, create saved searches, and use custom reporting views. Learn how to use [advanced search operators to filter and analyze expenses](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze). |
+| Scan a receipt | Tap the green **Receipt** button | Drag and drop up to 30 receipts anywhere on the **Home** or **Spend** tab. Learn how to [bulk upload multiple receipts](/articles/new-expensify/reports-and-expenses/Create-an-Expense#how-to-bulk-upload-multiple-receipts-web-only). |
+| Split an expense | Open an expense, then select the three dots **(⋮)** > **Split expense** | Split expenses evenly, by percentage, or by custom amounts. Learn how to [split expenses](/articles/new-expensify/reports-and-expenses/Split-Expenses). |
+| Chat with Concierge | Select the **Concierge** icon in the upper-right corner | Ask Concierge questions directly inside expenses, reports, or chats while you work. Learn more about the [Concierge support agent](/articles/new-expensify/concierge-ai/Support-Agent#where-to-find-concierge-support-agent). |
 
 ---
 
-## What New Expensify features have no Classic equivalent
+## What gets easier in New Expensify
 
-New Expensify introduces capabilities that did not exist in Expensify Classic.
+New Expensify introduces several workflow improvements and collaboration tools that were not available in Expensify Classic.
 
-- **Chat-first collaboration** — Comment directly on expenses, tag coworkers, and resolve questions in-thread instead of over email.
-- **Real-time updates** — See expense status changes live without refreshing.
-- **Split expenses in chat** — Split expenses with friends or coworkers directly in a conversation.
-- **Simplified navigation** — Five main tabs (**Home**, **Inbox**, **Spend**, **Workspaces**, **Account**) replace the Classic sidebar. Learn more about [Navigating New Expensify](/articles/new-expensify/getting-started/Navigating-New-Expensify).
+- **Concierge intelligence** — In Expensify Classic, you usually had to remember where features lived and navigate there manually. In New Expensify, Concierge can answer questions, guide you to the right workflow, or help complete actions directly inside the app. Learn what [Concierge can do](/articles/new-expensify/concierge-ai/What-Concierge-Can-Do).
+
+- **Chat-first collaboration** — Discuss expenses and reports directly in conversation threads, tag coworkers, resolve questions faster, and keep communication connected to the related financial activity instead of switching between tools and email.
+
+- **Consistent web and mobile experience** — Web and mobile use the same navigation structure and support the same core workflows, making it easier to move between devices. Learn how to [navigate New Expensify on web and mobile](/articles/new-expensify/getting-started/Navigating-New-Expensify).
+
+- **Split expenses directly in chat** — Split expenses with coworkers or friends directly inside conversations without needing to create separate workflows first. Learn how to [split an expense in Expensify Chat](/articles/new-expensify/reports-and-expenses/Create-an-Expense#how-to-send-a-split-expense-in-expensify-chat).
+
+- **Powerful search and analytics tools** — Use advanced search operators, saved searches, pre-built reports, and Insights dashboards to analyze expenses and financial activity more efficiently. Learn more about how to use [Insights](/articles/new-expensify/insights/How-to-Use-Insights-in-Expensify).
 
 ---
 
