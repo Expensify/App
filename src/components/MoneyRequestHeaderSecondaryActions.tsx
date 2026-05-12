@@ -52,6 +52,7 @@ import {
     navigateToDetailsPage,
     rejectMoneyRequestReason,
 } from '@libs/ReportUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
@@ -502,6 +503,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     };
 
     const applicableSecondaryActions = secondaryActions.map((action) => secondaryActionsImplementation[action]).filter((action): action is NonNullable<typeof action> => !!action);
+    const popoverUseScrollView = shouldPopoverUseScrollView(applicableSecondaryActions);
 
     if (!applicableSecondaryActions.length) {
         return null;
@@ -516,6 +518,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 shouldAlwaysShowDropdownMenu
                 customText={translate('common.more')}
                 options={applicableSecondaryActions}
+                shouldPopoverUseScrollView={popoverUseScrollView}
                 isSplitButton={false}
                 wrapperStyle={!isNarrowButton && !hasPrimaryAction ? [styles.flexGrow4] : undefined}
             />
