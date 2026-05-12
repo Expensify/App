@@ -112,9 +112,6 @@ type ActionContentRouterProps = {
     /** Whether the report action is the "Created" action of a harvest-created expense report */
     isHarvestCreatedExpenseReport: boolean;
 
-    /** The originalID component of report name value pairs (used by the Created action of harvest reports) */
-    reportNameValuePairsOriginalID?: string;
-
     /** Whether to show border for MoneyRequestReportPreviewContent */
     shouldShowBorder?: boolean;
 
@@ -145,7 +142,6 @@ function ActionContentRouter({
     isReportArchived,
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
-    reportNameValuePairsOriginalID,
     shouldShowBorder,
     isOnSearch,
     index,
@@ -156,6 +152,7 @@ function ActionContentRouter({
 
     const actionReport = originalReport ?? report;
     const actionReportID = originalReportID ?? reportID;
+    const policyID = report?.policyID;
 
     if (isIOURequestReportAction(action)) {
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
@@ -211,7 +208,7 @@ function ActionContentRouter({
         return (
             <MoneyRequestReportPreview
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                policyID={report?.policyID}
+                policyID={policyID}
                 chatReportID={reportID}
                 action={action}
                 isHovered={hovered}
@@ -232,7 +229,7 @@ function ActionContentRouter({
                 chatReportID={reportID}
                 action={action}
                 isHovered={hovered}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -257,7 +254,7 @@ function ActionContentRouter({
         return (
             <ModifiedExpenseContent
                 action={action}
-                report={report}
+                policyID={policyID}
                 originalReport={originalReport}
             />
         );
@@ -266,7 +263,7 @@ function ActionContentRouter({
         return (
             <ApprovalFlowContent
                 action={action}
-                policyID={report?.policyID}
+                policyID={policyID}
                 reportID={reportID}
                 originalReport={originalReport}
             />
@@ -276,7 +273,7 @@ function ActionContentRouter({
         return (
             <PaymentContent
                 action={action}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -311,7 +308,7 @@ function ActionContentRouter({
         return (
             <PolicyChangeLogContent
                 action={action}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -365,7 +362,7 @@ function ActionContentRouter({
             <JoinRequestContent
                 action={action}
                 actionReportID={actionReportID}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -406,7 +403,7 @@ function ActionContentRouter({
         return (
             <IssueCardMessage
                 action={action}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -428,7 +425,7 @@ function ActionContentRouter({
         return (
             <IntegrationSyncFailedMessage
                 action={action}
-                policyID={report?.policyID}
+                policyID={policyID}
             />
         );
     }
@@ -447,7 +444,7 @@ function ActionContentRouter({
         );
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
-        return <CreateHarvestReportAction reportNameValuePairsOriginalID={reportNameValuePairsOriginalID} />;
+        return <CreateHarvestReportAction reportID={reportID} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
         return <CreatedReportForUnapprovedTransactionsAction action={action} />;

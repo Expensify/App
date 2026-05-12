@@ -54,6 +54,7 @@ import {
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
     isExpenseReport,
+    isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
     isMoneyRequestReport,
@@ -215,6 +216,7 @@ function ReportActionsList({
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+    const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
 
     const backTo = route?.params?.backTo as string;
     const linkedReportActionID = route?.params?.reportActionID;
@@ -797,8 +799,7 @@ function ReportActionsList({
                         personalDetails={personalDetailsList}
                         originalReportID={originalReportID}
                         isReportArchived={isReportArchived}
-                        reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                        reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                        isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                     />
                     <ShowPreviousMessagesButton
                         reportID={report.reportID}
@@ -825,8 +826,7 @@ function ReportActionsList({
             shouldUseThreadDividerLine,
             personalDetailsList,
             isReportArchived,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
+            isHarvestCreatedExpenseReportAction,
             reportActionsFromOnyx,
             showHiddenHistory,
             hasPreviousMessages,

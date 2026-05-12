@@ -578,8 +578,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                     personalDetails={personalDetails}
                     originalReportID={originalReportID}
                     isReportArchived={isReportArchived}
-                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
+                    isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
                 />
             );
         },
@@ -595,8 +594,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             linkedReportActionID,
             personalDetails,
             isReportArchived,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
+            shouldShowHarvestCreatedAction,
         ],
     );
 
