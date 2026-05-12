@@ -16,17 +16,17 @@ type UseSubBackButtonResult = {
 };
 
 /** Sub-level back-button hook; pops one sub on press. `<Sub.BackButton>` is the opinionated `MenuItem` shape. */
-function useSubBackButton({text}: {text?: string} = {}): UseSubBackButtonResult {
+function useSubBackButton(): UseSubBackButtonResult {
     const subContext = useAssertedContext(SubContext, HOOK_NAME, '<PopoverMenu.Sub>');
     const navigation = useAssertedContext(ContentNavigationContext, HOOK_NAME, '<PopoverMenu.Content>');
     const subActions = useAssertedContext(ContentSubActionsContext, HOOK_NAME, '<PopoverMenu.Content>');
 
     const isAtActiveLevel = navigation.currentSubID === subContext.subID;
 
+    // No `text` — back buttons stay out of typeahead so "g" doesn't focus the back button on every drilled-in level.
     const row = useFocusableRow({
         componentName: HOOK_NAME,
         visible: isAtActiveLevel,
-        text,
         onActivate: () => subActions.exitSub(subContext.parentSubID),
     });
 

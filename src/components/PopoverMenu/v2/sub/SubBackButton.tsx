@@ -19,7 +19,7 @@ function SubBackButton({text}: SubBackButtonProps): React.ReactElement | null {
 
     const {translate} = useLocalize();
     const labelText = text ?? translate('common.goBack');
-    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubBackButton({text: labelText});
+    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubBackButton();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();

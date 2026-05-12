@@ -5,11 +5,11 @@ type CustomEventMethods = {
     isPropagationStopped(): boolean;
 };
 
-type CustomEvent<T extends object = object> = T & CustomEventMethods;
+type CustomEvent<T extends Record<string, unknown> = Record<string, unknown>> = T & CustomEventMethods;
 
-type CustomEventHandler<T extends object = object> = (event: CustomEvent<T>) => void;
+type CustomEventHandler<T extends Record<string, unknown> = Record<string, unknown>> = (event: CustomEvent<T>) => void;
 
-function createCustomEvent<T extends object>(data: T): CustomEvent<T> {
+function createCustomEvent<T extends Record<string, unknown>>(data: T): CustomEvent<T> {
     let defaultPrevented = false;
     let propagationStopped = false;
 
@@ -32,7 +32,7 @@ function createCustomEvent<T extends object>(data: T): CustomEvent<T> {
 }
 
 /** Variadic handler composition; later handlers stop running after one calls `event.stopPropagation()`. */
-function composeHandlers<T extends object>(...handlers: Array<CustomEventHandler<T> | undefined | null>): CustomEventHandler<T> {
+function composeHandlers<T extends Record<string, unknown>>(...handlers: Array<CustomEventHandler<T> | undefined | null>): CustomEventHandler<T> {
     return (event) => {
         for (const handler of handlers) {
             if (event.isPropagationStopped()) {
@@ -44,4 +44,4 @@ function composeHandlers<T extends object>(...handlers: Array<CustomEventHandler
 }
 
 export {createCustomEvent, composeHandlers};
-export type {CustomEvent, CustomEventHandler, CustomEventMethods};
+export type {CustomEvent, CustomEventHandler};

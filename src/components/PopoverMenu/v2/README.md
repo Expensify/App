@@ -50,7 +50,7 @@ Owns visibility state. `defaultOpen` seeds the initial open state; there is no `
 - **`<Trigger>`** — primary trigger. Render any subtree containing a `<PressableWithFeedback>`. The pressable's `onPress` (if supplied) runs *before* the popover opens; call `event.preventDefault()` synchronously inside `onPress` to gate the open.
 - **`<SecondaryInteractionTrigger>`** — long-press (native) / right-click (web). Always opens; the framework reserves `event.preventDefault()` for OS-level long-press / context-menu suppression so it cannot double as a consumer gate. Conditional opening means conditionally rendering the trigger or doing the work inside the consumer's `onSecondaryInteraction`. Web anchors at a 1×1 rect at the cursor; native at the pressable's bounding rect.
 - **`<Sub.Trigger>` / `useSubTrigger({disabled?, text?})`** — drill-down row inside `<Sub>`. The hook returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for non-`MenuItem` shapes.
-- **`<Sub.BackButton>` / `useSubBackButton({text?})`** — back row inside `<Sub.Content>`. `text` defaults to a localized "Go back". Self-gates to the active sub-level. Hook returns the same shape as `useSubTrigger`.
+- **`<Sub.BackButton text?>` / `useSubBackButton()`** — back row inside `<Sub.Content>`. The wrapper's `text` prop defaults to a localized "Go back" and drives the rendered row label. Self-gates to the active sub-level. The hook takes no params (back buttons stay out of typeahead so a "g" keypress doesn't focus the back button on every drilled-in level) and returns the same shape as `useSubTrigger`.
 
 #### Pressables that consume `PressResponderContext`
 
