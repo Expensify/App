@@ -9,7 +9,6 @@ import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/c
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import type {MultifactorAuthenticationModalNavigatorInternalParamList} from '@components/MultifactorAuthentication/mfaNavigation';
 import {handleInitialScreenLayout, INITIAL_SCREEN, mfaNavigationRef, resetMfaNavigation} from '@components/MultifactorAuthentication/mfaNavigation';
-import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,8 +45,8 @@ function TransparentScreen() {
 TransparentScreen.displayName = 'TransparentScreen';
 
 function MultifactorAuthenticationModalNavigator() {
-    const state = useMultifactorAuthenticationState();
-    const {cancel} = useMultifactorAuthentication();
+    const {isCancelConfirmVisible, isModalOpen, scenario} = useMultifactorAuthenticationState();
+    const {requestCancel, hideCancelConfirm, confirmCancel} = useMultifactorAuthentication();
     const {dispatch} = useMultifactorAuthenticationActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -55,13 +54,11 @@ function MultifactorAuthenticationModalNavigator() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {isModalOpen} = state;
     const [prevIsModalOpen, setPrevIsModalOpen] = useState(isModalOpen);
     const [isClosing, setIsClosing] = useState(false);
     const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {isCancelConfirmVisible, hideCancelConfirm, confirmCancel} = useSyncMfaModalNavigatorWithHistory(isModalOpen, cancel);
-    const CancelConfirmModal = state.scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
+    const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     // Mirror isModalOpen transitions during render so the slide-out animation can
     // outlast isModalOpen=false. Cleared by the close-animation completion callback.
@@ -121,7 +118,7 @@ function MultifactorAuthenticationModalNavigator() {
                     <PressableWithoutFeedback
                         sentryLabel={CONST.SENTRY_LABEL.MFA_OVERLAY.BACKDROP}
                         style={StyleSheet.absoluteFill}
-                        onPress={cancel}
+                        onPress={requestCancel}
                         accessibilityLabel={translate('common.close')}
                         role={CONST.ROLE.BUTTON}
                         tabIndex={-1}

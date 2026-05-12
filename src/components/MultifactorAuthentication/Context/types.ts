@@ -54,6 +54,9 @@ type MultifactorAuthenticationState = {
 
     /** Response from the scenario API call, stored for callback invocation at outcome navigation */
     scenarioResponse: MultifactorAuthenticationScenarioResponse | undefined;
+
+    /** Whether the cancel-confirmation modal triggered by a back press is currently visible */
+    isCancelConfirmVisible: boolean;
 };
 
 type InitPayload = {
@@ -75,6 +78,7 @@ type Action =
     | {type: 'SET_FLOW_COMPLETE'; payload: boolean}
     | {type: 'SET_AUTHENTICATION_METHOD'; payload: AuthTypeInfo | undefined}
     | {type: 'SET_SCENARIO_RESPONSE'; payload: MultifactorAuthenticationScenarioResponse | undefined}
+    | {type: 'SET_CANCEL_CONFIRM_VISIBLE'; payload: boolean}
     | {type: 'INIT'; payload: InitPayload}
     | {type: 'REREGISTER'}
     | {type: 'CLOSE_MODAL'}

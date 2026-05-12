@@ -10,6 +10,7 @@ import addMFABreadcrumb from '@components/MultifactorAuthentication/observabilit
 import trackMFAFlowOutcome from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import type {CredentialsState} from '@components/MultifactorAuthentication/observability/trackMFAFlowOutcome';
 import trackMFAFlowStart from '@components/MultifactorAuthentication/observability/trackMFAFlowStart';
+import useSyncMfaModalNavigatorWithHistory from '@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
@@ -35,6 +36,19 @@ type MultifactorAuthenticationContextValue = {
 
     /** Cancel the current authentication flow and navigate to failure outcome */
     cancel: () => Promise<void>;
+
+    /**
+     * Centralized back-press entry. Decides — based on current MFA state and the
+     * route shown by the modal navigator — whether to close the modal directly
+     * or surface the cancel-confirmation modal.
+     */
+    requestCancel: () => void;
+
+    /** Dismiss the cancel-confirmation modal without cancelling the flow. */
+    hideCancelConfirm: () => void;
+
+    /** Confirm cancellation — hides the modal and runs cancel(). */
+    confirmCancel: () => void;
 };
 
 const MultifactorAuthenticationContext = createContext<MultifactorAuthenticationContextValue | undefined>(undefined);
@@ -128,21 +142,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 endState,
             });
 
+            dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+
             // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself.
             // Close the modal so the overlay plays its exit animation and then resets.
             if (callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN) {
-                dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
                 dispatch({type: 'CLOSE_MODAL'});
                 return;
             }
 
-            if (isSuccessful) {
-                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS);
-            } else {
-                mfaNavigate(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
-            }
-
-            dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+            mfaNavigate(isSuccessful ? SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS : SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
         },
         [captureCredentialsState, dispatch, state],
     );
@@ -500,12 +509,36 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         });
     }, [dispatch, state.scenario, state.payload]);
 
+    const requestCancel = useCallback(() => {
+        if (state.isFlowComplete) {
+            dispatch({type: 'CLOSE_MODAL'});
+            return;
+        }
+        if (!state.scenario || isOffline) {
+            cancel();
+            return;
+        }
+        dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: true});
+    }, [cancel, dispatch, isOffline, state.isFlowComplete, state.scenario]);
+
+    const hideCancelConfirm = useCallback(() => dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: false}), [dispatch]);
+
+    const confirmCancel = useCallback(() => {
+        dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: false});
+        cancel();
+    }, [cancel, dispatch]);
+
+    useSyncMfaModalNavigatorWithHistory(state.isModalOpen, requestCancel);
+
     const contextValue: MultifactorAuthenticationContextValue = useMemo(
         () => ({
             executeScenario,
             cancel,
+            requestCancel,
+            hideCancelConfirm,
+            confirmCancel,
         }),
-        [cancel, executeScenario],
+        [cancel, executeScenario, requestCancel, hideCancelConfirm, confirmCancel],
     );
 
     return <MultifactorAuthenticationContext.Provider value={contextValue}>{children}</MultifactorAuthenticationContext.Provider>;

@@ -6,7 +6,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MagicCodeInput from '@components/MagicCodeInput';
 import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import MultifactorAuthenticationValidateCodeResendButton from '@components/MultifactorAuthentication/ValidateCodeResendButton';
@@ -48,8 +47,7 @@ function MultifactorAuthenticationValidateCodePage() {
     const [inputCode, setInputCode] = useState('');
     const [formError, setFormError] = useState<FormError>({});
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const {cancel} = useMultifactorAuthentication();
-    const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
+    const {requestCancel} = useMultifactorAuthentication();
 
     const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
@@ -201,46 +199,27 @@ function MultifactorAuthenticationValidateCodePage() {
         dispatch({type: 'SET_VALIDATE_CODE', payload: inputCode});
     };
 
-    const showCancelModal = () => {
-        if (isOffline) {
-            cancel();
-        } else {
-            setCancelModalVisibility(true);
-        }
-    };
-
-    const hideCancelModal = () => {
-        setCancelModalVisibility(false);
-    };
-
-    const cancelFlow = () => {
-        if (isCancelModalVisible) {
-            hideCancelModal();
-        }
-        cancel();
-    };
-
-    const focusTrapConfirmModal = () => {
-        setCancelModalVisibility(true);
+    // Outside-clicks and Escape route through the central cancel handler; return
+    // false to keep the focus trap intact while the confirm modal opens.
+    const interceptFocusTrapEscape = () => {
+        requestCancel();
         return false;
     };
-
-    const CancelConfirmModal = state.scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     return (
         <ScreenWrapper
             testID={MultifactorAuthenticationValidateCodePage.displayName}
             focusTrapSettings={{
                 focusTrapOptions: {
-                    allowOutsideClick: focusTrapConfirmModal,
-                    clickOutsideDeactivates: focusTrapConfirmModal,
-                    escapeDeactivates: focusTrapConfirmModal,
+                    allowOutsideClick: interceptFocusTrapEscape,
+                    clickOutsideDeactivates: interceptFocusTrapEscape,
+                    escapeDeactivates: interceptFocusTrapEscape,
                 },
             }}
         >
             <HeaderWithBackButton
                 title={translate('multifactorAuthentication.letsVerifyItsYou')}
-                onBackButtonPress={showCancelModal}
+                onBackButtonPress={requestCancel}
                 shouldShowBackButton
             />
             <FullPageOfflineBlockingView>
@@ -282,11 +261,6 @@ function MultifactorAuthenticationValidateCodePage() {
                         isDisabled={isOffline}
                     />
                 </View>
-                <CancelConfirmModal
-                    isVisible={isCancelModalVisible}
-                    onConfirm={cancelFlow}
-                    onCancel={hideCancelModal}
-                />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
