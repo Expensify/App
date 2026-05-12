@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useLayoutEffect, useRef} from 'react';
+import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
@@ -32,14 +32,19 @@ type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
 };
 
-function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
-    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryJSON ?? {};
+type SectionParams = {
+    section: SearchTypeMenuSection;
+    hash: number | undefined;
+    activeItemIndex: number;
+    sectionStartIndex: number;
+    reportCounts: NonNullable<ReturnType<typeof todosReportCountsSelector>>;
+    areAllSectionsExpanded: boolean;
+    onItemPress: (query: string) => void;
+    onExpanded: (isExpanded: boolean) => void;
+};
 
-    const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
+function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, areAllSectionsExpanded, onItemPress, onExpanded}: SectionParams) {
     const {translate} = useLocalize();
-    const {singleExecution} = useSingleExecution();
-    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Basket',
         'CalendarSolid',
@@ -56,24 +61,77 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
         'ThumbsUp',
         'CheckCircle',
     ]);
+
+    const [isExpanded, setIsExpanded] = useState(true);
+
+    return (
+        <SearchTypeMenuAccordion
+            isExpanded={isExpanded}
+            onSectionHeaderPress={() => {
+                setIsExpanded((prevIsExpanded) => {
+                    const newValue = !prevIsExpanded;
+                    onExpanded(newValue);
+                    return newValue;
+                });
+            }}
+            title={translate(section.translationPath)}
+            badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
+        >
+            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+                <SavedSearchList
+                    hash={hash}
+                    areAllSectionsExpanded={areAllSectionsExpanded}
+                />
+            ) : (
+                section.menuItems.map((item, itemIndex) => {
+                    const flattenedIndex = sectionStartIndex + itemIndex;
+                    const focused = activeItemIndex === flattenedIndex;
+                    const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
+
+                    return (
+                        <SearchTypeMenuItem
+                            key={item.key}
+                            title={translate(item.translationPath)}
+                            icon={icon}
+                            badgeText={getItemBadgeText(item.key, reportCounts)}
+                            focused={focused}
+                            onPress={() => onItemPress(item.searchQuery)}
+                        />
+                    );
+                })
+            )}
+        </SearchTypeMenuAccordion>
+    );
+}
+
+function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
+    const {hash, similarSearchHash, sortBy, sortOrder, type} = queryJSON ?? {};
+
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchActionsContext();
+    const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
     const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
 
     const route = useRoute();
     const scrollViewRef = useRef<RNScrollView>(null);
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
-    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
-        (e) => {
-            // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
-            // We should ignore this case.
-            if (e.nativeEvent.layoutMeasurement.height === 0) {
-                return;
-            }
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-        },
-        [route, saveScrollOffset],
-    );
+    const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
+        // We should ignore this case.
+        if (e.nativeEvent.layoutMeasurement.height === 0) {
+            return;
+        }
+        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+    };
+
+    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
+        clearSelectedTransactions();
+        setSearchContext(false);
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
+    });
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
@@ -90,42 +148,15 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const expenseReportsSection = typeMenuSections.find((section) => section.translationPath === 'search.tabs.expenseReports');
     const nonExpenseReportsSections = typeMenuSections.filter((section) => section.translationPath !== 'search.tabs.expenseReports');
 
-    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
-        clearSelectedTransactions();
-        setSearchContext(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
-    });
-
     const areSuggestedSearchesLoading = !isOffline && !isSearchDataLoaded && !isLoadingOnyxValue(isSearchDataLoadedResult);
 
-    const renderSection = (section: SearchTypeMenuSection, sectionIndex: number) => (
-        <SearchTypeMenuAccordion
-            key={section.translationPath}
-            title={translate(section.translationPath)}
-            badgeText={getSectionBadgeText(section.translationPath, reportCounts)}
-        >
-            {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
-                <SavedSearchList hash={hash} />
-            ) : (
-                section.menuItems.map((item, itemIndex) => {
-                    const flattenedIndex = (sectionStartIndices?.at(sectionIndex) ?? 0) + itemIndex;
-                    const focused = activeItemIndex === flattenedIndex;
-                    const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
+    const numberOfSections = nonExpenseReportsSections.length + 1;
+    const [expandedSectionCount, setExpandedSectionCount] = useState(numberOfSections);
+    const areAllSectionsExpanded = expandedSectionCount === numberOfSections;
 
-                    return (
-                        <SearchTypeMenuItem
-                            key={item.key}
-                            title={translate(item.translationPath)}
-                            icon={icon}
-                            badgeText={getItemBadgeText(item.key, reportCounts)}
-                            focused={focused}
-                            onPress={() => handleTypeMenuItemPress(item.searchQuery)}
-                        />
-                    );
-                })
-            )}
-        </SearchTypeMenuAccordion>
-    );
+    const updateExpandedCount = (isExpanded: boolean) => {
+        setExpandedSectionCount((prevExpandedCount) => prevExpandedCount + (isExpanded ? 1 : -1));
+    };
 
     return (
         <ScrollView
@@ -134,12 +165,35 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
             showsVerticalScrollIndicator={false}
         >
             <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                {!!expenseReportsSection && renderSection(expenseReportsSection, 0)}
+                {!!expenseReportsSection && (
+                    <Section
+                        section={expenseReportsSection}
+                        onItemPress={handleTypeMenuItemPress}
+                        onExpanded={updateExpandedCount}
+                        hash={hash}
+                        sectionStartIndex={0}
+                        activeItemIndex={activeItemIndex}
+                        reportCounts={reportCounts}
+                        areAllSectionsExpanded={areAllSectionsExpanded}
+                    />
+                )}
 
                 {areSuggestedSearchesLoading ? (
                     <SuggestedSearchSkeleton sectionCount={nonExpenseReportsSections.length || 2} />
                 ) : (
-                    nonExpenseReportsSections.map((section, index) => renderSection(section, index + (expenseReportsSection ? 1 : 0)))
+                    nonExpenseReportsSections.map((section, index) => (
+                        <Section
+                            key={section.translationPath}
+                            section={section}
+                            onItemPress={handleTypeMenuItemPress}
+                            onExpanded={updateExpandedCount}
+                            hash={hash}
+                            sectionStartIndex={sectionStartIndices.at(index + (expenseReportsSection ? 1 : 0)) ?? 0}
+                            activeItemIndex={activeItemIndex}
+                            reportCounts={reportCounts}
+                            areAllSectionsExpanded={areAllSectionsExpanded}
+                        />
+                    ))
                 )}
             </View>
         </ScrollView>
