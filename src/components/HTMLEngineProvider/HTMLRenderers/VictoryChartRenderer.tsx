@@ -1,3 +1,4 @@
+import JSON5 from 'json5';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
@@ -19,6 +20,8 @@ function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}
         y: 40 + 30 * Math.random(),
         z: 50,
     }));
+
+    console.log('parsed data', JSON5.parse("[ {x: 'Jan', y: 3}, {x: 'Feb', y: 5}, {x: 'Mar', y: 2}, {x: 'Apr', y: 7} ]"));
 
     window.tnode = tnode;
 
