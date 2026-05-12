@@ -1,7 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
-import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
@@ -511,6 +511,10 @@ function ReportActionsList({
     const [isInitialViewportLoading, setIsInitialViewportLoading] = useState(true);
     const mountedInitialViewportIndicesRef = useRef(new Set<number>());
     const hasInitialViewportLoadedRef = useRef(!hasInitialScrollTarget);
+    /** After we measure the anchor row and run a corrective scroll; keeps skeleton visible until then. */
+    const [hasAppliedMeasuredAnchorScroll, setHasAppliedMeasuredAnchorScroll] = useState(!hasInitialScrollTarget);
+    /** Prevents repeated corrective scrollToIndex calls when onLayout repeats. */
+    const hasCommittedMeasuredAnchorScrollRef = useRef(false);
     const initialScrollIndexViewOffset = useMemo(() => {
         if (!hasInitialScrollTarget) {
             return undefined;
@@ -536,7 +540,47 @@ function ReportActionsList({
         };
     }, [hasInitialScrollTarget, initialScrollIndex, listHeight, sortedVisibleReportActions.length]);
     const shouldRenderFlashList = !hasInitialScrollTarget || listHeight > 0;
-    const shouldShowInitialViewportSkeleton = hasInitialScrollTarget && isInitialViewportLoading;
+    const shouldShowInitialViewportSkeleton = hasInitialScrollTarget && (isInitialViewportLoading || !hasAppliedMeasuredAnchorScroll);
+
+    /** Correct initial anchor position using the laid-out row height (inverted list pins the wrong edge with viewport-only offsets). */
+    const handleInitialScrollTargetLayout = useCallback(
+        (layoutHeight: number) => {
+            if (!hasInitialScrollTarget || layoutHeight <= 0 || listHeight <= 0) {
+                return;
+            }
+
+            if (hasCommittedMeasuredAnchorScrollRef.current) {
+                return;
+            }
+
+            const flashListRef = reportScrollManager.ref?.current as FlashListRef<OnyxTypes.ReportAction> | null;
+            if (!flashListRef?.scrollToIndex) {
+                setHasAppliedMeasuredAnchorScroll(true);
+                return;
+            }
+
+            hasCommittedMeasuredAnchorScrollRef.current = true;
+
+            // Why offset shifts by measured height: `initialScrollIndex` + `-listHeight/2` aligns the flipped cell so the opposite vertical edge lands on mid-viewport.
+            const viewOffsetAlignedToTopEdge = -listHeight / 2 + layoutHeight;
+
+            requestAnimationFrame(() => {
+                flashListRef
+                    .scrollToIndex({
+                        index: initialScrollIndex,
+                        animated: false,
+                        viewOffset: viewOffsetAlignedToTopEdge,
+                    })
+                    .catch(() => {
+                        // Rare failure (e.g. index not yet mapped); dropping the skeleton avoids a stuck overlay.
+                    })
+                    .finally(() => {
+                        setHasAppliedMeasuredAnchorScroll(true);
+                    });
+            });
+        },
+        [hasInitialScrollTarget, initialScrollIndex, listHeight, reportScrollManager.ref],
+    );
 
     const [isListInitiallyLoaded, setIsListInitiallyLoaded] = useState(false);
     const handleListInitiallyLoaded = useCallback(() => {
@@ -545,8 +589,24 @@ function ReportActionsList({
     useLayoutEffect(() => {
         mountedInitialViewportIndicesRef.current.clear();
         hasInitialViewportLoadedRef.current = !hasInitialScrollTarget;
+        hasCommittedMeasuredAnchorScrollRef.current = false;
+        setHasAppliedMeasuredAnchorScroll(!hasInitialScrollTarget);
         setIsInitialViewportLoading(hasInitialScrollTarget);
     }, [hasInitialScrollTarget, initialScrollIndex, initialScrollKey, listID]);
+
+    useEffect(() => {
+        if (!hasInitialScrollTarget || hasAppliedMeasuredAnchorScroll) {
+            return undefined;
+        }
+
+        const fallbackTimer = setTimeout(() => {
+            setHasAppliedMeasuredAnchorScroll(true);
+        }, 3000);
+
+        return () => {
+            clearTimeout(fallbackTimer);
+        };
+    }, [hasAppliedMeasuredAnchorScroll, hasInitialScrollTarget, initialScrollKey, listID]);
 
     const handleReportActionsListLayout = useCallback(
         (event: LayoutChangeEvent) => {
@@ -1013,18 +1073,38 @@ function ReportActionsList({
                 </>
             );
 
-            if (target !== 'Cell' || !initialViewportRange || !isInitialViewportLoading || index < initialViewportRange.first || index > initialViewportRange.last) {
-                return reportActionListItem;
+            let cellInner: React.ReactNode = reportActionListItem;
+
+            const shouldObserveInitialViewportMount =
+                target === 'Cell' && !!initialViewportRange && isInitialViewportLoading && index >= initialViewportRange.first && index <= initialViewportRange.last;
+
+            if (shouldObserveInitialViewportMount) {
+                cellInner = (
+                    <InitialViewportItemMountObserver
+                        index={index}
+                        onMount={handleInitialViewportItemMounted}
+                    >
+                        {reportActionListItem}
+                    </InitialViewportItemMountObserver>
+                );
             }
 
-            return (
-                <InitialViewportItemMountObserver
-                    index={index}
-                    onMount={handleInitialViewportItemMounted}
-                >
-                    {reportActionListItem}
-                </InitialViewportItemMountObserver>
-            );
+            const isInitialScrollAnchorRow = target === 'Cell' && hasInitialScrollTarget && reportAction.reportActionID === initialScrollKey;
+
+            if (isInitialScrollAnchorRow) {
+                return (
+                    <View
+                        collapsable={false}
+                        onLayout={(event) => {
+                            handleInitialScrollTargetLayout(event.nativeEvent.layout.height);
+                        }}
+                    >
+                        {cellInner}
+                    </View>
+                );
+            }
+
+            return cellInner;
         },
         [
             parentReportAction,
@@ -1057,6 +1137,9 @@ function ReportActionsList({
             initialViewportRange,
             isInitialViewportLoading,
             handleInitialViewportItemMounted,
+            hasInitialScrollTarget,
+            initialScrollKey,
+            handleInitialScrollTargetLayout,
         ],
     );
 
