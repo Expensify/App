@@ -153,6 +153,7 @@ function ActionContentRouter({
     const actionReport = originalReport ?? report;
     const actionReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
+    const reportOwnerAccountID = report?.ownerAccountID;
 
     if (isIOURequestReportAction(action)) {
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
@@ -246,7 +247,7 @@ function ActionContentRouter({
         return (
             <ReimbursementDeQueuedContent
                 action={action}
-                report={report}
+                reportOwnerAccountID={reportOwnerAccountID}
             />
         );
     }
@@ -281,7 +282,7 @@ function ActionContentRouter({
         return (
             <ReimbursedContent
                 action={action}
-                report={report}
+                reportOwnerAccountID={reportOwnerAccountID}
             />
         );
     }
