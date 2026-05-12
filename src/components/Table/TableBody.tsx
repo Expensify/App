@@ -1,19 +1,17 @@
 import {FlashList} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {useTableContext} from './TableContext';
+import {SharedListProps, TableValue} from './types';
 
 /**
  * Props for the TableBody component.
  */
-type TableBodyProps = ViewProps & {
-    /** Optional custom styles for the FlashList content container. */
-    contentContainerStyle?: StyleProp<ViewStyle>;
+type TableBodyProps<DataType> = SharedListProps<DataType> & {
+    table: TableValue<DataType>;
 };
 
 /**
@@ -44,11 +42,10 @@ type TableBodyProps = ViewProps & {
  * </Table>
  * ```
  */
-function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
+function TableBody<DataType>({table, contentContainerStyle, ListEmptyComponent, ...props}: TableBodyProps<DataType>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
-    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
+    const {processedData: filteredAndSortedData, activeSearchString, hasActiveFilters, hasSearchString, isEmptyResult} = table;
 
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
@@ -77,20 +74,14 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     );
 
     return (
-        <View
-            style={styles.flex1}
+        <FlashList<DataType>
+            data={filteredAndSortedData}
+            ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
+            contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, contentContainerStyle]}
+            keyboardShouldPersistTaps="handled"
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-        >
-            <FlashList<T>
-                data={filteredAndSortedData}
-                ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, contentContainerStyle]}
-                keyboardShouldPersistTaps="handled"
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...restListProps}
-            />
-        </View>
+        />
     );
 }
 

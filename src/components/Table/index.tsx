@@ -36,7 +36,6 @@
  */
 import TableComponent from './Table';
 import TableBody from './TableBody';
-import TableContext from './TableContext';
 import TableFilterButtons from './TableFilterButtons';
 import TableHeader from './TableHeader';
 import TableRow from './TableRow';
@@ -53,9 +52,6 @@ import TableSearchBar from './TableSearchBar';
  * - `Table.SearchBar` - Search input
  */
 const Table = Object.assign(TableComponent, {
-    /** The React context for accessing table state directly. */
-    Context: TableContext,
-
     /** Renders sortable column headers. */
     Header: TableHeader,
 
@@ -73,5 +69,4 @@ const Table = Object.assign(TableComponent, {
 });
 
 export default Table;
-export type {TableContextValue} from './TableContext';
 export type * from './types';
