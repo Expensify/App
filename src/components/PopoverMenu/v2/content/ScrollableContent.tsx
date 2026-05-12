@@ -1,7 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {RootVisibilityContext} from '@components/PopoverMenu/v2/root/RootContext';
-import useHierarchyAssertion from '@components/PopoverMenu/v2/useHierarchyAssertion';
+import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 import ScrollView from '@components/ScrollView';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
@@ -19,7 +18,7 @@ const VIRTUALIZATION_RECOMMENDED_THRESHOLD = 50;
 
 /** Popover surface for bounded-but-tall menus; wraps children in a `<ScrollView>` capped at window height. */
 function ScrollableContent({contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
-    useHierarchyAssertion(ScrollableContent.displayName, RootVisibilityContext, 'Root');
+    useRootVisibility(ScrollableContent.displayName);
     if (__DEV__) {
         const childCount = React.Children.count(children);
         if (childCount > VIRTUALIZATION_RECOMMENDED_THRESHOLD) {

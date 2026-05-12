@@ -1,13 +1,12 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
-import {ContentSubActionsContext} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import type {MenuItemForwardProps} from '@components/PopoverMenu/v2/rows/types';
-import useHierarchyAssertion from '@components/PopoverMenu/v2/useHierarchyAssertion';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {SubContext} from './SubContext';
+import {useSubContext} from './SubContext';
 import useSubTrigger from './useSubTrigger';
 
 type SubTriggerOwnProps = {
@@ -21,8 +20,8 @@ type SubTriggerProps = SubTriggerOwnProps & MenuItemForwardProps;
 
 /** For non-`MenuItem` shapes, call `useSubTrigger()` directly. */
 function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconHeight, ...rest}: SubTriggerProps): React.ReactElement | null {
-    useHierarchyAssertion(SubTrigger.displayName, SubContext, 'Sub');
-    useHierarchyAssertion(SubTrigger.displayName, ContentSubActionsContext, 'Content');
+W    useSubContext(SubTrigger.displayName);
+    useContentSubActions(SubTrigger.displayName);
 
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubTrigger({disabled, text});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);

@@ -1,8 +1,7 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import {ContentSubActionsContext} from '@components/PopoverMenu/v2/content/ContentContext';
-import useHierarchyAssertion from '@components/PopoverMenu/v2/useHierarchyAssertion';
+import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import CONST from '@src/CONST';
 
 type GroupProps = {
@@ -11,7 +10,7 @@ type GroupProps = {
 
 /** Stays mounted across sub-navigation so `<Sub>` descendants don't unmount. */
 function Group({children}: GroupProps): React.ReactElement {
-    useHierarchyAssertion(Group.displayName, ContentSubActionsContext, 'Content');
+    useContentSubActions(Group.displayName);
     return <View role={CONST.ROLE.GROUP}>{children}</View>;
 }
 
