@@ -6156,6 +6156,7 @@ const translations = {
             advanced: 'Advanced',
             other: 'Other',
             syncNow: 'Sync now',
+            updateCredentials: 'Update credentials',
             disconnect: 'Disconnect',
             reinstall: 'Reinstall connector',
             disconnectTitle: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {

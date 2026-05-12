@@ -62,6 +62,7 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
+import type {ActiveIntegrationEntryPoint} from './AccountingContext/types';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
 import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
@@ -69,6 +70,7 @@ type RouteParams = {
     newConnectionName?: ConnectionName;
     integrationToDisconnect?: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
+    entryPoint?: string;
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
@@ -96,6 +98,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const newConnectionName = params?.newConnectionName;
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
+    const entryPoint: ActiveIntegrationEntryPoint | undefined = params?.entryPoint === 'credentials' ? params.entryPoint : undefined;
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
@@ -110,7 +113,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const hasAccountingConnection = hasAccountingConnections(policy);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
-    const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
+    const isSageIntacctConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT;
+    const hasAuthenticationError = !!connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
+    const shouldShowEnterCredentials = hasAuthenticationError || isSageIntacctConnection;
+    const shouldShowSyncNow = !!connectedIntegration && (!hasAuthenticationError || isSageIntacctConnection);
 
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
@@ -145,21 +151,34 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ? [
                       {
                           icon: icons.Key,
-                          text: translate('workspace.accounting.enterCredentials'),
-                          onSelected: () => startIntegrationFlow({name: connectedIntegration}),
+                          text: translate(
+                              isSageIntacctConnection ? 'workspace.accounting.updateCredentials' : 'workspace.accounting.enterCredentials',
+                          ),
+                          onSelected: () => {
+                              if (!connectedIntegration) {
+                                  return;
+                              }
+                              startIntegrationFlow({
+                                  name: connectedIntegration,
+                                  entryPoint: isSageIntacctConnection ? 'credentials' : undefined,
+                              });
+                          },
                           shouldCallAfterModalHide: true,
                           disabled: isOffline,
                           iconRight: icons.NewWindow,
                       },
                   ]
-                : [
+                : []),
+            ...(shouldShowSyncNow
+                ? [
                       {
                           icon: icons.Sync,
                           text: translate('workspace.accounting.syncNow'),
                           onSelected: () => syncConnection(policy, connectedIntegration),
                           disabled: isOffline,
                       },
-                  ]),
+                  ]
+                : []),
             {
                 icon: icons.Trashcan,
                 text: translate('workspace.accounting.disconnect'),
@@ -173,8 +192,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             icons.Key,
             icons.Sync,
             icons.Trashcan,
+            hasAuthenticationError,
+            isSageIntacctConnection,
             shouldShowEnterCredentials,
             shouldShowReinstallConnectorMenuItem,
+            shouldShowSyncNow,
             translate,
             isOffline,
             policy,
@@ -193,8 +215,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 name: newConnectionName,
                 integrationToDisconnect,
                 shouldDisconnectIntegrationBeforeConnecting,
+                entryPoint,
             });
-        }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, policy, startIntegrationFlow]),
+        }, [newConnectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, entryPoint, policy, startIntegrationFlow]),
     );
 
     useEffect(() => {

@@ -50,6 +50,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 newActiveIntegration.shouldDisconnectIntegrationBeforeConnecting,
                 undefined,
                 accountingIcons,
+                newActiveIntegration.entryPoint,
             );
             const workspaceUpgradeNavigationDetails = accountingIntegrationData?.workspaceUpgradeNavigationDetails;
             if (workspaceUpgradeNavigationDetails && !isControlPolicy(policy)) {
@@ -110,6 +111,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             undefined,
             undefined,
             accountingIcons,
+            activeIntegration.entryPoint,
         )?.setupConnectionFlow;
     };
 

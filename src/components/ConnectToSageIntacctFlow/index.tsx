@@ -7,14 +7,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+type ConnectToSageIntacctFlowEntryPoint = 'credentials';
+
 type ConnectToSageIntacctFlowProps = {
     policyID: string;
+    entryPoint?: ConnectToSageIntacctFlowEntryPoint;
 };
 
-function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
+function ConnectToSageIntacctFlow({policyID, entryPoint}: ConnectToSageIntacctFlowProps) {
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const shouldGoToEnterCredentials = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
+    const shouldGoToEnterCredentials = entryPoint === 'credentials' || isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT);
 
     useEffect(() => {
         if (shouldGoToEnterCredentials) {

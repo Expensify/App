@@ -39,6 +39,7 @@ import {
 } from './netsuite/utils';
 import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
 import type {AccountingIntegration} from './types';
+import type {ActiveIntegrationEntryPoint} from './AccountingContext/types';
 
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
@@ -51,6 +52,7 @@ function getAccountingIntegrationData(
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
     expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare', IconAsset>,
+    entryPoint?: ActiveIntegrationEntryPoint,
 ): AccountingIntegration | undefined {
     const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -58,7 +60,10 @@ function getAccountingIntegrationData(
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
         if (integrationToDisconnect) {
-            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting, entryPoint);
+        }
+        if (entryPoint) {
+            return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, undefined, undefined, entryPoint);
         }
         if (existingConnections.sageIntacct) {
             return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -235,6 +240,7 @@ function getAccountingIntegrationData(
                     <ConnectToSageIntacctFlow
                         policyID={policyID}
                         key={key}
+                        entryPoint={entryPoint}
                     />
                 ),
                 onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID)),
