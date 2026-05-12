@@ -369,6 +369,30 @@ function Search({
         requestAnimationFrame(() => setOptimisticWatchKey(latestKey));
     }, [isOptimisticTrackingCleared, optimisticWatchKey, showPendingExpensePlaceholder, transactions]);
 
+    // Split parent transactions (reportID === SPLIT_REPORT_ID) are never returned by
+    // the server in search results. Instead of clearing tracking (which removes the
+    // skeleton too early), switch the watch key to a child split transaction so the
+    // existing tracking machinery keeps the skeleton until the child appears in results.
+    useEffect(() => {
+        if (!optimisticWatchKey || isOptimisticTrackingCleared) {
+            return;
+        }
+        const watchedTx = transactions?.[optimisticWatchKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`];
+        if (watchedTx?.reportID !== CONST.REPORT.SPLIT_REPORT_ID) {
+            return;
+        }
+
+        const parentTransactionID = watchedTx.transactionID;
+        for (const [txKey, tx] of Object.entries(transactions ?? {})) {
+            if (tx?.comment?.originalTransactionID === parentTransactionID && tx.reportID !== CONST.REPORT.SPLIT_REPORT_ID) {
+                const childKey = txKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+                optimisticWatchKeyRef.current = childKey;
+                setOptimisticWatchKey(childKey);
+                return;
+            }
+        }
+    }, [optimisticWatchKey, isOptimisticTrackingCleared, transactions]);
+
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -387,7 +411,7 @@ function Search({
             ? (optimisticWatchKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`)
             : undefined;
         const optimisticTransaction = optimisticTransactionKey ? transactions?.[optimisticTransactionKey] : undefined;
-        if (!optimisticTransactionKey || !optimisticTransaction?.transactionID || searchData[optimisticTransactionKey]) {
+        if (!optimisticTransactionKey || !optimisticTransaction?.transactionID || searchData[optimisticTransactionKey] || optimisticTransaction.reportID === CONST.REPORT.SPLIT_REPORT_ID) {
             return searchData;
         }
 
