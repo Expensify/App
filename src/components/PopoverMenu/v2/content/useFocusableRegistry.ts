@@ -20,7 +20,8 @@ type UseFocusableRegistryResult = {
 function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRegistryResult {
     const [registry, setRegistry] = useState<Map<string, FocusableItem>>(() => new Map());
     const orderedIDs = useOrderedIDs(registry);
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIDs.length - 1, isActive: isVisible, initialFocusedIndex: -1});
+    const disabledIndexes = orderedIDs.flatMap((id, index) => (registry.get(id)?.isDisabled ? [index] : []));
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIDs.length - 1, isActive: isVisible, initialFocusedIndex: -1, disabledIndexes});
     // `.at(-1)` would return the last item, not "nothing focused".
     const focusedID = focusedIndex >= 0 ? (orderedIDs.at(focusedIndex) ?? null) : null;
 

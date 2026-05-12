@@ -1,11 +1,6 @@
 import type {Ref, RefCallback, RefObject} from 'react';
 
-/**
- * Assigns element reference to multiple refs. Forwards React 19 cleanup returns:
- * if any callback ref returns a cleanup function, mergeRefs returns one that
- * fans the unmount call out to every ref (calling each cleanup, or clearing
- * object refs and callback refs that didn't supply one).
- */
+/** Assigns to multiple refs. If any callback ref returns a cleanup, returns one that fans unmount out to every ref. */
 export default function mergeRefs<T = unknown>(...refs: Array<RefObject<T> | Ref<T> | undefined | null>): RefCallback<T> {
     return (value) => {
         const cleanups: Array<(() => void) | undefined> = [];

@@ -19,7 +19,7 @@ type SecondaryInteractionTriggerProps = {
     children: ReactNode;
 };
 
-/** Long-press (native) / right-click (web) variant of `<Trigger>`. */
+/** Always opens; `<PressableWithSecondaryInteraction>` reserves `event.preventDefault()` for OS-level suppression so it can't double as a consumer gate. */
 function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProps): React.ReactElement {
     const {ref, open} = useAnchorOpener(SecondaryInteractionTrigger.displayName);
     const {isVisible} = useRootVisibility(SecondaryInteractionTrigger.displayName);
@@ -28,12 +28,7 @@ function SecondaryInteractionTrigger({children}: SecondaryInteractionTriggerProp
     return (
         <PressResponder
             ref={ref}
-            onSecondaryInteraction={(event) => {
-                if (event?.defaultPrevented) {
-                    return;
-                }
-                open(getCursorRect(event));
-            }}
+            onSecondaryInteraction={(event) => open(getCursorRect(event))}
             accessibilityState={{expanded: isVisible}}
             accessibilityHasPopup={CONST.ROLE.MENU}
             nativeID={triggerID}

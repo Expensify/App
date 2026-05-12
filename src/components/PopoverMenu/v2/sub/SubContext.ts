@@ -22,7 +22,7 @@ function useSubContextOptional(): SubContextValue | null {
     return use(SubContext);
 }
 
-function useIsAtActiveLevel(componentName: string): boolean {
+function useIsAtActiveLevel(componentName = 'useIsAtActiveLevel'): boolean {
     const {currentSubID} = useContentNavigation(componentName);
     const subContext = useSubContextOptional();
     return currentSubID === (subContext?.subID ?? null);

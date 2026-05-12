@@ -22,7 +22,6 @@ type ItemOwnProps = {
 
 type ItemProps = ItemOwnProps & MenuItemForwardProps;
 
-/** Standard selectable menu row. */
 function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: ItemProps): React.ReactElement | null {
     useContentClose(Item.displayName);
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled, text});

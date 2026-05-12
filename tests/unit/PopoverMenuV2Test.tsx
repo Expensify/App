@@ -627,7 +627,16 @@ describe('PopoverMenu V2', () => {
             );
             expect(screen.getByTestId('secondary-icon')).toBeOnTheScreen();
             onOpenChange.mockClear();
-            fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', {preventDefault: () => {}});
+            // Production-realistic event: PressableWithSecondaryInteraction calls preventDefault unconditionally
+            // (native long-press) and via preventDefaultContextMenu (web right-click) before the chained handler runs.
+            const longPressEvent = {
+                defaultPrevented: false,
+                preventDefault() {
+                    longPressEvent.defaultPrevented = true;
+                },
+            };
+            fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', longPressEvent);
+            expect(longPressEvent.defaultPrevented).toBe(true);
             expect(onOpenChange).toHaveBeenCalledWith(true);
         });
 
@@ -658,7 +667,7 @@ describe('PopoverMenu V2', () => {
             expect(order).toEqual(['consumer', 'open']);
         });
 
-        it('skips opening when the slotted child calls event.preventDefault()', () => {
+        it('still opens when the slotted child calls event.preventDefault() (framework reserves preventDefault for OS suppression)', () => {
             const onOpenChange = jest.fn();
             const consumerOnSecondary = jest.fn((event: {preventDefault: () => void}) => event.preventDefault());
             render(
@@ -687,7 +696,7 @@ describe('PopoverMenu V2', () => {
             fireEvent(screen.getByTestId('secondary-trigger'), 'longPress', longPressEvent);
             expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
             expect(longPressEvent.defaultPrevented).toBe(true);
-            expect(onOpenChange).not.toHaveBeenCalledWith(true);
+            expect(onOpenChange).toHaveBeenCalledWith(true);
         });
 
         it('warns when descendant pressable does not match the published gesture kind', () => {
@@ -1579,7 +1588,7 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('B item')).toBeUndefined();
         });
 
-        // Mutation-tested: swap `currentSubIDRef.current` for `currentSubID` in `useSubNavigation` and this test fails.
+        // Mutation-tested: `useSubNavigation`'s `unregisterSub` must read the latest `pathStack` via functional `setState` — closure-capturing it makes this test fail.
         it('pops to parent when only the nested <Sub> unmounts (parent stays mounted)', () => {
             const captured: Array<string | null> = [];
             function NavProbe() {
@@ -1623,7 +1632,7 @@ describe('PopoverMenu V2', () => {
             menuItemPropsCapture.current = [];
             tree.rerender(<NestedTree showInner={false} />);
 
-            // Cascade walks parentLinks to the nearest still-mounted ancestor (A), NOT to root.
+            // Cascade pops the path-stack tail past unmounted entries to the nearest still-mounted ancestor (A), NOT to root.
             expect(captured.at(-1)).toBe('A');
         });
 
@@ -1771,7 +1780,7 @@ describe('PopoverMenu V2', () => {
             expect(findItemByTitle('Inner')?.focused).toBe(false);
         });
 
-        // Guards `Sub`'s useLayoutEffect cleanup + `ContentActions` identity stability across unrelated re-renders.
+        // Guards `Sub`'s useLayoutEffect cleanup + `ContentSubActions` identity stability across unrelated re-renders.
         it('stays in the sub when focus changes inside it (re-render stability)', () => {
             render(
                 <Harness initialOpen>

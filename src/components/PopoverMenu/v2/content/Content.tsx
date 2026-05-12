@@ -10,7 +10,6 @@ type ContentProps = BasePopoverProps;
 /** Popover surface for menus that fit; for unbounded row counts, use `<ScrollableContent>`. */
 function Content(props: ContentProps): React.ReactElement | null {
     const {isVisible} = useRootVisibility(Content.displayName);
-    // ScrollableContent skips this — the user opts into space scrolling the inner content.
     useSuppressSpaceScroll(isVisible);
 
     const maxHeightStyle = useMaxHeightStyle();
