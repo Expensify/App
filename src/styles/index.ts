@@ -630,7 +630,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textVersion: {
-            color: theme.iconColorfulBackground,
+            color: colors.yellow800,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightNormal,
             ...FontUtils.fontFamily.platform.MONOSPACE,
