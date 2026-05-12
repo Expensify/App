@@ -1,5 +1,6 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {IOURequestType, ReplaceReceipt, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
 import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
@@ -198,8 +199,8 @@ type GeometryType = 'LineString';
 
 /** Geometry data */
 type Geometry = {
-    /** Matrix of points, indexed by their coordinates */
-    coordinates: number[][] | null;
+    /** Matrix of points, indexed by their coordinates, GPS trip is represented as a 3 dimensional array to support multiple routes in a single trip */
+    coordinates: number[][] | number[][][] | null;
 
     /** Type of connections between coordinates */
     type?: GeometryType;

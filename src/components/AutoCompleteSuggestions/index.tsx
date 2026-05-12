@@ -7,6 +7,7 @@ import useWindowDimensionsForAutoCompleteSuggestions from '@hooks/useWindowDimen
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import CONST from '@src/CONST';
 import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
+import getLeftOffset from './getSuggestionsLeftOffset';
 import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
 
 const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean, isInLandscapeMode: boolean): number => {
@@ -50,13 +51,6 @@ const initialContainerState = {
     cursorCoordinates: {x: 0, y: 0},
 };
 
-function getLeftOffset(x: number, leftInset: number, bigScreenLeftOffset: number, shouldUseNarrowLayout: boolean, isInLandscapeMode: boolean): number {
-    if (shouldUseNarrowLayout) {
-        return isInLandscapeMode ? x - leftInset : x;
-    }
-    return bigScreenLeftOffset;
-}
-
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
  * we need to prevent focus shifting to avoid blurring the main input (which makes the suggestions picker close and fires the onSelect callback).
@@ -78,7 +72,6 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const insets = useSafeAreaInsets();
     const {keyboardHeight, isKeyboardAnimatingRef} = useKeyboardState();
     const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getPlatformSafeAreaPadding(insets ?? undefined);
-    const {left: leftInset} = insets;
 
     useEffect(() => {
         const container = containerRef.current;
@@ -136,7 +129,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                     topInset,
                 });
 
-            const newLeftOffset = getLeftOffset(x, leftInset, bigScreenLeftOffset, shouldUseNarrowLayout, isInLandscapeMode);
+            const newLeftOffset = getLeftOffset(x, insets, bigScreenLeftOffset, shouldUseNarrowLayout, width, windowWidth, isInLandscapeMode);
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
             const isAdjustmentNeeded = Math.abs(prevLeftValue.current - bigScreenLeftOffset) > 150;
             if (isInitialRender.current || isAdjustmentNeeded || prevIsInLandscapeModeValue.current !== isInLandscapeMode) {
@@ -179,7 +172,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
         topInset,
         isKeyboardAnimatingRef,
         isInLandscapeMode,
-        leftInset,
+        insets,
     ]);
 
     // Prevent rendering if container dimensions are not set or if we have no suggestions

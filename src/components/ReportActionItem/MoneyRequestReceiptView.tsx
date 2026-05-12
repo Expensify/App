@@ -40,11 +40,10 @@ import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction, wasActionTakenByCurrentUser} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
-    canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getCreationReportErrors,
     isInvoiceReport,
@@ -173,6 +172,8 @@ function MoneyRequestReceiptView({
     const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
 
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+
     // Browsers don't fire mouseenter when an element mounts under the cursor
     useEffect(() => {
         if (isLoading) {
@@ -196,7 +197,7 @@ function MoneyRequestReceiptView({
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, moneyRequestReport, policy) && isEditable;
+    const isActionTakenByCurrentUser = isMoneyRequestAction(parentReportAction) && wasActionTakenByCurrentUser(parentReportAction);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -275,7 +276,7 @@ function MoneyRequestReceiptView({
                 const violationMessage = ViolationsUtils.getViolationTranslation({
                     violation,
                     translate,
-                    canEdit,
+                    canEdit: isActionTakenByCurrentUser && isEditable,
                     companyCardPageURL,
                     connectionLink,
                     card,
@@ -290,7 +291,7 @@ function MoneyRequestReceiptView({
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit]);
+    }, [transactionViolations, translate, isActionTakenByCurrentUser, isEditable, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -442,7 +443,14 @@ function MoneyRequestReceiptView({
             return;
         }
         const source = URL.createObjectURL(file as Blob);
-        replaceReceipt({transactionID: linkedTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+        replaceReceipt({
+            transactionID: linkedTransactionID,
+            file: file as File,
+            source,
+            transactionPolicy: policy,
+            transactionPolicyCategories: policyCategories,
+            transactionPolicyTagList: policyTagList,
+        });
     };
 
     // For empty receipt should be fullHeight

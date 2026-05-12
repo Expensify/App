@@ -273,7 +273,6 @@ function getOnyxTargetTransactionData({
             policy,
             policyTagList: policyTags,
             // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             reportPolicyTags: getPolicyTagsData(targetTransactionThreadParentReport?.policyID),
             policyCategories,
             violations: targetTransactionViolations ?? [],
