@@ -14,10 +14,17 @@ import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
+    const DATA = Array.from({length: 31}, (_, i) => ({
+        x: i,
+        y: 40 + 30 * Math.random(),
+    }));
+
+    console.log(tnode);
+
     return (
-        <View style={{height: 300}}>
+        <View style={{height: 200, width: 200}}>
             <CartesianChart
-                data={[]}
+                data={DATA}
                 xKey="x"
                 yKeys={['y']}
             >
