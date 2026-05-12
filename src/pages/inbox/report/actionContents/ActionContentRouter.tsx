@@ -154,6 +154,9 @@ function ActionContentRouter({
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
 
+    const actionReport = originalReport ?? report;
+    const actionReportID = originalReportID ?? reportID;
+
     if (isIOURequestReportAction(action)) {
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
         // If originalMessage.iouReportID is set, this is a 1:1 IOU expense in a DM chat whose reportID is report.chatReportID
@@ -361,8 +364,7 @@ function ActionContentRouter({
         return (
             <JoinRequestContent
                 action={action}
-                reportID={reportID}
-                originalReportID={originalReportID}
+                actionReportID={actionReportID}
                 policyID={report?.policyID}
             />
         );
@@ -382,8 +384,7 @@ function ActionContentRouter({
             <ReportMentionWhisperContent
                 action={action}
                 reportID={reportID}
-                report={report}
-                originalReport={originalReport}
+                actionReport={actionReport}
                 isReportArchived={isReportArchived}
             />
         );
@@ -393,8 +394,7 @@ function ActionContentRouter({
             <ConfirmWhisperContent
                 action={action}
                 reportID={reportID}
-                report={report}
-                originalReport={originalReport}
+                actionReport={actionReport}
                 originalReportID={originalReportID}
             />
         );
@@ -475,7 +475,8 @@ function ActionContentRouter({
         <ChatMessageContent
             action={action}
             report={report}
-            originalReport={originalReport}
+            actionReport={actionReport}
+            actionReportID={actionReportID}
             reportID={reportID}
             originalReportID={originalReportID}
             displayAsGroup={displayAsGroup}

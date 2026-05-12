@@ -36,13 +36,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 type ChatActionableButtonsProps = {
     action: OnyxTypes.ReportAction;
-    report: OnyxEntry<OnyxTypes.Report>;
-    originalReport: OnyxEntry<OnyxTypes.Report>;
+    actionReport: OnyxEntry<OnyxTypes.Report>;
+    actionReportID: string | undefined;
     reportID: string | undefined;
-    originalReportID: string;
 };
 
-function ChatActionableButtons({action, report, originalReport, reportID, originalReportID}: ChatActionableButtonsProps) {
+function ChatActionableButtons({action, actionReport, actionReportID, reportID}: ChatActionableButtonsProps) {
     const styles = useThemeStyles();
     const personalDetail = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
@@ -72,7 +71,6 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
             ];
         }
 
-        const reportActionReport = originalReport ?? report;
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
             if (!options) {
@@ -83,7 +81,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 return [];
             }
 
-            if (!reportActionReport) {
+            if (!actionReport) {
                 return [];
             }
 
@@ -92,7 +90,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     resolveConciergeCategoryOptions(
-                        reportActionReport,
+                        actionReport,
                         reportID,
                         action.reportActionID,
                         option,
@@ -114,7 +112,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 return [];
             }
 
-            if (!reportActionReport) {
+            if (!actionReport) {
                 return [];
             }
 
@@ -123,7 +121,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
                 onPress: () => {
                     resolveConciergeDescriptionOptions(
-                        reportActionReport,
+                        actionReport,
                         reportID,
                         action.reportActionID,
                         option,
@@ -135,7 +133,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
             }));
         }
         const messageHtml = getReportActionMessage(action)?.html;
-        if (messageHtml && reportActionReport) {
+        if (messageHtml && actionReport) {
             const followups = parseFollowupsFromHtml(messageHtml);
             if (followups && followups.length > 0) {
                 return followups.map((followup) => ({
@@ -144,7 +142,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                     key: `${action.reportActionID}-followup-${followup.text}`,
                     onPress: () => {
                         resolveSuggestedFollowup(
-                            reportActionReport,
+                            actionReport,
                             reportID,
                             action,
                             followup,
@@ -159,9 +157,8 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
         }
 
         if (isActionableTrackExpense(action)) {
-            const reportActionReportID = originalReportID ?? reportID;
             const baseDraftTransactionParams = {
-                reportID: reportActionReportID,
+                reportID: actionReportID,
                 reportActionID: action.reportActionID,
                 introSelected,
                 draftTransactionIDs,
@@ -199,7 +196,7 @@ function ChatActionableButtons({action, report, originalReport, reportID, origin
                 text: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
                 onPress: () => {
-                    dismissTrackExpenseActionableWhisper(reportActionReportID, action);
+                    dismissTrackExpenseActionableWhisper(actionReportID, action);
                 },
             });
             return options;
