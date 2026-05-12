@@ -314,7 +314,8 @@ function ReportActionsList({
 
     const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction), [parentReportAction]);
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
-    const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
+    const shouldBeAlignedToTop = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
+    const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
     const renderedVisibleReportActions = useMemo(() => {
         if (!draftReportAction) {
@@ -898,7 +899,7 @@ function ReportActionsList({
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount && styles.justifyContentEnd]}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldBeAlignedToTop && styles.justifyContentEnd]}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={handleStartReached}
