@@ -68,7 +68,11 @@ const FAKE_ACCOUNT_ID = 1;
 
 const FAKE_UNREPORTED_REPORT_ID = CONST.REPORT.UNREPORTED_REPORT_ID;
 
-const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
+const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction) => {
+    // ConfirmationFieldList reads transaction from Onyx; seed it so child fields receive the same value the test sets up.
+    await act(async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+    });
     const defaultProps = {
         action: CONST.IOU.ACTION.CREATE,
         iouType: CONST.IOU.TYPE.TRACK,
@@ -167,7 +171,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -199,7 +203,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -222,7 +226,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -254,7 +258,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
@@ -286,7 +290,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
         });
         initOnyxDerivedValues();
 
-        renderMoneyRequestConfirmationListFooter(mockTransactionReport);
+        await renderMoneyRequestConfirmationListFooter(mockTransactionReport);
 
         await waitForBatchedUpdatesWithAct();
 
