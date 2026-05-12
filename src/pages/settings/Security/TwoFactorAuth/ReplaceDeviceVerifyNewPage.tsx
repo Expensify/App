@@ -13,13 +13,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getContactMethod} from '@libs/UserUtils';
 import {clearAccountMessages, replaceTwoFactorDevice} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import TwoFactorAuthSecretDisplay from './TwoFactorAuthSecretDisplay';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
@@ -54,7 +53,7 @@ function ReplaceDeviceVerifyNewPage() {
         if (!account || account.twoFactorAuthSecretKey) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path, ROUTES.SETTINGS_SECURITY), {forceReplace: true});
+        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS, {forceReplace: true});
     }, [account, account?.twoFactorAuthSecretKey]);
 
     const handleInputFocus = () => {

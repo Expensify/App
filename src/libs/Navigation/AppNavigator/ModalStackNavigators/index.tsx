@@ -123,6 +123,9 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: {
         animationTypeForReplace: 'push',
     },
+    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
+        animationTypeForReplace: 'push',
+    },
 };
 
 /**
@@ -991,6 +994,7 @@ const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<TwoFactor
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicVerifyPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthVerifyAccountPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DynamicSuccessPage').default,
+    [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLED]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisabledPage').default,
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/DisablePage').default,
     [SCREENS.TWO_FACTOR_AUTH.REPLACE_VERIFY_OLD]: () => require<ReactComponentModule>('../../../../pages/settings/Security/TwoFactorAuth/ReplaceDeviceVerifyOldPage').default,
