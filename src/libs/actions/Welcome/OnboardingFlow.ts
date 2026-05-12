@@ -8,6 +8,7 @@ import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFro
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {isSmbQualifier, isVsbQualifier} from '@libs/SignupQualifierUtils';
 import type {Video} from '@userActions/Report';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -110,14 +111,19 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
-    const isVsb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-    const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
-    const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
+    const qualifier = currentOnboardingValues?.signupQualifier;
+    const isVsb = isVsbQualifier(qualifier);
+    const isSmb = isSmbQualifier(qualifier);
+    const isIndividual = qualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     const isCurrentOnboardingPurposeManageTeam = currentOnboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
-        Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
+        // Pre-set the company size to match what the user selected on the landing page so the
+        // stored data matches their stated team size. Granular VSB_1_4 maps to MICRO_SMALL ("1-4");
+        // legacy VSB ("1-9") still maps to MICRO ("1-10") because that's the closest legacy bucket.
+        const preselectedCompanySize = qualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB_1_4 ? CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL : CONST.ONBOARDING_COMPANY_SIZE.MICRO;
+        Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, preselectedCompanySize);
     }
     if (isSmb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);

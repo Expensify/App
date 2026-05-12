@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
+import {isSmbQualifier, isVsbQualifier} from '@libs/SignupQualifierUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
@@ -45,8 +46,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const isValidated = isCurrentUserValidated(loginList, session?.email);
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
-    const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-    const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const isVsb = isVsbQualifier(onboardingValues?.signupQualifier);
+    const isSmb = isSmbQualifier(onboardingValues?.signupQualifier);
 
     const sendValidateCode = useCallback(() => {
         if (!email) {

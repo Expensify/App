@@ -121,4 +121,30 @@ describe('OnboardingEmployees Page', () => {
 
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('should keep 5-10 visible but hide 1-4 when the signupQualifier is smb-5-plus', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB_5_PLUS,
+            });
+        });
+
+        const {unmount} = renderOnboardingEmployeesPage(SCREENS.ONBOARDING.EMPLOYEES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL}`))).not.toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM}`))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.SMALL}`))).toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal(`onboarding.employees.${CONST.ONBOARDING_COMPANY_SIZE.MICRO}`))).not.toBeOnTheScreen();
+        });
+
+        unmount();
+
+        await waitForBatchedUpdatesWithAct();
+    });
 });

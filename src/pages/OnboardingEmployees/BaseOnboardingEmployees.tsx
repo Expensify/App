@@ -36,13 +36,26 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const companySizeOptions: OnboardingListItem[] = useMemo(() => {
-        const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+        const qualifier = onboardingValues?.signupQualifier;
+        // Legacy SMB ("10+") users have already self-identified as a team of 10 or more,
+        // so hide both small-team options. SMB_5_PLUS users said "5+", so 5-10 is still
+        // a valid choice and only 1-4 should be hidden.
+        const isLegacySmb = qualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+        const isSmb5Plus = qualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB_5_PLUS;
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
-            .filter(
-                (size) =>
-                    // Always hide the deprecated 1-10 option. For SMB-qualified users, also hide 1-4 and 5-10 since they already indicated they manage a team.
-                    size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && (!isSmb || (size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM)),
-            )
+            .filter((size) => {
+                // Always hide the deprecated 1-10 bucket from new selections.
+                if (size === CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+                    return false;
+                }
+                if (isLegacySmb && (size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL || size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM)) {
+                    return false;
+                }
+                if (isSmb5Plus && size === CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL) {
+                    return false;
+                }
+                return true;
+            })
             .map((companySize): OnboardingListItem => {
                 return {
                     text: translate(`onboarding.employees.${companySize}`),

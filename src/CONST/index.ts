@@ -134,8 +134,18 @@ const createExpenseOnboardingChoices = {
 
 const signupQualifiers = {
     INDIVIDUAL: 'individual',
+
+    // Legacy two-bucket landing page values. VSB historically meant "1-9 employees"
+    // and SMB meant "10+". Kept forever for accounts created before the granular
+    // brackets shipped — historical analytics and stored NVPs depend on them.
     VSB: 'vsb',
     SMB: 'smb',
+
+    // Granular landing page values. VSB_1_4 means "1-4 employees" and
+    // SMB_5_PLUS means "5+ employees". Old App clients fall back to the default
+    // onboarding flow (full company size list) when they encounter these strings.
+    VSB_1_4: 'vsb-1-4',
+    SMB_5_PLUS: 'smb-5-plus',
 } as const;
 
 type NoneAccountingKey = 'none';

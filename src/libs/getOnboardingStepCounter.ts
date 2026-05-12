@@ -54,9 +54,13 @@ const purposeSuffixes = {
 } satisfies Record<ValueOf<typeof ONBOARDING_CHOICES>, OnboardingScreen[]>;
 
 // VSB/SMB have fixed suffixes; individual (null) is handled via purposeSuffixes.
+// VSB_1_4 follows the same flow as legacy VSB (the company size is pre-set so the
+// employees step is skipped). SMB_5_PLUS follows the same flow as legacy SMB.
 const qualifierSuffixes = {
     [ONBOARDING_SIGNUP_QUALIFIERS.VSB]: [ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
+    [ONBOARDING_SIGNUP_QUALIFIERS.VSB_1_4]: [ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
     [ONBOARDING_SIGNUP_QUALIFIERS.SMB]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
+    [ONBOARDING_SIGNUP_QUALIFIERS.SMB_5_PLUS]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
     [ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL]: null,
 } satisfies Record<ValueOf<typeof ONBOARDING_SIGNUP_QUALIFIERS>, OnboardingScreen[] | null>;
 
