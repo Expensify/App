@@ -1,4 +1,5 @@
-import React, {useEffect, useRef} from 'react';
+import {useCardAnimation} from '@react-navigation/stack';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -22,33 +23,17 @@ type BaseOverlayProps = {
     positionRightValue?: number | Animated.Value | Animated.AnimatedAddition<number>;
 };
 
-// Quick scrim fade — short enough to feel snappy alongside the instant card mount, long enough to avoid the harsh 0→1 snap.
-const OVERLAY_FADE_DURATION_MS = 120;
-
 // The default value of positionLeftValue is equal to -2 * variables.sideBarWidth, because we need to stretch the overlay to cover the sidebar and the translate animation distance.
 function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.sideBarWidth, positionRightValue = 0}: BaseOverlayProps) {
     const styles = useThemeStyles();
+    const {current} = useCardAnimation();
     const {translate} = useLocalize();
-    const fadeProgress = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        const animation = Animated.timing(fadeProgress, {
-            toValue: 1,
-            duration: OVERLAY_FADE_DURATION_MS,
-            useNativeDriver: false,
-        });
-        animation.start();
-        return () => {
-            animation.stop();
-            fadeProgress.setValue(0);
-        };
-    }, [fadeProgress]);
 
     return (
         <Animated.View
             id="BaseOverlay"
             aria-hidden
-            style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? fadeProgress, positionLeftValue, positionRightValue})]}
+            style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue})]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>
                 {/* In the latest Electron version buttons can't be both clickable and draggable.
