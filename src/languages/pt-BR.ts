@@ -504,8 +504,8 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: 'Recolher raciocínio',
         expandReasoning: 'Expandir raciocínio',
         enableNotifications: {
-            prompt: 'Receba uma notificação quando o Concierge responder.',
-            cta: 'Me avise',
+            prompt: 'Quer ser notificado quando o Concierge responder?',
+            cta: 'Notificar',
         },
     },
     supportalNoAccess: {

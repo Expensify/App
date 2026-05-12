@@ -526,8 +526,8 @@ const translations = {
         collapseReasoning: 'Collapse reasoning',
         expandReasoning: 'Expand reasoning',
         enableNotifications: {
-            prompt: 'Get notified when Concierge responds.',
-            cta: 'Notify me',
+            prompt: 'Want to be notified when Concierge responds?',
+            cta: 'Notify',
         },
     },
     supportalNoAccess: {

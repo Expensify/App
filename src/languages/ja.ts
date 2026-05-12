@@ -505,7 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: '推論を折りたたむ',
         expandReasoning: '推論を展開',
         enableNotifications: {
-            prompt: 'Conciergeからの返信を通知で受け取りましょう。',
+            prompt: 'Conciergeからの返信を通知で受け取りますか？',
             cta: '通知する',
         },
     },

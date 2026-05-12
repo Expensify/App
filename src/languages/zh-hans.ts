@@ -501,8 +501,8 @@ const translations: TranslationDeepObject<typeof en> = {
         collapseReasoning: '收起推理',
         expandReasoning: '展开推理',
         enableNotifications: {
-            prompt: '当 Concierge 回复时获取通知。',
-            cta: '通知我',
+            prompt: '当 Concierge 回复时是否接收通知？',
+            cta: '通知',
         },
     },
     supportalNoAccess: {
