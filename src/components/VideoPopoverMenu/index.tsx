@@ -6,7 +6,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import CONST from '@src/CONST';
 
-/** Must be rendered inside a `<Root>` from `@components/PopoverMenu/v2`. */
 function VideoPopoverMenu() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -27,7 +26,7 @@ function VideoPopoverMenu() {
                     onSelect={downloadAttachment}
                 />
             )}
-            <Sub>
+            <Sub id="playbackSpeed">
                 <Sub.Trigger
                     text={playbackSpeedLabel}
                     icon={icons.Meter}
