@@ -48,6 +48,14 @@ function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: s
         }
     }
 
+    // Reset local activation state when leaving Concierge so a fresh boundary
+    // is captured on next visit. Without this, the reused route component would
+    // keep prevShouldActivate=true and skip re-activation.
+    if (prevShouldActivate && !shouldActivate) {
+        setPrevShouldActivate(false);
+        setMainDMSessionStartTime(null);
+    }
+
     // Clear persisted state only when a focused, non-side-panel view navigates
     // away from Concierge. Without the isFocused guard, an RHP report mounting
     // in the background would wipe the active Concierge session.
