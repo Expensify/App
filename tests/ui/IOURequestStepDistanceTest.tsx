@@ -11,6 +11,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import IOURequestStepDistance from '@pages/iou/request/step/IOURequestStepDistance';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type * as IOU from '../../src/libs/actions/IOU';
@@ -452,5 +453,95 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         expect(distanceInputs.length).toBeGreaterThan(0);
         const saveButtons = screen.getAllByText('common.save');
         expect(saveButtons.length).toBeGreaterThan(0);
+    });
+});
+
+describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)', () => {
+    const Navigation = jest.requireMock<{navigate: jest.Mock; getActiveRoute: jest.Mock}>('@libs/Navigation/Navigation');
+
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        Navigation.getActiveRoute.mockReturnValue('');
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
+    it('uses the explicit step-distance route as backTo in the edit flow (the tab navigator would otherwise add a tab suffix that breaks goBack)', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const report = createTestReport();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, createDistanceTransaction());
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        const startWaypoint = screen.getByAccessibilityHint(/123 Main St/);
+        fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(
+                CONST.IOU.ACTION.EDIT,
+                CONST.IOU.TYPE.SUBMIT,
+                TRANSACTION_ID,
+                REPORT_ID,
+                '0',
+                ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID),
+            ),
+        );
+    });
+
+    it('uses the current active route as backTo in the create flow (no tab navigator, so the production getActiveRoute path is correct)', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const report = createTestReport();
+        const activeRoute = ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID);
+        Navigation.getActiveRoute.mockReturnValue(activeRoute);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, createDistanceTransaction());
+            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <CurrentUserPersonalDetailsProvider>
+                    <IOURequestStepDistance
+                        route={{
+                            key: 'Money_Request_Step_Distance-test',
+                            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
+                            params: {
+                                action: CONST.IOU.ACTION.CREATE as never,
+                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                reportID: REPORT_ID,
+                                transactionID: TRANSACTION_ID,
+                                backTo: undefined as never,
+                            },
+                        }}
+                        // @ts-expect-error minimal navigation for test
+                        navigation={undefined}
+                    />
+                </CurrentUserPersonalDetailsProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        const startWaypoint = screen.getByAccessibilityHint(/123 Main St/);
+        fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID, '0', activeRoute),
+        );
     });
 });

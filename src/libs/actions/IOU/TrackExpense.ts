@@ -105,10 +105,11 @@ import type {Receipt, ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from './DeleteMoneyRequest';
 import type {ReplaceReceipt, StartSplitBilActionParams} from './index';
-import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags, getSearchOnyxUpdate} from './index';
+import {getAllReports, getAllTransactionDrafts, getAllTransactions, getAllTransactionViolations, getMoneyRequestPolicyTags} from './index';
 import {buildMinimalTransactionForFormula, getMoneyRequestInformation, getReceiptError, getReportPreviewAction, getTransactionWithPreservedLocalReceiptSource} from './MoneyRequestBuilder';
 import type {BuildOnyxDataForMoneyRequestKeys, RequestMoneyInformation} from './MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import {getSearchOnyxUpdate} from './SearchUpdate';
 import type BasePolicyParams from './types/BasePolicyParams';
 import type {CreateTrackExpenseParams} from './types/CreateTrackExpenseParams';
 import type {
@@ -477,7 +478,7 @@ function buildOnyxDataForTrackExpense({
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
-                routes: null,
+                // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
             },
         },
     );

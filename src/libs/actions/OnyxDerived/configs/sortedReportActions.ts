@@ -1,6 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import {getCombinedReportActions, getOneTransactionThreadReportID, getSortedReportActions, withDEWRoutedActionsArray} from '@libs/ReportActionsUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
@@ -23,7 +24,8 @@ function computeForReport(
 
     if (transactionThreadReportID && allReportActions) {
         const transactionThreadReportActionsArray = Object.values(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-        sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, reportID);
+        const isSelfDM = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
+        sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, isSelfDM);
     }
 
     return {

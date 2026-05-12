@@ -1855,10 +1855,7 @@ function updateDomainSecurityGroup(
     groupID: string,
     currentSecurityGroup: DomainSecurityGroup,
     newSettingValue: Partial<DomainSecurityGroup>,
-    settingsName: keyof Pick<
-        DomainSecurityGroup,
-        'name' | 'enableStrictPolicyRules' | 'enableRestrictedPolicyCreation' | 'enableRestrictedPrimaryPolicy' | 'restrictedPrimaryPolicyID' | 'enableRestrictedPrimaryLogin'
-    >,
+    settingsName: keyof DomainSecurityGroup,
 ) {
     const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
     const newSecurityGroup = {...currentSecurityGroup, ...newSettingValue};
@@ -1972,7 +1969,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    deleteGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 },
             },
         },
@@ -1993,7 +1990,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    pendingAction: null,
+                    deleteGroup: null,
                 },
             },
         },
@@ -2023,7 +2020,7 @@ function deleteDomainSecurityGroup(domainAccountID: number, groupID: string) {
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 [SECURITY_GROUP_KEY]: {
-                    pendingAction: null,
+                    deleteGroup: null,
                 },
             },
         },
