@@ -12,11 +12,9 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import {TableValue} from './types';
+import {useTableContext} from './TableContext';
 
-type TableRowProps<DataType, ColumnKey extends string, FilterKey extends string> = Omit<PressableWithFeedbackProps, 'accessible'> & {
-    table: TableValue<DataType, ColumnKey, FilterKey>;
-
+type TableRowProps = Omit<PressableWithFeedbackProps, 'accessible'> & {
     /** When true, indicates that the view is an accessibility element.  By default, all the rows are accessible. */
     accessible?: boolean;
 
@@ -39,8 +37,7 @@ type TableRowProps<DataType, ColumnKey extends string, FilterKey extends string>
     offlineWithFeedback?: OfflineWithFeedbackProps;
 };
 
-export default function TableRow<DataType, ColumnKey extends string = string, FilterKey extends string = string>({
-    table,
+export default function TableRow({
     children,
     accessible,
     rowIndex,
@@ -49,15 +46,15 @@ export default function TableRow<DataType, ColumnKey extends string = string, Fi
     isLoading,
     skeletonReasonAttributes,
     LoadingComponent,
-    offlineWithFeedback,
     onPress,
+    offlineWithFeedback,
     ...props
-}: TableRowProps<DataType, ColumnKey, FilterKey>) {
+}: TableRowProps) {
     useSkeletonSpan('TableRowSkeleton', skeletonReasonAttributes);
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {processedData, columns, shouldUseNarrowTableLayout} = table;
+    const {processedData, columns, shouldUseNarrowTableLayout} = useTableContext();
 
     const columnCount = columns.length;
     const rowCount = processedData.length;

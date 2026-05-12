@@ -1,17 +1,19 @@
 import {FlashList} from '@shopify/flash-list';
 import React from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {SharedListProps, TableValue} from './types';
+import {useTableContext} from './TableContext';
 
 /**
  * Props for the TableBody component.
  */
-type TableBodyProps<DataType, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<DataType> & {
-    table: TableValue<DataType, ColumnKey, FilterKey>;
+type TableBodyProps = ViewProps & {
+    /** Optional custom styles for the FlashList content container. */
+    contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
 /**
@@ -42,15 +44,11 @@ type TableBodyProps<DataType, ColumnKey extends string = string, FilterKey exten
  * </Table>
  * ```
  */
-function TableBody<DataType, ColumnKey extends string = string, FilterKey extends string = string>({
-    table,
-    contentContainerStyle,
-    ListEmptyComponent,
-    ...props
-}: TableBodyProps<DataType, ColumnKey, FilterKey>) {
+function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, activeSearchString, hasActiveFilters, hasSearchString, isEmptyResult} = table;
+    const {processedData: filteredAndSortedData, activeSearchString, listProps, hasActiveFilters, hasSearchString, isEmptyResult} = useTableContext<T>();
+    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
@@ -79,14 +77,20 @@ function TableBody<DataType, ColumnKey extends string = string, FilterKey extend
     );
 
     return (
-        <FlashList<DataType>
-            data={filteredAndSortedData}
-            ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
-            contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, contentContainerStyle]}
-            keyboardShouldPersistTaps="handled"
+        <View
+            style={styles.flex1}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-        />
+        >
+            <FlashList<T>
+                data={filteredAndSortedData}
+                ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
+                contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, contentContainerStyle]}
+                keyboardShouldPersistTaps="handled"
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...restListProps}
+            />
+        </View>
     );
 }
 

@@ -5,7 +5,7 @@ import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Table, {TableValue} from '@components/Table';
+import Table from '@components/Table';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
@@ -20,17 +20,18 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {WorkspaceRowData} from '.';
 
-type WorkspaceRowProps<ColumnKey extends string, FilterKey extends string> = {
-    table: TableValue<WorkspaceRowData, ColumnKey, FilterKey>;
-
+type WorkspaceRowProps = {
     /** The workspace data */
     item: WorkspaceRowData;
 
     /** The index of the row relative to all other rows */
     rowIndex: number;
+
+    /** Whether to use narrow table row layout */
+    shouldUseNarrowTableLayout: boolean;
 };
 
-export default function WorkspaceRow<ColumnKey extends string, FilterKey extends string>({table, item, rowIndex}: WorkspaceRowProps<ColumnKey, FilterKey>) {
+export default function WorkspaceRow({item, shouldUseNarrowTableLayout, rowIndex}: WorkspaceRowProps) {
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
 
     const theme = useTheme();
@@ -42,8 +43,6 @@ export default function WorkspaceRow<ColumnKey extends string, FilterKey extends
     const formattedOwnerName = item.ownerName ?? '';
     const formattedWorkspaceType = getUserFriendlyWorkspaceType(item.type, translate);
     const narrowWorkspaceLabel = `${translate('common.owner')}: ${formattedOwnerName} • ${formattedWorkspaceType}`;
-
-    const shouldUseNarrowTableLayout = table.shouldUseNarrowTableLayout;
     const itemDeletedStyles = item.isDeleted ? [styles.offlineFeedbackDeleted] : [{}];
 
     const accessibilityLabel = [
@@ -103,7 +102,6 @@ export default function WorkspaceRow<ColumnKey extends string, FilterKey extends
         >
             <Table.Row
                 interactive
-                table={table}
                 rowIndex={rowIndex}
                 disabled={item.disabled}
                 accessibilityLabel={accessibilityLabel}

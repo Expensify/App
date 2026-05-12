@@ -6,9 +6,8 @@ import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
 import Table from '@components/Table';
-import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback} from '@components/Table';
+import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import TableSkeleton from '@components/Table/TableSkeleton';
-import useTable from '@components/Table/useTable';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
@@ -16,6 +15,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
 import {getDefaultCardName} from '@libs/CardUtils';
@@ -74,6 +74,7 @@ function WorkspaceCompanyCardsTable({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const {
         feedName,
@@ -136,6 +137,34 @@ function WorkspaceCompanyCardsTable({
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
+
+    // When we reach the medium screen width or the narrow layout is active,
+    // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+
+    const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
+
+    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
+        {
+            key: 'member',
+            label: translate('common.member'),
+        },
+        {
+            key: 'card',
+            label: translate('workspace.companyCards.card'),
+        },
+        {
+            key: 'customCardName',
+            label: translate('workspace.companyCards.cardName'),
+        },
+        {
+            key: 'actions',
+            label: '',
+            styling: {
+                containerStyles: [styles.justifyContentEnd, styles.pr3],
+            },
+        },
+    ];
 
     const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
         ? []
@@ -243,26 +272,6 @@ function WorkspaceCompanyCardsTable({
         },
     };
 
-    const companyCardsTable = useTable({
-        data: cardsData,
-        filters: filterConfig,
-        compareItems,
-        isItemInSearch,
-        isItemInFilter,
-        initialSortColumn: 'member',
-        title: translate('workspace.common.companyCards'),
-        columns: [
-            {key: 'member', label: translate('common.member')},
-            {key: 'card', label: translate('workspace.companyCards.card')},
-            {key: 'customCardName', label: translate('workspace.companyCards.cardName')},
-            {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
-        ],
-    });
-
-    const shouldUseNarrowTableLayout = companyCardsTable.shouldUseNarrowTableLayout;
-    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-
     const cardFeedIcon = (
         <CardFeedIcon
             key={feedName}
@@ -281,7 +290,6 @@ function WorkspaceCompanyCardsTable({
             key={`${item.cardName}_${index}`}
             item={item}
             rowIndex={index}
-            table={companyCardsTable}
             policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
             CardFeedIcon={cardFeedIcon}
             onAssignCard={onAssignCard}
@@ -289,6 +297,33 @@ function WorkspaceCompanyCardsTable({
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
         />
     );
+
+    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
+    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
+
+    // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
+    // When switching back to wide layout, we want to restore the previous sorting.
+    useEffect(() => {
+        if (shouldUseNarrowTableLayout) {
+            if (isNarrowLayoutRef.current) {
+                return;
+            }
+
+            isNarrowLayoutRef.current = true;
+            const activeSorting = tableRef.current?.getActiveSorting();
+
+            setActiveSortingInWideLayout(activeSorting);
+            tableRef.current?.updateSorting({columnKey: 'member', order: 'asc'});
+            return;
+        }
+
+        if (!activeSortingInWideLayout || !isNarrowLayoutRef.current) {
+            return;
+        }
+
+        isNarrowLayoutRef.current = false;
+        tableRef.current?.updateSorting(activeSortingInWideLayout);
+    }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -298,7 +333,6 @@ function WorkspaceCompanyCardsTable({
     const headerButtonsComponent = showTableHeaderButtons ? (
         <View style={styles.mb3}>
             <WorkspaceCompanyCardsTableHeaderButtons
-                table={companyCardsTable}
                 isLoading={isLoading}
                 policyID={policyID}
                 feedName={feedName}
@@ -325,12 +359,26 @@ function WorkspaceCompanyCardsTable({
     const ListHeader = (
         <>
             {headerButtonsComponent}
-            {!isLoadingFeed && !isFeedPending && showCards && <Table.Header table={companyCardsTable} />}
+            {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
         </>
     );
 
     return (
-        <Table>
+        <Table
+            ref={tableRef}
+            data={cardsData}
+            columns={columns}
+            filters={filterConfig}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            compareItems={compareItems}
+            isItemInSearch={isItemInSearch}
+            isItemInFilter={isItemInFilter}
+            initialSortColumn="member"
+            title={translate('workspace.common.companyCards')}
+            ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
+            ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
+        >
             {!shouldUseNarrowTableLayout && ListHeader}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
@@ -376,16 +424,7 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {showCards && (
-                <Table.Body
-                    table={companyCardsTable}
-                    renderItem={renderItem}
-                    keyExtractor={keyExtractor}
-                    contentContainerStyle={tableBodyContentContainerStyle}
-                    ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
-                    ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
-                />
-            )}
+            {showCards && <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />}
         </Table>
     );
 }

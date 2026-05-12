@@ -1,10 +1,11 @@
 import {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
+import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {PopoverMenuItem} from '@components/PopoverMenu';
-import Table, {CompareItemsCallback, IsItemInSearchCallback} from '@components/Table';
-import useTable from '@components/Table/useTable';
+import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
@@ -58,6 +59,21 @@ type WorkspaceListTableProps = {
 export default function WorkspaceDomainListTable({domains, workspaces}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+
+    const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey>> = [
+        {key: 'workspaces', label: translate('common.workspaces')},
+        {key: 'owner', label: translate('common.owner')},
+        {key: 'type', label: translate('workspace.common.workspaceType')},
+        {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+    ];
+
+    const domainTableColumns: Array<TableColumn<DomainTableColumnKey>> = [
+        {key: 'domains', label: translate('common.domains')},
+        {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
+    ];
 
     const compareDomainItems: CompareItemsCallback<DomainRowData, DomainTableColumnKey> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
@@ -97,40 +113,12 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
         return item.title.toLowerCase().includes(searchLowerCase);
     };
 
-    const workspaceTable = useTable({
-        data: workspaces,
-        title: translate('common.workspaces'),
-        initialSortColumn: 'workspaces',
-        compareItems: compareWorkspaceItems,
-        isItemInSearch: isWorkspaceItemInSearch,
-        columns: [
-            {key: 'workspaces', label: translate('common.workspaces')},
-            {key: 'owner', label: translate('common.owner')},
-            {key: 'type', label: translate('workspace.common.workspaceType')},
-            {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
-        ],
-    });
-
-    const domainTable = useTable({
-        data: domains,
-        title: translate('common.domains'),
-        compareItems: compareDomainItems,
-        isItemInSearch: isDomainItemInSearch,
-        initialSortColumn: 'domains',
-        columns: [
-            {key: 'domains', label: translate('common.domains')},
-            {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
-        ],
-    });
-
-    const shouldUseNarrowTableLayout = workspaceTable.shouldUseNarrowTableLayout;
-
     const renderDomainItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
         return (
             <DomainTableRow
                 item={item}
                 rowIndex={index}
-                table={domainTable}
+                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             />
         );
     };
@@ -140,7 +128,7 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
             <WorkspaceRow
                 item={item}
                 rowIndex={index}
-                table={workspaceTable}
+                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             />
         );
     };
@@ -160,18 +148,20 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
 
     return (
         <>
-            <Table>
-                <Table.SearchBar
-                    table={workspaceTable}
-                    label={translate('workspace.common.findWorkspace')}
-                />
+            <Table
+                data={workspaces}
+                columns={workspaceTableColumns}
+                renderItem={renderWorkspaceItem}
+                compareItems={compareWorkspaceItems}
+                isItemInSearch={isWorkspaceItemInSearch}
+                keyExtractor={(row) => row.policyID}
+                initialSortColumn="workspaces"
+                title={translate('common.workspaces')}
+            >
+                <Table.SearchBar label={translate('workspace.common.findWorkspace')} />
 
-                <Table.Header table={workspaceTable} />
-                <Table.Body
-                    table={workspaceTable}
-                    renderItem={renderWorkspaceItem}
-                    keyExtractor={(row) => row.policyID}
-                />
+                <Table.Header />
+                <Table.Body />
             </Table>
         </>
     );
