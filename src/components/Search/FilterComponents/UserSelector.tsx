@@ -1,7 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {useRef, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
+import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -18,20 +18,21 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
-type UserSelectorProps = SearchFilterSelectionListStyleProps & {
+type UserSelectorProps = SearchFilterSelectionListProps & {
     value: string[] | undefined;
     scrollViewOffset?: number;
+    autoFocus?: boolean;
     onChange: (options: string[]) => void;
 };
 
-function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, scrollViewOffset, onChange}: UserSelectorProps) {
+function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, scrollViewOffset, autoFocus = true, onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+    const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const initialSelectedOptions = value.reduce<OptionData[]>((options, id) => {
         const participant = personalDetails?.[id];

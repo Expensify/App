@@ -1,5 +1,5 @@
 import React from 'react';
-import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
+import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -8,12 +8,12 @@ import {filterPolicyIDSelector} from '@src/selectors/Search';
 import type {Policy} from '@src/types/onyx';
 import MultiSelect from './MultiSelect';
 
-type TaxRateSelectorProps = SearchFilterSelectionListStyleProps & {
+type TaxRateSelectorProps = SearchFilterSelectionListProps & {
     value: string[] | undefined;
     onChange: (taxRates: string[]) => void;
 };
 
-function TaxRateSelector({value = [], selectionListTextInputStyle, selectionListStyle, onChange}: TaxRateSelectorProps) {
+function TaxRateSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: TaxRateSelectorProps) {
     const [policyIDs] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -38,6 +38,7 @@ function TaxRateSelector({value = [], selectionListTextInputStyle, selectionList
             value={selectedTaxRates}
             items={taxItems}
             isSearchable={taxItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
             onChange={(taxRates) => onChange(taxRates.map((taxRate) => taxRate.value))}

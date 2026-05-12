@@ -79,8 +79,9 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
             value={fullscreen ? value : initialValue}
             filterKey={filterKey}
             policyIDQuery={policyIDQuery}
-            selectionListTextInputStyle={[styles.pb1, styles.pt2]}
-            selectionListStyle={{contentContainerStyle: [styles.pv2]}}
+            selectionListTextInputStyle={!fullscreen && [styles.pb1, styles.pt2]}
+            selectionListStyle={!fullscreen ? {contentContainerStyle: [styles.pv2]} : undefined}
+            autoFocus={fullscreen}
             scrollViewOffset={-styles.pv2.paddingVertical}
             onChange={(newValue) => {
                 if (fullscreen) {

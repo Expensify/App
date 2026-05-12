@@ -65,7 +65,6 @@ function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps)
             role={CONST.ROLE.PRESENTATION}
             inputMode={CONST.INPUT_MODE.DECIMAL}
             shouldAllowNegative
-            autoFocus
         />
     );
 }

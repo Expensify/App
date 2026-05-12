@@ -1,6 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterSelectionListStyleProps} from '@components/Search/types';
+import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchFilterSelectionListProps} from '@components/Search/types';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +25,7 @@ import UserSelector from './UserSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
 type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
-type FilterComponentsProps = SearchFilterSelectionListStyleProps & {
+type FilterComponentsProps = SearchFilterSelectionListProps & {
     filterKey: FilterKeys;
     value: SearchAdvancedFiltersForm[FilterKeys] | undefined;
     policyIDQuery: string[] | undefined;
@@ -46,7 +46,7 @@ type TextInputFilterComponentsProps = {
 };
 
 type SingleSelectFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE;
-type SingleSelectFilterComponentsProps = SearchFilterSelectionListStyleProps & {
+type SingleSelectFilterComponentsProps = SearchFilterSelectionListProps & {
     filterKey: SingleSelectFilterKeys;
     value: SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined;
     onChange: (value: SearchAdvancedFiltersForm[SingleSelectFilterKeys]) => void;
@@ -58,7 +58,7 @@ type MultiSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS;
-type MultiSelectFilterComponentsProps = SearchFilterSelectionListStyleProps & {
+type MultiSelectFilterComponentsProps = SearchFilterSelectionListProps & {
     filterKey: MultiSelectFilterKeys;
     value: SearchAdvancedFiltersForm[MultiSelectFilterKeys] | undefined;
     onChange: (values: SearchAdvancedFiltersForm[MultiSelectFilterKeys]) => void;
@@ -124,7 +124,7 @@ function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle,
     );
 }
 
-function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInputStyle, selectionListStyle, scrollViewOffset, onChange}: FilterComponentsProps) {
+function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInputStyle, selectionListStyle, scrollViewOffset, autoFocus, onChange}: FilterComponentsProps) {
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -147,6 +147,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     value={value as string[] | undefined}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
+                    autoFocus={autoFocus}
                     onChange={onChange}
                 />
             );
@@ -183,6 +184,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     value={value as string[] | undefined}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
+                    autoFocus={autoFocus}
                     onChange={onChange}
                 />
             );
@@ -228,6 +230,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     scrollViewOffset={scrollViewOffset}
+                    autoFocus={autoFocus}
                     onChange={onChange}
                 />
             );
@@ -238,6 +241,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     policyIDQuery={policyIDQuery}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
+                    autoFocus={autoFocus}
                     onChange={onChange}
                 />
             );

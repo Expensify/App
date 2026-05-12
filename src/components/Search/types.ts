@@ -385,9 +385,10 @@ type SearchChartProps = {
     unitPosition?: UnitPosition;
 };
 
-type SearchFilterSelectionListStyleProps = {
+type SearchFilterSelectionListProps = {
     selectionListTextInputStyle?: StyleProp<ViewStyle>;
     selectionListStyle?: SelectionListStyle;
+    autoFocus?: boolean;
 };
 
 export type {
@@ -444,5 +445,5 @@ export type {
     SearchCustomColumnIds,
     GroupedItem,
     SearchChartProps,
-    SearchFilterSelectionListStyleProps,
+    SearchFilterSelectionListProps,
 };

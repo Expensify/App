@@ -1,17 +1,18 @@
 import React from 'react';
-import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
+import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {MultiSelectItem} from './MultiSelect';
 import MultiSelect from './MultiSelect';
 
-type WorkspaceSelectorProps = SearchFilterSelectionListStyleProps & {
+type WorkspaceSelectorProps = SearchFilterSelectionListProps & {
     policyIDQuery: string[] | undefined;
     value: string[] | undefined;
+    autoFocus?: boolean;
     onChange: (item: string[]) => void;
 };
 
-function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, onChange}: WorkspaceSelectorProps) {
+function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: WorkspaceSelectorProps) {
     const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFilters();
     const workspaceOptions: Array<MultiSelectItem<string>> = workspaces
         .flatMap((section) => section.data)
@@ -29,6 +30,7 @@ function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, s
         <MultiSelect
             items={workspaceOptions}
             value={selectedWorkspaceOptions}
+            autoFocus={autoFocus}
             onChange={(policyIDs) => onChange(policyIDs.map((id) => id.value))}
             isSearchable={shouldShowWorkspaceSearchInput}
             selectionListTextInputStyle={selectionListTextInputStyle}

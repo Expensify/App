@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
+import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
@@ -23,7 +23,7 @@ type MultiSelectItem<T> = {
     leftElement?: ReactNode;
 };
 
-type MultiSelectProps<T> = SearchFilterSelectionListStyleProps & {
+type MultiSelectProps<T> = SearchFilterSelectionListProps & {
     /** The list of all items to show up in the list */
     items: Array<MultiSelectItem<T>>;
 
@@ -41,9 +41,22 @@ type MultiSelectProps<T> = SearchFilterSelectionListStyleProps & {
 
     /** Whether the data for the popover is loading */
     loading?: boolean;
+
+    /** Whether the text input should be autofocused or not. Defaults to true. */
+    autoFocus?: boolean;
 };
 
-function MultiSelect<T extends string>({loading, value, items, isSearchable, searchPlaceholder, selectionListTextInputStyle, selectionListStyle, onChange}: MultiSelectProps<T>) {
+function MultiSelect<T extends string>({
+    loading,
+    value,
+    items,
+    isSearchable,
+    searchPlaceholder,
+    selectionListTextInputStyle,
+    selectionListStyle,
+    autoFocus = true,
+    onChange,
+}: MultiSelectProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -87,6 +100,7 @@ function MultiSelect<T extends string>({loading, value, items, isSearchable, sea
         style: {
             containerStyle: selectionListTextInputStyle,
         },
+        disableAutoFocus: !autoFocus,
     };
 
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};

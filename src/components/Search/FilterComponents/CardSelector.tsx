@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
+import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
@@ -25,12 +25,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ListFilterView from './ListFilterViewWrapper';
 
-type CardSelectorProps = SearchFilterSelectionListStyleProps & {
+type CardSelectorProps = SearchFilterSelectionListProps & {
     value: string[] | undefined;
     onChange: (cards: string[]) => void;
 };
 
-function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, onChange}: CardSelectorProps) {
+function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: CardSelectorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -127,6 +127,7 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
         style: {
             containerStyle: selectionListTextInputStyle,
         },
+        disableAutoFocus: !autoFocus,
     };
 
     const isLoadingOnyxData = isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata);

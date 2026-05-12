@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import type {SearchFilterSelectionListStyleProps} from '@components/Search/types';
+import type {SearchFilterSelectionListProps} from '@components/Search/types';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {TextInputOptions} from '@components/SelectionList/types';
@@ -24,7 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import ListFilterView from './ListFilterViewWrapper';
 
-type InSelectorProps = SearchFilterSelectionListStyleProps & {
+type InSelectorProps = SearchFilterSelectionListProps & {
     value: string[] | undefined;
     onChange: (ins: string[]) => void;
 };
@@ -41,7 +41,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
     return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
 }
 
-function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, onChange}: InSelectorProps) {
+function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: InSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {options, areOptionsInitialized} = useOptionsList();
@@ -162,6 +162,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
         style: {
             containerStyle: selectionListTextInputStyle,
         },
+        disableAutoFocus: !autoFocus,
     };
 
     const itemCount = sections.flatMap((section) => section.data).length;
