@@ -10,8 +10,9 @@ import useSidePanelState from './useSidePanelState';
 /**
  * Returns the session start time for a Concierge chat.
  *
- * - **Side panel:** Uses the side panel's own session time (`DateUtils.getDBTime()`
- *   captured when the panel opens).
+ * - **Side panel:** Captures `min(sidePanelSessionStartTime, lastReadTime)` when
+ *   the panel opens. This ensures messages arriving while the panel was closed
+ *   are treated as "unread" rather than hidden behind the greeting.
  * - **Main DM:** Captures `lastReadTime` on the first focus after navigating
  *   to the Concierge DM. Persists via a RAM-only Onyx key so it survives
  *   component unmounts caused by deep navigation (e.g. workspace sub-pages).
@@ -27,6 +28,26 @@ function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: s
     const [mainDMSessionStartTime, setMainDMSessionStartTime] = useState<string | null>(null);
     const [prevShouldActivate, setPrevShouldActivate] = useState(false);
 
+    // Capture side panel boundary at panel-open time so later lastReadTime
+    // updates (auto-read) don't shift the boundary.
+    const [sidePanelBoundary, setSidePanelBoundary] = useState<string | null>(() => {
+        if (!sidePanelSessionStartTime) {
+            return null;
+        }
+        return lastReadTime && lastReadTime < sidePanelSessionStartTime ? lastReadTime : sidePanelSessionStartTime;
+    });
+    const [prevSidePanelStartTime, setPrevSidePanelStartTime] = useState(sidePanelSessionStartTime);
+
+    if (sidePanelSessionStartTime !== prevSidePanelStartTime) {
+        setPrevSidePanelStartTime(sidePanelSessionStartTime);
+        if (sidePanelSessionStartTime) {
+            const boundary = lastReadTime && lastReadTime < sidePanelSessionStartTime ? lastReadTime : sidePanelSessionStartTime;
+            setSidePanelBoundary(boundary);
+        } else {
+            setSidePanelBoundary(null);
+        }
+    }
+
     // Clear persisted state only when a focused, non-side-panel view navigates
     // away from Concierge. Without the isFocused guard, an RHP report mounting
     // in the background would wipe the active Concierge session.
@@ -39,7 +60,7 @@ function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: s
     }, [isConciergeChat, isFocused, isInSidePanel]);
 
     if (!shouldActivate || prevShouldActivate) {
-        return isInSidePanel ? sidePanelSessionStartTime : mainDMSessionStartTime;
+        return isInSidePanel ? sidePanelBoundary : mainDMSessionStartTime;
     }
 
     setPrevShouldActivate(true);
@@ -52,7 +73,7 @@ function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: s
     }
 
     if (isInSidePanel) {
-        return sidePanelSessionStartTime;
+        return sidePanelBoundary;
     }
 
     return shouldActivate ? mainDMSessionStartTime : null;

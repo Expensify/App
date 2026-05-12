@@ -329,6 +329,17 @@ function ReportActionsList({
             return sortedVisibleReportActions;
         }
 
+        // When Concierge history is filtered, skip the draft if its real action
+        // already exists in the full list but was excluded by the filter. This
+        // prevents a completed trickle from re-appearing after a session reset.
+        // If the real action doesn't exist yet (trickle in progress), allow it.
+        if (showHiddenHistory) {
+            const realActionExists = sortedReportActions.some((a) => a.reportActionID === draftReportAction.reportActionID);
+            if (realActionExists) {
+                return sortedVisibleReportActions;
+            }
+        }
+
         // Insert the synthetic draft into the already-descending render list without treating it as a persisted report action.
         for (const [index, action] of sortedVisibleReportActions.entries()) {
             if (action.reportActionID === draftReportAction.reportActionID) {
@@ -344,7 +355,7 @@ function ReportActionsList({
         const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    }, [draftReportAction, sortedVisibleReportActions]);
+    }, [draftReportAction, sortedVisibleReportActions, showHiddenHistory, sortedReportActions]);
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;
     const draftAutoScrollKey = isSyntheticDraftVisible ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
