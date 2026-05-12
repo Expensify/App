@@ -46,15 +46,15 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, onSelect
             return;
         }
 
-        const transactionThreadReport = createTransactionThreadReport(
+        const transactionThreadReport = createTransactionThreadReport({
             introSelected,
-            currentUserPersonalDetails.login ?? '',
-            currentUserPersonalDetails.accountID,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             betas,
-            report,
-            action,
+            iouReport: report,
+            iouReportAction: action,
             transaction,
-        );
+        });
         if (!transactionThreadReport?.reportID) {
             return;
         }
