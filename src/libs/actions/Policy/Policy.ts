@@ -88,6 +88,7 @@ import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {buildNextStepNew} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -2534,8 +2535,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         !engagementChoice ||
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
+        isTrackOnboardingChoice(engagementChoice);
     const shouldSetCreatedPolicyAsActive = !activePolicy?.id || activePolicy?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
@@ -2584,10 +2584,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
                 },
-                reimbursementChoice:
-                    engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND
-                        ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO
-                        : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimbursementChoice: isTrackOnboardingChoice(engagementChoice) ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 created: DateUtils.getDBTime(),
                 customUnits,
                 areCategoriesEnabled: true,

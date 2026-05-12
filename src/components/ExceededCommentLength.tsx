@@ -9,7 +9,7 @@ type ExceededCommentLengthProps = {
     isTaskTitle?: boolean;
 };
 
-function ExceededCommentLength({maxCommentLength = CONST.MAX_COMMENT_LENGTH, isTaskTitle}: ExceededCommentLengthProps) {
+function ExceededCommentLength({maxCommentLength = CONST.MAX_COMMENT_LENGTH, isTaskTitle = false}: ExceededCommentLengthProps) {
     const styles = useThemeStyles();
     const {numberFormat, translate} = useLocalize();
 

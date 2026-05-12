@@ -824,15 +824,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.route,
                         },
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
-                        },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path,
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.route,
-                        },
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.path,
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
                         },
@@ -1172,10 +1165,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT]: {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
-                            exact: true,
-                        },
-                        [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
-                            path: ROUTES.BANK_ACCOUNT_USD_SETUP.route,
                             exact: true,
                         },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
@@ -1521,13 +1510,35 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS]: {
                             path: ROUTES.SETTINGS_TAGS_SETTINGS.route,
                         },
-                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT]: DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path,
-                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE]: DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path,
-                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT]: DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path,
-                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.path,
+                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT]: {
+                            path: ROUTES.SETTINGS_TAGS_EDIT.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE]: {
+                            path: ROUTES.SETTINGS_TAG_CREATE.route,
+                        },
+                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_EDIT]: {
+                            path: ROUTES.SETTINGS_TAG_EDIT.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
+                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS]: {
+                            path: ROUTES.SETTINGS_TAG_SETTINGS.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_APPROVER]: DYNAMIC_ROUTES.SETTINGS_TAG_APPROVER.path,
                         [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW]: DYNAMIC_ROUTES.SETTINGS_TAG_LIST_VIEW.path,
-                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE]: DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path,
+                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_GL_CODE]: {
+                            path: ROUTES.SETTINGS_TAG_GL_CODE.route,
+                            parse: {
+                                orderWeight: Number,
+                            },
+                        },
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_IMPORT]: {
                             path: ROUTES.SETTINGS_TAGS_IMPORT.route,
                         },
@@ -1541,15 +1552,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.EXPENSIFY_CARD_DETAILS.route,
                         },
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_NAME]: {
-                            path: ROUTES.EXPENSIFY_CARD_NAME.route,
-                        },
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT]: {
-                            path: ROUTES.EXPENSIFY_CARD_LIMIT.route,
-                        },
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
-                            path: ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.route,
-                        },
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME]: DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path,
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path,
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path,
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_EXPIRY_OPTIONS]: {
                             path: ROUTES.EXPENSIFY_CARD_EXPIRY_OPTIONS.route,
                         },

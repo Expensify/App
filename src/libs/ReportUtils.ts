@@ -85,17 +85,10 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getBankAccountFromID} from './actions/BankAccounts';
-import {
-    createDraftTransaction,
-    getUserAccountID,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReportID,
-    startDistanceRequest,
-    startMoneyRequest,
-} from './actions/IOU';
+import {getUserAccountID, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestReportID} from './actions/IOU';
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
+import {createDraftTransaction, startDistanceRequest, startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {canApproveIOU, canIOUBePaid, canSubmitReport, getBadgeFromIOUReport, getIOUReportActionWithBadge} from './actions/IOU/ReportWorkflow';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import hasCreditBankAccount from './actions/ReimbursementAccount/hasCreditBankAccount';
@@ -11588,10 +11581,13 @@ type PrepareOnboardingOnyxDataParams = {
     selectedInterestedFeatures?: string[];
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
+    // TODO: isSelfTourViewed will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     // Accepted for backwards compatibility with existing callers — the bespoke direct-post
     // path no longer depends on a beta gate. Safe to drop once no caller passes it.
     betas?: OnyxEntry<Beta[]>;
+    // TODO: hasCompletedGuidedSetupFlow will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
+    hasCompletedGuidedSetupFlow?: boolean;
 };
 
 function prepareOnboardingOnyxData({
@@ -11607,6 +11603,7 @@ function prepareOnboardingOnyxData({
     isInvitedAccountant,
     onboardingPurposeSelected,
     isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -11720,12 +11717,19 @@ function prepareOnboardingOnyxData({
             if (([CONST.ONBOARDING_TASK_TYPE.ADD_ACCOUNTING_INTEGRATION, CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS] as string[]).includes(task.type) && !userReportedIntegration) {
                 return false;
             }
-            type SkipViewTourOnboardingChoices = 'newDotSubmit' | 'newDotSplitChat' | 'newDotPersonalSpend' | 'newDotEmployer';
+            type SkipViewTourOnboardingChoices =
+                | typeof CONST.ONBOARDING_CHOICES.SUBMIT
+                | typeof CONST.ONBOARDING_CHOICES.CHAT_SPLIT
+                | typeof CONST.ONBOARDING_CHOICES.PERSONAL_SPEND
+                | typeof CONST.ONBOARDING_CHOICES.EMPLOYER
+                | typeof CONST.ONBOARDING_CHOICES.TRACK_PERSONAL
+                | typeof CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
             if (
                 task.type === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR &&
                 [
                     CONST.ONBOARDING_CHOICES.EMPLOYER,
                     CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                    CONST.ONBOARDING_CHOICES.TRACK_PERSONAL,
                     CONST.ONBOARDING_CHOICES.SUBMIT,
                     CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
                     CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
@@ -12097,7 +12101,7 @@ function prepareOnboardingOnyxData({
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
-            value: {hasCompletedGuidedSetupFlow: onboarding?.hasCompletedGuidedSetupFlow ?? null},
+            value: {hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlow ?? onboarding?.hasCompletedGuidedSetupFlow ?? null},
         });
     }
 
@@ -12150,7 +12154,9 @@ function prepareOnboardingOnyxData({
     let selfDMParameters: SelfDMParameters = {};
     if (
         engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
-        (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE && (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND))
+        engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL ||
+        (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE &&
+            (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL))
     ) {
         const selfDMReportID = findSelfDMReportID();
         let selfDMReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];

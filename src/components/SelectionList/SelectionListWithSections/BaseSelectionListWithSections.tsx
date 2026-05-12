@@ -76,6 +76,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldClearInputOnSelect = true,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
+    shouldPreventAutoScrollOnSelect = false,
     isRowMultilineSupported = false,
     titleNumberOfLines,
     shouldHighlightSelectedItem,
@@ -180,7 +181,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             return;
         }
         if (canSelectMultiple) {
-            if (sections.length > 1 && !isItemSelected(item)) {
+            if (!shouldPreventAutoScrollOnSelect && sections.length > 1 && !isItemSelected(item)) {
                 scrollToIndex(0);
             }
 
