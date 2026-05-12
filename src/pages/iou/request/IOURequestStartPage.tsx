@@ -139,6 +139,9 @@ function IOURequestStartPage({
         }
         return tabs;
     }, [shouldUseTab, iouType, shouldShowPerDiemOption, shouldShowTimeOption]);
+    const routeWithState: typeof route & {state?: {index?: number; routes: Array<{name: SelectedTabRequest}>}} = route;
+    const routeSelectedTab = routeWithState.state?.routes.at(routeWithState.state.index ?? 0)?.name;
+    const selectedTabOverride = routeSelectedTab && availableTabs.has(routeSelectedTab) ? routeSelectedTab : undefined;
 
     // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
     // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
@@ -233,6 +236,7 @@ function IOURequestStartPage({
                             <OnyxTabNavigator
                                 id={CONST.TAB.IOU_REQUEST_TYPE}
                                 defaultSelectedTab={defaultSelectedTab}
+                                selectedTabOverride={selectedTabOverride}
                                 onTabSelected={resetIOUTypeIfChanged}
                                 onTabSelect={onTabSelectFocusHandler}
                                 tabBar={TabSelector}

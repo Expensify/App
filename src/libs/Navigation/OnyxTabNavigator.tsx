@@ -24,6 +24,9 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
     /** Name of the selected tab */
     defaultSelectedTab?: TTabName;
 
+    /** Tab to prefer over the stored Onyx tab, usually from a nested route in a deeplink. */
+    selectedTabOverride?: TTabName;
+
     /** A function triggered when a tab has been selected */
     onTabSelected?: (newTabName: TTabName) => void;
 
@@ -93,6 +96,7 @@ const getTabNames = (children: React.ReactNode): string[] => {
 function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     id,
     defaultSelectedTab,
+    selectedTabOverride,
     tabBar: TabBar,
     children,
     onTabBarFocusTrapContainerElementChanged,
@@ -115,7 +119,9 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
 
     const tabNames = useMemo(() => getTabNames(children), [children]);
 
-    const validInitialTab = selectedTab && tabNames.includes(selectedTab) ? selectedTab : defaultSelectedTab;
+    const validInitialTabFromOverride = selectedTabOverride && tabNames.includes(selectedTabOverride) ? selectedTabOverride : undefined;
+    const validInitialTabFromOnyx = selectedTab && tabNames.includes(selectedTab) ? selectedTab : undefined;
+    const validInitialTab = validInitialTabFromOverride ?? validInitialTabFromOnyx ?? defaultSelectedTab;
 
     const LazyPlaceholder = useCallback(() => {
         return (

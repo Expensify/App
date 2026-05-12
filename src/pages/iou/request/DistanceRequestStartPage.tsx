@@ -49,6 +49,13 @@ function DistanceRequestStartPage({
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const routeWithState: typeof route & {state?: {index?: number; routes: Array<{name: SelectedTabRequest}>}} = route;
+    const routeSelectedTab = routeWithState.state?.routes.at(routeWithState.state.index ?? 0)?.name;
+    const distanceTabs = useMemo(
+        () => new Set<SelectedTabRequest>([CONST.TAB_REQUEST.DISTANCE_MAP, CONST.TAB_REQUEST.DISTANCE_MANUAL, CONST.TAB_REQUEST.DISTANCE_GPS, CONST.TAB_REQUEST.DISTANCE_ODOMETER]),
+        [],
+    );
+    const selectedTabOverride = routeSelectedTab && distanceTabs.has(routeSelectedTab) ? routeSelectedTab : undefined;
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
@@ -122,6 +129,7 @@ function DistanceRequestStartPage({
                     <OnyxTabNavigator
                         id={CONST.TAB.DISTANCE_REQUEST_TYPE}
                         defaultSelectedTab={defaultSelectedTab}
+                        selectedTabOverride={selectedTabOverride}
                         onTabSelected={resetIOUTypeIfChanged}
                         tabBar={TabSelector}
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
