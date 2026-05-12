@@ -14,21 +14,19 @@ type ConfirmWhisperContentProps = {
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>;
     reportID: string | undefined;
     originalReportID: string | undefined;
-    report: OnyxEntry<Report>;
-    originalReport: OnyxEntry<Report>;
+    actionReport: OnyxEntry<Report>;
 };
 
-function ConfirmWhisperContent({action, reportID, originalReportID, report, originalReport}: ConfirmWhisperContentProps) {
-    const reportActionReport = originalReport ?? report;
+function ConfirmWhisperContent({action, reportID, originalReportID, actionReport}: ConfirmWhisperContentProps) {
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
-    const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
+    const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
 
     const buttons: ActionableItem[] = [
         {
             text: 'common.buttonConfirm',
             key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
             onPress: () =>
-                resolveActionableMentionConfirmWhisper(reportActionReport, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, isOriginalReportArchived),
+                resolveActionableMentionConfirmWhisper(actionReport, action, CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE, isOriginalReportArchived),
             isPrimary: true,
         },
     ];
