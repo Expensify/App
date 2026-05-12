@@ -11,6 +11,7 @@ import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentCo
 import {useRootActions} from '@components/PopoverMenu/v2/root/RootContext';
 import type {AnchorRef} from '@components/PopoverMenu/v2/root/RootContext';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import usePressResponderPropsImport from '@components/Pressable/PressResponder/usePressResponderProps';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Log from '@libs/Log';
 
@@ -566,6 +567,28 @@ describe('PopoverMenu V2', () => {
             fireEvent.press(screen.getByTestId('trigger'));
             expect(onOpenChange).toHaveBeenLastCalledWith(true);
         });
+
+        it('publishes accessibilityHasPopup, accessibilityState.expanded, nativeID and accessibilityControls through PressResponderContext', () => {
+            const captured: Array<ReturnType<typeof usePressResponderPropsImport>> = [];
+            function CapturePressResponderSlot() {
+                captured.push(usePressResponderPropsImport({}));
+                return null;
+            }
+            render(
+                <NavigationContext.Provider value={mockNavigation}>
+                    <PopoverMenu.Root>
+                        <PopoverMenu.Trigger>
+                            <CapturePressResponderSlot />
+                        </PopoverMenu.Trigger>
+                    </PopoverMenu.Root>
+                </NavigationContext.Provider>,
+            );
+            const slotBefore = captured.at(-1);
+            expect(slotBefore?.accessibilityHasPopup).toBe('menu');
+            expect(slotBefore?.accessibilityState).toMatchObject({expanded: false});
+            expect(slotBefore?.accessibilityControls).toBeUndefined();
+            expect(typeof slotBefore?.nativeID).toBe('string');
+        });
     });
 
     describe('SecondaryInteractionTrigger', () => {
@@ -749,6 +772,37 @@ describe('PopoverMenu V2', () => {
             expect(navigationCaptured.at(-1)?.currentSubID).toBeNull();
             act(() => captured.at(-1)?.onPress());
             expect(navigationCaptured.at(-1)?.currentSubID).toBe('speed-sub');
+        });
+
+        it('does not drill into the Sub when disabled', () => {
+            const captured: PopoverMenu.UseSubTriggerResult[] = [];
+            const navigationCaptured: Array<ReturnType<typeof useContentNavigation>> = [];
+            function ProbeHook() {
+                captured.push(PopoverMenu.useSubTrigger({disabled: true}));
+                return null;
+            }
+            function NavigationProbe() {
+                navigationCaptured.push(useContentNavigation('NavigationProbe'));
+                return null;
+            }
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <NavigationProbe />
+                        <PopoverMenu.Sub id="speed-sub">
+                            <ProbeHook />
+                            <PopoverMenu.Sub.Content>
+                                <PopoverMenu.Item
+                                    text="Fast"
+                                    onSelect={() => {}}
+                                />
+                            </PopoverMenu.Sub.Content>
+                        </PopoverMenu.Sub>
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+            act(() => captured.at(-1)?.onPress());
+            expect(navigationCaptured.at(-1)?.currentSubID).toBeNull();
         });
     });
 
@@ -1844,6 +1898,44 @@ describe('PopoverMenu V2', () => {
             press('Sub');
             expect(findItemByTitle('Sub')).toBeUndefined();
             expect(findItemByTitle('Inner')).toBeDefined();
+        });
+    });
+
+    describe('ScrollableContent', () => {
+        it('warns when the child count exceeds the virtualization threshold', () => {
+            const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
+            const items = Array.from({length: 51}, (_, index) => (
+                <PopoverMenu.Item
+                    key={index}
+                    text={`Item ${index}`}
+                    onSelect={() => {}}
+                />
+            ));
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.ScrollableContent>{items}</PopoverMenu.ScrollableContent>
+                </Harness>,
+            );
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringMatching(/received 51 children/));
+            warnSpy.mockRestore();
+        });
+
+        it('does not warn at or below the threshold', () => {
+            const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
+            const items = Array.from({length: 50}, (_, index) => (
+                <PopoverMenu.Item
+                    key={index}
+                    text={`Item ${index}`}
+                    onSelect={() => {}}
+                />
+            ));
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.ScrollableContent>{items}</PopoverMenu.ScrollableContent>
+                </Harness>,
+            );
+            expect(warnSpy).not.toHaveBeenCalled();
+            warnSpy.mockRestore();
         });
     });
 

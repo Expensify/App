@@ -1,5 +1,5 @@
 import React from 'react';
-import {Pressable} from 'react-native';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -16,10 +16,11 @@ function DismissButton({onPress}: DismissButtonProps): React.ReactElement {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
-        <Pressable
+        <PressableWithoutFeedback
             accessible
             accessibilityRole={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('common.close')}
+            sentryLabel="PopoverMenu.DismissButton"
             focusable={false}
             onPress={onPress}
             style={styles.screenReaderOnlyAnchor}

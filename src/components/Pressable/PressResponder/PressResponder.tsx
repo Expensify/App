@@ -8,7 +8,16 @@ type PressResponderProps = Omit<PressResponderContextValue, 'register'> & {
     children: ReactNode;
 };
 
-function PressResponder({children, ref, onPress, onSecondaryInteraction, accessibilityState, nativeID, accessibilityControls}: PressResponderProps): React.ReactElement {
+function PressResponder({
+    children,
+    ref,
+    onPress,
+    onSecondaryInteraction,
+    accessibilityState,
+    accessibilityHasPopup,
+    nativeID,
+    accessibilityControls,
+}: PressResponderProps): React.ReactElement {
     const consumedKindsRef = useRef<Set<RegisterKind>>(new Set());
 
     const value: PressResponderContextValue = {
@@ -16,6 +25,7 @@ function PressResponder({children, ref, onPress, onSecondaryInteraction, accessi
         onPress,
         onSecondaryInteraction,
         accessibilityState,
+        accessibilityHasPopup,
         nativeID,
         accessibilityControls,
         register: (kind: RegisterKind) => {
