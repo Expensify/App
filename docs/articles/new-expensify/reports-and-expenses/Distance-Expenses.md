@@ -1,7 +1,7 @@
 ---
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, manual entry, or odometer readings, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading]
+keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer image, odometer mileage, odometer distance, start reading, end reading, save for later, in-progress odometer, incomplete odometer]
 internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, manual entry, and odometer readings, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
@@ -74,14 +74,15 @@ To create an expense using your vehicle's odometer readings:
 4. Enter the **End reading** from your odometer after the trip.
    - The total distance is calculated automatically as you type.
 5. (Optional) Select the image icon next to each reading to attach a photo of your odometer.
-6. Select **Next**.
-7. On the confirmation screen, review and confirm:
+6. (Optional) To finish creating the expense later, select **Save for later** to keep the expense in progress on your device. After your trip, return to **➕ Create** > **Track distance** > **Odometer** to resume the saved expense and enter the end reading.
+7. Select **Next**.
+8. On the confirmation screen, review and confirm:
    - Distance
    - Amount
    - Rate
    - Date
    - (Optional) Add a description, category, or tag.
-8. Select **Create expense**.
+9. Select **Create expense**.
 
 Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports).
 
@@ -164,4 +165,12 @@ Yes. Manual readings are required, but you have the option to attach images of t
 ## Can I add two odometer images to a distance expense?
 
 Yes. When you add two odometer images to a distance expense, they will be merged into a single image for easy viewing.
+
+## Can I save an odometer expense for later?
+
+Yes. Enter your start reading before the trip, then select **Save for later**. After the trip, return to **➕ Create** > **Track distance** > **Odometer** to resume the saved expense and enter the end reading.
+
+## Can I have multiple incomplete odometer expenses at the same time?
+
+Only one in-progress odometer expense can be saved to your device at a time.
 
