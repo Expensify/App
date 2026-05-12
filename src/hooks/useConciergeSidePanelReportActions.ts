@@ -2,6 +2,7 @@ import {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {setConciergeShowFullHistory} from '@libs/actions/ConciergeSession';
 import DateUtils from '@libs/DateUtils';
+import Log from '@libs/Log';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -106,6 +107,21 @@ function useConciergeReportActions({
     const showConciergeWelcome = isConciergeChat && hadUserMessageAtSessionStart && !hasUserSentMessage && !hasUnreadMessages && !showFullHistory;
     const showConciergeGreeting = isConciergeChat && hadUserMessageAtSessionStart && !showFullHistory;
 
+    if (isConciergeChat) {
+        Log.info('[ConciergeHistory] state', false, {
+            isInSidePanel,
+            showConciergeWelcome,
+            showConciergeGreeting,
+            showFullHistory,
+            hasUserSentMessage,
+            hasUnreadMessages,
+            hadUserMessageAtSessionStart,
+            sessionStartTime,
+            lastReadTime: report?.lastReadTime,
+            visibleActionsCount: visibleReportActions.length,
+        });
+    }
+
     const conciergeGreetingAction = useMemo(() => {
         if (!showConciergeGreeting) {
             return undefined;
@@ -148,6 +164,7 @@ function useConciergeReportActions({
     const filterActions = useCallback(
         (actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] => {
             if (showConciergeWelcome && conciergeGreetingAction) {
+                Log.info('[ConciergeHistory] path=welcome');
                 const createdAction = actions.find(isCreatedAction);
                 return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
             }
@@ -155,20 +172,30 @@ function useConciergeReportActions({
                 return actions;
             }
             if (!sessionStartTime) {
+                Log.info('[ConciergeHistory] path=created-only');
                 return actions.filter(isCreatedAction);
             }
             if (!hadUserMessageAtSessionStart) {
+                Log.info('[ConciergeHistory] path=no-prior-messages');
                 return actions;
             }
 
             if (hasUnreadMessages && !hasUserSentMessage) {
-                return actions.filter(isUnreadAction);
+                const unread = actions.filter(isUnreadAction);
+                Log.info('[ConciergeHistory] path=unread-only', false, {count: unread.length});
+                return unread;
             }
 
-            const filtered = actions.filter(isCurrentSessionAction);
+            // When there are unread messages and the user replied (e.g. clicked
+            // a suggestion button), keep all actions after sessionStartTime so
+            // the previously visible unread messages don't disappear.
+            const filterFn = hasUnreadMessages ? isUnreadAction : isCurrentSessionAction;
+            const filtered = actions.filter(filterFn);
             if (filtered.length === 0) {
+                Log.info('[ConciergeHistory] path=session-empty-fallback');
                 return actions;
             }
+            Log.info('[ConciergeHistory] path=session-actions', false, {count: filtered.length, hasGreeting: !!conciergeGreetingAction, hasUnread: hasUnreadMessages});
             if (conciergeGreetingAction) {
                 const createdIndex = filtered.findIndex(isCreatedAction);
                 filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
