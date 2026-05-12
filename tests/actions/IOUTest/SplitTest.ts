@@ -4336,6 +4336,7 @@ describe('updateSplitTransactions', () => {
             transactionReport: reports.transactionReport,
             expenseReport: reports.expenseReport,
             isOffline: false,
+            policyTagListByReportID: {},
         });
 
         const updateSplitTransactionCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION);
