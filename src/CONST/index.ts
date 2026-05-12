@@ -1934,10 +1934,10 @@ const CONST = {
             DEFAULT_RIGHT_DOCKED_IOS_OUT: Platform.OS === 'web' ? 1 : 400,
             FAB_IN: Platform.OS === 'web' ? 1 : 350,
             FAB_OUT: Platform.OS === 'web' ? 1 : 200,
-            RHP_OPEN_WEB: 150,
+            RHP_OPEN_WEB: 100,
             RHP_CLOSE_WEB: 0,
         },
-        RHP_ENTER_OFFSET_PX_WEB: 100,
+        RHP_ENTER_OFFSET_PX_WEB: 60,
     },
     FAB_MENU_ITEM_IDS: {
         QUICK_ACTION: 'quick-action',
