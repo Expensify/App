@@ -1,7 +1,7 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -80,6 +80,27 @@ You can update or remove approval workflows at any time as your team or process 
 3. In the confirmation window, click **Delete** again.
 
 ---
+
+## Enable Concierge to auto-approve compliant reports
+
+Concierge can automatically approve reports that don't exceed a specific threshold and don't contain violations.
+
+## Set the auto-approve threshold
+
+1. On the **Workflows** page, click the **Auto-approve compliant reports** toggle.
+2. Click **Auto-approve reports with all expenses under**
+3. Enter the maximum amount a report can have before requiring manual approval.
+4. Click **Save**.
+
+## Set a random audit percentage
+
+Even with auto-approvals enabled, you can route a percentage of compliant reports for manual approval.
+
+1. On the **Workflows** page, click **Random report audit**.
+2. Enter your desired percentage amount.
+3. Click **Save**.
+
+**Note:** Custom auto-approval settings are only available on the Control plan. Collect plans will have a $100 auto-approval threshold and 0% random audit percentage. 
 
 # FAQ
 

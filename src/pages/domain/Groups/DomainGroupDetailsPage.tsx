@@ -20,6 +20,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import DefaultGroupToggle from './DefaultGroupToggle';
 import DeleteGroupRow from './DeleteGroupRow';
+import ExpensifyCardPreferredWorkspaceToggle from './ExpensifyCardPreferredWorkspaceToggle';
 import PreferredWorkspaceToggle from './PreferredWorkspaceToggle';
 import RestrictDefaultLoginSelectionToggle from './RestrictDefaultLoginSelectionToggle';
 import RestrictExpenseWorkspaceCreationToggle from './RestrictExpenseWorkspaceCreationToggle';
@@ -84,6 +85,10 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                         groupID={groupID}
                     />
                     <PreferredWorkspaceToggle
+                        domainAccountID={domainAccountID}
+                        groupID={groupID}
+                    />
+                    <ExpensifyCardPreferredWorkspaceToggle
                         domainAccountID={domainAccountID}
                         groupID={groupID}
                     />
