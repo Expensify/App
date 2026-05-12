@@ -75,7 +75,12 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         }
 
         // This is the entrypoint for prefetching with `react-native-nitro-fetch`.
-        try { AutoPrefetcher.prefetchOnStart(this) } catch (_: Throwable) {}
+        try {
+            AutoPrefetcher.prefetchOnStart(this)
+        } catch (_: Throwable) {
+            System.err.println("Error initializing Nitro `AutoPrefetcher`")
+        }
+
 
         loadReactNative(this)
 
