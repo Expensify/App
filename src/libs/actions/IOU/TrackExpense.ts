@@ -478,7 +478,7 @@ function buildOnyxDataForTrackExpense({
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
-                routes: null,
+                // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
             },
         },
     );

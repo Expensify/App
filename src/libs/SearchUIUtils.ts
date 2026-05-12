@@ -92,7 +92,7 @@ import type {
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
 import {hasSynchronizationErrorMessage} from './actions/connections';
-import {startMoneyRequest} from './actions/IOU';
+import {startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU/ReportWorkflow';
 import {createTransactionThreadReport} from './actions/Report';
 import type {TransactionPreviewData} from './actions/Search';
@@ -2531,16 +2531,16 @@ function createAndOpenSearchTransactionThread(
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
-        transactionThreadReport = createTransactionThreadReport(
+        transactionThreadReport = createTransactionThreadReport({
             introSelected,
-            currentUserLogin ?? '',
+            currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             betas,
-            getReportOrDraftReport(item.reportID) ?? item.report,
-            reportActionToPass,
+            iouReport: getReportOrDraftReport(item.reportID) ?? item.report,
+            iouReportAction: reportActionToPass,
             transaction,
             transactionViolations,
-        );
+        });
     }
 
     if (shouldNavigate) {
@@ -4166,10 +4166,15 @@ function isColumnSortable(column: SearchColumnType) {
     return !nonSortableColumns.has(column);
 }
 
-type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan', IconAsset>;
+type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset>;
+
+type ShareProps = {
+    onShare: () => void;
+    isCopied: boolean;
+};
 
 /**
- * Constructs and configures the overflow menu for search items, handling interactions such as renaming or deleting items.
+ * Constructs and configures the overflow menu for search items, handling interactions such as sharing, renaming or deleting items.
  */
 function getOverflowMenu(
     icons: OverflowMenuIconsType,
@@ -4180,6 +4185,7 @@ function getOverflowMenu(
     showDeleteModal: (hash: number) => void,
     isMobileMenu?: boolean,
     closeMenu?: () => void,
+    shareProps?: ShareProps,
 ) {
     return [
         {
@@ -4194,6 +4200,19 @@ function getOverflowMenu(
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
+        },
+        {
+            text: shareProps?.isCopied ? translate('search.urlCopied') : translate('common.share'),
+            onSelected: () => {
+                shareProps?.onShare();
+            },
+            icon: shareProps?.isCopied ? icons.Checkmark : icons.LinkCopy,
+            shouldShowRightIcon: false,
+            shouldShowRightComponent: false,
+            disabled: shareProps?.isCopied,
+            shouldGreyOutWhenDisabled: false,
+            shouldUseDefaultCursorWhenDisabled: true,
+            shouldCloseModalOnSelect: false,
         },
         {
             text: translate('common.delete'),

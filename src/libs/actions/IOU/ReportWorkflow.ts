@@ -361,7 +361,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountIDParam)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -1256,7 +1256,7 @@ function submitReport({
     if (!expenseReport) {
         return;
     }
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountIDParam)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
