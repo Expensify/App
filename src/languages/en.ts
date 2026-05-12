@@ -8501,7 +8501,6 @@ const translations = {
         bookACallTextTop: 'By switching to Expensify Classic, you will miss out on:',
         bookACallTextBottom: 'We’d be excited to get on a call with you to understand why. You can book a call with one of our senior product managers to discuss your needs.',
         takeMeToExpensifyClassic: 'Take me to Expensify Classic',
-        switchToClassic: 'Switch to Classic',
         goBackJustOnce: 'Go back just once',
     },
     listBoundary: {

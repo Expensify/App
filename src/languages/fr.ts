@@ -8537,7 +8537,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         bookACallTextBottom:
             'Nous serions ravis d’organiser un appel avec vous pour comprendre pourquoi. Vous pouvez réserver un appel avec l’un de nos chefs de produit senior pour discuter de vos besoins.',
         takeMeToExpensifyClassic: 'M’emmener vers Expensify Classic',
-        switchToClassic: 'Passer à Classic',
         goBackJustOnce: 'Revenir une seule fois',
     },
     listBoundary: {

@@ -8722,7 +8722,6 @@ ${amount} para ${merchant} - ${date}`,
         bookACallTextTop: 'Al cambiar a Expensify Classic, se perderá:',
         bookACallTextBottom: 'Nos encantaría hablar con usted para entender por qué. Puede concertar una llamada con uno de nuestros jefes de producto para hablar de sus necesidades.',
         takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
-        switchToClassic: 'Cambiar a Classic',
         goBackJustOnce: 'Volver solo esta vez',
     },
     listBoundary: {

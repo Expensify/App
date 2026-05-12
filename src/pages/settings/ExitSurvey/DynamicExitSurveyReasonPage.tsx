@@ -137,7 +137,7 @@ function DynamicExitSurveyReasonPage() {
             <FixedFooter>
                 <Button
                     large
-                    text={translate('exitSurvey.switchToClassic')}
+                    text={translate('exitSurvey.goToExpensifyClassic')}
                     onPress={switchToClassic}
                     isDisabled={isSwitchToClassicDisabled}
                 />
