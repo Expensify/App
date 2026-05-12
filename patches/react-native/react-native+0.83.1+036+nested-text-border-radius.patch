@@ -10,26 +10,29 @@ index 906dfbc..0fb3932 100644
  import com.facebook.react.views.text.internal.span.ReactTagSpan;
  import com.facebook.react.views.text.internal.span.TextInlineImageSpan;
  import com.facebook.react.views.text.internal.span.TextInlineViewPlaceholderSpan;
-@@ -364,6 +365,24 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
+@@ -364,6 +365,27 @@ public class ReactTextView extends AppCompatTextView implements ReactCompoundVie
          BackgroundStyleApplicator.clipToPaddingBox(this, canvas);
        }
 
 +      // Draw custom DrawCommandSpan backgrounds before the text so they appear behind it.
-+      // PreparedLayoutTextView handles this natively, but ReactTextView (standard TextView)
-+      // does not know about DrawCommandSpan, so we invoke onPreDraw manually here.
 +      Layout layout = getLayout();
 +      if (spanned != null && layout != null) {
-+        DrawCommandSpan[] drawSpans =
-+            spanned.getSpans(0, spanned.length(), DrawCommandSpan.class);
-+        if (drawSpans != null) {
++        DrawCommandSpan[] drawSpans = spanned.getSpans(0, spanned.length(), DrawCommandSpan.class);
++        if (drawSpans.length > 0) {
 +          int saveCount = canvas.save();
 +          canvas.translate(getTotalPaddingLeft(), getTotalPaddingTop());
 +          for (DrawCommandSpan span : drawSpans) {
-+            span.onPreDraw(
-+                spanned.getSpanStart(span), spanned.getSpanEnd(span), canvas, layout);
++            span.onPreDraw(spanned.getSpanStart(span), spanned.getSpanEnd(span), canvas, layout);
 +          }
 +          canvas.restoreToCount(saveCount);
 +        }
++      } else if (spanned != null) {
++        // getLayout() is null on this draw (typically right after setText() during view
++        // recycling, before the measure pass has rebuilt mLayout). super.onDraw below
++        // will call assumeLayout() and draw the text. Schedule another frame so the next
++        // onDraw — which will find a non-null layout — can paint the DrawCommandSpan
++        // backgrounds underneath. Without this the no-background frame becomes final state.
++        postInvalidateOnAnimation();
 +      }
 +
        super.onDraw(canvas);
