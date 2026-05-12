@@ -49,19 +49,11 @@ jobs:
               - 'docs/**/*.md'
               - 'docs/**/*.csv'
 
-      - name: Add claude utility scripts to PATH
-        run: |
-          echo "$GITHUB_WORKSPACE/.claude/scripts" >> "$GITHUB_PATH"
-
-      - name: Extract allowed rules from coding standards
-        run: |
-          "$GITHUB_WORKSPACE/.github/scripts/extractAllowedRules.sh" \
-            "$GITHUB_WORKSPACE/.claude/skills/coding-standards/rules" \
-            "$RUNNER_TEMP/allowed-rules.txt"
-
-      - name: Load code review JSON schema
-        id: schema
-        run: echo "json=$(jq -c . "$GITHUB_WORKSPACE/.claude/schemas/code-review-output.json")" >> "$GITHUB_OUTPUT"
+      - name: Setup Claude review toolkit
+        id: toolkit
+        uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@CLAUDE_REVIEW_TOOLKIT_SHA_PLACEHOLDER
+        with:
+          enforce_allowed_rules: 'true'
 
       - name: Run Claude Code (code)
         id: code-review
@@ -75,14 +67,13 @@ jobs:
           prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
             --model claude-opus-4-6
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.schema.outputs.json }}'
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
 
       - name: Post code review results
         if: steps.code-review.outcome == 'success' && steps.filter.outputs.code == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           STRUCTURED_OUTPUT: ${{ steps.code-review.outputs.structured_output }}
-          ALLOWED_RULES_FILE: ${{ runner.temp }}/allowed-rules.txt
         run: |
           if [ -z "$STRUCTURED_OUTPUT" ]; then
             echo "::error::Claude Code Action returned empty structured output"
@@ -90,7 +81,7 @@ jobs:
           fi
           COUNT=$(echo "$STRUCTURED_OUTPUT" | jq '.violations | length')
           if [ "$COUNT" -eq 0 ]; then
-            addPrReaction.sh "$PR_NUMBER"
+            addPrReaction.sh "$PR_NUMBER" "+1"
           else
             echo "$STRUCTURED_OUTPUT" | jq -c '.violations[]' | while IFS= read -r v; do
               PATH_ARG=$(echo "$v" | jq -r '.path')
