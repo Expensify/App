@@ -722,7 +722,7 @@ describe('PopoverMenu V2', () => {
             render(
                 <Harness initialOpen>
                     <PopoverMenu.Content>
-                        <PopoverMenu.Sub>
+                        <PopoverMenu.Sub id="sub-test">
                             <ProbeHook />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Item
@@ -1257,7 +1257,7 @@ describe('PopoverMenu V2', () => {
                 <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Header>Pick a payment</PopoverMenu.Header>
-                        <PopoverMenu.Sub>
+                        <PopoverMenu.Sub id="sub-test">
                             <PopoverMenu.Sub.Trigger text="Pay as business" />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Business" />
@@ -1284,7 +1284,7 @@ describe('PopoverMenu V2', () => {
                         text="Top 1"
                         onSelect={() => {}}
                     />
-                    <PopoverMenu.Sub>
+                    <PopoverMenu.Sub id="sub-test">
                         <PopoverMenu.Sub.Trigger text="Pay as business" />
                         <PopoverMenu.Sub.Content>
                             <PopoverMenu.Sub.BackButton text="Business" />
@@ -1337,7 +1337,7 @@ describe('PopoverMenu V2', () => {
                     onOpenChange={onOpenChange}
                 >
                     <PopoverMenu.Content>
-                        <PopoverMenu.Sub>
+                        <PopoverMenu.Sub id="sub-test">
                             <PopoverMenu.Sub.Trigger text="Sub" />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Item
@@ -1637,7 +1637,7 @@ describe('PopoverMenu V2', () => {
             render(
                 <Harness initialOpen>
                     <PopoverMenu.Content>
-                        <PopoverMenu.Sub>
+                        <PopoverMenu.Sub id="sub-test">
                             <PopoverMenu.Sub.Trigger text="Trigger" />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back" />
@@ -1750,7 +1750,7 @@ describe('PopoverMenu V2', () => {
                             text="Above"
                             onSelect={() => {}}
                         />
-                        <PopoverMenu.Sub>
+                        <PopoverMenu.Sub id="sub-test">
                             <PopoverMenu.Sub.Trigger text="Trigger" />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back" />
@@ -1883,7 +1883,7 @@ describe('PopoverMenu V2', () => {
                 <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Separator />
-                        <PopoverMenu.Sub>
+                        <PopoverMenu.Sub id="sub-test">
                             <PopoverMenu.Sub.Trigger text="Sub" />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Item
@@ -1945,7 +1945,7 @@ describe('PopoverMenu V2', () => {
                 <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Group>
-                            <PopoverMenu.Sub>
+                            <PopoverMenu.Sub id="sub-test">
                                 <PopoverMenu.Sub.Trigger text="Open" />
                                 <PopoverMenu.Sub.Content>
                                     <PopoverMenu.Item
@@ -1991,7 +1991,7 @@ describe('PopoverMenu V2', () => {
                                 onSelect={() => {}}
                             />
                         </PopoverMenu.Group>
-                        <PopoverMenu.Sub>
+                        <PopoverMenu.Sub id="sub-test">
                             <PopoverMenu.Sub.Trigger text="More" />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Item
@@ -2097,7 +2097,7 @@ describe('PopoverMenu V2', () => {
             expect(() =>
                 render(
                     <Harness initialOpen>
-                        <PopoverMenu.Sub>
+                        <PopoverMenu.Sub id="sub-test">
                             <PopoverMenu.Sub.Trigger text="X" />
                         </PopoverMenu.Sub>
                     </Harness>,

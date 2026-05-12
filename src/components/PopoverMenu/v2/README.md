@@ -80,7 +80,7 @@ All rows except `<Item>` / `<CheckmarkItem>` auto-hide outside the active sub-le
 - **`<Sub.Content>`** — wraps the sub's content. Stays mounted at ancestor levels so deeper subs survive when a shallower sub is the currently-active level (back-button pops one level instead of collapsing to root).
 - **`<Sub.BackButton>`** — back row that pops one level.
 
-**`<Sub id?>`** — pin a stable id when the parent `<Root>` may remount (a fresh key, screen tear-down, etc.). Without `id`, the fallback `useId()` value rotates on remount and any in-flight sub-navigation state is lost.
+**`<Sub id>`** — required stable identifier. Pass a literal string so sub-navigation state stays addressable across Root remounts.
 
 ### Row composition — `useSelectableRow({onSelect?, disabled?, text?})`
 

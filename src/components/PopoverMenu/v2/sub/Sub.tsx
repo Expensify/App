@@ -1,4 +1,4 @@
-import React, {useId, useLayoutEffect} from 'react';
+import React, {useLayoutEffect} from 'react';
 import type {ReactNode} from 'react';
 import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import {SubContext, useSubContextOptional} from './SubContext';
@@ -6,13 +6,11 @@ import type {SubContextValue} from './SubContext';
 
 type SubProps = {
     children: ReactNode;
-    id?: string;
+    id: string;
 };
 
 /** One nested submenu level; pairs with `<Sub.Trigger>` + `<Sub.Content>`. */
-function Sub({children, id}: SubProps): React.ReactElement {
-    const fallbackID = useId();
-    const subID = id ?? fallbackID;
+function Sub({children, id: subID}: SubProps): React.ReactElement {
     const outerSub = useSubContextOptional();
     const parentSubID = outerSub?.subID ?? null;
     const value = {subID, parentSubID} satisfies SubContextValue;
