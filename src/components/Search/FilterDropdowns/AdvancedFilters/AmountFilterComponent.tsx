@@ -1,4 +1,4 @@
-import React, {useImperativeHandle, useRef, useState} from 'react';
+import React, {Fragment, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
@@ -177,7 +177,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
         <View style={[styles.flex1, styles.justifyContentBetween, !fullscreen && styles.pv2]}>
             <ScrollView>
                 {modifierConfig.map((config) => (
-                    <>
+                    <Fragment key={config.keyForList}>
                         <SingleSelectListItem
                             item={config}
                             showTooltip={false}
@@ -201,7 +201,7 @@ function AmountFilterComponent({filterKey, value, onChange}: AmountFilterCompone
                                     label={label}
                                 />
                             ))}
-                    </>
+                    </Fragment>
                 ))}
             </ScrollView>
             <Button
