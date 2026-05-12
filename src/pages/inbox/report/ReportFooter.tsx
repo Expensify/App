@@ -89,10 +89,11 @@ function ReportFooter() {
     if (!shouldHideComposer) {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                <EnableNotificationsBanner reportID={reportIDFromRoute} />
-                <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                    <ReportActionCompose reportID={reportIDFromRoute} />
-                </SwipeableView>
+                <EnableNotificationsBanner reportID={reportIDFromRoute}>
+                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                        <ReportActionCompose reportID={reportIDFromRoute} />
+                    </SwipeableView>
+                </EnableNotificationsBanner>
             </View>
         );
     }

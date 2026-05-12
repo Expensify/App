@@ -1,12 +1,10 @@
+import type {ReactNode} from 'react';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import Icon from '@components/Icon';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissForSession} from '@libs/actions/ConciergeNotificationBanner';
 import NotificationPermission from '@libs/Notification/notificationPermission';
@@ -16,13 +14,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type EnableNotificationsBannerProps = {
     reportID: string;
+    children: ReactNode;
 };
 
-function EnableNotificationsBanner({reportID}: EnableNotificationsBannerProps) {
+function EnableNotificationsBanner({reportID, children}: EnableNotificationsBannerProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Bell']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -60,32 +57,31 @@ function EnableNotificationsBanner({reportID}: EnableNotificationsBannerProps) {
         });
     }, []);
 
-    if (!isConcierge || hasDismissed || permissionStatus !== 'default') {
-        return null;
+    const shouldShow = isConcierge && !hasDismissed && permissionStatus === 'default';
+
+    if (!shouldShow) {
+        return children;
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.p3, styles.mh3, styles.mb2, styles.borderRadiusComponentNormal, styles.hoveredComponentBG]}>
-            <View style={[styles.mr2]}>
-                <Icon
-                    src={icons.Bell}
-                    fill={theme.icon}
+        <View style={[styles.borderRadiusComponentNormal, styles.hoveredComponentBG, styles.pv3, styles.ph3]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                <Text style={[styles.flex1, styles.flexWrap, styles.textNormal]}>{translate('concierge.enableNotifications.prompt')}</Text>
+                <Button
+                    success
+                    small
+                    style={[styles.ml2]}
+                    text={translate('concierge.enableNotifications.cta')}
+                    onPress={handleNotifyMe}
+                />
+                <Button
+                    small
+                    style={[styles.ml2]}
+                    text={translate('common.notNow')}
+                    onPress={dismiss}
                 />
             </View>
-            <Text style={[styles.flex1, styles.flexWrap, styles.textLabelSupporting]}>{translate('concierge.enableNotifications.prompt')}</Text>
-            <Button
-                small
-                style={[styles.ml2]}
-                text={translate('common.notNow')}
-                onPress={dismiss}
-            />
-            <Button
-                success
-                small
-                style={[styles.ml2]}
-                text={translate('concierge.enableNotifications.cta')}
-                onPress={handleNotifyMe}
-            />
+            {children}
         </View>
     );
 }
