@@ -29,7 +29,7 @@ function AdvancedFiltersPopup({queryJSON}: AdvancedFiltersPopupProps) {
 
     return (
         <SafeTriangle submenuRef={filterContentRef}>
-            <View style={[styles.flexRow, StyleUtils.getMaximumHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_MAX_HEIGHT))]}>
+            <View style={[styles.flexRow, StyleUtils.getHeight(Math.min(windowHeight, CONST.ADVANCED_FILTERS_POPOVER_HEIGHT))]}>
                 <FilterList
                     selectedFilter={selectedFilter}
                     onFilterSelected={setSelectedFilter}
