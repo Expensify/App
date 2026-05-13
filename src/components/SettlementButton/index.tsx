@@ -519,6 +519,7 @@ function SettlementButton({
                     ownerBillingGracePeriodEnd,
                     full: false,
                     delegateEmail,
+                    conciergeReportID,
                 });
             }
             return;

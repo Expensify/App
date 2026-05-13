@@ -336,6 +336,7 @@ function useSelectionModeReportActions({
                 delegateEmail,
                 full: true,
                 expenseReportPolicy: policy,
+                conciergeReportID: undefined,
             });
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();

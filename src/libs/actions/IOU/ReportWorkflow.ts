@@ -89,6 +89,7 @@ type ApproveMoneyRequestFunctionParams = {
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     delegateEmail: string | undefined;
+    conciergeReportID: string | undefined;
 };
 
 type SubmitReportFunctionParams = {
@@ -355,6 +356,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         ownerBillingGracePeriodEnd,
         delegateEmail,
         expenseReportPolicy,
+        conciergeReportID,
     } = params;
     if (!expenseReport) {
         return;
@@ -643,6 +645,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
             betas,
+            conciergeReportID,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);

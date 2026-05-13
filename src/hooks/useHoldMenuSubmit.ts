@@ -77,6 +77,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
                 onApproved: animationCallback,
                 expenseReportPolicy: policy,
                 delegateEmail,
+                conciergeReportID,
             });
         } else if (chatReport && paymentType) {
             payMoneyRequest({

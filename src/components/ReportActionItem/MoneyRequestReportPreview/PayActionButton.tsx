@@ -157,6 +157,7 @@ function PayActionButton({
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                conciergeReportID: undefined,
             });
         }
     };

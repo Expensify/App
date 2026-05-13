@@ -72,6 +72,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                conciergeReportID: undefined,
             });
         }
     };

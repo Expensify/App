@@ -272,6 +272,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 ownerBillingGracePeriodEnd,
                 full: true,
                 delegateEmail,
+                conciergeReportID: undefined,
             });
         }
         return;

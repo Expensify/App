@@ -57,6 +57,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
                 full: true,
                 onApproved: startApprovedAnimation,
                 delegateEmail,
+                conciergeReportID: undefined,
             });
         }
     };

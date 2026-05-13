@@ -138,8 +138,7 @@ function getPayMoneyRequestParams({
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
     defaultWorkspaceName?: string;
-    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
 }): PayMoneyRequestData {
     const allTransactionViolations = getAllTransactionViolations();
 
@@ -845,6 +844,7 @@ function payInvoice({
         betas,
         isSelfTourViewed,
         defaultWorkspaceName,
+        conciergeReportID: undefined,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;

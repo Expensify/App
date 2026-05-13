@@ -7676,7 +7676,6 @@ function updateReportPreview(
         }
     }
 
-    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
     const message = getReportPreviewMessage(iouReport, undefined, reportPreviewAction);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
