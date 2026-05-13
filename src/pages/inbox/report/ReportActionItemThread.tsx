@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
@@ -5,12 +6,11 @@ import type {OnyxEntry} from 'react-native-onyx';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenChildReport} from '@libs/actions/Report';
-import Timing from '@libs/actions/Timing';
-import Performance from '@libs/Performance';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -43,9 +43,12 @@ type ReportActionItemThreadProps = {
 
 function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, report, reportAction, isHovered, onSecondaryInteraction, isActive}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
-
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, datetimeToCalendarTime} = useLocalize();
-    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, {canBeMissing: true});
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const numberOfRepliesText = numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${numberOfReplies}`;
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
@@ -56,9 +59,7 @@ function ReportActionItemThread({numberOfReplies, accountIDs, mostRecentReply, r
         <View style={[styles.chatItemMessage]}>
             <PressableWithSecondaryInteraction
                 onPress={() => {
-                    Performance.markStart(CONST.TIMING.OPEN_REPORT_THREAD);
-                    Timing.start(CONST.TIMING.OPEN_REPORT_THREAD);
-                    navigateToAndOpenChildReport(childReport, reportAction, report);
+                    navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, betas, isSelfTourViewed);
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}

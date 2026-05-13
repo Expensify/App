@@ -1,5 +1,6 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -84,10 +85,9 @@ function AccountValidatePage() {
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: accountSelector,
-        canBeMissing: true,
     });
 
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -122,7 +122,6 @@ function AccountValidatePage() {
     });
 
     useFocusEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const task = InteractionManager.runAfterInteractions(() => {
             if (privateSubscription?.type !== CONST.SUBSCRIPTION.TYPE.INVOICING) {
                 return;
@@ -169,10 +168,10 @@ function AccountValidatePage() {
                     descriptionSecondary={
                         <View style={[styles.w100]}>
                             <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', {login: email})} />
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', email)} />
                             </View>
                             <View style={[styles.renderHTML, styles.flexRow]}>
-                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', {login: email})} />
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', email)} />
                             </View>
                         </View>
                     }

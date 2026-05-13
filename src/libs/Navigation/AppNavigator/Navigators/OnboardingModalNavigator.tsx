@@ -17,6 +17,7 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
@@ -34,17 +35,20 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import OnboardingModalNavigatorContentWrapper from './OnboardingModalNavigatorContentWrapper';
 import Overlay from './Overlay';
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
+
+let signUpEventPublishedForAccountID: number | undefined;
 
 function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: true});
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
@@ -57,22 +61,22 @@ function OnboardingModalNavigator() {
         initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
     }
 
-    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && !!onboardingPolicyID) {
+    if (isTrackOnboardingChoice(onboardingPurposeSelected) && !!onboardingPolicyID) {
         initialRouteName = SCREENS.ONBOARDING.WORKSPACE_INVITE;
     }
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
-        canBeMissing: false,
     });
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
     useEffect(() => {
-        if (!accountID) {
+        if (!accountID || signUpEventPublishedForAccountID === accountID) {
             return;
         }
 
+        signUpEventPublishedForAccountID = accountID;
         GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
     }, [accountID]);
 
@@ -114,10 +118,7 @@ function OnboardingModalNavigator() {
                 style={styles.onboardingNavigatorOuterView}
             >
                 <FocusTrapForScreens>
-                    <View
-                        onClick={(e) => e.stopPropagation()}
-                        style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)]}
-                    >
+                    <OnboardingModalNavigatorContentWrapper onboardingIsMediumOrLargerScreenWidth={onboardingIsMediumOrLargerScreenWidth}>
                         <Stack.Navigator
                             screenOptions={defaultScreenOptions}
                             initialRouteName={initialRouteName}
@@ -125,6 +126,7 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PURPOSE}
                                 component={OnboardingPurpose}
+                                options={{animationTypeForReplace: 'push'}}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
@@ -133,6 +135,7 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORK_EMAIL}
                                 component={OnboardingWorkEmail}
+                                options={{animationTypeForReplace: 'push'}}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
@@ -175,7 +178,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkspaceInvite}
                             />
                         </Stack.Navigator>
-                    </View>
+                    </OnboardingModalNavigatorContentWrapper>
                 </FocusTrapForScreens>
             </View>
         </NoDropZone>

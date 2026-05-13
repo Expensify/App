@@ -1,8 +1,10 @@
 import {Image} from 'expo-image';
+import type {ImageProps as ExpoImageProps} from 'expo-image';
 import React, {useEffect} from 'react';
+import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 import type ImageSVGProps from './types';
 
-function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style, onLoadEnd, cachePolicy}: ImageSVGProps) {
+function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style, onLoadEnd}: ImageSVGProps) {
     const tintColorProp = fill ? {tintColor: fill} : {};
     const isReactComponent = typeof src === 'function';
 
@@ -39,13 +41,15 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     // Handle static image sources (traditional approach)
     return (
         <Image
+            accessibilityIgnoresInvertColors
             onLoadEnd={onLoadEnd}
+            cachePolicy="memory-disk"
             contentFit={contentFit}
             source={src}
-            style={[{width, height}, style]}
+            recyclingKey={getImageRecyclingKey(src)}
+            style={[{width, height}, style as ExpoImageProps['style']]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...tintColorProp}
-            cachePolicy={cachePolicy ?? 'memory-disk'}
         />
     );
 }

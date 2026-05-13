@@ -1,0 +1,4319 @@
+diff --git a/node_modules/eslint-seatbelt/README.md b/node_modules/eslint-seatbelt/README.md
+index ddcaa34..598c0d6 100644
+--- a/node_modules/eslint-seatbelt/README.md
++++ b/node_modules/eslint-seatbelt/README.md
+@@ -89,6 +89,37 @@ module.exports = {
+ 
+ 1. `SEATBELT_FROZEN=1 eslint` or `CI=1 eslint`
+ 
++### Keep the worktree clean during local development (auto-ratchet workflow)
++
++If you don't want developers to hand-commit changes to `eslint.seatbelt.tsv`
++every time they fix a baselined error, use `SEATBELT_READ_ONLY=1` locally and
++let a post-merge job ratchet the baseline on the default branch.
++
++1. Local / editor runs: `SEATBELT_READ_ONLY=1 eslint`
++   - Counts go down → lint passes, `eslint.seatbelt.tsv` is NOT rewritten.
++   - Counts go up (no `SEATBELT_INCREASE`) → lint fails as normal.
++   - `SEATBELT_INCREASE=<rule>` overrides `SEATBELT_READ_ONLY` so the baseline
++     gets persisted when a developer intentionally loosens a rule.
++2. PR CI: `CI=1 eslint` (frozen). Any drift in `eslint.seatbelt.tsv` fails
++   the build; ephemeral writes during the run are discarded with the runner.
++3. On push to default branch: run `eslint` (no flags) in a bot job. If the
++   lint run produces a diff to `eslint.seatbelt.tsv`, commit and push it.
++
++Example ESLint config that enables read-only mode outside CI:
++
++```js
++// in eslint.config.js
++export default [
++  {
++    settings: {
++      seatbelt: {
++        readOnly: !process.env.CI,
++      },
++    },
++  },
++]
++```
++
+ ### Introduce ESLint to an existing codebase
+ 
+ eslint-seatbelt makes it easy to introduce ESLint to an existing unlinted codebase.
+@@ -336,6 +367,41 @@ export interface SeatbeltConfig {
+    * ]
+    */
+   disable?: boolean
++  /**
++   * When `true`, seatbelt validates error counts (still reporting increases)
++   * but never writes the seatbelt file. Keeps the worktree clean in local /
++   * editor runs; expect an authoritative updater (e.g. post-merge CI) to run
++   * with `readOnly: false`.
++   *
++   * Unlike `frozen`, does not turn decreases into errors. If both are set,
++   * `frozen` messaging is preserved and no write occurs.
++   *
++   * `SEATBELT_INCREASE` overrides this so intentional loosening is persisted.
++   *
++   * Defaults to `false`.
++   *
++   * Set via `SEATBELT_READ_ONLY` env var:
++   *
++   * ```bash
++   * SEATBELT_READ_ONLY=1 eslint
++   * ```
++   *
++   * Or in ESLint config:
++   *
++   * ```js
++   * // in eslint.config.js
++   * const config = [
++   *   {
++   *     settings: {
++   *       seatbelt: {
++   *         readOnly: !process.env.CI,
++   *       }
++   *     }
++   *   }
++   * ]
++   * ```
++   */
++  readOnly?: boolean
+   /**
+    * By default seatbelt assumes that only one ESLint process will read and
+    * write to the seatbelt file at a time.
+diff --git a/node_modules/eslint-seatbelt/dist/api.js b/node_modules/eslint-seatbelt/dist/api.js
+index afa6177..b416cf8 100644
+--- a/node_modules/eslint-seatbelt/dist/api.js
++++ b/node_modules/eslint-seatbelt/dist/api.js
+@@ -1,7 +1,7 @@
+ "use strict";Object.defineProperty(exports, "__esModule", {value: true});
+ 
+ 
+-var _chunkNTFTCWX7js = require('./chunk-NTFTCWX7.js');
++var _chunkF4JJMAJLjs = require('./chunk-F4JJMAJL.js');
+ 
+ 
+ 
+@@ -23,8 +23,8 @@ var _chunkNTFTCWX7js = require('./chunk-NTFTCWX7.js');
+ 
+ 
+ 
+-var _chunkZVY5S6JSjs = require('./chunk-ZVY5S6JS.js');
+ 
++var _chunkTDWD7IZMjs = require('./chunk-TDWD7IZM.js');
+ 
+ 
+ 
+@@ -47,5 +47,7 @@ var _chunkZVY5S6JSjs = require('./chunk-ZVY5S6JS.js');
+ 
+ 
+ 
+-exports.FileLock = _chunkNTFTCWX7js.FileLock; exports.SEATBELT_DISABLE = _chunkZVY5S6JSjs.SEATBELT_DISABLE; exports.SEATBELT_FILE = _chunkZVY5S6JSjs.SEATBELT_FILE; exports.SEATBELT_FILE_NAME = _chunkZVY5S6JSjs.SEATBELT_FILE_NAME; exports.SEATBELT_FROZEN = _chunkZVY5S6JSjs.SEATBELT_FROZEN; exports.SEATBELT_INCREASE = _chunkZVY5S6JSjs.SEATBELT_INCREASE; exports.SEATBELT_KEEP = _chunkZVY5S6JSjs.SEATBELT_KEEP; exports.SEATBELT_PWD = _chunkZVY5S6JSjs.SEATBELT_PWD; exports.SEATBELT_QUIET = _chunkZVY5S6JSjs.SEATBELT_QUIET; exports.SEATBELT_ROOT = _chunkZVY5S6JSjs.SEATBELT_ROOT; exports.SEATBELT_THREADSAFE = _chunkZVY5S6JSjs.SEATBELT_THREADSAFE; exports.SEATBELT_VERBOSE = _chunkZVY5S6JSjs.SEATBELT_VERBOSE; exports.SeatbeltArgs = _chunkZVY5S6JSjs.SeatbeltArgs; exports.SeatbeltConfig = _chunkZVY5S6JSjs.SeatbeltConfig; exports.SeatbeltConfigSchema = _chunkZVY5S6JSjs.SeatbeltConfigSchema; exports.SeatbeltEnv = _chunkZVY5S6JSjs.SeatbeltEnv; exports.SeatbeltFile = _chunkNTFTCWX7js.SeatbeltFile; exports.formatFilename = _chunkZVY5S6JSjs.formatFilename; exports.formatRuleId = _chunkZVY5S6JSjs.formatRuleId; exports.logStderr = _chunkZVY5S6JSjs.logStderr; exports.logStdout = _chunkZVY5S6JSjs.logStdout; exports.padVarName = _chunkZVY5S6JSjs.padVarName;
++
++
++exports.FileLock = _chunkF4JJMAJLjs.FileLock; exports.SEATBELT_DISABLE = _chunkTDWD7IZMjs.SEATBELT_DISABLE; exports.SEATBELT_FILE = _chunkTDWD7IZMjs.SEATBELT_FILE; exports.SEATBELT_FILE_NAME = _chunkTDWD7IZMjs.SEATBELT_FILE_NAME; exports.SEATBELT_FROZEN = _chunkTDWD7IZMjs.SEATBELT_FROZEN; exports.SEATBELT_INCREASE = _chunkTDWD7IZMjs.SEATBELT_INCREASE; exports.SEATBELT_KEEP = _chunkTDWD7IZMjs.SEATBELT_KEEP; exports.SEATBELT_PWD = _chunkTDWD7IZMjs.SEATBELT_PWD; exports.SEATBELT_QUIET = _chunkTDWD7IZMjs.SEATBELT_QUIET; exports.SEATBELT_READ_ONLY = _chunkTDWD7IZMjs.SEATBELT_READ_ONLY; exports.SEATBELT_ROOT = _chunkTDWD7IZMjs.SEATBELT_ROOT; exports.SEATBELT_THREADSAFE = _chunkTDWD7IZMjs.SEATBELT_THREADSAFE; exports.SEATBELT_VERBOSE = _chunkTDWD7IZMjs.SEATBELT_VERBOSE; exports.SeatbeltArgs = _chunkTDWD7IZMjs.SeatbeltArgs; exports.SeatbeltConfig = _chunkTDWD7IZMjs.SeatbeltConfig; exports.SeatbeltConfigSchema = _chunkTDWD7IZMjs.SeatbeltConfigSchema; exports.SeatbeltEnv = _chunkTDWD7IZMjs.SeatbeltEnv; exports.SeatbeltFile = _chunkF4JJMAJLjs.SeatbeltFile; exports.formatFilename = _chunkTDWD7IZMjs.formatFilename; exports.formatRuleId = _chunkTDWD7IZMjs.formatRuleId; exports.logStderr = _chunkTDWD7IZMjs.logStderr; exports.logStdout = _chunkTDWD7IZMjs.logStdout; exports.padVarName = _chunkTDWD7IZMjs.padVarName;
+ //# sourceMappingURL=api.js.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/api.mjs b/node_modules/eslint-seatbelt/dist/api.mjs
+index efa51d7..61d1606 100644
+--- a/node_modules/eslint-seatbelt/dist/api.mjs
++++ b/node_modules/eslint-seatbelt/dist/api.mjs
+@@ -1,7 +1,7 @@
+ import {
+   FileLock,
+   SeatbeltFile
+-} from "./chunk-5FFUIU4M.mjs";
++} from "./chunk-QGLWIAEE.mjs";
+ import {
+   SEATBELT_DISABLE,
+   SEATBELT_FILE,
+@@ -11,6 +11,7 @@ import {
+   SEATBELT_KEEP,
+   SEATBELT_PWD,
+   SEATBELT_QUIET,
++  SEATBELT_READ_ONLY,
+   SEATBELT_ROOT,
+   SEATBELT_THREADSAFE,
+   SEATBELT_VERBOSE,
+@@ -23,7 +24,7 @@ import {
+   logStderr,
+   logStdout,
+   padVarName
+-} from "./chunk-ULACHCKT.mjs";
++} from "./chunk-U6KIQG2A.mjs";
+ export {
+   FileLock,
+   SEATBELT_DISABLE,
+@@ -34,6 +35,7 @@ export {
+   SEATBELT_KEEP,
+   SEATBELT_PWD,
+   SEATBELT_QUIET,
++  SEATBELT_READ_ONLY,
+   SEATBELT_ROOT,
+   SEATBELT_THREADSAFE,
+   SEATBELT_VERBOSE,
+diff --git a/node_modules/eslint-seatbelt/dist/chunk-5FFUIU4M.mjs b/node_modules/eslint-seatbelt/dist/chunk-5FFUIU4M.mjs
+deleted file mode 100644
+index 025f420..0000000
+--- a/node_modules/eslint-seatbelt/dist/chunk-5FFUIU4M.mjs
++++ /dev/null
+@@ -1,480 +0,0 @@
+-import {
+-  SEATBELT_FROZEN,
+-  SEATBELT_KEEP,
+-  SeatbeltArgs,
+-  formatFilename,
+-  formatRuleId,
+-  name
+-} from "./chunk-ULACHCKT.mjs";
+-
+-// src/FileLock.ts
+-import { openSync, writeSync, closeSync, readFileSync, constants, rmSync } from "node:fs";
+-
+-// src/errorHanding.ts
+-function appendErrorContext(error, context) {
+-  if (error instanceof Error) {
+-    error.message += `
+-  ${context}`;
+-  }
+-}
+-function isErrno(error, code) {
+-  return error instanceof Error && "code" in error && error.code === code;
+-}
+-
+-// src/FileLock.ts
+-var { O_CREAT, O_EXCL, O_RDWR } = constants;
+-var waitBuffer = new Int32Array(new SharedArrayBuffer(4));
+-var heldLocks = /* @__PURE__ */ new Set();
+-var cleanupHooksInstalled = false;
+-var SIGNAL_EXIT_CODES = { SIGINT: 130, SIGTERM: 143, SIGHUP: 129 };
+-function installCleanupHooks() {
+-  if (cleanupHooksInstalled) return;
+-  cleanupHooksInstalled = true;
+-  const release = () => {
+-    for (const lock of heldLocks) {
+-      try {
+-        lock.unlock();
+-      } catch {
+-      }
+-    }
+-  };
+-  process.on("exit", release);
+-  for (const signal of Object.keys(SIGNAL_EXIT_CODES)) {
+-    process.on(signal, () => {
+-      release();
+-      process.exit(SIGNAL_EXIT_CODES[signal]);
+-    });
+-  }
+-}
+-var FileLock = class {
+-  constructor(filename) {
+-    this.filename = filename;
+-  }
+-  fd;
+-  tryLock() {
+-    this.assertNotLocked();
+-    try {
+-      this.fd = openSync(this.filename, O_CREAT | O_EXCL | O_RDWR);
+-      writeSync(this.fd, `${process.pid}
+-`);
+-      heldLocks.add(this);
+-      installCleanupHooks();
+-      return true;
+-    } catch (e) {
+-      if (isErrno(e, "EEXIST")) {
+-        return false;
+-      }
+-      throw e;
+-    }
+-  }
+-  waitLock(timeoutMs) {
+-    const deadline = Date.now() + timeoutMs;
+-    let attemptedRecovery = false;
+-    while (!this.tryLock()) {
+-      if (Date.now() > deadline) {
+-        if (!attemptedRecovery && this.reclaimIfStale()) {
+-          attemptedRecovery = true;
+-          continue;
+-        }
+-        throw new Error(`Timed out waiting for lock on ${this.filename}`);
+-      }
+-      Atomics.wait(waitBuffer, 0, 0, 1);
+-    }
+-  }
+-  isLocked() {
+-    return this.fd !== void 0;
+-  }
+-  unlock() {
+-    if (this.fd !== void 0) {
+-      closeSync(this.fd);
+-      try {
+-        rmSync(this.filename);
+-      } catch (e) {
+-        if (!isErrno(e, "ENOENT")) throw e;
+-      }
+-      this.fd = void 0;
+-      heldLocks.delete(this);
+-    }
+-  }
+-  assertNotLocked() {
+-    if (this.fd !== void 0) {
+-      throw new Error(
+-        `FileLock "${this.filename}" is already locked by this process [pid ${process.pid}]`
+-      );
+-    }
+-  }
+-  reclaimIfStale() {
+-    let contents;
+-    try {
+-      contents = readFileSync(this.filename, "utf8");
+-    } catch (e) {
+-      if (isErrno(e, "ENOENT")) return true;
+-      throw e;
+-    }
+-    const pid = Number.parseInt(contents.trim(), 10);
+-    if (!Number.isFinite(pid) || pid <= 0) return false;
+-    try {
+-      process.kill(pid, 0);
+-      return false;
+-    } catch (e) {
+-      if (!isErrno(e, "ESRCH")) throw e;
+-    }
+-    try {
+-      rmSync(this.filename);
+-    } catch (e) {
+-      if (!isErrno(e, "ENOENT")) throw e;
+-    }
+-    return true;
+-  }
+-};
+-
+-// src/SeatbeltFile.ts
+-import * as os from "node:os";
+-import * as fs from "node:fs";
+-import path, * as nodePath from "node:path";
+-var LOCK_TIMEOUT_MS = 3e4;
+-function encodeLine(line) {
+-  const { filename, ruleId, maxErrors } = line;
+-  return `${JSON.stringify(filename)}	${JSON.stringify(ruleId)}	${maxErrors}
+-`;
+-}
+-function decodeLine(line, index) {
+-  try {
+-    const lineParts = line.split("	");
+-    if (lineParts.length !== 3) {
+-      throw new Error(
+-        `Expected 3 tab-separated JSON strings, instead have ${lineParts.length}`
+-      );
+-    }
+-    let filename;
+-    try {
+-      filename = JSON.parse(lineParts[0]);
+-    } catch (e) {
+-      appendErrorContext(e, "at tab-separated column 1 (filename)");
+-      throw e;
+-    }
+-    let ruleId;
+-    try {
+-      ruleId = JSON.parse(lineParts[1]);
+-    } catch (e) {
+-      appendErrorContext(e, "at tab-separated column 2 (RuleId)");
+-      throw e;
+-    }
+-    let maxErrors;
+-    try {
+-      maxErrors = JSON.parse(lineParts[2]);
+-    } catch (e) {
+-      appendErrorContext(e, "at tab-separated column 3 (maxErrors)");
+-      throw e;
+-    }
+-    return {
+-      encoded: line,
+-      filename,
+-      ruleId,
+-      maxErrors
+-    };
+-  } catch (e) {
+-    appendErrorContext(e, `at line ${index + 1}: \`${line.trim()}\``);
+-    throw e;
+-  }
+-}
+-var COMMENT_LINE_REGEX = /^\s*#/;
+-var NON_EMPTY_LINE_REGEX = /\S+/;
+-var DEFAULT_FILE_HEADER = `
+-# ${name} temporarily allowed errors
+-# docs: https://github.com/justjake/${name}#readme
+-`.trim();
+-var SeatbeltFile = class _SeatbeltFile {
+-  constructor(filename, data, comments = "") {
+-    this.filename = filename;
+-    this.data = data;
+-    this.comments = comments;
+-    this.filename = path.resolve(this.filename);
+-    this.dirname = path.dirname(this.filename);
+-  }
+-  static readSync(filename) {
+-    const text = fs.readFileSync(filename, "utf8");
+-    try {
+-      return _SeatbeltFile.parse(filename, text);
+-    } catch (e) {
+-      appendErrorContext(e, `in seatbelt file \`${filename}\``);
+-      throw e;
+-    }
+-  }
+-  /**
+-   * Read `filename` if it exists, otherwise create a new empty seatbelt file object
+-   * that will write to that filename.
+-   */
+-  static openSync(filename) {
+-    try {
+-      return _SeatbeltFile.readSync(filename);
+-    } catch (e) {
+-      if (isErrno(e, "ENOENT")) {
+-        return new _SeatbeltFile(filename, /* @__PURE__ */ new Map(), DEFAULT_FILE_HEADER);
+-      }
+-      throw e;
+-    }
+-  }
+-  static parse(filename, text) {
+-    const data = /* @__PURE__ */ new Map();
+-    const split = text.split(/(?<=\n)/);
+-    const lines = split.filter(
+-      (line) => NON_EMPTY_LINE_REGEX.test(line) && !COMMENT_LINE_REGEX.test(line)
+-    ).map(decodeLine);
+-    const comments = split.filter((line) => COMMENT_LINE_REGEX.test(line)).join("");
+-    lines.forEach((line) => {
+-      let fileState = data.get(line.filename);
+-      if (!fileState) {
+-        fileState = { maxErrors: void 0, lines: [] };
+-        data.set(line.filename, fileState);
+-      }
+-      fileState.lines.push(line);
+-    });
+-    return new _SeatbeltFile(filename, data, comments.trim());
+-  }
+-  static fromJSON(json) {
+-    const data = new Map(
+-      Object.entries(json.data).map(([filename, maxErrors]) => [
+-        filename,
+-        { maxErrors: new Map(Object.entries(maxErrors)), lines: [] }
+-      ])
+-    );
+-    return new _SeatbeltFile(json.filename, data);
+-  }
+-  changed = false;
+-  dirname;
+-  useTempDirForWrites = true;
+-  *filenames() {
+-    for (const filename of this.data.keys()) {
+-      yield this.toAbsolutePath(filename);
+-    }
+-  }
+-  getMaxErrors(filename) {
+-    const fileState = this.data.get(this.toRelativePath(filename));
+-    if (!fileState) {
+-      return void 0;
+-    }
+-    fileState.maxErrors ??= parseMaxErrors(fileState.lines);
+-    return fileState.maxErrors;
+-  }
+-  removeFile(filename, args) {
+-    const relativeFilename = this.toRelativePath(filename);
+-    if (!this.data.has(relativeFilename)) {
+-      return false;
+-    }
+-    SeatbeltArgs.verboseLog(
+-      args,
+-      () => args.frozen ? `${formatFilename(filename)}: ${SEATBELT_FROZEN}: didn't remove max errors` : `${formatFilename(filename)}: remove max errors`
+-    );
+-    if (args.frozen) {
+-      return false;
+-    }
+-    this.data.delete(relativeFilename);
+-    this.changed = true;
+-    return true;
+-  }
+-  updateMaxErrors(filename, args, ruleToErrorCount) {
+-    const removedRules = /* @__PURE__ */ new Set();
+-    let increasedRulesCount = 0;
+-    let decreasedRulesCount = 0;
+-    this.getMaxErrors(filename);
+-    const relativeFilename = this.toRelativePath(filename);
+-    const maxErrors = this.data.get(relativeFilename)?.maxErrors ?? /* @__PURE__ */ new Map();
+-    ruleToErrorCount.forEach((errorCount, ruleId) => {
+-      const maxErrorCount = maxErrors.get(ruleId) ?? 0;
+-      if (errorCount === maxErrorCount) {
+-        return;
+-      }
+-      if (errorCount < maxErrorCount || SeatbeltArgs.ruleSetHas(args.allowIncreaseRules, ruleId)) {
+-        SeatbeltArgs.verboseLog(
+-          args,
+-          () => args.frozen ? `${formatFilename(filename)}: ${formatRuleId(ruleId)}: ${SEATBELT_FROZEN}: didn't update max errors ${maxErrorCount} -> ${errorCount}` : `${formatFilename(filename)}: ${formatRuleId(ruleId)}: update max errors ${maxErrorCount} -> ${errorCount}`
+-        );
+-        maxErrors.set(ruleId, errorCount);
+-        if (errorCount > maxErrorCount) {
+-          increasedRulesCount++;
+-        } else {
+-          decreasedRulesCount++;
+-        }
+-      }
+-    });
+-    if (args.verbose || args.keepRules !== "all") {
+-      maxErrors.forEach((maxErrorCount, ruleId) => {
+-        const shouldRemove = maxErrorCount === 0 || !ruleToErrorCount.has(ruleId);
+-        if (!shouldRemove) {
+-          return;
+-        }
+-        if (SeatbeltArgs.ruleSetHas(args.keepRules, ruleId)) {
+-          SeatbeltArgs.verboseLog(
+-            args,
+-            () => `${formatFilename(filename)}: ${formatRuleId(ruleId)}: ${SEATBELT_KEEP}: didn't update max errors ${maxErrorCount} -> ${0}`
+-          );
+-          return;
+-        }
+-        SeatbeltArgs.verboseLog(
+-          args,
+-          () => args.frozen ? `${formatFilename(filename)}: ${formatRuleId(ruleId)}: ${SEATBELT_FROZEN}: didn't update max errors ${maxErrorCount} -> ${0}` : `${formatFilename(filename)}: ${formatRuleId(ruleId)}: update max errors ${maxErrorCount} -> ${0}`
+-        );
+-        maxErrors.delete(ruleId);
+-        removedRules.add(ruleId);
+-      });
+-    }
+-    const changed = increasedRulesCount > 0 || decreasedRulesCount > 0 || removedRules.size > 0;
+-    if (changed && !args.frozen) {
+-      const file = this.data.get(relativeFilename);
+-      if (file) {
+-        file.maxErrors = maxErrors;
+-      } else {
+-        this.data.set(relativeFilename, {
+-          maxErrors,
+-          lines: []
+-        });
+-      }
+-      this.changed = true;
+-    }
+-    return { removedRules, increasedRulesCount, decreasedRulesCount };
+-  }
+-  /** Atomic read -> apply delta -> write. Takes an exclusive file lock when `args.threadsafe`. */
+-  updateFileMaxErrors(args, filename, ruleToErrorCount) {
+-    return this.withOptionalLock(args, () => {
+-      const before = this.getMaxErrors(filename);
+-      const ruleToMaxErrorCountBefore = before ? new Map(before) : void 0;
+-      const result = this.updateMaxErrors(filename, args, ruleToErrorCount);
+-      if (!args.frozen) {
+-        this.flushChanges();
+-      }
+-      return { ruleToMaxErrorCountBefore, ...result };
+-    });
+-  }
+-  /** Drop entries whose source file no longer exists. Takes an exclusive file lock when `args.threadsafe`. */
+-  cleanUpRemovedFiles(args) {
+-    return this.withOptionalLock(args, () => {
+-      let removedFiles = 0;
+-      for (const filename of Array.from(this.filenames())) {
+-        if (!fs.existsSync(filename)) {
+-          if (this.removeFile(filename, args)) {
+-            removedFiles++;
+-          }
+-        }
+-      }
+-      if (!args.frozen) {
+-        this.flushChanges();
+-      }
+-      return { removedFiles };
+-    });
+-  }
+-  withOptionalLock(args, fn) {
+-    if (!args.threadsafe) {
+-      return fn();
+-    }
+-    const lock = new FileLock(`${this.filename}.lock`);
+-    lock.waitLock(LOCK_TIMEOUT_MS);
+-    try {
+-      this.readSync();
+-      return fn();
+-    } finally {
+-      lock.unlock();
+-    }
+-  }
+-  toDataString() {
+-    const lines = [];
+-    this.data.forEach((fileState, filename) => {
+-      if (fileState.maxErrors) {
+-        fileState.lines = [];
+-        fileState.maxErrors.forEach((maxErrorCount, ruleId) => {
+-          fileState.lines.push({ filename, ruleId, maxErrors: maxErrorCount });
+-        });
+-        fileState.lines.sort(
+-          (a, b) => a.ruleId === b.ruleId ? 0 : a.ruleId < b.ruleId ? -1 : 1
+-        );
+-      }
+-      fileState.lines.forEach((line) => {
+-        const encoded = line.encoded ??= encodeLine(line);
+-        lines.push(encoded);
+-      });
+-    });
+-    lines.sort();
+-    if (this.comments) {
+-      return this.comments + "\n\n" + lines.join("");
+-    } else {
+-      return lines.join("");
+-    }
+-  }
+-  readSync() {
+-    const nextStateFile = _SeatbeltFile.openSync(this.filename);
+-    if (nextStateFile) {
+-      this.data = nextStateFile.data;
+-      this.changed = false;
+-      return true;
+-    }
+-    return false;
+-  }
+-  flushChanges() {
+-    if (this.changed) {
+-      this.writeSync();
+-      this.changed = false;
+-      return { updated: true };
+-    }
+-    return { updated: false };
+-  }
+-  writeSync() {
+-    const dataString = this.toDataString();
+-    const dir = nodePath.dirname(this.filename);
+-    const base = nodePath.basename(this.filename);
+-    const tempFile = nodePath.join(
+-      this.useTempDirForWrites ? os.tmpdir() : dir,
+-      `.${base}.wip${process.pid}.${Date.now()}.tmp`
+-    );
+-    fs.mkdirSync(dir, { recursive: true });
+-    fs.writeFileSync(tempFile, dataString, "utf8");
+-    try {
+-      fs.renameSync(tempFile, this.filename);
+-    } catch (error) {
+-      if (isErrno(error, "EXDEV")) {
+-        this.useTempDirForWrites = false;
+-        fs.copyFileSync(tempFile, this.filename);
+-        fs.rmSync(tempFile);
+-        return;
+-      }
+-      throw error;
+-    }
+-  }
+-  toJSON() {
+-    const data = Object.fromEntries(
+-      Array.from(this.data.keys()).map((filename) => {
+-        const maxErrors = this.getMaxErrors(filename);
+-        if (!maxErrors) {
+-          throw new Error(`${name} bug: expected errors for existing key`);
+-        }
+-        return [filename, Object.fromEntries(maxErrors)];
+-      })
+-    );
+-    return { filename: this.filename, data };
+-  }
+-  toRelativePath(filename) {
+-    if (!nodePath.isAbsolute(filename)) {
+-      return filename;
+-    }
+-    return nodePath.relative(this.dirname, filename);
+-  }
+-  toAbsolutePath(filename) {
+-    if (nodePath.isAbsolute(filename)) {
+-      return filename;
+-    }
+-    return nodePath.resolve(this.dirname, filename);
+-  }
+-};
+-function parseMaxErrors(lines) {
+-  const maxErrors = /* @__PURE__ */ new Map();
+-  lines.forEach((line) => {
+-    maxErrors.set(line.ruleId, line.maxErrors);
+-  });
+-  return maxErrors;
+-}
+-
+-export {
+-  appendErrorContext,
+-  FileLock,
+-  SeatbeltFile
+-};
+-//# sourceMappingURL=chunk-5FFUIU4M.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/chunk-F4JJMAJL.js b/node_modules/eslint-seatbelt/dist/chunk-F4JJMAJL.js
+new file mode 100644
+index 0000000..ae0f5b6
+--- /dev/null
++++ b/node_modules/eslint-seatbelt/dist/chunk-F4JJMAJL.js
+@@ -0,0 +1,480 @@
++"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; } var _class;
++
++
++
++
++
++
++var _chunkTDWD7IZMjs = require('./chunk-TDWD7IZM.js');
++
++// src/FileLock.ts
++var _fs = require('fs'); var fs = _interopRequireWildcard(_fs);
++
++// src/errorHanding.ts
++function appendErrorContext(error, context) {
++  if (error instanceof Error) {
++    error.message += `
++  ${context}`;
++  }
++}
++function isErrno(error, code) {
++  return error instanceof Error && "code" in error && error.code === code;
++}
++
++// src/FileLock.ts
++var { O_CREAT, O_EXCL, O_RDWR } = _fs.constants;
++var waitBuffer = new Int32Array(new SharedArrayBuffer(4));
++var heldLocks = /* @__PURE__ */ new Set();
++var cleanupHooksInstalled = false;
++var SIGNAL_EXIT_CODES = { SIGINT: 130, SIGTERM: 143, SIGHUP: 129 };
++function installCleanupHooks() {
++  if (cleanupHooksInstalled) return;
++  cleanupHooksInstalled = true;
++  const release = () => {
++    for (const lock of heldLocks) {
++      try {
++        lock.unlock();
++      } catch (e2) {
++      }
++    }
++  };
++  process.on("exit", release);
++  for (const signal of Object.keys(SIGNAL_EXIT_CODES)) {
++    process.on(signal, () => {
++      release();
++      process.exit(SIGNAL_EXIT_CODES[signal]);
++    });
++  }
++}
++var FileLock = class {
++  constructor(filename) {
++    this.filename = filename;
++  }
++  
++  tryLock() {
++    this.assertNotLocked();
++    try {
++      this.fd = _fs.openSync.call(void 0, this.filename, O_CREAT | O_EXCL | O_RDWR);
++      _fs.writeSync.call(void 0, this.fd, `${process.pid}
++`);
++      heldLocks.add(this);
++      installCleanupHooks();
++      return true;
++    } catch (e) {
++      if (isErrno(e, "EEXIST")) {
++        return false;
++      }
++      throw e;
++    }
++  }
++  waitLock(timeoutMs) {
++    const deadline = Date.now() + timeoutMs;
++    let attemptedRecovery = false;
++    while (!this.tryLock()) {
++      if (Date.now() > deadline) {
++        if (!attemptedRecovery && this.reclaimIfStale()) {
++          attemptedRecovery = true;
++          continue;
++        }
++        throw new Error(`Timed out waiting for lock on ${this.filename}`);
++      }
++      Atomics.wait(waitBuffer, 0, 0, 1);
++    }
++  }
++  isLocked() {
++    return this.fd !== void 0;
++  }
++  unlock() {
++    if (this.fd !== void 0) {
++      _fs.closeSync.call(void 0, this.fd);
++      try {
++        _fs.rmSync.call(void 0, this.filename);
++      } catch (e) {
++        if (!isErrno(e, "ENOENT")) throw e;
++      }
++      this.fd = void 0;
++      heldLocks.delete(this);
++    }
++  }
++  assertNotLocked() {
++    if (this.fd !== void 0) {
++      throw new Error(
++        `FileLock "${this.filename}" is already locked by this process [pid ${process.pid}]`
++      );
++    }
++  }
++  reclaimIfStale() {
++    let contents;
++    try {
++      contents = _fs.readFileSync.call(void 0, this.filename, "utf8");
++    } catch (e) {
++      if (isErrno(e, "ENOENT")) return true;
++      throw e;
++    }
++    const pid = Number.parseInt(contents.trim(), 10);
++    if (!Number.isFinite(pid) || pid <= 0) return false;
++    try {
++      process.kill(pid, 0);
++      return false;
++    } catch (e) {
++      if (!isErrno(e, "ESRCH")) throw e;
++    }
++    try {
++      _fs.rmSync.call(void 0, this.filename);
++    } catch (e) {
++      if (!isErrno(e, "ENOENT")) throw e;
++    }
++    return true;
++  }
++};
++
++// src/SeatbeltFile.ts
++var _os = require('os'); var os = _interopRequireWildcard(_os);
++
++var _path = require('path'); var nodePath = _interopRequireWildcard(_path);
++var LOCK_TIMEOUT_MS = 3e4;
++function encodeLine(line) {
++  const { filename, ruleId, maxErrors } = line;
++  return `${JSON.stringify(filename)}	${JSON.stringify(ruleId)}	${maxErrors}
++`;
++}
++function decodeLine(line, index) {
++  try {
++    const lineParts = line.split("	");
++    if (lineParts.length !== 3) {
++      throw new Error(
++        `Expected 3 tab-separated JSON strings, instead have ${lineParts.length}`
++      );
++    }
++    let filename;
++    try {
++      filename = JSON.parse(lineParts[0]);
++    } catch (e) {
++      appendErrorContext(e, "at tab-separated column 1 (filename)");
++      throw e;
++    }
++    let ruleId;
++    try {
++      ruleId = JSON.parse(lineParts[1]);
++    } catch (e) {
++      appendErrorContext(e, "at tab-separated column 2 (RuleId)");
++      throw e;
++    }
++    let maxErrors;
++    try {
++      maxErrors = JSON.parse(lineParts[2]);
++    } catch (e) {
++      appendErrorContext(e, "at tab-separated column 3 (maxErrors)");
++      throw e;
++    }
++    return {
++      encoded: line,
++      filename,
++      ruleId,
++      maxErrors
++    };
++  } catch (e) {
++    appendErrorContext(e, `at line ${index + 1}: \`${line.trim()}\``);
++    throw e;
++  }
++}
++var COMMENT_LINE_REGEX = /^\s*#/;
++var NON_EMPTY_LINE_REGEX = /\S+/;
++var DEFAULT_FILE_HEADER = `
++# ${_chunkTDWD7IZMjs.name} temporarily allowed errors
++# docs: https://github.com/justjake/${_chunkTDWD7IZMjs.name}#readme
++`.trim();
++var SeatbeltFile = (_class = class _SeatbeltFile {
++  constructor(filename, data, comments = "") {;_class.prototype.__init.call(this);_class.prototype.__init2.call(this);
++    this.filename = filename;
++    this.data = data;
++    this.comments = comments;
++    this.filename = nodePath.default.resolve(this.filename);
++    this.dirname = nodePath.default.dirname(this.filename);
++  }
++  static readSync(filename) {
++    const text = fs.readFileSync(filename, "utf8");
++    try {
++      return _SeatbeltFile.parse(filename, text);
++    } catch (e) {
++      appendErrorContext(e, `in seatbelt file \`${filename}\``);
++      throw e;
++    }
++  }
++  /**
++   * Read `filename` if it exists, otherwise create a new empty seatbelt file object
++   * that will write to that filename.
++   */
++  static openSync(filename) {
++    try {
++      return _SeatbeltFile.readSync(filename);
++    } catch (e) {
++      if (isErrno(e, "ENOENT")) {
++        return new _SeatbeltFile(filename, /* @__PURE__ */ new Map(), DEFAULT_FILE_HEADER);
++      }
++      throw e;
++    }
++  }
++  static parse(filename, text) {
++    const data = /* @__PURE__ */ new Map();
++    const split = text.split(/(?<=\n)/);
++    const lines = split.filter(
++      (line) => NON_EMPTY_LINE_REGEX.test(line) && !COMMENT_LINE_REGEX.test(line)
++    ).map(decodeLine);
++    const comments = split.filter((line) => COMMENT_LINE_REGEX.test(line)).join("");
++    lines.forEach((line) => {
++      let fileState = data.get(line.filename);
++      if (!fileState) {
++        fileState = { maxErrors: void 0, lines: [] };
++        data.set(line.filename, fileState);
++      }
++      fileState.lines.push(line);
++    });
++    return new _SeatbeltFile(filename, data, comments.trim());
++  }
++  static fromJSON(json) {
++    const data = new Map(
++      Object.entries(json.data).map(([filename, maxErrors]) => [
++        filename,
++        { maxErrors: new Map(Object.entries(maxErrors)), lines: [] }
++      ])
++    );
++    return new _SeatbeltFile(json.filename, data);
++  }
++  __init() {this.changed = false}
++  
++  __init2() {this.useTempDirForWrites = true}
++  *filenames() {
++    for (const filename of this.data.keys()) {
++      yield this.toAbsolutePath(filename);
++    }
++  }
++  getMaxErrors(filename) {
++    const fileState = this.data.get(this.toRelativePath(filename));
++    if (!fileState) {
++      return void 0;
++    }
++    fileState.maxErrors ??= parseMaxErrors(fileState.lines);
++    return fileState.maxErrors;
++  }
++  removeFile(filename, args) {
++    const relativeFilename = this.toRelativePath(filename);
++    if (!this.data.has(relativeFilename)) {
++      return false;
++    }
++    _chunkTDWD7IZMjs.SeatbeltArgs.verboseLog(
++      args,
++      () => args.frozen ? `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}: ${_chunkTDWD7IZMjs.SEATBELT_FROZEN}: didn't remove max errors` : `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}: remove max errors`
++    );
++    if (args.frozen) {
++      return false;
++    }
++    this.data.delete(relativeFilename);
++    this.changed = true;
++    return true;
++  }
++  updateMaxErrors(filename, args, ruleToErrorCount) {
++    const removedRules = /* @__PURE__ */ new Set();
++    let increasedRulesCount = 0;
++    let decreasedRulesCount = 0;
++    this.getMaxErrors(filename);
++    const relativeFilename = this.toRelativePath(filename);
++    const maxErrors = _nullishCoalesce(_optionalChain([this, 'access', _ => _.data, 'access', _2 => _2.get, 'call', _3 => _3(relativeFilename), 'optionalAccess', _4 => _4.maxErrors]), () => ( /* @__PURE__ */ new Map()));
++    ruleToErrorCount.forEach((errorCount, ruleId) => {
++      const maxErrorCount = _nullishCoalesce(maxErrors.get(ruleId), () => ( 0));
++      if (errorCount === maxErrorCount) {
++        return;
++      }
++      if (errorCount < maxErrorCount || _chunkTDWD7IZMjs.SeatbeltArgs.ruleSetHas(args.allowIncreaseRules, ruleId)) {
++        _chunkTDWD7IZMjs.SeatbeltArgs.verboseLog(
++          args,
++          () => args.frozen ? `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}: ${_chunkTDWD7IZMjs.formatRuleId.call(void 0, ruleId)}: ${_chunkTDWD7IZMjs.SEATBELT_FROZEN}: didn't update max errors ${maxErrorCount} -> ${errorCount}` : `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}: ${_chunkTDWD7IZMjs.formatRuleId.call(void 0, ruleId)}: update max errors ${maxErrorCount} -> ${errorCount}`
++        );
++        maxErrors.set(ruleId, errorCount);
++        if (errorCount > maxErrorCount) {
++          increasedRulesCount++;
++        } else {
++          decreasedRulesCount++;
++        }
++      }
++    });
++    if (args.verbose || args.keepRules !== "all") {
++      maxErrors.forEach((maxErrorCount, ruleId) => {
++        const shouldRemove = maxErrorCount === 0 || !ruleToErrorCount.has(ruleId);
++        if (!shouldRemove) {
++          return;
++        }
++        if (_chunkTDWD7IZMjs.SeatbeltArgs.ruleSetHas(args.keepRules, ruleId)) {
++          _chunkTDWD7IZMjs.SeatbeltArgs.verboseLog(
++            args,
++            () => `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}: ${_chunkTDWD7IZMjs.formatRuleId.call(void 0, ruleId)}: ${_chunkTDWD7IZMjs.SEATBELT_KEEP}: didn't update max errors ${maxErrorCount} -> ${0}`
++          );
++          return;
++        }
++        _chunkTDWD7IZMjs.SeatbeltArgs.verboseLog(
++          args,
++          () => args.frozen ? `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}: ${_chunkTDWD7IZMjs.formatRuleId.call(void 0, ruleId)}: ${_chunkTDWD7IZMjs.SEATBELT_FROZEN}: didn't update max errors ${maxErrorCount} -> ${0}` : `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}: ${_chunkTDWD7IZMjs.formatRuleId.call(void 0, ruleId)}: update max errors ${maxErrorCount} -> ${0}`
++        );
++        maxErrors.delete(ruleId);
++        removedRules.add(ruleId);
++      });
++    }
++    const changed = increasedRulesCount > 0 || decreasedRulesCount > 0 || removedRules.size > 0;
++    if (changed && !args.frozen) {
++      const file = this.data.get(relativeFilename);
++      if (file) {
++        file.maxErrors = maxErrors;
++      } else {
++        this.data.set(relativeFilename, {
++          maxErrors,
++          lines: []
++        });
++      }
++      this.changed = true;
++    }
++    return { removedRules, increasedRulesCount, decreasedRulesCount };
++  }
++  /** Atomic read -> apply delta -> write. Takes an exclusive file lock when `args.threadsafe`. */
++  updateFileMaxErrors(args, filename, ruleToErrorCount) {
++    return this.withOptionalLock(args, () => {
++      const before = this.getMaxErrors(filename);
++      const ruleToMaxErrorCountBefore = before ? new Map(before) : void 0;
++      const result = this.updateMaxErrors(filename, args, ruleToErrorCount);
++      if (!args.frozen && !args.readOnly) {
++        this.flushChanges();
++      }
++      return { ruleToMaxErrorCountBefore, ...result };
++    });
++  }
++  /** Drop entries whose source file no longer exists. Takes an exclusive file lock when `args.threadsafe`. */
++  cleanUpRemovedFiles(args) {
++    return this.withOptionalLock(args, () => {
++      let removedFiles = 0;
++      for (const filename of Array.from(this.filenames())) {
++        if (!fs.existsSync(filename)) {
++          if (this.removeFile(filename, args)) {
++            removedFiles++;
++          }
++        }
++      }
++      if (!args.frozen && !args.readOnly) {
++        this.flushChanges();
++      }
++      return { removedFiles };
++    });
++  }
++  withOptionalLock(args, fn) {
++    if (!args.threadsafe) {
++      return fn();
++    }
++    const lock = new FileLock(`${this.filename}.lock`);
++    lock.waitLock(LOCK_TIMEOUT_MS);
++    try {
++      this.readSync();
++      return fn();
++    } finally {
++      lock.unlock();
++    }
++  }
++  toDataString() {
++    const lines = [];
++    this.data.forEach((fileState, filename) => {
++      if (fileState.maxErrors) {
++        fileState.lines = [];
++        fileState.maxErrors.forEach((maxErrorCount, ruleId) => {
++          fileState.lines.push({ filename, ruleId, maxErrors: maxErrorCount });
++        });
++        fileState.lines.sort(
++          (a, b) => a.ruleId === b.ruleId ? 0 : a.ruleId < b.ruleId ? -1 : 1
++        );
++      }
++      fileState.lines.forEach((line) => {
++        const encoded = line.encoded ??= encodeLine(line);
++        lines.push(encoded);
++      });
++    });
++    lines.sort();
++    if (this.comments) {
++      return this.comments + "\n\n" + lines.join("");
++    } else {
++      return lines.join("");
++    }
++  }
++  readSync() {
++    const nextStateFile = _SeatbeltFile.openSync(this.filename);
++    if (nextStateFile) {
++      this.data = nextStateFile.data;
++      this.changed = false;
++      return true;
++    }
++    return false;
++  }
++  flushChanges() {
++    if (this.changed) {
++      this.writeSync();
++      this.changed = false;
++      return { updated: true };
++    }
++    return { updated: false };
++  }
++  writeSync() {
++    const dataString = this.toDataString();
++    const dir = nodePath.dirname(this.filename);
++    const base = nodePath.basename(this.filename);
++    const tempFile = nodePath.join(
++      this.useTempDirForWrites ? os.tmpdir() : dir,
++      `.${base}.wip${process.pid}.${Date.now()}.tmp`
++    );
++    fs.mkdirSync(dir, { recursive: true });
++    fs.writeFileSync(tempFile, dataString, "utf8");
++    try {
++      fs.renameSync(tempFile, this.filename);
++    } catch (error) {
++      if (isErrno(error, "EXDEV")) {
++        this.useTempDirForWrites = false;
++        fs.copyFileSync(tempFile, this.filename);
++        fs.rmSync(tempFile);
++        return;
++      }
++      throw error;
++    }
++  }
++  toJSON() {
++    const data = Object.fromEntries(
++      Array.from(this.data.keys()).map((filename) => {
++        const maxErrors = this.getMaxErrors(filename);
++        if (!maxErrors) {
++          throw new Error(`${_chunkTDWD7IZMjs.name} bug: expected errors for existing key`);
++        }
++        return [filename, Object.fromEntries(maxErrors)];
++      })
++    );
++    return { filename: this.filename, data };
++  }
++  toRelativePath(filename) {
++    if (!nodePath.isAbsolute(filename)) {
++      return filename;
++    }
++    return nodePath.relative(this.dirname, filename);
++  }
++  toAbsolutePath(filename) {
++    if (nodePath.isAbsolute(filename)) {
++      return filename;
++    }
++    return nodePath.resolve(this.dirname, filename);
++  }
++}, _class);
++function parseMaxErrors(lines) {
++  const maxErrors = /* @__PURE__ */ new Map();
++  lines.forEach((line) => {
++    maxErrors.set(line.ruleId, line.maxErrors);
++  });
++  return maxErrors;
++}
++
++
++
++
++
++exports.appendErrorContext = appendErrorContext; exports.FileLock = FileLock; exports.SeatbeltFile = SeatbeltFile;
++//# sourceMappingURL=chunk-F4JJMAJL.js.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/chunk-NTFTCWX7.js b/node_modules/eslint-seatbelt/dist/chunk-NTFTCWX7.js
+deleted file mode 100644
+index f3e2e3d..0000000
+--- a/node_modules/eslint-seatbelt/dist/chunk-NTFTCWX7.js
++++ /dev/null
+@@ -1,480 +0,0 @@
+-"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { newObj[key] = obj[key]; } } } newObj.default = obj; return newObj; } } function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; } var _class;
+-
+-
+-
+-
+-
+-
+-var _chunkZVY5S6JSjs = require('./chunk-ZVY5S6JS.js');
+-
+-// src/FileLock.ts
+-var _fs = require('fs'); var fs = _interopRequireWildcard(_fs);
+-
+-// src/errorHanding.ts
+-function appendErrorContext(error, context) {
+-  if (error instanceof Error) {
+-    error.message += `
+-  ${context}`;
+-  }
+-}
+-function isErrno(error, code) {
+-  return error instanceof Error && "code" in error && error.code === code;
+-}
+-
+-// src/FileLock.ts
+-var { O_CREAT, O_EXCL, O_RDWR } = _fs.constants;
+-var waitBuffer = new Int32Array(new SharedArrayBuffer(4));
+-var heldLocks = /* @__PURE__ */ new Set();
+-var cleanupHooksInstalled = false;
+-var SIGNAL_EXIT_CODES = { SIGINT: 130, SIGTERM: 143, SIGHUP: 129 };
+-function installCleanupHooks() {
+-  if (cleanupHooksInstalled) return;
+-  cleanupHooksInstalled = true;
+-  const release = () => {
+-    for (const lock of heldLocks) {
+-      try {
+-        lock.unlock();
+-      } catch (e2) {
+-      }
+-    }
+-  };
+-  process.on("exit", release);
+-  for (const signal of Object.keys(SIGNAL_EXIT_CODES)) {
+-    process.on(signal, () => {
+-      release();
+-      process.exit(SIGNAL_EXIT_CODES[signal]);
+-    });
+-  }
+-}
+-var FileLock = class {
+-  constructor(filename) {
+-    this.filename = filename;
+-  }
+-  
+-  tryLock() {
+-    this.assertNotLocked();
+-    try {
+-      this.fd = _fs.openSync.call(void 0, this.filename, O_CREAT | O_EXCL | O_RDWR);
+-      _fs.writeSync.call(void 0, this.fd, `${process.pid}
+-`);
+-      heldLocks.add(this);
+-      installCleanupHooks();
+-      return true;
+-    } catch (e) {
+-      if (isErrno(e, "EEXIST")) {
+-        return false;
+-      }
+-      throw e;
+-    }
+-  }
+-  waitLock(timeoutMs) {
+-    const deadline = Date.now() + timeoutMs;
+-    let attemptedRecovery = false;
+-    while (!this.tryLock()) {
+-      if (Date.now() > deadline) {
+-        if (!attemptedRecovery && this.reclaimIfStale()) {
+-          attemptedRecovery = true;
+-          continue;
+-        }
+-        throw new Error(`Timed out waiting for lock on ${this.filename}`);
+-      }
+-      Atomics.wait(waitBuffer, 0, 0, 1);
+-    }
+-  }
+-  isLocked() {
+-    return this.fd !== void 0;
+-  }
+-  unlock() {
+-    if (this.fd !== void 0) {
+-      _fs.closeSync.call(void 0, this.fd);
+-      try {
+-        _fs.rmSync.call(void 0, this.filename);
+-      } catch (e) {
+-        if (!isErrno(e, "ENOENT")) throw e;
+-      }
+-      this.fd = void 0;
+-      heldLocks.delete(this);
+-    }
+-  }
+-  assertNotLocked() {
+-    if (this.fd !== void 0) {
+-      throw new Error(
+-        `FileLock "${this.filename}" is already locked by this process [pid ${process.pid}]`
+-      );
+-    }
+-  }
+-  reclaimIfStale() {
+-    let contents;
+-    try {
+-      contents = _fs.readFileSync.call(void 0, this.filename, "utf8");
+-    } catch (e) {
+-      if (isErrno(e, "ENOENT")) return true;
+-      throw e;
+-    }
+-    const pid = Number.parseInt(contents.trim(), 10);
+-    if (!Number.isFinite(pid) || pid <= 0) return false;
+-    try {
+-      process.kill(pid, 0);
+-      return false;
+-    } catch (e) {
+-      if (!isErrno(e, "ESRCH")) throw e;
+-    }
+-    try {
+-      _fs.rmSync.call(void 0, this.filename);
+-    } catch (e) {
+-      if (!isErrno(e, "ENOENT")) throw e;
+-    }
+-    return true;
+-  }
+-};
+-
+-// src/SeatbeltFile.ts
+-var _os = require('os'); var os = _interopRequireWildcard(_os);
+-
+-var _path = require('path'); var nodePath = _interopRequireWildcard(_path);
+-var LOCK_TIMEOUT_MS = 3e4;
+-function encodeLine(line) {
+-  const { filename, ruleId, maxErrors } = line;
+-  return `${JSON.stringify(filename)}	${JSON.stringify(ruleId)}	${maxErrors}
+-`;
+-}
+-function decodeLine(line, index) {
+-  try {
+-    const lineParts = line.split("	");
+-    if (lineParts.length !== 3) {
+-      throw new Error(
+-        `Expected 3 tab-separated JSON strings, instead have ${lineParts.length}`
+-      );
+-    }
+-    let filename;
+-    try {
+-      filename = JSON.parse(lineParts[0]);
+-    } catch (e) {
+-      appendErrorContext(e, "at tab-separated column 1 (filename)");
+-      throw e;
+-    }
+-    let ruleId;
+-    try {
+-      ruleId = JSON.parse(lineParts[1]);
+-    } catch (e) {
+-      appendErrorContext(e, "at tab-separated column 2 (RuleId)");
+-      throw e;
+-    }
+-    let maxErrors;
+-    try {
+-      maxErrors = JSON.parse(lineParts[2]);
+-    } catch (e) {
+-      appendErrorContext(e, "at tab-separated column 3 (maxErrors)");
+-      throw e;
+-    }
+-    return {
+-      encoded: line,
+-      filename,
+-      ruleId,
+-      maxErrors
+-    };
+-  } catch (e) {
+-    appendErrorContext(e, `at line ${index + 1}: \`${line.trim()}\``);
+-    throw e;
+-  }
+-}
+-var COMMENT_LINE_REGEX = /^\s*#/;
+-var NON_EMPTY_LINE_REGEX = /\S+/;
+-var DEFAULT_FILE_HEADER = `
+-# ${_chunkZVY5S6JSjs.name} temporarily allowed errors
+-# docs: https://github.com/justjake/${_chunkZVY5S6JSjs.name}#readme
+-`.trim();
+-var SeatbeltFile = (_class = class _SeatbeltFile {
+-  constructor(filename, data, comments = "") {;_class.prototype.__init.call(this);_class.prototype.__init2.call(this);
+-    this.filename = filename;
+-    this.data = data;
+-    this.comments = comments;
+-    this.filename = nodePath.default.resolve(this.filename);
+-    this.dirname = nodePath.default.dirname(this.filename);
+-  }
+-  static readSync(filename) {
+-    const text = fs.readFileSync(filename, "utf8");
+-    try {
+-      return _SeatbeltFile.parse(filename, text);
+-    } catch (e) {
+-      appendErrorContext(e, `in seatbelt file \`${filename}\``);
+-      throw e;
+-    }
+-  }
+-  /**
+-   * Read `filename` if it exists, otherwise create a new empty seatbelt file object
+-   * that will write to that filename.
+-   */
+-  static openSync(filename) {
+-    try {
+-      return _SeatbeltFile.readSync(filename);
+-    } catch (e) {
+-      if (isErrno(e, "ENOENT")) {
+-        return new _SeatbeltFile(filename, /* @__PURE__ */ new Map(), DEFAULT_FILE_HEADER);
+-      }
+-      throw e;
+-    }
+-  }
+-  static parse(filename, text) {
+-    const data = /* @__PURE__ */ new Map();
+-    const split = text.split(/(?<=\n)/);
+-    const lines = split.filter(
+-      (line) => NON_EMPTY_LINE_REGEX.test(line) && !COMMENT_LINE_REGEX.test(line)
+-    ).map(decodeLine);
+-    const comments = split.filter((line) => COMMENT_LINE_REGEX.test(line)).join("");
+-    lines.forEach((line) => {
+-      let fileState = data.get(line.filename);
+-      if (!fileState) {
+-        fileState = { maxErrors: void 0, lines: [] };
+-        data.set(line.filename, fileState);
+-      }
+-      fileState.lines.push(line);
+-    });
+-    return new _SeatbeltFile(filename, data, comments.trim());
+-  }
+-  static fromJSON(json) {
+-    const data = new Map(
+-      Object.entries(json.data).map(([filename, maxErrors]) => [
+-        filename,
+-        { maxErrors: new Map(Object.entries(maxErrors)), lines: [] }
+-      ])
+-    );
+-    return new _SeatbeltFile(json.filename, data);
+-  }
+-  __init() {this.changed = false}
+-  
+-  __init2() {this.useTempDirForWrites = true}
+-  *filenames() {
+-    for (const filename of this.data.keys()) {
+-      yield this.toAbsolutePath(filename);
+-    }
+-  }
+-  getMaxErrors(filename) {
+-    const fileState = this.data.get(this.toRelativePath(filename));
+-    if (!fileState) {
+-      return void 0;
+-    }
+-    fileState.maxErrors ??= parseMaxErrors(fileState.lines);
+-    return fileState.maxErrors;
+-  }
+-  removeFile(filename, args) {
+-    const relativeFilename = this.toRelativePath(filename);
+-    if (!this.data.has(relativeFilename)) {
+-      return false;
+-    }
+-    _chunkZVY5S6JSjs.SeatbeltArgs.verboseLog(
+-      args,
+-      () => args.frozen ? `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}: ${_chunkZVY5S6JSjs.SEATBELT_FROZEN}: didn't remove max errors` : `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}: remove max errors`
+-    );
+-    if (args.frozen) {
+-      return false;
+-    }
+-    this.data.delete(relativeFilename);
+-    this.changed = true;
+-    return true;
+-  }
+-  updateMaxErrors(filename, args, ruleToErrorCount) {
+-    const removedRules = /* @__PURE__ */ new Set();
+-    let increasedRulesCount = 0;
+-    let decreasedRulesCount = 0;
+-    this.getMaxErrors(filename);
+-    const relativeFilename = this.toRelativePath(filename);
+-    const maxErrors = _nullishCoalesce(_optionalChain([this, 'access', _ => _.data, 'access', _2 => _2.get, 'call', _3 => _3(relativeFilename), 'optionalAccess', _4 => _4.maxErrors]), () => ( /* @__PURE__ */ new Map()));
+-    ruleToErrorCount.forEach((errorCount, ruleId) => {
+-      const maxErrorCount = _nullishCoalesce(maxErrors.get(ruleId), () => ( 0));
+-      if (errorCount === maxErrorCount) {
+-        return;
+-      }
+-      if (errorCount < maxErrorCount || _chunkZVY5S6JSjs.SeatbeltArgs.ruleSetHas(args.allowIncreaseRules, ruleId)) {
+-        _chunkZVY5S6JSjs.SeatbeltArgs.verboseLog(
+-          args,
+-          () => args.frozen ? `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}: ${_chunkZVY5S6JSjs.formatRuleId.call(void 0, ruleId)}: ${_chunkZVY5S6JSjs.SEATBELT_FROZEN}: didn't update max errors ${maxErrorCount} -> ${errorCount}` : `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}: ${_chunkZVY5S6JSjs.formatRuleId.call(void 0, ruleId)}: update max errors ${maxErrorCount} -> ${errorCount}`
+-        );
+-        maxErrors.set(ruleId, errorCount);
+-        if (errorCount > maxErrorCount) {
+-          increasedRulesCount++;
+-        } else {
+-          decreasedRulesCount++;
+-        }
+-      }
+-    });
+-    if (args.verbose || args.keepRules !== "all") {
+-      maxErrors.forEach((maxErrorCount, ruleId) => {
+-        const shouldRemove = maxErrorCount === 0 || !ruleToErrorCount.has(ruleId);
+-        if (!shouldRemove) {
+-          return;
+-        }
+-        if (_chunkZVY5S6JSjs.SeatbeltArgs.ruleSetHas(args.keepRules, ruleId)) {
+-          _chunkZVY5S6JSjs.SeatbeltArgs.verboseLog(
+-            args,
+-            () => `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}: ${_chunkZVY5S6JSjs.formatRuleId.call(void 0, ruleId)}: ${_chunkZVY5S6JSjs.SEATBELT_KEEP}: didn't update max errors ${maxErrorCount} -> ${0}`
+-          );
+-          return;
+-        }
+-        _chunkZVY5S6JSjs.SeatbeltArgs.verboseLog(
+-          args,
+-          () => args.frozen ? `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}: ${_chunkZVY5S6JSjs.formatRuleId.call(void 0, ruleId)}: ${_chunkZVY5S6JSjs.SEATBELT_FROZEN}: didn't update max errors ${maxErrorCount} -> ${0}` : `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}: ${_chunkZVY5S6JSjs.formatRuleId.call(void 0, ruleId)}: update max errors ${maxErrorCount} -> ${0}`
+-        );
+-        maxErrors.delete(ruleId);
+-        removedRules.add(ruleId);
+-      });
+-    }
+-    const changed = increasedRulesCount > 0 || decreasedRulesCount > 0 || removedRules.size > 0;
+-    if (changed && !args.frozen) {
+-      const file = this.data.get(relativeFilename);
+-      if (file) {
+-        file.maxErrors = maxErrors;
+-      } else {
+-        this.data.set(relativeFilename, {
+-          maxErrors,
+-          lines: []
+-        });
+-      }
+-      this.changed = true;
+-    }
+-    return { removedRules, increasedRulesCount, decreasedRulesCount };
+-  }
+-  /** Atomic read -> apply delta -> write. Takes an exclusive file lock when `args.threadsafe`. */
+-  updateFileMaxErrors(args, filename, ruleToErrorCount) {
+-    return this.withOptionalLock(args, () => {
+-      const before = this.getMaxErrors(filename);
+-      const ruleToMaxErrorCountBefore = before ? new Map(before) : void 0;
+-      const result = this.updateMaxErrors(filename, args, ruleToErrorCount);
+-      if (!args.frozen) {
+-        this.flushChanges();
+-      }
+-      return { ruleToMaxErrorCountBefore, ...result };
+-    });
+-  }
+-  /** Drop entries whose source file no longer exists. Takes an exclusive file lock when `args.threadsafe`. */
+-  cleanUpRemovedFiles(args) {
+-    return this.withOptionalLock(args, () => {
+-      let removedFiles = 0;
+-      for (const filename of Array.from(this.filenames())) {
+-        if (!fs.existsSync(filename)) {
+-          if (this.removeFile(filename, args)) {
+-            removedFiles++;
+-          }
+-        }
+-      }
+-      if (!args.frozen) {
+-        this.flushChanges();
+-      }
+-      return { removedFiles };
+-    });
+-  }
+-  withOptionalLock(args, fn) {
+-    if (!args.threadsafe) {
+-      return fn();
+-    }
+-    const lock = new FileLock(`${this.filename}.lock`);
+-    lock.waitLock(LOCK_TIMEOUT_MS);
+-    try {
+-      this.readSync();
+-      return fn();
+-    } finally {
+-      lock.unlock();
+-    }
+-  }
+-  toDataString() {
+-    const lines = [];
+-    this.data.forEach((fileState, filename) => {
+-      if (fileState.maxErrors) {
+-        fileState.lines = [];
+-        fileState.maxErrors.forEach((maxErrorCount, ruleId) => {
+-          fileState.lines.push({ filename, ruleId, maxErrors: maxErrorCount });
+-        });
+-        fileState.lines.sort(
+-          (a, b) => a.ruleId === b.ruleId ? 0 : a.ruleId < b.ruleId ? -1 : 1
+-        );
+-      }
+-      fileState.lines.forEach((line) => {
+-        const encoded = line.encoded ??= encodeLine(line);
+-        lines.push(encoded);
+-      });
+-    });
+-    lines.sort();
+-    if (this.comments) {
+-      return this.comments + "\n\n" + lines.join("");
+-    } else {
+-      return lines.join("");
+-    }
+-  }
+-  readSync() {
+-    const nextStateFile = _SeatbeltFile.openSync(this.filename);
+-    if (nextStateFile) {
+-      this.data = nextStateFile.data;
+-      this.changed = false;
+-      return true;
+-    }
+-    return false;
+-  }
+-  flushChanges() {
+-    if (this.changed) {
+-      this.writeSync();
+-      this.changed = false;
+-      return { updated: true };
+-    }
+-    return { updated: false };
+-  }
+-  writeSync() {
+-    const dataString = this.toDataString();
+-    const dir = nodePath.dirname(this.filename);
+-    const base = nodePath.basename(this.filename);
+-    const tempFile = nodePath.join(
+-      this.useTempDirForWrites ? os.tmpdir() : dir,
+-      `.${base}.wip${process.pid}.${Date.now()}.tmp`
+-    );
+-    fs.mkdirSync(dir, { recursive: true });
+-    fs.writeFileSync(tempFile, dataString, "utf8");
+-    try {
+-      fs.renameSync(tempFile, this.filename);
+-    } catch (error) {
+-      if (isErrno(error, "EXDEV")) {
+-        this.useTempDirForWrites = false;
+-        fs.copyFileSync(tempFile, this.filename);
+-        fs.rmSync(tempFile);
+-        return;
+-      }
+-      throw error;
+-    }
+-  }
+-  toJSON() {
+-    const data = Object.fromEntries(
+-      Array.from(this.data.keys()).map((filename) => {
+-        const maxErrors = this.getMaxErrors(filename);
+-        if (!maxErrors) {
+-          throw new Error(`${_chunkZVY5S6JSjs.name} bug: expected errors for existing key`);
+-        }
+-        return [filename, Object.fromEntries(maxErrors)];
+-      })
+-    );
+-    return { filename: this.filename, data };
+-  }
+-  toRelativePath(filename) {
+-    if (!nodePath.isAbsolute(filename)) {
+-      return filename;
+-    }
+-    return nodePath.relative(this.dirname, filename);
+-  }
+-  toAbsolutePath(filename) {
+-    if (nodePath.isAbsolute(filename)) {
+-      return filename;
+-    }
+-    return nodePath.resolve(this.dirname, filename);
+-  }
+-}, _class);
+-function parseMaxErrors(lines) {
+-  const maxErrors = /* @__PURE__ */ new Map();
+-  lines.forEach((line) => {
+-    maxErrors.set(line.ruleId, line.maxErrors);
+-  });
+-  return maxErrors;
+-}
+-
+-
+-
+-
+-
+-exports.appendErrorContext = appendErrorContext; exports.FileLock = FileLock; exports.SeatbeltFile = SeatbeltFile;
+-//# sourceMappingURL=chunk-NTFTCWX7.js.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/chunk-QGLWIAEE.mjs b/node_modules/eslint-seatbelt/dist/chunk-QGLWIAEE.mjs
+new file mode 100644
+index 0000000..4dd47c5
+--- /dev/null
++++ b/node_modules/eslint-seatbelt/dist/chunk-QGLWIAEE.mjs
+@@ -0,0 +1,480 @@
++import {
++  SEATBELT_FROZEN,
++  SEATBELT_KEEP,
++  SeatbeltArgs,
++  formatFilename,
++  formatRuleId,
++  name
++} from "./chunk-U6KIQG2A.mjs";
++
++// src/FileLock.ts
++import { openSync, writeSync, closeSync, readFileSync, constants, rmSync } from "node:fs";
++
++// src/errorHanding.ts
++function appendErrorContext(error, context) {
++  if (error instanceof Error) {
++    error.message += `
++  ${context}`;
++  }
++}
++function isErrno(error, code) {
++  return error instanceof Error && "code" in error && error.code === code;
++}
++
++// src/FileLock.ts
++var { O_CREAT, O_EXCL, O_RDWR } = constants;
++var waitBuffer = new Int32Array(new SharedArrayBuffer(4));
++var heldLocks = /* @__PURE__ */ new Set();
++var cleanupHooksInstalled = false;
++var SIGNAL_EXIT_CODES = { SIGINT: 130, SIGTERM: 143, SIGHUP: 129 };
++function installCleanupHooks() {
++  if (cleanupHooksInstalled) return;
++  cleanupHooksInstalled = true;
++  const release = () => {
++    for (const lock of heldLocks) {
++      try {
++        lock.unlock();
++      } catch {
++      }
++    }
++  };
++  process.on("exit", release);
++  for (const signal of Object.keys(SIGNAL_EXIT_CODES)) {
++    process.on(signal, () => {
++      release();
++      process.exit(SIGNAL_EXIT_CODES[signal]);
++    });
++  }
++}
++var FileLock = class {
++  constructor(filename) {
++    this.filename = filename;
++  }
++  fd;
++  tryLock() {
++    this.assertNotLocked();
++    try {
++      this.fd = openSync(this.filename, O_CREAT | O_EXCL | O_RDWR);
++      writeSync(this.fd, `${process.pid}
++`);
++      heldLocks.add(this);
++      installCleanupHooks();
++      return true;
++    } catch (e) {
++      if (isErrno(e, "EEXIST")) {
++        return false;
++      }
++      throw e;
++    }
++  }
++  waitLock(timeoutMs) {
++    const deadline = Date.now() + timeoutMs;
++    let attemptedRecovery = false;
++    while (!this.tryLock()) {
++      if (Date.now() > deadline) {
++        if (!attemptedRecovery && this.reclaimIfStale()) {
++          attemptedRecovery = true;
++          continue;
++        }
++        throw new Error(`Timed out waiting for lock on ${this.filename}`);
++      }
++      Atomics.wait(waitBuffer, 0, 0, 1);
++    }
++  }
++  isLocked() {
++    return this.fd !== void 0;
++  }
++  unlock() {
++    if (this.fd !== void 0) {
++      closeSync(this.fd);
++      try {
++        rmSync(this.filename);
++      } catch (e) {
++        if (!isErrno(e, "ENOENT")) throw e;
++      }
++      this.fd = void 0;
++      heldLocks.delete(this);
++    }
++  }
++  assertNotLocked() {
++    if (this.fd !== void 0) {
++      throw new Error(
++        `FileLock "${this.filename}" is already locked by this process [pid ${process.pid}]`
++      );
++    }
++  }
++  reclaimIfStale() {
++    let contents;
++    try {
++      contents = readFileSync(this.filename, "utf8");
++    } catch (e) {
++      if (isErrno(e, "ENOENT")) return true;
++      throw e;
++    }
++    const pid = Number.parseInt(contents.trim(), 10);
++    if (!Number.isFinite(pid) || pid <= 0) return false;
++    try {
++      process.kill(pid, 0);
++      return false;
++    } catch (e) {
++      if (!isErrno(e, "ESRCH")) throw e;
++    }
++    try {
++      rmSync(this.filename);
++    } catch (e) {
++      if (!isErrno(e, "ENOENT")) throw e;
++    }
++    return true;
++  }
++};
++
++// src/SeatbeltFile.ts
++import * as os from "node:os";
++import * as fs from "node:fs";
++import path, * as nodePath from "node:path";
++var LOCK_TIMEOUT_MS = 3e4;
++function encodeLine(line) {
++  const { filename, ruleId, maxErrors } = line;
++  return `${JSON.stringify(filename)}	${JSON.stringify(ruleId)}	${maxErrors}
++`;
++}
++function decodeLine(line, index) {
++  try {
++    const lineParts = line.split("	");
++    if (lineParts.length !== 3) {
++      throw new Error(
++        `Expected 3 tab-separated JSON strings, instead have ${lineParts.length}`
++      );
++    }
++    let filename;
++    try {
++      filename = JSON.parse(lineParts[0]);
++    } catch (e) {
++      appendErrorContext(e, "at tab-separated column 1 (filename)");
++      throw e;
++    }
++    let ruleId;
++    try {
++      ruleId = JSON.parse(lineParts[1]);
++    } catch (e) {
++      appendErrorContext(e, "at tab-separated column 2 (RuleId)");
++      throw e;
++    }
++    let maxErrors;
++    try {
++      maxErrors = JSON.parse(lineParts[2]);
++    } catch (e) {
++      appendErrorContext(e, "at tab-separated column 3 (maxErrors)");
++      throw e;
++    }
++    return {
++      encoded: line,
++      filename,
++      ruleId,
++      maxErrors
++    };
++  } catch (e) {
++    appendErrorContext(e, `at line ${index + 1}: \`${line.trim()}\``);
++    throw e;
++  }
++}
++var COMMENT_LINE_REGEX = /^\s*#/;
++var NON_EMPTY_LINE_REGEX = /\S+/;
++var DEFAULT_FILE_HEADER = `
++# ${name} temporarily allowed errors
++# docs: https://github.com/justjake/${name}#readme
++`.trim();
++var SeatbeltFile = class _SeatbeltFile {
++  constructor(filename, data, comments = "") {
++    this.filename = filename;
++    this.data = data;
++    this.comments = comments;
++    this.filename = path.resolve(this.filename);
++    this.dirname = path.dirname(this.filename);
++  }
++  static readSync(filename) {
++    const text = fs.readFileSync(filename, "utf8");
++    try {
++      return _SeatbeltFile.parse(filename, text);
++    } catch (e) {
++      appendErrorContext(e, `in seatbelt file \`${filename}\``);
++      throw e;
++    }
++  }
++  /**
++   * Read `filename` if it exists, otherwise create a new empty seatbelt file object
++   * that will write to that filename.
++   */
++  static openSync(filename) {
++    try {
++      return _SeatbeltFile.readSync(filename);
++    } catch (e) {
++      if (isErrno(e, "ENOENT")) {
++        return new _SeatbeltFile(filename, /* @__PURE__ */ new Map(), DEFAULT_FILE_HEADER);
++      }
++      throw e;
++    }
++  }
++  static parse(filename, text) {
++    const data = /* @__PURE__ */ new Map();
++    const split = text.split(/(?<=\n)/);
++    const lines = split.filter(
++      (line) => NON_EMPTY_LINE_REGEX.test(line) && !COMMENT_LINE_REGEX.test(line)
++    ).map(decodeLine);
++    const comments = split.filter((line) => COMMENT_LINE_REGEX.test(line)).join("");
++    lines.forEach((line) => {
++      let fileState = data.get(line.filename);
++      if (!fileState) {
++        fileState = { maxErrors: void 0, lines: [] };
++        data.set(line.filename, fileState);
++      }
++      fileState.lines.push(line);
++    });
++    return new _SeatbeltFile(filename, data, comments.trim());
++  }
++  static fromJSON(json) {
++    const data = new Map(
++      Object.entries(json.data).map(([filename, maxErrors]) => [
++        filename,
++        { maxErrors: new Map(Object.entries(maxErrors)), lines: [] }
++      ])
++    );
++    return new _SeatbeltFile(json.filename, data);
++  }
++  changed = false;
++  dirname;
++  useTempDirForWrites = true;
++  *filenames() {
++    for (const filename of this.data.keys()) {
++      yield this.toAbsolutePath(filename);
++    }
++  }
++  getMaxErrors(filename) {
++    const fileState = this.data.get(this.toRelativePath(filename));
++    if (!fileState) {
++      return void 0;
++    }
++    fileState.maxErrors ??= parseMaxErrors(fileState.lines);
++    return fileState.maxErrors;
++  }
++  removeFile(filename, args) {
++    const relativeFilename = this.toRelativePath(filename);
++    if (!this.data.has(relativeFilename)) {
++      return false;
++    }
++    SeatbeltArgs.verboseLog(
++      args,
++      () => args.frozen ? `${formatFilename(filename)}: ${SEATBELT_FROZEN}: didn't remove max errors` : `${formatFilename(filename)}: remove max errors`
++    );
++    if (args.frozen) {
++      return false;
++    }
++    this.data.delete(relativeFilename);
++    this.changed = true;
++    return true;
++  }
++  updateMaxErrors(filename, args, ruleToErrorCount) {
++    const removedRules = /* @__PURE__ */ new Set();
++    let increasedRulesCount = 0;
++    let decreasedRulesCount = 0;
++    this.getMaxErrors(filename);
++    const relativeFilename = this.toRelativePath(filename);
++    const maxErrors = this.data.get(relativeFilename)?.maxErrors ?? /* @__PURE__ */ new Map();
++    ruleToErrorCount.forEach((errorCount, ruleId) => {
++      const maxErrorCount = maxErrors.get(ruleId) ?? 0;
++      if (errorCount === maxErrorCount) {
++        return;
++      }
++      if (errorCount < maxErrorCount || SeatbeltArgs.ruleSetHas(args.allowIncreaseRules, ruleId)) {
++        SeatbeltArgs.verboseLog(
++          args,
++          () => args.frozen ? `${formatFilename(filename)}: ${formatRuleId(ruleId)}: ${SEATBELT_FROZEN}: didn't update max errors ${maxErrorCount} -> ${errorCount}` : `${formatFilename(filename)}: ${formatRuleId(ruleId)}: update max errors ${maxErrorCount} -> ${errorCount}`
++        );
++        maxErrors.set(ruleId, errorCount);
++        if (errorCount > maxErrorCount) {
++          increasedRulesCount++;
++        } else {
++          decreasedRulesCount++;
++        }
++      }
++    });
++    if (args.verbose || args.keepRules !== "all") {
++      maxErrors.forEach((maxErrorCount, ruleId) => {
++        const shouldRemove = maxErrorCount === 0 || !ruleToErrorCount.has(ruleId);
++        if (!shouldRemove) {
++          return;
++        }
++        if (SeatbeltArgs.ruleSetHas(args.keepRules, ruleId)) {
++          SeatbeltArgs.verboseLog(
++            args,
++            () => `${formatFilename(filename)}: ${formatRuleId(ruleId)}: ${SEATBELT_KEEP}: didn't update max errors ${maxErrorCount} -> ${0}`
++          );
++          return;
++        }
++        SeatbeltArgs.verboseLog(
++          args,
++          () => args.frozen ? `${formatFilename(filename)}: ${formatRuleId(ruleId)}: ${SEATBELT_FROZEN}: didn't update max errors ${maxErrorCount} -> ${0}` : `${formatFilename(filename)}: ${formatRuleId(ruleId)}: update max errors ${maxErrorCount} -> ${0}`
++        );
++        maxErrors.delete(ruleId);
++        removedRules.add(ruleId);
++      });
++    }
++    const changed = increasedRulesCount > 0 || decreasedRulesCount > 0 || removedRules.size > 0;
++    if (changed && !args.frozen) {
++      const file = this.data.get(relativeFilename);
++      if (file) {
++        file.maxErrors = maxErrors;
++      } else {
++        this.data.set(relativeFilename, {
++          maxErrors,
++          lines: []
++        });
++      }
++      this.changed = true;
++    }
++    return { removedRules, increasedRulesCount, decreasedRulesCount };
++  }
++  /** Atomic read -> apply delta -> write. Takes an exclusive file lock when `args.threadsafe`. */
++  updateFileMaxErrors(args, filename, ruleToErrorCount) {
++    return this.withOptionalLock(args, () => {
++      const before = this.getMaxErrors(filename);
++      const ruleToMaxErrorCountBefore = before ? new Map(before) : void 0;
++      const result = this.updateMaxErrors(filename, args, ruleToErrorCount);
++      if (!args.frozen && !args.readOnly) {
++        this.flushChanges();
++      }
++      return { ruleToMaxErrorCountBefore, ...result };
++    });
++  }
++  /** Drop entries whose source file no longer exists. Takes an exclusive file lock when `args.threadsafe`. */
++  cleanUpRemovedFiles(args) {
++    return this.withOptionalLock(args, () => {
++      let removedFiles = 0;
++      for (const filename of Array.from(this.filenames())) {
++        if (!fs.existsSync(filename)) {
++          if (this.removeFile(filename, args)) {
++            removedFiles++;
++          }
++        }
++      }
++      if (!args.frozen && !args.readOnly) {
++        this.flushChanges();
++      }
++      return { removedFiles };
++    });
++  }
++  withOptionalLock(args, fn) {
++    if (!args.threadsafe) {
++      return fn();
++    }
++    const lock = new FileLock(`${this.filename}.lock`);
++    lock.waitLock(LOCK_TIMEOUT_MS);
++    try {
++      this.readSync();
++      return fn();
++    } finally {
++      lock.unlock();
++    }
++  }
++  toDataString() {
++    const lines = [];
++    this.data.forEach((fileState, filename) => {
++      if (fileState.maxErrors) {
++        fileState.lines = [];
++        fileState.maxErrors.forEach((maxErrorCount, ruleId) => {
++          fileState.lines.push({ filename, ruleId, maxErrors: maxErrorCount });
++        });
++        fileState.lines.sort(
++          (a, b) => a.ruleId === b.ruleId ? 0 : a.ruleId < b.ruleId ? -1 : 1
++        );
++      }
++      fileState.lines.forEach((line) => {
++        const encoded = line.encoded ??= encodeLine(line);
++        lines.push(encoded);
++      });
++    });
++    lines.sort();
++    if (this.comments) {
++      return this.comments + "\n\n" + lines.join("");
++    } else {
++      return lines.join("");
++    }
++  }
++  readSync() {
++    const nextStateFile = _SeatbeltFile.openSync(this.filename);
++    if (nextStateFile) {
++      this.data = nextStateFile.data;
++      this.changed = false;
++      return true;
++    }
++    return false;
++  }
++  flushChanges() {
++    if (this.changed) {
++      this.writeSync();
++      this.changed = false;
++      return { updated: true };
++    }
++    return { updated: false };
++  }
++  writeSync() {
++    const dataString = this.toDataString();
++    const dir = nodePath.dirname(this.filename);
++    const base = nodePath.basename(this.filename);
++    const tempFile = nodePath.join(
++      this.useTempDirForWrites ? os.tmpdir() : dir,
++      `.${base}.wip${process.pid}.${Date.now()}.tmp`
++    );
++    fs.mkdirSync(dir, { recursive: true });
++    fs.writeFileSync(tempFile, dataString, "utf8");
++    try {
++      fs.renameSync(tempFile, this.filename);
++    } catch (error) {
++      if (isErrno(error, "EXDEV")) {
++        this.useTempDirForWrites = false;
++        fs.copyFileSync(tempFile, this.filename);
++        fs.rmSync(tempFile);
++        return;
++      }
++      throw error;
++    }
++  }
++  toJSON() {
++    const data = Object.fromEntries(
++      Array.from(this.data.keys()).map((filename) => {
++        const maxErrors = this.getMaxErrors(filename);
++        if (!maxErrors) {
++          throw new Error(`${name} bug: expected errors for existing key`);
++        }
++        return [filename, Object.fromEntries(maxErrors)];
++      })
++    );
++    return { filename: this.filename, data };
++  }
++  toRelativePath(filename) {
++    if (!nodePath.isAbsolute(filename)) {
++      return filename;
++    }
++    return nodePath.relative(this.dirname, filename);
++  }
++  toAbsolutePath(filename) {
++    if (nodePath.isAbsolute(filename)) {
++      return filename;
++    }
++    return nodePath.resolve(this.dirname, filename);
++  }
++};
++function parseMaxErrors(lines) {
++  const maxErrors = /* @__PURE__ */ new Map();
++  lines.forEach((line) => {
++    maxErrors.set(line.ruleId, line.maxErrors);
++  });
++  return maxErrors;
++}
++
++export {
++  appendErrorContext,
++  FileLock,
++  SeatbeltFile
++};
++//# sourceMappingURL=chunk-QGLWIAEE.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/chunk-TDWD7IZM.js b/node_modules/eslint-seatbelt/dist/chunk-TDWD7IZM.js
+new file mode 100644
+index 0000000..e136721
+--- /dev/null
++++ b/node_modules/eslint-seatbelt/dist/chunk-TDWD7IZM.js
+@@ -0,0 +1,453 @@
++"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
++  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
++}) : x)(function(x) {
++  if (typeof require !== "undefined") return require.apply(this, arguments);
++  throw Error('Dynamic require of "' + x + '" is not supported');
++});
++
++// package.json
++var name = "eslint-seatbelt";
++var version = "0.1.3";
++var package_default = {
++  name,
++  version,
++  description: "Gradually tighten ESLint rules in your codebase",
++  keywords: [
++    "eslint",
++    "incremental",
++    "gradual",
++    "workflow",
++    "processor",
++    "linting"
++  ],
++  author: {
++    name: "Jake Teton-Landis",
++    url: "https://jake.tl"
++  },
++  repository: {
++    type: "git",
++    url: "git+https://github.com/justjake/eslint-seatbelt.git"
++  },
++  bugs: {
++    url: "https://github.com/justjake/eslint-seatbelt/issues"
++  },
++  scripts: {
++    build: "./scripts/make-json-schemas.ts && tsc && tsup",
++    test: "node --test --require tsx/cjs $(find src -name '*.test.ts')",
++    lint: "pnpm build && NODE_OPTIONS='--enable-source-maps' eslint ."
++  },
++  types: "dist/index.d.ts",
++  import: "./dist/index.mjs",
++  main: "dist/index.js",
++  exports: {
++    ".": {
++      types: "./dist/index.d.ts",
++      import: "./dist/index.mjs",
++      default: "./dist/index.js"
++    },
++    "./api": {
++      types: "./dist/api.d.ts",
++      import: "./dist/api.mjs",
++      default: "./dist/api.js"
++    }
++  },
++  bin: {
++    "eslint-seatbelt": "./dist/command.js"
++  },
++  files: [
++    "!*.tsbuildinfo",
++    "!src/**/*.test.ts",
++    "src",
++    "dist"
++  ],
++  license: "MIT",
++  peerDependencies: {
++    "@types/eslint": "*",
++    eslint: "*"
++  },
++  peerDependenciesMeta: {
++    eslint: {
++      optional: true
++    },
++    "@types/eslint": {
++      optional: true
++    }
++  },
++  devDependencies: {
++    "@eslint/compat": "1.2.3",
++    "@eslint/js": "9.15.0",
++    "@types/eslint__js": "8.42.3",
++    "@types/node": "22.9.0",
++    "@typescript-eslint/rule-tester": "8.14.0",
++    "@typescript-eslint/utils": "8.14.0",
++    eslint: "9.14.0",
++    prettier: "3.3.3",
++    tsup: "8.3.5",
++    tsx: "4.19.2",
++    typescript: "5.6.3",
++    "typescript-eslint": "8.14.0",
++    "typescript-json-schema": "0.65.1"
++  },
++  dependencies: {
++    "ts-command-line-args": "^2.5.1"
++  },
++  packageManager: "pnpm@10.2.1+sha1.48adf39a4ab751eda7b73b99447d1f0b6d227e02"
++};
++
++// src/SeatbeltConfig.ts
++var _path = require('path'); var _path2 = _interopRequireDefault(_path);
++var _worker_threads = require('worker_threads');
++
++// src/repoIntegration.ts
++var _fs = require('fs'); var _fs2 = _interopRequireDefault(_fs);
++
++function findAncestorDirectory(path2, predicate) {
++  let lastPath = void 0;
++  while (path2 !== lastPath) {
++    if (predicate(path2)) {
++      return path2;
++    }
++    lastPath = path2;
++    path2 = _path2.default.dirname(path2);
++  }
++}
++function isGitRoot(dir) {
++  return _fs2.default.existsSync(_path2.default.join(dir, ".git"));
++}
++function findRepoRoot(path2) {
++  return findAncestorDirectory(path2, isGitRoot);
++}
++
++// src/SeatbeltConfig.ts
++var SEATBELT_FILE_NAME = "eslint.seatbelt.tsv";
++var SEATBELT_FROZEN = "SEATBELT_FROZEN";
++var SEATBELT_INCREASE = "SEATBELT_INCREASE";
++var SEATBELT_KEEP = "SEATBELT_KEEP";
++var SEATBELT_FILE = "SEATBELT_FILE";
++var SEATBELT_PWD = "SEATBELT_PWD";
++var SEATBELT_DISABLE = "SEATBELT_DISABLE";
++var SEATBELT_READ_ONLY = "SEATBELT_READ_ONLY";
++var SEATBELT_THREADSAFE = "SEATBELT_THREADSAFE";
++var SEATBELT_VERBOSE = "SEATBELT_VERBOSE";
++var SEATBELT_QUIET = "SEATBELT_QUIET";
++var SEATBELT_ROOT = "SEATBELT_ROOT";
++var ENV_VARS = {
++  SEATBELT_FROZEN,
++  SEATBELT_INCREASE,
++  SEATBELT_KEEP,
++  SEATBELT_FILE,
++  SEATBELT_PWD,
++  SEATBELT_DISABLE,
++  SEATBELT_READ_ONLY,
++  SEATBELT_THREADSAFE,
++  SEATBELT_VERBOSE,
++  SEATBELT_QUIET,
++  SEATBELT_ROOT,
++  CI: "CI",
++  JEST_WORKER_ID: "JEST_WORKER_ID"
++};
++var SeatbeltConfig = {
++  withEnvOverrides(config, env) {
++    return {
++      ...SeatbeltConfig.fromFallbackEnv(env),
++      ...config,
++      ...SeatbeltConfig.fromEnvOverrides(env)
++    };
++  },
++  fromFallbackEnv(env, log) {
++    const config = {};
++    const isCI = SeatbeltEnv.readBooleanEnvVar(env.CI);
++    if (isCI) {
++      config.frozen = true;
++      _optionalChain([log, 'optionalCall', _ => _(`${padVarName("CI")} config.frozen defaults to`, true)]);
++    }
++    if (env.JEST_WORKER_ID) {
++      config.threadsafe = true;
++      _optionalChain([log, 'optionalCall', _2 => _2(
++        `${padVarName("JEST_WORKER_ID")} config.threadsafe defaults to`,
++        true
++      )]);
++    }
++    if (!_worker_threads.isMainThread) {
++      config.threadsafe = true;
++      _optionalChain([log, 'optionalCall', _3 => _3(
++        `${padVarName("worker_threads")} config.threadsafe defaults to`,
++        true
++      )]);
++    }
++    return config;
++  },
++  fromEnvOverrides(env, log) {
++    const config = {
++      pwd: env[SEATBELT_PWD] || process.cwd()
++    };
++    const verbose = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_VERBOSE]);
++    if (verbose !== void 0) {
++      config.verbose = verbose;
++      _optionalChain([log, 'optionalCall', _4 => _4(`${padVarName(SEATBELT_VERBOSE)} config.verbose =`, verbose)]);
++    }
++    const seatbeltFile = env[SEATBELT_FILE];
++    if (seatbeltFile) {
++      const rootRelative = _path2.default.isAbsolute(seatbeltFile) ? seatbeltFile : _path2.default.join(config.pwd, seatbeltFile);
++      config.seatbeltFile = rootRelative;
++      _optionalChain([log, 'optionalCall', _5 => _5(`${padVarName(SEATBELT_FILE)} config.seatbeltFile =`, rootRelative)]);
++    }
++    const disable = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_DISABLE]);
++    if (disable !== void 0) {
++      config.disable = disable;
++      _optionalChain([log, 'optionalCall', _6 => _6(`${padVarName(SEATBELT_DISABLE)} config.disable =`, disable)]);
++    }
++    const frozen = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_FROZEN]);
++    if (frozen !== void 0) {
++      config.frozen = frozen;
++      _optionalChain([log, 'optionalCall', _7 => _7(`${padVarName(SEATBELT_FROZEN)} config.frozen =`, frozen)]);
++    }
++    const readOnly = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_READ_ONLY]);
++    if (readOnly !== void 0) {
++      config.readOnly = readOnly;
++      _optionalChain([log, 'optionalCall', _8 => _8(`${padVarName(SEATBELT_READ_ONLY)} config.readOnly =`, readOnly)]);
++    }
++    const increase = SeatbeltEnv.parseRuleSetEnvVar(env[SEATBELT_INCREASE]);
++    if (increase !== void 0) {
++      config.allowIncreaseRules = increase;
++      _optionalChain([log, 'optionalCall', _9 => _9(
++        `${padVarName(SEATBELT_INCREASE)} config.allowIncreaseRules =`,
++        increase
++      )]);
++      config.readOnly = false;
++      _optionalChain([log, 'optionalCall', _10 => _10(
++        `${padVarName(SEATBELT_INCREASE)} overrides config.readOnly =`,
++        false
++      )]);
++    }
++    const keep = SeatbeltEnv.parseRuleSetEnvVar(env[SEATBELT_KEEP]);
++    if (keep !== void 0) {
++      config.keepRules = keep;
++      _optionalChain([log, 'optionalCall', _11 => _11(`${padVarName(SEATBELT_KEEP)} config.keepRules =`, keep)]);
++    }
++    const threadsafe = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_THREADSAFE]);
++    if (threadsafe !== void 0) {
++      config.threadsafe = threadsafe;
++      _optionalChain([log, 'optionalCall', _12 => _12(
++        `${padVarName(SEATBELT_THREADSAFE)} config.threadsafe =`,
++        threadsafe
++      )]);
++    }
++    const quiet = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_QUIET]);
++    if (quiet !== void 0) {
++      config.quiet = quiet;
++      _optionalChain([log, 'optionalCall', _13 => _13(`${padVarName(SEATBELT_QUIET)} config.quiet =`, quiet)]);
++    }
++    const root = env[SEATBELT_ROOT];
++    if (root) {
++      config.root = root;
++      _optionalChain([log, 'optionalCall', _14 => _14(`${padVarName(SEATBELT_ROOT)} config.root =`, root)]);
++    }
++    return config;
++  }
++};
++var SeatbeltEnv = {
++  parseRuleSetEnvVar(value) {
++    if (value === void 0) {
++      return void 0;
++    }
++    if (!value) {
++      return [];
++    }
++    const lower = value.toLowerCase();
++    if (lower === "all" || lower === "1" || lower === "true") {
++      return "all";
++    }
++    return value.split(/[\s,]+/g).filter(Boolean);
++  },
++  readBooleanEnvVar(value) {
++    if (value === void 0 || value === "") {
++      return void 0;
++    }
++    const lower = value.toLowerCase();
++    if (lower === "false" || lower === "0" || lower === "no") {
++      return false;
++    }
++    return Boolean(value);
++  }
++};
++var logStdout = (...message) => (
++  // eslint-disable-next-line no-console
++  console.log(`[${name}]:`, ...message)
++);
++var logStderr = (...message) => (
++  // eslint-disable-next-line no-console
++  console.error(`[${name}]:`, ...message)
++);
++var SeatbeltArgs = {
++  fromConfig(config) {
++    const cwd = _nullishCoalesce(config.pwd, () => ( process.cwd()));
++    const seatbeltFile = _nullishCoalesce(config.seatbeltFile, () => ( SeatbeltArgs.findSeatbeltFile(cwd)));
++    const root = _nullishCoalesce(_nullishCoalesce(config.root, () => ( findRepoRoot(seatbeltFile))), () => ( _path2.default.dirname(seatbeltFile)));
++    return {
++      seatbeltFile,
++      root,
++      keepRules: typeof config.keepRules === "string" ? config.keepRules : new Set(_nullishCoalesce(config.keepRules, () => ( []))),
++      allowIncreaseRules: typeof config.allowIncreaseRules === "string" ? config.allowIncreaseRules : new Set(_nullishCoalesce(config.allowIncreaseRules, () => ( []))),
++      frozen: _nullishCoalesce(config.frozen, () => ( false)),
++      disable: _nullishCoalesce(config.disable, () => ( false)),
++      readOnly: _nullishCoalesce(config.readOnly, () => ( false)),
++      quiet: _nullishCoalesce(config.quiet, () => ( false)),
++      threadsafe: _nullishCoalesce(config.threadsafe, () => ( false)),
++      verbose: _nullishCoalesce(config.verbose, () => ( false))
++    };
++  },
++  getLogger(args) {
++    if (typeof args.verbose === "function") {
++      return args.verbose;
++    }
++    if (args.verbose === "stdout") {
++      return logStdout;
++    }
++    return logStderr;
++  },
++  ruleSetHas(ruleSet, ruleId) {
++    return ruleSet === "all" || ruleSet.has(ruleId);
++  },
++  verboseLog(args, makeMessage) {
++    if (args.verbose) {
++      const message = makeMessage();
++      const log = SeatbeltArgs.getLogger(args);
++      if (typeof message === "string") {
++        log(message);
++      } else {
++        log(...message);
++      }
++    }
++  },
++  findSeatbeltFile(cwd) {
++    return `${cwd}/${SEATBELT_FILE_NAME}`;
++  }
++};
++var envVarMaxLength = 0;
++function padVarName(name2) {
++  envVarMaxLength ||= Math.max(
++    ...Object.values(ENV_VARS).map((name3) => name3.length)
++  );
++  return `${name2}:`.padEnd(envVarMaxLength + 1);
++}
++function formatFilename(filename) {
++  const relative = _path2.default.relative(
++    _nullishCoalesce(process.env[SEATBELT_PWD], () => ( process.cwd())),
++    filename
++  );
++  return relative ? relative : filename;
++}
++function formatRuleId(ruleId) {
++  if (ruleId === null) {
++    return `unknown rule`;
++  }
++  return `rule ${ruleId}`;
++}
++
++// src/jsonSchema/SeatbeltConfigSchema.ts
++var SeatbeltConfigSchema = {
++  description: 'Configuration for seatbelt can be provided in a few ways:\n\n1. Defined in the shared `settings` object in your ESLint config. This\n   requires also configuring the `eslint-seatbelt/configure` rule.\n\n    ```js\n    // in eslint.config.js\n    const config = [\n      {\n        settings: {\n          seatbelt: {\n            // ...\n          }\n        },\n        rules: {\n          "eslint-seatbelt/configure": "error",\n        }\n      }\n    ]\n    ```\n\n2. Using the `eslint-seatbelt/configure` rule in your ESLint config.\n   This can be used to override settings for specific files in legacy ESLint configs.\n   Any configuration provided here will override the shared `settings` object.\n\n    ```js\n    // in .eslintrc.js\n    module.exports = {\n      rules: {\n        "eslint-seatbelt/configure": "error",\n      },\n      overrides: [\n        {\n          files: ["some/path/*"],\n          rules: {\n            "eslint-seatbelt/configure": ["error", { seatbeltFile: "some/path/eslint.seatbelt.tsv" }]\n          },\n        },\n      ],\n    }\n    ```\n3. The settings in config files can be overridden with environment variables when running `eslint` or other tools.\n\n   ```bash\n   SEATBELT_FILE=some/path/eslint.seatbelt.tsv SEATBELT_FROZEN=1 eslint\n   ```',
++  type: "object",
++  properties: {
++    seatbeltFile: {
++      description: "The seatbelt file stores the max error counts allowed for each file. Should\nbe an absolute path.\n\nIf not provided, $SEATBELT_PWD/eslint.seatbelt.tsv or $PWD/eslint.seatbelt.tsv will be used.\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        // commonjs\n        seatbeltFile: `${__dirname}/eslint.seatbelt.tsv`\n        // esm\n        seatbeltFile: new URL('./eslint.seatbelt.tsv', import.meta.url).pathname\n      }\n    }\n  }\n]\n```\n\nYou can also set this with environment variable `SEATBELT_FILE`:\n\n```bash\nSEATBELT_FILE=.config/custom-seatbelt-file eslint\n```",
++      type: "string"
++    },
++    keepRules: {
++      description: 'By default whenever a file is linted and a rule has no errors, that rule\'s\nmax errors for the file is set to zero.\n\nHowever with typescript-eslint, it can be helpful to have two ESLint configs:\n\n- A default ESLint config with only syntactic rules enabled that don\'t\n  require typechecking, that runs on developer machines and in their editor.\n- A CI-only ESLint config with only type-aware rules enabled that requires\n  typechecking. Since these rules require typechecking, they can be too\n  slow to run in interactive contexts.\n\nTo avoid this, set `keepRules` to the names of *disabled but known rules*\nwhile linting.\n\nExample:\n\n```js\n// Default ESLint config\nmodule.exports = [\n  {\n    settings: {\n      seatbelt: {\n        keepRules: require(\'./eslint-typed.config.js\').flatMap(config => Object.keys(config.rules ?? {})),\n      }\n    },\n    rules: {\n      "no-unused-vars": "error",\n    },\n  }\n]\n\n// Typechecking-required ESLint config for CI\nmodule.exports = [\n  {\n    settings: {\n      seatbelt: {\n        keepRules: require(\'./eslint.config.js\').flatMap(config => Object.keys(config.rules ?? {})),\n      }\n    },\n    rules: {\n      // Requires typechecking (slow)\n      "@typescript-eslint/no-floating-promises": "error",\n    },\n  }\n]\n```\n\nYou can also set this with environment variable `SEATBELT_KEEP`:\n\n```bash\nSEATBELT_KEEP="@typescript-eslint/no-floating-promises',
++      anyOf: [
++        {
++          type: "array",
++          items: {
++            type: "string"
++          }
++        },
++        {
++          const: "all",
++          type: "string"
++        }
++      ]
++    },
++    allowIncreaseRules: {
++      description: 'When you enable a rule for the first time, lint with it in this set to set\nthe initial max error counts.\n\nTypically this should be enabled for one lint run only via an environment\nvariable, but it can also be configured via ESLint settings.\n\n```bash\nSEATBELT_INCREASE="@typescript-eslint/no-floating-promises" eslint\n```\n\nYou can set this to `"ALL"` to enable this setting for ALL rules:\n\n```bash\nSEATBELT_INCREASE=ALL eslint\n```\n\n```js\n// in eslint.config.js\n// maybe you have a use-case for this\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        allowIncreaseRules: ["@typescript-eslint/no-floating-promises"],\n      }\n    }\n  }\n]\n```',
++      anyOf: [
++        {
++          type: "array",
++          items: {
++            type: "string"
++          }
++        },
++        {
++          const: "all",
++          type: "string"
++        }
++      ]
++    },
++    frozen: {
++      description: "Error if there is any change in the number of errors in the seatbelt file.\nThis is useful in CI to ensures that developers keep the seatbelt file up-to-date as they fix errors.\n\nIt is enabled by default when environment variable `CI` is set.\n\n```bash\nCI=1 eslint\n```\n\nThis can be set with the `SEATBELT_FROZEN` environment variable.\n\n```bash\nSEATBELT_FROZEN=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        frozen: true,\n      }\n    }\n  }\n]\n```",
++      type: "boolean"
++    },
++    disable: {
++      description: "Completely disable seatbelt error processing for a lint run while leaving it otherwise configured.\n\nThis can be set with the `SEATBELT_DISABLE` environment variable.\n\n```bash\nSEATBELT_DISABLE=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        disable: true,\n      }\n    }\n  }\n]\n```",
++      type: "boolean"
++    },
++    readOnly: {
++      description: "When `true`, seatbelt validates error counts (still reporting increases)\nbut never writes the seatbelt file. Keeps the worktree clean in local /\neditor runs; expect an authoritative updater (e.g. post-merge CI) to run\nwith `readOnly: false`.\n\nUnlike `frozen`, does not turn decreases into errors. If both are set,\n`frozen` messaging is preserved and no write occurs.\n\n`SEATBELT_INCREASE` overrides this so intentional loosening is persisted.\n\nDefaults to `false`.\n\nSet via `SEATBELT_READ_ONLY` env var:\n\n```bash\nSEATBELT_READ_ONLY=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        readOnly: !process.env.CI,\n      }\n    }\n  }\n]\n```",
++      type: "boolean"
++    },
++    quiet: {
++      description: 'Suppress seatbelt\'s informational warning messages (e.g. "tend the garden",\n"thank you for fixing"). When enabled, seatbelt still downgrades errors to\nwarnings and updates the seatbelt file, but the warning messages are not\nemitted as ESLint results. Over-limit errors and frozen-mode warnings are\nalways preserved.\n\nThis is useful when seatbelt warnings create noise in CI logs or editor\nintegrations.\n\nThis can be set with the `SEATBELT_QUIET` environment variable.\n\n```bash\nSEATBELT_QUIET=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        quiet: true,\n      }\n    }\n  }\n]\n```',
++      type: "boolean"
++    },
++    threadsafe: {
++      description: "By default seatbelt assumes that only one ESLint process will read and\nwrite to the seatbelt file at a time.\n\nThis should be set to `true` if you use a parallel ESLint runner similar to\njest-runner-eslint to avoid losing updates during parallel writes to the\nseatbelt file.\n\nWhen enabled, seatbelt creates temporary lock files to serialize updates to\nthe seatbelt file. This comes at a small performance cost.\n\nThis is enabled by default when run with Jest (environment variable `JEST_WORKER_ID` is set)\nor inside a Node `worker_threads` worker (e.g. ESLint `--concurrency`).\n\nIt can also be set with environment variable `SEATBELT_THREADSAFE`:\n\n```bash\nSEATBELT_THREADSAFE=1 eslint-parallel\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        threadsafe: true,\n      }\n    }\n  }\n]\n```",
++      type: "boolean"
++    },
++    verbose: {
++      description: "Enable verbose logging.\n\nThis can be set with the `SEATBELT_VERBOSE` environment variable.\n\n```bash\nSEATBELT_VERBOSE=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        verbose: true,\n      }\n    }\n  }\n]\n```\n\nIf set to a function (like `console.error`), that function will be called with the log messages.\nThe default logger when set to `true` is `console.error`.",
++      anyOf: [
++        {
++          enum: [false, "stderr", "stdout", true]
++        },
++        {
++          type: "object"
++        }
++      ]
++    },
++    root: {
++      description: "Repository or project root.\nBy default this is inferred from `seatbeltFile` by checking ancestor directories for `.git`.\nUsed for editor integration to disable seatbelt during git actions like rebase or merge.\n\nThis can be set with the `SEATBELT_ROOT` environment variable.",
++      type: "string"
++    }
++  },
++  $schema: "http://json-schema.org/draft-07/schema#"
++};
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++
++exports.__require = __require; exports.name = name; exports.version = version; exports.package_default = package_default; exports.SEATBELT_FILE_NAME = SEATBELT_FILE_NAME; exports.SEATBELT_FROZEN = SEATBELT_FROZEN; exports.SEATBELT_INCREASE = SEATBELT_INCREASE; exports.SEATBELT_KEEP = SEATBELT_KEEP; exports.SEATBELT_FILE = SEATBELT_FILE; exports.SEATBELT_PWD = SEATBELT_PWD; exports.SEATBELT_DISABLE = SEATBELT_DISABLE; exports.SEATBELT_READ_ONLY = SEATBELT_READ_ONLY; exports.SEATBELT_THREADSAFE = SEATBELT_THREADSAFE; exports.SEATBELT_VERBOSE = SEATBELT_VERBOSE; exports.SEATBELT_QUIET = SEATBELT_QUIET; exports.SEATBELT_ROOT = SEATBELT_ROOT; exports.SeatbeltConfig = SeatbeltConfig; exports.SeatbeltEnv = SeatbeltEnv; exports.logStdout = logStdout; exports.logStderr = logStderr; exports.SeatbeltArgs = SeatbeltArgs; exports.padVarName = padVarName; exports.formatFilename = formatFilename; exports.formatRuleId = formatRuleId; exports.SeatbeltConfigSchema = SeatbeltConfigSchema;
++//# sourceMappingURL=chunk-TDWD7IZM.js.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/chunk-U6KIQG2A.mjs b/node_modules/eslint-seatbelt/dist/chunk-U6KIQG2A.mjs
+new file mode 100644
+index 0000000..cffef9f
+--- /dev/null
++++ b/node_modules/eslint-seatbelt/dist/chunk-U6KIQG2A.mjs
+@@ -0,0 +1,453 @@
++var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
++  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
++}) : x)(function(x) {
++  if (typeof require !== "undefined") return require.apply(this, arguments);
++  throw Error('Dynamic require of "' + x + '" is not supported');
++});
++
++// package.json
++var name = "eslint-seatbelt";
++var version = "0.1.3";
++var package_default = {
++  name,
++  version,
++  description: "Gradually tighten ESLint rules in your codebase",
++  keywords: [
++    "eslint",
++    "incremental",
++    "gradual",
++    "workflow",
++    "processor",
++    "linting"
++  ],
++  author: {
++    name: "Jake Teton-Landis",
++    url: "https://jake.tl"
++  },
++  repository: {
++    type: "git",
++    url: "git+https://github.com/justjake/eslint-seatbelt.git"
++  },
++  bugs: {
++    url: "https://github.com/justjake/eslint-seatbelt/issues"
++  },
++  scripts: {
++    build: "./scripts/make-json-schemas.ts && tsc && tsup",
++    test: "node --test --require tsx/cjs $(find src -name '*.test.ts')",
++    lint: "pnpm build && NODE_OPTIONS='--enable-source-maps' eslint ."
++  },
++  types: "dist/index.d.ts",
++  import: "./dist/index.mjs",
++  main: "dist/index.js",
++  exports: {
++    ".": {
++      types: "./dist/index.d.ts",
++      import: "./dist/index.mjs",
++      default: "./dist/index.js"
++    },
++    "./api": {
++      types: "./dist/api.d.ts",
++      import: "./dist/api.mjs",
++      default: "./dist/api.js"
++    }
++  },
++  bin: {
++    "eslint-seatbelt": "./dist/command.js"
++  },
++  files: [
++    "!*.tsbuildinfo",
++    "!src/**/*.test.ts",
++    "src",
++    "dist"
++  ],
++  license: "MIT",
++  peerDependencies: {
++    "@types/eslint": "*",
++    eslint: "*"
++  },
++  peerDependenciesMeta: {
++    eslint: {
++      optional: true
++    },
++    "@types/eslint": {
++      optional: true
++    }
++  },
++  devDependencies: {
++    "@eslint/compat": "1.2.3",
++    "@eslint/js": "9.15.0",
++    "@types/eslint__js": "8.42.3",
++    "@types/node": "22.9.0",
++    "@typescript-eslint/rule-tester": "8.14.0",
++    "@typescript-eslint/utils": "8.14.0",
++    eslint: "9.14.0",
++    prettier: "3.3.3",
++    tsup: "8.3.5",
++    tsx: "4.19.2",
++    typescript: "5.6.3",
++    "typescript-eslint": "8.14.0",
++    "typescript-json-schema": "0.65.1"
++  },
++  dependencies: {
++    "ts-command-line-args": "^2.5.1"
++  },
++  packageManager: "pnpm@10.2.1+sha1.48adf39a4ab751eda7b73b99447d1f0b6d227e02"
++};
++
++// src/SeatbeltConfig.ts
++import path from "node:path";
++import { isMainThread } from "node:worker_threads";
++
++// src/repoIntegration.ts
++import fs from "node:fs";
++import nodePath from "node:path";
++function findAncestorDirectory(path2, predicate) {
++  let lastPath = void 0;
++  while (path2 !== lastPath) {
++    if (predicate(path2)) {
++      return path2;
++    }
++    lastPath = path2;
++    path2 = nodePath.dirname(path2);
++  }
++}
++function isGitRoot(dir) {
++  return fs.existsSync(nodePath.join(dir, ".git"));
++}
++function findRepoRoot(path2) {
++  return findAncestorDirectory(path2, isGitRoot);
++}
++
++// src/SeatbeltConfig.ts
++var SEATBELT_FILE_NAME = "eslint.seatbelt.tsv";
++var SEATBELT_FROZEN = "SEATBELT_FROZEN";
++var SEATBELT_INCREASE = "SEATBELT_INCREASE";
++var SEATBELT_KEEP = "SEATBELT_KEEP";
++var SEATBELT_FILE = "SEATBELT_FILE";
++var SEATBELT_PWD = "SEATBELT_PWD";
++var SEATBELT_DISABLE = "SEATBELT_DISABLE";
++var SEATBELT_READ_ONLY = "SEATBELT_READ_ONLY";
++var SEATBELT_THREADSAFE = "SEATBELT_THREADSAFE";
++var SEATBELT_VERBOSE = "SEATBELT_VERBOSE";
++var SEATBELT_QUIET = "SEATBELT_QUIET";
++var SEATBELT_ROOT = "SEATBELT_ROOT";
++var ENV_VARS = {
++  SEATBELT_FROZEN,
++  SEATBELT_INCREASE,
++  SEATBELT_KEEP,
++  SEATBELT_FILE,
++  SEATBELT_PWD,
++  SEATBELT_DISABLE,
++  SEATBELT_READ_ONLY,
++  SEATBELT_THREADSAFE,
++  SEATBELT_VERBOSE,
++  SEATBELT_QUIET,
++  SEATBELT_ROOT,
++  CI: "CI",
++  JEST_WORKER_ID: "JEST_WORKER_ID"
++};
++var SeatbeltConfig = {
++  withEnvOverrides(config, env) {
++    return {
++      ...SeatbeltConfig.fromFallbackEnv(env),
++      ...config,
++      ...SeatbeltConfig.fromEnvOverrides(env)
++    };
++  },
++  fromFallbackEnv(env, log) {
++    const config = {};
++    const isCI = SeatbeltEnv.readBooleanEnvVar(env.CI);
++    if (isCI) {
++      config.frozen = true;
++      log?.(`${padVarName("CI")} config.frozen defaults to`, true);
++    }
++    if (env.JEST_WORKER_ID) {
++      config.threadsafe = true;
++      log?.(
++        `${padVarName("JEST_WORKER_ID")} config.threadsafe defaults to`,
++        true
++      );
++    }
++    if (!isMainThread) {
++      config.threadsafe = true;
++      log?.(
++        `${padVarName("worker_threads")} config.threadsafe defaults to`,
++        true
++      );
++    }
++    return config;
++  },
++  fromEnvOverrides(env, log) {
++    const config = {
++      pwd: env[SEATBELT_PWD] || process.cwd()
++    };
++    const verbose = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_VERBOSE]);
++    if (verbose !== void 0) {
++      config.verbose = verbose;
++      log?.(`${padVarName(SEATBELT_VERBOSE)} config.verbose =`, verbose);
++    }
++    const seatbeltFile = env[SEATBELT_FILE];
++    if (seatbeltFile) {
++      const rootRelative = path.isAbsolute(seatbeltFile) ? seatbeltFile : path.join(config.pwd, seatbeltFile);
++      config.seatbeltFile = rootRelative;
++      log?.(`${padVarName(SEATBELT_FILE)} config.seatbeltFile =`, rootRelative);
++    }
++    const disable = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_DISABLE]);
++    if (disable !== void 0) {
++      config.disable = disable;
++      log?.(`${padVarName(SEATBELT_DISABLE)} config.disable =`, disable);
++    }
++    const frozen = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_FROZEN]);
++    if (frozen !== void 0) {
++      config.frozen = frozen;
++      log?.(`${padVarName(SEATBELT_FROZEN)} config.frozen =`, frozen);
++    }
++    const readOnly = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_READ_ONLY]);
++    if (readOnly !== void 0) {
++      config.readOnly = readOnly;
++      log?.(`${padVarName(SEATBELT_READ_ONLY)} config.readOnly =`, readOnly);
++    }
++    const increase = SeatbeltEnv.parseRuleSetEnvVar(env[SEATBELT_INCREASE]);
++    if (increase !== void 0) {
++      config.allowIncreaseRules = increase;
++      log?.(
++        `${padVarName(SEATBELT_INCREASE)} config.allowIncreaseRules =`,
++        increase
++      );
++      config.readOnly = false;
++      log?.(
++        `${padVarName(SEATBELT_INCREASE)} overrides config.readOnly =`,
++        false
++      );
++    }
++    const keep = SeatbeltEnv.parseRuleSetEnvVar(env[SEATBELT_KEEP]);
++    if (keep !== void 0) {
++      config.keepRules = keep;
++      log?.(`${padVarName(SEATBELT_KEEP)} config.keepRules =`, keep);
++    }
++    const threadsafe = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_THREADSAFE]);
++    if (threadsafe !== void 0) {
++      config.threadsafe = threadsafe;
++      log?.(
++        `${padVarName(SEATBELT_THREADSAFE)} config.threadsafe =`,
++        threadsafe
++      );
++    }
++    const quiet = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_QUIET]);
++    if (quiet !== void 0) {
++      config.quiet = quiet;
++      log?.(`${padVarName(SEATBELT_QUIET)} config.quiet =`, quiet);
++    }
++    const root = env[SEATBELT_ROOT];
++    if (root) {
++      config.root = root;
++      log?.(`${padVarName(SEATBELT_ROOT)} config.root =`, root);
++    }
++    return config;
++  }
++};
++var SeatbeltEnv = {
++  parseRuleSetEnvVar(value) {
++    if (value === void 0) {
++      return void 0;
++    }
++    if (!value) {
++      return [];
++    }
++    const lower = value.toLowerCase();
++    if (lower === "all" || lower === "1" || lower === "true") {
++      return "all";
++    }
++    return value.split(/[\s,]+/g).filter(Boolean);
++  },
++  readBooleanEnvVar(value) {
++    if (value === void 0 || value === "") {
++      return void 0;
++    }
++    const lower = value.toLowerCase();
++    if (lower === "false" || lower === "0" || lower === "no") {
++      return false;
++    }
++    return Boolean(value);
++  }
++};
++var logStdout = (...message) => (
++  // eslint-disable-next-line no-console
++  console.log(`[${name}]:`, ...message)
++);
++var logStderr = (...message) => (
++  // eslint-disable-next-line no-console
++  console.error(`[${name}]:`, ...message)
++);
++var SeatbeltArgs = {
++  fromConfig(config) {
++    const cwd = config.pwd ?? process.cwd();
++    const seatbeltFile = config.seatbeltFile ?? SeatbeltArgs.findSeatbeltFile(cwd);
++    const root = config.root ?? findRepoRoot(seatbeltFile) ?? path.dirname(seatbeltFile);
++    return {
++      seatbeltFile,
++      root,
++      keepRules: typeof config.keepRules === "string" ? config.keepRules : new Set(config.keepRules ?? []),
++      allowIncreaseRules: typeof config.allowIncreaseRules === "string" ? config.allowIncreaseRules : new Set(config.allowIncreaseRules ?? []),
++      frozen: config.frozen ?? false,
++      disable: config.disable ?? false,
++      readOnly: config.readOnly ?? false,
++      quiet: config.quiet ?? false,
++      threadsafe: config.threadsafe ?? false,
++      verbose: config.verbose ?? false
++    };
++  },
++  getLogger(args) {
++    if (typeof args.verbose === "function") {
++      return args.verbose;
++    }
++    if (args.verbose === "stdout") {
++      return logStdout;
++    }
++    return logStderr;
++  },
++  ruleSetHas(ruleSet, ruleId) {
++    return ruleSet === "all" || ruleSet.has(ruleId);
++  },
++  verboseLog(args, makeMessage) {
++    if (args.verbose) {
++      const message = makeMessage();
++      const log = SeatbeltArgs.getLogger(args);
++      if (typeof message === "string") {
++        log(message);
++      } else {
++        log(...message);
++      }
++    }
++  },
++  findSeatbeltFile(cwd) {
++    return `${cwd}/${SEATBELT_FILE_NAME}`;
++  }
++};
++var envVarMaxLength = 0;
++function padVarName(name2) {
++  envVarMaxLength ||= Math.max(
++    ...Object.values(ENV_VARS).map((name3) => name3.length)
++  );
++  return `${name2}:`.padEnd(envVarMaxLength + 1);
++}
++function formatFilename(filename) {
++  const relative = path.relative(
++    process.env[SEATBELT_PWD] ?? process.cwd(),
++    filename
++  );
++  return relative ? relative : filename;
++}
++function formatRuleId(ruleId) {
++  if (ruleId === null) {
++    return `unknown rule`;
++  }
++  return `rule ${ruleId}`;
++}
++
++// src/jsonSchema/SeatbeltConfigSchema.ts
++var SeatbeltConfigSchema = {
++  description: 'Configuration for seatbelt can be provided in a few ways:\n\n1. Defined in the shared `settings` object in your ESLint config. This\n   requires also configuring the `eslint-seatbelt/configure` rule.\n\n    ```js\n    // in eslint.config.js\n    const config = [\n      {\n        settings: {\n          seatbelt: {\n            // ...\n          }\n        },\n        rules: {\n          "eslint-seatbelt/configure": "error",\n        }\n      }\n    ]\n    ```\n\n2. Using the `eslint-seatbelt/configure` rule in your ESLint config.\n   This can be used to override settings for specific files in legacy ESLint configs.\n   Any configuration provided here will override the shared `settings` object.\n\n    ```js\n    // in .eslintrc.js\n    module.exports = {\n      rules: {\n        "eslint-seatbelt/configure": "error",\n      },\n      overrides: [\n        {\n          files: ["some/path/*"],\n          rules: {\n            "eslint-seatbelt/configure": ["error", { seatbeltFile: "some/path/eslint.seatbelt.tsv" }]\n          },\n        },\n      ],\n    }\n    ```\n3. The settings in config files can be overridden with environment variables when running `eslint` or other tools.\n\n   ```bash\n   SEATBELT_FILE=some/path/eslint.seatbelt.tsv SEATBELT_FROZEN=1 eslint\n   ```',
++  type: "object",
++  properties: {
++    seatbeltFile: {
++      description: "The seatbelt file stores the max error counts allowed for each file. Should\nbe an absolute path.\n\nIf not provided, $SEATBELT_PWD/eslint.seatbelt.tsv or $PWD/eslint.seatbelt.tsv will be used.\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        // commonjs\n        seatbeltFile: `${__dirname}/eslint.seatbelt.tsv`\n        // esm\n        seatbeltFile: new URL('./eslint.seatbelt.tsv', import.meta.url).pathname\n      }\n    }\n  }\n]\n```\n\nYou can also set this with environment variable `SEATBELT_FILE`:\n\n```bash\nSEATBELT_FILE=.config/custom-seatbelt-file eslint\n```",
++      type: "string"
++    },
++    keepRules: {
++      description: 'By default whenever a file is linted and a rule has no errors, that rule\'s\nmax errors for the file is set to zero.\n\nHowever with typescript-eslint, it can be helpful to have two ESLint configs:\n\n- A default ESLint config with only syntactic rules enabled that don\'t\n  require typechecking, that runs on developer machines and in their editor.\n- A CI-only ESLint config with only type-aware rules enabled that requires\n  typechecking. Since these rules require typechecking, they can be too\n  slow to run in interactive contexts.\n\nTo avoid this, set `keepRules` to the names of *disabled but known rules*\nwhile linting.\n\nExample:\n\n```js\n// Default ESLint config\nmodule.exports = [\n  {\n    settings: {\n      seatbelt: {\n        keepRules: require(\'./eslint-typed.config.js\').flatMap(config => Object.keys(config.rules ?? {})),\n      }\n    },\n    rules: {\n      "no-unused-vars": "error",\n    },\n  }\n]\n\n// Typechecking-required ESLint config for CI\nmodule.exports = [\n  {\n    settings: {\n      seatbelt: {\n        keepRules: require(\'./eslint.config.js\').flatMap(config => Object.keys(config.rules ?? {})),\n      }\n    },\n    rules: {\n      // Requires typechecking (slow)\n      "@typescript-eslint/no-floating-promises": "error",\n    },\n  }\n]\n```\n\nYou can also set this with environment variable `SEATBELT_KEEP`:\n\n```bash\nSEATBELT_KEEP="@typescript-eslint/no-floating-promises',
++      anyOf: [
++        {
++          type: "array",
++          items: {
++            type: "string"
++          }
++        },
++        {
++          const: "all",
++          type: "string"
++        }
++      ]
++    },
++    allowIncreaseRules: {
++      description: 'When you enable a rule for the first time, lint with it in this set to set\nthe initial max error counts.\n\nTypically this should be enabled for one lint run only via an environment\nvariable, but it can also be configured via ESLint settings.\n\n```bash\nSEATBELT_INCREASE="@typescript-eslint/no-floating-promises" eslint\n```\n\nYou can set this to `"ALL"` to enable this setting for ALL rules:\n\n```bash\nSEATBELT_INCREASE=ALL eslint\n```\n\n```js\n// in eslint.config.js\n// maybe you have a use-case for this\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        allowIncreaseRules: ["@typescript-eslint/no-floating-promises"],\n      }\n    }\n  }\n]\n```',
++      anyOf: [
++        {
++          type: "array",
++          items: {
++            type: "string"
++          }
++        },
++        {
++          const: "all",
++          type: "string"
++        }
++      ]
++    },
++    frozen: {
++      description: "Error if there is any change in the number of errors in the seatbelt file.\nThis is useful in CI to ensures that developers keep the seatbelt file up-to-date as they fix errors.\n\nIt is enabled by default when environment variable `CI` is set.\n\n```bash\nCI=1 eslint\n```\n\nThis can be set with the `SEATBELT_FROZEN` environment variable.\n\n```bash\nSEATBELT_FROZEN=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        frozen: true,\n      }\n    }\n  }\n]\n```",
++      type: "boolean"
++    },
++    disable: {
++      description: "Completely disable seatbelt error processing for a lint run while leaving it otherwise configured.\n\nThis can be set with the `SEATBELT_DISABLE` environment variable.\n\n```bash\nSEATBELT_DISABLE=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        disable: true,\n      }\n    }\n  }\n]\n```",
++      type: "boolean"
++    },
++    readOnly: {
++      description: "When `true`, seatbelt validates error counts (still reporting increases)\nbut never writes the seatbelt file. Keeps the worktree clean in local /\neditor runs; expect an authoritative updater (e.g. post-merge CI) to run\nwith `readOnly: false`.\n\nUnlike `frozen`, does not turn decreases into errors. If both are set,\n`frozen` messaging is preserved and no write occurs.\n\n`SEATBELT_INCREASE` overrides this so intentional loosening is persisted.\n\nDefaults to `false`.\n\nSet via `SEATBELT_READ_ONLY` env var:\n\n```bash\nSEATBELT_READ_ONLY=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        readOnly: !process.env.CI,\n      }\n    }\n  }\n]\n```",
++      type: "boolean"
++    },
++    quiet: {
++      description: 'Suppress seatbelt\'s informational warning messages (e.g. "tend the garden",\n"thank you for fixing"). When enabled, seatbelt still downgrades errors to\nwarnings and updates the seatbelt file, but the warning messages are not\nemitted as ESLint results. Over-limit errors and frozen-mode warnings are\nalways preserved.\n\nThis is useful when seatbelt warnings create noise in CI logs or editor\nintegrations.\n\nThis can be set with the `SEATBELT_QUIET` environment variable.\n\n```bash\nSEATBELT_QUIET=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        quiet: true,\n      }\n    }\n  }\n]\n```',
++      type: "boolean"
++    },
++    threadsafe: {
++      description: "By default seatbelt assumes that only one ESLint process will read and\nwrite to the seatbelt file at a time.\n\nThis should be set to `true` if you use a parallel ESLint runner similar to\njest-runner-eslint to avoid losing updates during parallel writes to the\nseatbelt file.\n\nWhen enabled, seatbelt creates temporary lock files to serialize updates to\nthe seatbelt file. This comes at a small performance cost.\n\nThis is enabled by default when run with Jest (environment variable `JEST_WORKER_ID` is set)\nor inside a Node `worker_threads` worker (e.g. ESLint `--concurrency`).\n\nIt can also be set with environment variable `SEATBELT_THREADSAFE`:\n\n```bash\nSEATBELT_THREADSAFE=1 eslint-parallel\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        threadsafe: true,\n      }\n    }\n  }\n]\n```",
++      type: "boolean"
++    },
++    verbose: {
++      description: "Enable verbose logging.\n\nThis can be set with the `SEATBELT_VERBOSE` environment variable.\n\n```bash\nSEATBELT_VERBOSE=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        verbose: true,\n      }\n    }\n  }\n]\n```\n\nIf set to a function (like `console.error`), that function will be called with the log messages.\nThe default logger when set to `true` is `console.error`.",
++      anyOf: [
++        {
++          enum: [false, "stderr", "stdout", true]
++        },
++        {
++          type: "object"
++        }
++      ]
++    },
++    root: {
++      description: "Repository or project root.\nBy default this is inferred from `seatbeltFile` by checking ancestor directories for `.git`.\nUsed for editor integration to disable seatbelt during git actions like rebase or merge.\n\nThis can be set with the `SEATBELT_ROOT` environment variable.",
++      type: "string"
++    }
++  },
++  $schema: "http://json-schema.org/draft-07/schema#"
++};
++
++export {
++  __require,
++  name,
++  version,
++  package_default,
++  SEATBELT_FILE_NAME,
++  SEATBELT_FROZEN,
++  SEATBELT_INCREASE,
++  SEATBELT_KEEP,
++  SEATBELT_FILE,
++  SEATBELT_PWD,
++  SEATBELT_DISABLE,
++  SEATBELT_READ_ONLY,
++  SEATBELT_THREADSAFE,
++  SEATBELT_VERBOSE,
++  SEATBELT_QUIET,
++  SEATBELT_ROOT,
++  SeatbeltConfig,
++  SeatbeltEnv,
++  logStdout,
++  logStderr,
++  SeatbeltArgs,
++  padVarName,
++  formatFilename,
++  formatRuleId,
++  SeatbeltConfigSchema
++};
++//# sourceMappingURL=chunk-U6KIQG2A.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/chunk-ULACHCKT.mjs b/node_modules/eslint-seatbelt/dist/chunk-ULACHCKT.mjs
+deleted file mode 100644
+index b90ad17..0000000
+--- a/node_modules/eslint-seatbelt/dist/chunk-ULACHCKT.mjs
++++ /dev/null
+@@ -1,435 +0,0 @@
+-var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+-}) : x)(function(x) {
+-  if (typeof require !== "undefined") return require.apply(this, arguments);
+-  throw Error('Dynamic require of "' + x + '" is not supported');
+-});
+-
+-// package.json
+-var name = "eslint-seatbelt";
+-var version = "0.1.3";
+-var package_default = {
+-  name,
+-  version,
+-  description: "Gradually tighten ESLint rules in your codebase",
+-  keywords: [
+-    "eslint",
+-    "incremental",
+-    "gradual",
+-    "workflow",
+-    "processor",
+-    "linting"
+-  ],
+-  author: {
+-    name: "Jake Teton-Landis",
+-    url: "https://jake.tl"
+-  },
+-  repository: {
+-    type: "git",
+-    url: "git+https://github.com/justjake/eslint-seatbelt.git"
+-  },
+-  bugs: {
+-    url: "https://github.com/justjake/eslint-seatbelt/issues"
+-  },
+-  scripts: {
+-    build: "./scripts/make-json-schemas.ts && tsc && tsup",
+-    test: "node --test --require tsx/cjs $(find src -name '*.test.ts')",
+-    lint: "pnpm build && NODE_OPTIONS='--enable-source-maps' eslint ."
+-  },
+-  types: "dist/index.d.ts",
+-  import: "./dist/index.mjs",
+-  main: "dist/index.js",
+-  exports: {
+-    ".": {
+-      types: "./dist/index.d.ts",
+-      import: "./dist/index.mjs",
+-      default: "./dist/index.js"
+-    },
+-    "./api": {
+-      types: "./dist/api.d.ts",
+-      import: "./dist/api.mjs",
+-      default: "./dist/api.js"
+-    }
+-  },
+-  bin: {
+-    "eslint-seatbelt": "./dist/command.js"
+-  },
+-  files: [
+-    "!*.tsbuildinfo",
+-    "!src/**/*.test.ts",
+-    "src",
+-    "dist"
+-  ],
+-  license: "MIT",
+-  peerDependencies: {
+-    "@types/eslint": "*",
+-    eslint: "*"
+-  },
+-  peerDependenciesMeta: {
+-    eslint: {
+-      optional: true
+-    },
+-    "@types/eslint": {
+-      optional: true
+-    }
+-  },
+-  devDependencies: {
+-    "@eslint/compat": "1.2.3",
+-    "@eslint/js": "9.15.0",
+-    "@types/eslint__js": "8.42.3",
+-    "@types/node": "22.9.0",
+-    "@typescript-eslint/rule-tester": "8.14.0",
+-    "@typescript-eslint/utils": "8.14.0",
+-    eslint: "9.14.0",
+-    prettier: "3.3.3",
+-    tsup: "8.3.5",
+-    tsx: "4.19.2",
+-    typescript: "5.6.3",
+-    "typescript-eslint": "8.14.0",
+-    "typescript-json-schema": "0.65.1"
+-  },
+-  dependencies: {
+-    "ts-command-line-args": "^2.5.1"
+-  },
+-  packageManager: "pnpm@10.2.1+sha1.48adf39a4ab751eda7b73b99447d1f0b6d227e02"
+-};
+-
+-// src/SeatbeltConfig.ts
+-import path from "node:path";
+-import { isMainThread } from "node:worker_threads";
+-
+-// src/repoIntegration.ts
+-import fs from "node:fs";
+-import nodePath from "node:path";
+-function findAncestorDirectory(path2, predicate) {
+-  let lastPath = void 0;
+-  while (path2 !== lastPath) {
+-    if (predicate(path2)) {
+-      return path2;
+-    }
+-    lastPath = path2;
+-    path2 = nodePath.dirname(path2);
+-  }
+-}
+-function isGitRoot(dir) {
+-  return fs.existsSync(nodePath.join(dir, ".git"));
+-}
+-function findRepoRoot(path2) {
+-  return findAncestorDirectory(path2, isGitRoot);
+-}
+-
+-// src/SeatbeltConfig.ts
+-var SEATBELT_FILE_NAME = "eslint.seatbelt.tsv";
+-var SEATBELT_FROZEN = "SEATBELT_FROZEN";
+-var SEATBELT_INCREASE = "SEATBELT_INCREASE";
+-var SEATBELT_KEEP = "SEATBELT_KEEP";
+-var SEATBELT_FILE = "SEATBELT_FILE";
+-var SEATBELT_PWD = "SEATBELT_PWD";
+-var SEATBELT_DISABLE = "SEATBELT_DISABLE";
+-var SEATBELT_THREADSAFE = "SEATBELT_THREADSAFE";
+-var SEATBELT_VERBOSE = "SEATBELT_VERBOSE";
+-var SEATBELT_QUIET = "SEATBELT_QUIET";
+-var SEATBELT_ROOT = "SEATBELT_ROOT";
+-var ENV_VARS = {
+-  SEATBELT_FROZEN,
+-  SEATBELT_INCREASE,
+-  SEATBELT_KEEP,
+-  SEATBELT_FILE,
+-  SEATBELT_PWD,
+-  SEATBELT_DISABLE,
+-  SEATBELT_THREADSAFE,
+-  SEATBELT_VERBOSE,
+-  SEATBELT_QUIET,
+-  SEATBELT_ROOT,
+-  CI: "CI",
+-  JEST_WORKER_ID: "JEST_WORKER_ID"
+-};
+-var SeatbeltConfig = {
+-  withEnvOverrides(config, env) {
+-    return {
+-      ...SeatbeltConfig.fromFallbackEnv(env),
+-      ...config,
+-      ...SeatbeltConfig.fromEnvOverrides(env)
+-    };
+-  },
+-  fromFallbackEnv(env, log) {
+-    const config = {};
+-    const isCI = SeatbeltEnv.readBooleanEnvVar(env.CI);
+-    if (isCI) {
+-      config.frozen = true;
+-      log?.(`${padVarName("CI")} config.frozen defaults to`, true);
+-    }
+-    if (env.JEST_WORKER_ID) {
+-      config.threadsafe = true;
+-      log?.(
+-        `${padVarName("JEST_WORKER_ID")} config.threadsafe defaults to`,
+-        true
+-      );
+-    }
+-    if (!isMainThread) {
+-      config.threadsafe = true;
+-      log?.(
+-        `${padVarName("worker_threads")} config.threadsafe defaults to`,
+-        true
+-      );
+-    }
+-    return config;
+-  },
+-  fromEnvOverrides(env, log) {
+-    const config = {
+-      pwd: env[SEATBELT_PWD] || process.cwd()
+-    };
+-    const verbose = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_VERBOSE]);
+-    if (verbose !== void 0) {
+-      config.verbose = verbose;
+-      log?.(`${padVarName(SEATBELT_VERBOSE)} config.verbose =`, verbose);
+-    }
+-    const seatbeltFile = env[SEATBELT_FILE];
+-    if (seatbeltFile) {
+-      const rootRelative = path.isAbsolute(seatbeltFile) ? seatbeltFile : path.join(config.pwd, seatbeltFile);
+-      config.seatbeltFile = rootRelative;
+-      log?.(`${padVarName(SEATBELT_FILE)} config.seatbeltFile =`, rootRelative);
+-    }
+-    const disable = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_DISABLE]);
+-    if (disable !== void 0) {
+-      config.disable = disable;
+-      log?.(`${padVarName(SEATBELT_DISABLE)} config.disable =`, disable);
+-    }
+-    const frozen = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_FROZEN]);
+-    if (frozen !== void 0) {
+-      config.frozen = frozen;
+-      log?.(`${padVarName(SEATBELT_FROZEN)} config.frozen =`, frozen);
+-    }
+-    const increase = SeatbeltEnv.parseRuleSetEnvVar(env[SEATBELT_INCREASE]);
+-    if (increase !== void 0) {
+-      config.allowIncreaseRules = increase;
+-      log?.(
+-        `${padVarName(SEATBELT_INCREASE)} config.allowIncreaseRules =`,
+-        increase
+-      );
+-    }
+-    const keep = SeatbeltEnv.parseRuleSetEnvVar(env[SEATBELT_KEEP]);
+-    if (keep !== void 0) {
+-      config.keepRules = keep;
+-      log?.(`${padVarName(SEATBELT_KEEP)} config.keepRules =`, keep);
+-    }
+-    const threadsafe = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_THREADSAFE]);
+-    if (threadsafe !== void 0) {
+-      config.threadsafe = threadsafe;
+-      log?.(
+-        `${padVarName(SEATBELT_THREADSAFE)} config.threadsafe =`,
+-        threadsafe
+-      );
+-    }
+-    const quiet = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_QUIET]);
+-    if (quiet !== void 0) {
+-      config.quiet = quiet;
+-      log?.(`${padVarName(SEATBELT_QUIET)} config.quiet =`, quiet);
+-    }
+-    const root = env[SEATBELT_ROOT];
+-    if (root) {
+-      config.root = root;
+-      log?.(`${padVarName(SEATBELT_ROOT)} config.root =`, root);
+-    }
+-    return config;
+-  }
+-};
+-var SeatbeltEnv = {
+-  parseRuleSetEnvVar(value) {
+-    if (value === void 0) {
+-      return void 0;
+-    }
+-    if (!value) {
+-      return [];
+-    }
+-    const lower = value.toLowerCase();
+-    if (lower === "all" || lower === "1" || lower === "true") {
+-      return "all";
+-    }
+-    return value.split(/[\s,]+/g).filter(Boolean);
+-  },
+-  readBooleanEnvVar(value) {
+-    if (value === void 0 || value === "") {
+-      return void 0;
+-    }
+-    const lower = value.toLowerCase();
+-    if (lower === "false" || lower === "0" || lower === "no") {
+-      return false;
+-    }
+-    return Boolean(value);
+-  }
+-};
+-var logStdout = (...message) => (
+-  // eslint-disable-next-line no-console
+-  console.log(`[${name}]:`, ...message)
+-);
+-var logStderr = (...message) => (
+-  // eslint-disable-next-line no-console
+-  console.error(`[${name}]:`, ...message)
+-);
+-var SeatbeltArgs = {
+-  fromConfig(config) {
+-    const cwd = config.pwd ?? process.cwd();
+-    const seatbeltFile = config.seatbeltFile ?? SeatbeltArgs.findSeatbeltFile(cwd);
+-    const root = config.root ?? findRepoRoot(seatbeltFile) ?? path.dirname(seatbeltFile);
+-    return {
+-      seatbeltFile,
+-      root,
+-      keepRules: typeof config.keepRules === "string" ? config.keepRules : new Set(config.keepRules ?? []),
+-      allowIncreaseRules: typeof config.allowIncreaseRules === "string" ? config.allowIncreaseRules : new Set(config.allowIncreaseRules ?? []),
+-      frozen: config.frozen ?? false,
+-      disable: config.disable ?? false,
+-      quiet: config.quiet ?? false,
+-      threadsafe: config.threadsafe ?? false,
+-      verbose: config.verbose ?? false
+-    };
+-  },
+-  getLogger(args) {
+-    if (typeof args.verbose === "function") {
+-      return args.verbose;
+-    }
+-    if (args.verbose === "stdout") {
+-      return logStdout;
+-    }
+-    return logStderr;
+-  },
+-  ruleSetHas(ruleSet, ruleId) {
+-    return ruleSet === "all" || ruleSet.has(ruleId);
+-  },
+-  verboseLog(args, makeMessage) {
+-    if (args.verbose) {
+-      const message = makeMessage();
+-      const log = SeatbeltArgs.getLogger(args);
+-      if (typeof message === "string") {
+-        log(message);
+-      } else {
+-        log(...message);
+-      }
+-    }
+-  },
+-  findSeatbeltFile(cwd) {
+-    return `${cwd}/${SEATBELT_FILE_NAME}`;
+-  }
+-};
+-var envVarMaxLength = 0;
+-function padVarName(name2) {
+-  envVarMaxLength ||= Math.max(
+-    ...Object.values(ENV_VARS).map((name3) => name3.length)
+-  );
+-  return `${name2}:`.padEnd(envVarMaxLength + 1);
+-}
+-function formatFilename(filename) {
+-  const relative = path.relative(
+-    process.env[SEATBELT_PWD] ?? process.cwd(),
+-    filename
+-  );
+-  return relative ? relative : filename;
+-}
+-function formatRuleId(ruleId) {
+-  if (ruleId === null) {
+-    return `unknown rule`;
+-  }
+-  return `rule ${ruleId}`;
+-}
+-
+-// src/jsonSchema/SeatbeltConfigSchema.ts
+-var SeatbeltConfigSchema = {
+-  description: 'Configuration for seatbelt can be provided in a few ways:\n\n1. Defined in the shared `settings` object in your ESLint config. This\n   requires also configuring the `eslint-seatbelt/configure` rule.\n\n    ```js\n    // in eslint.config.js\n    const config = [\n      {\n        settings: {\n          seatbelt: {\n            // ...\n          }\n        },\n        rules: {\n          "eslint-seatbelt/configure": "error",\n        }\n      }\n    ]\n    ```\n\n2. Using the `eslint-seatbelt/configure` rule in your ESLint config.\n   This can be used to override settings for specific files in legacy ESLint configs.\n   Any configuration provided here will override the shared `settings` object.\n\n    ```js\n    // in .eslintrc.js\n    module.exports = {\n      rules: {\n        "eslint-seatbelt/configure": "error",\n      },\n      overrides: [\n        {\n          files: ["some/path/*"],\n          rules: {\n            "eslint-seatbelt/configure": ["error", { seatbeltFile: "some/path/eslint.seatbelt.tsv" }]\n          },\n        },\n      ],\n    }\n    ```\n3. The settings in config files can be overridden with environment variables when running `eslint` or other tools.\n\n   ```bash\n   SEATBELT_FILE=some/path/eslint.seatbelt.tsv SEATBELT_FROZEN=1 eslint\n   ```',
+-  type: "object",
+-  properties: {
+-    seatbeltFile: {
+-      description: "The seatbelt file stores the max error counts allowed for each file. Should\nbe an absolute path.\n\nIf not provided, $SEATBELT_PWD/eslint.seatbelt.tsv or $PWD/eslint.seatbelt.tsv will be used.\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        // commonjs\n        seatbeltFile: `${__dirname}/eslint.seatbelt.tsv`\n        // esm\n        seatbeltFile: new URL('./eslint.seatbelt.tsv', import.meta.url).pathname\n      }\n    }\n  }\n]\n```\n\nYou can also set this with environment variable `SEATBELT_FILE`:\n\n```bash\nSEATBELT_FILE=.config/custom-seatbelt-file eslint\n```",
+-      type: "string"
+-    },
+-    keepRules: {
+-      description: 'By default whenever a file is linted and a rule has no errors, that rule\'s\nmax errors for the file is set to zero.\n\nHowever with typescript-eslint, it can be helpful to have two ESLint configs:\n\n- A default ESLint config with only syntactic rules enabled that don\'t\n  require typechecking, that runs on developer machines and in their editor.\n- A CI-only ESLint config with only type-aware rules enabled that requires\n  typechecking. Since these rules require typechecking, they can be too\n  slow to run in interactive contexts.\n\nTo avoid this, set `keepRules` to the names of *disabled but known rules*\nwhile linting.\n\nExample:\n\n```js\n// Default ESLint config\nmodule.exports = [\n  {\n    settings: {\n      seatbelt: {\n        keepRules: require(\'./eslint-typed.config.js\').flatMap(config => Object.keys(config.rules ?? {})),\n      }\n    },\n    rules: {\n      "no-unused-vars": "error",\n    },\n  }\n]\n\n// Typechecking-required ESLint config for CI\nmodule.exports = [\n  {\n    settings: {\n      seatbelt: {\n        keepRules: require(\'./eslint.config.js\').flatMap(config => Object.keys(config.rules ?? {})),\n      }\n    },\n    rules: {\n      // Requires typechecking (slow)\n      "@typescript-eslint/no-floating-promises": "error",\n    },\n  }\n]\n```\n\nYou can also set this with environment variable `SEATBELT_KEEP`:\n\n```bash\nSEATBELT_KEEP="@typescript-eslint/no-floating-promises',
+-      anyOf: [
+-        {
+-          type: "array",
+-          items: {
+-            type: "string"
+-          }
+-        },
+-        {
+-          const: "all",
+-          type: "string"
+-        }
+-      ]
+-    },
+-    allowIncreaseRules: {
+-      description: 'When you enable a rule for the first time, lint with it in this set to set\nthe initial max error counts.\n\nTypically this should be enabled for one lint run only via an environment\nvariable, but it can also be configured via ESLint settings.\n\n```bash\nSEATBELT_INCREASE="@typescript-eslint/no-floating-promises" eslint\n```\n\nYou can set this to `"ALL"` to enable this setting for ALL rules:\n\n```bash\nSEATBELT_INCREASE=ALL eslint\n```\n\n```js\n// in eslint.config.js\n// maybe you have a use-case for this\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        allowIncreaseRules: ["@typescript-eslint/no-floating-promises"],\n      }\n    }\n  }\n]\n```',
+-      anyOf: [
+-        {
+-          type: "array",
+-          items: {
+-            type: "string"
+-          }
+-        },
+-        {
+-          const: "all",
+-          type: "string"
+-        }
+-      ]
+-    },
+-    frozen: {
+-      description: "Error if there is any change in the number of errors in the seatbelt file.\nThis is useful in CI to ensures that developers keep the seatbelt file up-to-date as they fix errors.\n\nIt is enabled by default when environment variable `CI` is set.\n\n```bash\nCI=1 eslint\n```\n\nThis can be set with the `SEATBELT_FROZEN` environment variable.\n\n```bash\nSEATBELT_FROZEN=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        frozen: true,\n      }\n    }\n  }\n]\n```",
+-      type: "boolean"
+-    },
+-    disable: {
+-      description: "Completely disable seatbelt error processing for a lint run while leaving it otherwise configured.\n\nThis can be set with the `SEATBELT_DISABLE` environment variable.\n\n```bash\nSEATBELT_DISABLE=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        disable: true,\n      }\n    }\n  }\n]\n```",
+-      type: "boolean"
+-    },
+-    quiet: {
+-      description: 'Suppress seatbelt\'s informational warning messages (e.g. "tend the garden",\n"thank you for fixing"). When enabled, seatbelt still downgrades errors to\nwarnings and updates the seatbelt file, but the warning messages are not\nemitted as ESLint results. Over-limit errors and frozen-mode warnings are\nalways preserved.\n\nThis is useful when seatbelt warnings create noise in CI logs or editor\nintegrations.\n\nThis can be set with the `SEATBELT_QUIET` environment variable.\n\n```bash\nSEATBELT_QUIET=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        quiet: true,\n      }\n    }\n  }\n]\n```',
+-      type: "boolean"
+-    },
+-    threadsafe: {
+-      description: "By default seatbelt assumes that only one ESLint process will read and\nwrite to the seatbelt file at a time.\n\nThis should be set to `true` if you use a parallel ESLint runner similar to\njest-runner-eslint to avoid losing updates during parallel writes to the\nseatbelt file.\n\nWhen enabled, seatbelt creates temporary lock files to serialize updates to\nthe seatbelt file. This comes at a small performance cost.\n\nThis is enabled by default when run with Jest (environment variable `JEST_WORKER_ID` is set)\nor inside a Node `worker_threads` worker (e.g. ESLint `--concurrency`).\n\nIt can also be set with environment variable `SEATBELT_THREADSAFE`:\n\n```bash\nSEATBELT_THREADSAFE=1 eslint-parallel\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        threadsafe: true,\n      }\n    }\n  }\n]\n```",
+-      type: "boolean"
+-    },
+-    verbose: {
+-      description: "Enable verbose logging.\n\nThis can be set with the `SEATBELT_VERBOSE` environment variable.\n\n```bash\nSEATBELT_VERBOSE=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        verbose: true,\n      }\n    }\n  }\n]\n```\n\nIf set to a function (like `console.error`), that function will be called with the log messages.\nThe default logger when set to `true` is `console.error`.",
+-      anyOf: [
+-        {
+-          enum: [false, "stderr", "stdout", true]
+-        },
+-        {
+-          type: "object"
+-        }
+-      ]
+-    },
+-    root: {
+-      description: "Repository or project root.\nBy default this is inferred from `seatbeltFile` by checking ancestor directories for `.git`.\nUsed for editor integration to disable seatbelt during git actions like rebase or merge.\n\nThis can be set with the `SEATBELT_ROOT` environment variable.",
+-      type: "string"
+-    }
+-  },
+-  $schema: "http://json-schema.org/draft-07/schema#"
+-};
+-
+-export {
+-  __require,
+-  name,
+-  version,
+-  package_default,
+-  SEATBELT_FILE_NAME,
+-  SEATBELT_FROZEN,
+-  SEATBELT_INCREASE,
+-  SEATBELT_KEEP,
+-  SEATBELT_FILE,
+-  SEATBELT_PWD,
+-  SEATBELT_DISABLE,
+-  SEATBELT_THREADSAFE,
+-  SEATBELT_VERBOSE,
+-  SEATBELT_QUIET,
+-  SEATBELT_ROOT,
+-  SeatbeltConfig,
+-  SeatbeltEnv,
+-  logStdout,
+-  logStderr,
+-  SeatbeltArgs,
+-  padVarName,
+-  formatFilename,
+-  formatRuleId,
+-  SeatbeltConfigSchema
+-};
+-//# sourceMappingURL=chunk-ULACHCKT.mjs.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/chunk-ZVY5S6JS.js b/node_modules/eslint-seatbelt/dist/chunk-ZVY5S6JS.js
+deleted file mode 100644
+index ee27681..0000000
+--- a/node_modules/eslint-seatbelt/dist/chunk-ZVY5S6JS.js
++++ /dev/null
+@@ -1,435 +0,0 @@
+-"use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; } function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+-  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+-}) : x)(function(x) {
+-  if (typeof require !== "undefined") return require.apply(this, arguments);
+-  throw Error('Dynamic require of "' + x + '" is not supported');
+-});
+-
+-// package.json
+-var name = "eslint-seatbelt";
+-var version = "0.1.3";
+-var package_default = {
+-  name,
+-  version,
+-  description: "Gradually tighten ESLint rules in your codebase",
+-  keywords: [
+-    "eslint",
+-    "incremental",
+-    "gradual",
+-    "workflow",
+-    "processor",
+-    "linting"
+-  ],
+-  author: {
+-    name: "Jake Teton-Landis",
+-    url: "https://jake.tl"
+-  },
+-  repository: {
+-    type: "git",
+-    url: "git+https://github.com/justjake/eslint-seatbelt.git"
+-  },
+-  bugs: {
+-    url: "https://github.com/justjake/eslint-seatbelt/issues"
+-  },
+-  scripts: {
+-    build: "./scripts/make-json-schemas.ts && tsc && tsup",
+-    test: "node --test --require tsx/cjs $(find src -name '*.test.ts')",
+-    lint: "pnpm build && NODE_OPTIONS='--enable-source-maps' eslint ."
+-  },
+-  types: "dist/index.d.ts",
+-  import: "./dist/index.mjs",
+-  main: "dist/index.js",
+-  exports: {
+-    ".": {
+-      types: "./dist/index.d.ts",
+-      import: "./dist/index.mjs",
+-      default: "./dist/index.js"
+-    },
+-    "./api": {
+-      types: "./dist/api.d.ts",
+-      import: "./dist/api.mjs",
+-      default: "./dist/api.js"
+-    }
+-  },
+-  bin: {
+-    "eslint-seatbelt": "./dist/command.js"
+-  },
+-  files: [
+-    "!*.tsbuildinfo",
+-    "!src/**/*.test.ts",
+-    "src",
+-    "dist"
+-  ],
+-  license: "MIT",
+-  peerDependencies: {
+-    "@types/eslint": "*",
+-    eslint: "*"
+-  },
+-  peerDependenciesMeta: {
+-    eslint: {
+-      optional: true
+-    },
+-    "@types/eslint": {
+-      optional: true
+-    }
+-  },
+-  devDependencies: {
+-    "@eslint/compat": "1.2.3",
+-    "@eslint/js": "9.15.0",
+-    "@types/eslint__js": "8.42.3",
+-    "@types/node": "22.9.0",
+-    "@typescript-eslint/rule-tester": "8.14.0",
+-    "@typescript-eslint/utils": "8.14.0",
+-    eslint: "9.14.0",
+-    prettier: "3.3.3",
+-    tsup: "8.3.5",
+-    tsx: "4.19.2",
+-    typescript: "5.6.3",
+-    "typescript-eslint": "8.14.0",
+-    "typescript-json-schema": "0.65.1"
+-  },
+-  dependencies: {
+-    "ts-command-line-args": "^2.5.1"
+-  },
+-  packageManager: "pnpm@10.2.1+sha1.48adf39a4ab751eda7b73b99447d1f0b6d227e02"
+-};
+-
+-// src/SeatbeltConfig.ts
+-var _path = require('path'); var _path2 = _interopRequireDefault(_path);
+-var _worker_threads = require('worker_threads');
+-
+-// src/repoIntegration.ts
+-var _fs = require('fs'); var _fs2 = _interopRequireDefault(_fs);
+-
+-function findAncestorDirectory(path2, predicate) {
+-  let lastPath = void 0;
+-  while (path2 !== lastPath) {
+-    if (predicate(path2)) {
+-      return path2;
+-    }
+-    lastPath = path2;
+-    path2 = _path2.default.dirname(path2);
+-  }
+-}
+-function isGitRoot(dir) {
+-  return _fs2.default.existsSync(_path2.default.join(dir, ".git"));
+-}
+-function findRepoRoot(path2) {
+-  return findAncestorDirectory(path2, isGitRoot);
+-}
+-
+-// src/SeatbeltConfig.ts
+-var SEATBELT_FILE_NAME = "eslint.seatbelt.tsv";
+-var SEATBELT_FROZEN = "SEATBELT_FROZEN";
+-var SEATBELT_INCREASE = "SEATBELT_INCREASE";
+-var SEATBELT_KEEP = "SEATBELT_KEEP";
+-var SEATBELT_FILE = "SEATBELT_FILE";
+-var SEATBELT_PWD = "SEATBELT_PWD";
+-var SEATBELT_DISABLE = "SEATBELT_DISABLE";
+-var SEATBELT_THREADSAFE = "SEATBELT_THREADSAFE";
+-var SEATBELT_VERBOSE = "SEATBELT_VERBOSE";
+-var SEATBELT_QUIET = "SEATBELT_QUIET";
+-var SEATBELT_ROOT = "SEATBELT_ROOT";
+-var ENV_VARS = {
+-  SEATBELT_FROZEN,
+-  SEATBELT_INCREASE,
+-  SEATBELT_KEEP,
+-  SEATBELT_FILE,
+-  SEATBELT_PWD,
+-  SEATBELT_DISABLE,
+-  SEATBELT_THREADSAFE,
+-  SEATBELT_VERBOSE,
+-  SEATBELT_QUIET,
+-  SEATBELT_ROOT,
+-  CI: "CI",
+-  JEST_WORKER_ID: "JEST_WORKER_ID"
+-};
+-var SeatbeltConfig = {
+-  withEnvOverrides(config, env) {
+-    return {
+-      ...SeatbeltConfig.fromFallbackEnv(env),
+-      ...config,
+-      ...SeatbeltConfig.fromEnvOverrides(env)
+-    };
+-  },
+-  fromFallbackEnv(env, log) {
+-    const config = {};
+-    const isCI = SeatbeltEnv.readBooleanEnvVar(env.CI);
+-    if (isCI) {
+-      config.frozen = true;
+-      _optionalChain([log, 'optionalCall', _ => _(`${padVarName("CI")} config.frozen defaults to`, true)]);
+-    }
+-    if (env.JEST_WORKER_ID) {
+-      config.threadsafe = true;
+-      _optionalChain([log, 'optionalCall', _2 => _2(
+-        `${padVarName("JEST_WORKER_ID")} config.threadsafe defaults to`,
+-        true
+-      )]);
+-    }
+-    if (!_worker_threads.isMainThread) {
+-      config.threadsafe = true;
+-      _optionalChain([log, 'optionalCall', _3 => _3(
+-        `${padVarName("worker_threads")} config.threadsafe defaults to`,
+-        true
+-      )]);
+-    }
+-    return config;
+-  },
+-  fromEnvOverrides(env, log) {
+-    const config = {
+-      pwd: env[SEATBELT_PWD] || process.cwd()
+-    };
+-    const verbose = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_VERBOSE]);
+-    if (verbose !== void 0) {
+-      config.verbose = verbose;
+-      _optionalChain([log, 'optionalCall', _4 => _4(`${padVarName(SEATBELT_VERBOSE)} config.verbose =`, verbose)]);
+-    }
+-    const seatbeltFile = env[SEATBELT_FILE];
+-    if (seatbeltFile) {
+-      const rootRelative = _path2.default.isAbsolute(seatbeltFile) ? seatbeltFile : _path2.default.join(config.pwd, seatbeltFile);
+-      config.seatbeltFile = rootRelative;
+-      _optionalChain([log, 'optionalCall', _5 => _5(`${padVarName(SEATBELT_FILE)} config.seatbeltFile =`, rootRelative)]);
+-    }
+-    const disable = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_DISABLE]);
+-    if (disable !== void 0) {
+-      config.disable = disable;
+-      _optionalChain([log, 'optionalCall', _6 => _6(`${padVarName(SEATBELT_DISABLE)} config.disable =`, disable)]);
+-    }
+-    const frozen = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_FROZEN]);
+-    if (frozen !== void 0) {
+-      config.frozen = frozen;
+-      _optionalChain([log, 'optionalCall', _7 => _7(`${padVarName(SEATBELT_FROZEN)} config.frozen =`, frozen)]);
+-    }
+-    const increase = SeatbeltEnv.parseRuleSetEnvVar(env[SEATBELT_INCREASE]);
+-    if (increase !== void 0) {
+-      config.allowIncreaseRules = increase;
+-      _optionalChain([log, 'optionalCall', _8 => _8(
+-        `${padVarName(SEATBELT_INCREASE)} config.allowIncreaseRules =`,
+-        increase
+-      )]);
+-    }
+-    const keep = SeatbeltEnv.parseRuleSetEnvVar(env[SEATBELT_KEEP]);
+-    if (keep !== void 0) {
+-      config.keepRules = keep;
+-      _optionalChain([log, 'optionalCall', _9 => _9(`${padVarName(SEATBELT_KEEP)} config.keepRules =`, keep)]);
+-    }
+-    const threadsafe = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_THREADSAFE]);
+-    if (threadsafe !== void 0) {
+-      config.threadsafe = threadsafe;
+-      _optionalChain([log, 'optionalCall', _10 => _10(
+-        `${padVarName(SEATBELT_THREADSAFE)} config.threadsafe =`,
+-        threadsafe
+-      )]);
+-    }
+-    const quiet = SeatbeltEnv.readBooleanEnvVar(env[SEATBELT_QUIET]);
+-    if (quiet !== void 0) {
+-      config.quiet = quiet;
+-      _optionalChain([log, 'optionalCall', _11 => _11(`${padVarName(SEATBELT_QUIET)} config.quiet =`, quiet)]);
+-    }
+-    const root = env[SEATBELT_ROOT];
+-    if (root) {
+-      config.root = root;
+-      _optionalChain([log, 'optionalCall', _12 => _12(`${padVarName(SEATBELT_ROOT)} config.root =`, root)]);
+-    }
+-    return config;
+-  }
+-};
+-var SeatbeltEnv = {
+-  parseRuleSetEnvVar(value) {
+-    if (value === void 0) {
+-      return void 0;
+-    }
+-    if (!value) {
+-      return [];
+-    }
+-    const lower = value.toLowerCase();
+-    if (lower === "all" || lower === "1" || lower === "true") {
+-      return "all";
+-    }
+-    return value.split(/[\s,]+/g).filter(Boolean);
+-  },
+-  readBooleanEnvVar(value) {
+-    if (value === void 0 || value === "") {
+-      return void 0;
+-    }
+-    const lower = value.toLowerCase();
+-    if (lower === "false" || lower === "0" || lower === "no") {
+-      return false;
+-    }
+-    return Boolean(value);
+-  }
+-};
+-var logStdout = (...message) => (
+-  // eslint-disable-next-line no-console
+-  console.log(`[${name}]:`, ...message)
+-);
+-var logStderr = (...message) => (
+-  // eslint-disable-next-line no-console
+-  console.error(`[${name}]:`, ...message)
+-);
+-var SeatbeltArgs = {
+-  fromConfig(config) {
+-    const cwd = _nullishCoalesce(config.pwd, () => ( process.cwd()));
+-    const seatbeltFile = _nullishCoalesce(config.seatbeltFile, () => ( SeatbeltArgs.findSeatbeltFile(cwd)));
+-    const root = _nullishCoalesce(_nullishCoalesce(config.root, () => ( findRepoRoot(seatbeltFile))), () => ( _path2.default.dirname(seatbeltFile)));
+-    return {
+-      seatbeltFile,
+-      root,
+-      keepRules: typeof config.keepRules === "string" ? config.keepRules : new Set(_nullishCoalesce(config.keepRules, () => ( []))),
+-      allowIncreaseRules: typeof config.allowIncreaseRules === "string" ? config.allowIncreaseRules : new Set(_nullishCoalesce(config.allowIncreaseRules, () => ( []))),
+-      frozen: _nullishCoalesce(config.frozen, () => ( false)),
+-      disable: _nullishCoalesce(config.disable, () => ( false)),
+-      quiet: _nullishCoalesce(config.quiet, () => ( false)),
+-      threadsafe: _nullishCoalesce(config.threadsafe, () => ( false)),
+-      verbose: _nullishCoalesce(config.verbose, () => ( false))
+-    };
+-  },
+-  getLogger(args) {
+-    if (typeof args.verbose === "function") {
+-      return args.verbose;
+-    }
+-    if (args.verbose === "stdout") {
+-      return logStdout;
+-    }
+-    return logStderr;
+-  },
+-  ruleSetHas(ruleSet, ruleId) {
+-    return ruleSet === "all" || ruleSet.has(ruleId);
+-  },
+-  verboseLog(args, makeMessage) {
+-    if (args.verbose) {
+-      const message = makeMessage();
+-      const log = SeatbeltArgs.getLogger(args);
+-      if (typeof message === "string") {
+-        log(message);
+-      } else {
+-        log(...message);
+-      }
+-    }
+-  },
+-  findSeatbeltFile(cwd) {
+-    return `${cwd}/${SEATBELT_FILE_NAME}`;
+-  }
+-};
+-var envVarMaxLength = 0;
+-function padVarName(name2) {
+-  envVarMaxLength ||= Math.max(
+-    ...Object.values(ENV_VARS).map((name3) => name3.length)
+-  );
+-  return `${name2}:`.padEnd(envVarMaxLength + 1);
+-}
+-function formatFilename(filename) {
+-  const relative = _path2.default.relative(
+-    _nullishCoalesce(process.env[SEATBELT_PWD], () => ( process.cwd())),
+-    filename
+-  );
+-  return relative ? relative : filename;
+-}
+-function formatRuleId(ruleId) {
+-  if (ruleId === null) {
+-    return `unknown rule`;
+-  }
+-  return `rule ${ruleId}`;
+-}
+-
+-// src/jsonSchema/SeatbeltConfigSchema.ts
+-var SeatbeltConfigSchema = {
+-  description: 'Configuration for seatbelt can be provided in a few ways:\n\n1. Defined in the shared `settings` object in your ESLint config. This\n   requires also configuring the `eslint-seatbelt/configure` rule.\n\n    ```js\n    // in eslint.config.js\n    const config = [\n      {\n        settings: {\n          seatbelt: {\n            // ...\n          }\n        },\n        rules: {\n          "eslint-seatbelt/configure": "error",\n        }\n      }\n    ]\n    ```\n\n2. Using the `eslint-seatbelt/configure` rule in your ESLint config.\n   This can be used to override settings for specific files in legacy ESLint configs.\n   Any configuration provided here will override the shared `settings` object.\n\n    ```js\n    // in .eslintrc.js\n    module.exports = {\n      rules: {\n        "eslint-seatbelt/configure": "error",\n      },\n      overrides: [\n        {\n          files: ["some/path/*"],\n          rules: {\n            "eslint-seatbelt/configure": ["error", { seatbeltFile: "some/path/eslint.seatbelt.tsv" }]\n          },\n        },\n      ],\n    }\n    ```\n3. The settings in config files can be overridden with environment variables when running `eslint` or other tools.\n\n   ```bash\n   SEATBELT_FILE=some/path/eslint.seatbelt.tsv SEATBELT_FROZEN=1 eslint\n   ```',
+-  type: "object",
+-  properties: {
+-    seatbeltFile: {
+-      description: "The seatbelt file stores the max error counts allowed for each file. Should\nbe an absolute path.\n\nIf not provided, $SEATBELT_PWD/eslint.seatbelt.tsv or $PWD/eslint.seatbelt.tsv will be used.\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        // commonjs\n        seatbeltFile: `${__dirname}/eslint.seatbelt.tsv`\n        // esm\n        seatbeltFile: new URL('./eslint.seatbelt.tsv', import.meta.url).pathname\n      }\n    }\n  }\n]\n```\n\nYou can also set this with environment variable `SEATBELT_FILE`:\n\n```bash\nSEATBELT_FILE=.config/custom-seatbelt-file eslint\n```",
+-      type: "string"
+-    },
+-    keepRules: {
+-      description: 'By default whenever a file is linted and a rule has no errors, that rule\'s\nmax errors for the file is set to zero.\n\nHowever with typescript-eslint, it can be helpful to have two ESLint configs:\n\n- A default ESLint config with only syntactic rules enabled that don\'t\n  require typechecking, that runs on developer machines and in their editor.\n- A CI-only ESLint config with only type-aware rules enabled that requires\n  typechecking. Since these rules require typechecking, they can be too\n  slow to run in interactive contexts.\n\nTo avoid this, set `keepRules` to the names of *disabled but known rules*\nwhile linting.\n\nExample:\n\n```js\n// Default ESLint config\nmodule.exports = [\n  {\n    settings: {\n      seatbelt: {\n        keepRules: require(\'./eslint-typed.config.js\').flatMap(config => Object.keys(config.rules ?? {})),\n      }\n    },\n    rules: {\n      "no-unused-vars": "error",\n    },\n  }\n]\n\n// Typechecking-required ESLint config for CI\nmodule.exports = [\n  {\n    settings: {\n      seatbelt: {\n        keepRules: require(\'./eslint.config.js\').flatMap(config => Object.keys(config.rules ?? {})),\n      }\n    },\n    rules: {\n      // Requires typechecking (slow)\n      "@typescript-eslint/no-floating-promises": "error",\n    },\n  }\n]\n```\n\nYou can also set this with environment variable `SEATBELT_KEEP`:\n\n```bash\nSEATBELT_KEEP="@typescript-eslint/no-floating-promises',
+-      anyOf: [
+-        {
+-          type: "array",
+-          items: {
+-            type: "string"
+-          }
+-        },
+-        {
+-          const: "all",
+-          type: "string"
+-        }
+-      ]
+-    },
+-    allowIncreaseRules: {
+-      description: 'When you enable a rule for the first time, lint with it in this set to set\nthe initial max error counts.\n\nTypically this should be enabled for one lint run only via an environment\nvariable, but it can also be configured via ESLint settings.\n\n```bash\nSEATBELT_INCREASE="@typescript-eslint/no-floating-promises" eslint\n```\n\nYou can set this to `"ALL"` to enable this setting for ALL rules:\n\n```bash\nSEATBELT_INCREASE=ALL eslint\n```\n\n```js\n// in eslint.config.js\n// maybe you have a use-case for this\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        allowIncreaseRules: ["@typescript-eslint/no-floating-promises"],\n      }\n    }\n  }\n]\n```',
+-      anyOf: [
+-        {
+-          type: "array",
+-          items: {
+-            type: "string"
+-          }
+-        },
+-        {
+-          const: "all",
+-          type: "string"
+-        }
+-      ]
+-    },
+-    frozen: {
+-      description: "Error if there is any change in the number of errors in the seatbelt file.\nThis is useful in CI to ensures that developers keep the seatbelt file up-to-date as they fix errors.\n\nIt is enabled by default when environment variable `CI` is set.\n\n```bash\nCI=1 eslint\n```\n\nThis can be set with the `SEATBELT_FROZEN` environment variable.\n\n```bash\nSEATBELT_FROZEN=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        frozen: true,\n      }\n    }\n  }\n]\n```",
+-      type: "boolean"
+-    },
+-    disable: {
+-      description: "Completely disable seatbelt error processing for a lint run while leaving it otherwise configured.\n\nThis can be set with the `SEATBELT_DISABLE` environment variable.\n\n```bash\nSEATBELT_DISABLE=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        disable: true,\n      }\n    }\n  }\n]\n```",
+-      type: "boolean"
+-    },
+-    quiet: {
+-      description: 'Suppress seatbelt\'s informational warning messages (e.g. "tend the garden",\n"thank you for fixing"). When enabled, seatbelt still downgrades errors to\nwarnings and updates the seatbelt file, but the warning messages are not\nemitted as ESLint results. Over-limit errors and frozen-mode warnings are\nalways preserved.\n\nThis is useful when seatbelt warnings create noise in CI logs or editor\nintegrations.\n\nThis can be set with the `SEATBELT_QUIET` environment variable.\n\n```bash\nSEATBELT_QUIET=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        quiet: true,\n      }\n    }\n  }\n]\n```',
+-      type: "boolean"
+-    },
+-    threadsafe: {
+-      description: "By default seatbelt assumes that only one ESLint process will read and\nwrite to the seatbelt file at a time.\n\nThis should be set to `true` if you use a parallel ESLint runner similar to\njest-runner-eslint to avoid losing updates during parallel writes to the\nseatbelt file.\n\nWhen enabled, seatbelt creates temporary lock files to serialize updates to\nthe seatbelt file. This comes at a small performance cost.\n\nThis is enabled by default when run with Jest (environment variable `JEST_WORKER_ID` is set)\nor inside a Node `worker_threads` worker (e.g. ESLint `--concurrency`).\n\nIt can also be set with environment variable `SEATBELT_THREADSAFE`:\n\n```bash\nSEATBELT_THREADSAFE=1 eslint-parallel\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        threadsafe: true,\n      }\n    }\n  }\n]\n```",
+-      type: "boolean"
+-    },
+-    verbose: {
+-      description: "Enable verbose logging.\n\nThis can be set with the `SEATBELT_VERBOSE` environment variable.\n\n```bash\nSEATBELT_VERBOSE=1 eslint\n```\n\nOr in ESLint config:\n\n```js\n// in eslint.config.js\nconst config = [\n  {\n    settings: {\n      seatbelt: {\n        verbose: true,\n      }\n    }\n  }\n]\n```\n\nIf set to a function (like `console.error`), that function will be called with the log messages.\nThe default logger when set to `true` is `console.error`.",
+-      anyOf: [
+-        {
+-          enum: [false, "stderr", "stdout", true]
+-        },
+-        {
+-          type: "object"
+-        }
+-      ]
+-    },
+-    root: {
+-      description: "Repository or project root.\nBy default this is inferred from `seatbeltFile` by checking ancestor directories for `.git`.\nUsed for editor integration to disable seatbelt during git actions like rebase or merge.\n\nThis can be set with the `SEATBELT_ROOT` environment variable.",
+-      type: "string"
+-    }
+-  },
+-  $schema: "http://json-schema.org/draft-07/schema#"
+-};
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-
+-exports.__require = __require; exports.name = name; exports.version = version; exports.package_default = package_default; exports.SEATBELT_FILE_NAME = SEATBELT_FILE_NAME; exports.SEATBELT_FROZEN = SEATBELT_FROZEN; exports.SEATBELT_INCREASE = SEATBELT_INCREASE; exports.SEATBELT_KEEP = SEATBELT_KEEP; exports.SEATBELT_FILE = SEATBELT_FILE; exports.SEATBELT_PWD = SEATBELT_PWD; exports.SEATBELT_DISABLE = SEATBELT_DISABLE; exports.SEATBELT_THREADSAFE = SEATBELT_THREADSAFE; exports.SEATBELT_VERBOSE = SEATBELT_VERBOSE; exports.SEATBELT_QUIET = SEATBELT_QUIET; exports.SEATBELT_ROOT = SEATBELT_ROOT; exports.SeatbeltConfig = SeatbeltConfig; exports.SeatbeltEnv = SeatbeltEnv; exports.logStdout = logStdout; exports.logStderr = logStderr; exports.SeatbeltArgs = SeatbeltArgs; exports.padVarName = padVarName; exports.formatFilename = formatFilename; exports.formatRuleId = formatRuleId; exports.SeatbeltConfigSchema = SeatbeltConfigSchema;
+-//# sourceMappingURL=chunk-ZVY5S6JS.js.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/command.js b/node_modules/eslint-seatbelt/dist/command.js
+index fa29aa4..4ea504b 100755
+--- a/node_modules/eslint-seatbelt/dist/command.js
++++ b/node_modules/eslint-seatbelt/dist/command.js
+@@ -6,14 +6,14 @@
+ 
+ 
+ 
+-var _chunkZVY5S6JSjs = require('./chunk-ZVY5S6JS.js');
++var _chunkTDWD7IZMjs = require('./chunk-TDWD7IZM.js');
+ 
+ // src/command.ts
+ var _tscommandlineargs = require('ts-command-line-args');
+ var ZERO_WIDTH_SPACE = "\u200B";
+ function parseArgs() {
+-  const fallback = _chunkZVY5S6JSjs.SeatbeltConfig.fromFallbackEnv(process.env);
+-  const overrides = _chunkZVY5S6JSjs.SeatbeltConfig.fromEnvOverrides(process.env);
++  const fallback = _chunkTDWD7IZMjs.SeatbeltConfig.fromFallbackEnv(process.env);
++  const overrides = _chunkTDWD7IZMjs.SeatbeltConfig.fromEnvOverrides(process.env);
+   const env = { ...fallback, ...overrides };
+   const escapeForChalk = (s) => s.replaceAll("{", "\\{").replaceAll("}", "\\}").replaceAll(/^(\s)/gm, (match) => `${ZERO_WIDTH_SPACE}${match}`);
+   return _tscommandlineargs.parse.call(void 0, 
+@@ -28,7 +28,7 @@ function parseArgs() {
+         type: String,
+         alias: "f",
+         description: escapeForChalk(
+-          _chunkZVY5S6JSjs.SeatbeltConfigSchema.properties.seatbeltFile.description
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.seatbeltFile.description
+         ),
+         defaultValue: env.seatbeltFile,
+         optional: true
+@@ -36,7 +36,7 @@ function parseArgs() {
+       keepRules: {
+         type: String,
+         description: escapeForChalk(
+-          _chunkZVY5S6JSjs.SeatbeltConfigSchema.properties.keepRules.description
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.keepRules.description
+         ),
+         defaultValue: env.keepRules,
+         multiple: true,
+@@ -46,7 +46,7 @@ function parseArgs() {
+         alias: "r",
+         type: String,
+         description: escapeForChalk(
+-          _chunkZVY5S6JSjs.SeatbeltConfigSchema.properties.allowIncreaseRules.description
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.allowIncreaseRules.description
+         ),
+         defaultValue: env.allowIncreaseRules,
+         multiple: true,
+@@ -55,7 +55,7 @@ function parseArgs() {
+       frozen: {
+         type: Boolean,
+         description: escapeForChalk(
+-          _chunkZVY5S6JSjs.SeatbeltConfigSchema.properties.frozen.description
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.frozen.description
+         ),
+         defaultValue: env.frozen,
+         optional: true
+@@ -63,7 +63,7 @@ function parseArgs() {
+       disable: {
+         type: Boolean,
+         description: escapeForChalk(
+-          _chunkZVY5S6JSjs.SeatbeltConfigSchema.properties.disable.description
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.disable.description
+         ),
+         defaultValue: env.disable,
+         optional: true
+@@ -71,7 +71,7 @@ function parseArgs() {
+       quiet: {
+         type: Boolean,
+         description: escapeForChalk(
+-          _chunkZVY5S6JSjs.SeatbeltConfigSchema.properties.quiet.description
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.quiet.description
+         ),
+         defaultValue: env.quiet,
+         optional: true
+@@ -79,15 +79,23 @@ function parseArgs() {
+       threadsafe: {
+         type: Boolean,
+         description: escapeForChalk(
+-          _chunkZVY5S6JSjs.SeatbeltConfigSchema.properties.threadsafe.description
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.threadsafe.description
+         ),
+         defaultValue: env.threadsafe,
+         optional: true
+       },
++      readOnly: {
++        type: Boolean,
++        description: escapeForChalk(
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.readOnly.description
++        ),
++        defaultValue: env.readOnly,
++        optional: true
++      },
+       verbose: {
+         type: Boolean,
+         description: escapeForChalk(
+-          _chunkZVY5S6JSjs.SeatbeltConfigSchema.properties.verbose.description
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.verbose.description
+         ),
+         defaultValue: env.verbose,
+         optional: true
+@@ -95,7 +103,7 @@ function parseArgs() {
+       root: {
+         type: String,
+         description: escapeForChalk(
+-          _chunkZVY5S6JSjs.SeatbeltConfigSchema.properties.root.description
++          _chunkTDWD7IZMjs.SeatbeltConfigSchema.properties.root.description
+         ),
+         defaultValue: env.root,
+         optional: true
+@@ -125,8 +133,8 @@ function parseArgs() {
+       helpArg: "help",
+       headerContentSections: [
+         {
+-          header: _chunkZVY5S6JSjs.name,
+-          content: `Turns command-line arguments into ${_chunkZVY5S6JSjs.name} environment variables, then call 'eslint' or another command with them.`
++          header: _chunkTDWD7IZMjs.name,
++          content: `Turns command-line arguments into ${_chunkTDWD7IZMjs.name} environment variables, then call 'eslint' or another command with them.`
+         }
+       ]
+     }
+@@ -137,16 +145,16 @@ var stderr = (...args) => console.error(...args);
+ function main() {
+   const argsConfig = parseArgs();
+   if (argsConfig.version) {
+-    stdout(`v${_chunkZVY5S6JSjs.version}`);
++    stdout(`v${_chunkTDWD7IZMjs.version}`);
+     return;
+   }
+   if (argsConfig.verbose) {
+     stderr("Parsed config:", argsConfig);
+   }
+-  _chunkZVY5S6JSjs.logStderr.call(void 0, "command not implemented");
++  _chunkTDWD7IZMjs.logStderr.call(void 0, "command not implemented");
+   process.exit(1);
+ }
+-if (_chunkZVY5S6JSjs.__require.main === module) {
++if (_chunkTDWD7IZMjs.__require.main === module) {
+   main();
+ }
+ //# sourceMappingURL=command.js.map
+\ No newline at end of file
+diff --git a/node_modules/eslint-seatbelt/dist/command.mjs b/node_modules/eslint-seatbelt/dist/command.mjs
+index 31b8b7b..44c52a0 100755
+--- a/node_modules/eslint-seatbelt/dist/command.mjs
++++ b/node_modules/eslint-seatbelt/dist/command.mjs
+@@ -6,7 +6,7 @@ import {
+   logStderr,
+   name,
+   version
+-} from "./chunk-ULACHCKT.mjs";
++} from "./chunk-U6KIQG2A.mjs";
+ 
+ // src/command.ts
+ import { parse } from "ts-command-line-args";
+@@ -84,6 +84,14 @@ function parseArgs() {
+         defaultValue: env.threadsafe,
+         optional: true
+       },
++      readOnly: {
++        type: Boolean,
++        description: escapeForChalk(
++          SeatbeltConfigSchema.properties.readOnly.description
++        ),
++        defaultValue: env.readOnly,
++        optional: true
++      },
+       verbose: {
+         type: Boolean,
+         description: escapeForChalk(
+diff --git a/node_modules/eslint-seatbelt/dist/index.js b/node_modules/eslint-seatbelt/dist/index.js
+index 2d71ee2..b28a3e0 100644
+--- a/node_modules/eslint-seatbelt/dist/index.js
++++ b/node_modules/eslint-seatbelt/dist/index.js
+@@ -1,7 +1,7 @@
+ "use strict";Object.defineProperty(exports, "__esModule", {value: true}); function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }
+ 
+ 
+-var _chunkNTFTCWX7js = require('./chunk-NTFTCWX7.js');
++var _chunkF4JJMAJLjs = require('./chunk-F4JJMAJL.js');
+ 
+ 
+ 
+@@ -14,7 +14,7 @@ var _chunkNTFTCWX7js = require('./chunk-NTFTCWX7.js');
+ 
+ 
+ 
+-var _chunkZVY5S6JSjs = require('./chunk-ZVY5S6JS.js');
++var _chunkTDWD7IZMjs = require('./chunk-TDWD7IZM.js');
+ 
+ // src/pluginGlobals.ts
+ var ANY_CONFIG_DISABLED = false;
+@@ -32,7 +32,7 @@ var lastLintedFile;
+ var temporaryFileArgs = /* @__PURE__ */ new Map();
+ function getProcessEnvFallbackConfig() {
+   if (!envFallbackConfig) {
+-    envFallbackConfig = _chunkZVY5S6JSjs.SeatbeltConfig.fromFallbackEnv(
++    envFallbackConfig = _chunkTDWD7IZMjs.SeatbeltConfig.fromFallbackEnv(
+       process.env
+     );
+     hasAnyEnvVars = Object.keys(envFallbackConfig).length > 0;
+@@ -41,7 +41,7 @@ function getProcessEnvFallbackConfig() {
+ }
+ function getProcessEnvOverrideConfig() {
+   if (!envOverrideConfig) {
+-    envOverrideConfig = _chunkZVY5S6JSjs.SeatbeltConfig.fromEnvOverrides(
++    envOverrideConfig = _chunkTDWD7IZMjs.SeatbeltConfig.fromEnvOverrides(
+       process.env
+     );
+     ANY_CONFIG_DISABLED ||= _nullishCoalesce(envOverrideConfig.disable, () => ( false));
+@@ -73,7 +73,7 @@ function configToArgs(config) {
+       ...config,
+       ...getProcessEnvOverrideConfig()
+     };
+-    args = _chunkZVY5S6JSjs.SeatbeltArgs.fromConfig(compiledConfig);
++    args = _chunkTDWD7IZMjs.SeatbeltArgs.fromConfig(compiledConfig);
+     ANY_CONFIG_DISABLED ||= args.disable;
+     if (args.verbose) {
+       LAST_VERBOSE_ARGS = args;
+@@ -86,9 +86,9 @@ function configToArgs(config) {
+   }
+   return args;
+ }
+-var configureRuleName = `${_chunkZVY5S6JSjs.name}/configure`;
++var configureRuleName = `${_chunkTDWD7IZMjs.name}/configure`;
+ function logRuleSetupHint() {
+-  _chunkZVY5S6JSjs.logStderr.call(void 0, 
++  _chunkTDWD7IZMjs.logStderr.call(void 0, 
+     `
+ Make sure you have rule ${configureRuleName} enabled in your ESLint config for all files:
+ 
+@@ -97,16 +97,16 @@ Make sure you have rule ${configureRuleName} enabled in your ESLint config for a
+     "${configureRuleName}": "error",
+   }
+ 
+-Docs: https://github.com/justjake/${_chunkZVY5S6JSjs.name}#setup`
++Docs: https://github.com/justjake/${_chunkTDWD7IZMjs.name}#setup`
+   );
+ }
+ function logConfig(args, baseConfig) {
+-  const log = _chunkZVY5S6JSjs.SeatbeltArgs.getLogger(args);
+-  _chunkZVY5S6JSjs.SeatbeltConfig.fromFallbackEnv(process.env, log);
++  const log = _chunkTDWD7IZMjs.SeatbeltArgs.getLogger(args);
++  _chunkTDWD7IZMjs.SeatbeltConfig.fromFallbackEnv(process.env, log);
+   for (const [key, value] of Object.entries(baseConfig)) {
+-    log(`${_chunkZVY5S6JSjs.padVarName.call(void 0, "ESLint settings")} config.${key} =`, value);
++    log(`${_chunkTDWD7IZMjs.padVarName.call(void 0, "ESLint settings")} config.${key} =`, value);
+   }
+-  _chunkZVY5S6JSjs.SeatbeltConfig.fromEnvOverrides(process.env, log);
++  _chunkTDWD7IZMjs.SeatbeltConfig.fromEnvOverrides(process.env, log);
+ }
+ function pushFileArgs(filename, args) {
+   lastLintedFile = { filename, args };
+@@ -123,13 +123,13 @@ function popFileArgs(filename) {
+   }
+   if (!hasAnyEnvVars) {
+     if (lastLintedFile) {
+-      _chunkZVY5S6JSjs.logStderr.call(void 0, 
++      _chunkTDWD7IZMjs.logStderr.call(void 0, 
+         `WARNING: last configured by file \`${lastLintedFile.filename}\` but linting file \`${filename}\`.
+ You may have rule ${configureRuleName} enabled for some files, but not this one.
+ `.trim()
+       );
+     } else {
+-      _chunkZVY5S6JSjs.logStderr.call(void 0, 
++      _chunkTDWD7IZMjs.logStderr.call(void 0, 
+         `WARNING: rule ${configureRuleName} not enabled in ESLint config and no SEATBELT environment variables set`
+       );
+     }
+@@ -140,7 +140,7 @@ You may have rule ${configureRuleName} enabled for some files, but not this one.
+ function getSeatbeltFile(filename) {
+   let seatbeltFile = seatbeltFileCache.get(filename);
+   if (!seatbeltFile) {
+-    seatbeltFile = _chunkNTFTCWX7js.SeatbeltFile.openSync(filename);
++    seatbeltFile = _chunkF4JJMAJLjs.SeatbeltFile.openSync(filename);
+     seatbeltFileCache.set(filename, seatbeltFile);
+   }
+   return seatbeltFile;
+@@ -186,7 +186,7 @@ function isEslintCli() {
+ }
+ 
+ // src/SeatbeltProcessor.ts
+-var { name: name2, version: version2 } = _chunkZVY5S6JSjs.package_default;
++var { name: name2, version: version2 } = _chunkTDWD7IZMjs.package_default;
+ var SeatbeltProcessor = {
+   supportsAutofix: true,
+   meta: {
+@@ -267,9 +267,9 @@ function transformMessages(args, seatbeltFile, filename, messages, ruleToErrorCo
+   }
+   return messages.flatMap((message) => {
+     if (message.ruleId === null) {
+-      _chunkZVY5S6JSjs.SeatbeltArgs.verboseLog(
++      _chunkTDWD7IZMjs.SeatbeltArgs.verboseLog(
+         args,
+-        () => `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}:${message.line}:${message.column}: cannot transform message with null ruleId`
++        () => `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}:${message.line}:${message.column}: cannot transform message with null ruleId`
+       );
+       return message;
+     }
+@@ -283,7 +283,7 @@ function transformMessages(args, seatbeltFile, filename, messages, ruleToErrorCo
+       );
+     }
+     const maxErrorCount = _nullishCoalesce(_optionalChain([ruleToMaxErrorCount, 'optionalAccess', _ => _.get, 'call', _2 => _2(message.ruleId)]), () => ( 0));
+-    const allowIncrease2 = _chunkZVY5S6JSjs.SeatbeltArgs.ruleSetHas(
++    const allowIncrease2 = _chunkTDWD7IZMjs.SeatbeltArgs.ruleSetHas(
+       args.allowIncreaseRules,
+       message.ruleId
+     );
+@@ -301,17 +301,17 @@ function transformMessages(args, seatbeltFile, filename, messages, ruleToErrorCo
+         );
+       }
+       if (verboseOnce(message.ruleId)) {
+-        _chunkZVY5S6JSjs.SeatbeltArgs.verboseLog(
++        _chunkTDWD7IZMjs.SeatbeltArgs.verboseLog(
+           args,
+-          () => `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}: ${_chunkZVY5S6JSjs.formatRuleId.call(void 0, message.ruleId)}: error: ${errorCount} ${pluralErrors(errorCount)} found > max ${maxErrorCount}`
++          () => `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}: ${_chunkTDWD7IZMjs.formatRuleId.call(void 0, message.ruleId)}: error: ${errorCount} ${pluralErrors(errorCount)} found > max ${maxErrorCount}`
+         );
+       }
+       return messageOverMaxErrorCount(message, errorCount, maxErrorCount);
+     } else if (errorCount === maxErrorCount) {
+       if (verboseOnce(message.ruleId)) {
+-        _chunkZVY5S6JSjs.SeatbeltArgs.verboseLog(
++        _chunkTDWD7IZMjs.SeatbeltArgs.verboseLog(
+           args,
+-          () => `${_chunkZVY5S6JSjs.formatFilename.call(void 0, filename)}: ${_chunkZVY5S6JSjs.formatRuleId.call(void 0, message.ruleId)}: ok: ${errorCount} ${pluralErrors(errorCount)} found == max ${maxErrorCount}`
++          () => `${_chunkTDWD7IZMjs.formatFilename.call(void 0, filename)}: ${_chunkTDWD7IZMjs.formatRuleId.call(void 0, message.ruleId)}: ok: ${errorCount} ${pluralErrors(errorCount)} found == max ${maxErrorCount}`
+         );
+       }
+       if (args.quiet) {
+@@ -402,7 +402,7 @@ function messageOverMaxErrorCountButIncreaseAllowed(message, errorCount, maxErro
+     ...message,
+     severity: 1,
+     message: `${message.message}
+-[${name2}]: ${_chunkZVY5S6JSjs.SEATBELT_INCREASE}: Temporarily allowing ${increaseCount} new ${pluralErrors(increaseCount)} of this type.
++[${name2}]: ${_chunkTDWD7IZMjs.SEATBELT_INCREASE}: Temporarily allowing ${increaseCount} new ${pluralErrors(increaseCount)} of this type.
+     `.trim()
+   };
+ }
+@@ -432,7 +432,7 @@ function messageFrozenUnderMaxErrorCountText(seatbeltFilename, errorCount, maxEr
+   const fixed = errorCount - maxErrorCount;
+   const fixedMessage = fixed === 1 ? "error" : "errors";
+   return `
+-[${name2}]: ${_chunkZVY5S6JSjs.SEATBELT_FROZEN}: Expected ${maxErrorCount} ${pluralErrors(maxErrorCount)}, found ${errorCount}.
++[${name2}]: ${_chunkTDWD7IZMjs.SEATBELT_FROZEN}: Expected ${maxErrorCount} ${pluralErrors(maxErrorCount)}, found ${errorCount}.
+ If you fixed ${fixed} ${fixedMessage}, thank you, but you'll need to update the seatbelt file to match.
+ Try running eslint, then committing ${seatbeltFilename}.
+ `.trim();
+@@ -449,8 +449,8 @@ var alreadyModifiedError = /* @__PURE__ */ new WeakSet();
+ function handleProcessingError(filename, e) {
+   if (e instanceof Error && !alreadyModifiedError.has(e)) {
+     alreadyModifiedError.add(e);
+-    _chunkNTFTCWX7js.appendErrorContext.call(void 0, e, `while processing \`${filename}\``);
+-    _chunkNTFTCWX7js.appendErrorContext.call(void 0, 
++    _chunkF4JJMAJLjs.appendErrorContext.call(void 0, e, `while processing \`${filename}\``);
++    _chunkF4JJMAJLjs.appendErrorContext.call(void 0, 
+       e,
+       `this may be a bug in ${name2}@${version2} or a problem with your setup`
+     );
+@@ -465,16 +465,16 @@ function pluralErrors(count) {
+ var configure = {
+   meta: {
+     docs: {
+-      description: `Applies ${_chunkZVY5S6JSjs.name} configuration from ESLint config`,
+-      url: `https://github.com/justjake/${_chunkZVY5S6JSjs.name}`
++      description: `Applies ${_chunkTDWD7IZMjs.name} configuration from ESLint config`,
++      url: `https://github.com/justjake/${_chunkTDWD7IZMjs.name}`
+     },
+-    schema: [_chunkZVY5S6JSjs.SeatbeltConfigSchema]
++    schema: [_chunkTDWD7IZMjs.SeatbeltConfigSchema]
+   },
+   create(context) {
+     const filename = _nullishCoalesce(_optionalChain([context, 'access', _5 => _5.getFilename, 'optionalCall', _6 => _6()]), () => ( context.filename));
+     onConfigureRule(filename);
+     const eslintSharedConfigViaShortName = _optionalChain([context, 'access', _7 => _7.settings, 'optionalAccess', _8 => _8.seatbelt]);
+-    const eslintSharedConfigViaPackageName = _optionalChain([context, 'access', _9 => _9.settings, 'optionalAccess', _10 => _10[_chunkZVY5S6JSjs.name]]);
++    const eslintSharedConfigViaPackageName = _optionalChain([context, 'access', _9 => _9.settings, 'optionalAccess', _10 => _10[_chunkTDWD7IZMjs.name]]);
+     const eslintSharedConfig = _nullishCoalesce(eslintSharedConfigViaShortName, () => ( eslintSharedConfigViaPackageName));
+     const fileOverrideConfig = context.options[0];
+     const args = ruleOverrideConfigToArgs(
+@@ -487,7 +487,7 @@ var configure = {
+ };
+ 
+ // src/index.ts
+-var { name: name3, version: version3 } = _chunkZVY5S6JSjs.package_default;
++var { name: name3, version: version3 } = _chunkTDWD7IZMjs.package_default;
+ var plugin = {
+   meta: {
+     name: name3,
+diff --git a/node_modules/eslint-seatbelt/dist/index.mjs b/node_modules/eslint-seatbelt/dist/index.mjs
+index 5b23433..70e7468 100644
+--- a/node_modules/eslint-seatbelt/dist/index.mjs
++++ b/node_modules/eslint-seatbelt/dist/index.mjs
+@@ -1,7 +1,7 @@
+ import {
+   SeatbeltFile,
+   appendErrorContext
+-} from "./chunk-5FFUIU4M.mjs";
++} from "./chunk-QGLWIAEE.mjs";
+ import {
+   SEATBELT_FROZEN,
+   SEATBELT_INCREASE,
+@@ -14,7 +14,7 @@ import {
+   name,
+   package_default,
+   padVarName
+-} from "./chunk-ULACHCKT.mjs";
++} from "./chunk-U6KIQG2A.mjs";
+ 
+ // src/pluginGlobals.ts
+ var ANY_CONFIG_DISABLED = false;

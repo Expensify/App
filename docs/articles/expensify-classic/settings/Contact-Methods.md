@@ -1,6 +1,7 @@
 ---
 title: Managing Contact Methods in Expensify
-description: Learn how to update or add an Email address and manage devices tied to your Expensify account.
+description: Learn how to add email addresses or phone numbers as contact methods, change your primary login, and manage devices tied to your Expensify account.
+keywords: [Expensify Classic, contact method, secondary login, add email, change email, primary email, additional email, phone number, login methods, multiple logins, change primary email]
 ---
 
 Your **primary contact method** on Expensify is used for receiving all notifications and updates. Adding an additional **contact method** enables you to:

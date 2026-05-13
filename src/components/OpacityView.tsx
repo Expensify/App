@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
@@ -32,6 +32,9 @@ type OpacityViewProps = {
 
     /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing?: boolean;
+
+    /** Optional callback fired on mount and on layout changes */
+    onLayout?: ((event: LayoutChangeEvent) => void) | undefined;
 };
 
 function OpacityView({
@@ -41,6 +44,7 @@ function OpacityView({
     style = [],
     dimmingValue = variables.hoverDimValue,
     needsOffscreenAlphaCompositing = false,
+    onLayout,
 }: OpacityViewProps) {
     const opacity = useSharedValue(1);
     const opacityStyle = useAnimatedStyle(() => ({
@@ -53,6 +57,7 @@ function OpacityView({
 
     return (
         <Animated.View
+            onLayout={onLayout}
             style={[opacityStyle, style]}
             needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
         >

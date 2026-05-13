@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import React from 'react';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
@@ -18,14 +17,14 @@ type RuleNotFoundPageWrapperProps = {
 };
 
 function RuleNotFoundPageWrapper({children, hash, shouldPreventShow}: RuleNotFoundPageWrapperProps) {
-    const [expenseRules = getEmptyArray<ExpenseRule>(), rulesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
+    const [expenseRules = getEmptyArray<ExpenseRule>(), rulesMetadata] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
     const doesRuleExist = !!hash && expenseRules.some((rule) => getKeyForRule(rule) === hash);
 
     const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(rulesMetadata);
     const shouldShowNotFoundPage = !!hash && !doesRuleExist;
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator reasonAttributes={{context: 'RuleNotFoundPageWrapper'}} />;
     }
 
     if (!shouldPreventShow && shouldShowNotFoundPage) {

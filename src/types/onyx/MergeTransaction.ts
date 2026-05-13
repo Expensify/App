@@ -1,4 +1,5 @@
 import type {IOURequestType} from '@libs/actions/IOU';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type {Attendee} from './IOU';
 import type Transaction from './Transaction';
 import type {Comment, Receipt, Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
@@ -68,11 +69,38 @@ type MergeTransaction = {
     /** The iou request type of the transaction */
     iouRequestType?: IOURequestType;
 
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
+
+    /** Odometer start image */
+    odometerStartImage?: FileObject | string;
+
+    /** Odometer end image */
+    odometerEndImage?: FileObject | string;
+
     /** The attendees of the transaction */
     attendees?: Attendee[];
 
     /** ID of the original transaction */
     originalTransactionID?: string;
+
+    /** Tax percentage value of the transaction */
+    taxValue: string;
+
+    /** Tax amount of the transaction */
+    taxAmount: number;
+
+    /** Tax code of the transaction */
+    taxCode: string;
+
+    /** Tax name to display in merge transaction flow */
+    taxName: string;
+
+    /** Policy ID of the selected tax rate for the transaction */
+    taxPolicyID: string;
 };
 
 export default MergeTransaction;

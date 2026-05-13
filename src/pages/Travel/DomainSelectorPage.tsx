@@ -37,7 +37,7 @@ function DomainSelectorPage({route}: DomainSelectorPageProps) {
 
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const [selectedDomain, setSelectedDomain] = useState<string | undefined>();
 

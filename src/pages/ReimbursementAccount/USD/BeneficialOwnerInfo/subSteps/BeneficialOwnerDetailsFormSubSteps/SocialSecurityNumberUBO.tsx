@@ -25,7 +25,7 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
     const stepFields = [ssnLast4InputID];
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-        const errors = getFieldRequiredErrors(values, stepFields);
+        const errors = getFieldRequiredErrors(values, stepFields, translate);
         if (values[ssnLast4InputID] && !isValidSSNLastFour(SafeString(values[ssnLast4InputID]))) {
             errors[ssnLast4InputID] = translate('bankAccount.error.ssnLast4');
         }

@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   approveAndMerge:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     if: ${{ github.actor == 'imgbot[bot]' }}
     steps:
       - name: Approve imgbot PR

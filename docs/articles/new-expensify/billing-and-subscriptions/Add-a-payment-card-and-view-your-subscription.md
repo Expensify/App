@@ -59,6 +59,7 @@ You can view and update your plan details from the **Subscription** section:
 - **Current plan:** View your subscription type and number of seats.
 - **Billing info:** See your payment method and next renewal date.
 - **Auto-renew:** Check when your subscription will automatically renew (e.g., **Renews on Nov 1, 2026**).
+- **Credit balance:** If your account has prepaid Expensify credits, this row displays your current credit balance. It appears only when you have a positive balance.
 - **Auto-increase annual seats:** See how much you could save by automatically increasing seats if your team grows.
 
 **Note:** Enabling auto-increase will extend your annual subscription end date.
@@ -103,8 +104,6 @@ Only the **billing owner** can delete a workspace.
 4. Confirm when prompted.
 
 **Note:** This action is permanent and cannot be undone.
-
-**ADD A SCREENSHOT HERE.** Suggestion: Deleting a workspace via the three-dot menu in the Workspaces tab.
 
 ---
 

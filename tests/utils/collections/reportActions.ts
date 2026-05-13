@@ -31,6 +31,7 @@ const deprecatedReportActions: ReportActionName[] = [
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.DONATION,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
 ] as const;
 
 export default function createRandomReportAction(index: number): ReportAction {

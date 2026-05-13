@@ -68,6 +68,11 @@ const TEST_CASES = {
     },
     hasEmployeeCardFeedErrors: accountCardFeedTestCases.employee,
     hasPolicyAdminCardFeedErrors: accountCardFeedTestCases.admin,
+    hasLockedBankAccount: {
+        name: 'has locked bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
@@ -80,6 +85,12 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
                     status === CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR
                         ? {
                               error: 'Something went wrong',
+                          }
+                        : undefined,
+                accountData:
+                    status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT
+                        ? {
+                              state: CONST.BANK_ACCOUNT.STATE.LOCKED,
                           }
                         : undefined,
             },
@@ -103,7 +114,6 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase) =>
             chatReportID: status === CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS ? undefined : '123',
         },
         [ONYXKEYS.LOGIN_LIST]: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
             [userID]: {
                 partnerName: 'John Doe',
                 partnerUserID: userID,

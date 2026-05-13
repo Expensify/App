@@ -60,7 +60,7 @@ function getKey(route: PlatformStackRouteProp<ParamListBase> | NavigationPartial
 }
 
 function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProps) {
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const scrollOffsetsRef = useRef<Record<string, number>>({});
     const previousPriorityMode = usePrevious(priorityMode);
 
@@ -100,9 +100,8 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
     const cleanStaleScrollOffsets: ScrollOffsetContextValue['cleanStaleScrollOffsets'] = useCallback(
         (state) => {
-            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name) || route.name === SCREENS.WORKSPACES_LIST);
-            const workspaceListRoutes = state.routes.filter((route) => route.name === SCREENS.WORKSPACES_LIST);
-            const existingScreenKeys = new Set([...sidebarRoutes, ...workspaceListRoutes].map(getKey));
+            const sidebarRoutes = state.routes.filter((route) => isSidebarScreenName(route.name));
+            const existingScreenKeys = new Set(sidebarRoutes.map(getKey));
 
             const focusedRoute = findFocusedRoute(state);
             const routeName = focusedRoute?.name;

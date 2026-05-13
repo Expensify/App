@@ -21,25 +21,34 @@ type Args = {
     /** The index of the unread report action */
     unreadMarkerReportActionIndex: number;
 
+    /** Whether the report has newer actions to load */
+    hasNewerActions: boolean;
+
     /** Callback to call on every scroll event */
     onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Whether the report actions have been loaded at least once */
+    hasOnceLoadedReportActions: boolean;
 };
 
 export default function useReportUnreadMessageScrollTracking({
     reportID,
     currentVerticalScrollingOffsetRef,
+    hasNewerActions,
     readActionSkippedRef,
     onTrackScrolling,
     unreadMarkerReportActionIndex,
     isInverted,
+    hasOnceLoadedReportActions,
 }: Args) {
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const isFocused = useIsFocused();
-    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number; isFocused: boolean}>({
+    const ref = useRef<{previousViewableItems: ViewToken[]; reportID: string; unreadMarkerReportActionIndex: number; isFocused: boolean; hasOnceLoadedReportActions: boolean}>({
         reportID,
         unreadMarkerReportActionIndex,
         previousViewableItems: [],
         isFocused: true,
+        hasOnceLoadedReportActions,
     });
     // We want to save the updated value on ref to use it in onViewableItemsChanged
     // because FlatList requires the callback to be stable and we cannot add a dependency on the useCallback.
@@ -51,6 +60,10 @@ export default function useReportUnreadMessageScrollTracking({
     useEffect(() => {
         ref.current.isFocused = isFocused;
     }, [isFocused]);
+
+    useEffect(() => {
+        ref.current.hasOnceLoadedReportActions = hasOnceLoadedReportActions;
+    }, [hasOnceLoadedReportActions]);
 
     /**
      * On every scroll event we want to:
@@ -76,7 +89,8 @@ export default function useReportUnreadMessageScrollTracking({
         if (
             currentVerticalScrollingOffsetRef.current < CONST.REPORT.ACTIONS.LATEST_MESSAGES_PILL_SCROLL_OFFSET_THRESHOLD &&
             isFloatingMessageCounterVisible &&
-            !hasUnreadMarkerReportAction
+            !hasUnreadMarkerReportAction &&
+            !hasNewerActions
         ) {
             setIsFloatingMessageCounterVisible(false);
         }
@@ -113,7 +127,7 @@ export default function useReportUnreadMessageScrollTracking({
         if (unreadActionVisible && readActionSkippedRef.current) {
             // eslint-disable-next-line no-param-reassign
             readActionSkippedRef.current = false;
-            readNewestAction(ref.current.reportID);
+            readNewestAction(ref.current.reportID, ref.current.hasOnceLoadedReportActions);
         }
 
         // FlatList requires a stable onViewableItemsChanged callback for optimal performance.

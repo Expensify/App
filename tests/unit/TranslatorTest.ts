@@ -4,6 +4,14 @@ class TestTranslator extends Translator {
     protected performTranslation(): Promise<string> {
         return Promise.resolve('');
     }
+
+    public estimateCost(): Promise<number> {
+        return Promise.resolve(0);
+    }
+
+    public getFailedTranslations() {
+        return [];
+    }
 }
 
 describe('Translator - Chinese Brackets Fix', () => {

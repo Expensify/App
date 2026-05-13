@@ -3,7 +3,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -20,12 +20,15 @@ function LanguagePage() {
     const isOptionSelected = useRef(false);
 
     const locales = useMemo(() => {
-        return SORTED_LOCALES.map((locale) => ({
+        const sortedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
+
+        return sortedLocales.map((locale) => ({
             value: locale,
             text: LOCALE_TO_LANGUAGE_STRING[locale],
             accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
             keyForList: locale,
             isSelected: preferredLocale === locale,
+            lang: locale,
         }));
     }, [preferredLocale]);
 
@@ -51,7 +54,7 @@ function LanguagePage() {
             <FullPageOfflineBlockingView>
                 <SelectionList
                     data={locales}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={updateLanguage}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}

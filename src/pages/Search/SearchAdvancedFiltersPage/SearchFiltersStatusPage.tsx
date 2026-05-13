@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getStatusOptions} from '@libs/SearchUIUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -21,7 +22,7 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersStatusPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const currentType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     const [selectedItems, setSelectedItems] = useState<string[]>(() => {
         if (!searchAdvancedFiltersForm?.status || searchAdvancedFiltersForm.status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
@@ -74,7 +75,11 @@ function SearchFiltersStatusPage() {
     }, [selectedItems]);
 
     if (searchAdvancedFiltersFormResult.status === 'loading') {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SearchFiltersStatusPage',
+            isLoading: searchAdvancedFiltersFormResult.status === 'loading',
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (

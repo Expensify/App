@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSamlSettings, setSamlIdentity} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import StringUtils from '@libs/StringUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,7 +32,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [samlMetadata, samlMetadataResults] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`, {canBeMissing: true});
+    const [samlMetadata, samlMetadataResults] = useOnyx(`${ONYXKEYS.COLLECTION.SAML_METADATA}${accountID}`);
 
     useEffect(() => {
         if (!domainName) {
@@ -41,7 +42,17 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
     }, [accountID, domainName]);
 
     if (samlMetadata?.isLoading || isLoadingOnyxValue(samlMetadataResults)) {
-        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'SamlConfigurationDetailsSectionContent.loading',
+            isSamlMetadataLoading: !!samlMetadata?.isLoading,
+            isLoadingOnyxValue: isLoadingOnyxValue(samlMetadataResults),
+        };
+        return (
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                reasonAttributes={reasonAttributes}
+            />
+        );
     }
 
     if (samlMetadata?.errors) {

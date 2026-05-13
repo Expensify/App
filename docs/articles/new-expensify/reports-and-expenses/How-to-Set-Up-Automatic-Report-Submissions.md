@@ -1,7 +1,7 @@
 ---
 title: How to set up automatic employee report submissions
 description: Enable Submissions to automatically submit employee expenses on a custom schedule—daily, weekly, by trip, and more.
-keywords: [submit reports automatically, expense submission schedule, Submissions toggle, report frequency, Workspace Admin, expense automation, submit by trip]
+keywords: [submit reports automatically, expense submission schedule, Submissions toggle, report frequency, Workspace Admin, expense automation, submit by trip, Scheduled Submit, auto submit, employee submission, delay submission]
 internalScope: Audience is Workspace Admins. Covers how to enable and configure automatic report submissions using the Submissions setting. Does not cover manual report workflows or approval routing.
 ---
 
@@ -43,7 +43,6 @@ Only **Workspace Admins** can turn on Submissions and choose a submission freque
 
 ![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceSubmissions_ND.png){:width="100%"}
 
-assets/images/ExpensifyHelp-WorkspaceSubmissions_Classic.png
 ---
 
 ## How to use the By trip submission frequency

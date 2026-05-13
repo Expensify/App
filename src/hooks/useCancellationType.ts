@@ -5,7 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
 function useCancellationType(): CancellationType | undefined {
-    const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS, {canBeMissing: true});
+    const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS);
 
     const [cancellationType, setCancellationType] = useState<CancellationType | undefined>();
 

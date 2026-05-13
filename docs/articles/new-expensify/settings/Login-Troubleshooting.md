@@ -57,7 +57,7 @@ Two-Factor Authentication (2FA) is enabled on your account, but you no longer ha
 - **No Domain Admin?** [Claim your domain](https://help.expensify.com/articles/expensify-classic/domains/Claim-And-Verify-A-Domain) to claim the domain and reset your 2FA settings yourself.
 - **Personal email?** Without recovery codes, you’ll need to create a new account.
 
-[Learn more about 2FA and account recovery →](https://help.expensify.com/articles/expensify-classic/security/Two-Factor-Authentication-Overview)
+[Learn more about 2FA and account recovery →](https://help.expensify.com/articles/new-expensify/settings/Two-Factor-Authentication)
 
 ---
 

@@ -27,6 +27,12 @@ const renderPage = (initialParams: PublicScreensParamList[typeof SCREENS.VALIDAT
 };
 
 describe('ValidateLoginPage', () => {
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+        });
+    });
+
     beforeEach(async () => {
         jest.clearAllMocks();
         await act(async () => {

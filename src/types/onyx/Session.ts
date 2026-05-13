@@ -40,11 +40,17 @@ type Session = {
     /** Indicates whether the user is re-authenticating with shortLivedToken */
     isAuthenticatingWithShortLivedToken?: boolean;
 
+    /** User signed in with SAML */
+    signedInWithSAML?: boolean;
+
     /** Indicates whether the support auth token is used for re-authentication */
     isSupportAuthTokenUsed?: boolean;
 
     /** Timestamp of the session creation date */
     creationDate?: number;
+
+    /** How the user authenticated for the current session, forwarded to the fraud protection backend */
+    authMethod?: string;
 };
 
 export default Session;

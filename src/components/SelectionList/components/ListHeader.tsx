@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -22,6 +22,9 @@ type ListHeaderProps<TItem extends ListItem> = {
     /** Styles for the list header wrapper */
     headerStyle?: StyleProp<ViewStyle>;
 
+    /** Styles for the "Select all" text (merged after textStrong) */
+    selectAllTextStyle?: StyleProp<TextStyle>;
+
     /** Function called when the select all button is pressed */
     onSelectAll: () => void;
 
@@ -30,6 +33,9 @@ type ListHeaderProps<TItem extends ListItem> = {
 
     /** Whether to prevent default focus when selecting rows */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+
+    /** Custom accessibility label for the select all checkbox, providing context about what is being selected */
+    selectAllAccessibilityLabel?: string;
 };
 
 function ListHeader<TItem extends ListItem>({
@@ -38,8 +44,10 @@ function ListHeader<TItem extends ListItem>({
     canSelectMultiple,
     onSelectAll,
     headerStyle,
+    selectAllTextStyle,
     shouldShowSelectAllButton,
     shouldPreventDefaultFocusOnSelectRow,
+    selectAllAccessibilityLabel,
 }: ListHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -60,12 +68,12 @@ function ListHeader<TItem extends ListItem>({
     return (
         <View
             style={[styles.userSelectNone, styles.peopleRow, styles.ph5, styles.pb3, headerStyle, styles.selectionListStickyHeader]}
-            accessibilityRole="header"
+            accessibilityRole={CONST.ROLE.HEADER}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Checkbox
                     testID="selection-list-select-all-checkbox"
-                    accessibilityLabel={translate('workspace.people.selectAll')}
+                    accessibilityLabel={selectAllAccessibilityLabel ?? translate('accessibilityHints.selectAllItems')}
                     isChecked={dataDetails.allSelected}
                     isIndeterminate={dataDetails.someSelected}
                     onPress={onSelectAll}
@@ -76,14 +84,15 @@ function ListHeader<TItem extends ListItem>({
                     <PressableWithFeedback
                         style={[styles.userSelectNone, styles.flexRow, styles.alignItemsCenter]}
                         onPress={onSelectAll}
-                        accessibilityLabel={translate('workspace.people.selectAll')}
+                        accessibilityLabel={selectAllAccessibilityLabel ?? translate('accessibilityHints.selectAllItems')}
+                        sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.LIST_HEADER_SELECT_ALL}
                         accessibilityRole="button"
                         accessibilityState={{checked: dataDetails.allSelected, disabled: allDisabled}}
                         disabled={allDisabled}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         onMouseDown={handleMouseDown}
                     >
-                        <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                        <Text style={[styles.textStrong, styles.ph3, selectAllTextStyle]}>{translate('workspace.people.selectAll')}</Text>
                     </PressableWithFeedback>
                 )}
             </View>

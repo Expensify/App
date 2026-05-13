@@ -61,6 +61,58 @@ describe('ReportActionsFollowupUtils', () => {
             const html = '<followup-list></followup-list>';
             expect(parseFollowupsFromHtml(html)).toEqual([]);
         });
+
+        it('should parse followup with pre-generated response', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>How do I set up QuickBooks?</followup-text>
+    <followup-response>To set up QuickBooks, go to Settings > Integrations...</followup-response>
+  </followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings > Integrations...'}]);
+        });
+
+        it('should parse multiple followups with mixed response availability', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>Question without response</followup-text>
+  </followup>
+  <followup>
+    <followup-text>Question with response</followup-text>
+    <followup-response>Here is the cached response</followup-response>
+  </followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([
+                {text: 'Question without response', response: undefined},
+                {text: 'Question with response', response: 'Here is the cached response'},
+            ]);
+        });
+
+        it('should preserve HTML formatting in followup-response (bullets, breaks, strong tags)', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>How do I set up QuickBooks?</followup-text>
+    <followup-response>To set up QuickBooks:<br><ul><li><strong>Step 1</strong>: Go to Settings</li><li><strong>Step 2</strong>: Click Integrations</li></ul></followup-response>
+  </followup>
+</followup-list>`;
+            const result = parseFollowupsFromHtml(html);
+            expect(result).toEqual([
+                {
+                    text: 'How do I set up QuickBooks?',
+                    response: 'To set up QuickBooks:<br><ul><li><strong>Step 1</strong>: Go to Settings</li><li><strong>Step 2</strong>: Click Integrations</li></ul>',
+                },
+            ]);
+        });
+
+        it('should handle empty followup-response element', () => {
+            const html = `<followup-list>
+  <followup>
+    <followup-text>Question</followup-text>
+    <followup-response></followup-response>
+  </followup>
+</followup-list>`;
+            expect(parseFollowupsFromHtml(html)).toEqual([{text: 'Question', response: ''}]);
+        });
     });
 
     describe('stripFollowupListFromHtml', () => {

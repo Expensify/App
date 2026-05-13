@@ -1,17 +1,17 @@
-import React, {useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useCurrencyList from '@hooks/useCurrencyList';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -30,17 +30,18 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const policyID = route.params.policyID;
     const rateID = route.params.rateID;
     const subRateID = route.params.subRateID;
-    const [deletePerDiemConfirmModalVisible, setDeletePerDiemConfirmModalVisible] = useState(false);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyList();
+    const {showConfirmModal} = useConfirmModal();
+    const {getCurrencySymbol, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const customUnit = getPerDiemCustomUnit(policy);
 
     const selectedRate = customUnit?.rates?.[rateID];
     const fetchedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
     const previousFetchedSubRate = usePrevious(fetchedSubRate);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     const selectedSubRate = fetchedSubRate ?? previousFetchedSubRate;
 
@@ -58,8 +59,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                 subRateID,
             },
         ]);
-        setDeletePerDiemConfirmModalVisible(false);
-        Navigation.goBack();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 
     return (
@@ -75,16 +75,6 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                 testID="WorkspacePerDiemDetailsPage"
             >
                 <HeaderWithBackButton title={translate('workspace.perDiem.editPerDiemRate')} />
-                <ConfirmModal
-                    isVisible={deletePerDiemConfirmModalVisible}
-                    onConfirm={handleDeletePerDiemRate}
-                    onCancel={() => setDeletePerDiemConfirmModalVisible(false)}
-                    title={translate('workspace.perDiem.deletePerDiemRate')}
-                    prompt={translate('workspace.perDiem.areYouSureDelete', {count: 1})}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
                 <ScrollView
                     addBottomSafeAreaPadding
                     contentContainerStyle={styles.flexGrow1}
@@ -115,9 +105,20 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                         shouldShowRightIcon
                     />
                     <MenuItem
-                        icon={Expensicons.Trashcan}
+                        icon={icons.Trashcan}
                         title={translate('common.delete')}
-                        onPress={() => setDeletePerDiemConfirmModalVisible(true)}
+                        onPress={async () => {
+                            const {action} = await showConfirmModal({
+                                title: translate('workspace.perDiem.deletePerDiemRate'),
+                                prompt: translate('workspace.perDiem.areYouSureDelete', {count: 1}),
+                                confirmText: translate('common.delete'),
+                                cancelText: translate('common.cancel'),
+                                danger: true,
+                            });
+                            if (action === ModalActions.CONFIRM) {
+                                handleDeletePerDiemRate();
+                            }
+                        }}
                     />
                 </ScrollView>
             </ScreenWrapper>

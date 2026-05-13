@@ -36,7 +36,7 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
     const {translate} = useLocalize();
 
     const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
     const [selectedItem, setSelectedItem] = useState(() => {
         return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey] === value) ?? null;

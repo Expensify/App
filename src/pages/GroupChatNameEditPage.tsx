@@ -33,7 +33,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     // In this case its better to use empty string as the reportID if there is no reportID
     const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
-    const [groupChatDraft, groupChatDraftMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
+    const [groupChatDraft, groupChatDraftMetadata] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();

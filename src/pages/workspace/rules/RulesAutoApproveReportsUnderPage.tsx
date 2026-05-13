@@ -7,6 +7,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -14,7 +15,7 @@ import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getWorkflowApprovalsUnavailable} from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyAutomaticApprovalLimit} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
@@ -31,16 +32,18 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
-    const defaultValue = convertToFrontendAmountAsString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, policy?.outputCurrency);
+    const isWorkflowsEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED);
+    const defaultValue = convertToFrontendAmountAsString(policy?.autoApproval?.limit ?? CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_DEFAULT_CENTS, getCurrencyDecimals(policy?.outputCurrency));
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
-            shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
+            shouldBeBlocked={isWorkflowsEnabled && (!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -55,7 +58,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
                     onSubmit={({maxExpenseAutoApprovalAmount}) => {
-                        setPolicyAutomaticApprovalLimit(policyID, maxExpenseAutoApprovalAmount);
+                        setPolicyAutomaticApprovalLimit(policyID, maxExpenseAutoApprovalAmount, policy?.autoApproval?.limit);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

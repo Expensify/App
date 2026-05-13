@@ -78,7 +78,7 @@ describe('usePermissions', () => {
 
     it('should handle explicit only and exclusion betas correctly', async () => {
         // Given: A beta configuration with both explicit only and exclusion betas
-        const explicitOnlyBeta = CONST.BETAS.CUSTOM_REPORT_NAMES;
+        const explicitOnlyBeta = CONST.BETAS.ASAP_SUBMIT;
         const exclusionBeta = CONST.BETAS.PREVENT_SPOTNANA_TRAVEL;
         const betaConfiguration = {
             explicitOnly: [explicitOnlyBeta],

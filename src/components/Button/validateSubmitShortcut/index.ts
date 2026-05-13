@@ -16,7 +16,7 @@ const validateSubmitShortcut: ValidateSubmitShortcut = (isDisabled, isLoading, e
         isDisabled ||
         isLoading ||
         eventTarget.nodeName === CONST.ELEMENT_NAME.TEXTAREA ||
-        (eventTarget.nodeName === CONST.ELEMENT_NAME.INPUT && eventTarget.autocomplete === 'one-time-code') ||
+        (eventTarget.nodeName === CONST.ELEMENT_NAME.INPUT && eventTarget.autocomplete === CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE) ||
         (eventTarget?.contentEditable === 'true' && eventTarget.ariaMultiLine)
     ) {
         return false;

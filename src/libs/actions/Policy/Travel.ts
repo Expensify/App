@@ -1,11 +1,14 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {EnablePolicyTravelParams} from '@libs/API/parameters';
+import type {EnablePolicyTravelParams, SetPolicyTravelSettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 function enablePolicyTravel(policyID: string, enabled: boolean) {
@@ -42,6 +45,9 @@ function enablePolicyTravel(policyID: string, enabled: boolean) {
                     pendingFields: {
                         isTravelEnabled: null,
                     },
+                    errorFields: {
+                        isTravelEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
                 },
             },
         ],
@@ -52,9 +58,64 @@ function enablePolicyTravel(policyID: string, enabled: boolean) {
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_TRAVEL, parameters, onyxData);
 
     if (enabled && getIsNarrowLayout()) {
-        goBackWhenEnableFeature(policyID);
+        goBackWhenEnableFeature();
     }
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {enablePolicyTravel};
+function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: Partial<OnyxTypes.WorkspaceTravelSettings>) {
+    if (!policy?.id) {
+        return;
+    }
+    const policyID = policy.id;
+    const previousTravelSettings = policy?.travelSettings;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    travelSettings: {...previousTravelSettings, ...settings},
+                    pendingFields: {
+                        travelSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        travelSettings: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    travelSettings: previousTravelSettings,
+                    pendingFields: {
+                        travelSettings: null,
+                    },
+                    errorFields: {
+                        travelSettings: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyTravelSettingsParams = {
+        policyID,
+        travelSettings: JSON.stringify(settings),
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_TRAVEL_SETTINGS, parameters, onyxData);
+}
+
+export {enablePolicyTravel, setPolicyTravelSettings};

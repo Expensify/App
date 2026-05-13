@@ -19,7 +19,7 @@ const STEP_FIELDS = [COMPANY_INCORPORATION_CODE_KEY];
 function IncorporationCode({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -54,7 +54,7 @@ function IncorporationCode({onNext, isEditing}: SubStepProps) {
                 InputComponent={IndustryCodeSelector}
                 inputID={COMPANY_INCORPORATION_CODE_KEY}
                 shouldSaveDraft={!isEditing}
-                defaultValue={reimbursementAccount?.achData?.industryCode}
+                defaultValue={isEditing ? reimbursementAccount?.achData?.industryCode : ''}
             />
         </FormProvider>
     );

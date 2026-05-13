@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import {convertAttendeesToArray} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -10,7 +11,7 @@ import {getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from 
 import {isDM, isIOUReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 
 function getSplitAuthor(transaction: Transaction, splits?: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>) {
     const {originalTransactionID, source} = transaction.comment ?? {};
@@ -38,34 +39,19 @@ const getSplitsSelector = (actions: OnyxEntry<ReportActions>): Array<ReportActio
         .filter((act) => getOriginalMessage(act)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
 };
 
-function useReportPreviewSenderID({iouReport, action, chatReport}: {action: OnyxEntry<ReportAction>; chatReport: OnyxEntry<Report>; iouReport: OnyxEntry<Report>}): number | undefined {
+type GetReportPreviewSenderIDParams = {
+    iouReport: OnyxEntry<Report>;
+    action: OnyxEntry<ReportAction>;
+    chatReport: OnyxEntry<Report>;
+    iouActions: ReportAction[] | undefined;
+    transactions: Transaction[] | undefined;
+    splits: Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> | undefined;
+    policy: OnyxEntry<Policy>;
+    currentUserAccountID: number;
+};
+
+function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, transactions, splits, policy, currentUserAccountID}: GetReportPreviewSenderIDParams): number | undefined {
     const isOptimisticReportPreview = action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isIOUReport(iouReport);
-
-    // Only subscribe to Onyx data if not an optimistic action
-    const shouldFetchData = !isOptimisticReportPreview;
-
-    const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.reportID : undefined)}`, {
-        canBeMissing: true,
-        selector: getIOUActionsSelector,
-    });
-
-    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? action?.childReportID : undefined);
-    const transactions = useMemo(() => {
-        if (!shouldFetchData) {
-            return undefined;
-        }
-        return getAllNonDeletedTransactions(reportTransactions, iouActions ?? []);
-    }, [reportTransactions, iouActions, shouldFetchData]);
-
-    const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? chatReport?.reportID : undefined)}`, {
-        canBeMissing: true,
-        selector: getSplitsSelector,
-    });
-
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.policyID : undefined)}`, {
-        canBeMissing: true,
-    });
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     if (isOptimisticReportPreview) {
         return currentUserAccountID;
@@ -87,7 +73,9 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const attendeesIDs = transactions
         // If the transaction is a split, then attendees are not present as a property so we need to use a helper function.
         ?.flatMap<number | undefined>((tr) =>
-            tr.comment?.attendees?.map?.((att) => (tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID)),
+            convertAttendeesToArray(tr.comment?.attendees).map((att) =>
+                tr.comment?.source === CONST.IOU.TYPE.SPLIT ? getSplitAuthor(tr, splits) : getPersonalDetailByEmail(att.email)?.accountID,
+            ),
         )
         .filter((accountID) => !!accountID);
 
@@ -111,4 +99,34 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     return singleAvatarAccountID;
 }
 
+function useReportPreviewSenderID({iouReport, action, chatReport}: {action: OnyxEntry<ReportAction>; chatReport: OnyxEntry<Report>; iouReport: OnyxEntry<Report>}): number | undefined {
+    const isOptimisticReportPreview = action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isIOUReport(iouReport);
+
+    // Only subscribe to Onyx data if not an optimistic action
+    const shouldFetchData = !isOptimisticReportPreview;
+
+    const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.reportID : undefined)}`, {
+        selector: getIOUActionsSelector,
+    });
+
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? action?.childReportID : undefined);
+    const transactions = useMemo(() => {
+        if (!shouldFetchData) {
+            return undefined;
+        }
+        return getAllNonDeletedTransactions(reportTransactions, iouActions ?? []);
+    }, [reportTransactions, iouActions, shouldFetchData]);
+
+    const [splits] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? chatReport?.reportID : undefined)}`, {
+        selector: getSplitsSelector,
+    });
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.policyID : undefined)}`);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    return getReportPreviewSenderID({iouReport, action, chatReport, iouActions, transactions, splits, policy, currentUserAccountID});
+}
+
 export default useReportPreviewSenderID;
+export {getReportPreviewSenderID};
+export type {GetReportPreviewSenderIDParams};

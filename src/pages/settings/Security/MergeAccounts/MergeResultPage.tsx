@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {emailSelector} from '@selectors/Session';
 import React, {useEffect, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
@@ -18,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
 import CONFIG from '@src/CONFIG';
@@ -25,15 +27,21 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {environmentURL} = useEnvironment();
     const {result, login, backTo} = params;
     const lazyIllustrations = useMemoizedLazyIllustrations(['RunningTurtle', 'LockClosedOrange']);
+    const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
     const defaultResult = {
         heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
@@ -47,7 +55,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeSuccess.accountsMerged'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeSuccess.description', {from: login, to: userEmailOrPhone ?? ''})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeSuccess.description', login, userEmailOrPhone ?? '')} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
@@ -59,12 +67,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML
-                            html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', {
-                                email: login,
-                                contactMethodLink: `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`,
-                            })}
-                        />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', login, `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`)} />
                     </View>
                 ),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
@@ -75,7 +78,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailure2FA.description', login)} />
                     </View>
                 ),
                 cta: <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>,
@@ -88,7 +91,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSmartScannerAccountDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSmartScannerAccountDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
@@ -99,7 +102,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLDomainControlDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLDomainControlDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
@@ -117,12 +120,12 @@ function MergeResultPage() {
                 secondaryButtonText: translate('mergeAccountsPage.mergePendingSAML.goToExpensifyClassic'),
                 onSecondaryButtonPress: () => {
                     if (CONFIG.IS_HYBRID_APP) {
-                        closeReactNativeApp({shouldSetNVP: true});
+                        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS});
                         return;
                     }
                     openOldDotLink(CONST.OLDDOT_URLS.INBOX, false);
                 },
-                shouldShowSecondaryButton: true,
+                shouldShowSecondaryButton: !isClassicRedirectBlocked,
                 buttonText: translate('common.buttonConfirm'),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 illustration: lazyIllustrations.RunningTurtle,
@@ -132,7 +135,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLAccountDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureSAMLAccountDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
@@ -143,7 +146,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureAccountLockedDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureAccountLockedDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
@@ -154,7 +157,7 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureInvoicedAccountDescription', {email: login})} />
+                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureInvoicedAccountDescription', login)} />
                     </View>
                 ),
                 buttonText: translate('common.buttonConfirm'),
@@ -183,7 +186,7 @@ function MergeResultPage() {
                 illustration: lazyIllustrations.LockClosedOrange,
             },
         };
-    }, [login, translate, userEmailOrPhone, styles, environmentURL, lazyIllustrations.LockClosedOrange, lazyIllustrations.RunningTurtle]);
+    }, [login, translate, userEmailOrPhone, styles, isTrackingGPS, environmentURL, lazyIllustrations.LockClosedOrange, lazyIllustrations.RunningTurtle, isClassicRedirectBlocked]);
 
     useEffect(() => {
         /**
@@ -194,7 +197,6 @@ function MergeResultPage() {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
         });

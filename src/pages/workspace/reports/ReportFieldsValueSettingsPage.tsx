@@ -1,13 +1,14 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -37,9 +38,8 @@ function ReportFieldsValueSettingsPage({
 }: ReportFieldsValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
-
-    const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const {showConfirmModal} = useConfirmModal();
 
     const [currentValueName, currentValueDisabled] = useMemo(() => {
         let reportFieldValue: string;
@@ -60,11 +60,25 @@ function ReportFieldsValueSettingsPage({
 
     const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
     const oldValueName = usePrevious(currentValueName);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     if (!currentValueName && !oldValueName) {
         return <NotFoundPage />;
     }
-    const deleteListValueAndHideModal = () => {
+    const confirmAndDeleteListValue = async () => {
+        const result = await showConfirmModal({
+            danger: true,
+            title: translate('workspace.reportFields.deleteValue'),
+            prompt: translate('workspace.reportFields.deleteValuePrompt'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            shouldSetModalVisibility: false,
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
         if (reportFieldID) {
             removeReportFieldListValue({policy, reportFieldID, valueIndexes: [valueIndex]});
         } else {
@@ -74,7 +88,6 @@ function ReportFieldsValueSettingsPage({
                 disabledListValues: formDraft?.disabledListValues ?? [],
             });
         }
-        setIsDeleteTagModalOpen(false);
         Navigation.goBack();
     };
 
@@ -110,21 +123,15 @@ function ReportFieldsValueSettingsPage({
                     title={currentValueName ?? oldValueName}
                     shouldSetModalVisibility={false}
                 />
-                <ConfirmModal
-                    title={translate('workspace.reportFields.deleteValue')}
-                    isVisible={isDeleteTagModalOpen && !hasAccountingConnections}
-                    onConfirm={deleteListValueAndHideModal}
-                    onCancel={() => setIsDeleteTagModalOpen(false)}
-                    shouldSetModalVisibility={false}
-                    prompt={translate('workspace.reportFields.deleteValuePrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
                 <View style={styles.flexGrow1}>
                     <View style={[styles.mt2, styles.mh5]}>
                         <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                            <Text>{translate('workspace.reportFields.enableValue')}</Text>
+                            <Text
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('workspace.reportFields.enableValue')}
+                            </Text>
                             <Switch
                                 isOn={!currentValueDisabled}
                                 accessibilityLabel={translate('workspace.reportFields.enableValue')}
@@ -141,9 +148,9 @@ function ReportFieldsValueSettingsPage({
                     />
                     {!hasAccountingConnections && (
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => setIsDeleteTagModalOpen(true)}
+                            onPress={confirmAndDeleteListValue}
                         />
                     )}
                 </View>

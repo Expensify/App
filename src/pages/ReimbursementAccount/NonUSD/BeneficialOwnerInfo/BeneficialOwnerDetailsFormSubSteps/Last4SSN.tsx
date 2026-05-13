@@ -4,13 +4,13 @@ import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SafeString from '@src/utils/SafeString';
 
-type Last4SSNProps = SubStepProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
+type Last4SSNProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
 const {SSN_LAST_4, PREFIX} = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
@@ -24,7 +24,7 @@ function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBei
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [last4SSNInputID]);
+            const errors = getFieldRequiredErrors(values, [last4SSNInputID], translate);
 
             if (values[last4SSNInputID] && !isValidSSNLastFour(SafeString(values[last4SSNInputID]))) {
                 errors[last4SSNInputID] = translate('bankAccount.error.ssnLast4');
@@ -57,6 +57,7 @@ function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBei
             defaultValue={defaultLast4SSN}
             shouldShowHelpLinks={false}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            shouldDelayAutoFocus
         />
     );
 }

@@ -120,7 +120,6 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]): Duplic
     }, [transactionIDs]);
 
     const [duplicateTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        canBeMissing: true,
         selector: violationsSelectorMemo,
     });
 
@@ -129,7 +128,6 @@ function useDuplicateTransactionsAndViolations(transactionIDs: string[]): Duplic
     }, [transactionIDs, duplicateTransactionViolations]);
 
     const [duplicateTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        canBeMissing: true,
         selector: transactionSelector,
     });
 

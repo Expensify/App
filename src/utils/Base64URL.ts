@@ -1,4 +1,5 @@
 import type {WithImplicitCoercion} from 'buffer';
+import {Buffer} from 'buffer';
 
 /**
  * Base64URL-encoded representation of a value used in WebAuthn-like flows.
@@ -37,6 +38,12 @@ const Base64URL = {
 
         // Convert the base64 string back to bytes
         return Buffer.from(base64, 'base64');
+    },
+    /**
+     * Converts standard base64 to base64url encoding.
+     */
+    base64ToBase64url(b64: string): string {
+        return b64.replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
     },
 };
 

@@ -11,7 +11,7 @@ type CreatePerDiemRequestParams = {
     category?: string;
     description: string;
     tag?: string;
-    iouReportID: string;
+    iouReportID?: string;
     chatReportID: string;
     transactionID: string;
     reportActionID: string;
@@ -23,6 +23,10 @@ type CreatePerDiemRequestParams = {
     billable?: boolean;
     reimbursable?: boolean;
     attendees?: string;
+    customUnitPolicyID?: string;
+
+    /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export default CreatePerDiemRequestParams;

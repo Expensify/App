@@ -1,9 +1,9 @@
 import type {ValueOf} from 'type-fest';
+import type ChatListItem from '@components/Search/SearchList/ListItem/ChatListItem';
+import type TransactionGroupListItem from '@components/Search/SearchList/ListItem/TransactionGroupListItem';
+import type TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
+import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchStatus} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
-import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
@@ -143,6 +143,9 @@ type SearchCardGroup = {
 
     /** Last four Primary Account Number digits */
     lastFourPAN: string;
+
+    /** Expensify Card program (e.g. `TRAVEL_US`) */
+    feedCountry?: string;
 };
 
 /** Model of withdrawal ID grouped search result */
@@ -250,24 +253,68 @@ type SearchWeekGroup = {
     currency: string;
 };
 
+/** Model of year grouped search result */
+type SearchYearGroup = {
+    /** Year */
+    year: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** Model of quarter grouped search result */
+type SearchQuarterGroup = {
+    /** Year */
+    year: number;
+
+    /** Quarter (1-4) */
+    quarter: number;
+
+    /** Number of transactions */
+    count: number;
+
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+};
+
+/** SearchResultDataType */
+type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
+    Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+    PrefixedRecord<
+        typeof CONST.SEARCH.GROUP_PREFIX,
+        | SearchMemberGroup
+        | SearchCardGroup
+        | SearchWithdrawalIDGroup
+        | SearchCategoryGroup
+        | SearchMerchantGroup
+        | SearchTagGroup
+        | SearchMonthGroup
+        | SearchWeekGroup
+        | SearchYearGroup
+        | SearchQuarterGroup
+    >;
+
 /** Model of search results */
 type SearchResults = {
     /** Current search results state */
     search: SearchResultsInfo;
 
     /** Search results data */
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-        PrefixedRecord<
-            typeof CONST.SEARCH.GROUP_PREFIX,
-            SearchMemberGroup | SearchCardGroup | SearchWithdrawalIDGroup | SearchCategoryGroup | SearchMerchantGroup | SearchTagGroup | SearchMonthGroup | SearchWeekGroup
-        >;
+    data: SearchResultDataType;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -285,6 +332,7 @@ export type {
     SearchTransactionAction,
     SearchDataTypes,
     SearchResultsInfo,
+    SearchResultDataType,
     SearchMemberGroup,
     SearchCardGroup,
     SearchWithdrawalIDGroup,
@@ -293,4 +341,6 @@ export type {
     SearchTagGroup,
     SearchMonthGroup,
     SearchWeekGroup,
+    SearchYearGroup,
+    SearchQuarterGroup,
 };

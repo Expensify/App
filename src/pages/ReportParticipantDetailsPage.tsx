@@ -8,8 +8,10 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -34,10 +36,11 @@ type ReportParticipantDetailsPageProps = WithReportOrNotFoundProps & PlatformSta
 
 function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
+    const isInLandscapeMode = useIsInLandscapeMode();
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
@@ -53,7 +56,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const removeUser = () => {
         setIsRemoveMemberConfirmModalVisible(false);
-        removeFromGroupChat(report?.reportID, [accountID]);
+        removeFromGroupChat(report, [accountID]);
         Navigation.goBack(backTo);
     };
 
@@ -75,7 +78,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
-            <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone, styles.justifyContentStart]}>
+            <ScrollView contentContainerStyle={[!isInLandscapeMode && [styles.containerWithSpaceBetween, styles.justifyContentStart], styles.pointerEventsBoxNone]}>
                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                     <Avatar
                         containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
@@ -110,7 +113,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                                 isVisible={isRemoveMemberConfirmModalVisible}
                                 onConfirm={removeUser}
                                 onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                                prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
+                                prompt={translate('workspace.people.removeMemberPrompt', displayName)}
                                 confirmText={translate('common.remove')}
                                 cancelText={translate('common.cancel')}
                             />
@@ -136,7 +139,7 @@ function ReportParticipantDetails({report, route}: ReportParticipantDetailsPageP
                         shouldShowRightIcon
                     />
                 </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }

@@ -1,17 +1,16 @@
-import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import type {IndicatorStatus} from '@hooks/useNavigationTabBarIndicatorChecks';
 import useOnyx from '@hooks/useOnyx';
-import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReports';
+import useReportAttributes from '@hooks/useReportAttributes';
+import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccount} from '@src/types/onyx';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
 
 type DebugTabViewProps = {
@@ -60,6 +60,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.theresAProblemWithYourWallet';
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
             return 'debug.indicatorStatus.theresAProblemWithYourWalletTerms';
+        case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
+            return 'debug.indicatorStatus.aBankAccountIsLocked';
         default:
             return undefined;
     }
@@ -80,10 +82,10 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS:
             return ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithErrors);
         case CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS:
-            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(
-                reimbursementAccount?.achData?.policyID,
-                getReimbursementAccountRouteForCurrentStep(reimbursementAccount?.achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
-            );
+            return ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
+                policyID: reimbursementAccount?.achData?.policyID,
+                stepToOpen: getReimbursementAccountRouteForCurrentStep(reimbursementAccount?.achData?.currentStep ?? CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT),
+            });
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
@@ -93,6 +95,8 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
+            return ROUTES.SETTINGS_WALLET;
+        case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return ROUTES.SETTINGS_WALLET;
         default:
             return undefined;
@@ -104,10 +108,11 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const reportAttributes = useReportAttributes();
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
-    const {orderedReportIDs} = useSidebarOrderedReports();
+    const {orderedReportIDs} = useSidebarOrderedReportsState();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
@@ -156,7 +161,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
         }
     }, [selectedTab, chatTabBrickRoad, orderedReportIDs, reportAttributes, status, reimbursementAccount, policyIDWithErrors]);
 
-    if (!([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator) {
+    if (!([NAVIGATION_TABS.INBOX, NAVIGATION_TABS.SETTINGS, NAVIGATION_TABS.WORKSPACES] as string[]).includes(selectedTab ?? '') || !indicator || !message) {
         return null;
     }
 
@@ -167,7 +172,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad}: DebugTabViewProps) {
         >
             <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter]}>
                 <Icon
-                    src={Expensicons.DotIndicator}
+                    src={icons.DotIndicator}
                     fill={indicator}
                 />
                 {!!message && <Text style={[StyleUtils.getColorStyle(theme.text), styles.lh20]}>{translate(message)}</Text>}

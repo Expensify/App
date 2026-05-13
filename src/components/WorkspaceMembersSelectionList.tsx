@@ -41,7 +41,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(policyID);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const approvers: SelectionListApprover[] = [];
 
@@ -91,7 +91,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             ListItem={InviteMemberListItem}
             onSelectRow={(approver) => setApprover(approver.login)}
             textInputOptions={textInputOptions}
-            showLoadingPlaceholder={!didScreenTransitionEnd}
+            shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             disableMaintainingScrollPosition
             addBottomSafeAreaPadding

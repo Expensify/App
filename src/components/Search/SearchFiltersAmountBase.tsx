@@ -30,17 +30,20 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     const {inputCallbackRef} = useAutoFocusInput();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const equalToKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}` as keyof SearchAdvancedFiltersForm;
     const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as keyof SearchAdvancedFiltersForm;
     const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as keyof SearchAdvancedFiltersForm;
 
     const equalTo = searchAdvancedFiltersForm?.[equalToKey];
-    const equalToFormattedAmount = equalTo ? convertToFrontendAmountAsString(Number(equalTo)) : undefined;
+    // We have chose 2 decimals here as this is the limit of decimals we support for expenses.
+    const equalToFormattedAmount = equalTo ? convertToFrontendAmountAsString(Number(equalTo), CONST.DEFAULT_CURRENCY_DECIMALS) : undefined;
     const greaterThan = searchAdvancedFiltersForm?.[greaterThanKey];
-    const greaterThanFormattedAmount = greaterThan ? convertToFrontendAmountAsString(Number(greaterThan)) : undefined;
+    // We have chose 2 decimals here as this is the limit of decimals we support for expenses.
+    const greaterThanFormattedAmount = greaterThan ? convertToFrontendAmountAsString(Number(greaterThan), CONST.DEFAULT_CURRENCY_DECIMALS) : undefined;
     const lessThan = searchAdvancedFiltersForm?.[lessThanKey];
-    const lessThanFormattedAmount = lessThan ? convertToFrontendAmountAsString(Number(lessThan)) : undefined;
+    // We have chose 2 decimals here as this is the limit of decimals we support for expenses.
+    const lessThanFormattedAmount = lessThan ? convertToFrontendAmountAsString(Number(lessThan), CONST.DEFAULT_CURRENCY_DECIMALS) : undefined;
 
     const goBack = () => {
         if (selectedModifier) {

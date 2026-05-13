@@ -1,12 +1,9 @@
 require('dotenv').config();
 
-const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
+const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
 
 const ReactCompilerConfig = {
-    target: '19',
-    environment: {
-        enableTreatRefLikeIdentifiersAsRefs: true,
-    },
+    ...BaseReactCompilerConfig,
     sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
 };
 
@@ -65,7 +62,7 @@ const webpack = {
 };
 
 const metro = {
-    presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: true}]],
+    presets: [require('@react-native/babel-preset')],
     plugins: [
         ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
 
@@ -131,8 +128,10 @@ const metro = {
     ],
     env: {
         production: {
-            // Keep console logs for e2e tests
-            plugins: IS_E2E_TESTING ? [] : [['transform-remove-console', {exclude: ['error', 'warn']}]],
+            plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
+        },
+        test: {
+            plugins: ['@babel/plugin-transform-dynamic-import'],
         },
     },
 };
@@ -176,14 +175,6 @@ module.exports = (api) => {
     // For `storybook` there won't be any config at all so we must give default argument of an empty object
     const runningIn = api.caller((args = {}) => args.name);
     console.debug('  - running in: ', runningIn);
-
-    const isJest = runningIn === 'babel-jest';
-    if (isJest) {
-        return {
-            ...metro,
-            presets: [[require('@react-native/babel-preset'), {disableImportExportTransform: false}]],
-        };
-    }
 
     return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
 };

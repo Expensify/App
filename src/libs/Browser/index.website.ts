@@ -1,6 +1,6 @@
 import getOSAndName from '@libs/actions/Device/getDeviceInfo/getOSAndName';
 import CONST from '@src/CONST';
-import type {GetBrowser, IsChromeIOS, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileWebKit, IsModernSafari, IsSafari} from './types';
+import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileWebKit, IsModernSafari, IsSafari} from './types';
 
 /**
  * Fetch browser name from UA string
@@ -16,7 +16,7 @@ const getBrowser: GetBrowser = () => {
         return 'IE';
     }
 
-    if (match[1] && match[1].toLowerCase() === 'chrome') {
+    if (match[1]?.toLowerCase() === 'chrome') {
         temp = userAgent.match(/\b(OPR)/);
         if (temp !== null) {
             return 'Opera';
@@ -70,28 +70,10 @@ const isMobileWebKit: IsMobileWebKit = () => {
     return /iP(ad|od|hone)/i.test(userAgent) && /WebKit/i.test(userAgent);
 };
 
-/**
- * Checks if the requesting user agent is a Chrome browser on an iOS mobile device.
- */
-const isChromeIOS: IsChromeIOS = () => {
-    const userAgent = navigator.userAgent;
-    return /iP(ad|od|hone)/i.test(userAgent) && /CriOS/i.test(userAgent);
-};
-
 const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
-
-/**
- * Checks if the requesting user agent is a modern version of Safari on iOS (version 18 or higher).
- */
-const isModernSafari: IsModernSafari = (): boolean => {
-    const version = navigator.userAgent.match(/OS (\d+_\d+)/);
-    const iosVersion = version ? version[1].replace('_', '.') : '';
-
-    return parseFloat(iosVersion) >= 18;
-};
 
 const isMobileSafariOnIos26: IsModernSafari = (): boolean => {
     return isMobileSafari() && getOSAndName().osVersion === '26';
 };
 
-export {getBrowser, isMobile, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isModernSafari, isMobileChrome, isChromeIOS, isMobileSafariOnIos26};
+export {getBrowser, isMobile, isMobileIOS, isMobileSafari, isMobileWebKit, isSafari, isMobileChrome, isMobileSafariOnIos26};

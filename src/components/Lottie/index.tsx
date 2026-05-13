@@ -2,11 +2,13 @@ import {NavigationContainerRefContext, NavigationContext} from '@react-navigatio
 import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
 import LottieView from 'lottie-react-native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {getBrowser, isMobile} from '@libs/Browser';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import CONST from '@src/CONST';
@@ -23,6 +25,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
     const {splashScreenState} = useSplashScreenState();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
 
     useNetwork({onReconnect: () => setIsError(false)});
 
@@ -38,7 +41,6 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
@@ -62,10 +64,12 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         }
         const unsubscribeNavigationFocus = navigator.addListener('focus', () => {
             setHasNavigatedAway(false);
-            animationRef.current?.play();
+            if (!isReduceMotionEnabled) {
+                animationRef.current?.play();
+            }
         });
         return unsubscribeNavigationFocus;
-    }, [browser, navigationContainerRef, navigator]);
+    }, [browser, navigationContainerRef, navigator, isReduceMotionEnabled]);
 
     useEffect(() => {
         if (!browser || !navigationContainerRef || !navigator) {
@@ -119,6 +123,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             ref={(newRef) => {
                 animationRef.current = newRef;
             }}
+            autoPlay={!isReduceMotionEnabled}
             style={[aspectRatioStyle, props.style]}
             webStyle={{...aspectRatioStyle, ...webStyle}}
             onAnimationFailure={() => setIsError(true)}

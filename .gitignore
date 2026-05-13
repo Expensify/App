@@ -58,6 +58,9 @@ yarn-error.log
 # Bundled code
 dist/
 
+# Generated eslint-report HTML (npm run eslint-report; written under .eslint-reports/)
+/.eslint-reports/
+
 # BUCK
 buck-out/
 \.buckd/
@@ -109,6 +112,7 @@ tests/e2e/results/
 
 # Typescript
 tsconfig.tsbuildinfo
+tsconfig.tsgo.tsbuildinfo
 
 # Mock-github
 /repo/
@@ -157,9 +161,13 @@ modules/*/lib/
 # Claude local settings
 .claude/settings.local.json
 
-# Playwright MCP
-.playwright/
+# Playwright
+.playwright-output/
 .playwright-mcp/
+
+# agent-device
+.agent-device/
+agent-device-output/
 
 # cspell cache
 .cspellcache

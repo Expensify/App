@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
 import UnitSelectorModal from './UnitSelectorModal';
 
@@ -51,6 +52,7 @@ function UnitSelector({defaultValue, wrapperStyle, label, setNewUnit}: UnitSelec
                 description={label}
                 onPress={showPickerModal}
                 wrapperStyle={wrapperStyle}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
             />
             <UnitSelectorModal
                 isVisible={isPickerVisible}

@@ -1,6 +1,6 @@
-import {useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import type {ComponentType} from 'react';
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex, findPageIndex} from '@libs/SubPageUtils';
 import type {SubPageProps, UseSubPageProps} from './types';
@@ -14,24 +14,22 @@ import type {SubPageProps, UseSubPageProps} from './types';
  * @param buildRoute - function that returns the route for a given page name and optional action
  */
 export default function useSubPage<TProps extends SubPageProps>({pages, onFinished, startFrom = 0, skipPages = [], onPageChange = () => {}, buildRoute}: UseSubPageProps<TProps>) {
+    const navigation = useNavigation();
     const route = useRoute();
     const params = route.params as {subPage?: string; action?: 'edit'} | undefined;
     const urlPageName = params?.subPage;
     const isEditing = params?.action === 'edit';
 
-    const startPageName = pages.at(startFrom)?.pageName;
-    const hasInitialized = useRef(false);
+    const startPageName = startFrom >= 0 ? pages.at(startFrom)?.pageName : undefined;
+    const isRedirecting = !urlPageName && (!!startPageName || startFrom < 0);
 
     useEffect(() => {
-        if (hasInitialized.current) {
+        if (!isRedirecting) {
             return;
         }
-        hasInitialized.current = true;
 
-        if (!urlPageName && startPageName) {
-            Navigation.navigate(buildRoute(startPageName), {forceReplace: true});
-        }
-    }, [urlPageName, startPageName, buildRoute]);
+        navigation.setParams({subPage: startPageName} as Record<string, unknown>);
+    }, [isRedirecting, startPageName, navigation]);
 
     const currentPageName = urlPageName ?? startPageName ?? pages.at(0)?.pageName;
     const pageIndex = findPageIndex(pages, currentPageName);
@@ -114,5 +112,6 @@ export default function useSubPage<TProps extends SubPageProps>({pages, onFinish
         lastPageIndex,
         moveTo,
         resetToPage,
+        isRedirecting,
     };
 }

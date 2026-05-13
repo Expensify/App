@@ -1,19 +1,13 @@
 import {Accuracy} from 'expo-location';
 import type {LocationTaskOptions} from 'expo-location';
 
-function getBackgroundLocationTaskOptions(notificationTitle: string, notificationBody: string): LocationTaskOptions {
-    return {
-        accuracy: Accuracy.Highest,
-        distanceInterval: 100,
-        showsBackgroundLocationIndicator: true,
-        foregroundService: {
-            notificationTitle,
-            notificationBody,
-            killServiceOnDestroy: true,
-        },
-    };
-}
+const GPS_DISTANCE_INTERVAL_METERS = 100;
+
+const BACKGROUND_LOCATION_TASK_OPTIONS: LocationTaskOptions = {
+    accuracy: Accuracy.Highest,
+    distanceInterval: GPS_DISTANCE_INTERVAL_METERS,
+};
 
 const BACKGROUND_LOCATION_TRACKING_TASK_NAME = 'background-location-tracking';
 
-export {getBackgroundLocationTaskOptions, BACKGROUND_LOCATION_TRACKING_TASK_NAME};
+export {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME, GPS_DISTANCE_INTERVAL_METERS};

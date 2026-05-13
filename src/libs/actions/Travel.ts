@@ -48,7 +48,14 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS | typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+            value: {
+                hasAcceptedTerms: false,
+            },
+        },
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.TRAVEL_PROVISIONING,
@@ -59,7 +66,7 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
         },
     ];
 
-    const params: AcceptSpotnanaTermsParams = {domain, policyID};
+    const params: AcceptSpotnanaTermsParams = {domainName: domain, policyID};
 
     // We need to call this API immediately to get the response and open the travel page.
     // See https://github.com/Expensify/App/pull/69769#discussion_r2368967354 for more info.
@@ -73,8 +80,7 @@ function requestTravelAccess() {
             onyxMethod: 'merge',
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
             value: {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                lastTravelSignupRequestTime: Date.now(),
+                lastTravelSignupRequestTime: Date.now().toString(),
             },
         },
     ];

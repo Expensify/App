@@ -37,7 +37,7 @@ When AI feedback is unclear or ambiguous, contributors will benefit from discuss
 When AI feedback is incorrect or not applicable, reach out to the AI reviewer maintainers in the #expensify-open-source Slack channel to help improve the system. This feedback helps refine the reviewers and prevents the same issues from recurring.
 
 ### Keep rule documentation in sync with AI reviewer prompts
-When adding or modifying rules in AI reviewer agent files, the corresponding documentation should be updated. The agent files in `.claude/agents/` are the source of truth for specific rules.
+When adding or modifying rules, the corresponding documentation should be updated. The coding standard files in `.claude/skills/coding-standards/` are the source of truth for code review rules.
 
 ## Reviewer Setup
 
@@ -46,7 +46,7 @@ When adding or modifying rules in AI reviewer agent files, the corresponding doc
 **code-inline-reviewer (Smart Linter)**
 - Reviews source code PRs for specific, predefined violations
 - Creates inline comments on lines that violate rules
-- See `.claude/agents/code-inline-reviewer.md` for current rule definitions
+- See `.claude/skills/coding-standards/` for current rule definitions
 
 **Holistic Reviewer**
 - Provides general code review without predefined rules

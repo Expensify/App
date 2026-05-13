@@ -26,6 +26,9 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
 
     /** The id of reportAction that was last marked as read */
     prevUnreadMarkerReportActionID: string | null;
+
+    /** Whether the network is offline */
+    isOffline: boolean;
 };
 
 /**
@@ -41,6 +44,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     prevSortedVisibleReportActionsObjects,
     prevUnreadMarkerReportActionID,
     scrollingVerticalOffset,
+    isOffline,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
     const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
 
@@ -50,7 +54,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     }
 
     // If the unread marker should be hidden or is not within the visible area, don't show the unread marker.
-    if (shouldHideNewMarker(message)) {
+    if (shouldHideNewMarker(message, isOffline)) {
         return false;
     }
 
@@ -86,3 +90,102 @@ const shouldDisplayNewMarkerOnReportAction = ({
 };
 
 export default shouldDisplayNewMarkerOnReportAction;
+
+type GetUnreadMarkerReportActionParams = {
+    /** The visible report actions to scan */
+    visibleReportActions: OnyxTypes.ReportAction[];
+
+    /** Index of the earliest message received while offline, used to limit the scan range */
+    earliestReceivedOfflineMessageIndex: number | undefined;
+
+    /** User accountID */
+    currentUserAccountID: number;
+
+    /** Map of reportActions saved via usePrev */
+    prevSortedVisibleReportActionsObjects: OnyxTypes.ReportActions;
+
+    /** Time for unreadMarker */
+    unreadMarkerTime: string | undefined;
+
+    /** Current value for vertical offset */
+    scrollingVerticalOffset: number;
+
+    /** The id of reportAction that was last marked as read */
+    prevUnreadMarkerReportActionID: string | null;
+
+    /** Whether the network is offline */
+    isOffline: boolean;
+
+    /** Whether to scan the array from high index to low (e.g. non-inverted FlatList) instead of low to high */
+    isReversed: boolean;
+
+    /** Whether the current user is anonymous — skips the scan entirely */
+    isAnonymousUser?: boolean;
+};
+
+/**
+ * Scans visibleReportActions and returns the [reportActionID, index] tuple for the action
+ * that should display the unread marker, or [null, -1] if none qualifies.
+ */
+const getUnreadMarkerReportAction = ({
+    visibleReportActions,
+    earliestReceivedOfflineMessageIndex,
+    currentUserAccountID,
+    prevSortedVisibleReportActionsObjects,
+    unreadMarkerTime,
+    scrollingVerticalOffset,
+    prevUnreadMarkerReportActionID,
+    isOffline,
+    isReversed,
+    isAnonymousUser = false,
+}: GetUnreadMarkerReportActionParams): [string | null, number] => {
+    if (isAnonymousUser) {
+        return [null, -1];
+    }
+
+    const startIndex = isReversed ? visibleReportActions.length - 1 : (earliestReceivedOfflineMessageIndex ?? 0);
+    const endIndex = isReversed ? (earliestReceivedOfflineMessageIndex ?? 0) : visibleReportActions.length;
+    const step = isReversed ? -1 : 1;
+
+    for (let index = startIndex; isReversed ? index >= endIndex : index < endIndex; index += step) {
+        const reportAction = visibleReportActions.at(index);
+
+        if (!isReversed && reportAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
+            continue;
+        }
+
+        let nextAction: OnyxTypes.ReportAction | undefined;
+        if (isReversed) {
+            nextAction = index > 0 ? visibleReportActions.at(index - 1) : undefined;
+        } else {
+            nextAction = visibleReportActions.at(index + 1);
+            if (nextAction?.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID) {
+                nextAction = visibleReportActions.at(index + 2);
+            }
+        }
+
+        const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
+
+        const shouldShowMarker =
+            reportAction &&
+            shouldDisplayNewMarkerOnReportAction({
+                message: reportAction,
+                nextMessage: nextAction,
+                isEarliestReceivedOfflineMessage,
+                currentUserAccountID,
+                prevSortedVisibleReportActionsObjects,
+                unreadMarkerTime,
+                scrollingVerticalOffset,
+                prevUnreadMarkerReportActionID,
+                isOffline,
+            });
+
+        if (shouldShowMarker) {
+            return [reportAction.reportActionID, index];
+        }
+    }
+
+    return [null, -1];
+};
+
+export {getUnreadMarkerReportAction};

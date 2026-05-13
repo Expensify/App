@@ -1,11 +1,15 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import useFilesValidation from '@hooks/useFilesValidation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
+import AttachmentPicker from './AttachmentPicker';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import ReceiptAlternativeMethods from './ReceiptAlternativeMethods';
@@ -34,6 +38,9 @@ type ReceiptEmptyStateProps = {
 
     /** Whether it's displayed in Wide RHP */
     isDisplayedInWideRHP?: boolean;
+
+    /** Callback to be called when a receipt is selected */
+    setReceiptFile?: (files: FileObject[]) => void;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
@@ -46,12 +53,14 @@ function ReceiptEmptyState({
     style,
     onLoad,
     isDisplayedInWideRHP = false,
+    setReceiptFile = () => {},
 }: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
     const isLoadedRef = useRef(false);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlaceholderPlus', 'Receipt']);
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(setReceiptFile);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = [
@@ -73,42 +82,56 @@ function ReceiptEmptyState({
     }, [onLoad]);
 
     return (
-        <Wrapper
-            accessibilityRole="imagebutton"
-            accessibilityLabel={translate('receipt.upload')}
-            onPress={onPress}
-            disabled={disabled}
-            disabledStyle={styles.cursorDefault}
-            style={containerStyle}
-        >
-            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <View style={styles.pRelative}>
-                        <Icon
-                            fill={theme.border}
-                            src={icons.Receipt}
-                            width={variables.eReceiptEmptyIconWidth}
-                            height={variables.eReceiptEmptyIconWidth}
-                        />
-                        {!isThumbnail && (
-                            <Icon
-                                src={icons.ReceiptPlaceholderPlus}
-                                width={variables.avatarSizeSmall}
-                                height={variables.avatarSizeSmall}
-                                additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
-                            />
-                        )}
+        <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
+            {({openPicker}) => (
+                <Wrapper
+                    accessibilityRole="imagebutton"
+                    accessibilityLabel={translate('receipt.upload')}
+                    onPress={() => {
+                        if (isDisplayedInWideRHP) {
+                            openPicker({
+                                onPicked: validateFiles,
+                            });
+                            return;
+                        }
+                        onPress?.();
+                    }}
+                    disabled={disabled}
+                    disabledStyle={styles.cursorDefault}
+                    style={containerStyle}
+                >
+                    {PDFValidationComponent}
+                    {ErrorModal}
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <View style={styles.pRelative}>
+                                <Icon
+                                    fill={theme.border}
+                                    src={icons.Receipt}
+                                    width={variables.eReceiptEmptyIconWidth}
+                                    height={variables.eReceiptEmptyIconWidth}
+                                />
+                                {!isThumbnail && (
+                                    <Icon
+                                        src={icons.ReceiptPlaceholderPlus}
+                                        width={variables.avatarSizeSmall}
+                                        height={variables.avatarSizeSmall}
+                                        additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
+                                    />
+                                )}
+                            </View>
+                            {!isThumbnail && isDisplayedInWideRHP && (
+                                <>
+                                    <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
+                                    <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
+                                </>
+                            )}
+                        </View>
                     </View>
-                    {!isThumbnail && isDisplayedInWideRHP && (
-                        <>
-                            <Text style={[styles.textHeadline, styles.mt4]}>{translate('receipt.addAReceipt.phrase1')}</Text>
-                            <Text style={[styles.textSupporting, styles.textNormal]}>{translate('receipt.addAReceipt.phrase2')}</Text>
-                        </>
-                    )}
-                </View>
-            </View>
-            {isDisplayedInWideRHP && !disabled && <ReceiptAlternativeMethods />}
-        </Wrapper>
+                    {isDisplayedInWideRHP && !disabled && <ReceiptAlternativeMethods />}
+                </Wrapper>
+            )}
+        </AttachmentPicker>
     );
 }
 

@@ -1,13 +1,12 @@
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
-import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import TaskView from '@components/ReportActionItem/TaskView';
-import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
-import type {ShowContextMenuContextProps} from '@components/ShowContextMenuContext';
+import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
@@ -17,25 +16,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isTaskReport} from '@libs/ReportUtils';
-import {getCurrency} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
+import MoneyReportContentCreated from './MoneyReportContentCreated';
 import ReportActionItemCreated from './ReportActionItemCreated';
 import ReportActionItemSingle from './ReportActionItemSingle';
 
 type ReportActionItemContentCreatedProps = {
-    /** All the data of the report collection */
-    allReports: OnyxCollection<OnyxTypes.Report>;
+    /** The state context value containing the report and action data */
+    contextMenuStateValue: ShowContextMenuStateContextType;
 
-    /**  The context value containing the report and action data, along with the show context menu props */
-    contextValue: ShowContextMenuContextProps;
-
-    /** The parent report */
-    parentReport: OnyxEntry<OnyxTypes.Report>;
+    /** The actions context value containing the show context menu callbacks */
+    contextMenuActionsValue: ShowContextMenuActionsContextType;
 
     /** Report action belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
@@ -51,9 +46,8 @@ type ReportActionItemContentCreatedProps = {
 };
 
 function ReportActionItemContentCreated({
-    contextValue,
-    allReports,
-    parentReport,
+    contextMenuStateValue,
+    contextMenuActionsValue,
     parentReportAction,
     transactionID,
     draftMessage,
@@ -61,11 +55,10 @@ function ReportActionItemContentCreated({
 }: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {report, action, transactionThreadReport} = contextValue;
+    const {report, action, transactionThreadReport} = contextMenuStateValue;
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-
-    const transactionCurrency = getCurrency(transaction);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
     const renderThreadDivider = useMemo(
         () =>
@@ -83,7 +76,7 @@ function ReportActionItemContentCreated({
         [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
     );
 
-    const contextMenuValue = useMemo(() => ({...contextValue, isDisabled: true}), [contextValue]);
+    const disabledStateValue = useMemo(() => ({...contextMenuStateValue, isDisabled: true}), [contextMenuStateValue]);
 
     if (isTransactionThread(parentReportAction)) {
         const isReversedTransaction = isReversedTransactionReportActionsUtils(parentReportAction);
@@ -116,18 +109,19 @@ function ReportActionItemContentCreated({
 
         return (
             <OfflineWithFeedback pendingAction={action?.pendingAction}>
-                <ShowContextMenuContext.Provider value={contextMenuValue}>
-                    <View>
-                        <MoneyRequestView
-                            allReports={allReports}
-                            transactionThreadReport={report}
-                            parentReportID={report?.parentReportID}
-                            expensePolicy={policy}
-                            shouldShowAnimatedBackground
-                        />
-                        {renderThreadDivider}
-                    </View>
-                </ShowContextMenuContext.Provider>
+                <ShowContextMenuStateContext.Provider value={disabledStateValue}>
+                    <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
+                        <View>
+                            <MoneyRequestView
+                                transactionThreadReport={report}
+                                parentReportID={report?.parentReportID}
+                                expensePolicy={policy}
+                                shouldShowAnimatedBackground
+                            />
+                            {renderThreadDivider}
+                        </View>
+                    </ShowContextMenuActionsContext.Provider>
+                </ShowContextMenuStateContext.Provider>
             </OfflineWithFeedback>
         );
     }
@@ -168,39 +162,17 @@ function ReportActionItemContentCreated({
 
     if (isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report)) {
         return (
-            <OfflineWithFeedback pendingAction={action?.pendingAction}>
-                {!isEmptyObject(transactionThreadReport?.reportID) ? (
-                    <>
-                        <MoneyReportView
-                            report={report}
-                            policy={policy}
-                            isCombinedReport
-                            pendingAction={action?.pendingAction}
-                            shouldShowTotal={transaction ? transactionCurrency !== report?.currency : false}
-                            shouldHideThreadDividerLine={false}
-                        />
-                        <ShowContextMenuContext.Provider value={contextMenuValue}>
-                            <View>
-                                <MoneyRequestView
-                                    allReports={allReports}
-                                    transactionThreadReport={transactionThreadReport}
-                                    parentReportID={transactionThreadReport?.parentReportID}
-                                    expensePolicy={policy}
-                                    shouldShowAnimatedBackground={false}
-                                />
-                                {renderThreadDivider}
-                            </View>
-                        </ShowContextMenuContext.Provider>
-                    </>
-                ) : (
-                    <MoneyReportView
-                        report={report}
-                        policy={policy}
-                        pendingAction={action?.pendingAction}
-                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                    />
-                )}
-            </OfflineWithFeedback>
+            <MoneyReportContentCreated
+                report={report}
+                policy={policy}
+                transaction={transaction}
+                transactionThreadReport={transactionThreadReport}
+                action={action}
+                contextMenuActionsValue={contextMenuActionsValue}
+                disabledStateValue={disabledStateValue}
+                shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                threadDivider={renderThreadDivider}
+            />
         );
     }
 
@@ -215,7 +187,8 @@ function ReportActionItemContentCreated({
 export default memo(
     ReportActionItemContentCreated,
     (prevProps, nextProps) =>
-        prevProps.contextValue === nextProps.contextValue &&
+        prevProps.contextMenuStateValue === nextProps.contextMenuStateValue &&
+        prevProps.contextMenuActionsValue === nextProps.contextMenuActionsValue &&
         prevProps.parentReportAction === nextProps.parentReportAction &&
         prevProps.transactionID === nextProps.transactionID &&
         prevProps.draftMessage === nextProps.draftMessage &&

@@ -4,14 +4,15 @@ import CollapsibleSection from '@components/CollapsibleSection';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 
 function LongTermsForm() {
+    const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['Printer']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -60,7 +61,7 @@ function LongTermsForm() {
             title: translate('termsStep.electronicFundsWithdrawal'),
             subTitle: translate('termsStep.longTermsForm.instant'),
             rightText: `${numberFormat(1.5)}%`,
-            subRightText: translate('termsStep.longTermsForm.electronicFundsInstantFeeMin', {amount: convertToDisplayString(25, 'USD')}),
+            subRightText: translate('termsStep.longTermsForm.electronicFundsInstantFeeMin', convertToDisplayString(25, 'USD')),
             details: translate('termsStep.longTermsForm.electronicFundsInstantDetails', numberFormat(1.5), convertToDisplayString(25, 'USD')),
         },
     ];
@@ -92,9 +93,7 @@ function LongTermsForm() {
                 {getLongTermsSections()}
             </CollapsibleSection>
 
-            <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
-                {translate('termsStep.longTermsForm.fdicInsuranceBancorp', {amount: convertToDisplayString(25000000, 'USD')})}
-            </Text>
+            <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>{translate('termsStep.longTermsForm.fdicInsuranceBancorp', convertToDisplayString(25000000, 'USD'))}</Text>
             <Text style={[styles.mb4, styles.textMicroSupporting]}>{translate('termsStep.noOverdraftOrCredit')}</Text>
             <Text style={[styles.mb4, styles.textMicroSupporting]}>{translate('termsStep.longTermsForm.contactExpensifyPayments')}</Text>
             <Text style={[styles.mb6, styles.textMicroSupporting]}>{translate('termsStep.longTermsForm.generalInformation')}</Text>

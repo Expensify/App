@@ -124,7 +124,6 @@ describe('useLoadReportActions', () => {
             const props = {
                 ...baseProps,
                 hasNewerActions: true,
-                reportActionID: 'EXISTING_ACTION_ID',
             };
 
             const {result} = renderHook(() => useLoadReportActions(props));

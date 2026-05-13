@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import ComparePlansModal from './ComparePlansModal';
 import SaveWithExpensifyButton from './SaveWithExpensifyButton';
 import SubscriptionPlanCard from './SubscriptionPlanCard';
@@ -23,11 +24,17 @@ function SubscriptionPlan() {
     const renderTitle = () => {
         return (
             <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}>{translate('subscription.yourPlan.title')}</Text>
+                <Text
+                    style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate('subscription.yourPlan.title')}
+                </Text>
                 <Button
                     small
                     text={translate('subscription.yourPlan.exploreAllPlans')}
                     onPress={() => setIsModalVisible(true)}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EXPLORE_PLANS}
                 />
             </View>
         );

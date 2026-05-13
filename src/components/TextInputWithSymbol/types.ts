@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
+import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
@@ -89,6 +89,12 @@ type BaseTextInputWithSymbolProps = {
 
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
+
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
+
+    /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
+    rightHandSideComponent?: React.ReactNode;
 } & Pick<
     BaseTextInputProps,
     | 'autoFocus'
@@ -104,6 +110,7 @@ type BaseTextInputWithSymbolProps = {
     | 'disabled'
     | 'ref'
     | 'accessibilityLabel'
+    | 'shouldAllowFocusInLandscapeMode'
 >;
 
 type TextInputWithSymbolProps = Omit<BaseTextInputWithSymbolProps, 'onSelectionChange'> & {

@@ -29,7 +29,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
     const {translate} = useLocalize();
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const categoryName = route.params.categoryName;
     const payrollCode = policyCategories?.[categoryName]?.['Payroll Code'];

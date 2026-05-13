@@ -1,9 +1,9 @@
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {SelectedTagOption, TagOption} from '@libs/TagsOptionsListUtils';
-import {getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
+import {getEnabledTags, getTagListSections, getTagVisibility, sortTags} from '@libs/TagsOptionsListUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {PolicyTagLists} from '@src/types/onyx';
+import type {PolicyTagLists, PolicyTags} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
@@ -842,6 +842,116 @@ describe('TagsOptionsListUtils', () => {
                 {isTagRequired: true, shouldShow: true},
                 {isTagRequired: false, shouldShow: true},
             ]);
+        });
+
+        it('should fall back to policy.requiresTag when tag list required is undefined', () => {
+            const policyWithRequiresTag = {...mockPolicy, requiresTag: true};
+            // Intentionally omitting 'required' to simulate backend sync stripping the field
+            const policyTagsWithoutRequired = {
+                tagList1: {
+                    name: 'Department',
+                    tags: {
+                        tag1: {name: 'Engineering', enabled: true},
+                        tag2: {name: 'Sales', enabled: true},
+                    },
+                    orderWeight: 0,
+                },
+            } as unknown as PolicyTagLists;
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: policyWithRequiresTag,
+                policyTags: policyTagsWithoutRequired,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([{isTagRequired: true, shouldShow: true}]);
+        });
+
+        it('should not mark tags as required when policy.requiresTag is false and tag list required is undefined', () => {
+            const policyWithoutRequiresTag = {...mockPolicy, requiresTag: false};
+            // Intentionally omitting 'required' to simulate backend sync stripping the field
+            const policyTagsWithoutRequired = {
+                tagList1: {
+                    name: 'Department',
+                    tags: {
+                        tag1: {name: 'Engineering', enabled: true},
+                    },
+                    orderWeight: 0,
+                },
+            } as unknown as PolicyTagLists;
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: policyWithoutRequiresTag,
+                policyTags: policyTagsWithoutRequired,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([{isTagRequired: false, shouldShow: true}]);
+        });
+
+        it('should mark tags as required when policy.requiresTag is true even if tag list required is false', () => {
+            const policyWithRequiresTag = {...mockPolicy, requiresTag: true};
+            const policyTagsExplicitFalse: PolicyTagLists = {
+                tagList1: {
+                    name: 'Department',
+                    required: false,
+                    tags: {
+                        tag1: {name: 'Engineering', enabled: true},
+                    },
+                    orderWeight: 0,
+                },
+            };
+
+            const result = getTagVisibility({
+                shouldShowTags: true,
+                policy: policyWithRequiresTag,
+                policyTags: policyTagsExplicitFalse,
+                transaction: mockTransaction,
+            });
+
+            expect(result).toEqual([{isTagRequired: true, shouldShow: true}]);
+        });
+    });
+
+    describe('getEnabledTags', () => {
+        it('returns only enabled tags when no parent filter present', () => {
+            const tags: PolicyTags = {
+                a: {name: 'A', enabled: true},
+                b: {name: 'B', enabled: false},
+                c: {name: 'C', enabled: true},
+            };
+
+            const result = getEnabledTags(tags, 'A', 1);
+
+            expect(result.map((t) => t.name).sort()).toEqual(['A', 'C']);
+        });
+
+        it('filters tags by parentTagsFilter regex', () => {
+            const tags: PolicyTags = {
+                north: {name: 'North', enabled: true, parentTagsFilter: '^California$'},
+                south: {name: 'South', enabled: true, parentTagsFilter: '^Texas$'},
+                general: {name: 'General', enabled: true},
+                disabled: {name: 'Disabled', enabled: false},
+            };
+
+            const result = getEnabledTags(tags, 'California:North', 1);
+            const names = result.map((t) => t.name);
+
+            expect(names).toEqual(expect.arrayContaining(['North', 'General']));
+            expect(names).not.toContain('South');
+            expect(names).not.toContain('Disabled');
+        });
+
+        it('does not include tags whose filter does not match parent', () => {
+            const tags: PolicyTags = {
+                withFilter: {name: 'WithFilter', enabled: true, parentTagsFilter: '^California$'},
+            };
+
+            const result = getEnabledTags(tags, 'Texas:City', 1);
+
+            expect(result).toEqual([]);
         });
     });
 });

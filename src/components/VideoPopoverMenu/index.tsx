@@ -2,7 +2,7 @@ import React, {useRef} from 'react';
 import type {View} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
-import {useVideoPopoverMenuContext} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
+import {useVideoPopoverMenuState} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import type {AnchorPosition} from '@styles/index';
 
 type VideoPopoverMenuProps = {
@@ -24,7 +24,7 @@ function VideoPopoverMenu({
         vertical: 0,
     },
 }: VideoPopoverMenuProps) {
-    const {menuItems} = useVideoPopoverMenuContext();
+    const {menuItems} = useVideoPopoverMenuState();
     const videoPlayerMenuRef = useRef<View | HTMLDivElement>(null);
 
     return (

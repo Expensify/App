@@ -1,5 +1,5 @@
-import type {MultifactorAuthenticationScenarioParameters} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationAPIParams} from '@components/MultifactorAuthentication/config/types';
 
-type TroubleshootMultifactorAuthenticationParams = MultifactorAuthenticationScenarioParameters['BIOMETRICS-TEST'];
+type TroubleshootMultifactorAuthenticationParams = MultifactorAuthenticationAPIParams<'BIOMETRICS-TEST'>;
 
 export default TroubleshootMultifactorAuthenticationParams;

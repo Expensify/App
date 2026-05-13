@@ -6,10 +6,13 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -18,18 +21,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {openDomainInitialPage} from '@libs/actions/Domain';
+import {hasDomainAdminsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isAdminSelector} from '@src/selectors/Domain';
 import type IconAsset from '@src/types/utils/IconAsset';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainTopLevelScreens = keyof typeof DOMAIN_TO_RHP;
 
@@ -46,26 +51,35 @@ type DomainMenuItem = {
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserShield']);
+    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserShield', 'User']);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
     const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
-
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params?.domainAccountID;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
+    const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
-    const [isAdmin] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`, {canBeMissing: false});
+    useDocumentTitle(domainName ?? '');
+    const isAdmin = isAdminSelector(currentUserAccountID)(domain);
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
     const domainMenuItems: DomainMenuItem[] = [
+        {
+            translationKey: 'domain.domainMembers',
+            icon: icons.User,
+            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID)))),
+            screenName: SCREENS.DOMAIN.MEMBERS,
+            brickRoadIndicator: hasDomainMembersErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        },
         {
             translationKey: 'domain.domainAdmins',
             icon: icons.UserShield,
             action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID)))),
             screenName: SCREENS.DOMAIN.ADMINS,
+            brickRoadIndicator: hasDomainAdminsErrors(domainErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             translationKey: 'domain.saml',
@@ -88,22 +102,24 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     useNetwork({onReconnect: fetchDomainData});
 
+    useConfirmReadyToOpenApp();
+
+    const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
+
     useEffect(() => {
-        confirmReadyToOpenApp();
-    }, []);
+        if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {
+            return;
+        }
+
+        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+    }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     return (
         <ScreenWrapper
             testID="DomainInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
-            bottomContent={
-                !shouldDisplayLHB && (
-                    <NavigationTabBar
-                        selectedTab={NAVIGATION_TABS.WORKSPACES}
-                        shouldShowFloatingButtons={false}
-                    />
-                )
-            }
+            bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.WORKSPACES} />}
+            bottomContentStyle={styles.overflowVisible}
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.dismissModal()}
@@ -119,7 +135,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexColumn]}>
+                <ScrollView contentContainerStyle={styles.flexColumn}>
                     <View style={[styles.pb4, styles.mh3, styles.mt3]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
@@ -133,7 +149,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 icon={item.icon}
                                 onPress={item.action}
                                 brickRoadIndicator={item.brickRoadIndicator}
-                                wrapperStyle={styles.sectionMenuItem}
+                                wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                 highlighted={!!item?.highlighted}
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 badgeText={item.badgeText}
@@ -142,7 +158,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                         ))}
                     </View>
                 </ScrollView>
-                {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

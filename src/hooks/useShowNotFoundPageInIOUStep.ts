@@ -16,15 +16,15 @@ import useOnyx from './useOnyx';
  * - Split expense: Transaction doesn't exist
  * - Money request: Action is not a money request OR user cannot edit it
  */
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, reportActionID: string | undefined, report: OnyxInputOrEntry<Report>, transaction: OnyxEntry<Transaction>) => {
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -45,14 +45,11 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const [reportAction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
         {
-            canEvict: false,
             selector: getReportActionSelector,
-            canBeMissing: true,
         },
         [getReportActionSelector],
     );
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     let shouldShowNotFoundPage = false;
     const canEditSplitBill = isSplitBill && reportAction && session?.accountID === reportAction.actorAccountID && areRequiredFieldsEmpty(transaction, iouReport);
     const canEditSplitExpense = isSplitExpense && !!transaction;
@@ -63,7 +60,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         } else if (isSplitExpense) {
             shouldShowNotFoundPage = !canEditSplitExpense;
         } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, false, iouReport, policy, transaction);
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, false, iouReport, policy);
         }
     }
 

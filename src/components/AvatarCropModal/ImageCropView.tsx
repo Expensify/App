@@ -74,7 +74,7 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
     return (
         <GestureDetector gesture={panGesture}>
             <Animated.View
-                ref={(el) => ControlSelection.blockElement(el as HTMLElement | null)}
+                ref={(el: View | null) => ControlSelection.blockElement(el as HTMLElement | null)}
                 style={[containerStyle, styles.imageCropContainer]}
             >
                 <Animated.Image

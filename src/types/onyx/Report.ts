@@ -78,6 +78,9 @@ type ReportNextStep = {
         /** The ETA date time */
         dateTime?: string;
     };
+
+    /** The fill color of the icon */
+    iconFill?: string;
 };
 
 /** Model of report data */
@@ -278,7 +281,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The report's next step */
         nextStep?: ReportNextStep;
     },
-    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport' | 'reportName'
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport' | 'reportName' | 'export'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */

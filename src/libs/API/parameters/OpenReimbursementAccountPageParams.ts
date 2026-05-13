@@ -7,7 +7,9 @@ type OpenReimbursementAccountPageParams = {
     stepToOpen: ReimbursementAccountStep;
     subStep: ReimbursementAccountSubStep;
     localCurrentStep: ReimbursementAccountStep;
-    policyID: string;
+    policyID?: string;
+    bankAccountID?: number;
+    shouldPreserveDraft?: boolean;
 };
 
 export default OpenReimbursementAccountPageParams;

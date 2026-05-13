@@ -34,10 +34,10 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION, {canBeMissing: true});
-    const [validateActionCode] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
+    const [validateActionCode] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const navigateBackTo = route?.params?.backTo;
     const loginData = pendingContactAction?.contactMethod ? loginList?.[pendingContactAction?.contactMethod] : undefined;
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');

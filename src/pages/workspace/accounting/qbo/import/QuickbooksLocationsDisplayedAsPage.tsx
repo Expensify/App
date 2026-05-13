@@ -1,5 +1,4 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -8,6 +7,7 @@ import {updateQuickbooksOnlineSyncLocations} from '@libs/actions/connections/Qui
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
+import {canImportLocationsAsTags} from '@pages/workspace/accounting/qbo/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
@@ -23,14 +23,12 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
+    const canUseTagsForLocations = canImportLocationsAsTags(qboConfig);
 
     const data: CardListItem[] = useMemo(() => {
         const items: CardListItem[] = [];
 
-        if (
-            qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY &&
-            qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_ACCOUNT_TYPE.CREDIT_CARD
-        ) {
+        if (canUseTagsForLocations) {
             items.push({
                 value: CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
                 text: translate('workspace.common.tags'),
@@ -47,7 +45,7 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
         });
 
         return items;
-    }, [qboConfig?.syncLocations, qboConfig?.reimbursableExpensesExportDestination, qboConfig?.nonReimbursableExpensesExportDestination, translate]);
+    }, [canUseTagsForLocations, qboConfig?.syncLocations, translate]);
 
     const selectDisplayedAs = useCallback(
         (row: CardListItem) => {
@@ -72,7 +70,6 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksLocationsDisplayedAsPage"
             data={data}
-            listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID))}
             onSelectRow={(selection) => selectDisplayedAs(selection as CardListItem)}
             shouldSingleExecuteRowSelect

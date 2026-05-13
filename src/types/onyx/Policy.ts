@@ -1,5 +1,6 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {ValueOf} from 'type-fest';
+import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type * as OnyxTypes from '.';
@@ -110,6 +111,9 @@ type CompanyAddress = {
     /** Street address */
     addressStreet: string;
 
+    /** Street address line 2 */
+    addressStreet2?: string;
+
     /** City */
     city: string;
 
@@ -184,12 +188,21 @@ type UberReceiptPartner = {
     errorFields?: OnyxCommon.ErrorFields;
 };
 
+/** Receipt partner data keyed by partner name */
+type ReceiptPartnerDataByName = {
+    /** uber partner */
+    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
+};
+
 /** Policy Receipt partners */
 type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Whether receipt partners are enabled */
         enabled?: boolean;
-    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+    } & {
+        /** Per receipt partner integration data */
+        [K in keyof ReceiptPartnerDataByName]?: OnyxCommon.OnyxValueWithOfflineFeedback<ReceiptPartnerDataByName[K]>;
+    }
 >;
 
 /** Policy disabled fields */
@@ -509,6 +522,12 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
      * transactions upon import
      */
     autoCreateVendor: boolean;
+
+    /** Default vendor ID for travel expenses */
+    travelInvoicingVendorID?: string;
+
+    /** Account ID that receives the exported travel payable */
+    travelInvoicingPayableAccountID?: string;
 
     /** TODO: Will be handled in another issue */
     hasChosenAutoSyncOption: boolean;
@@ -1064,6 +1083,12 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
 
+        /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
+        travelInvoicingPayableAccountID?: string;
+
+        /** Whether Travel Invoicing JEs post as individual entries per expense or a single grouped entry */
+        travelInvoicingJournalPostingPreference?: NetSuiteJournalPostingPreferences;
+
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
         provincialTaxPostingAccount?: string;
 
@@ -1273,6 +1298,9 @@ type SageIntacctExportConfig = {
 
     /** Accounting method for Sage Intacct */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** The payable account to use for Expensify Travel expenses when exporting to Sage Intacct */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /**
@@ -1334,6 +1362,24 @@ type SageIntacctConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         errorFields?: OnyxCommon.ErrorFields;
     },
     SageIntacctOfflineStateKeys | keyof SageIntacctSyncConfig | keyof SageIntacctAutoSyncConfig | keyof SageIntacctExportConfig
+>;
+
+/** Gusto connection data */
+type GustoConnectionData = Record<string, never>;
+
+/** Gusto connection config */
+type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Gusto approval mode */
+        approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
+
+        /** Workspace member who acts as the final approver */
+        finalApprover: string | null;
+
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'approvalMode' | 'finalApprover'
 >;
 
 /**
@@ -1463,6 +1509,12 @@ type Connections = {
 
     /** QuickBooks Desktop integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: Connection<QBDConnectionData, QBDConnectionConfig>;
+
+    /** Certinia integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: Connection<Record<string, never>, Record<string, never>>;
+
+    /** Gusto integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1512,6 +1564,9 @@ type ACHAccount = {
 
     /** Bank account state */
     state?: string;
+
+    /** Emails of users who have had the bank account shared with them */
+    sharees?: string[];
 };
 
 /** Prohibited expense types */
@@ -1530,6 +1585,12 @@ type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the policy prohibits adult entertainment expenses */
     adultEntertainment?: boolean;
+
+    /** Whether the policy prohibits gift card purchases */
+    giftCard?: boolean;
+
+    /** Whether the policy prohibits handwritten receipt expenses */
+    handwrittenReceipt?: boolean;
 }>;
 
 /** Day of the month to schedule submission  */
@@ -1691,7 +1752,7 @@ type CodingRuleFilter = {
     left: string;
 
     /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
-    operator: string;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
     /** The right side of the filter condition (e.g., 'Snoop') */
     right: string;
@@ -1744,6 +1805,12 @@ type CodingRule = {
 
     /** When this rule was created */
     created?: string;
+
+    /** The type of action that's pending  */
+    pendingAction?: OnyxCommon.PendingAction;
+
+    /** Error objects keyed by field name containing errors keyed by microtime */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Model of policy data */
@@ -1775,6 +1842,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The URL for the policy avatar */
         avatarURL?: string;
+
+        /** The client ID set by an Approved! Accountant for tracking purposes */
+        clientID?: string;
 
         /** Error objects keyed by field name containing errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
@@ -1857,7 +1927,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoApproval?: OnyxCommon.OnyxValueWithOfflineFeedback<
             {
                 /**
-                 * The maximum report total allowed to trigger auto approval.
+                 * The maximum per-expense amount allowed to trigger auto approval.
                  */
                 limit?: number;
                 /**
@@ -1873,9 +1943,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Original file name which is used for the policy avatar */
         originalFileName?: string;
-
-        /** Alert message for the policy */
-        alertMessage?: string;
 
         /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
         primaryLoginsInvited?: Record<string, string>;
@@ -1961,6 +2028,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** A set of custom rules defined with natural language */
         customRules?: string;
 
+        /** URL of the workspace rules PDF document stored in a private S3 bucket */
+        rulesDocumentURL?: string;
+
         /** ReportID of the admins room for this workspace - This should be a string, we are keeping the number for backward compatibility */
         chatReportIDAdmins?: string | number;
 
@@ -2011,6 +2081,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Company Cards feature is enabled */
         areCompanyCardsEnabled?: boolean;
+
+        /** Whether the HR feature is enabled */
+        isHREnabled?: boolean;
 
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
@@ -2090,7 +2163,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */
@@ -2109,11 +2182,15 @@ type PolicyConnectionSyncProgress = {
 
     /** Timestamp of the connection */
     timestamp: string;
+
+    /** Optional result payload shown after a completed sync */
+    result?: GustoSyncResult;
 };
 
 export default Policy;
 
 export type {
+    AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
     Unit,
@@ -2175,4 +2252,5 @@ export type {
     MccGroup,
     Subrate,
     ProhibitedExpenses,
+    NetSuiteConnectionData,
 };

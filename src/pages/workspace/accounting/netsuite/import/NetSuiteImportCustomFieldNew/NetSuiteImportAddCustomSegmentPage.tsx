@@ -7,17 +7,18 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import NetSuiteImportAddCustomSegmentContent from './NetSuiteImportAddCustomSegmentContent';
 
-function NetSuiteImportAddCustomSegmentPage({policy}: WithPolicyConnectionsProps) {
+function NetSuiteImportAddCustomSegmentPage({policy, route}: WithPolicyConnectionsProps) {
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM_DRAFT);
     const isLoading = isLoadingOnyxValue(draftValuesMetadata);
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomSegmentPage'}} />;
     }
 
     return (
         <NetSuiteImportAddCustomSegmentContent
             policy={policy}
+            policyIDParam={route.params.policyID}
             draftValues={draftValues}
         />
     );

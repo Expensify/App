@@ -1,8 +1,6 @@
-import {crash, getCrashlytics} from '@react-native-firebase/crashlytics';
-
-const crashlytics = getCrashlytics();
+import * as Sentry from '@sentry/react-native';
 
 const testCrash = () => {
-    crash(crashlytics);
+    Sentry.nativeCrash();
 };
 export default testCrash;

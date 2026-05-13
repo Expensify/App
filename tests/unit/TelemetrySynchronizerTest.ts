@@ -18,9 +18,10 @@ jest.mock('@libs/PolicyUtils', () => ({
 }));
 
 jest.mock('@libs/telemetry/sendMemoryContext', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
+    initializeMemoryTracking: jest.fn(),
+    cleanupMemoryTracking: jest.fn(),
 }));
 
 Onyx.init({keys: ONYXKEYS});
@@ -66,7 +67,7 @@ describe('TelemetrySynchronizer', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, mockActivePolicyID);
+            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, mockActivePolicyID);
             expect(Sentry.setContext).toHaveBeenCalledWith(CONST.TELEMETRY.CONTEXT_POLICIES, {
                 activePolicyID: mockActivePolicyID,
                 activePolicies: expect.arrayContaining(['123', '456']),
@@ -171,7 +172,7 @@ describe('TelemetrySynchronizer', () => {
             await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, mockTryNewDot);
             await waitForBatchedUpdatesWithAct();
 
-            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT, 'cohort_A');
+            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.NUDGE_MIGRATION_COHORT, 'cohort_A');
         });
 
         it('should not call Sentry.setTag when cohort is missing', async () => {
@@ -227,7 +228,7 @@ describe('TelemetrySynchronizer', () => {
                 await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, 'policy123');
                 await waitForBatchedUpdatesWithAct();
 
-                expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, 'policy123');
+                expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, 'policy123');
                 expect(Sentry.setContext).toHaveBeenCalled();
             });
 
@@ -280,7 +281,7 @@ describe('TelemetrySynchronizer', () => {
                 await Onyx.set(ONYXKEYS.SESSION, mockSession);
                 await waitForBatchedUpdatesWithAct();
 
-                expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, 'policy123');
+                expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, 'policy123');
                 expect(Sentry.setContext).toHaveBeenCalled();
             });
 
@@ -350,7 +351,7 @@ describe('TelemetrySynchronizer', () => {
                 await Onyx.set(ONYXKEYS.COLLECTION.POLICY, mockPolicies);
                 await waitForBatchedUpdatesWithAct();
 
-                expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, 'policy123');
+                expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, 'policy123');
                 expect(Sentry.setContext).toHaveBeenCalled();
             });
 
@@ -388,7 +389,7 @@ describe('TelemetrySynchronizer', () => {
                 await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, mockTryNewDot);
                 await waitForBatchedUpdatesWithAct();
 
-                expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_NUDGE_MIGRATION_COHORT, 'cohort_B');
+                expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.NUDGE_MIGRATION_COHORT, 'cohort_B');
             });
         });
     });
@@ -416,7 +417,7 @@ describe('TelemetrySynchronizer', () => {
             await Onyx.set(ONYXKEYS.COLLECTION.POLICY, mockPolicies);
             await waitForBatchedUpdatesWithAct();
 
-            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, mockActivePolicyID);
+            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, mockActivePolicyID);
             expect(Sentry.setContext).toHaveBeenCalledWith(CONST.TELEMETRY.CONTEXT_POLICIES, {
                 activePolicyID: mockActivePolicyID,
                 activePolicies: ['789'],
@@ -442,7 +443,7 @@ describe('TelemetrySynchronizer', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAG_ACTIVE_POLICY, '123');
+            expect(Sentry.setTag).toHaveBeenCalledWith(CONST.TELEMETRY.TAGS.ACTIVE_POLICY, '123');
             expect(Sentry.setContext).toHaveBeenCalledWith(
                 CONST.TELEMETRY.CONTEXT_POLICIES,
                 expect.objectContaining({

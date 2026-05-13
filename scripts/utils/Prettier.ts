@@ -13,6 +13,11 @@ class Prettier {
     private static instance: Prettier;
 
     /**
+     * Promise that resolves when initialization is complete.
+     */
+    private static initPromise: Promise<void> | null = null;
+
+    /**
      * Config loaded from .prettierrc.js
      */
     private config: Options | null = null;
@@ -21,9 +26,16 @@ class Prettier {
      * Format a single file with prettier.
      */
     public static async format(filePath: string): Promise<void> {
+        // Wait for any in-progress initialization to complete
+        if (Prettier.initPromise) {
+            await Prettier.initPromise;
+        }
+
+        // Initialize if not already done
         if (!Prettier.instance) {
             Prettier.instance = new Prettier();
-            await Prettier.instance.loadConfig(filePath);
+            Prettier.initPromise = Prettier.instance.loadConfig(filePath);
+            await Prettier.initPromise;
         }
 
         if (!Prettier.instance.config) {

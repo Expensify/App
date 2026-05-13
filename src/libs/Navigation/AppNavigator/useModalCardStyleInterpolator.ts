@@ -3,7 +3,7 @@ import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@rea
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePanel from '@hooks/useSidePanel';
+import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
 import variables from '@styles/variables';
 
@@ -22,7 +22,7 @@ type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => St
 const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
-    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanel();
+    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanelState();
 
     const modalCardStyleInterpolator: ModalCardStyleInterpolator = ({
         props: {

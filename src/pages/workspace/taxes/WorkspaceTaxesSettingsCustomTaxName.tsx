@@ -54,7 +54,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
     );
 
     const submit = ({name}: WorkspaceTaxCustomName) => {
-        setPolicyCustomTaxName(policyID, name);
+        setPolicyCustomTaxName(policyID, name, policy?.taxRates?.name);
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 

@@ -1,3 +1,4 @@
+import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,8 +9,8 @@ jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 const OnyxUpdatesImplementation = jest.requireActual<typeof OnyxUpdatesImport>('@libs/actions/OnyxUpdates');
 const {doesClientNeedToBeUpdated, saveUpdateInformation, INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates: applyHTTPSOnyxUpdates} = OnyxUpdatesImplementation;
 
-type OnyxUpdatesMock = typeof OnyxUpdatesImport & {
-    apply: jest.Mock<Promise<Response | void>, [OnyxUpdatesFromServer]>;
+type OnyxUpdatesMock<TKey extends OnyxKey> = typeof OnyxUpdatesImport & {
+    apply: jest.Mock<Promise<Response<TKey> | void>, [OnyxUpdatesFromServer<TKey>]>;
 };
 
 let lastUpdateIDAppliedToClient: number | undefined = 0;
@@ -19,7 +20,7 @@ Onyx.connectWithoutView({
     callback: (val) => (lastUpdateIDAppliedToClient = val),
 });
 
-const apply = jest.fn(({lastUpdateID, request, response}: OnyxUpdatesFromServer): Promise<void | Response> | undefined => {
+const apply = jest.fn(<TKey extends OnyxKey>({lastUpdateID, request, response}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined => {
     if (lastUpdateID && (lastUpdateIDAppliedToClient === undefined || Number(lastUpdateID) > lastUpdateIDAppliedToClient)) {
         Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Number(lastUpdateID));
     }

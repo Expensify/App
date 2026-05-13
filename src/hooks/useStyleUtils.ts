@@ -1,14 +1,13 @@
-import {useContext} from 'react';
-import ThemeStylesContext from '@styles/theme/context/ThemeStylesContext';
+import {useThemeStylesActions} from '@components/ThemeStylesContextProvider';
 
 function useStyleUtils() {
-    const themeStylesContext = useContext(ThemeStylesContext);
+    const themeStylesActions = useThemeStylesActions();
 
-    if (!themeStylesContext) {
-        throw new Error('ThemeStylesContext was null! Are you sure that you wrapped the component under a <ThemeStylesProvider>?');
+    if (!themeStylesActions) {
+        throw new Error('ThemeStylesActionsContext was null! Are you sure that you wrapped the component under a <ThemeStylesProvider>?');
     }
 
-    return themeStylesContext.StyleUtils;
+    return themeStylesActions.StyleUtils;
 }
 
 export default useStyleUtils;

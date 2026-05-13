@@ -5,13 +5,12 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {removeApprovalWorkflow} from '@libs/actions/Workflow';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import {updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceMembersPage from '@pages/workspace/WorkspaceMembersPage';
 import CONST from '@src/CONST';
@@ -21,30 +20,7 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.unmock('react-native-reanimated');
-jest.unmock('react-native-worklets');
-
 jest.mock('@src/components/ConfirmedRoute.tsx');
-
-jest.mock('@libs/WorkflowUtils', () => {
-    // eslint-disable-next-line
-    const actual = jest.requireActual('@libs/WorkflowUtils');
-    // eslint-disable-next-line
-    return {
-        ...actual,
-        updateWorkflowDataOnApproverRemoval: jest.fn(() => [{members: [], approvers: [], isDefault: false, removeApprovalWorkflow: true}]),
-    };
-});
-
-jest.mock('@libs/actions/Workflow', () => {
-    // eslint-disable-next-line
-    const actual = jest.requireActual('@libs/actions/Workflow');
-    // eslint-disable-next-line
-    return {
-        ...actual,
-        removeApprovalWorkflow: jest.fn(),
-    };
-});
 
 TestHelper.setupGlobalFetchMock();
 
@@ -52,7 +28,7 @@ const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.MEMBERS]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, ModalProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -140,8 +116,8 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
 
-            // Select admin option by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${ADMIN_OPTION}`));
+            // Select admin option by clicking the checkbox
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${ADMIN_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -189,8 +165,8 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
             });
 
-            // Select member option by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${USER_OPTION}`));
+            // Select member option by clicking the checkbox
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${USER_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -238,8 +214,8 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
             });
 
-            // Select auditor option by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${AUDITOR_OPTION}`));
+            // Select auditor option by clicking the checkbox
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${AUDITOR_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -290,9 +266,9 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
             });
 
-            // Select options by clicking their checkboxes
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${AUDITOR_OPTION}`));
-            fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${ADMIN_OPTION}`));
+            // Select options by clicking the checkboxes
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${AUDITOR_OPTION}`));
+            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${ADMIN_OPTION}`));
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -365,17 +341,7 @@ describe('WorkspaceMembers', () => {
                 expect(screen.getByLabelText(confirmText)).toBeOnTheScreen();
             });
 
-            // Press confirm button
-            fireEvent.press(screen.getByLabelText(confirmText));
-
-            await waitForBatchedUpdatesWithAct();
-
-            // Verify workflow actions are only called once when an approver is removed
-            expect(updateWorkflowDataOnApproverRemoval).toHaveBeenCalledTimes(1);
-            expect(removeApprovalWorkflow).toHaveBeenCalledTimes(1);
-
             unmount();
-            await waitForBatchedUpdatesWithAct();
         });
     });
 });

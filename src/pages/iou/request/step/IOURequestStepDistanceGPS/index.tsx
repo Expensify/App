@@ -21,7 +21,7 @@ function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
 
     return (
         <View style={[styles.ph5, styles.pv10, styles.alignItemsCenter, styles.justifyContentCenter, styles.h100]}>
-            <View style={[styles.gpsWebIllustrationContainer]}>
+            <View style={[styles.toddInCarIllustrationContainer]}>
                 <ImageSVG
                     src={ToddInCar}
                     contentFit="contain"
@@ -36,15 +36,16 @@ function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
                 text={translate('gps.desktop.button')}
                 onPress={() => Linking.openURL(CONST.EXPENSIFY_MOBILE_URL)}
                 success
+                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_OPEN_MOBILE_BUTTON}
             />
         </View>
     );
 }
 
 const IOURequestStepDistanceGPSWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceGPS);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceGPSWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceGPSWithCurrentUserPersonalDetails, true);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceGPSWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceGPSWithWritableReportOrNotFound);
 
 export default IOURequestStepDistanceGPSWithFullTransactionOrNotFound;

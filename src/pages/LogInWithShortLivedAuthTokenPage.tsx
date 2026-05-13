@@ -6,6 +6,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {setAccountError, signInWithShortLivedAuthToken, signInWithSupportAuthToken} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,8 +18,8 @@ import SessionExpiredPage from './ErrorPage/SessionExpiredPage';
 type LogInWithShortLivedAuthTokenPageProps = PlatformStackScreenProps<PublicScreensParamList, typeof SCREENS.TRANSITION_BETWEEN_APPS>;
 
 function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenPageProps) {
-    const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error} = route?.params ?? {};
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const {shortLivedAuthToken = '', shortLivedToken = '', authTokenType, exitTo, error, isSAML = false} = route?.params ?? {};
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     useEffect(() => {
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
@@ -34,7 +35,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();
-                Navigation.navigate(ROUTES.INBOX);
+                Navigation.navigate(ROUTES.HOME);
             });
             return;
         }
@@ -42,7 +43,16 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         // Try to authenticate using the shortLivedToken if we're not already trying to load the accounts
         if (token && !account?.isLoading) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
-            signInWithShortLivedAuthToken(token);
+            signInWithShortLivedAuthToken(token, isSAML);
+            // For SAML sign-ins, navigate to HOME explicitly since the SAML flow
+            // doesn't use exitTo deep link routing. For non-SAML flows, let the
+            // navigation system handle exitTo routing naturally via setUpPoliciesAndNavigate.
+            if (isSAML) {
+                Navigation.isNavigationReady().then(() => {
+                    // We must replace to remove /transition route from history
+                    Navigation.navigate(ROUTES.HOME, {forceReplace: true});
+                });
+            }
             return;
         }
 
@@ -63,7 +73,11 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
     }, [route]);
 
     if (account?.isLoading) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'LogInWithShortLivedAuthTokenPage',
+            isAccountLoading: account.isLoading,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return <SessionExpiredPage />;

@@ -91,6 +91,7 @@ autocompleteKey "key"
       / assignee
       / expenseType
       / withdrawalType
+      / withdrawalStatus
       / type
       / status
       / cardID
@@ -105,6 +106,7 @@ autocompleteKey "key"
       / submitted
       / approved
       / paid
+      / exportedTo
       / exported
       / withdrawn
       / posted

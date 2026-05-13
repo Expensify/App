@@ -1,26 +1,32 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import variables from '@styles/variables';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
-import type {Report} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import Button from './Button';
 import ExpensifyWordmark from './ExpensifyWordmark';
 import Text from './Text';
 
 type AnonymousReportFooterProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<Report>;
-
-    /** Whether the small screen size layout should be used */
-    isSmallSizeLayout?: boolean;
+    /** The reportID of the report currently being looked at */
+    reportID: string | undefined;
 };
 
-function AnonymousReportFooter({isSmallSizeLayout = false, report}: AnonymousReportFooterProps) {
+function AnonymousReportFooter({reportID}: AnonymousReportFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isInSidePanel = useIsInSidePanel();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWithLHBWidth) < variables.anonymousReportFooterBreakpoint || isInSidePanel;
 
     return (
         <View style={[styles.anonymousRoomFooter, styles.anonymousRoomFooterFlexDirection(isSmallSizeLayout)]}>

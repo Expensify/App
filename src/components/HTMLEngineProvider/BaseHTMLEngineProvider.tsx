@@ -148,6 +148,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             'user-details': HTMLElementModel.fromCustomModel({tagName: 'user-details', contentModel: HTMLContentModel.textual}),
             'copy-text': HTMLElementModel.fromCustomModel({tagName: 'copy-text', contentModel: HTMLContentModel.textual}),
             'concierge-link': HTMLElementModel.fromCustomModel({tagName: 'concierge-link', contentModel: HTMLContentModel.textual}),
+            'transaction-history-link': HTMLElementModel.fromCustomModel({tagName: 'transaction-history-link', contentModel: HTMLContentModel.textual}),
             'account-manager-link': HTMLElementModel.fromCustomModel({tagName: 'account-manager-link', contentModel: HTMLContentModel.textual}),
             'next-step': HTMLElementModel.fromCustomModel({
                 tagName: 'next-step',
@@ -176,11 +177,30 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                     return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
+            'bullet-list': HTMLElementModel.fromCustomModel({
+                tagName: 'bullet-list',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: {marginVertical: 12},
+            }),
+            'bullet-item': HTMLElementModel.fromCustomModel({
+                tagName: 'bullet-item',
+                contentModel: HTMLContentModel.block,
+            }),
+            ul: HTMLElementModel.fromCustomModel({
+                tagName: 'ul',
+                contentModel: HTMLContentModel.block,
+                mixedUAStyles: styles.mv3,
+            }),
+            'sparkles-icon': HTMLElementModel.fromCustomModel({
+                tagName: 'sparkles-icon',
+                contentModel: HTMLContentModel.mixed,
+            }),
         }),
         [
             styles.taskTitleMenuItem,
             styles.formError,
             styles.mb0,
+            styles.mv3,
             styles.colorMuted,
             styles.mutedNormalTextLabel,
             styles.productTrainingTooltipText,
@@ -221,7 +241,6 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 recognizeSelfClosing: true,
             }}
             domVisitors={{
-                // eslint-disable-next-line no-param-reassign
                 onText: (text) => {
                     // Avoid injecting LTR controls into whitespace-only nodes.
                     // Doing so turns otherwise ignorable whitespace into visible content in some renderers (Android),

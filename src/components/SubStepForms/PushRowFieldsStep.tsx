@@ -39,9 +39,9 @@ function PushRowFieldsStep<TFormID extends keyof OnyxFormValuesMapping>({formID,
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            return getFieldRequiredErrors(values, pushRowFieldsIDs);
+            return getFieldRequiredErrors(values, pushRowFieldsIDs, translate);
         },
-        [pushRowFieldsIDs],
+        [pushRowFieldsIDs, translate],
     );
 
     return (

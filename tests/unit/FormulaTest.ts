@@ -1,10 +1,6 @@
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need CurrencyUtils to mock
-import * as CurrencyUtils from '@libs/CurrencyUtils';
 import type {FormulaContext} from '@libs/Formula';
 import {compute, hasCircularReferences, parse, resolveReportFieldValue} from '@libs/Formula';
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportUtils to mock
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, ReportActions, Transaction} from '@src/types/onyx';
@@ -18,14 +14,8 @@ jest.mock('@libs/ReportUtils', () => ({
     getReportTransactions: jest.fn(),
 }));
 
-jest.mock('@libs/CurrencyUtils', () => ({
-    ...jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils'),
-    isValidCurrencyCode: jest.fn(),
-}));
-
 const mockReportActionsUtils = ReportActionsUtils as jest.Mocked<typeof ReportActionsUtils>;
 const mockReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
-const mockCurrencyUtils = CurrencyUtils as jest.Mocked<typeof CurrencyUtils>;
 
 describe('CustomFormula', () => {
     describe('parse()', () => {
@@ -95,8 +85,6 @@ describe('CustomFormula', () => {
 
         beforeEach(() => {
             jest.clearAllMocks();
-
-            mockCurrencyUtils.isValidCurrencyCode.mockImplementation((code: string) => ['USD', 'EUR', 'JPY', 'NPR'].includes(code));
 
             const mockReportActions = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -797,7 +785,7 @@ describe('CustomFormula', () => {
             expect(endResult).toBe('2025-01-15');
         });
 
-        test('should skip partial transactions (zero amount)', () => {
+        test('should skip partial transactions (partial merchant)', () => {
             const mockTransactions = [
                 {
                     transactionID: 'trans1',
@@ -808,8 +796,8 @@ describe('CustomFormula', () => {
                 {
                     transactionID: 'trans2',
                     created: '2025-01-08T16:45:00Z', // Older but partial
-                    amount: 0, // Zero amount = partial
-                    merchant: 'Beta Corp.',
+                    amount: 0,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                     iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                 },
                 {

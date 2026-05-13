@@ -1,22 +1,28 @@
-import React, {useRef} from 'react';
-import type {RefObject} from 'react';
+import React, {useContext, useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, Keyboard, View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import getPlatform from '@libs/getPlatform';
+import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {FormInputErrors, FormProps, InputRefs} from './types';
+import FormContext from './FormContext';
+import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
 
 type FormWrapperProps = ChildrenProps &
     FormProps & {
@@ -64,6 +70,8 @@ type FormWrapperProps = ChildrenProps &
 
         /** Prevents the submit button from triggering blur on mouse down. */
         shouldPreventDefaultFocusOnPressSubmit?: boolean;
+
+        ref?: ForwardedRef<FormWrapperRef>;
     };
 
 function FormWrapper({
@@ -96,12 +104,18 @@ function FormWrapper({
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
     forwardedFSClass,
+    sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
+    ref,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
+    const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
+    const errorAnnouncementKey = getErrorAnnouncementKey();
+    const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
 
     const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
 
@@ -132,8 +146,17 @@ function FormWrapper({
             );
         }
 
+        Accessibility.moveAccessibilityFocus(focusInput?.getNativeRef?.());
+
         // Focus the input after scrolling, as on the Web it gives a slightly better visual result
         focusInput?.focus?.();
+    };
+
+    const scrollToEnd = () => {
+        // We need to wait for the keyboard animation to complete before scrolling to the end
+        setTimeout(() => {
+            formRef.current?.scrollToEnd({animated: true});
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
@@ -159,6 +182,10 @@ function FormWrapper({
         style: submitButtonStyles,
     });
 
+    useImperativeHandle(ref, () => ({
+        scrollToEnd,
+    }));
+
     const SubmitButton = isSubmitButtonVisible && (
         <FormAlertWithSubmitButton
             buttonText={submitButtonText}
@@ -183,6 +210,7 @@ function FormWrapper({
             shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
             shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
+            sentryLabel={sentryLabel}
         />
     );
 
@@ -195,7 +223,6 @@ function FormWrapper({
                 if (!shouldScrollToEnd) {
                     return;
                 }
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     requestAnimationFrame(() => {
                         formRef.current?.scrollToEnd({animated: true});
@@ -204,6 +231,16 @@ function FormWrapper({
             }}
         >
             {children}
+            {isWeb && !!fallbackAnnouncementMessage && errorAnnouncementKey > 1 && (
+                <Text
+                    key={`fallback-announce-${errorAnnouncementKey}`}
+                    style={styles.hiddenElementOutsideOfWindow}
+                    role={CONST.ROLE.ALERT}
+                    accessibilityLiveRegion="assertive"
+                >
+                    {fallbackAnnouncementMessage}
+                </Text>
+            )}
             {!shouldSubmitButtonStickToBottom && SubmitButton}
         </FormElement>
     );

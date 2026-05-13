@@ -38,27 +38,22 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`,
         {
             selector: getIOUActionForTransactionIDSelector,
-            canBeMissing: true,
         },
         [getIOUActionForTransactionIDSelector],
     );
 
-    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`, {
-        canBeMissing: true,
-    });
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`);
 
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringTransactionReportID}`, {
-        canBeMissing: false,
-    });
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nonEmptyStringTransactionReportID}`);
 
     const transactionReport = isInSingleTransactionReport ? parentReport : childReport;
 
     const threadMessages = useMemo(
         () => ({
-            count: (iouReportAction && iouReportAction?.childVisibleActionCount) ?? 0,
+            count: iouReportAction?.childVisibleActionCount ?? 0,
             isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
         }),
-        [iouReportAction, transactionReport],
+        [iouReportAction?.childVisibleActionCount, transactionReport],
     );
 
     const StyleUtils = useStyleUtils();

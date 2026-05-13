@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -18,11 +19,11 @@ import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
+import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 type ConfirmationStepProps = {
@@ -34,18 +35,15 @@ type ConfirmationStepProps = {
 
     /** Start from step index */
     startStepIndex: number;
-
-    /** Back to route to pass to confirm magic code page */
-    backTo?: Route;
 };
 
-function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const defaultFundID = useDefaultFundID(policyID);
     const {isBetaEnabled} = usePermissions();
     const data = issueNewCard?.data;
@@ -53,6 +51,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     const hasApprovalError = !!policy?.errorFields?.approvalMode;
     const isAddApprovalEnabled = policy?.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL && !hasApprovalError;
     const shouldDisableSubmitButton = !isAddApprovalEnabled && data?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART;
+    const personalDetails = usePersonalDetails();
+
+    const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === data?.assigneeEmail);
+    const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
 
     const submitButton = useRef<View>(null);
 
@@ -68,6 +70,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
         }
 
         if (isSuccessful) {
+            Navigation.closeRHPFlow();
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID), {forceReplace: true});
             clearIssueNewCardFlow(policyID);
             return;
@@ -80,7 +83,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
             // Redirect to the magic code page when there is an error with the user's validateCode authentication
             if (errorMessage.toLowerCase().includes('request a new code')) {
                 clearIssueNewCardError(policyID);
-                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path));
             }
         }
     }, [issueNewCard, isSuccessful, policyID]);
@@ -93,12 +96,12 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
         if (AccountUtils.hasValidateCodeExtendedAccess(account)) {
             // Attempt to issue directly without magic code when user has extended access
             // If this fails, the effect above will redirect to the magic code page
-            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', data);
+            issueExpensifyCard(defaultFundID, policyID, isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK) ? '' : CONST.COUNTRY.US, '', assigneeTimeZone, data);
         } else {
             // Navigate to magic code page
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path));
         }
-    }, [policyID, data, account, defaultFundID, isBetaEnabled, backTo]);
+    }, [policyID, data, account, defaultFundID, isBetaEnabled, assigneeTimeZone]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
@@ -111,8 +114,14 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     };
 
     const translationForLimitType = getTranslationKeyForLimitType(data?.limitType);
+
     const isPhysicalCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
     const cardReadyTranslationKey = isPhysicalCard ? 'workspace.card.issueNewCard.willBeReadyToShip' : 'workspace.card.issueNewCard.willBeReadyToUse';
+
+    const expirationDateTitle =
+        data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
+
+    const shouldShowExpirationDate = !isPhysicalCard;
 
     return (
         <InteractiveStepWrapper
@@ -150,7 +159,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
                     description={translate('workspace.card.issueNewCard.limit')}
                     title={convertToShortDisplayString(data?.limit, data?.currency)}
                     shouldShowRightIcon
-                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT)}
+                    onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.limitType')}
@@ -158,6 +167,14 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE)}
                 />
+                {!!expirationDateTitle && shouldShowExpirationDate && (
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.card.issueNewCard.expirationDate')}
+                        title={expirationDateTitle}
+                        shouldShowRightIcon
+                        onPress={() => editStep(CONST.EXPENSIFY_CARD.STEP.EXPIRY_OPTIONS)}
+                    />
+                )}
                 <MenuItemWithTopDescription
                     description={translate('workspace.card.issueNewCard.cardName')}
                     title={data?.cardTitle}

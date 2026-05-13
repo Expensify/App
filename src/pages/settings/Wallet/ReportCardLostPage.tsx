@@ -1,13 +1,13 @@
-import {filterPersonalCards} from '@selectors/Card';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import RadioButtons from '@components/RadioButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SingleOptionSelector from '@components/SingleOptionSelector';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,9 +57,9 @@ function ReportCardLostPage({
 
     const {translate} = useLocalize();
 
-    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, {canBeMissing: true});
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
+    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+    const cardList = useNonPersonalCardList();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
     const [reason, setReason] = useState<Option>();
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
@@ -103,9 +103,12 @@ function ReportCardLostPage({
         Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE.getRoute(cardID, reason?.key ?? OPTIONS_KEYS.DAMAGED));
     };
 
-    const handleOptionSelect = (option: Option) => {
-        setReason(option);
-        setShouldShowReasonError(false);
+    const handleOptionSelect = (value: string) => {
+        const selectedOption = OPTIONS.find((o) => o.key === value);
+        if (selectedOption) {
+            setReason(selectedOption);
+            setShouldShowReasonError(false);
+        }
     };
 
     const handleBackButtonPress = () => {
@@ -118,6 +121,11 @@ function ReportCardLostPage({
     };
 
     const isDamaged = reason?.key === OPTIONS_KEYS.DAMAGED;
+
+    const radioItems = OPTIONS.map((option) => ({
+        label: translate(option.label),
+        value: option.key,
+    }));
 
     return (
         <ScreenWrapper
@@ -159,12 +167,12 @@ function ReportCardLostPage({
                     </>
                 ) : (
                     <>
-                        <View style={styles.mh5}>
-                            <Text style={[styles.textHeadline, styles.mr5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
-                            <SingleOptionSelector
-                                options={OPTIONS}
-                                selectedOptionKey={reason?.key}
-                                onSelectOption={handleOptionSelect}
+                        <View>
+                            <Text style={[styles.textHeadline, styles.mh5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
+                            <RadioButtons
+                                items={radioItems}
+                                value={reason?.key}
+                                onSelect={handleOptionSelect}
                             />
                         </View>
                         <View style={styles.mh5}>

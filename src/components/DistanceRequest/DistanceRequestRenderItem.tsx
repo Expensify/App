@@ -7,8 +7,9 @@ import {isWaypointNullIsland} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type DistanceRequestProps = {
+type DistanceRequestProps = WithSentryLabel & {
     /** The waypoints for the distance expense */
     waypoints?: WaypointCollection;
 
@@ -31,7 +32,7 @@ type DistanceRequestProps = {
     disabled?: boolean;
 };
 
-function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false}: DistanceRequestProps) {
+function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false, sentryLabel}: DistanceRequestProps) {
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled', 'DotIndicator', 'DragHandles']);
     const {translate} = useLocalize();
@@ -73,6 +74,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
             disabled={disabled}
             errorText={errorText}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            sentryLabel={sentryLabel}
         />
     );
 }

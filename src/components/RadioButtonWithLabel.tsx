@@ -25,6 +25,9 @@ type RadioButtonWithLabelProps = ForwardedFSClassProps & {
     /** React element to display for the label */
     labelElement?: ReactNode;
 
+    /** Specifies the accessibility label for the radio button. Falls back to label if not provided. */
+    accessibilityLabel?: string;
+
     /** Should the input be styled for errors */
     hasError?: boolean;
 
@@ -47,6 +50,7 @@ function RadioButtonWithLabel({
     labelElement,
     style,
     label = '',
+    accessibilityLabel,
     hasError = false,
     errorText = '',
     isChecked,
@@ -67,15 +71,16 @@ function RadioButtonWithLabel({
                 <RadioButton
                     isChecked={isChecked}
                     onPress={onPress}
-                    accessibilityLabel={label}
+                    accessibilityLabel={accessibilityLabel ?? label}
                     hasError={hasError}
                 />
                 <PressableWithFeedback
+                    sentryLabel="RadioButtonWithLabel"
                     tabIndex={-1}
                     accessible={false}
                     onPress={onPress}
                     style={[styles.flexRow, styles.flexWrap, styles.flexShrink1, styles.alignItemsCenter]}
-                    wrapperStyle={[styles.flex1, styles.ml3, styles.pr2, wrapperStyle]}
+                    wrapperStyle={[styles.flex1, styles.ml2, styles.pr2, wrapperStyle]}
                     // disable hover style when disabled
                     hoverDimmingValue={0.8}
                     pressDimmingValue={0.5}
@@ -83,7 +88,7 @@ function RadioButtonWithLabel({
                 >
                     {!!label && (
                         <Text
-                            style={[styles.ml1]}
+                            style={[styles.mlHalf]}
                             fsClass={forwardedFSClass}
                         >
                             {label}

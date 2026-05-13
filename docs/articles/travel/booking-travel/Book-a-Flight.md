@@ -11,7 +11,7 @@ Book flights easily with Expensify Travel. This guide walks you through finding 
 
 ## Where to find Expensify Travel
 
-Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 
 If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
@@ -65,7 +65,7 @@ Yes! The receipt is SmartScanned and added to an expense report once the flight 
 
 Yes — but it depends on your fare and the airline’s policy. If changes are made through support, a $25 booking change fee applies.
 To modify or cancel a booking:
-1. Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
+1. Tap the **➕ Create** button at the bottom of your screen, then choose **Book travel**.
 2. In the window that opens, click the **Trips** tab.
 3. Find your trip and click **Modify or Cancel**
 

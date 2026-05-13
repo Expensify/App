@@ -1,6 +1,8 @@
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {Report} from '@src/types/onyx';
 
 /**
  * Callback type for reporting the current playback status.
@@ -39,17 +41,7 @@ type VideoElementData = {
     reportID: string | undefined;
 };
 
-/**
- * Playback-related context values available throughout the app.
- */
-type PlaybackContextValues = {
-    /**
-     * Updates the currently tracked video URL and associated report ID.
-     * @param url The new video URL.
-     * @param reportID The new report ID.
-     */
-    updateCurrentURLAndReportID: (url: string | undefined, reportID: string | undefined) => void;
-
+type PlaybackStateContextValues = {
     /**
      * The URL of the video currently being played, or null if none.
      */
@@ -69,6 +61,38 @@ type PlaybackContextValues = {
      * The shared video element container, if one exists.
      */
     sharedElement: View | HTMLDivElement | null;
+
+    /**
+     * Array of currently mounted Video Player instances
+     */
+    mountedVideoPlayersRef: RefObject<string[]>;
+
+    /**
+     * Status of the currently used Video Player
+     */
+    playerStatus: RefObject<VideoPlayerStatus>;
+
+    /**
+     * A counter that increments to signal all non-shared (donor) players to re-register their refs.
+     * This is used when a player transitions from non-shared to shared mode, so the actual donor
+     * (e.g. the chat player) can reclaim the context refs from the stale non-shared player.
+     */
+    shareVersion: number;
+};
+
+/**
+ * Playback-related context actions values available throughout the app.
+ */
+type PlaybackActionsContextValues = {
+    /**
+     * Updates the currently tracked video URL and associated report.
+     * `report` and `reportID` are separate params because `report` comes from Onyx and may be undefined or lack a
+     * `reportID` field, while `reportID` is always available from route params or component props.
+     * @param url The new video URL.
+     * @param report The Onyx report object (may be undefined).
+     * @param reportID The report ID from route params or props.
+     */
+    updateCurrentURLAndReportID: (url: string | undefined, report: OnyxEntry<Report>, reportID: string | undefined) => void;
 
     /**
      * Updates shared video player elements across different parts of the UI.
@@ -94,20 +118,17 @@ type PlaybackContextValues = {
     setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
 
     /**
-     * Array of currently mounted Video Player instances
-     */
-    mountedVideoPlayersRef: RefObject<string[]>;
-
-    /**
-     * Status of the currently used Video Player
-     */
-    playerStatus: RefObject<VideoPlayerStatus>;
-
-    /**
      * Updates current videoPlayer status
      * @param newStatus New videoPlayer status
      */
     updatePlayerStatus: (newStatus: VideoPlayerStatus) => void;
+
+    /**
+     * Requests all non-shared (donor) video player instances to re-register their refs.
+     * Should be called when a player transitions from non-shared to shared mode, so the real
+     * donor can reclaim the context refs that were temporarily taken by the non-shared instance.
+     */
+    requestDonorReRegistration: () => void;
 };
 
 /**
@@ -164,17 +185,23 @@ type PlaybackContextVideoRefs = {
 };
 
 /**
- * Combined playback context with values and video control helpers.
+ * Combined playback state context with values and video control helpers.
  */
-type PlaybackContext = PlaybackContextValues & {
+type PlaybackStateContext = PlaybackStateContextValues & {
+    currentVideoPlayerRef: PlaybackContextVideoRefs['playerRef'];
+    currentVideoViewRef: PlaybackContextVideoRefs['viewRef'];
+};
+
+/**
+ * Combined playback actions context with values and video control helpers.
+ */
+type PlaybackActionsContext = PlaybackActionsContextValues & {
     resetVideoPlayerData: PlaybackContextVideoRefs['resetPlayerData'];
     playVideo: PlaybackContextVideoRefs['play'];
     pauseVideo: PlaybackContextVideoRefs['pause'];
     replayVideo: PlaybackContextVideoRefs['replay'];
     stopVideo: PlaybackContextVideoRefs['stop'];
     checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'];
-    currentVideoPlayerRef: PlaybackContextVideoRefs['playerRef'];
-    currentVideoViewRef: PlaybackContextVideoRefs['viewRef'];
 };
 
-export type {PlaybackContextVideoRefs, StopVideo, PlaybackContextValues, PlaybackContext, OriginalParent};
+export type {PlaybackContextVideoRefs, StopVideo, PlaybackStateContextValues, PlaybackActionsContextValues, PlaybackStateContext, PlaybackActionsContext, OriginalParent};

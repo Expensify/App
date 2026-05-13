@@ -10,5 +10,5 @@ type MemoryInfo = {
     platform: string;
 };
 
-// eslint-disable-next-line import/prefer-default-export
+// eslint-disable-next-line import/prefer-default-export -- Single type export is intentional; more types may be added in the future
 export type {MemoryInfo};

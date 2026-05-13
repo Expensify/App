@@ -15,16 +15,17 @@ type ChangeExpensifyLoginLinkProps = {
 function ChangeExpensifyLoginLink({onPress}: ChangeExpensifyLoginLinkProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
 
     return (
         <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-            {!!credentials?.login && <Text style={styles.mr1}>{translate('loginForm.notYou', {user: formatPhoneNumber(credentials.login)})}</Text>}
+            {!!credentials?.login && <Text style={styles.mr1}>{translate('loginForm.notYou', formatPhoneNumber(credentials.login))}</Text>}
             <PressableWithFeedback
                 style={[styles.link]}
                 onPress={onPress}
                 role={CONST.ROLE.LINK}
                 accessibilityLabel={translate('common.goBack')}
+                sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.GO_BACK}
             >
                 <Text style={[styles.link]}>{translate('common.goBack')}.</Text>
             </PressableWithFeedback>

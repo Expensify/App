@@ -20,7 +20,7 @@ import ROUTES from '@src/ROUTES';
 function SearchFiltersWithdrawalTypePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.withdrawalType);
 
     const listData: Array<ListItem<SearchWithdrawalType>> = useMemo(() => {
@@ -63,6 +63,7 @@ function SearchFiltersWithdrawalTypePage() {
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     shouldSingleExecuteRowSelect
+                    style={{listItemWrapperStyle: styles.optionRowCompact}}
                 />
             </View>
             <FixedFooter style={styles.mtAuto}>

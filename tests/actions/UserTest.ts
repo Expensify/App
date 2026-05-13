@@ -1,10 +1,11 @@
-/* eslint-disable no-restricted-syntax */
 import Onyx from 'react-native-onyx';
 import type {OnyxMergeInput} from 'react-native-onyx';
 import * as API from '@libs/API';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import CONST from '@src/CONST';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {NewLogin} from '@src/types/onyx';
 import * as UserActions from '../../src/libs/actions/User';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -205,7 +206,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the optimisticData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
             const optimisticData = onyxData.optimisticData ?? [];
@@ -233,7 +234,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the successData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {successData?: Array<{key: string; value: unknown}>}];
             const successData = onyxData.successData ?? [];
@@ -258,7 +259,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the failureData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
@@ -279,19 +280,19 @@ describe('actions/User', () => {
             const validateCode = '123456';
 
             // Mock API.write to apply optimisticData
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             (mockAPI.write as jest.Mock).mockImplementation(
                 (
                     command: unknown,
                     params: unknown,
                     options?: {
-                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: OnyxKey; value: OnyxMergeInput<OnyxKey>}>;
                     },
                 ) => {
                     if (options?.optimisticData) {
                         for (const update of options.optimisticData) {
                             if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                                Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+                                Onyx.merge(update.key, update.value);
                             }
                         }
                     }
@@ -373,7 +374,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the optimisticData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
             const optimisticData = onyxData.optimisticData ?? [];
@@ -428,7 +429,6 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the successData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {successData?: Array<{key: string; value: unknown}>}];
             const successData = onyxData.successData ?? [];
@@ -466,7 +466,7 @@ describe('actions/User', () => {
             await waitForBatchedUpdates();
 
             // Then verify the failureData structure
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const calls = (mockAPI.write as jest.Mock).mock.calls;
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
@@ -506,19 +506,19 @@ describe('actions/User', () => {
             const contactMethod = 'test@example.com';
 
             // Mock API.write to apply optimisticData
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             (mockAPI.write as jest.Mock).mockImplementation(
                 (
                     command: unknown,
                     params: unknown,
                     options?: {
-                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: OnyxKey; value: OnyxMergeInput<OnyxKey>}>;
                     },
                 ) => {
                     if (options?.optimisticData) {
                         for (const update of options.optimisticData) {
                             if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                                Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+                                Onyx.merge(update.key, update.value);
                             }
                         }
                     }
@@ -575,6 +575,362 @@ describe('actions/User', () => {
                 contactMethod,
                 isLoading: true,
                 errorFields: {},
+            });
+        });
+    });
+
+    describe('openMultifactorAuthenticationRevokePage', () => {
+        it('should call API.read with the correct command', () => {
+            // When the function is called
+            UserActions.openMultifactorAuthenticationRevokePage();
+
+            // Then it should issue a read API call with the correct command
+            expect(mockAPI.read).toHaveBeenCalledWith(READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE, null);
+        });
+    });
+
+    describe('lockAccount', () => {
+        const currentUserAccountID = 999;
+        it('should execute with explicit accountID ', async () => {
+            const accountID = 123456;
+            UserActions.lockAccount(currentUserAccountID, accountID, undefined, undefined);
+
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(
+                SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT,
+                {accountID},
+                expect.objectContaining({
+                    optimisticData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    successData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                }),
+            );
+        });
+
+        it('should execute without accountID (uses current user)', async () => {
+            UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, {accountID: currentUserAccountID}, expect.any(Object));
+        });
+
+        it('should pass domainAccountID and domainName as params when provided', async () => {
+            const accountID = 100;
+            const domainAccountID = 200;
+            const domainName = 'expensify.com';
+
+            UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, {accountID, domainAccountID, domainName}, expect.any(Object));
+        });
+
+        describe('when locking current user (no accountID or matching currentUserAccountID)', () => {
+            it('should include correct ACCOUNT optimistic, success, and failure data', async () => {
+                UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
+                const [, , onyxData] = calls.at(0) as [
+                    unknown,
+                    unknown,
+                    {optimisticData?: Array<{key: string; value: unknown}>; successData?: Array<{key: string; value: unknown}>; failureData?: Array<{key: string; value: unknown}>},
+                ];
+
+                const optimisticAccountUpdate = (onyxData.optimisticData ?? []).find((update) => update.key === ONYXKEYS.ACCOUNT);
+                expect(optimisticAccountUpdate).toEqual({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACCOUNT,
+                    value: {
+                        isLoading: true,
+                        lockAccount: {errors: null},
+                    },
+                });
+
+                const successAccountUpdate = (onyxData.successData ?? []).find((update) => update.key === ONYXKEYS.ACCOUNT);
+                expect(successAccountUpdate).toEqual({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.ACCOUNT,
+                    value: {
+                        isLoading: false,
+                        lockAccount: {errors: null},
+                    },
+                });
+
+                const failureAccountUpdate = (onyxData.failureData ?? []).find((update) => update.key === ONYXKEYS.ACCOUNT);
+                expect(failureAccountUpdate).toEqual(
+                    expect.objectContaining({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.ACCOUNT,
+                        value: expect.objectContaining({
+                            isLoading: false,
+                            errors: expect.any(Object) as Record<string, string>,
+                        }),
+                    }),
+                );
+            });
+
+            it('should NOT include domain-related onyx data', async () => {
+                UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
+                const [, , onyxData] = calls.at(0) as [
+                    unknown,
+                    unknown,
+                    {optimisticData?: Array<{key: string; value: unknown}>; successData?: Array<{key: string; value: unknown}>; failureData?: Array<{key: string; value: unknown}>},
+                ];
+
+                const allUpdates = [...(onyxData.optimisticData ?? []), ...(onyxData.successData ?? []), ...(onyxData.failureData ?? [])];
+                const domainUpdates = allUpdates.filter(
+                    (update) =>
+                        update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN) ||
+                        update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS) ||
+                        update.key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_ERRORS),
+                );
+
+                expect(domainUpdates).toHaveLength(0);
+            });
+        });
+
+        describe('when locking another user via domain (accountID + domainAccountID)', () => {
+            const accountID = 100;
+            const domainAccountID = 200;
+            const domainName = 'expensify.com';
+            const userLockKey = `${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`;
+
+            it('should include correct domain optimistic, success, and failure data', async () => {
+                UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
+                await waitForBatchedUpdates();
+
+                const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
+                const [, , onyxData] = calls.at(0) as [
+                    unknown,
+                    unknown,
+                    {optimisticData?: Array<{key: string; value: unknown}>; successData?: Array<{key: string; value: unknown}>; failureData?: Array<{key: string; value: unknown}>},
+                ];
+                const optimisticData = onyxData.optimisticData ?? [];
+                const failureData = onyxData.failureData ?? [];
+                const successData = onyxData.successData ?? [];
+
+                // Optimistic: sets lock flag to true
+                expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                    value: {[userLockKey]: true},
+                });
+
+                // Optimistic: sets pending action to UPDATE
+                expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`)).toEqual({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                    value: {member: {[accountID]: {lockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+                });
+
+                // Optimistic: clears errors
+                expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`)).toEqual({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                    value: {memberErrors: {[accountID]: {lockAccountErrors: null}}},
+                });
+
+                // Failure: reverts lock flag to false
+                expect(failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                    value: {[userLockKey]: false},
+                });
+
+                // Failure: clears pending actions
+                expect(failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`)).toEqual({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                    value: {member: {[accountID]: {lockAccount: null}}},
+                });
+
+                // Failure: sets lock account errors
+                expect(failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`)).toEqual(
+                    expect.objectContaining({
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                        value: {memberErrors: {[accountID]: {lockAccountErrors: expect.any(Object) as Record<string, string>}}},
+                    }),
+                );
+
+                // Success: clears pending actions
+                expect(successData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`)).toEqual({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                    value: {member: {[accountID]: {lockAccount: null}}},
+                });
+            });
+
+            it('should NOT include ACCOUNT data when locking a different user', async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: 999, email: 'admin@expensify.com'});
+                await waitForBatchedUpdates();
+
+                UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
+                await waitForBatchedUpdates();
+
+                const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
+                const [, , onyxData] = calls.at(0) as [
+                    unknown,
+                    unknown,
+                    {optimisticData?: Array<{key: string; value: unknown}>; successData?: Array<{key: string; value: unknown}>; failureData?: Array<{key: string; value: unknown}>},
+                ];
+
+                const allUpdates = [...(onyxData.optimisticData ?? []), ...(onyxData.successData ?? []), ...(onyxData.failureData ?? [])];
+                const accountUpdates = allUpdates.filter((update) => update.key === ONYXKEYS.ACCOUNT);
+
+                expect(accountUpdates).toHaveLength(0);
+            });
+        });
+    });
+
+    describe('requestUnlockAccount', () => {
+        it('should call API.write with REQUEST_UNLOCK_ACCOUNT command and explicit accountID', async () => {
+            const accountID = 123456;
+            UserActions.requestUnlockAccount(accountID);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID});
+        });
+    });
+
+    describe('respondToProactiveAppReview', () => {
+        const TEST_USER_ACCOUNT_ID = 42;
+        const TEST_USER_EMAIL = 'user@example.com';
+        const TEST_CONCIERGE_REPORT_ID = '999';
+
+        it('should call RESPOND_TO_PROACTIVE_APP_REVIEW API with the given response', async () => {
+            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, expect.objectContaining({response: 'positive'}), expect.anything());
+        });
+
+        it('should call RESPOND_TO_PROACTIVE_APP_REVIEW API with skip response', async () => {
+            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, expect.objectContaining({response: 'skip'}), expect.anything());
+        });
+
+        it('should include optimisticReportActionID when message and conciergeChatReportID are provided for non-skip response', async () => {
+            UserActions.respondToProactiveAppReview('positive', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, 'Great app!', TEST_CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW,
+                expect.objectContaining({
+                    response: 'positive',
+                    optimisticReportActionID: expect.any(String) as string,
+                }),
+                expect.anything(),
+            );
+        });
+
+        it('should NOT include optimisticReportActionID when response is skip even with message', async () => {
+            UserActions.respondToProactiveAppReview('skip', undefined, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined, 'Some message', TEST_CONCIERGE_REPORT_ID);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW,
+                expect.not.objectContaining({optimisticReportActionID: expect.any(String) as string}),
+                expect.anything(),
+            );
+        });
+
+        it('should optimistically update NVP_APP_REVIEW with the response', async () => {
+            const currentReview = {response: 'positive' as const, lastPrompt: '2024-01-01 00:00:00.000'};
+            await Onyx.merge(ONYXKEYS.NVP_APP_REVIEW, currentReview);
+            await waitForBatchedUpdates();
+
+            UserActions.respondToProactiveAppReview('negative', currentReview, TEST_USER_EMAIL, TEST_USER_ACCOUNT_ID, undefined);
+            await waitForBatchedUpdates();
+
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW,
+                expect.objectContaining({response: 'negative'}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.NVP_APP_REVIEW,
+                            value: expect.objectContaining({response: 'negative'}),
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: ONYXKEYS.NVP_APP_REVIEW,
+                            value: expect.objectContaining({response: 'positive'}),
+                        }),
+                    ]),
+                }),
+            );
+        });
+    });
+
+    describe('revokeDevice', () => {
+        it('should include correct optimistic, success, and failure data', async () => {
+            // Given a device to revoke
+            const partnerID = CONST.PARTNER_ID.IPHONE;
+            const partnerUserID = 'device_123';
+            const loginKey = `${partnerID}_${partnerUserID}`;
+            const login = {partnerID, partnerUserID} as NewLogin;
+
+            // When revokeDevice is called
+            UserActions.revokeDevice(login);
+            await waitForBatchedUpdates();
+
+            // Then API.write should be called with correct command and parameters
+            const calls = (mockAPI.write as jest.Mock).mock.calls;
+            const [command, parameters, onyxData] = calls.at(-1) as [
+                string,
+                Record<string, unknown>,
+                {optimisticData?: Array<{key: string; value: unknown}>; successData?: Array<{key: string; value: unknown}>; failureData?: Array<{key: string; value: unknown}>},
+            ];
+
+            expect(command).toBe(WRITE_COMMANDS.REVOKE_DEVICE);
+            expect(parameters).toEqual({partnerID, partnerUserID});
+
+            const optimisticData = onyxData.optimisticData ?? [];
+            const successData = onyxData.successData ?? [];
+            const failureData = onyxData.failureData ?? [];
+
+            // And it should include correct optimistic, success, and failure data structures
+            // Optimistic: sets pendingAction to DELETE
+            expect(optimisticData.find((update) => update.key === ONYXKEYS.LOGINS)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.LOGINS,
+                value: {
+                    [loginKey]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+            });
+
+            // Success: clears the login
+            expect(successData.find((update) => update.key === ONYXKEYS.LOGINS)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.LOGINS,
+                value: {
+                    [loginKey]: null,
+                },
+            });
+
+            // Failure: reverts pendingAction and sets error
+            expect(failureData.find((update) => update.key === ONYXKEYS.LOGINS)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.LOGINS,
+                value: {
+                    [loginKey]: {
+                        errorFields: {
+                            revoke: expect.any(Object) as Record<string, string>,
+                        },
+                        pendingAction: null,
+                    },
+                },
             });
         });
     });

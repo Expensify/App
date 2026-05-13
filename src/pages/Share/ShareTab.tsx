@@ -1,17 +1,19 @@
 import type {Ref} from 'react';
-import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
@@ -45,51 +47,62 @@ function ShareTab({ref}: ShareTabProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const sortedActions = useSortedActions();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const personalDetails = usePersonalDetails();
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {options, areOptionsInitialized} = useOptionsList();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const {options: listOptions, isLoading} = useFilteredOptions({
+        enabled: didScreenTransitionEnd,
+        betas: betas ?? [],
+        isSearching: !!debouncedTextInputValue.trim(),
+    });
+    const areOptionsInitialized = !isLoading;
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
-    const searchOptions = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return defaultListOptions;
-        }
-        return getSearchOptions({
-            options,
-            draftComments,
-            nvpDismissedProductTraining,
-            betas: betas ?? [],
-            isUsedInChatFinder: false,
-            includeReadOnly: false,
-            searchQuery: textInputValue,
-            maxResults: 20,
-            includeUserToInvite: true,
-            countryCode,
-            loginList,
-            currentUserAccountID,
-            currentUserEmail,
-        });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
+    const searchOptions = areOptionsInitialized
+        ? getSearchOptions({
+              options: listOptions ?? {reports: [], personalDetails: []},
+              draftComments,
+              betas: betas ?? [],
+              isUsedInChatFinder: false,
+              includeReadOnly: false,
+              searchQuery: textInputValue,
+              maxResults: 20,
+              includeUserToInvite: true,
+              countryCode,
+              loginList,
+              visibleReportActionsData,
+              currentUserAccountID,
+              currentUserEmail,
+              policyCollection: allPolicies,
+              personalDetails,
+              sortedActions,
+              conciergeReportID,
+          })
+        : defaultListOptions;
 
-    const recentReportsOptions = useMemo(() => {
-        if (textInputValue.trim() === '') {
-            return optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
-        }
+    let recentReportsOptions: OptionData[];
+    if (textInputValue.trim() === '') {
+        recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20);
+    } else {
         const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
@@ -99,27 +112,25 @@ function ShareTab({ref}: ShareTabProps) {
         if (searchOptions.userToInvite) {
             reportOptions.push(searchOptions.userToInvite);
         }
-        return reportOptions.slice(0, 20);
-    }, [searchOptions, textInputValue]);
+        recentReportsOptions = reportOptions.slice(0, 20);
+    }
 
+    const trimmedDebouncedTextInputValue = debouncedTextInputValue.trim();
     useEffect(() => {
-        searchInServer(debouncedTextInputValue.trim());
-    }, [debouncedTextInputValue]);
+        searchInServer(trimmedDebouncedTextInputValue);
+    }, [trimmedDebouncedTextInputValue]);
 
-    const styledRecentReports = useMemo(() => {
-        return recentReportsOptions.map((item, index) => ({
-            ...item,
-            pressableStyle: styles.br2,
-            text: StringUtils.lineBreaksToSpaces(item.text),
-            wrapperStyle: [styles.pr3, styles.pl3],
-            keyForList: `${item.reportID}-${index}`,
-        }));
-    }, [recentReportsOptions, styles]);
+    const styledRecentReports = recentReportsOptions.map((item, index) => ({
+        ...item,
+        pressableStyle: styles.br2,
+        text: StringUtils.lineBreaksToSpaces(item.text),
+        wrapperStyle: [styles.pr3, styles.pl3],
+        keyForList: `${item.reportID}-${index}`,
+        isSelected: item.reportID === selectedReportID,
+        canShowSeveralIndicators: true,
+    }));
 
-    const header = useMemo(() => {
-        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
-        return headerMessage;
-    }, [textInputValue, styledRecentReports.length, countryCode]);
+    const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
@@ -129,36 +140,32 @@ function ShareTab({ref}: ShareTabProps) {
             const optimisticReport = getOptimisticChatReport(accountID, currentUserAccountID);
             reportID = optimisticReport.reportID;
 
+            setSelectedReportID(reportID);
             saveReportDraft(reportID, optimisticReport).then(() => {
                 Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
             });
         } else {
             clearUnknownUserDetails();
+            setSelectedReportID(reportID);
             Navigation.navigate(ROUTES.SHARE_DETAILS.getRoute(reportID.toString()));
         }
     };
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: textInputValue,
-            label: translate('selectionList.nameEmailOrPhoneNumber'),
-            hint: offlineMessage,
-            onChangeText: setTextInputValue,
-            headerMessage: header,
-            disableAutoFocus: true,
-        }),
-        [textInputValue, setTextInputValue, translate, offlineMessage, header],
-    );
+    const textInputOptions = {
+        value: textInputValue,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        hint: offlineMessage,
+        onChangeText: setTextInputValue,
+        headerMessage: header,
+        disableAutoFocus: true,
+    };
 
-    const customListHeader = useMemo(
-        () =>
-            textInputValue.trim() === '' ? (
-                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('search.recentChats')}</Text>
-                </View>
-            ) : undefined,
-        [textInputValue, styles, translate],
-    );
+    const customListHeader =
+        textInputValue.trim() === '' ? (
+            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('search.recentChats')}</Text>
+            </View>
+        ) : undefined;
 
     return (
         <SelectionList
@@ -167,7 +174,7 @@ function ShareTab({ref}: ShareTabProps) {
             textInputOptions={textInputOptions}
             style={{listStyle: [styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}}
             ListItem={InviteMemberListItem}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}

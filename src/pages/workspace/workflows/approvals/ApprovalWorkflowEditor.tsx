@@ -10,18 +10,19 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import UserPill from '@components/UserPill';
+import UserPills from '@components/UserPills';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import {getApprovalLimitDescription} from '@libs/WorkflowUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {personalDetailsByEmailSelector} from '@src/selectors/PersonalDetails';
 import type {ApprovalWorkflowOnyx, Policy} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -31,7 +32,7 @@ type ApprovalWorkflowEditorProps = {
     approvalWorkflow: ApprovalWorkflowOnyx;
 
     /** Function to remove the approval workflow */
-    removeApprovalWorkflow?: () => void;
+    removeApprovalWorkflow?: () => void | Promise<void>;
 
     /** The policy for the current route */
     policy: OnyxEntry<Policy>;
@@ -47,10 +48,8 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const styles = useThemeStyles();
     const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
-    const [personalDetailsByEmail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        canBeMissing: true,
-        selector: personalDetailsByEmailSelector,
-    });
+    const {convertToDisplayString} = useCurrencyListActions();
+    const personalDetailsByEmail = usePersonalDetailsByEmail();
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -77,15 +76,22 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         [approvalWorkflow],
     );
 
-    const members = useMemo(() => {
-        if (approvalWorkflow.isDefault) {
-            return translate('workspace.common.everyone');
-        }
+    const sortedMembers = useMemo(
+        () => (approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)),
+        [approvalWorkflow.isDefault, approvalWorkflow.members, localeCompare],
+    );
 
-        return sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)
-            .map((m) => Str.removeSMSDomain(m.displayName))
-            .join(', ');
-    }, [approvalWorkflow.isDefault, approvalWorkflow.members, translate, localeCompare]);
+    const members = approvalWorkflow.isDefault ? translate('workspace.common.everyone') : sortedMembers.map((m) => Str.removeSMSDomain(m.displayName)).join(', ');
+
+    const memberPills = useMemo(
+        () =>
+            sortedMembers.map((m) => ({
+                avatar: m.avatar,
+                displayName: m.displayName,
+                email: m.email,
+            })),
+        [sortedMembers],
+    );
 
     const approverErrorMessage = useCallback(
         (approver: Approver | undefined, approverIndex: number) => {
@@ -150,23 +156,26 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 )}
 
                 <MenuItemWithTopDescription
-                    title={members}
+                    title={approvalWorkflow.isDefault ? members : undefined}
+                    accessibilityLabel={members}
                     titleStyle={styles.textNormalThemeText}
                     numberOfLinesTitle={4}
                     description={translate('workflowsExpensesFromPage.title')}
                     descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
                     onPress={handleExpensesFromPress}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
+                    titleComponent={!approvalWorkflow.isDefault ? <UserPills users={memberPills} /> : undefined}
                     errorText={approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined}
                     brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     shouldShowRightIcon={!approvalWorkflow.isDefault}
                     interactive={!approvalWorkflow.isDefault}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
                 />
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
                     const isApproverInMultipleWorkflows = !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
-                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail});
+                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, convertToDisplayString, personalDetailsByEmail});
                     const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
 
                     return (
@@ -176,17 +185,30 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                             pendingAction={getApprovalPendingAction(approverIndex)}
                         >
                             <MenuItemWithTopDescription
-                                title={Str.removeSMSDomain(approver?.displayName ?? '')}
+                                accessibilityLabel={Str.removeSMSDomain(approver?.displayName ?? '')}
                                 titleStyle={styles.textNormalThemeText}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 description={approverDescription(approverIndex)}
                                 descriptionTextStyle={!!approver?.displayName && styles.textLabelSupportingNormal}
+                                titleComponent={
+                                    approver ? (
+                                        <View style={styles.pr3}>
+                                            <UserPill
+                                                avatar={approver.avatar}
+                                                displayName={approver.displayName}
+                                                email={approver.email}
+                                                style={styles.userPillStandalone}
+                                            />
+                                        </View>
+                                    ) : undefined
+                                }
                                 onPress={() => editApprover(approverIndex)}
                                 shouldShowRightIcon
                                 hintText={hintText}
                                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={errorText}
                                 shouldRenderErrorAsHTML
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_APPROVER}
                             />
                         </OfflineWithFeedback>
                     );

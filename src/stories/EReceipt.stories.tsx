@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention, rulesdir/prefer-actions-set-data */
 import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
+import type {OnyxMergeCollectionInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {EReceiptProps} from '@components/EReceipt';
 import EReceipt from '@components/EReceipt';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 
 type EReceiptStory = StoryFn<typeof EReceipt>;
 
@@ -151,9 +151,8 @@ const transactionData = {
         created: '2023-01-11 13:46:20',
         hasEReceipt: true,
     },
-} as CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
+} as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.TRANSACTION>;
 
-// @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
 Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, transactionData);
 Onyx.merge('cardList', {
     4: {bank: 'Expensify Card', lastFourPAN: '1000'},

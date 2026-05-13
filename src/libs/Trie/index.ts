@@ -14,25 +14,25 @@ class Trie<TMetaData extends MetaData> {
     }
 
     /**
-     * Add a word to the Trie
-     * @param [metaData] - attach additional data to the word
-     * @param [allowEmptyWords] - empty word doesn't have any char, you shouldn't pass a true value for it because we are disallowing adding an empty word
+     * Walk to the end node for a word, creating intermediate nodes as needed.
+     * Marks the final node as end-of-word if it wasn't already.
+     * @returns the node and whether this is a new end-of-word entry
      */
-    add(word: string, metaData: Partial<TMetaData> = {}, node = this.root, allowEmptyWords = false) {
-        const newWord = word.toLowerCase();
-        const newNode = node;
-        if (newWord.length === 0 && !allowEmptyWords) {
+    getOrCreate(word: string): {node: TrieNode<TMetaData>; isNew: boolean} {
+        if (word.length === 0) {
             throw new Error('Cannot insert empty word into Trie');
         }
-        if (newWord.length === 0) {
-            newNode.isEndOfWord = true;
-            newNode.metaData = metaData;
-            return;
+        const lower = word.toLowerCase();
+        let node = this.root;
+        for (const ch of lower) {
+            if (!node.children[ch]) {
+                node.children[ch] = new TrieNode();
+            }
+            node = node.children[ch];
         }
-        if (!newNode.children[newWord[0]]) {
-            newNode.children[newWord[0]] = new TrieNode();
-        }
-        this.add(newWord.substring(1), metaData, newNode.children[newWord[0]], true);
+        const isNew = !node.isEndOfWord;
+        node.isEndOfWord = true;
+        return {node, isNew};
     }
 
     /**
@@ -40,33 +40,18 @@ class Trie<TMetaData extends MetaData> {
      * @returns - the node for the word if it's found, or null if it's not found
      */
     search(word: string): TrieNode<TMetaData> | null {
-        let newWord = word.toLowerCase();
+        if (word.length === 0) {
+            return null;
+        }
+        const lower = word.toLowerCase();
         let node = this.root;
-        while (newWord.length > 1) {
-            if (!node.children[newWord[0]]) {
+        for (const ch of lower) {
+            if (!node.children[ch]) {
                 return null;
             }
-            node = node.children[newWord[0]];
-
-            newWord = newWord.substring(1);
+            node = node.children[ch];
         }
-        return node.children[newWord]?.isEndOfWord ? node.children[newWord] : null;
-    }
-
-    /**
-     * Update a word data in the Trie.
-     */
-    update(word: string, metaData: TMetaData) {
-        let newWord = word.toLowerCase();
-        let node = this.root;
-        while (newWord.length > 1) {
-            if (!node.children[newWord[0]]) {
-                throw new Error('Word does not exist in the Trie');
-            }
-            node = node.children[newWord[0]];
-            newWord = newWord.substring(1);
-        }
-        node.children[newWord].metaData = metaData;
+        return node.isEndOfWord ? node : null;
     }
 
     /**

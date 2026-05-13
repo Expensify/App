@@ -15,7 +15,7 @@ type VerifyAccountPageProps = StackScreenProps<TravelNavigatorParamList, typeof 
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const {domain, backTo, policyID} = route.params;
-    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
+    const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING);
     const {isBetaEnabled} = usePermissions();
 
     useEffect(() => {
