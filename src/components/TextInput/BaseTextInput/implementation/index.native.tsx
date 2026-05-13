@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {Platform, StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -297,6 +297,8 @@ function BaseTextInput({
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
     const accessibilityValue = useMemo(() => (Platform.OS === 'ios' ? {text: value ?? ''} : undefined), [value]);
+    const labelId = useId();
+    const labelNativeID = Platform.OS === 'android' ? `label-${labelId}` : undefined;
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
@@ -345,6 +347,14 @@ function BaseTextInput({
                                 isMultiline={isMultiline}
                             />
                         ) : null}
+                        {Platform.OS === 'android' && !!accessibilityLabel && (
+                            <Text
+                                nativeID={labelNativeID}
+                                style={styles.visuallyHidden}
+                            >
+                                {accessibilityLabel}
+                            </Text>
+                        )}
                         <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
@@ -393,6 +403,7 @@ function BaseTextInput({
                                 {...inputProps}
                                 autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityLabelledBy={labelNativeID}
                                 accessibilityValue={accessibilityValue}
                                 accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
