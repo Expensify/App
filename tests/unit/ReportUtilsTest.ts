@@ -187,8 +187,7 @@ import type {
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
-import type {Participant, Participants} from '@src/types/onyx/Report';
-import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
