@@ -51,8 +51,23 @@ type BannerProps = {
     /** Whether to display button in the banner */
     shouldShowButton?: boolean;
 
+    /** Text for the primary action button. Defaults to "Chat now". */
+    buttonText?: string;
+
     /** Callback called when pressing the button */
     onButtonPress?: () => void;
+
+    /** Whether to display a secondary action button alongside the primary one */
+    shouldShowSecondaryButton?: boolean;
+
+    /** Text for the secondary action button */
+    secondaryButtonText?: string;
+
+    /** Callback called when pressing the secondary button */
+    onSecondaryButtonPress?: () => void;
+
+    /** Render action buttons at the `small` size — useful when the banner is compact */
+    shouldUseSmallButtons?: boolean;
 };
 
 function Banner({
@@ -62,12 +77,17 @@ function Banner({
     onClose,
     onPress,
     onButtonPress,
+    buttonText,
     containerStyles,
     textStyles,
     shouldRenderHTML = false,
     shouldShowIcon = false,
     shouldShowCloseButton = false,
     shouldShowButton = false,
+    shouldShowSecondaryButton = false,
+    secondaryButtonText,
+    onSecondaryButtonPress,
+    shouldUseSmallButtons = false,
 }: BannerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -121,9 +141,18 @@ function Banner({
                         {shouldShowButton && (
                             <Button
                                 success
+                                small={shouldUseSmallButtons}
                                 style={[styles.ph3]}
-                                text={translate('common.chatNow')}
+                                text={buttonText ?? translate('common.chatNow')}
                                 onPress={onButtonPress}
+                            />
+                        )}
+                        {shouldShowSecondaryButton && (
+                            <Button
+                                small={shouldUseSmallButtons}
+                                style={[styles.ml2]}
+                                text={secondaryButtonText ?? ''}
+                                onPress={onSecondaryButtonPress}
                             />
                         )}
                         {shouldShowCloseButton && !!onClose && (
