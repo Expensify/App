@@ -1058,15 +1058,6 @@ function closeUserAccount(domainAccountID: number, domain: string, targetEmail: 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            value: {
-                memberErrors: {
-                    [targetEmail]: {errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.error.removeMember')},
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
                 member: {[targetEmail]: null},
