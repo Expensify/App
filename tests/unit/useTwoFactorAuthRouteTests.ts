@@ -9,6 +9,7 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => ({
+    __esModule: true,
     default: (suffix: string, backTo?: string) => (backTo ? `${backTo}/${suffix}` : `current-path/${suffix}`),
 }));
 
