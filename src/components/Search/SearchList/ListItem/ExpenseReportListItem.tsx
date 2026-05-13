@@ -309,46 +309,22 @@ function ExpenseReportListItem<TItem extends ListItem>({
                             isSelected={!!reportItem.isSelected}
                         />
                     )}
-                    {!isLargeScreenWidth && (
-                        <View style={styles.pt3}>
-                            <ExpenseReportListItemRow
-                                item={reportItem}
-                                columns={columns}
-                                reportActions={reportActions}
-                                isActionLoading={isActionLoading ?? isLoading}
-                                showTooltip={showTooltip}
-                                canSelectMultiple={canSelectMultiple}
-                                onCheckboxPress={handleSelectionButtonPress}
-                                onButtonPress={handleOnButtonPress}
-                                isSelectAllChecked={!!reportItem.isSelected}
-                                isIndeterminate={false}
-                                isDisabledCheckbox={isDisabledCheckbox}
-                                isHovered={hovered}
-                                isFocused={isFocused}
-                                isPendingDelete={isPendingDelete}
-                                isLargeScreenWidth={isLargeScreenWidth}
-                            />
-                        </View>
-                    )}
-                    {isLargeScreenWidth && (
-                        <ExpenseReportListItemRow
-                            item={reportItem}
-                            columns={columns}
-                            reportActions={reportActions}
-                            isActionLoading={isActionLoading ?? isLoading}
-                            showTooltip={showTooltip}
-                            canSelectMultiple={canSelectMultiple}
-                            onCheckboxPress={handleSelectionButtonPress}
-                            onButtonPress={handleOnButtonPress}
-                            isSelectAllChecked={!!reportItem.isSelected}
-                            isIndeterminate={false}
-                            isDisabledCheckbox={isDisabledCheckbox}
-                            isHovered={hovered}
-                            isFocused={isFocused}
-                            isPendingDelete={isPendingDelete}
-                            isLargeScreenWidth={isLargeScreenWidth}
-                        />
-                    )}
+                    <ExpenseReportListItemRow
+                        item={reportItem}
+                        columns={columns}
+                        reportActions={reportActions}
+                        isActionLoading={isActionLoading ?? isLoading}
+                        showTooltip={showTooltip}
+                        canSelectMultiple={canSelectMultiple}
+                        onCheckboxPress={handleSelectionButtonPress}
+                        onButtonPress={handleOnButtonPress}
+                        isSelectAllChecked={!!reportItem.isSelected}
+                        isIndeterminate={false}
+                        isDisabledCheckbox={isDisabledCheckbox}
+                        isHovered={hovered}
+                        isFocused={isFocused}
+                        isPendingDelete={isPendingDelete}
+                    />
                     {getDescription}
                 </View>
             )}

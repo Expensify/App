@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+import * as Hold from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {cancelPayment, completePaymentOnboarding, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
@@ -9,6 +10,7 @@ import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -252,6 +254,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -464,6 +467,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -630,6 +634,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -684,6 +689,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -801,6 +807,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(partialPayChatReport),
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -898,6 +905,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 isSelfTourViewed: false,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
+                conciergeReportID: undefined,
             });
             await waitForBatchedUpdates();
             const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
@@ -935,6 +943,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy: chatReportPolicyTrueTour,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -985,6 +994,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy: chatReportPolicyFalseTour,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1056,6 +1066,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 ownerBillingGracePeriodEnd: pastDate,
                 policy,
                 chatReportPolicy: policy,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1122,6 +1133,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 ownerBillingGracePeriodEnd: pastDate,
                 policy: expensePolicy,
                 chatReportPolicy: workspacePolicy,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1178,6 +1190,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 ownerBillingGracePeriodEnd: futureGraceEnd,
                 chatReportPolicy: workspacePolicy,
                 policy: workspacePolicy,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1214,6 +1227,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 chatReportPolicy: chatReportPolicyAmountZero,
+                conciergeReportID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -1232,6 +1246,94 @@ describe('actions/IOU/PayMoneyRequest', () => {
             });
 
             mockFetch?.resume?.();
+        });
+
+        it('forwards the provided conciergeReportID to buildOptimisticReportPreview when partially paying', async () => {
+            // Given an iou report with two transactions, one of which is held (so partial pay is possible)
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const transaction1 = buildOptimisticTransaction({
+                transactionParams: {amount: 100, currency: 'USD', reportID: iouReport.reportID},
+            });
+            const transaction2 = buildOptimisticTransaction({
+                transactionParams: {amount: 100, currency: 'USD', reportID: iouReport.reportID},
+            });
+            const concierge42TransactionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            await Onyx.multiSet(concierge42TransactionDataSet);
+            putOnHold(transaction1.transactionID, 'comment', iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID);
+            await waitForBatchedUpdates();
+
+            const buildOptimisticReportPreviewSpy = jest.spyOn(ReportUtils, 'buildOptimisticReportPreview');
+            const partialPayChatReport = {reportID: topMostReportID, policyID: CONST.POLICY.ID_FAKE};
+            const conciergeReportID = 'concierge_report_id_42';
+
+            // When partial paying with a specific conciergeReportID
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport: partialPayChatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
+                full: false,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                chatReportPolicy: chatReportPolicyFromChat(partialPayChatReport),
+                conciergeReportID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then buildOptimisticReportPreview should receive the same conciergeReportID
+            expect(buildOptimisticReportPreviewSpy).toHaveBeenCalled();
+            const callsWithConciergeID = buildOptimisticReportPreviewSpy.mock.calls.filter((args) => args.at(6) === conciergeReportID);
+            expect(callsWithConciergeID.length).toBeGreaterThan(0);
+
+            buildOptimisticReportPreviewSpy.mockRestore();
+        });
+
+        it('does not invoke getReportFromHoldRequestsOnyxData when full paying, so conciergeReportID is not forwarded', async () => {
+            // Given an iou report and a non-partial pay (full=true is the default)
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                lastReadTime: DateUtils.getDBTime(),
+                lastVisibleActionCreated: DateUtils.getDBTime(),
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                chatType: undefined,
+                type: CONST.REPORT.TYPE.IOU,
+                total: 10,
+            };
+            const getReportFromHoldRequestsOnyxDataSpy = jest.spyOn(Hold, 'getReportFromHoldRequestsOnyxData');
+            const conciergeReportID = 'concierge_report_id_should_not_propagate';
+
+            // When fully paying
+            payMoneyRequest({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                iouReport,
+                introSelected: undefined,
+                iouReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountID: CARLOS_ACCOUNT_ID,
+                currentUserLogin: CARLOS_EMAIL,
+                betas: [CONST.BETAS.ALL],
+                isSelfTourViewed: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                conciergeReportID,
+            });
+            await waitForBatchedUpdates();
+
+            // Then getReportFromHoldRequestsOnyxData is not called at all because full pay skips the hold flow
+            expect(getReportFromHoldRequestsOnyxDataSpy).not.toHaveBeenCalled();
+
+            getReportFromHoldRequestsOnyxDataSpy.mockRestore();
         });
     });
 
@@ -1338,6 +1440,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                         chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                        conciergeReportID: undefined,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1563,6 +1666,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     chatReportPolicy: chatReportPolicyFromChat(chatReport),
+                    conciergeReportID: undefined,
                 });
             }
             await waitForBatchedUpdates();

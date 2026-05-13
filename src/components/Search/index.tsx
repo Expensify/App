@@ -57,6 +57,7 @@ import {
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
+    isTransactionSearchType,
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
@@ -84,7 +85,6 @@ import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
 import SearchList from './SearchList';
 import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import {SearchScopeProvider} from './SearchScopeProvider';
-import SearchStaticList from './SearchStaticList';
 import SearchTableHeader from './SearchTableHeader';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
@@ -271,20 +271,27 @@ function Search({
     // cache (cachedOptimisticItemRef) is intentionally kept alive so the item
     // stays visible at its sorted position until server-confirmed data arrives;
     // clearOptimisticTracking handles that cleanup when pendingAction !== ADD.
+    // Re-fires when showPendingExpensePlaceholder is re-armed (subsequent expense
+    // creation while Search stays mounted) so each cycle gets a fresh safety net.
     useEffect(() => {
-        if (!hasPendingWriteOnMountRef.current) {
+        if (!showPendingExpensePlaceholder) {
             return;
         }
         const id = setTimeout(() => setShowPendingExpensePlaceholder(false), OPTIMISTIC_TRACKING_TIMEOUT_MS);
         return () => clearTimeout(id);
-    }, []);
+    }, [showPendingExpensePlaceholder]);
 
     // Flush (not cancel) on unmount so the API.write() still executes if the
     // user navigates away before onLayout fires. This also clears the channel,
     // preventing a stale hasDeferredWrite() on the next mount.
+    // Skip when navigate_to_search is pending: the old Search instance is being
+    // replaced by a new one (route swap), and the new instance will handle the
+    // flush via its own layout/focus callbacks.
     useEffect(
         () => () => {
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            if (getPendingSubmitFollowUpAction()?.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
+                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            }
             if (rollbackTimeoutRef.current) {
                 clearTimeout(rollbackTimeoutRef.current);
             }
@@ -1246,7 +1253,6 @@ function Search({
             markReportIDAsExpense,
             toggleTransaction,
             handleSearch,
-            currentSearchKey,
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
@@ -1256,6 +1262,7 @@ function Search({
             queryJSON,
             offset,
             searchResults?.search?.hasMoreResults,
+            currentSearchKey,
         ],
     );
 
@@ -1476,14 +1483,23 @@ function Search({
         searchResults?.data,
     ]);
 
-    const onLayout = useCallback(() => {
+    const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        TransitionTracker.runAfterTransitions({
+            callback: () => flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH),
+        });
+    }, [onDestinationVisible]);
+
+    // Deferred layout only needs the base work (no scroll handling, no content-ready signal).
+    const onDeferredLayout = onLayoutBase;
+
+    const onLayout = useCallback(() => {
+        onLayoutBase();
         handleSelectionListScroll(stableSortedData, searchListRef.current);
-        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         onContentReady?.();
-    }, [handleSelectionListScroll, stableSortedData, onContentReady, onDestinationVisible]);
+    }, [onLayoutBase, handleSelectionListScroll, stableSortedData, onContentReady]);
 
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
@@ -1516,6 +1532,12 @@ function Search({
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
     }, []);
 
+    // Tracks whether the pending-expense tracking was re-armed on re-focus
+    // (subsequent expense creation while Search stays mounted). Used by the
+    // effect below to dismiss the overlay once the deferred write completes,
+    // since onLayout won't re-fire for already-mounted content.
+    const wasRearmedRef = useRef(false);
+
     // On re-visits, react-freeze serves the cached layout — onLayout/onLayoutSkeleton never fire.
     // useFocusEffect fires on unfreeze, which is when the screen becomes visible.
     useFocusEffect(
@@ -1523,13 +1545,57 @@ function Search({
             if (!hasHadFirstLayout.current) {
                 return;
             }
+
+            // Re-arm pending expense skeleton for subsequent creations while Search
+            // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
+            if (hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !showPendingExpensePlaceholder) {
+                wasRearmedRef.current = true;
+
+                // Let the optimistic tracking effect know it should watch for the new item.
+                hasPendingWriteOnMountRef.current = true;
+                optimisticTrackingCleanedUpRef.current = false;
+                setIsOptimisticTrackingCleared(false);
+
+                setShowPendingExpensePlaceholder(true);
+                // Prevent the full-page SearchRowSkeleton from rendering (shouldShowRowSkeleton),
+                // which would cause a blink as SelectionList unmounts/remounts.
+                setSkeletonWasDisplayed(true);
+
+                // Clear stale cached item so the new optimistic row is picked up fresh.
+                cachedOptimisticItemRef.current = null;
+                const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                optimisticWatchKeyRef.current = latestKey;
+            }
+
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
             endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
                 [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: !shouldShowLoadingState,
             });
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        }, [shouldShowLoadingState, onDestinationVisible]),
+        }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder]),
+    );
+
+    // Dismiss the overlay after a re-armed deferred write completes. On re-focus,
+    // onLayout doesn't re-fire (content already mounted), so onContentReady is
+    // never called via the normal path. This effect detects when the deferred
+    // write channel is gone (write executed) and sortedData has updated, then
+    // signals overlay readiness.
+    useEffect(() => {
+        if (!wasRearmedRef.current || hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            return;
+        }
+        wasRearmedRef.current = false;
+        onContentReady?.();
+    }, [sortedData, onContentReady]);
+
+    // Empty deps so this fires only on blur — merging with the body would cancel the span on every shouldShowLoadingState flip.
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                cancelSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
+            };
+        }, []),
     );
 
     // Reset before conditional returns. Only cancelNavigationSpans (error/empty paths)
@@ -1579,25 +1645,14 @@ function Search({
     );
 
     // When heavy work is deferred (e.g. during the RHP dismiss animation after
-    // submitting an expense), show a lightweight static list instead of the skeleton.
-    // This gives the user real-looking content during the animation while avoiding
-    // the expensive hooks and renders of the full Search component.
-    // Restricted to transaction-based search types (expense/invoice) because
-    // SearchStaticList only renders rows with a transactionID - non-transaction
-    // types (chat, task, report) would render empty/blank during the deferral.
-    const isTransactionSearchType = type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.INVOICE;
-    if (isDeferringHeavyWork && searchResults?.data && isTransactionSearchType) {
-        return (
-            <SearchStaticList
-                searchResults={searchResults}
-                queryJSON={queryJSON}
-                shouldUseNarrowLayout={shouldUseNarrowLayout}
-                canSelectMultiple={canSelectMultiple}
-                columns={currentColumns}
-                contentContainerStyle={shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
-                onLayout={onLayout}
-            />
-        );
+    // submitting an expense), skip the expensive render below. The ancestor
+    // SearchPage (via SearchPageNarrow / SearchPageWide) renders a SearchStaticList
+    // overlay that covers this component, so the user sees real-looking content.
+    // The minimal View fires onLayout to flush the deferred API write and set
+    // hasHadFirstLayout.
+    if (isDeferringHeavyWork && searchResults?.data && isTransactionSearchType(type)) {
+        // Zero-sized View - onLayout still fires on RN, which is all we need here.
+        return <View onLayout={onDeferredLayout} />;
     }
 
     // This is a performance optimization for the submit-expense->search path only.
@@ -1768,7 +1823,7 @@ function Search({
                                 shouldAnimate
                                 fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
                                 reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
-                                isLoadMore={shouldShowLoadingMoreItems}
+                                isLoadMore
                             />
                         ) : undefined
                     }

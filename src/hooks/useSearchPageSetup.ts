@@ -11,6 +11,10 @@ import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 
+// Gates the save below to real hash changes so snapshot-loading re-fires don't wipe fields
+// (hasMoreResults, previousLengthOfResults) maintained by report-browsing callers.
+let lastSavedSearchHash: number | undefined;
+
 /**
  * Handles page-level setup for Search that must happen before the Search component mounts:
  * - Clears selected transactions when the query changes
@@ -52,16 +56,19 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         if (!queryJSON || hash === undefined || shouldUseLiveData || isOffline) {
             return;
         }
+
+        // Must run even on cached snapshots, else SearchTabButton's Onyx fallback restores
+        // a stale query after a tab switch (e.g. filter reappears after Reset).
+        if (lastSavedSearchHash !== hash) {
+            saveLastSearchParams({queryJSON, offset: 0, searchKey: currentSearchKey, hasMoreResults: false, allowPostSearchRecount: false});
+            lastSavedSearchHash = hash;
+        }
+
         if (isSnapshotDataLoaded || isSnapshotSearchLoading) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
-
-        // Save query context so SearchTabButton can restore the last search when
-        // the user returns to the Search tab. This is the explicit replacement for
-        // the old implicit save-on-every-search() default.
-        saveLastSearchParams({queryJSON, offset: 0, searchKey: currentSearchKey, hasMoreResults: false, allowPostSearchRecount: false});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {
