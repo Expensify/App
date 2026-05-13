@@ -50,6 +50,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {GpsPoint, IOURequestType} from './index';
 import {
+    buildParticipantsPolicyTags,
     getMoneyRequestParticipantsFromReport,
     setCustomUnitRateID,
     setMoneyRequestDistance,
@@ -761,6 +762,8 @@ function handleMoneyRequestStepDistanceNavigation({
                 recentWaypoints,
                 betas,
                 previousOdometerDraft,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                participantsPolicyTags: buildParticipantsPolicyTags(participants),
             });
             return;
         }

@@ -3220,6 +3220,7 @@ describe('actions/IOU', () => {
                             policyRecentlyUsedTags: undefined,
                             betas: [CONST.BETAS.ALL],
                             personalDetails: splitMockPersonalDetails,
+                            participantsPolicyTags: {},
                         },
                     );
                     return waitForBatchedUpdates();
@@ -3559,6 +3560,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -3608,6 +3610,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -3631,6 +3634,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                participantsPolicyTags: {},
             });
             await waitForBatchedUpdates();
 
@@ -3661,6 +3665,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -3696,6 +3701,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -3717,6 +3723,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [],
                 personalDetails: splitMockPersonalDetails,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -3779,6 +3786,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -3829,6 +3837,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedTags: undefined,
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                participantsPolicyTags: {},
             });
 
             await waitForBatchedUpdates();
@@ -3890,6 +3899,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
+                participantsPolicyTags: {[policyID]: {[tagName]: {name: tagName}} as unknown as PolicyTagLists},
             });
 
             waitForBatchedUpdates();

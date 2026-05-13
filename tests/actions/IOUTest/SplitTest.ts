@@ -406,6 +406,7 @@ describe('split expense', () => {
                         policyRecentlyUsedTags: undefined,
                         betas: [CONST.BETAS.ALL],
                         personalDetails: mockPersonalDetails,
+                        participantsPolicyTags: {},
                     },
                 );
                 return waitForBatchedUpdates();
@@ -744,6 +745,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -793,6 +795,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -816,6 +819,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            participantsPolicyTags: {},
         });
         await waitForBatchedUpdates();
 
@@ -846,6 +850,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -881,6 +886,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -902,6 +908,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -962,6 +969,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -1012,6 +1020,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -1073,6 +1082,7 @@ describe('split expense', () => {
             policyRecentlyUsedCurrencies: [],
             betas: [CONST.BETAS.ALL],
             personalDetails: mockPersonalDetails,
+            participantsPolicyTags: {[policyID]: {[tagName]: {name: tagName}} as unknown as PolicyTagLists},
         });
 
         waitForBatchedUpdates();
@@ -1353,6 +1363,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: testPersonalDetails,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -1414,6 +1425,7 @@ describe('split expense', () => {
             policyRecentlyUsedTags: undefined,
             betas: [CONST.BETAS.ALL],
             personalDetails: participantPersonalDetails,
+            participantsPolicyTags: {},
         });
 
         await waitForBatchedUpdates();
@@ -6626,6 +6638,7 @@ describe('createDistanceRequest', () => {
             recentWaypoints: recentWaypoints ?? [],
             personalDetails: distanceMockPersonalDetails,
             betas: [CONST.BETAS.ALL],
+            participantsPolicyTags: {},
         };
     }
 
