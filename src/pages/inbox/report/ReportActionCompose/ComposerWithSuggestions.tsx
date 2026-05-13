@@ -263,7 +263,7 @@ function ComposerWithSuggestions({
     const {editingState, editingReportActionID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
     const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
 
-    const isEditing = editingState !== 'off';
+    const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
     const [value, setValue] = useState(() => {
         const initialValue = effectiveDraft ?? draftComment;
 
@@ -525,7 +525,7 @@ function ComposerWithSuggestions({
             }
 
             commentRef.current = newCommentConverted;
-            if (editingState === 'editing' && shouldUseNarrowLayout) {
+            if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
                 setEditingMessage(newCommentConverted);
                 if (shouldDebounceSaveComment) {
                     debouncedSaveReportActionDraft(newCommentConverted);

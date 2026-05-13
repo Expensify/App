@@ -180,7 +180,8 @@ function useComposerSubmit(reportID: string) {
             setIsComposerFullSize(reportID, false);
         }
 
-        const isFinishingComposerEdit = editingState === 'editing' && (isEditingInComposer || didResetComposerHeightWhileEditing) && !attachmentFileRef.current;
+        const isFinishingComposerEdit =
+            editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && (isEditingInComposer || didResetComposerHeightWhileEditing) && !attachmentFileRef.current;
 
         if (isFinishingComposerEdit) {
             const hasNonEmptyEditingMessage = editingMessage !== null && editingMessage !== '';

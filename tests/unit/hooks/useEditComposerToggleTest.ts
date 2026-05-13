@@ -7,6 +7,8 @@ import * as ComposerContext from '@pages/inbox/report/ReportActionCompose/Compos
 import type {ComposerActions, ComposerEditState} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
 import ReportActionComposeUtils from '@pages/inbox/report/ReportActionCompose/ReportActionComposeUtils';
 import useEditComposerToggle from '@pages/inbox/report/ReportActionCompose/useEditComposerToggle';
+import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActionEditMessageContext';
+import CONST from '@src/CONST';
 
 jest.mock('@pages/inbox/report/ReportActionCompose/ComposerContext', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -55,7 +57,7 @@ function makeComposerRef(overrides?: Partial<ComposerRef>): RefObject<ComposerRe
 
 function defaultComposerEditState(overrides?: Partial<ComposerEditState>): ComposerEditState {
     return {
-        editingState: 'off',
+        editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF,
         isEditingInComposer: false,
         editingReportID: null,
         editingReportActionID: null,
@@ -146,7 +148,7 @@ describe('useEditComposerToggle', () => {
     it('does not run apply logic while editingState is submitted', () => {
         const onValueChange = jest.fn();
         const composerRef = makeComposerRef();
-        composerEditStateRef.current = defaultComposerEditState({editingState: 'submitted', editingMessage: 'hello'});
+        composerEditStateRef.current = defaultComposerEditState({editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.SUBMITTED, editingMessage: 'hello'});
 
         renderHook(() =>
             useEditComposerToggle({
@@ -181,7 +183,7 @@ describe('useEditComposerToggle', () => {
         );
 
         composerEditStateRef.current = defaultComposerEditState({
-            editingState: 'editing',
+            editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING,
             editingMessage: 'edited body',
             editingReportActionID: '100',
             currentEditMessageSelection: {start: 1, end: 2},
@@ -210,7 +212,7 @@ describe('useEditComposerToggle', () => {
         );
 
         composerEditStateRef.current = defaultComposerEditState({
-            editingState: 'editing',
+            editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING,
             editingMessage: 'from thread',
         });
         rerender({});
@@ -227,7 +229,11 @@ describe('useEditComposerToggle', () => {
         // Start with edit off so wasEditingRef is false; then turn editing on to capture previousDraftSelectionRef.
         const {rerender} = renderHook(
             (props: {selection: TextSelection; draft: string; editing: boolean}) => {
-                composerEditStateRef.current = defaultComposerEditState(props.editing ? {editingState: 'editing', editingMessage: 'e', editingReportActionID: '1'} : {editingState: 'off'});
+                composerEditStateRef.current = defaultComposerEditState(
+                    props.editing
+                        ? {editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING, editingMessage: 'e', editingReportActionID: '1'}
+                        : {editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF},
+                );
                 return useEditComposerToggle({
                     selection: props.selection,
                     draftComment: props.draft,
@@ -256,11 +262,11 @@ describe('useEditComposerToggle', () => {
         const composerRef = makeComposerRef();
         mockUseComposerEditActions.mockReturnValue(defaultComposerEditActions({setDidResetComposerHeightWhileEditing: setDidResetComposerHeight}));
 
-        const {rerender} = renderHook(
+        const {rerender} = renderHook<void, ReportActionEditMessageState>(
             (editingState: ComposerEditState['editingState']) => {
                 composerEditStateRef.current = defaultComposerEditState({
                     editingState,
-                    isEditingInComposer: editingState === 'editing',
+                    isEditingInComposer: editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING,
                     editingMessage: 'edited message',
                     editingReportActionID: '1',
                 });
@@ -271,12 +277,12 @@ describe('useEditComposerToggle', () => {
                     composerRef,
                 });
             },
-            {initialProps: 'off'},
+            {initialProps: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF},
         );
 
-        rerender('editing');
-        rerender('submitted');
-        rerender('off');
+        rerender(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
+        rerender(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.SUBMITTED);
+        rerender(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF);
 
         expect(setDidResetComposerHeight).toHaveBeenCalledWith(false);
     });
@@ -287,7 +293,7 @@ describe('useEditComposerToggle', () => {
         const composerRef = makeComposerRef();
 
         composerEditStateRef.current = defaultComposerEditState({
-            editingState: 'editing',
+            editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING,
             editingMessage: 'first',
             editingReportActionID: 'a',
         });
@@ -295,7 +301,7 @@ describe('useEditComposerToggle', () => {
         const {rerender} = renderHook(
             (id: string) => {
                 composerEditStateRef.current = defaultComposerEditState({
-                    editingState: 'editing',
+                    editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING,
                     editingMessage: id === 'a' ? 'first' : 'second',
                     editingReportActionID: id,
                 });
@@ -327,7 +333,7 @@ describe('useEditComposerToggle', () => {
         const composerRef = makeComposerRef();
 
         composerEditStateRef.current = defaultComposerEditState({
-            editingState: 'editing',
+            editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING,
             editingMessage: 'wide first',
         });
 
@@ -355,7 +361,7 @@ describe('useEditComposerToggle', () => {
         const composerRef = makeComposerRef();
 
         composerEditStateRef.current = defaultComposerEditState({
-            editingState: 'editing',
+            editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING,
             editingMessage: 'editing in narrow',
         });
 
@@ -386,7 +392,11 @@ describe('useEditComposerToggle', () => {
 
         const {rerender} = renderHook(
             (editing: boolean) => {
-                composerEditStateRef.current = defaultComposerEditState(editing ? {editingState: 'editing', editingMessage: 'hi', editingReportActionID: '1'} : {editingState: 'off'});
+                composerEditStateRef.current = defaultComposerEditState(
+                    editing
+                        ? {editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING, editingMessage: 'hi', editingReportActionID: '1'}
+                        : {editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF},
+                );
                 return useEditComposerToggle({
                     selection: {start: 0, end: 0},
                     draftComment: 'd',

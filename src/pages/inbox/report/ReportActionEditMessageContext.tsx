@@ -1,6 +1,7 @@
 import React, {createContext, useContext, useMemo, useState} from 'react';
 import type {Dispatch, SetStateAction} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import useAncestors from '@hooks/useAncestors';
 import useOnyx from '@hooks/useOnyx';
@@ -15,7 +16,7 @@ function NOOP() {
 }
 
 /** Whether the report is currently being edited, is already submitted or is not editing any m */
-type EditingState = 'off' | 'editing' | 'submitted';
+type ReportActionEditMessageState = ValueOf<typeof CONST.REPORT_ACTION_EDIT_MESSAGE_STATE>;
 
 type ReportActionActiveEdit = {
     /** The report ID */
@@ -32,7 +33,7 @@ type ReportActionEditMessageContextValue = ReportActionActiveEdit & {
     /** The current edit message selection */
     currentEditMessageSelection: TextSelection | null;
     /** The editing state */
-    editingState: EditingState;
+    editingState: ReportActionEditMessageState;
 };
 
 type ReportActionEditMessageContextActions = {
@@ -47,7 +48,7 @@ type ReportActionEditMessageContextActions = {
 };
 
 const ReportActionEditMessageContext = createContext<ReportActionEditMessageContextValue>({
-    editingState: 'off',
+    editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF,
     editingReportID: null,
     editingReportActionID: null,
     editingReportAction: null,
@@ -145,7 +146,7 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
 
     const [reportActionDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {selector: ancestorDraftSelector}, [additionalReportIDs, ancestors, ancestorsReportActions, reportID]);
 
-    const [editingState, setEditingState] = useState<EditingState>('off');
+    const [editingState, setEditingState] = useState<ReportActionEditMessageState>(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF);
     const [prevEditingReportActionID, setPrevEditingReportActionID] = useState<string | null>(null);
     const [editingMessage, setEditingMessage] = useState<string | null>(null);
     const [currentEditMessageSelection, setCurrentEditMessageSelectionState] = useState<TextSelection | null>(null);
@@ -220,8 +221,8 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         editingReportActionID = ancestorReportAction.reportActionID;
         editingReportAction = ancestorReportAction;
 
-        if (editingState === 'off') {
-            setEditingState('editing');
+        if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF) {
+            setEditingState(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
         }
 
         const nextMessage = ancestorReportActionDraft?.message ?? null;
@@ -233,8 +234,8 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         editingReportActionID = reportActionIDOfDraft;
         editingReportAction = reportActions?.[reportActionIDOfDraft] ?? null;
 
-        if (editingState === 'off') {
-            setEditingState('editing');
+        if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF) {
+            setEditingState(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
         }
 
         const nextMessage = reportActionDraft?.message ?? null;
@@ -244,8 +245,8 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
         editingReportActionID = additionalReportWithDraft.reportActionID;
         editingReportAction = additionalReportWithDraft.reportAction;
 
-        if (editingState === 'off') {
-            setEditingState('editing');
+        if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF) {
+            setEditingState(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
         }
 
         const nextMessage = additionalReportWithDraft.draft?.message ?? null;
@@ -253,22 +254,22 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     }
 
     const submitEdit = () => {
-        setEditingState('submitted');
+        setEditingState(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.SUBMITTED);
     };
 
     const stopEditing = () => {
-        setEditingState('off');
+        setEditingState(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF);
         setEditingMessage(null);
         setPrevEditingReportActionID(null);
         setCurrentEditMessageSelectionState(null);
     };
 
-    if (editingReportID == null && editingState !== 'off') {
+    if (editingReportID == null && editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF) {
         stopEditing();
     }
 
     const setCurrentEditMessageSelection = (setSelectionStateAction: SetStateAction<TextSelection | null>) => {
-        if (editingState !== 'editing') {
+        if (editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING) {
             return;
         }
 
@@ -307,4 +308,4 @@ function useReportActionActiveEditActions() {
 }
 
 export {ReportActionEditMessageContextProvider, useReportActionActiveEdit, useReportActionActiveEditActions, ReportActionEditMessageContext};
-export type {ReportActionActiveEdit, ReportActionEditMessageContextValue};
+export type {ReportActionActiveEdit, ReportActionEditMessageContextValue, ReportActionEditMessageState};

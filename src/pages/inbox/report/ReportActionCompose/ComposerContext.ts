@@ -4,6 +4,8 @@ import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native'
 import type {Emoji} from '@assets/emojis/types';
 import type {TextSelection} from '@components/Composer/types';
 import type {Mention} from '@components/MentionSuggestions';
+import type {ReportActionEditMessageState} from '@pages/inbox/report/ReportActionEditMessageContext';
+import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
@@ -31,7 +33,7 @@ type ComposerState = {
 };
 
 type ComposerEditState = {
-    editingState: 'off' | 'editing' | 'submitted';
+    editingState: ReportActionEditMessageState;
     isEditingInComposer: boolean;
     editingReportID: string | null;
     editingReportActionID: string | null;
@@ -104,7 +106,7 @@ const defaultSendState: ComposerSendState = {
 };
 
 const defaultEditState: ComposerEditState = {
-    editingState: 'off',
+    editingState: CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF,
     isEditingInComposer: false,
     editingReportID: null,
     editingReportActionID: null,
