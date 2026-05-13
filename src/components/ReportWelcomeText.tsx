@@ -87,7 +87,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportDetailsLink = report?.reportID ? `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, ROUTES.REPORT_WITH_ID.getRoute(report.reportID))}` : '';
+    const reportDetailsLink = report?.reportID ? `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path)}` : '';
 
     let welcomeHeroText = translate('reportActionsView.sayHello');
     if (isConciergeChat) {
