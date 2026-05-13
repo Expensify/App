@@ -121,6 +121,8 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
                     achAccount: {
                         reimburser: 'test@user.com',
                         bankAccountID: 123456,
+                        accountNumber: '1234567890',
+                        routingNumber: '011000015',
                         bankName: 'Test Bank',
                         addressName: 'Test Address',
                         state: CONST.BANK_ACCOUNT.STATE.OPEN,
@@ -145,6 +147,8 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
                     achAccount: {
                         reimburser: 'test@user.com',
                         bankAccountID: 123456,
+                        accountNumber: '1234567890',
+                        routingNumber: '011000015',
                         bankName: 'Test Bank',
                         addressName: 'Test Address',
                         state: CONST.BANK_ACCOUNT.STATE.OPEN,
@@ -165,16 +169,18 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         const bankAccountList: BankAccountList = {
             '123456': {
                 methodID: 123456,
+                bankCurrency: 'USD',
+                bankCountry: 'US',
                 accountData: {
                     additionalData: {
                         policyID: POLICY_ID,
-                        bankName: 'Test Bank',
+                        bankName: CONST.BANK_NAMES.GENERIC_BANK,
                     },
                     addressName: 'Test Address',
                     state: CONST.BANK_ACCOUNT.STATE.SETUP,
                 },
             },
-        } as BankAccountList;
+        };
 
         await act(async () => {
             await Onyx.merge(
