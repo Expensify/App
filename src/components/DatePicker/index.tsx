@@ -4,9 +4,11 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setDraftValues} from '@userActions/FormActions';
@@ -40,7 +42,13 @@ function DatePicker({
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
+    useAccessibilityAnnouncement(announcementMessage, isModalVisible, {shouldAnnounceOnNative: true, shouldAnnounceOnWeb: true});
     const [selectedDate, setSelectedDate] = useState(() => value ?? defaultValue ?? '');
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
     const textInputRef = useRef<BaseTextInputRef | null>(null);
@@ -114,13 +122,13 @@ function DatePicker({
     const combinedTextInputRef = useCallback(
         (ref: BaseTextInputRef | null) => {
             textInputRef.current = ref;
-            if (autoFocus) {
+            if (autoFocus && !isSmallScreenWidth) {
                 (autoFocusCallbackRefRef.current as unknown as (ref: BaseTextInputRef | null) => void)(ref);
             }
         },
         // autoFocusCallbackRefRef is a stable ref — its identity never changes, so it's not a dep
 
-        [autoFocus],
+        [autoFocus, isSmallScreenWidth],
     );
 
     const getValidDateForCalendar = useMemo(() => {

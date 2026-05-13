@@ -214,6 +214,7 @@ const translations = {
         admin: 'Admin',
         owner: 'Owner',
         dateFormat: 'YYYY-MM-DD',
+        calendarOpened: 'calendar opened',
         send: 'Send',
         na: 'N/A',
         noResultsFound: 'No results found',
