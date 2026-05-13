@@ -107,6 +107,7 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                         }
 
                         // Replaying the original request after successful re-authentication might hit the same server-side 2FA check and loop indefinitely. So we skip it.
+                        // The re-reauth itself refreshes `account.needsTwoFactorAuthSetup` in Onyx via updates sent by server, which is enough to show the 2FA enforcement overlay.
                         if (is2FASetupRequired) {
                             if (isFromSequentialQueue) {
                                 return data;
