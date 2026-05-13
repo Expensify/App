@@ -2,13 +2,25 @@ import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
 import ValidateLoginPage from '@pages/ValidateLoginPage/index.website';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    goBack: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    waitForProtectedRoutes: jest.fn(() => Promise.resolve()),
+    getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isActiveRoute: jest.fn(() => false),
+}));
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
@@ -66,5 +78,38 @@ describe('ValidateLoginPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByTestId('validate-code')).toBeNull();
+    });
+
+    it('Should navigate to home after signing in via magic link in a fresh session (no cached login)', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                authToken: 'abcd',
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME);
+    });
+
+    it('Should not navigate to home when signed in session opens /v/ to view the code (autoAuthState !== JUST_SIGNED_IN)', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                authToken: 'abcd',
+                autoAuthState: CONST.AUTO_AUTH_STATE.NOT_STARTED,
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
+        expect(screen.queryByTestId('validate-code')).not.toBeNull();
     });
 });

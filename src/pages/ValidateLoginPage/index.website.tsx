@@ -75,10 +75,12 @@ function ValidateLoginPage({
             return;
         }
         Navigation.isNavigationReady().then(() => {
-            // No `login` means there's no original tab to head back to (e.g. magic link opened
-            // in incognito). Once signed in, route to the app home instead of leaving a blank
-            // page; otherwise the existing same-tab 2FA flow falls back to goBack().
-            if (isSignedIn) {
+            // The page just completed signInWithValidateCode but `login` is empty (e.g. magic
+            // link opened in a fresh session like incognito) so there's no original tab to head
+            // back to. Route to app home instead of leaving a blank page. Gated on
+            // JUST_SIGNED_IN so a pre-existing signed-in session opening /v/... just to view the
+            // code isn't redirected away.
+            if (isSignedIn && autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN) {
                 Navigation.navigate(ROUTES.HOME);
                 return;
             }
@@ -86,7 +88,7 @@ function ValidateLoginPage({
                 Navigation.goBack();
             }
         });
-    }, [login, cachedAccountID, is2FARequired, exitTo, isSignedIn]);
+    }, [login, cachedAccountID, is2FARequired, exitTo, isSignedIn, autoAuthStateWithDefault]);
 
     return (
         <>
