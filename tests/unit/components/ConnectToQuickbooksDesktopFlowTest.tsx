@@ -1,17 +1,17 @@
 import {render} from '@testing-library/react-native';
 import React from 'react';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
-import useReusablePoliciesConnectedToQBD from '@hooks/useReusablePoliciesConnectedToQBD';
+import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import Navigation from '@libs/Navigation/Navigation';
 import getQuickbooksDesktopSetupEntryRoute from '@pages/workspace/accounting/qbd/utils';
 import ROUTES from '@src/ROUTES';
 
-jest.mock('@hooks/useReusablePoliciesConnectedToQBD');
+jest.mock('@hooks/useHasReusablePoliciesConnectedTo');
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
 
-const mockedUseReusablePoliciesConnectedToQBD = jest.mocked(useReusablePoliciesConnectedToQBD);
+const mockedUseHasReusablePoliciesConnectedTo = jest.mocked(useHasReusablePoliciesConnectedTo);
 const mockedNavigate = jest.mocked(Navigation.navigate);
 
 describe('ConnectToQuickbooksDesktopFlow', () => {
@@ -21,11 +21,7 @@ describe('ConnectToQuickbooksDesktopFlow', () => {
 
     it('routes to reusable connections when an eligible QBD workspace exists', () => {
         const policyID = '123';
-        mockedUseReusablePoliciesConnectedToQBD.mockReturnValue({
-            connectionSyncProgressCollection: undefined,
-            hasReusablePoliciesConnectedToQBD: true,
-            reusablePoliciesConnectedToQBD: [],
-        });
+        mockedUseHasReusablePoliciesConnectedTo.mockReturnValue(true);
 
         render(<ConnectToQuickbooksDesktopFlow policyID={policyID} />);
 
@@ -34,11 +30,7 @@ describe('ConnectToQuickbooksDesktopFlow', () => {
 
     it('routes to the QBD setup flow when no reusable QBD workspaces exist', () => {
         const policyID = '123';
-        mockedUseReusablePoliciesConnectedToQBD.mockReturnValue({
-            connectionSyncProgressCollection: undefined,
-            hasReusablePoliciesConnectedToQBD: false,
-            reusablePoliciesConnectedToQBD: [],
-        });
+        mockedUseHasReusablePoliciesConnectedTo.mockReturnValue(false);
 
         render(<ConnectToQuickbooksDesktopFlow policyID={policyID} />);
 

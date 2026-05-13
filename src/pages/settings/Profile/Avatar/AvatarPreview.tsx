@@ -62,7 +62,7 @@ function AvatarPreview({selected, avatarCaptureRef, setSelected, isAvatarCropMod
     const {avatarMap: avatars} = useLetterAvatars(currentUserPersonalDetails?.displayName, CONST.AVATAR_SIZE.X_LARGE);
 
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    // eslint-disable-next-line no-nested-ternary
+
     let avatarURL: AvatarSource = '';
     if (selected && isPresetAvatarID(selected)) {
         avatarURL = getAvatarLocal(selected);

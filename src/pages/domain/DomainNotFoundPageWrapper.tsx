@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import {adminAccountIDsSelector} from '@selectors/Domain';
 import React, {useEffect} from 'react';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
@@ -38,7 +37,6 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     const shouldShowNotFoundPage = !domain || !isAdmin || shouldBeBlocked;
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {
             return;
         }

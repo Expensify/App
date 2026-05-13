@@ -498,11 +498,11 @@ function updateXeroExportNonReimbursableAccount(
 }
 
 function updateXeroTravelInvoicingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
-    const {optimisticData, failureData, successData} = prepareXeroOptimisticData(policyID, CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
+    const {optimisticData, failureData, successData} = prepareXeroExportOptimisticData(policyID, CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
     const parameters: UpdateManyPolicyConnectionConfigurationsParams = {
         policyID,
         connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
-        configUpdate: JSON.stringify({[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: accountID}),
+        configUpdate: JSON.stringify({[CONST.XERO_CONFIG.EXPORT]: {[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: accountID}}),
         idempotencyKey: CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
     };
     API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, {optimisticData, failureData, successData});

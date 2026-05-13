@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import useProactiveAppReview from '@hooks/useProactiveAppReview';
 import requestStoreReview from '@libs/actions/StoreReview';
@@ -14,6 +15,7 @@ const CONCIERGE_NEGATIVE_MESSAGE = "Hi there! I'm sorry to hear you aren't fully
 function ProactiveAppReviewModalManager() {
     const {shouldShowModal, proactiveAppReview} = useProactiveAppReview();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails?.email;
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
@@ -21,9 +23,9 @@ function ProactiveAppReviewModalManager() {
     const handleResponse = useCallback(
         (response: AppReviewResponse, message?: string) => {
             // Call the action which will create an optimistic comment (if the message is provided) and call the API
-            respondToProactiveAppReview(response, proactiveAppReview, currentUserEmail, currentUserAccountID, message, conciergeReportID);
+            respondToProactiveAppReview(response, proactiveAppReview, currentUserEmail, currentUserAccountID, delegateAccountID, message, conciergeReportID);
         },
-        [conciergeReportID, proactiveAppReview, currentUserEmail, currentUserAccountID],
+        [conciergeReportID, proactiveAppReview, currentUserEmail, currentUserAccountID, delegateAccountID],
     );
 
     const handlePositive = useCallback(() => {

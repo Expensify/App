@@ -1,5 +1,6 @@
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -179,17 +180,13 @@ function IOURequestStepDescription({
         shouldNavigateAfterSaveRef.current = true;
     };
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isReportInGroupPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
-    const getDescriptionHint = () => {
-        return transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
-    };
+    const descriptionHint = transaction?.category && policyCategories ? (policyCategories[transaction?.category]?.commentHint ?? '') : '';
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 inputRef.current?.focus();
             });
@@ -239,7 +236,8 @@ function IOURequestStepDescription({
                         type="markdown"
                         excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
                         ref={inputCallbackRef}
-                        hint={getDescriptionHint()}
+                        hint={descriptionHint}
+                        shouldRenderHintAsHTML={!!descriptionHint}
                     />
                 </View>
             </FormProvider>
@@ -247,9 +245,8 @@ function IOURequestStepDescription({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescription);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithFullTransactionOrNotFound);
 
 export default IOURequestStepDescriptionWithWritableReportOrNotFound;

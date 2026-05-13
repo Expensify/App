@@ -1,14 +1,19 @@
-import {getStateFromPath} from '@react-navigation/native';
+import {findFocusedRoute, getStateFromPath} from '@react-navigation/native';
+import type {NavigationState, PartialState} from '@react-navigation/native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {translate} from '@libs/Localize';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
+import {navigationRef} from '@libs/Navigation/Navigation';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import type {Video} from '@userActions/Report';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
@@ -73,6 +78,26 @@ Onyx.connectWithoutView({
     },
 });
 
+/**
+ * Start a new onboarding flow or continue from the last visited onboarding page.
+ */
+function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPathParamsType) {
+    const currentRoute = navigationRef.getCurrentRoute();
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(startOnboardingFlowParams) as Route, undefined, false);
+    const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
+    if (focusedRoute?.name === currentRoute?.name) {
+        return;
+    }
+    const rootState = navigationRef.getRootState();
+    const rootStateRouteNamesSet = new Set(rootState.routes.map((route) => route.name));
+    navigationRef.resetRoot({
+        ...rootState,
+        ...adaptedState,
+        stale: true,
+        routes: [...rootState.routes, ...(adaptedState?.routes.filter((route) => !rootStateRouteNamesSet.has(route.name)) ?? [])],
+    } as PartialState<NavigationState>);
+}
+
 function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingInitialPathParamsType): string {
     const {
         isUserFromPublicDomain,
@@ -99,7 +124,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (isIndividual) {
-        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
+        Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
     }
     if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
@@ -345,6 +370,7 @@ const getOnboardingMessages = (locale?: Locale) => {
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
             [CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE]: onboardingTrackWorkspaceMessage,
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: onboardingTrackWorkspaceMessage,
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: onboardingPersonalSpendMessage,
             [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: onboardingChatSplitMessage,
             [CONST.ONBOARDING_CHOICES.ADMIN]: onboardingAdminMessage,
@@ -361,4 +387,4 @@ const getOnboardingMessages = (locale?: Locale) => {
 };
 
 export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
-export {getOnboardingInitialPath, getOnboardingMessages};
+export {getOnboardingInitialPath, startOnboardingFlow, getOnboardingMessages};

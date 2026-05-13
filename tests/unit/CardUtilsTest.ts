@@ -13,6 +13,7 @@ import {
     filterAllInactiveCards,
     filterCardsByNonExpensify,
     filterInactiveCards,
+    filterInactiveCardsForWorkspace,
     flattenWorkspaceCardsList,
     formatCardExpiration,
     formatMaskedCardName,
@@ -31,6 +32,7 @@ import {
     getCompanyCardDescription,
     getCompanyCardFeed,
     getCompanyFeeds,
+    getConnectionBankAccountsForReconciliation,
     getCSVFeedType,
     getCustomFeedNameFromFeeds,
     getCustomOrFormattedFeedName,
@@ -83,6 +85,7 @@ import type {
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {Connections} from '@src/types/onyx/Policy';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -3386,6 +3389,120 @@ describe('CardUtils', () => {
             const result = filterAllInactiveCards(cards);
             expect(Object.keys(result)).toHaveLength(0);
         });
+
+        it('keeps admin-zeroed Expensify Cards (hasCustomUnapprovedExpenseLimit + limit 0) when includeDeactivated is true', () => {
+            const baseFields = {bank: CONST.EXPENSIFY_CARD.BANK, domainName: '', fraud: 'none', lastFourPAN: '', lastScrape: '', lastUpdated: ''};
+            const cards: CardList = {
+                active: {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN, ...baseFields, cardName: '1234', nameValuePairs: {unapprovedExpenseLimit: 1000}},
+                closed: {
+                    cardID: 2,
+                    state: CONST.EXPENSIFY_CARD.STATE.CLOSED,
+                    ...baseFields,
+                    cardName: '5678',
+                    nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0},
+                },
+                adminZeroedDeactivated: {
+                    cardID: 3,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    ...baseFields,
+                    cardName: '9012',
+                    nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0},
+                },
+                adminDeactivatedNonZero: {
+                    cardID: 4,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    ...baseFields,
+                    cardName: '3456',
+                    nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 5000},
+                },
+                adminZeroedSuspended: {
+                    cardID: 5,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                    ...baseFields,
+                    cardName: '',
+                    nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0},
+                },
+                nonZeroSuspended: {cardID: 6, state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED, ...baseFields, cardName: '', nameValuePairs: {unapprovedExpenseLimit: 5000}},
+                thirdPartyDeactivated: {
+                    cardID: 7,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    ...baseFields,
+                    cardName: '7890',
+                    bank: 'vcf',
+                    nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0},
+                },
+                deactivatedNoCustomFlag: {
+                    cardID: 8,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    ...baseFields,
+                    cardName: '0000',
+                    nameValuePairs: {unapprovedExpenseLimit: 0},
+                },
+            } as unknown as CardList;
+
+            const ids = Object.values(filterAllInactiveCards(cards, true)).map((c) => c.cardID);
+            expect(ids).toEqual(expect.arrayContaining([1, 3, 5]));
+            expect(ids).not.toContain(2);
+            expect(ids).not.toContain(4);
+            expect(ids).not.toContain(6);
+            expect(ids).not.toContain(7);
+            expect(ids).not.toContain(8);
+        });
+    });
+
+    describe('filterInactiveCardsForWorkspace', () => {
+        it('keeps admin-zeroed Expensify Cards alongside active ones, drops everything else', () => {
+            const cardsList = {
+                cardList: {assignable1: 'encrypted1'},
+                active: {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN, bank: CONST.EXPENSIFY_CARD.BANK, cardName: '1234', nameValuePairs: {unapprovedExpenseLimit: 1000}},
+                closed: {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED, bank: CONST.EXPENSIFY_CARD.BANK, cardName: '5678', nameValuePairs: {unapprovedExpenseLimit: 0}},
+                adminZeroedDeactivated: {
+                    cardID: 3,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardName: '9012',
+                    nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0},
+                },
+                deactivatedNonZero: {
+                    cardID: 4,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardName: '3456',
+                    nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 1000},
+                },
+                adminZeroedSuspended: {
+                    cardID: 5,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardName: '',
+                    nameValuePairs: {hasCustomUnapprovedExpenseLimit: true, unapprovedExpenseLimit: 0},
+                },
+                nonZeroSuspended: {
+                    cardID: 6,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardName: '',
+                    nameValuePairs: {unapprovedExpenseLimit: 5000},
+                },
+                deactivatedNoCustomFlag: {
+                    cardID: 7,
+                    state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
+                    bank: CONST.EXPENSIFY_CARD.BANK,
+                    cardName: '7890',
+                    nameValuePairs: {unapprovedExpenseLimit: 0},
+                },
+            } as unknown as Parameters<typeof filterInactiveCardsForWorkspace>[0];
+
+            const result = filterInactiveCardsForWorkspace(cardsList);
+            expect(result.active).toBeDefined();
+            expect(result.adminZeroedDeactivated).toBeDefined();
+            expect(result.adminZeroedSuspended).toBeDefined();
+            expect(result.closed).toBeUndefined();
+            expect(result.deactivatedNonZero).toBeUndefined();
+            expect(result.nonZeroSuspended).toBeUndefined();
+            expect(result.deactivatedNoCustomFlag).toBeUndefined();
+            expect(result.cardList).toBeDefined();
+        });
     });
 
     describe('UnassignedCard type through getFilteredCardList', () => {
@@ -4079,5 +4196,88 @@ describe('getEligibleBankAccountsForUkEuCard', () => {
         const result = getEligibleBankAccountsForUkEuCard(bankAccounts, 'GBP');
         expect(result).toHaveLength(1);
         expect(result.at(0)?.accountData?.state).toBe(CONST.BANK_ACCOUNT.STATE.OPEN);
+    });
+});
+
+describe('getConnectionBankAccountsForReconciliation', () => {
+    it('returns empty array when connections is undefined', () => {
+        expect(getConnectionBankAccountsForReconciliation(undefined, CONST.POLICY.CONNECTIONS.NAME.QBO)).toEqual([]);
+    });
+
+    it('returns QBO bank accounts mapped to id and name', () => {
+        const connections = {
+            quickbooksOnline: {
+                data: {
+                    bankAccounts: [
+                        {id: 'qbo-1', name: 'QBO Checking'},
+                        {id: 'qbo-2', name: 'QBO Savings'},
+                    ],
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.QBO)).toEqual([
+            {id: 'qbo-1', name: 'QBO Checking'},
+            {id: 'qbo-2', name: 'QBO Savings'},
+        ]);
+    });
+
+    it('returns Xero bank accounts mapped to id and name', () => {
+        const connections = {
+            xero: {
+                data: {
+                    bankAccounts: [{id: 'xero-1', name: 'Xero Account'}],
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.XERO)).toEqual([{id: 'xero-1', name: 'Xero Account'}]);
+    });
+
+    it('returns only _bank type accounts for NetSuite', () => {
+        const connections = {
+            netsuite: {
+                options: {
+                    data: {
+                        payableList: [
+                            {id: 'ns-1', name: 'NS Bank', type: '_bank'},
+                            {id: 'ns-2', name: 'NS Credit Card', type: '_creditCard'},
+                            {id: 'ns-3', name: 'NS Bank 2', type: '_bank'},
+                        ],
+                    },
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.NETSUITE)).toEqual([
+            {id: 'ns-1', name: 'NS Bank'},
+            {id: 'ns-3', name: 'NS Bank 2'},
+        ]);
+    });
+
+    it('returns Sage Intacct bank accounts', () => {
+        const connections = {
+            intacct: {
+                data: {
+                    bankAccounts: [{id: 'si-1', name: 'Intacct Account'}],
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)).toEqual([{id: 'si-1', name: 'Intacct Account'}]);
+    });
+
+    it('returns QBD bank accounts mapped to id and name', () => {
+        const connections = {
+            quickbooksDesktop: {
+                data: {
+                    bankAccounts: [{id: 'qbd-1', name: 'QBD Checking'}],
+                },
+            },
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.QBD)).toEqual([{id: 'qbd-1', name: 'QBD Checking'}]);
+    });
+
+    it('returns empty array when the connection has no bank accounts data', () => {
+        const connections = {
+            quickbooksOnline: {},
+        } as unknown as Connections;
+        expect(getConnectionBankAccountsForReconciliation(connections, CONST.POLICY.CONNECTIONS.NAME.QBO)).toEqual([]);
     });
 });

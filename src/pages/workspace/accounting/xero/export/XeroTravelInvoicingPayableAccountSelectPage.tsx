@@ -3,6 +3,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,7 +16,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import {clearXeroErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type PayableAccountListItem = ListItem & {
     value: string;
@@ -30,19 +31,21 @@ function XeroTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyConnect
     const config = policy?.connections?.xero?.config;
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
+    const selectedAccountID = config?.export?.travelInvoicingPayableAccountID;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.path);
     const data: PayableAccountListItem[] =
         bankAccounts?.map((account) => ({
             value: account.id,
             text: account.name,
             keyForList: account.id,
-            isSelected: account.id === config?.travelInvoicingPayableAccountID,
+            isSelected: account.id === selectedAccountID,
         })) ?? [];
 
     const selectAccount = (row: PayableAccountListItem) => {
-        if (row.value !== config?.travelInvoicingPayableAccountID) {
-            updateXeroTravelInvoicingPayableAccount(policyID, row.value, config?.travelInvoicingPayableAccountID);
+        if (row.value !== selectedAccountID) {
+            updateXeroTravelInvoicingPayableAccount(policyID, row.value, selectedAccountID);
         }
-        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID));
+        Navigation.goBack(backPath);
     };
 
     const listEmptyContent = (
@@ -70,7 +73,7 @@ function XeroTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyConnect
             initiallyFocusedOptionKey={data.find((option) => option.isSelected)?.keyForList}
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             pendingAction={settingsPendingAction([CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}

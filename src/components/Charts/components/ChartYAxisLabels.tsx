@@ -3,7 +3,7 @@ import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React from 'react';
 import type {ChartBounds, Scale} from 'victory-native';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_Y_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
-import useChartParagraphs from '@components/Charts/hooks/useChartParagraphs';
+import {useChartParagraphs} from '@components/Charts/hooks';
 import {getFontLineMetrics} from '@components/Charts/utils';
 
 type ChartYAxisLabelsProps = {

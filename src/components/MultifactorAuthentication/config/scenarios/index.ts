@@ -6,7 +6,7 @@ import AuthorizeTransaction from './AuthorizeTransaction';
 import BiometricsTest from './BiometricsTest';
 import type {Payload as ChangePINPayload} from './ChangePIN';
 import ChangePIN from './ChangePIN';
-import {customConfig} from './DefaultUserInterface';
+import customConfig from './DefaultUserInterface';
 import type {Payload as RevealPINPayload} from './RevealPIN';
 import RevealPIN from './RevealPIN';
 import type {Payload as SetPINOrderCardPayload} from './SetPINOrderCard';

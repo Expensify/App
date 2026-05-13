@@ -4,12 +4,14 @@ import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
 import {createDraftWorkspace, createWorkspace} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -19,9 +21,9 @@ type WorkspaceConfirmationForTravelPageProps = StackScreenProps<TravelNavigatorP
 function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTravelPageProps) {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
+    const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
@@ -30,17 +32,15 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     };
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
-        createDraftWorkspace(
+        createDraftWorkspace({
             introSelected,
-            params.name,
-            currentUserPersonalDetails.accountID,
-            currentUserPersonalDetails.email ?? '',
-            '',
-            false,
-            params.policyID,
-            params.currency,
-            params.avatarFile as File,
-        );
+            workspaceName: params.name,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail: currentUserPersonalDetails.email ?? '',
+            policyID: params.policyID,
+            currency: params.currency || (currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD),
+            file: params.avatarFile as File,
+        });
         createWorkspace({
             policyName: params.name,
             policyID: params.policyID,
@@ -48,7 +48,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             currency: params.currency,
             file: params.avatarFile as File,
             introSelected,
-            activePolicyID,
+            activePolicy,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
             betas,

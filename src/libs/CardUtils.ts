@@ -20,9 +20,12 @@ import type {
     CurrencyList,
     ExpensifyCardSettings,
     ExpensifyCardSettingsBase,
+    NestedExpensifyCardSettings,
     PersonalDetailsList,
     Policy,
+    PolicyConnectionName,
     PrivatePersonalDetails,
+    Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {UnassignedCard} from '@src/types/onyx/Card';
@@ -39,6 +42,7 @@ import type {
     NonConnectableBankName,
 } from '@src/types/onyx/CardFeeds';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
@@ -440,6 +444,27 @@ function getEligibleBankAccountsForCard(bankAccountsList: OnyxEntry<BankAccountL
     );
 }
 
+function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Connections>, connectionName: PolicyConnectionName | undefined): Array<{id: string; name: string}> {
+    if (!connections || !connectionName) {
+        return [];
+    }
+
+    switch (connectionName) {
+        case CONST.POLICY.CONNECTIONS.NAME.QBO:
+            return (connections.quickbooksOnline?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+        case CONST.POLICY.CONNECTIONS.NAME.XERO:
+            return (connections.xero?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+        case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
+            return (connections.netsuite?.options?.data?.payableList ?? []).filter((account) => account.type === '_bank').map(({id, name}) => ({id, name}));
+        case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
+            return connections.intacct?.data?.bankAccounts ?? [];
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return (connections.quickbooksDesktop?.data?.bankAccounts ?? []).map(({id, name}) => ({id, name}));
+        default:
+            return [];
+    }
+}
+
 function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
@@ -756,10 +781,11 @@ function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undef
  */
 function getFeedNameForDisplay(
     translate: LocaleContextProps['translate'],
-    feed: CompanyCardFeed | undefined,
+    feed: CardFeed | undefined,
     cardFeeds: OnyxCollection<CardFeeds> | undefined,
     customFeedName?: string,
     shouldAddCardsSuffix = true,
+    feedCountry?: string,
 ): string {
     // If feed is undefined or cardFeeds is not available, return empty string to avoid showing incorrect state
     if (!feed || !cardFeeds) {
@@ -772,7 +798,12 @@ function getFeedNameForDisplay(
         return translate('workspace.companyCards.deletedFeed');
     }
 
-    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
+    // Travel Invoicing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
+    if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
+        return translate('search.filters.card.centralInvoicing');
+    }
+
+    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed as CompanyCardFeed);
 
     return getCustomOrFormattedFeedName(translate, feed, customName, shouldAddCardsSuffix) ?? '';
 }
@@ -1016,22 +1047,28 @@ function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsD
     };
 }
 
-function filterAllInactiveCards(cards: CardList | undefined) {
+/**
+ * Filters cards by state. Closed and deactivated cards are excluded by default; suspended cards are
+ * only kept when frozen. When `includeDeactivated` is true (workspace card management views), admin-zeroed
+ * Expensify Cards are also kept — these are cards an admin set to a $0 limit, which the backend then
+ * transitions to deactivated/suspended. Admins still need to be able to find and manage them.
+ */
+function filterAllInactiveCards(cards: CardList | undefined, includeDeactivated = false) {
     if (!cards) {
         return {};
     }
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED]);
-    const filteredCards = filterObject(cards, (_key, card) => {
+    return filterObject(cards, (_key, card) => {
+        const isAdminZeroedExpensifyCard = isExpensifyCard(card) && isCardWithCustomZeroLimit(card);
         if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED) {
-            // Only include suspended cards that are frozen.
-            return !!card.nameValuePairs?.frozen;
+            return !!card.nameValuePairs?.frozen || (includeDeactivated && isAdminZeroedExpensifyCard);
         }
-
+        if (card.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED) {
+            return includeDeactivated && isAdminZeroedExpensifyCard;
+        }
         return !closedStates.has(card.state);
     });
-
-    return filteredCards;
 }
 
 function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
@@ -1044,11 +1081,26 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
     } as WorkspaceCardsList;
 }
 
+/**
+ * Onyx selector for workspace Expensify Card management pages. Same as `filterInactiveCards`, but also
+ * keeps issued deactivated cards and zero-limit suspended cards so admins can view and edit them.
+ */
+function filterInactiveCardsForWorkspace(cardsList: WorkspaceCardsList | undefined) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    const filteredAssignedCards = filterAllInactiveCards(assignedCards, true);
+
+    return {
+        ...(cardList ? {cardList} : {}),
+        ...filteredAssignedCards,
+    } as WorkspaceCardsList;
+}
+
 function getAllCardsForWorkspace(
     workspaceAccountID: number,
     allCardList: OnyxCollection<WorkspaceCardsList>,
     cardFeeds?: CombinedCardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
+    includeDeactivated = false,
 ): CardList {
     const cards: CardList = {};
     const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
@@ -1062,7 +1114,7 @@ function getAllCardsForWorkspace(
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
             const {cardList: assignableCards, ...assignedCards} = values ?? {};
-            const filteredCards = filterInactiveCards(assignedCards);
+            const filteredCards = filterAllInactiveCards(assignedCards, includeDeactivated);
             Object.assign(cards, filteredCards);
         }
     }
@@ -1227,17 +1279,17 @@ function getCardProgramKey(cardSettings: OnyxEntry<ExpensifyCardSettings>): Card
     });
 }
 
-function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): ExpensifyCardSettingsBase | undefined {
+function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, programKey?: CardProgramKey): NestedExpensifyCardSettings | undefined {
     if (!cardSettings) {
         return undefined;
     }
 
-    const getMergedProgramSettings = (key: CardProgramKey): ExpensifyCardSettingsBase | undefined => {
+    const getMergedProgramSettings = (key: CardProgramKey): NestedExpensifyCardSettings | undefined => {
         const programSettings = cardSettings[key];
         if (programSettings && typeof programSettings === 'object' && !Array.isArray(programSettings)) {
             // Nested program values take precedence — they are the authoritative source for
             // program-specific fields (e.g. paymentBankAccountID, monthlySettlementDate).
-            return {...cardSettings, ...programSettings} as ExpensifyCardSettingsBase;
+            return {...cardSettings, ...programSettings} as NestedExpensifyCardSettings;
         }
         return undefined;
     };
@@ -1255,7 +1307,7 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
         getMergedProgramSettings(CONST.COUNTRY.US) ??
         getMergedProgramSettings(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) ??
         getMergedProgramSettings(CONST.COUNTRY.GB) ??
-        (cardSettings as ExpensifyCardSettingsBase)
+        (cardSettings as NestedExpensifyCardSettings)
     );
 }
 
@@ -1724,11 +1776,7 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
  * The search API pre-resolves cardName, but local Onyx transactions have raw values.
  * This ensures the report layout matches the search page.
  */
-function resolveTransactionCardFields<T extends {cardID?: number; cardName?: string; bank?: string}>(
-    transactions: T[],
-    cardList: CardList | undefined,
-    translate: LocalizedTranslate,
-): Array<T & {isCardFeedDeleted?: boolean}> {
+function resolveTransactionCardFields<T extends Transaction>(transactions: T[], cardList: CardList | undefined, translate: LocalizedTranslate): Array<T & {isCardFeedDeleted?: boolean}> {
     return transactions.map((transaction) => {
         let updates: Partial<T & {isCardFeedDeleted?: boolean}> = {};
 
@@ -1819,6 +1867,7 @@ export {
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
+    filterInactiveCardsForWorkspace,
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
@@ -1840,6 +1889,7 @@ export {
     getCardFeedWithDomainID,
     splitCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    getConnectionBankAccountsForReconciliation,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,

@@ -41,8 +41,8 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
         const biometricsTestConfig = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
-        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED);
-        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED);
+        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED);
+        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED);
     });
 
     /**
@@ -72,7 +72,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             true,
             {
                 httpStatusCode: 200,
-                message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+                message: undefined,
                 body: {},
             },
             undefined,
@@ -120,8 +120,8 @@ describe('MultifactorAuthentication Scenarios Config', () => {
 
             expect(setPinScenario.defaultClientFailureScreen).toBeDefined();
             expect(setPinScenario.defaultServerFailureScreen).toBeDefined();
-            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED);
-            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED);
+            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.NO_AUTHENTICATION_METHODS_ENROLLED);
+            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.AUTHENTICATION_TYPE_NOT_SUPPORTED);
         });
 
         it('should return SHOW_OUTCOME_SCREEN on authentication failure', async () => {
@@ -133,7 +133,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
                 false,
                 {
                     httpStatusCode: 401,
-                    message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNHANDLED_ERROR,
+                    message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
                     body: {},
                 },
                 validPayload,
@@ -150,7 +150,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
                 true,
                 {
                     httpStatusCode: 200,
-                    message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
+                    message: undefined,
                     body: {},
                 },
                 undefined,

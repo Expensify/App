@@ -35,6 +35,7 @@ function BaseDomainSettingsPage({domainAccountID, children}: BaseDomainSettingsP
                     onBackButtonPress={() => {
                         Navigation.dismissModal();
                     }}
+                    shouldDisplayHelpButton
                 />
                 <View style={styles.flex1}>{children}</View>
             </ScreenWrapper>

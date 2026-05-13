@@ -1,13 +1,15 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
 import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -78,6 +80,7 @@ function BaseModal({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const {windowWidth, windowHeight} = useWindowDimensions();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct modal width
     const canUseTouchScreen = canUseTouchScreenCheck();
@@ -95,6 +98,7 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
+    const bottomDockedDismissButtonRef = useRef<View>(null);
 
     const wasVisible = usePrevious(isVisible);
 
@@ -166,7 +170,7 @@ function BaseModal({
             }
             hideModalCallbackRef.current?.(true);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [],
     );
 
@@ -177,8 +181,8 @@ function BaseModal({
         onModalShow();
     }, [onModalShow, shouldSetModalVisibility, type]);
 
-    const handleBackdropPress = (e?: KeyboardEvent) => {
-        if (e?.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+    const handleBackdropPress = (e?: GestureResponderEvent | KeyboardEvent) => {
+        if (e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             return;
         }
 
@@ -311,6 +315,8 @@ function BaseModal({
     const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
 
     const shouldWrapChildrenInScrollView = shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode && isBottomDockedModalInLandscapeMode;
+    const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
+    const modalInitialFocus = shouldShowBottomDockedDismissButton ? () => bottomDockedDismissButtonRef.current : initialFocus;
 
     return (
         <ModalContext.Provider value={modalContextValue}>
@@ -348,7 +354,7 @@ function BaseModal({
                         onSwipeComplete={onClose}
                         swipeDirection={swipeDirection}
                         shouldPreventScrollOnFocus={shouldPreventScrollOnFocus}
-                        initialFocus={initialFocus}
+                        initialFocus={modalInitialFocus}
                         swipeThreshold={swipeThreshold}
                         isVisible={isVisible}
                         backdropColor={theme.overlay}
@@ -389,6 +395,19 @@ function BaseModal({
                             ref={ref}
                             fsClass={forwardedFSClass}
                         >
+                            {shouldShowBottomDockedDismissButton && (
+                                <PressableWithoutFeedback
+                                    ref={bottomDockedDismissButtonRef}
+                                    onPress={handleBackdropPress}
+                                    role={CONST.ROLE.BUTTON}
+                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={translate('common.dismiss')}
+                                    sentryLabel={CONST.SENTRY_LABEL.MODAL.DISMISS_DIALOG}
+                                    style={styles.bottomDockedModalDismissButton}
+                                >
+                                    <View />
+                                </PressableWithoutFeedback>
+                            )}
                             <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}

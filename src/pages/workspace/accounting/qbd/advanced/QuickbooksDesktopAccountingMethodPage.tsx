@@ -2,7 +2,6 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -69,7 +68,6 @@ function QuickbooksDesktopAccountingMethodPage({policy}: WithPolicyConnectionsPr
             headerTitleAlreadyTranslated={translate('workspace.qbd.accountingMethods.label')}
             headerContent={headerContent}
             data={data}
-            listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectAccountingMethod(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
