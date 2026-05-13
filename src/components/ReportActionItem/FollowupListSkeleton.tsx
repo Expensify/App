@@ -1,4 +1,5 @@
 import React from 'react';
+import {View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
@@ -8,16 +9,35 @@ import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 
 const BAR_HEIGHT = 40;
-const BAR_GAP = 8;
+const BAR_PADDING = 16;
+const BAR_WIDTH = 200;
 const BAR_COUNT = 3;
-const TOTAL_HEIGHT = BAR_HEIGHT * BAR_COUNT + BAR_GAP * (BAR_COUNT - 1);
-const BAR_RADIUS = 20;
 
-const BAR_WIDTHS = [220, 280, 180] as const;
+function ActionableItemSkeleton() {
+    const styles = useThemeStyles();
+    const theme = useTheme();
+
+    return (
+        <View style={styles.actionableItemButtonSkeleton}>
+            <SkeletonViewContentLoader
+                height={BAR_HEIGHT}
+                width={BAR_WIDTH + BAR_PADDING * 2}
+                backgroundColor={theme.skeletonLHNIn}
+                foregroundColor={theme.skeletonLHNOut}
+                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+            >
+                <SkeletonRect
+                    transform={[{translateX: BAR_PADDING}, {translateY: BAR_PADDING}]}
+                    width={BAR_WIDTH}
+                    height="8"
+                />
+            </SkeletonViewContentLoader>
+        </View>
+    );
+}
 
 function FollowupListSkeleton() {
     const styles = useThemeStyles();
-    const theme = useTheme();
     useSkeletonSpan('FollowupListSkeleton', {context: 'ReportScreen.ChatActionableButtons'});
 
     return (
@@ -25,24 +45,11 @@ function FollowupListSkeleton() {
             entering={FadeIn}
             exiting={FadeOut}
         >
-            <SkeletonViewContentLoader
-                height={TOTAL_HEIGHT}
-                width={BAR_WIDTHS[1]}
-                backgroundColor={theme.skeletonLHNIn}
-                foregroundColor={theme.skeletonLHNOut}
-                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                style={styles.mt2}
-            >
-                {BAR_WIDTHS.map((width, index) => (
-                    <SkeletonRect
-                        key={`skeletonRect${width}`}
-                        transform={[{translateY: index * (BAR_HEIGHT + BAR_GAP)}]}
-                        width={width}
-                        height={BAR_HEIGHT}
-                        borderRadius={BAR_RADIUS}
-                    />
+            <View style={[styles.gap2, styles.mt2, styles.flexColumn, styles.alignItemsStart]}>
+                {Array.from({length: BAR_COUNT}, (_, index) => (
+                    <ActionableItemSkeleton key={index} />
                 ))}
-            </SkeletonViewContentLoader>
+            </View>
         </Animated.View>
     );
 }
