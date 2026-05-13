@@ -1399,6 +1399,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path,
                         [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path,
                         [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path,
+                        [SCREENS.TWO_FACTOR_AUTH.ENABLED]: {
+                            path: ROUTES.SETTINGS_2FA_ENABLED,
+                            exact: true,
+                        },
                         [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
                             path: ROUTES.SETTINGS_2FA_SUCCESS,
                             exact: true,

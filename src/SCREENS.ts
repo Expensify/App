@@ -275,6 +275,7 @@ const SCREENS = {
         DYNAMIC_VERIFY: 'Dynamic_Settings_TwoFactorAuth_Verify',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Settings_TwoFactorAuth_Verify_Account',
         DYNAMIC_SUCCESS: 'Dynamic_Settings_TwoFactorAuth_Success',
+        ENABLED: 'Settings_TwoFactorAuth_Enabled',
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
         DISABLE: 'Settings_TwoFactorAuth_Disable',

@@ -3,13 +3,12 @@ import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAut
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openLink} from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ConnectToXeroFlowProps} from './types';
 
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
@@ -18,7 +17,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const is2FAEnabled = account?.requiresTwoFactorAuth;
-    const isUserValidated = account?.validated;
+    const getTwoFactorAuthRoute = useTwoFactorAuthRoute();
 
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
@@ -37,11 +36,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 onSubmit={() => {
                     setIsRequire2FAModalOpen(false);
                     close(() => {
-                        if (isUserValidated) {
-                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path));
-                            return;
-                        }
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path));
+                        Navigation.navigate(getTwoFactorAuthRoute());
                     });
                 }}
                 onCancel={() => {

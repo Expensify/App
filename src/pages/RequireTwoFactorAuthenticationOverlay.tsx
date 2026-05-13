@@ -1,5 +1,4 @@
 import {useNavigation} from '@react-navigation/core';
-import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -13,12 +12,11 @@ import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import useThemeStyles from '@hooks/useThemeStyles';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 
@@ -49,18 +47,14 @@ function RequireTwoFactorAuthenticationOverlay() {
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const getTwoFactorAuthRoute = useTwoFactorAuthRoute();
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const requires2FAForXeroSelector = useCallback((workspaces: OnyxCollection<Policy>) => is2FARequiredBecauseOfXeroSelector(email)(workspaces), [email]);
     const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: requires2FAForXeroSelector});
 
     const handleOnPress = useCallback(() => {
-        if (isUserValidated) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path));
-            return;
-        }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path));
-    }, [isUserValidated]);
+        Navigation.navigate(getTwoFactorAuthRoute());
+    }, [getTwoFactorAuthRoute]);
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
         return null;

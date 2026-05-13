@@ -962,6 +962,7 @@ const ROUTES = {
             return getUrlWithBackToParam(`settings/profile/contact-methods/${encodedMethod}/set-default/confirm`, backTo);
         },
     },
+    SETTINGS_2FA_ENABLED: 'settings/security/two-factor-auth/enabled',
     SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/replace/success',
     SETTINGS_2FA_DISABLED: 'settings/security/two-factor-auth/disabled',
     SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
