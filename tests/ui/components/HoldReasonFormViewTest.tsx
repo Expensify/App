@@ -6,7 +6,7 @@ import {translateLocal} from '../../utils/TestHelper';
 
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@react-navigation/native', () => ({
-    createNavigationContainerRef: jest.fn(() => ({isReady: () => false, current: null, getRootState: jest.fn(), getState: jest.fn()})),
+    createNavigationContainerRef: jest.fn(),
     useIsFocused: () => true,
     useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn(), goBack: jest.fn(), isFocused: () => true}),
     useFocusEffect: jest.fn(),

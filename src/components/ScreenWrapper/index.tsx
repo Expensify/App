@@ -184,18 +184,18 @@ function ScreenWrapper({
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldBlockSingleEntryOldAppExit = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
-    const [activeRouteWithoutParams, setActiveRouteWithoutParams] = useState(() => Navigation.getActiveRouteWithoutParams?.() ?? '');
+    const [activeRouteWithoutParams, setActiveRouteWithoutParams] = useState('');
     const initialURLWithoutParams = initialURL?.split('?').at(0);
     const doesInitialURLMatchActiveRoute = activeRouteWithoutParams !== '' && !!initialURLWithoutParams?.endsWith(activeRouteWithoutParams);
 
     useEffect(() => {
-        if (activeRouteWithoutParams !== '') {
+        if (!isSingleNewDotEntry || activeRouteWithoutParams !== '') {
             return;
         }
-        Navigation.isNavigationReady?.().then(() => {
-            setActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams?.() ?? '');
+        Navigation.isNavigationReady().then(() => {
+            setActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams());
         });
-    }, [activeRouteWithoutParams]);
+    }, [isSingleNewDotEntry, activeRouteWithoutParams]);
 
     usePreventRemove(isSingleNewDotEntry && doesInitialURLMatchActiveRoute && !shouldBlockSingleEntryOldAppExit, () => {
         if (!CONFIG.IS_HYBRID_APP) {
