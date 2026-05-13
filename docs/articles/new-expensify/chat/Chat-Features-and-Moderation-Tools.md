@@ -46,11 +46,19 @@ You can send messages, attach files, and add emojis from the message bar at the 
 
 # Edit or Delete Messages
 
-**To edit or delete a message:**
+## How to edit or delete a message on desktop
 
 1. Open a chat.
-2. Right-click a message.
+2. Right-click (or hover over) a message.
 3. Select **Edit comment** or **Delete comment**.
+4. If editing, update the text inline and press **Enter** to save.
+
+## How to edit or delete a message on mobile
+
+1. Open a chat.
+2. Long-press a message.
+3. Select **Edit comment** or **Delete comment**.
+4. If editing, the message text appears in the composer at the bottom of the screen. Update the text and tap **Save**.
 
 ✏️ **Note:** You can only edit or delete your own messages. Deleted messages are permanently removed.
 
