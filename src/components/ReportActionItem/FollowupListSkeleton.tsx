@@ -1,12 +1,13 @@
 import React from 'react';
-import {View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+import CONST from '@src/CONST';
 
-const BAR_HEIGHT = 32;
+const BAR_HEIGHT = 40;
 const BAR_GAP = 8;
 const BAR_COUNT = 3;
 const TOTAL_HEIGHT = BAR_HEIGHT * BAR_COUNT + BAR_GAP * (BAR_COUNT - 1);
@@ -20,17 +21,21 @@ function FollowupListSkeleton() {
     useSkeletonSpan('FollowupListSkeleton', {context: 'ReportScreen.ChatActionableButtons'});
 
     return (
-        <View style={[styles.mt2, styles.alignItemsStart]}>
+        <Animated.View
+            entering={FadeIn}
+            exiting={FadeOut}
+        >
             <SkeletonViewContentLoader
                 height={TOTAL_HEIGHT}
                 width={BAR_WIDTHS[1]}
                 backgroundColor={theme.skeletonLHNIn}
                 foregroundColor={theme.skeletonLHNOut}
+                speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                style={styles.mt2}
             >
                 {BAR_WIDTHS.map((width, index) => (
                     <SkeletonRect
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={index}
+                        key={`skeletonRect${index}`}
                         transform={[{translateY: index * (BAR_HEIGHT + BAR_GAP)}]}
                         width={width}
                         height={BAR_HEIGHT}
@@ -38,7 +43,7 @@ function FollowupListSkeleton() {
                     />
                 ))}
             </SkeletonViewContentLoader>
-        </View>
+        </Animated.View>
     );
 }
 
