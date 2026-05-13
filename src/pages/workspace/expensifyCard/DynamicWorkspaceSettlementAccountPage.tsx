@@ -1,3 +1,4 @@
+import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -50,7 +51,9 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const programKey = getCardProgramKey(cardSettings);
     const settings = getCardSettings(cardSettings, programKey);
-    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`);
+    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`, {
+        selector: isExpensifyCardContinuousReconciliationEnabledSelector,
+    });
     const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
@@ -78,11 +81,11 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     }, [policyID]);
 
     useEffect(() => {
-        if (!cardSettings || !hasActiveAccountingConnection || continuousReconciliation?.value !== undefined || reconciliationConnection !== undefined) {
+        if (!cardSettings || !hasActiveAccountingConnection || continuousReconciliation !== undefined || reconciliationConnection !== undefined) {
             return;
         }
         fetchPolicyAccountingData();
-    }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation?.value, reconciliationConnection, fetchPolicyAccountingData]);
+    }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
 
     const eligibleBankAccountsOptions: BankAccountListItem[] = eligibleBankAccounts.map((bankAccount) => {
         const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
@@ -126,7 +129,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
         return (
             <>
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
-                {!!continuousReconciliation?.value && !!connectionParam && hasActiveAccountingConnection && (
+                {!!continuousReconciliation && !!connectionParam && hasActiveAccountingConnection && (
                     <View style={[styles.renderHTML, styles.mh5, styles.mb6]}>
                         <RenderHTML
                             html={translate(

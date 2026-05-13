@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import type {Pages} from '@src/types/onyx';
-import PaginationUtils from '../../src/libs/PaginationUtils';
+import PaginationUtils, {selectNewestPageWithIndex} from '../../src/libs/PaginationUtils';
 
 type Item = {
     id: string;
@@ -602,6 +602,144 @@ describe('PaginationUtils', () => {
             ];
             const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
+        });
+    });
+
+    describe('mergePagesByIDOverlap', () => {
+        it('merges pages that share a non-marker id (overlap) without requiring index adjacency in the same way as mergeAndSort', () => {
+            const sortedItems = createItems(['5', '4', '3', '2', '1']);
+            const pages: Pages = [
+                ['4', '3', '2'],
+                ['3', '2', '1'],
+            ];
+            const result = PaginationUtils.mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([['4', '3', '2', '1']]);
+        });
+
+        it('merges when the first id of a page matches the last id of the previous page (chain)', () => {
+            const sortedItems = createItems(['5', '4', '3', '2', '1']);
+            const pages: Pages = [
+                ['5', '4', '3'],
+                ['3', '2', '1'],
+            ];
+            const result = PaginationUtils.mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([['5', '4', '3', '2', '1']]);
+        });
+
+        it('does not merge disjoint windows with no shared ids (middle-of-chat / sparse local set)', () => {
+            const sortedItems = createItems(['5', '4', '2', '1']);
+            const pages: Pages = [
+                ['5', '4'],
+                ['2', '1'],
+            ];
+            const result = PaginationUtils.mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([
+                ['5', '4'],
+                ['2', '1'],
+            ]);
+        });
+
+        it('returns an empty array when input pages is empty', () => {
+            expect(PaginationUtils.mergePagesByIDOverlap(createItems(['1']), [], getID)).toStrictEqual([]);
+        });
+
+        it('strips ids not present in sortedItems from stored pages', () => {
+            const sortedItems = createItems(['4', '3']);
+            const pages: Pages = [['6', '5', '4', '3', '2', '1']];
+            const result = PaginationUtils.mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([['4', '3']]);
+        });
+
+        it('applies start/end markers when merging', () => {
+            const sortedItems = createItems(['1', '2', '3']);
+            const pages: Pages = [
+                [CONST.PAGINATION_START_ID, '1', '2', '3'],
+                ['2', '3', CONST.PAGINATION_END_ID],
+            ];
+            const result = PaginationUtils.mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([[CONST.PAGINATION_START_ID, '1', '2', '3', CONST.PAGINATION_END_ID]]);
+        });
+    });
+
+    describe('selectNewestPageWithIndex', () => {
+        it('returns undefined for an empty list', () => {
+            expect(selectNewestPageWithIndex([])).toBeUndefined();
+        });
+
+        it('returns the only page when there is a single page', () => {
+            const only = {
+                ids: ['3', '2', '1'],
+                firstID: '3',
+                firstIndex: 0,
+                lastID: '1',
+                lastIndex: 2,
+            };
+            expect(selectNewestPageWithIndex([only])).toBe(only);
+        });
+
+        it('prefers the page whose firstID is the pagination start marker', () => {
+            const withStart = {
+                ids: [CONST.PAGINATION_START_ID, '2', '1'],
+                firstID: CONST.PAGINATION_START_ID,
+                firstIndex: 2,
+                lastID: '1',
+                lastIndex: 4,
+            };
+            const newerByIndex = {
+                ids: ['5', '4'],
+                firstID: '5',
+                firstIndex: 0,
+                lastID: '4',
+                lastIndex: 1,
+            };
+            expect(selectNewestPageWithIndex([newerByIndex, withStart])).toBe(withStart);
+            expect(selectNewestPageWithIndex([withStart, newerByIndex])).toBe(withStart);
+        });
+
+        it('when no start marker, picks the page with the smallest firstIndex (chronologically newest in descending-sorted data)', () => {
+            const olderWindow = {
+                ids: ['2', '1'],
+                firstID: '2',
+                firstIndex: 3,
+                lastID: '1',
+                lastIndex: 4,
+            };
+            const newerWindow = {
+                ids: ['5', '4'],
+                firstID: '5',
+                firstIndex: 0,
+                lastID: '4',
+                lastIndex: 1,
+            };
+            expect(selectNewestPageWithIndex([olderWindow, newerWindow])).toBe(newerWindow);
+        });
+    });
+
+    describe('prunePagesToNewestWindow', () => {
+        it('returns pages unchanged when there is at most one page', () => {
+            const sortedItems = createItems(['1', '2', '3']);
+            expect(PaginationUtils.prunePagesToNewestWindow(sortedItems, [], getID)).toStrictEqual([]);
+            expect(PaginationUtils.prunePagesToNewestWindow(sortedItems, [['1', '2']], getID)).toStrictEqual([['1', '2']]);
+        });
+
+        it('collapses to the newest window by firstIndex when no start marker is present', () => {
+            const sortedItems = createItems(['5', '4', '3', '2', '1']);
+            const pages: Pages = [
+                ['2', '1'],
+                ['5', '4'],
+            ];
+            const result = PaginationUtils.prunePagesToNewestWindow(sortedItems, pages, getID);
+            expect(result).toStrictEqual([['5', '4']]);
+        });
+
+        it('keeps the page that includes the start marker (ids are expanded the same way as in getPagesWithIndexes)', () => {
+            const sortedItems = createItems(['3', '2', '1']);
+            const pages: Pages = [
+                ['3', '2'],
+                [CONST.PAGINATION_START_ID, '1'],
+            ];
+            const result = PaginationUtils.prunePagesToNewestWindow(sortedItems, pages, getID);
+            expect(result).toStrictEqual([[CONST.PAGINATION_START_ID, '3', '2', '1']]);
         });
     });
 });

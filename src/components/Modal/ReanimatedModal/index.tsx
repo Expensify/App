@@ -1,5 +1,5 @@
 import noop from 'lodash/noop';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
@@ -55,37 +55,64 @@ function ReanimatedModal({
     shouldReturnFocus,
     ...props
 }: ReanimatedModalProps) {
-    const [isVisibleState, setIsVisibleState] = useState(isVisible);
     const [isContainerOpen, setIsContainerOpen] = useState(false);
-    const [isTransitioning, setIsTransitioning] = useState(false);
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const styles = useThemeStyles();
 
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const handleRef = useRef<number | undefined>(undefined);
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
 
-    const styles = useThemeStyles();
+    const isTransitioning = isVisible !== isContainerOpen;
+    const backdropStyle: ViewStyle = {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
+    const modalStyle = {zIndex: StyleSheet.flatten(style)?.zIndex};
 
-    const onBackButtonPressHandler = useCallback(() => {
+    const onBackButtonPressHandler = () => {
         if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
             return false;
         }
-        if (isVisibleState) {
+        if (isVisible) {
             onBackButtonPress();
             return true;
         }
         return false;
-    }, [isVisibleState, onBackButtonPress, isTransitioning, shouldIgnoreBackHandlerDuringTransition]);
+    };
 
-    const handleEscape = useCallback(
-        (e: KeyboardEvent) => {
-            if (e.key !== 'Escape' || onBackButtonPressHandler() !== true) {
-                return;
-            }
-            e.stopImmediatePropagation();
-        },
-        [onBackButtonPressHandler],
-    );
+    const handleEscape = (e: KeyboardEvent) => {
+        if (e.key !== 'Escape' || onBackButtonPressHandler() !== true) {
+            return;
+        }
+        e.stopImmediatePropagation();
+    };
+
+    const clearTransitionHandles = () => {
+        if (handleRef.current) {
+            InteractionManager.clearInteractionHandle(handleRef.current);
+            handleRef.current = undefined;
+        }
+        if (transitionHandleRef.current) {
+            TransitionTracker.endTransition(transitionHandleRef.current);
+            transitionHandleRef.current = null;
+        }
+    };
+
+    const onOpenCallBack = () => {
+        setIsContainerOpen(true);
+        clearTransitionHandles();
+        onModalShow();
+    };
+
+    const onCloseCallBack = () => {
+        setIsContainerOpen(false);
+        clearTransitionHandles();
+
+        // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
+        // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
+        // Therefore, we manually call onModalHide() here for Android.
+        if (getPlatform() === CONST.PLATFORM.ANDROID) {
+            onModalHide();
+        }
+    };
 
     useEffect(() => {
         if (getPlatform() === CONST.PLATFORM.WEB) {
@@ -103,82 +130,29 @@ function ReanimatedModal({
         };
     }, [handleEscape, onBackButtonPressHandler]);
 
-    useEffect(
-        () => () => {
-            if (handleRef.current) {
-                InteractionManager.clearInteractionHandle(handleRef.current);
-            }
-            if (transitionHandleRef.current) {
-                TransitionTracker.endTransition(transitionHandleRef.current);
-                transitionHandleRef.current = null;
-            }
+    useEffect(() => {
+        if (isTransitioning) {
+            handleRef.current = InteractionManager.createInteractionHandle();
+            transitionHandleRef.current = TransitionTracker.startTransition();
+        }
 
-            setIsVisibleState(false);
-            setIsContainerOpen(false);
-        },
+        return () => {
+            clearTransitionHandles();
+        };
+    }, [isTransitioning]);
 
-        [],
-    );
+    const fireTransitionCallbacks = useEffectEvent(() => {
+        if (isVisible && !isContainerOpen) {
+            onModalWillShow();
+        } else if (!isVisible && isContainerOpen) {
+            onModalWillHide();
+            blurActiveElement();
+        }
+    });
 
     useEffect(() => {
-        if (isVisible && !isContainerOpen && !isTransitioning) {
-            handleRef.current = InteractionManager.createInteractionHandle();
-            transitionHandleRef.current = TransitionTracker.startTransition();
-            onModalWillShow();
-
-            setIsVisibleState(true);
-            setIsTransitioning(true);
-        } else if (!isVisible && isContainerOpen && !isTransitioning) {
-            handleRef.current = InteractionManager.createInteractionHandle();
-            transitionHandleRef.current = TransitionTracker.startTransition();
-            onModalWillHide();
-
-            blurActiveElement();
-            setIsVisibleState(false);
-            setIsTransitioning(true);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isVisible, isContainerOpen, isTransitioning]);
-
-    const backdropStyle: ViewStyle = useMemo(() => {
-        return {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
-    }, [windowWidth, windowHeight, backdropColor]);
-
-    const onOpenCallBack = useCallback(() => {
-        setIsTransitioning(false);
-        setIsContainerOpen(true);
-        if (handleRef.current) {
-            InteractionManager.clearInteractionHandle(handleRef.current);
-        }
-        if (transitionHandleRef.current) {
-            TransitionTracker.endTransition(transitionHandleRef.current);
-            transitionHandleRef.current = null;
-        }
-        onModalShow();
-    }, [onModalShow]);
-
-    const onCloseCallBack = useCallback(() => {
-        setIsTransitioning(false);
-        setIsContainerOpen(false);
-        if (handleRef.current) {
-            InteractionManager.clearInteractionHandle(handleRef.current);
-        }
-        if (transitionHandleRef.current) {
-            TransitionTracker.endTransition(transitionHandleRef.current);
-            transitionHandleRef.current = null;
-        }
-
-        // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
-        // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
-        // Therefore, we manually call onModalHide() here for Android.
-        if (getPlatform() === CONST.PLATFORM.ANDROID) {
-            onModalHide();
-        }
-    }, [onModalHide]);
-
-    const modalStyle = useMemo(() => {
-        return {zIndex: StyleSheet.flatten(style)?.zIndex};
-    }, [style]);
+        fireTransitionCallbacks();
+    }, [isVisible, isContainerOpen]);
 
     const containerView = (
         <Container
@@ -212,7 +186,7 @@ function ReanimatedModal({
         />
     );
 
-    if (!coverScreen && isVisibleState) {
+    if (!coverScreen && isVisible) {
         return (
             <View
                 pointerEvents="box-none"
@@ -223,8 +197,8 @@ function ReanimatedModal({
             </View>
         );
     }
-    const isBackdropMounted = isVisibleState || ((isTransitioning || isContainerOpen !== isVisibleState) && getPlatform() === CONST.PLATFORM.WEB);
-    const modalVisibility = isVisibleState || isTransitioning || isContainerOpen !== isVisibleState;
+    const isBackdropMounted = isVisible || (isTransitioning && getPlatform() === CONST.PLATFORM.WEB);
+    const modalVisibility = isVisible || isTransitioning;
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
             <Modal
@@ -251,7 +225,7 @@ function ReanimatedModal({
                         pointerEvents="box-none"
                         style={[style, {margin: 0}]}
                     >
-                        {isVisibleState && containerView}
+                        {isVisible && containerView}
                     </KeyboardAvoidingView>
                 ) : (
                     <FocusTrapForModal
@@ -260,7 +234,7 @@ function ReanimatedModal({
                         shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
-                        {isVisibleState && containerView}
+                        {isVisible && containerView}
                     </FocusTrapForModal>
                 )}
             </Modal>
