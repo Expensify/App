@@ -8,6 +8,7 @@ import type {
     AddPaymentCardParams,
     DeletePaymentCardParams,
     MakeDefaultPaymentMethodParams,
+    OpenPaymentsPageParams,
     PaymentCardParams,
     SetInvoicingTransferBankAccountParams,
     TransferWalletBalanceParams,
@@ -45,7 +46,7 @@ function continueSetup(kycWallRef: RefObject<KYCWallRef | null>, fallbackRoute?:
     kycWallRef.current.continueAction({goBackRoute: fallbackRoute});
 }
 
-function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
+function getPaymentMethods(params?: OpenPaymentsPageParams) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_PAYMENT_METHODS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -70,7 +71,10 @@ function getPaymentMethods(includePartiallySetupBankAccounts?: boolean) {
 
     return API.read(
         READ_COMMANDS.OPEN_PAYMENTS_PAGE,
-        {includePartiallySetupBankAccounts},
+        {
+            includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
+            includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
+        },
         {
             optimisticData,
             successData,
@@ -92,7 +96,6 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                       // Only clear the error if this is optimistic data. If this is failure data, we do not want to clear the error that came from the server.
@@ -103,7 +106,6 @@ function getMakeDefaultPaymentOnyxData(
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: ONYXKEYS.USER_WALLET,
                   value: {
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       walletLinkedAccountID: bankAccountID || fundID,
                       walletLinkedAccountType: bankAccountID ? CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT : CONST.PAYMENT_METHODS.DEBIT_CARD,
                   },
@@ -263,7 +265,6 @@ function addSubscriptionPaymentCard(
     if (CONST.SCA_CURRENCIES.has(currency)) {
         addPaymentCardSCA(parameters, {optimisticData, successData, failureData});
     } else {
-        // eslint-disable-next-line rulesdir/no-multiple-api-calls
         API.write(WRITE_COMMANDS.ADD_PAYMENT_CARD, parameters, {
             optimisticData,
             successData,

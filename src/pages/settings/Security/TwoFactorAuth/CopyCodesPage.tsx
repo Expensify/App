@@ -32,7 +32,7 @@ import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
@@ -62,7 +62,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
             Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
         if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
@@ -171,6 +171,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                         <Text
                             key={statusAnnouncement.id}
                             role={CONST.ROLE.ALERT}
+                            accessibilityLiveRegion="assertive"
                             style={styles.hiddenElementOutsideOfWindow}
                         >
                             {statusAnnouncement.text}

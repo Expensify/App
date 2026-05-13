@@ -8,7 +8,6 @@ import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import DateUtils from './DateUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translate, translateLocal} from './Localize';
 
 function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TKey>): TranslationPaths {
@@ -45,7 +44,6 @@ function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TK
  * @param error - The translation key for the error message.
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return {[errorKey ?? DateUtils.getMicroseconds()]: translateLocal(error)};
 }
 
@@ -71,6 +69,14 @@ function getMicroSecondOnyxErrorWithMessage(error: string, errorKey?: number): E
  */
 function getMicroSecondOnyxErrorObject(error: Errors, errorKey?: number): ErrorFields {
     return {[errorKey ?? DateUtils.getMicroseconds()]: error};
+}
+
+/**
+ * Extracts a string message from an unknown error value.
+ * Use this in catch blocks where the caught value has type `unknown`.
+ */
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
 }
 
 // We can assume that if error is a string, it has already been translated because it is server error
@@ -231,7 +237,7 @@ export {
     addErrorMessage,
     getAuthenticateErrorMessage,
     getEarliestErrorField,
-    getErrorMessageWithTranslationData,
+    getErrorMessage,
     getErrorsWithTranslationData,
     getLatestErrorField,
     getLatestErrorFieldForAnyField,

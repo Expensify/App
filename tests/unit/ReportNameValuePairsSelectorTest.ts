@@ -1,4 +1,4 @@
-import {agentZeroProcessingIndicatorSelector} from '@selectors/ReportNameValuePairs';
+import agentZeroProcessingIndicatorSelector from '@selectors/ReportNameValuePairs';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 
 describe('ReportNameValuePairs selectors', () => {

@@ -97,6 +97,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                     itemIconRight={icons.ArrowRight}
                     filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                     filterCurrency={policyCurrency}
+                    excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
                     shouldHideDefaultBadge
                 />
             </ScrollView>

@@ -15,9 +15,9 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
     const cache = new Map<string, Record<string, unknown>>();
     cache.set('en', flatten(en));
@@ -43,7 +43,7 @@ jest.mock('@assets/emojis', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         default: actual.default,
         importEmojiLocale: jest.fn(() => Promise.resolve()),
     };
@@ -56,6 +56,20 @@ jest.mock('@libs/EmojiTrie', () => ({
 jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
+    const ReactMock = require('react');
+    return {
+        __esModule: true,
+        default: ({children}: {children: React.ReactNode}) => ReactMock.createElement(ReactMock.Fragment, null, children),
+        TopTab: {
+            Screen: ({children}: {children: () => React.ReactNode}) => ReactMock.createElement(ReactMock.Fragment, null, typeof children === 'function' ? children() : children),
+        },
+        TabScreenWithFocusTrapWrapper: ({children}: {children: React.ReactNode}) => ReactMock.createElement(ReactMock.Fragment, null, children),
+    };
+});
+
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -100,7 +114,6 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         didScreenTransitionEnd: true,

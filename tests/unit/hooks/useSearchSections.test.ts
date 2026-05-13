@@ -12,13 +12,11 @@ const mockUseOnyx = jest.fn((key: string, options?: {selector?: (value: unknown)
 });
 
 jest.mock('@hooks/useOnyx', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: (key: string, options?: {selector?: (value: unknown) => unknown}) => mockUseOnyx(key, options),
 }));
 
 jest.mock('@hooks/useLocalize', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         localeCompare: (a: string, b: string) => a.localeCompare(b),
@@ -34,13 +32,11 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 }));
 
 jest.mock('@hooks/useActionLoadingReportIDs', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => new Set(),
 }));
 
 jest.mock('@hooks/useArchivedReportsIdSet', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => new Set(),
 }));

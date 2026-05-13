@@ -12,9 +12,10 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import {getPolicyEmployeeAccountIDs} from '@libs/PolicyUtils';
 import SuggestionMention from '@pages/inbox/report/ReportActionCompose/SuggestionMention';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 
 type MentionSuggestionsProps = {
     mentions: Mention[];
@@ -33,6 +34,7 @@ const mockLocalize = {
 const mockReports = {};
 
 let mockPersonalDetails: PersonalDetailsList = {};
+let mockCurrentReport: Report | undefined;
 
 function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
     return [value, {status: 'loaded'}];
@@ -66,6 +68,9 @@ jest.mock('@hooks/useLazyAsset', () => ({
 jest.mock('@hooks/useLocalize', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/usePolicy', () => jest.fn());
+jest.mock('@libs/PolicyUtils', () => ({
+    getPolicyEmployeeAccountIDs: jest.fn(),
+}));
 
 const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
 const mockUseArrowKeyFocusManager = jest.mocked(useArrowKeyFocusManager);
@@ -76,6 +81,7 @@ const mockUseMemoizedLazyExpensifyIcons = jest.mocked(useMemoizedLazyExpensifyIc
 const mockUseLocalize = jest.mocked(useLocalize);
 const mockUseOnyx = jest.mocked(useOnyx);
 const mockUsePolicy = jest.mocked(usePolicy);
+const mockGetPolicyEmployeeAccountIDs = jest.mocked(getPolicyEmployeeAccountIDs);
 
 function renderSuggestionMention(value: string, updateComment = jest.fn(), selection: TextSelection = {start: value.length, end: value.length}) {
     const setSelection = jest.fn();
@@ -111,10 +117,11 @@ describe('SuggestionMention', () => {
         mockMentionSuggestionsSpy.mockClear();
         mockSetHighlightedMentionIndex.mockClear();
         mockPersonalDetails = {};
+        mockCurrentReport = undefined;
 
         mockUsePersonalDetails.mockImplementation(() => mockPersonalDetails);
         mockUseArrowKeyFocusManager.mockReturnValue([0, mockSetHighlightedMentionIndex]);
-        mockUseCurrentReportIDState.mockReturnValue({currentReportID: ''});
+        mockUseCurrentReportIDState.mockReturnValue({currentReportID: '', currentRHPReportID: ''});
         mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'current@gmail.com'});
         mockUseDebounce.mockImplementation((callback) => {
             const callbackRef = React.useRef(callback);
@@ -125,15 +132,19 @@ describe('SuggestionMention', () => {
         mockUseLocalize.mockImplementation(() => mockLocalize as ReturnType<typeof useLocalize>);
         mockUseOnyx.mockImplementation(((...args: Parameters<typeof useOnyx>) => {
             const key = args[0];
+            if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
+                return createOnyxResult<string>('');
+            }
             if (key === ONYXKEYS.COLLECTION.REPORT) {
                 return createOnyxResult<typeof mockReports>(mockReports);
             }
-            if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
-                return createOnyxResult<string>('');
+            if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+                return createOnyxResult<Report | undefined>(mockCurrentReport);
             }
             return createOnyxResult<unknown>(undefined);
         }) as typeof useOnyx);
         mockUsePolicy.mockReturnValue(undefined);
+        mockGetPolicyEmployeeAccountIDs.mockReturnValue([]);
     });
 
     it('shows user mention suggestions when prefix has a trailing dot', async () => {
@@ -243,5 +254,296 @@ describe('SuggestionMention', () => {
 
         expect(updateComment).toHaveBeenCalledWith('@adam@example.com thanks', true);
         expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
+    });
+
+    describe('shouldWeightDetails', () => {
+        const PARTICIPANT_ACCOUNT_ID = 2;
+        const POLICY_EMPLOYEE_ACCOUNT_ID = 3;
+        const UNRELATED_ACCOUNT_ID = 4;
+
+        const setupPersonalDetails = () => {
+            mockPersonalDetails = {};
+            // Alphabetical order is ua, ub, uc - weighted order should be uc, ub, ua.
+            mockPersonalDetails[PARTICIPANT_ACCOUNT_ID] = {accountID: PARTICIPANT_ACCOUNT_ID, login: 'uc@example.com'};
+            mockPersonalDetails[POLICY_EMPLOYEE_ACCOUNT_ID] = {accountID: POLICY_EMPLOYEE_ACCOUNT_ID, login: 'ub@example.com'};
+            mockPersonalDetails[UNRELATED_ACCOUNT_ID] = {accountID: UNRELATED_ACCOUNT_ID, login: 'ua@example.com'};
+        };
+
+        const buildReportWithParticipant = (overrides: Partial<Report>): Report => {
+            const participants: Record<number, {notificationPreference: string}> = {};
+            participants[PARTICIPANT_ACCOUNT_ID] = {notificationPreference: 'always'};
+            return {...overrides, participants} as unknown as Report;
+        };
+
+        it('weights report participants above policy employees and everyone else for a group chat', async () => {
+            setupPersonalDetails();
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID: 'group1'});
+            mockCurrentReport = buildReportWithParticipant({
+                reportID: 'group1',
+                chatType: 'group' as Report['chatType'],
+            });
+            mockGetPolicyEmployeeAccountIDs.mockReturnValue([POLICY_EMPLOYEE_ACCOUNT_ID]);
+
+            renderSuggestionMention('@u');
+
+            await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+            const {mentions} = getLastMentionSuggestionsProps();
+
+            expect(mentions.map((mention) => mention.handle)).toEqual(['uc@example.com', 'ub@example.com', 'ua@example.com']);
+        });
+
+        it('weights details when the current report belongs to the active workspace', async () => {
+            setupPersonalDetails();
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID: 'wsp1'});
+            mockCurrentReport = buildReportWithParticipant({
+                reportID: 'wsp1',
+                chatType: 'policyExpenseChat' as Report['chatType'],
+                policyID: 'policyID',
+            });
+            mockGetPolicyEmployeeAccountIDs.mockReturnValue([POLICY_EMPLOYEE_ACCOUNT_ID]);
+
+            renderSuggestionMention('@u');
+
+            await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+            const {mentions} = getLastMentionSuggestionsProps();
+
+            expect(mentions.map((mention) => mention.handle)).toEqual(['uc@example.com', 'ub@example.com', 'ua@example.com']);
+        });
+
+        it('skips weighting for a 1:1 DM and falls back to alphabetical order', async () => {
+            setupPersonalDetails();
+            mockUseCurrentReportIDState.mockReturnValue({currentReportID: 'dm1'});
+            mockCurrentReport = buildReportWithParticipant({reportID: 'dm1'});
+            mockGetPolicyEmployeeAccountIDs.mockReturnValue([POLICY_EMPLOYEE_ACCOUNT_ID]);
+
+            renderSuggestionMention('@u');
+
+            await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+            const {mentions} = getLastMentionSuggestionsProps();
+
+            expect(mentions.map((mention) => mention.handle)).toEqual(['ua@example.com', 'ub@example.com', 'uc@example.com']);
+        });
+    });
+
+    it('preserves the first mention when a second mention is inserted before it', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'adam@example.com',
+            firstName: 'Adam',
+            lastName: 'Tester',
+        };
+        mockPersonalDetails[3] = {
+            accountID: 3,
+            login: 'bob@example.com',
+            firstName: 'Bob',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        const {setSelection} = renderSuggestionMention('@b@adam@example.com ', updateComment, {start: 2, end: 2});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@bob@example.com @adam@example.com ', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 17, end: 17});
+    });
+
+    it('preserves a trailing @here mention when inserting a new mention before it', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'adam@example.com',
+            firstName: 'Adam',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        const {setSelection} = renderSuggestionMention('@adam@here', updateComment, {start: 5, end: 5});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@adam@example.com @here', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
+    });
+
+    it('preserves a trailing phone number mention when inserting a new mention before it', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'adam@example.com',
+            firstName: 'Adam',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        const {setSelection} = renderSuggestionMention('@adam@+14404589784', updateComment, {start: 5, end: 5});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@adam@example.com @+14404589784', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
+    });
+
+    it('preserves a trailing private domain short mention when inserting a new mention before it', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'adam@example.com',
+            firstName: 'Adam',
+            lastName: 'Tester',
+        };
+        mockPersonalDetails[3] = {
+            accountID: 3,
+            login: 'charlie@company.com',
+            firstName: 'Charlie',
+            lastName: 'Tester',
+        };
+
+        // Override to a private domain so charlie@company.com shows as @charlie in the composer
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'current@company.com'});
+
+        const updateComment = jest.fn();
+        const {setSelection} = renderSuggestionMention('@adam@charlie', updateComment, {start: 5, end: 5});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@adam@example.com @charlie', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
+    });
+
+    it('preserves a trailing #room mention when inserting a new mention before it', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'adam@example.com',
+            firstName: 'Adam',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        const {setSelection} = renderSuggestionMention('@adam#admins', updateComment, {start: 5, end: 5});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@adam@example.com #admins', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
+    });
+
+    it('removes junk between the new mention and a trailing complete mention', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'alice@example.com',
+            firstName: 'Alice',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        // "@alice@exam@alice@example.com" — cursor at index 6 (after "@alice").
+        // The user partially typed "alice" before a stale/duplicate mention.
+        // Inserting the full mention should drop the "@exam" junk and keep the trailing mention.
+        const {setSelection} = renderSuggestionMention('@alice@exam@alice@example.com', updateComment, {start: 6, end: 6});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@alice@example.com @alice@example.com', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 19, end: 19});
+    });
+
+    it('removes junk between the new mention and a trailing private domain short mention', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'bob@company.com',
+            firstName: 'Bob',
+            lastName: 'Tester',
+        };
+        mockPersonalDetails[3] = {
+            accountID: 3,
+            login: 'charlie@company.com',
+            firstName: 'Charlie',
+            lastName: 'Tester',
+        };
+
+        // Override to a private domain so charlie@company.com shows as @charlie in the composer
+        mockUseCurrentUserPersonalDetails.mockReturnValue({accountID: 1, login: 'current@company.com'});
+
+        const updateComment = jest.fn();
+        // "@b@comp@charlie" — cursor at index 2 (after "@b").
+        // Inserting the full @bob mention should drop the "@comp" junk and keep the trailing @charlie short mention.
+        const {setSelection} = renderSuggestionMention('@b@comp@charlie', updateComment, {start: 2, end: 2});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@bob @charlie', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 5, end: 5});
+    });
+
+    it('removes junk between the new mention and a trailing phone number mention', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'adam@example.com',
+            firstName: 'Adam',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        // "@adam@exam@+14404589784" — cursor at index 5 (after "@adam").
+        // Inserting the full mention should drop the "@exam" junk and keep the trailing phone number mention.
+        const {setSelection} = renderSuggestionMention('@adam@exam@+14404589784', updateComment, {start: 5, end: 5});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@adam@example.com @+14404589784', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 18, end: 18});
+    });
+
+    it('removes junk between the new mention and a trailing room mention', async () => {
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: 'alice@example.com',
+            firstName: 'Alice',
+            lastName: 'Tester',
+        };
+
+        const updateComment = jest.fn();
+        // "@alice@exam#admins" — cursor at index 6 (after "@alice").
+        // Inserting the full mention should drop the "@exam" junk and keep the trailing #admins room mention.
+        const {setSelection} = renderSuggestionMention('@alice@exam#admins', updateComment, {start: 6, end: 6});
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {onSelect} = getLastMentionSuggestionsProps();
+
+        act(() => onSelect(0));
+
+        expect(updateComment).toHaveBeenCalledWith('@alice@example.com #admins', true);
+        expect(setSelection).toHaveBeenCalledWith({start: 19, end: 19});
     });
 });

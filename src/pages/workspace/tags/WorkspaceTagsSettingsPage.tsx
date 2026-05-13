@@ -43,7 +43,7 @@ function billableExpensesPending(policy: OnyxEntry<Policy>) {
 
 function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
     if (policy?.disabledFields?.defaultBillable) {
-        setPolicyBillableMode(policy.id, false);
+        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true);
     } else if (policy) {
         disableWorkspaceBillableExpenses(policy.id);
     }

@@ -50,13 +50,4 @@ const NoEligibleMethodsFailureScreen = createScreenWithDefaults(
     'NoEligibleMethodsFailureScreen',
 );
 
-const UnsupportedDeviceFailureScreen = createScreenWithDefaults(
-    DefaultClientFailureScreen,
-    {
-        title: 'multifactorAuthentication.unsupportedDevice.unsupportedDevice',
-        subtitle: 'multifactorAuthentication.unsupportedDevice.pleaseDownloadMobileApp',
-    },
-    'UnsupportedDeviceFailureScreen',
-);
-
-export {DefaultClientFailureScreen, DefaultServerFailureScreen, OutOfTimeFailureScreen, NoEligibleMethodsFailureScreen, UnsupportedDeviceFailureScreen};
+export {DefaultClientFailureScreen, DefaultServerFailureScreen, OutOfTimeFailureScreen, NoEligibleMethodsFailureScreen};

@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
@@ -18,24 +18,20 @@ function Name({onNext, onMove, isEditing}: NameProps) {
     const {translate} = useLocalize();
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const inputID = SIGNER_FULL_NAME;
-    const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
+    const defaultValue = String(reimbursementAccountDraft?.[SIGNER_FULL_NAME] ?? '');
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [inputID], translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, [SIGNER_FULL_NAME], translate);
 
-            if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
-                errors[inputID] = translate('bankAccount.error.fullName');
-            }
+        if (values[SIGNER_FULL_NAME] && !isValidLegalName(String(values[SIGNER_FULL_NAME]))) {
+            errors[SIGNER_FULL_NAME] = translate('bankAccount.error.fullName');
+        }
 
-            return errors;
-        },
-        [inputID, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
-        fieldIds: [inputID],
+        fieldIds: [SIGNER_FULL_NAME],
         onNext,
         shouldSaveDraft: isEditing,
     });
@@ -49,7 +45,7 @@ function Name({onNext, onMove, isEditing}: NameProps) {
             formTitle={translate('signerInfoStep.whatsYourName')}
             validate={validate}
             onSubmit={handleSubmit}
-            inputId={inputID}
+            inputId={SIGNER_FULL_NAME}
             inputLabel={translate('signerInfoStep.fullName')}
             inputMode={CONST.INPUT_MODE.TEXT}
             defaultValue={defaultValue}

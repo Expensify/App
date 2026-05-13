@@ -59,7 +59,7 @@ Other ways to SmartScan receipts include:
 
 # Locate and Manage Tracked Expenses
 
-After creating an expense, go to **Reports > Expenses** to locate the expense.  Use the filters to search if the expense isn't immediately visible.
+After creating an expense, go to **Spend > Expenses** to locate the expense.  Use the filters to search if the expense isn't immediately visible.
 
 Click into the expense to:
 - **Submit it to someone** – Send it for approval or processing.
@@ -73,7 +73,7 @@ Click into the expense to:
 
 ## Can I edit an expense after tracking it?
 
-Yes! Open the expense from **Reports > Expenses** or your expense chat, then click into it to edit any field.
+Yes! Open the expense from **Spend > Expenses** or your expense chat, then click into it to edit any field.
 
 ## Why can’t I find my expense?
 

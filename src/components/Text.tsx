@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useContext, useMemo} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Text as RNText, StyleSheet} from 'react-native';
+import {Platform, Text as RNText, StyleSheet} from 'react-native';
 import type {TextProps as RNTextProps, TextStyle} from 'react-native';
 import useTheme from '@hooks/useTheme';
 import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
@@ -74,6 +74,9 @@ function Text({color, fontSize = variables.fontSizeNormal, textAlign = 'left', c
             allowFontScaling={false}
             ref={ref}
             style={componentStyle}
+            // On Android, TalkBack reads style metadata (e.g. color codes) along with text content.
+            // Setting accessibilityLabel explicitly causes TalkBack to read only the label, skipping style info.
+            accessibilityLabel={typeof children === 'string' && !!children && Platform.OS === 'android' ? children : undefined}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >

@@ -20,7 +20,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
-    const icons = useMemoizedLazyExpensifyIcons(['Shield'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Shield']);
 
     return (
         <Section

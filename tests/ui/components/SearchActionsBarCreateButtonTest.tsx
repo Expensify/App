@@ -3,6 +3,7 @@ import {getUnixTime, subDays} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import SearchActionsBarCreateButton from '@components/Search/SearchPageHeader/SearchActionsBarCreateButton';
@@ -76,7 +77,7 @@ const MOCK_POLICY = {
 
 function renderComponent() {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <SearchActionsBarCreateButton />
         </ComposeProviders>,
     );

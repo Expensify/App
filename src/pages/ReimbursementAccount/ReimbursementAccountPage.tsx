@@ -151,9 +151,8 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
         return () => {
             clearReimbursementAccountDraft();
             clearReimbursementAccount();
-            getPaymentMethods(true);
+            getPaymentMethods();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -232,7 +231,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
     }
 
     useEffect(() => {
-        if (isPreviousPolicy && !!reimbursementAccount) {
+        if ((isPreviousPolicy && !!reimbursementAccount) || isLoadingOnyxValue(reimbursementAccountMetadata)) {
             return;
         }
 
@@ -271,7 +270,11 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
         setShouldShowConnectedVerifiedBankAccount(isNonUSDSetup ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-    }, [policyIDParam, achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDSetup, isPreviousPolicy, achData?.state, policyCurrency, USDBankAccountStep]);
+        // USDBankAccountStep is intentionally omitted from deps. This effect must only react to server-side
+        // achData changes — not to local USDBankAccountStep updates — otherwise it races with prepareNextStep
+        // and briefly pulls USDBankAccountStep back to the server value before the Onyx merge lands.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyIDParam, achData?.currentStep, shouldShowContinueSetupButtonValue, isNonUSDSetup, isPreviousPolicy, achData?.state, policyCurrency]);
 
     useEffect(() => {
         if (!prevPolicyCurrency || policyCurrency === prevPolicyCurrency) {
@@ -298,11 +301,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
                 return;
             }
 
-            if (
-                prevReimbursementAccount &&
-                prevReimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-                reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction
-            ) {
+            if (prevReimbursementAccount?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && reimbursementAccount?.pendingAction !== prevReimbursementAccount.pendingAction) {
                 setShouldShowContinueSetupButton(hasInProgressUSDVBBA(achData));
             }
 
@@ -336,10 +335,21 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy, navigation}: 
 
             // Use the current page navigation object to set the param to the correct route in the stack
             const stepToOpen = getRouteForCurrentStep(currentStep);
-            navigation.setParams({stepToOpen});
+            if (stepToOpen && !isNonUSDSetup) {
+                navigation.setParams({stepToOpen});
+            }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [isOffline, reimbursementAccount?.draftStep, reimbursementAccount?.pendingAction, reimbursementAccount?.isLoading, hasACHDataBeenLoaded, shouldShowContinueSetupButton, currentStep],
+        [
+            isOffline,
+            reimbursementAccount?.draftStep,
+            reimbursementAccount?.pendingAction,
+            reimbursementAccount?.isLoading,
+            hasACHDataBeenLoaded,
+            shouldShowContinueSetupButton,
+            currentStep,
+            isNonUSDSetup,
+        ],
     );
 
     const continueUSDVBBASetup = useCallback(() => {

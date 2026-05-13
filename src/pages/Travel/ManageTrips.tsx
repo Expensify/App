@@ -29,7 +29,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel']);
 
     const tripsFeatures: FeatureListItem[] = [
         {

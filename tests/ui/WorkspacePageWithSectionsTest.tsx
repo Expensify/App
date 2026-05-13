@@ -6,6 +6,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
+import {setHasRadio} from '@libs/NetworkState';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,10 +92,7 @@ describe('WorkspacePageWithSections', () => {
 
         it('should not display FullScreenLoadingIndicator when user is offline', async () => {
             // Given the network state is offline
-            await act(async () => {
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
-                await waitForBatchedUpdatesWithAct();
-            });
+            setHasRadio(false);
 
             // When render the component with loading enabled
             renderWorkspacePageWithSections({
@@ -110,10 +108,7 @@ describe('WorkspacePageWithSections', () => {
 
         it('should display FullScreenLoadingIndicator when user is online and loading', async () => {
             // Given the network state is online
-            await act(async () => {
-                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
-                await waitForBatchedUpdatesWithAct();
-            });
+            setHasRadio(true);
 
             // When render the component with loading enabled
             renderWorkspacePageWithSections({

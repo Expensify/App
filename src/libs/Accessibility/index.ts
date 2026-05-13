@@ -1,22 +1,34 @@
-import {useCallback, useEffect, useState, useSyncExternalStore} from 'react';
+import {useCallback, useState, useSyncExternalStore} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {AccessibilityInfo} from 'react-native';
+import isScreenReaderEnabled from './isScreenReaderEnabled';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
 
 type HitSlop = {x: number; y: number};
 
-const useScreenReaderStatus = (): boolean => {
-    const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
-    useEffect(() => {
-        const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
+let cachedScreenReaderValue = false;
 
-        return () => {
-            subscription?.remove();
-        };
-    }, []);
+function subscribeScreenReader(callback: () => void) {
+    const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => {
+        cachedScreenReaderValue = enabled;
+        callback();
+    });
 
-    return isScreenReaderEnabled;
-};
+    isScreenReaderEnabled()
+        .then((enabled) => {
+            cachedScreenReaderValue = enabled;
+            callback();
+        })
+        .catch(() => {});
+
+    return () => subscription?.remove();
+}
+
+function getScreenReaderSnapshot() {
+    return cachedScreenReaderValue;
+}
+
+const useScreenReaderStatus = (): boolean => useSyncExternalStore(subscribeScreenReader, getScreenReaderSnapshot, () => false);
 
 let cachedReduceMotionValue = false;
 

@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +38,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         headerText: string;
 
         /** Main content of the page */
-        children: ((hasVBA: boolean, policyID: string | undefined, isUsingECard: boolean) => ReactNode) | ReactNode;
+        children: ((policyID: string | undefined, isUsingECard: boolean) => ReactNode) | ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
@@ -146,10 +146,8 @@ function WorkspacePageWithSections({
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = policy?.achAccount?.state ?? reimbursementAccount?.achData?.state;
     const isUsingECard = account?.isUsingExpensifyCard ?? false;
-    const hasVBA = achState === CONST.BANK_ACCOUNT.STATE.OPEN;
-    const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
+    const content = typeof children === 'function' ? children(policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
@@ -174,7 +172,7 @@ function WorkspacePageWithSections({
         }
 
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
-        return (!isEmptyObject(policy) && !isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
+        return (!isEmptyObject(policy) && !canEditWorkspaceSettings(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
 

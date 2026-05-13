@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilterPendingDeleteReports, {selectPendingDeleteReportKeys} from './useFilterPendingDeleteReports';
 import useLocalize from './useLocalize';
@@ -22,15 +23,15 @@ function useSearchSections(): UseSearchSectionsResult {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {localeCompare, formatPhoneNumber, translate} = useLocalize();
     const isActionLoadingSet = useActionLoadingReportIDs();
+    const {convertToDisplayString} = useCurrencyListActions();
+
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
-        canEvict: false,
         selector: selectFilteredReportActions,
     });
 
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -59,8 +60,8 @@ function useSearchSections(): UseSearchSectionsResult {
             isActionLoadingSet,
             cardFeeds,
             allReportMetadata,
-            cardList,
             conciergeReportID,
+            convertToDisplayString,
         });
         results = getSortedSections(type, status ?? '', searchData, localeCompare, translate, sortBy, sortOrder, groupBy).map((value) => value.reportID);
     }

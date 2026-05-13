@@ -26,6 +26,7 @@ const enablePolicyFeatureCommand = [
     WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
     WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
+    WRITE_COMMANDS.ENABLE_POLICY_HR,
     WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
     WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
     WRITE_COMMANDS.ENABLE_POLICY_TAGS,
@@ -74,7 +75,7 @@ function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], reque
 function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
     for (let index = 0; index < persistedRequests.length; index++) {
         const request = persistedRequests.at(index);
-        if (request && request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
+        if (request?.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
             // If the previous request had guided setup data, we can safely ignore the new request
             if (request.data.guidedSetupData) {
                 return {

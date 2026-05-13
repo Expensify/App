@@ -1,5 +1,7 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {IOURequestType, ReplaceReceipt, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {RequestMoneyInformation} from '@libs/actions/IOU/MoneyRequestBuilder';
+import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -167,6 +169,12 @@ type TransactionCustomUnit = {
     /** The unit for the distance/quantity */
     distanceUnit?: Unit;
 
+    /**
+     * The distance in meters from the route Mapbox or Google Maps chose through the user supplied waypoints.
+     * It is used to track when the user has manually increased the distance above the system-calculated route distance.
+     */
+    routeDistanceMeters?: number;
+
     /** Sub Rates for the custom unit */
     subRates?: Array<{
         /** Key of the sub rate */
@@ -191,8 +199,8 @@ type GeometryType = 'LineString';
 
 /** Geometry data */
 type Geometry = {
-    /** Matrix of points, indexed by their coordinates */
-    coordinates: number[][] | null;
+    /** Matrix of points, indexed by their coordinates, GPS trip is represented as a 3 dimensional array to support multiple routes in a single trip */
+    coordinates: number[][] | number[][][] | null;
 
     /** Type of connections between coordinates */
     type?: GeometryType;
@@ -212,6 +220,9 @@ type Receipt = {
     /** Path of the receipt file */
     source?: ReceiptSource;
 
+    /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
+    localSource?: string | null;
+
     /** Name of receipt file */
     filename?: string;
 
@@ -229,6 +240,9 @@ type Receipt = {
 
     /** Receipt is Test Drive testing receipt */
     isTestDriveReceipt?: true;
+
+    /** Local thumbnail URI for fast preview on confirmation page */
+    thumbnail?: string;
 };
 
 /** Model of route */
@@ -447,6 +461,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction converted amount in report's currency */
         convertedAmount?: number;
 
+        /** The currency conversion rate from the transaction currency to the report currency */
+        currencyConversionRate?: string;
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -543,6 +560,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction id */
         transactionID: string;
 
+        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
+        selectedTransactionIDs?: string[];
+
         /** The transaction tag */
         tag?: string;
 
@@ -616,6 +636,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The card transaction's posted date */
         posted?: string;
+
+        /** The withdrawal ID associated with the transaction */
+        withdrawalID?: string;
 
         /** The inserted time of the transaction */
         inserted?: string;

@@ -70,7 +70,7 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
                             shouldShowRightIcon
                             title={notificationPreference}
                             description={translate('notificationPreferencesPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(reportID, backTo))}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path))}
                         />
                     )}
                     {shouldShowWriteCapability &&

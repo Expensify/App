@@ -17,11 +17,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -31,7 +33,11 @@ import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 import ExpenseReportListItemRow from './ExpenseReportListItemRow';
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
+import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
+/**
+ * An expense report row in search results, showing status badge, total, and participants.
+ */
 function ExpenseReportListItem<TItem extends ListItem>({
     item,
     isLoading,
@@ -43,18 +49,23 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
-    onCheckboxPress,
+    onHoldMenuOpen,
+    onSelectionButtonPress,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
+    isFirstItem,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -96,7 +107,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // Sync missingAttendees violation at render time for each transaction in the report
     // This ensures violations show immediately when category settings change, without needing to click the row
     const hasSyncedMissingAttendeesViolation = useMemo(() => {
-        if (!policyForViolations?.isAttendeeTrackingEnabled || policyForViolations?.type !== CONST.POLICY.TYPE.CORPORATE) {
+        if (!isAttendeeTrackingEnabled(policyForViolations)) {
             return false;
         }
 
@@ -114,7 +125,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 transaction.category ?? '',
                 transaction.attendees,
                 currentUserDetails,
-                policyForViolations.isAttendeeTrackingEnabled ?? false,
+                isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
             );
@@ -124,6 +135,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -132,12 +144,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
+            policy: parentPolicy,
             lastPaymentMethod,
-            userBillingGraceEndPeriods,
+            userBillingGracePeriodEnds,
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            onHoldMenuOpen,
+            ownerBillingGracePeriodEnd,
+            amountOwed,
         });
     }, [
         currentSearchHash,
@@ -145,30 +161,37 @@ function ExpenseReportListItem<TItem extends ListItem>({
         onSelectRow,
         snapshotReport,
         snapshotPolicy,
+        parentPolicy,
         lastPaymentMethod,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         personalPolicyID,
         currentSearchKey,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        onHoldMenuOpen,
+        ownerBillingGracePeriodEnd,
+        amountOwed,
     ]);
 
-    const handleCheckboxPress = useCallback(() => {
-        onCheckboxPress?.(reportItem as unknown as TItem);
-    }, [onCheckboxPress, reportItem]);
+    const handleSelectionButtonPress = useCallback(() => {
+        onSelectionButtonPress?.(reportItem as unknown as TItem);
+    }, [onSelectionButtonPress, reportItem]);
 
     const listItemPressableStyle = useMemo(
         () => [
             styles.selectionListPressableItemWrapper,
-            styles.pv3,
-            styles.ph3,
+            isLargeScreenWidth && styles.pv3,
+            isLargeScreenWidth && styles.ph3,
             // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
             styles.bgTransparent,
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
+            isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
+            !isLargeScreenWidth && isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
+            !isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
         ],
-        [styles, item.isSelected, isPendingDelete],
+        [styles, item.isSelected, isLargeScreenWidth, isFirstItem, isLastItem, isPendingDelete, StyleUtils],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -181,10 +204,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.highlightBG,
+        shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
     const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
@@ -197,6 +221,20 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const hasAnyVisibleViolations = reportItem?.hasVisibleViolations || hasSyncedMissingAttendeesViolation;
 
     const getDescription = useMemo(() => {
+        if (reportItem?.isRejectedReport) {
+            return (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
+                    <Icon
+                        src={expensifyIcons.DotIndicator}
+                        fill={theme.danger}
+                        additionalStyles={[styles.mr1]}
+                        width={12}
+                        height={12}
+                    />
+                    <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>{translate('iou.rejectReport.rejectedReportMessage')}</Text>
+                </View>
+            );
+        }
         if (!hasAnyVisibleViolations || !shouldShowViolationDescription) {
             return;
         }
@@ -209,10 +247,13 @@ function ExpenseReportListItem<TItem extends ListItem>({
                     width={12}
                     height={12}
                 />
-                <Text style={[styles.textMicro, styles.textDanger]}>{translate('reportViolations.reportContainsExpensesWithViolations')}</Text>
+                <Text style={[isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel, styles.textDanger]}>
+                    {translate('reportViolations.reportContainsExpensesWithViolations')}
+                </Text>
             </View>
         );
     }, [
+        reportItem?.isRejectedReport,
         hasAnyVisibleViolations,
         shouldShowViolationDescription,
         styles.flexRow,
@@ -220,7 +261,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
         styles.mt2,
         styles.mr1,
         styles.textMicro,
+        styles.mutedNormalTextLabel,
         styles.textDanger,
+        isLargeScreenWidth,
         expensifyIcons.DotIndicator,
         theme.danger,
         translate,
@@ -231,7 +274,6 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
             isFocused={isFocused}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
@@ -242,15 +284,31 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isPendingDelete && styles.cursorDisabled]}
+            pressableWrapperStyle={[
+                styles.mh5,
+                animatedHighlightStyle,
+                isPendingDelete && styles.cursorDisabled,
+                isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                !isLargeScreenWidth && isFirstItem && styles.searchTableTopRadius,
+                !isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
+                !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
+            ]}
             accessible={false}
             shouldShowRightCaret={false}
-            shouldUseDefaultRightHandSideCheckmark={false}
             isDisabled={isPendingDelete}
             shouldDisableHoverStyle={isPendingDelete}
         >
             {(hovered) => (
                 <View style={[styles.flex1]}>
+                    {!isLargeScreenWidth && (
+                        <UserInfoAndActionButtonRow
+                            item={reportItem}
+                            shouldShowUserInfo={!!reportItem?.from}
+                            stateNum={reportItem.stateNum}
+                            statusNum={reportItem.statusNum}
+                            isSelected={!!reportItem.isSelected}
+                        />
+                    )}
                     <ExpenseReportListItemRow
                         item={reportItem}
                         columns={columns}
@@ -258,7 +316,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         isActionLoading={isActionLoading ?? isLoading}
                         showTooltip={showTooltip}
                         canSelectMultiple={canSelectMultiple}
-                        onCheckboxPress={handleCheckboxPress}
+                        onCheckboxPress={handleSelectionButtonPress}
                         onButtonPress={handleOnButtonPress}
                         isSelectAllChecked={!!reportItem.isSelected}
                         isIndeterminate={false}

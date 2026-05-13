@@ -18,7 +18,6 @@ const story = {
 type StoryType = typeof Template & {args?: Partial<InteractiveStepSubHeaderProps>};
 
 function Template(args: InteractiveStepSubHeaderProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <InteractiveStepSubHeader {...args} />;
 }
 

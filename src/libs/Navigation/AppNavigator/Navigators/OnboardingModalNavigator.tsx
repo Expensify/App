@@ -17,6 +17,7 @@ import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptio
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import OnboardingAccounting from '@pages/OnboardingAccounting';
 import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingInterestedFeatures from '@pages/OnboardingInterestedFeatures';
@@ -34,6 +35,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import OnboardingModalNavigatorContentWrapper from './OnboardingModalNavigatorContentWrapper';
 import Overlay from './Overlay';
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
@@ -59,7 +61,7 @@ function OnboardingModalNavigator() {
         initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
     }
 
-    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND && !!onboardingPolicyID) {
+    if (isTrackOnboardingChoice(onboardingPurposeSelected) && !!onboardingPolicyID) {
         initialRouteName = SCREENS.ONBOARDING.WORKSPACE_INVITE;
     }
 
@@ -116,10 +118,7 @@ function OnboardingModalNavigator() {
                 style={styles.onboardingNavigatorOuterView}
             >
                 <FocusTrapForScreens>
-                    <View
-                        onClick={(e) => e.stopPropagation()}
-                        style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)]}
-                    >
+                    <OnboardingModalNavigatorContentWrapper onboardingIsMediumOrLargerScreenWidth={onboardingIsMediumOrLargerScreenWidth}>
                         <Stack.Navigator
                             screenOptions={defaultScreenOptions}
                             initialRouteName={initialRouteName}
@@ -127,6 +126,7 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PURPOSE}
                                 component={OnboardingPurpose}
+                                options={{animationTypeForReplace: 'push'}}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
@@ -135,6 +135,7 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORK_EMAIL}
                                 component={OnboardingWorkEmail}
+                                options={{animationTypeForReplace: 'push'}}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
@@ -177,7 +178,7 @@ function OnboardingModalNavigator() {
                                 component={OnboardingWorkspaceInvite}
                             />
                         </Stack.Navigator>
-                    </View>
+                    </OnboardingModalNavigatorContentWrapper>
                 </FocusTrapForScreens>
             </View>
         </NoDropZone>

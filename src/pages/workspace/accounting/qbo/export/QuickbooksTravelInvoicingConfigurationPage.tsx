@@ -1,5 +1,4 @@
 import React from 'react';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -11,21 +10,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
-type QBOSectionType = {
-    title?: string;
-    description?: string;
-    onPress: () => void;
-    errorText?: string;
-    hintText?: string;
-    subscribedSettings: string[];
-    pendingAction?: PendingAction;
-    errors?: Errors;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-};
-
-const vendor = [CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR];
 const payableAccount = [CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT];
 
 function QuickbooksTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsProps) {
@@ -34,44 +19,14 @@ function QuickbooksTravelInvoicingConfigurationPage({policy}: WithPolicyConnecti
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-
-    const {vendors, accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
-    const travelVendor = vendors?.find((v) => v.id === qboConfig?.travelInvoicingVendorID);
+    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
     const travelPayableAccount = accountPayable?.find((a) => a.id === qboConfig?.travelInvoicingPayableAccountID);
-
-    const sections: QBOSectionType[] = [
-        {
-            title: travelVendor?.name,
-            description: translate('workspace.qbo.travelInvoicingVendor'),
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT.getRoute(policyID));
-            },
-            subscribedSettings: vendor,
-            pendingAction: settingsPendingAction(vendor, qboConfig?.pendingFields),
-            brickRoadIndicator: areSettingsInErrorFields(vendor, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-        {
-            title: travelPayableAccount?.name,
-            description: translate('workspace.qbo.travelInvoicingPayableAccount'),
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.getRoute(policyID));
-            },
-            subscribedSettings: payableAccount,
-            pendingAction: settingsPendingAction(payableAccount, qboConfig?.pendingFields),
-            brickRoadIndicator: areSettingsInErrorFields(payableAccount, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-    ];
 
     return (
         <ConnectionLayout
             displayName="QuickbooksTravelInvoicingConfigurationPage"
-            headerTitle="workspace.qbo.travelInvoicing"
+            headerTitle="workspace.common.travelInvoicing"
+            title="workspace.qbo.travelInvoicingDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -80,23 +35,28 @@ function QuickbooksTravelInvoicingConfigurationPage({policy}: WithPolicyConnecti
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
         >
-            {sections.map((section) => (
-                <OfflineWithFeedback
-                    pendingAction={section.pendingAction}
-                    key={section.subscribedSettings.at(0)}
-                    errors={section.errors}
-                    errorRowStyles={[styles.ph5]}
-                >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        onPress={section.onPress}
-                        shouldShowRightIcon
-                        brickRoadIndicator={section.brickRoadIndicator}
-                        hintText={section.hintText}
-                    />
-                </OfflineWithFeedback>
-            ))}
+            <MenuItemWithTopDescription
+                title={translate(`workspace.qbo.accounts.${CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}`)}
+                description={translate('workspace.accounting.exportAs')}
+                interactive={false}
+            />
+            <OfflineWithFeedback
+                pendingAction={settingsPendingAction(payableAccount, qboConfig?.pendingFields)}
+                errorRowStyles={[styles.ph5]}
+            >
+                <MenuItemWithTopDescription
+                    title={travelPayableAccount?.name}
+                    description={translate('workspace.qbo.creditCardAccount')}
+                    onPress={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.getRoute(policyID));
+                    }}
+                    shouldShowRightIcon
+                    brickRoadIndicator={areSettingsInErrorFields(payableAccount, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
         </ConnectionLayout>
     );
 }

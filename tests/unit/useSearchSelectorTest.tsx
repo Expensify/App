@@ -15,7 +15,6 @@ const EMPTY_OPTIONS = {recentReports: [], personalDetails: [], userToInvite: nul
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('@libs/OptionsListUtils', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     ...jest.requireActual('@libs/OptionsListUtils'),
     getValidOptions: jest.fn(() => EMPTY_OPTIONS),
@@ -95,7 +94,7 @@ describe('useSearchSelector sortedActions integration', () => {
         });
     });
 
-    it('passes undefined sortedActions to getValidOptions when SORTED_REPORT_ACTIONS is not set', async () => {
+    it('passes undefined sortedActions to getValidOptions when RAM_ONLY_SORTED_REPORT_ACTIONS is not set', async () => {
         renderHook(() =>
             useSearchSelectorBase({
                 selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -110,11 +109,11 @@ describe('useSearchSelector sortedActions integration', () => {
         expect(config?.sortedActions).toBeUndefined();
     });
 
-    it('passes sortedActions from SORTED_REPORT_ACTIONS to getValidOptions for GENERAL context', async () => {
+    it('passes sortedActions from RAM_ONLY_SORTED_REPORT_ACTIONS to getValidOptions for GENERAL context', async () => {
         const mockData = buildMockSortedActions(['1', '2']);
 
         await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, mockData);
+            await Onyx.set(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, mockData);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -136,7 +135,7 @@ describe('useSearchSelector sortedActions integration', () => {
         const mockData = buildMockSortedActions(['10']);
 
         await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, mockData);
+            await Onyx.set(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, mockData);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -158,7 +157,7 @@ describe('useSearchSelector sortedActions integration', () => {
         const mockData = buildMockSortedActions(['20', '21']);
 
         await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, mockData);
+            await Onyx.set(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, mockData);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -180,7 +179,7 @@ describe('useSearchSelector sortedActions integration', () => {
         const mockData = buildMockSortedActions(['30']);
 
         await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, mockData);
+            await Onyx.set(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, mockData);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -198,11 +197,11 @@ describe('useSearchSelector sortedActions integration', () => {
         expect(config?.sortedActions).toEqual(mockData.sortedActions);
     });
 
-    it('updates sortedActions when SORTED_REPORT_ACTIONS changes in Onyx', async () => {
+    it('updates sortedActions when RAM_ONLY_SORTED_REPORT_ACTIONS changes in Onyx', async () => {
         const initialData = buildMockSortedActions(['1']);
 
         await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, initialData);
+            await Onyx.set(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, initialData);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -219,7 +218,7 @@ describe('useSearchSelector sortedActions integration', () => {
 
         const updatedData = buildMockSortedActions(['1', '2', '3']);
         await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, updatedData);
+            await Onyx.set(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, updatedData);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -227,11 +226,11 @@ describe('useSearchSelector sortedActions integration', () => {
         expect(latestCallConfig?.sortedActions).toEqual(updatedData.sortedActions);
     });
 
-    it('does not pass sortedActions to getSearchOptions for SEARCH context', async () => {
+    it('passes sortedActions to getSearchOptions for SEARCH context', async () => {
         const mockData = buildMockSortedActions(['1']);
 
         await act(async () => {
-            await Onyx.set(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, mockData);
+            await Onyx.set(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, mockData);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -246,6 +245,6 @@ describe('useSearchSelector sortedActions integration', () => {
         expect(mockGetSearchOptions).toHaveBeenCalled();
         const lastSearchCall = mockGetSearchOptions.mock.calls.at(-1);
         const searchConfig = lastSearchCall?.[0];
-        expect(searchConfig).not.toHaveProperty('sortedActions');
+        expect(searchConfig).toHaveProperty('sortedActions');
     });
 });

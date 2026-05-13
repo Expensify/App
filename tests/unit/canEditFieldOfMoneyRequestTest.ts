@@ -68,7 +68,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 childStateNum: CONST.REPORT.STATE_NUM.OPEN,
                 childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 originalMessage: {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     ...randomReportAction.originalMessage,
                     IOUReportID,
                     IOUTransactionID,
@@ -129,6 +128,22 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 expect(canEditReportField).toBe(true);
             });
+
+            it('should return false for invoice report action when billable field is edited on an approved invoice report', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
+                expect(canEditBillable).toBe(false);
+            });
+
+            it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
+                const canEditBillable = canEditFieldOfMoneyRequest({reportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE, transaction: moneyRequestTransaction});
+                expect(canEditBillable).toBe(true);
+            });
         });
 
         describe('type is expense', () => {
@@ -172,7 +187,6 @@ describe('canEditFieldOfMoneyRequest', () => {
                 childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 childStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 originalMessage: {
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     ...randomReportAction.originalMessage,
                     IOUReportID,
                     IOUTransactionID,
@@ -623,7 +637,6 @@ describe('canEditFieldOfMoneyRequest', () => {
             childStateNum: CONST.REPORT.STATE_NUM.OPEN,
             childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
             originalMessage: {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 ...randomReportAction.originalMessage,
                 IOUReportID: RECEIPT_IOU_REPORT_ID,
                 IOUTransactionID: RECEIPT_IOU_TRANSACTION_ID,
