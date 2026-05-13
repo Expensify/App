@@ -8,7 +8,7 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyAuditor, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -58,7 +58,6 @@ function WorkspaceRestrictedActionPage({
             return;
         }
         openSubscriptionPage(gracePeriodsRef.current);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOffline]);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
@@ -66,10 +65,10 @@ function WorkspaceRestrictedActionPage({
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
+        if (!shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, session?.accountID)) {
             Navigation.goBack();
         }
-    }, [policyID, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed]);
+    }, [policy, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGracePeriodEnd, amountOwed, session?.accountID]);
 
     // Show a loading indicator while waiting for fresh billing data from the server,
     // instead of flashing the restriction UI which may no longer apply.
@@ -93,8 +92,8 @@ function WorkspaceRestrictedActionPage({
         return <WorkspaceAdminRestrictedAction policyID={policyID} />;
     }
 
-    // Workspace User
-    if (isPolicyUser(policy, session?.email)) {
+    // Workspace User or Auditor
+    if (isPolicyUser(policy, session?.email) || isPolicyAuditor(policy, session?.email)) {
         return <WorkspaceUserRestrictedAction policyID={policyID} />;
     }
 

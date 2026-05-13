@@ -211,7 +211,6 @@ function removeWaypoint(transaction: OnyxEntry<Transaction>, currentIndex: strin
     // to remove nested keys while also preserving other object keys
     // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
     let newTransaction: Transaction = {
-        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
         ...currentTransaction,
         comment: {
             ...currentTransaction?.comment,
@@ -524,7 +523,6 @@ function dismissDuplicateTransactionViolation({
             ({violations}) => violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION).length,
         );
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: expenseReport,
             predictedNextStatus: expenseReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
@@ -903,7 +901,7 @@ function changeTransactionsReport({
     if (!existingSelfDMReportID && reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         const currentTime = DateUtils.getDBTime();
         selfDMReport = buildOptimisticSelfDMReport(currentTime);
-        selfDMCreatedReportAction = buildOptimisticCreatedReportAction(email ?? '', currentTime);
+        selfDMCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: email ?? '', created: currentTime});
 
         // Add optimistic updates for self DM report
         optimisticData.push(
@@ -1089,6 +1087,7 @@ function changeTransactionsReport({
                 originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : null,
                 ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 ...(shouldClearAmount && {convertedAmount: null}),
+                ...(shouldClearAmount && {convertedTaxAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
             },
         });
@@ -1112,6 +1111,7 @@ function changeTransactionsReport({
                 originalCurrency: transaction.originalCurrency,
                 ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
                 ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
+                ...(shouldClearAmount && {convertedTaxAmount: transaction.convertedTaxAmount}),
             },
         });
 
@@ -1356,8 +1356,8 @@ function changeTransactionsReport({
         let transactionThreadReportID = newIOUAction.childReportID;
         let transactionThreadCreatedReportActionID;
         if (!transactionThreadReportID) {
-            const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport);
-            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction(email ?? '');
+            const optimisticTransactionThread = buildTransactionThread(newIOUAction, reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? undefined : newReport, accountID);
+            const optimisticCreatedActionForTransactionThread = buildOptimisticCreatedReportAction({emailCreatingAction: email ?? ''});
             transactionThreadReportID = optimisticTransactionThread.reportID;
             transactionThreadCreatedReportActionID = optimisticCreatedActionForTransactionThread.reportActionID;
             newIOUAction.childReportID = transactionThreadReportID;
@@ -1620,7 +1620,6 @@ function changeTransactionsReport({
         const shouldUseUnreportedNextStepKey = reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isDestinationReport;
         const nextStepOnyxReportID = shouldUseUnreportedNextStepKey ? reportID : affectedReportID;
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepForCollection = buildNextStepNew({
             report: updatedReport,
             policy,

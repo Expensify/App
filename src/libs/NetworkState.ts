@@ -20,6 +20,7 @@ let unsubscribeNetInfo: (() => void) | null = null;
 let prevIsInternetReachable: boolean | null | undefined;
 let isPoorConnectionSimulated: boolean | undefined;
 let networkTimeSkew = 0;
+let suppressNextReachabilityRestored = false;
 
 // Subscriber sets
 const listeners = new Set<() => void>();
@@ -268,9 +269,22 @@ function setRandomNetworkStatus(initialCall = false) {
  * Must unsubscribe before calling configure() — configure tears down NetInfo internal state.
  */
 function configureAndSubscribe() {
+    // Treat this as a reconfigure (not an initial subscription) when there's already a listener.
+    // Reconfigure tears down NetInfo internal state, so the new subscription emits a synthetic
+    // null→true transition that would look like a recovery — suppress the next would-be recovery
+    // until reachability settles. Initial subscription is left untouched so boot behavior is
+    // unchanged (prev=undefined boot guard already covers it).
+    // Skip suppression when prev was already false: the app was genuinely offline before
+    // reconfigure, so the next true is a real recovery we must not drop (otherwise
+    // internetUnreachable stays set and the app is stuck offline until a new outage cycle).
+    const isReconfigure = unsubscribeNetInfo !== null;
     if (unsubscribeNetInfo) {
         unsubscribeNetInfo();
         unsubscribeNetInfo = null;
+    }
+
+    if (isReconfigure && prevIsInternetReachable !== false) {
+        suppressNextReachabilityRestored = true;
     }
 
     if (!CONFIG.IS_USING_LOCAL_WEB) {
@@ -315,8 +329,17 @@ function configureAndSubscribe() {
         // NetInfo event on subscribe which delivers current state, not a recovery. Firing
         // onReachabilityRestored() on boot would duplicate openApp()/reconnectApp().
         if (!shouldForceOffline && state.isInternetReachable === true && prevIsInternetReachable !== true && prevIsInternetReachable !== undefined) {
-            Log.info(`[NetworkState] Internet reachability restored (${prevIsInternetReachable}→true)`);
-            onReachabilityRestored();
+            if (suppressNextReachabilityRestored) {
+                Log.info(`[NetworkState] Suppressing recovery on first stable state after reconfigure (${prevIsInternetReachable}→true)`);
+            } else {
+                Log.info(`[NetworkState] Internet reachability restored (${prevIsInternetReachable}→true)`);
+                onReachabilityRestored();
+            }
+        }
+        // End the post-reconfigure suppression window once reachability settles into a definitive
+        // state. Null/undefined are transient and should not end the window.
+        if (state.isInternetReachable === true || state.isInternetReachable === false) {
+            suppressNextReachabilityRestored = false;
         }
         prevIsInternetReachable = state.isInternetReachable;
     });

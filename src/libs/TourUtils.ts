@@ -1,6 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {IntroSelected} from './actions/Report';
+import isTrackOnboardingChoice from './OnboardingUtils';
 
 function getTestDriveURL(shouldUseNarrowLayout: boolean, introSelected: OnyxEntry<IntroSelected>, isUserPolicyAdmin: boolean): string {
     if (introSelected) {
@@ -8,7 +9,7 @@ function getTestDriveURL(shouldUseNarrowLayout: boolean, introSelected: OnyxEntr
             return shouldUseNarrowLayout ? CONST.STORYLANE.EMPLOYEE_TOUR_MOBILE : CONST.STORYLANE.EMPLOYEE_TOUR;
         }
 
-        if (introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+        if (isTrackOnboardingChoice(introSelected?.choice)) {
             return shouldUseNarrowLayout ? CONST.STORYLANE.TRACK_WORKSPACE_TOUR_MOBILE : CONST.STORYLANE.TRACK_WORKSPACE_TOUR;
         }
 

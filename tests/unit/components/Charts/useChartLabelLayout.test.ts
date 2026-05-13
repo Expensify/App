@@ -136,19 +136,22 @@ describe('useChartLabelLayout', () => {
 
     describe('edge-constrained rotation', () => {
         it('same data picks 0° without edge constraint but 45° with edge constraint', () => {
-            // "A".repeat(16) = 112px. At 0°: overhang = 56px.
-            const config = {data: makeData('A'.repeat(16), 'BB', 'CC'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 120, labelAreaWidth: 360};
+            // "A".repeat(22) = 154px. firstMinTrunc = (10+3)*7 = 91px.
+            // At 0°: centered overhang = 77px. firstTickLeftSpace=72 < 77 → 0° edge fails.
+            // At 45° right-aligned: edgeMax = 72/SIN_45−8 ≈ 93.8 ≥ 91 → 45° edge fits.
+            const config = {data: makeData('A'.repeat(22), 'BB', 'CC'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 160, labelAreaWidth: 480};
 
             const {result: noEdge} = renderLayout(config);
             expect(noEdge.current.labelRotation).toBe(0);
 
-            // firstTickLeftSpace=40 < 56 → 0° edge fails → escalates to 45°
-            const {result: withEdge} = renderLayout({...config, firstTickLeftSpace: 40, lastTickRightSpace: 200});
+            // firstTickLeftSpace=72 < 77 → 0° edge fails → escalates to 45°
+            const {result: withEdge} = renderLayout({...config, firstTickLeftSpace: 72, lastTickRightSpace: 200});
             expect(withEdge.current.labelRotation).toBe(45);
         });
 
         it('escalates to 90° when edge space is too small for both 0° and 45°', () => {
-            // firstTickLeftSpace=5: at 45° centered edgeMax = max(0, 2*(5/SIN_45-8)) ≈ 0 → fails
+            // "AAAAAA" = 42px (6 chars <= MIN_TRUNCATED_CHARS=10), so firstMinTrunc = 42.
+            // firstTickLeftSpace=5: at 45° right-aligned edgeMax = max(0, 5/SIN_45−8) = 0 < 42 → fails
             const {result} = renderLayout({
                 data: makeData('AAAAAA', 'BBBBBB'),
                 fontMgr: mockFontMgr,
@@ -160,50 +163,9 @@ describe('useChartLabelLayout', () => {
             });
             expect(result.current.labelRotation).toBe(90);
         });
-
-        it('allowTightDiagonalPacking enables 45° at tighter tick spacing', () => {
-            // "AAAAAA" = 42px. tickSpacing=30.
-            // Without packing: minDiagWidth = 42*SIN_45 ≈ 29.7, 29.7+4=33.7 > 30 → 45° fails
-            // With packing: diagonalOverlap = 16*SIN_45 ≈ 11.3, minDiagWidth = 29.7-11.3=18.4, 18.4+4=22.4 ≤ 30 ✓
-            const base = {
-                data: makeData('AAAAAA', 'BBBBBB'),
-                fontMgr: mockFontMgr,
-                fontSize: FONT_SIZE,
-                tickSpacing: 30,
-                labelAreaWidth: 400,
-                firstTickLeftSpace: 100,
-                lastTickRightSpace: 100,
-            };
-
-            const {result: noPacking} = renderLayout({...base, allowTightDiagonalPacking: false});
-            expect(noPacking.current.labelRotation).toBe(90);
-
-            const {result: withPacking} = renderLayout({...base, allowTightDiagonalPacking: true});
-            expect(withPacking.current.labelRotation).toBe(45);
-        });
     });
 
     describe('edge-aware max-width constraints', () => {
-        it('constrains first label below full width when centered and edge is tight', () => {
-            // First label: 16 chars = 112px. tickMaxWidth ≈ 164. edgeMax ≈ 97 (stricter).
-            // labelMaxWidths[0] should be < 112; middle/last labels unconstrained.
-            const {result} = renderLayout({
-                data: makeData('A'.repeat(16), 'BB', 'CC'),
-                fontMgr: mockFontMgr,
-                fontSize: FONT_SIZE,
-                tickSpacing: 120,
-                labelAreaWidth: 360,
-                firstTickLeftSpace: 40,
-                lastTickRightSpace: 200,
-            });
-            expect(result.current.labelRotation).toBe(45);
-            // Edge constraint tightens first label below its natural width
-            expect(result.current.labelMaxWidths.at(0)).toBeLessThan(16 * PX_PER_CHAR);
-            // Middle and last labels are only tick-constrained (much wider than 'BB'/'CC')
-            expect(result.current.labelMaxWidths.at(1)).toBeGreaterThanOrEqual(2 * PX_PER_CHAR);
-            expect(result.current.labelMaxWidths.at(2)).toBeGreaterThanOrEqual(2 * PX_PER_CHAR);
-        });
-
         it('constrains first label below full width when right-aligned and edge is tight', () => {
             // Right-aligned first label: edgeMax = 72/SIN_45 - 8 ≈ 93.8 < 112 → constrained.
             const {result} = renderLayout({
@@ -214,26 +176,10 @@ describe('useChartLabelLayout', () => {
                 labelAreaWidth: 360,
                 firstTickLeftSpace: 72,
                 lastTickRightSpace: 200,
-                allowTightDiagonalPacking: true,
             });
             expect(result.current.labelRotation).toBe(45);
             expect(result.current.labelMaxWidths.at(0)).toBeLessThan(16 * PX_PER_CHAR);
             expect(result.current.labelMaxWidths.at(1)).toBeGreaterThanOrEqual(2 * PX_PER_CHAR);
-        });
-
-        it('constrains last label below full width when centered and right edge is tight', () => {
-            // lastTickRightSpace=40: edgeMax = 2*(40/SIN_45-8) ≈ 97.1 < 112 → constrained.
-            const {result} = renderLayout({
-                data: makeData('AA', 'BB', 'A'.repeat(16)),
-                fontMgr: mockFontMgr,
-                fontSize: FONT_SIZE,
-                tickSpacing: 200,
-                labelAreaWidth: 600,
-                firstTickLeftSpace: 200,
-                lastTickRightSpace: 40,
-            });
-            expect(result.current.labelRotation).toBe(45);
-            expect(result.current.labelMaxWidths.at(2)).toBeLessThan(16 * PX_PER_CHAR);
         });
 
         it('does NOT constrain last label when right-aligned despite tight right edge', () => {
@@ -248,7 +194,6 @@ describe('useChartLabelLayout', () => {
                 labelAreaWidth: 600,
                 firstTickLeftSpace: 200,
                 lastTickRightSpace: 40,
-                allowTightDiagonalPacking: true,
             });
             expect(result.current.labelRotation).toBe(45);
             expect(result.current.labelMaxWidths.at(2)).toBeGreaterThanOrEqual(16 * PX_PER_CHAR);

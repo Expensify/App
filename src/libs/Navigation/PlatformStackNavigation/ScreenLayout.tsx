@@ -1,6 +1,8 @@
 import type {ParamListBase, ScreenLayoutArgs} from '@react-navigation/native';
 import React, {useLayoutEffect, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+// eslint-disable-next-line no-restricted-imports
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 import type {PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationProp} from './types';
 

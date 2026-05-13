@@ -22,6 +22,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -88,6 +89,7 @@ function getLimitTypeTranslationKeys(limitType: ValueOf<typeof CONST.EXPENSIFY_C
 }
 
 function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
+    const {isProduction} = useEnvironment();
     const {cardID} = route.params;
     const {convertToDisplayString} = useCurrencyListActions();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -530,7 +532,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             </>
                         )}
 
-                        {isWorkspaceAdmin && spendRulesSummary.length > 0 && (
+                        {!isProduction && isWorkspaceAdmin && spendRulesSummary.length > 0 && (
                             <MenuItemWithTopDescription
                                 description={translate('cardPage.spendRules')}
                                 descriptionTextStyle={[styles.fontSizeLabel]}
@@ -552,7 +554,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 );
                             }}
                         />
-                        {isWorkspaceAdmin && (
+                        {!isProduction && isWorkspaceAdmin && (
                             <MenuItem
                                 icon={expensifyIcons.CreditCardLock}
                                 title={translate('cardPage.editSpendRules')}

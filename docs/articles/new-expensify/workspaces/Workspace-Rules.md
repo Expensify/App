@@ -48,7 +48,7 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 
 When an expense breaks a Workspace Rule or Category Rule, the expense is flagged with a violation and the approver is prompted to manually review it before approval.
 
-![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissing|temizedReceipts_02.png){:width="100%"}
+![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_02.png){:width="100%"}
 
 ---
 

@@ -3,14 +3,16 @@ import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type QBDSection = {
@@ -35,12 +37,14 @@ function QuickbooksDesktopTravelInvoicingConfigurationPage({policy}: WithPolicyC
     const {vendors, payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const travelVendor = vendors?.find((item) => item.id === qbdConfig?.export?.travelInvoicingVendorID);
     const travelPayableAccount = payableAccounts?.find((item) => item.id === qbdConfig?.export?.travelInvoicingPayableAccountID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION.path);
+    const travelInvoicingPath = `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION.path}`;
 
     const sections: QBDSection[] = [
         {
             title: travelVendor?.name,
             description: translate('workspace.common.travelInvoicingVendor'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_VENDOR_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_VENDOR_SELECT.path, travelInvoicingPath)),
             subscribedSettings: vendor,
             pendingAction: settingsPendingAction(vendor, qbdConfig?.pendingFields),
             brickRoadIndicator: areSettingsInErrorFields(vendor, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -48,7 +52,7 @@ function QuickbooksDesktopTravelInvoicingConfigurationPage({policy}: WithPolicyC
         {
             title: travelPayableAccount?.name,
             description: translate('workspace.common.travelInvoicingPayableAccount'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.path, travelInvoicingPath)),
             subscribedSettings: payableAccount,
             pendingAction: settingsPendingAction(payableAccount, qbdConfig?.pendingFields),
             brickRoadIndicator: areSettingsInErrorFields(payableAccount, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
@@ -65,7 +69,7 @@ function QuickbooksDesktopTravelInvoicingConfigurationPage({policy}: WithPolicyC
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
         >
             {sections.map((section) => (
                 <OfflineWithFeedback

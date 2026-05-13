@@ -124,15 +124,6 @@ type MoneyRequestAmountInputProps = {
      */
     shouldWrapInputInContainer?: boolean;
 
-    /** Style applied to the outer ScrollView inside NumberWithSymbolForm */
-    scrollViewStyle?: StyleProp<ViewStyle>;
-
-    /**
-     * Whether to refocus the input when clicking on the ScrollView empty space.
-     * Prevents focus loss when clicking empty space left of the right-aligned input.
-     */
-    shouldRefocusOnScrollViewClick?: boolean;
-
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
@@ -141,7 +132,7 @@ type MoneyRequestAmountInputProps = {
 
     /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
-} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
+} & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
 
 type Selection = {
     start: number;
@@ -176,8 +167,6 @@ function MoneyRequestAmountInput({
     shouldApplyPaddingToContainer = false,
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
-    scrollViewStyle,
-    shouldRefocusOnScrollViewClick = false,
     isNegative = false,
     allowFlippingAmount = false,
     allowNegativeInput = false,
@@ -256,7 +245,6 @@ function MoneyRequestAmountInput({
             currency={currency}
             hideSymbol={hideCurrencySymbol}
             isSymbolPressable={isCurrencyPressable}
-            symbolTextStyle={props.symbolTextStyle}
             shouldShowBigNumberPad={shouldShowBigNumberPad}
             style={inputStyle}
             autoGrow={autoGrow}
@@ -266,8 +254,6 @@ function MoneyRequestAmountInput({
             shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
             shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
             shouldWrapInputInContainer={shouldWrapInputInContainer}
-            scrollViewStyle={scrollViewStyle}
-            shouldRefocusOnScrollViewClick={shouldRefocusOnScrollViewClick}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
             prefixContainerStyle={props.prefixContainerStyle}

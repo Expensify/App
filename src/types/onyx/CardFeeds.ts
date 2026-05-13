@@ -123,6 +123,13 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     uploadLayoutSettings?: {
         /** User-defined name for the CSV upload layout */
         layoutName?: string;
+
+        /** Unique identifier for this CSV layout instance */
+        instanceID?: string;
+
+        /** Stored column mappings from the most recent CSV import (column name → column index) */
+        columnMappings?: Record<string, string>;
+
         [key: string]: unknown;
     };
 
@@ -266,12 +273,6 @@ type AddNewCardFeedData = {
     /** Name of the card */
     cardTitle: string;
 
-    /** Indicates the day (preset value) when the statement period for this card ends */
-    statementPeriodEnd?: StatementPeriodEnd;
-
-    /** Indicates the day (custom day) when the statement period for this card ends */
-    statementPeriodEndDay?: StatementPeriodEndDay;
-
     /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
 
@@ -304,6 +305,9 @@ type AddNewCardFeedData = {
 
     /** Whether to use advanced fields in the CSV layout */
     useAdvancedFields?: boolean;
+
+    /** Existing instance ID when editing a CSV feed */
+    existingInstanceID?: string;
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];

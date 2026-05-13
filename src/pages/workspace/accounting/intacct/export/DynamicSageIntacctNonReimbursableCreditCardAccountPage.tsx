@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -64,7 +63,6 @@ function DynamicSageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPo
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctNonReimbursableCreditCardAccountPage"
             data={creditCardSelectorOptions ?? []}
-            listItem={RadioListItem}
             onSelectRow={updateCreditCardAccount}
             initiallyFocusedOptionKey={creditCardSelectorOptions.find((mode) => mode.isSelected)?.keyForList}
             onBackButtonPress={goBack}

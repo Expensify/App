@@ -2,10 +2,9 @@ import {Group, Paragraph, vec} from '@shopify/react-native-skia';
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import React from 'react';
 import {AXIS_LABEL_GAP, GLYPH_PADDING, MAX_X_AXIS_LABEL_WIDTH} from '@components/Charts/constants';
-import useChartParagraphs from '@components/Charts/hooks/useChartParagraphs';
+import {useChartParagraphs} from '@components/Charts/hooks';
 import type {LabelRotation} from '@components/Charts/types';
 import {getFontLineMetrics, rotatedLabelCenterCorrection, rotatedLabelYOffset, truncateLabel} from '@components/Charts/utils';
-import variables from '@styles/variables';
 
 type ChartXAxisLabelsProps = {
     /** Original (non-truncated) label strings from the data. */
@@ -46,9 +45,6 @@ type ChartXAxisLabelsProps = {
 
     /** Y-pixel coordinate of the bottom edge of the chart plot area. */
     chartBoundsBottom: number;
-
-    /** When true, rotated labels are centered on the tick. When false, they are right-aligned (end of text at tick). */
-    centerRotatedLabels?: boolean;
 };
 
 function ChartXAxisLabels({
@@ -65,7 +61,6 @@ function ChartXAxisLabels({
     labelColor,
     xScale,
     chartBoundsBottom,
-    centerRotatedLabels = false,
 }: ChartXAxisLabelsProps) {
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
     const truncatedLabels = (() => {
@@ -83,14 +78,11 @@ function ChartXAxisLabels({
 
     const paragraphs = useChartParagraphs(truncatedLabels, fontMgr, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
 
-    const renderedWidths = truncatedLabels.map((_, i) => paragraphs?.at(i)?.width ?? 0);
-
     // Derive ascent/descent from the first available paragraph's line metrics.
     const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
 
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
-    const centeredUpwardOffset = centerRotatedLabels && angleRad > 0 ? (Math.max(...renderedWidths) / 2) * Math.sin(angleRad) : 0;
-    const labelY = chartBoundsBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) + centeredUpwardOffset;
+    const labelY = chartBoundsBottom + AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad);
 
     return truncatedLabels.map((label, i) => {
         if (i % labelSkipInterval !== 0 || label.length === 0) {
@@ -111,13 +103,13 @@ function ChartXAxisLabels({
                     key={`x-label-${label}-${tickX}`}
                     paragraph={paraData.para}
                     x={tickX - renderWidth / 2}
-                    y={labelY - variables.iconSizeExtraSmall}
+                    y={labelY - ascent}
                     width={renderWidth + GLYPH_PADDING}
                 />
             );
         }
 
-        const textX = centerRotatedLabels ? tickX - renderWidth / 2 : tickX - renderWidth;
+        const textX = tickX - renderWidth;
         const origin = vec(tickX, labelY);
 
         return (

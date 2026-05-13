@@ -1,5 +1,6 @@
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingIntent from '@hooks/useOnboardingIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {enablePolicyCategories} from '@libs/actions/Policy/Category';
@@ -20,6 +21,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+
+const MIN_MEMBERS_FOR_ACCOUNTANT_INVITED = 2;
 
 type GettingStartedItem = {
     key: string;
@@ -46,8 +49,7 @@ const DIRECT_CONNECT_INTEGRATIONS = new Set<string>([
 function useGettingStartedItems(): UseGettingStartedItemsResult {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [onboardingPurpose] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const intent = useOnboardingIntent();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
@@ -58,8 +60,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
 
-    const intent = introSelected?.choice ?? onboardingPurpose;
-    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
+    if (intent !== CONST.ONBOARDING_CHOICES.MANAGE_TEAM && intent !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
         return emptyResult;
     }
 
@@ -83,6 +84,27 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         isComplete: true,
         route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID, Navigation.getActiveRoute()) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
+
+    if (intent === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+        items.push({
+            key: 'customizeCategories',
+            label: translate('homePage.gettingStartedSection.customizeCategories'),
+            isComplete: hasCustomCategories(policyCategories),
+            route: ROUTES.WORKSPACE_CATEGORIES.getRoute(activePolicyID),
+            isFeatureEnabled: policy.areCategoriesEnabled,
+            enableFeature: () => enablePolicyCategories({policy, categories: policyCategories ?? {}, tags: {}, reports: [], transactionsAndViolations: {}}, true, false),
+        });
+
+        const activeMemberCount = Object.values(policy.employeeList ?? {}).filter((member) => member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+        items.push({
+            key: 'inviteAccountant',
+            label: translate('homePage.gettingStartedSection.inviteAccountant'),
+            isComplete: activeMemberCount >= MIN_MEMBERS_FOR_ACCOUNTANT_INVITED,
+            route: ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID),
+        });
+
+        return {shouldShowSection: true, items};
+    }
 
     const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
 

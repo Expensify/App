@@ -1,81 +1,58 @@
-import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
-import type {MultifactorAuthenticationReason, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
+import type {MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
+import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
+import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import type {RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {registerAuthenticationKey} from './index';
-
-type ProcessResult = {
-    success: boolean;
-    reason: MultifactorAuthenticationReason;
-    message?: string;
-    httpStatusCode?: number;
-
-    /** Optional response body containing scenario-specific data (e.g., {pin: number} for PIN reveal) */
-    body?: Record<string, unknown>;
-};
-
-/**
- * Determines if an HTTP response code indicates success.
- * Checks if the status code is in the 2xx range.
- *
- * @param httpStatusCode - The HTTP status code to check
- * @returns True if the code is in the 2xx range, false otherwise
- */
-function isHttpSuccess(httpStatusCode: number | undefined): boolean {
-    return String(httpStatusCode).startsWith('2');
-}
 
 type RegistrationParams = {
     keyInfo: RegistrationKeyInfo;
 };
 
-/**
- * Processes a biometric registration request.
- * Registers the authentication key with the backend API.
- */
-async function processRegistration(params: RegistrationParams): Promise<ProcessResult> {
+async function processRegistration(params: RegistrationParams): Promise<MFAResult> {
     const {httpStatusCode, reason, message} = await registerAuthenticationKey({
         keyInfo: params.keyInfo,
     });
 
-    return {
-        success: isHttpSuccess(httpStatusCode),
-        reason,
-        httpStatusCode,
-        message,
-    };
+    if (isHttpSuccess(httpStatusCode)) {
+        return {success: true};
+    }
+
+    return {success: false, error: createMFAErrorFromApiResponse(httpStatusCode, reason, message)};
 }
 
 /**
- * Processes a multifactor authentication scenario action.
- * Executes the scenario-specific action with the signed challenge
- * and additional parameters. Returns success status and reason.
+ * Executes the scenario-specific action with the signed challenge and additional parameters.
  *
  * @param action - The scenario's action function from the scenario config
  * @param params - Action parameters including signedChallenge and authenticationMethod
- * @returns Object with success status and reason
  */
 async function processScenarioAction(
     action: MultifactorAuthenticationScenarioConfig['action'],
     params: Parameters<MultifactorAuthenticationScenarioConfig['action']>[0],
-): Promise<ProcessResult> {
+): Promise<MFAResult<MultifactorAuthenticationScenarioResponse>> {
     if (!params.signedChallenge) {
         return {
             success: false,
-            reason: VALUES.REASON.GENERIC.SIGNATURE_MISSING,
+            error: createLocalMFAError(VALUES.REASON.LOCAL_ERRORS.SIGNATURE_MISSING, 'Signed challenge is missing from scenario action params'),
         };
     }
 
     const {httpStatusCode, reason, message, body} = await action(params);
-    const success = isHttpSuccess(httpStatusCode);
 
-    return {
-        success,
-        reason,
-        httpStatusCode,
-        message,
-        body,
-    };
+    if (isHttpSuccess(httpStatusCode)) {
+        return {
+            success: true,
+            httpStatusCode,
+            reason,
+            message,
+            body,
+        };
+    }
+
+    return {success: false, error: createMFAErrorFromApiResponse(httpStatusCode, reason, message)};
 }
 
 export {processRegistration, processScenarioAction};
-export type {ProcessResult, RegistrationParams};
+export type {RegistrationParams};

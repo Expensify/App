@@ -1,13 +1,13 @@
 ---
 title: Navigating New Expensify
-description: Learn how to move around New Expensify using the navigation tabs, including Home, Inbox, Reports, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Reports tab, Workspaces tab, Account tab, Receipt button, Create button, workspace filter]
+description: Learn how to move around New Expensify using the navigation tabs, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Spend tab, Workspaces tab, Account tab, Receipt button, Create button, workspace filter]
 internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs and primary action buttons. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
 
-New Expensify uses a consistent navigation layout across web and mobile so you can quickly move between Home, Inbox, Reports, Workspaces, and Account settings.
+New Expensify uses a consistent navigation layout across web and mobile so you can quickly move between Home, Inbox, Spend, Workspaces, and Account settings.
 
 This guide explains where to find each tab and what it’s used for.
 
@@ -24,7 +24,7 @@ Tabs include:
 
 - **Home**
 - **Inbox**
-- **Reports**
+- **Spend**
 - **Workspaces**
 - **Account**
 
@@ -34,7 +34,7 @@ Tabs include:
 
 The **Home** tab is the first screen you see when you sign in.
 
-Use Home to get oriented and see whether anything needs attention. From the Home tab, you can navigate to Inbox, Reports, or Workspaces as needed.
+Use Home to get oriented and see whether anything needs attention. From the Home tab, you can navigate to Inbox, Spend, or Workspaces as needed.
 
 For a full breakdown of what appears on Home, see the **Expensify Home Overview** article.
 
@@ -53,15 +53,15 @@ Use Inbox to:
 
 ---
 
-# What the Reports tab is used for
+# What the Spend tab is used for
 
-**Reports** is where you view and filter expense reports.
+**Spend** is the main place to search and act on expenses and expense reports.
 
-From Reports, you can:
+From **Spend**, you can:
 
-- View all reports you have access to
-- Apply filters
-- Narrow results using the **Workspace filter** inside **Filters**
+- Open **Explore** and choose **Reports** (expense reports), **Expenses**, or **Chats**
+- Use **To-do** shortcuts such as **Submit**, **Approve**, **Pay**, and **Export**
+- Apply filters and narrow results using the **Workspace filter** inside **Filters**
 
 ---
 
@@ -126,7 +126,7 @@ If you’re not sure where to go:
 
 - Use **Home** to see what needs attention.
 - Use **Inbox** to manage conversations and approvals.
-- Use **Reports** to view or filter expense reports.
+- Use **Spend** to view or filter expense reports.
 - Use **Workspaces** to manage workspace settings.
 - Use **Account** to update personal settings or subscription details.
 

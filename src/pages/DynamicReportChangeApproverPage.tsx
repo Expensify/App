@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -119,7 +119,6 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         }
     }, [approverTypes, selectedApproverType, changeApprover]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 
     const confirmButtonOptions = useMemo(
@@ -156,7 +155,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             />
             <SelectionList
                 data={approverTypes}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 alternateNumberOfSupportedLines={2}
                 onSelectRow={(option) => {
                     if (!option.keyForList) {
