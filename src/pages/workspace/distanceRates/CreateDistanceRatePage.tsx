@@ -13,12 +13,13 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {validateCreateDistanceRateForm} from '@libs/PolicyDistanceRatesUtils';
+import {validateCreateDistanceRateForm, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -41,6 +42,8 @@ function CreateDistanceRatePage({
 }: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const customUnit = getDistanceRateCustomUnit(policy);
@@ -57,8 +60,13 @@ function CreateDistanceRatePage({
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames),
-        [toLocaleDigit, translate, existingRateNames],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
+            if (isDateBoundMileageRateEnabled) {
+                return validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames);
+            }
+            return validateRateValue(values, toLocaleDigit, translate);
+        },
+        [isDateBoundMileageRateEnabled, toLocaleDigit, translate, existingRateNames],
     );
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
@@ -69,12 +77,12 @@ function CreateDistanceRatePage({
 
         const newRate: Rate = {
             currency,
-            name: values.name.trim(),
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
-            ...(values.startDate ? {startDate: values.startDate} : {}),
-            ...(values.endDate ? {endDate: values.endDate} : {}),
+            ...(isDateBoundMileageRateEnabled ? {name: values.name.trim()} : {}),
+            ...(isDateBoundMileageRateEnabled && values.startDate ? {startDate: values.startDate} : {}),
+            ...(isDateBoundMileageRateEnabled && values.endDate ? {endDate: values.endDate} : {}),
         };
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
@@ -119,20 +127,23 @@ function CreateDistanceRatePage({
                         addBottomSafeAreaPadding
                     >
                         <ScrollView contentContainerStyle={styles.flexGrow1}>
-                            <View style={[styles.mh5]}>
-                                <InputWrapper
-                                    ref={inputCallbackRef}
-                                    InputComponent={TextInput}
-                                    inputID={INPUT_IDS.NAME}
-                                    label={translate('common.name')}
-                                    accessibilityLabel={translate('common.name')}
-                                    role={CONST.ROLE.PRESENTATION}
-                                />
-                            </View>
-                            <View style={[styles.mh5, styles.mt4]}>
+                            {isDateBoundMileageRateEnabled && (
+                                <View style={[styles.mh5]}>
+                                    <InputWrapper
+                                        ref={inputCallbackRef}
+                                        InputComponent={TextInput}
+                                        inputID={INPUT_IDS.NAME}
+                                        label={translate('common.name')}
+                                        accessibilityLabel={translate('common.name')}
+                                        role={CONST.ROLE.PRESENTATION}
+                                    />
+                                </View>
+                            )}
+                            <View style={[styles.mh5, isDateBoundMileageRateEnabled ? styles.mt4 : undefined]}>
                                 <InputWrapper
                                     InputComponent={AmountForm}
                                     inputID={INPUT_IDS.RATE}
+                                    ref={isDateBoundMileageRateEnabled ? undefined : inputCallbackRef}
                                     decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                                     currency={currency}
                                     isCurrencyPressable={false}
@@ -140,20 +151,24 @@ function CreateDistanceRatePage({
                                     label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
                                 />
                             </View>
-                            <View style={[styles.mh5, styles.mt4]}>
-                                <InputWrapper
-                                    InputComponent={DatePicker}
-                                    inputID={INPUT_IDS.START_DATE}
-                                    label={translate('workspace.distanceRates.startDate')}
-                                />
-                            </View>
-                            <View style={[styles.mh5, styles.mt4]}>
-                                <InputWrapper
-                                    InputComponent={DatePicker}
-                                    inputID={INPUT_IDS.END_DATE}
-                                    label={translate('workspace.distanceRates.endDate')}
-                                />
-                            </View>
+                            {isDateBoundMileageRateEnabled && (
+                                <>
+                                    <View style={[styles.mh5, styles.mt4]}>
+                                        <InputWrapper
+                                            InputComponent={DatePicker}
+                                            inputID={INPUT_IDS.START_DATE}
+                                            label={translate('workspace.distanceRates.startDate')}
+                                        />
+                                    </View>
+                                    <View style={[styles.mh5, styles.mt4]}>
+                                        <InputWrapper
+                                            InputComponent={DatePicker}
+                                            inputID={INPUT_IDS.END_DATE}
+                                            label={translate('workspace.distanceRates.endDate')}
+                                        />
+                                    </View>
+                                </>
+                            )}
                         </ScrollView>
                     </FormProvider>
                 </FullPageBlockingView>

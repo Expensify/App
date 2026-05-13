@@ -893,6 +893,7 @@ const CONST = {
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
+        DATE_BOUND_MILEAGE_RATE: 'dateBoundMileageRate',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
