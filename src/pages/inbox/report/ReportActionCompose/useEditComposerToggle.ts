@@ -2,7 +2,7 @@ import {useEffect, useRef} from 'react';
 import type {RefObject} from 'react';
 import type {ComposerRef, TextSelection} from '@components/Composer/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useComposerActions, useComposerEditState} from './ComposerContext';
+import {useComposerEditActions, useComposerEditState} from './ComposerContext';
 import ReportActionComposeUtils from './ReportActionComposeUtils';
 import updateNativeTextInputValue from './updateNativeTextInputValue';
 
@@ -38,7 +38,7 @@ function useEditComposerToggle({selection, draftComment, composerRef, onFocus, o
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const {isEditingInComposer, editingState, editingReportActionID, editingMessage, currentEditMessageSelection} = useComposerEditState();
-    const {setDidResetComposerHeight} = useComposerActions();
+    const {setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const isEditing = editingState !== 'off';
 
     const wasEditingRef = useRef(isEditing);
@@ -85,8 +85,8 @@ function useEditComposerToggle({selection, draftComment, composerRef, onFocus, o
                 applyComposerValue(draftComment ?? '', {selection: previousDraftSelectionRef.current, shouldForceNativeValueUpdate: true});
 
                 // Once the composer is no longer in edit mode, we can reset the manual composer height.
-                if (isEditingInComposer) {
-                    setDidResetComposerHeight(false);
+                if (wasEditingInComposerRef.current) {
+                    setDidResetComposerHeightWhileEditing(false);
                 }
 
                 if (!wasComposerFocusedBeforeEditingRef.current) {
@@ -149,7 +149,7 @@ function useEditComposerToggle({selection, draftComment, composerRef, onFocus, o
         editingState,
         isEditingInComposer,
         selection,
-        setDidResetComposerHeight,
+        setDidResetComposerHeightWhileEditing,
         shouldUseNarrowLayout,
     ]);
 }

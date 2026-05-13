@@ -20,26 +20,19 @@ import useEnvironment from '@hooks/useEnvironment';
 import useGetExpensifyCardFromReportAction from '@hooks/useGetExpensifyCardFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {
-    getLinkedTransactionID,
-    getOneTransactionThreadReportID,
-    getOriginalMessage,
-    getReportAction,
-    isActionOfType,
-    isDeletedAction,
-    withDEWRoutedActionsObject,
-} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOriginalMessage, getReportAction, isActionOfType, isDeletedAction, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getHarvestOriginalReportID,
@@ -153,6 +146,7 @@ function BaseReportActionContextMenu({
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isProduction} = useEnvironment();
     const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -202,17 +196,9 @@ function BaseReportActionContextMenu({
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
     const [childReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction?.childReportID}`);
-    const [childChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.chatReportID}`);
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
-    const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const transactionThreadReportID = useMemo(
-        () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
-        [paginatedReportActions, isOffline, childReport, childChatReport],
-    );
-
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
-
+    const {reportActions: moneyRequestChildReportActions} = useMoneyRequestReportPaginatedFilteredActions(childReport?.reportID);
+    const {transactionThreadReportID, transactionThreadReport} = useTransactionThreadReport(childReport?.reportID, moneyRequestChildReportActions ?? []);
     const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
     const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
 
@@ -221,13 +207,21 @@ function BaseReportActionContextMenu({
             if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
                 return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
             }
-            if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
+            if (!moneyRequestChildReportActions || !transactionThreadReport?.parentReportActionID) {
                 return undefined;
             }
-            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
+            return moneyRequestChildReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
         }
         return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID, transactionThreadReportID, childReportActions]);
+    }, [
+        parentReportAction,
+        isMoneyRequestReport,
+        isInvoiceReport,
+        moneyRequestChildReportActions,
+        transactionThreadReport?.parentReportActionID,
+        transactionThreadReportID,
+        childReportActions,
+    ]);
 
     const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);

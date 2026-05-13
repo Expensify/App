@@ -27,7 +27,6 @@ type ComposerState = {
     isFocused: boolean;
     isMenuVisible: boolean;
     isFullComposerAvailable: boolean;
-    didResetComposerHeight: boolean;
     draftComment: string | undefined;
 };
 
@@ -40,6 +39,7 @@ type ComposerEditState = {
     editingMessage: string | null;
     effectiveDraft: string | null | undefined;
     currentEditMessageSelection: TextSelection | null;
+    didResetComposerHeightWhileEditing: boolean;
 };
 
 // Warm — changes based on content + policy
@@ -64,12 +64,12 @@ type ComposerActions = {
     onItemSelected: () => void;
     onTriggerAttachmentPicker: () => void;
     clearComposer: () => void;
-    setDidResetComposerHeight: (v: boolean) => void;
 };
 
 type ComposerEditActions = {
     publishDraft: (draftMessage: string) => void;
     deleteDraft: () => void;
+    setDidResetComposerHeightWhileEditing: (v: boolean) => void;
 };
 
 // Frozen — stable refs, set once
@@ -90,7 +90,6 @@ const defaultState: ComposerState = {
     isFocused: false,
     isMenuVisible: false,
     isFullComposerAvailable: false,
-    didResetComposerHeight: false,
     draftComment: undefined,
 };
 const ComposerStateContext = createContext<ComposerState>(defaultState);
@@ -113,6 +112,7 @@ const defaultEditState: ComposerEditState = {
     editingMessage: null,
     effectiveDraft: undefined,
     currentEditMessageSelection: null,
+    didResetComposerHeightWhileEditing: false,
 };
 const ComposerEditStateContext = createContext<ComposerEditState>(defaultEditState);
 
@@ -129,13 +129,13 @@ const defaultActions: ComposerActions = {
     onItemSelected: noop,
     onTriggerAttachmentPicker: noop,
     clearComposer: noop,
-    setDidResetComposerHeight: noop,
 };
 const ComposerActionsContext = createContext<ComposerActions>(defaultActions);
 
 const defaultEditActions: ComposerEditActions = {
     publishDraft: noop,
     deleteDraft: noop,
+    setDidResetComposerHeightWhileEditing: noop,
 };
 const ComposerEditActionsContext = createContext<ComposerEditActions>(defaultEditActions);
 
@@ -189,4 +189,4 @@ export {
     useComposerEditActions,
     useComposerMeta,
 };
-export type {SuggestionsRef, ComposerText, ComposerState, ComposerEditState, ComposerSendState, ComposerActions, ComposerMeta};
+export type {SuggestionsRef, ComposerText, ComposerState, ComposerEditState, ComposerSendState, ComposerActions, ComposerEditActions, ComposerMeta};

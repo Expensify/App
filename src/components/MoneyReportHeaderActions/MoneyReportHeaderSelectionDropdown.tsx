@@ -37,6 +37,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {search} from '@libs/actions/Search';
@@ -124,7 +125,8 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
-    const {transactionThreadReportID, reportActions} = useTransactionThreadReport(reportID);
+    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(reportID);
+    const {transactionThreadReportID} = useTransactionThreadReport(reportID, reportActions);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 

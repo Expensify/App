@@ -6,18 +6,15 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
-import useNetwork from '@hooks/useNetwork';
+import useMoneyRequestReportPaginatedFilteredActions from '@hooks/useMoneyRequestReportPaginatedFilteredActions';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useShortMentionsList from '@hooks/useShortMentionsList';
+import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import {addAttachmentWithComment, addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
@@ -29,7 +26,6 @@ import {useComposerActions, useComposerEditActions, useComposerEditState, useCom
 import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string) {
-    const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const {availableLoginsList} = useShortMentionsList();
@@ -40,25 +36,16 @@ function useComposerSubmit(reportID: string) {
     const delegateAccountID = useDelegateAccountID();
 
     const {composerRef, attachmentFileRef} = useComposerMeta();
-    const {didResetComposerHeight, draftComment} = useComposerState();
-    const {setDidResetComposerHeight, clearComposer} = useComposerActions();
+    const {draftComment} = useComposerState();
+    const {clearComposer} = useComposerActions();
     const {isSendDisabled, debouncedCommentMaxLengthValidation} = useComposerSendState();
-    const {isEditingInComposer, editingMessage, effectiveDraft} = useComposerEditState();
-    const {publishDraft} = useComposerEditActions();
+    const {isEditingInComposer, editingMessage, effectiveDraft, didResetComposerHeightWhileEditing} = useComposerEditState();
+    const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useContext(ActionListContext);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
-
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
-    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
-    const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
-    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
+    const {reportActions} = useMoneyRequestReportPaginatedFilteredActions(reportID);
+    const {effectiveTransactionThreadReportID} = useTransactionThreadReport(reportID, reportActions);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
 
     const reportAncestors = useAncestors(report);
@@ -72,7 +59,7 @@ function useComposerSubmit(reportID: string) {
     const validateAndSubmitDraft = (draftMessage: string) => {
         const draftMessageTrimmed = draftMessage.trim();
 
-        const isSubmittingEdit = isEditingInComposer || didResetComposerHeight;
+        const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;
         if (isSubmittingEdit && !attachmentFileRef.current) {
             publishDraft(draftMessageTrimmed);
             return;
@@ -192,7 +179,7 @@ function useComposerSubmit(reportID: string) {
         if (effectiveDraft !== null && effectiveDraft !== '') {
             composerRef.current?.resetHeight();
             if (isEditingInComposer) {
-                setDidResetComposerHeight(true);
+                setDidResetComposerHeightWhileEditing(true);
             }
         }
 

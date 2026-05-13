@@ -63,9 +63,9 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();
 
-    const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
+    const [didResetComposerHeightWhileEditing, setDidResetComposerHeightWhileEditing] = useState(false);
 
-    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeight;
+    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeightWhileEditing;
     const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({
@@ -111,7 +111,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         isFocused,
         isMenuVisible,
         isFullComposerAvailable,
-        didResetComposerHeight,
         draftComment,
     };
 
@@ -124,6 +123,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         editingMessage,
         effectiveDraft,
         currentEditMessageSelection,
+        didResetComposerHeightWhileEditing,
     };
 
     const composerSendState = {
@@ -146,12 +146,12 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         onItemSelected,
         onTriggerAttachmentPicker,
         clearComposer,
-        setDidResetComposerHeight,
     };
 
     const composerEditActions = {
         publishDraft,
         deleteDraft,
+        setDidResetComposerHeightWhileEditing,
     };
 
     const composerMeta = {
