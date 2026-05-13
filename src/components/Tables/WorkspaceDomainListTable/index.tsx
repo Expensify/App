@@ -3,8 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {ValueOf} from 'type-fest';
 import {PopoverMenuItem} from '@components/PopoverMenu';
-import ScrollView from '@components/ScrollView';
-import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +18,7 @@ type WorkspaceTableColumnKey = 'workspaces' | 'owner' | 'type' | 'actions';
 type DomainTableColumnKey = 'domains' | 'actions';
 
 export type WorkspaceRowData = {
+    rowType: 'workspace';
     title: string;
     icon: AvatarSource;
     disabled: boolean;
@@ -42,6 +42,7 @@ export type WorkspaceRowData = {
 };
 
 export type DomainRowData = {
+    rowType: 'domain';
     domainAccountID: number;
     title: string;
     isAdmin: boolean;
@@ -51,6 +52,12 @@ export type DomainRowData = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: () => void;
 };
+
+export type SpacerData = {
+    rowType: 'spacer';
+};
+
+export type WorkspaceDomainListItemData = WorkspaceRowData | DomainRowData | SpacerData;
 
 type WorkspaceListTableProps = {
     domains: DomainRowData[];
@@ -64,6 +71,8 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
+    const tableData = [...workspaces, {rowType: 'spacer'} as SpacerData, ...domains] as WorkspaceDomainListItemData[];
+
     const workspaceTableColumns: Array<TableColumn<WorkspaceTableColumnKey>> = [
         {key: 'workspaces', label: translate('common.workspaces')},
         {key: 'owner', label: translate('common.owner')},
@@ -76,25 +85,19 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
         {key: 'actions', label: '', styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}},
     ];
 
-    const compareDomainItems: CompareItemsCallback<DomainRowData, DomainTableColumnKey> = (item1, item2, activeSorting) => {
-        const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
-
-        if (activeSorting.columnKey === 'domains') {
-            return item1.title.localeCompare(item2.title) * orderMultiplier;
+    const compareTableItems: CompareItemsCallback<WorkspaceDomainListItemData, WorkspaceTableColumnKey> = (item1, item2, activeSorting) => {
+        if (item1.rowType !== 'workspace' || item2.rowType !== 'workspace') {
+            return 0;
         }
 
-        return 0;
-    };
-
-    const compareWorkspaceItems: CompareItemsCallback<WorkspaceRowData, WorkspaceTableColumnKey> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
 
         if (activeSorting.columnKey === 'workspaces') {
             return item1.title.localeCompare(item2.title) * orderMultiplier;
         }
 
-        if (activeSorting.columnKey === 'owner' && item1.ownerName && item2.ownerName) {
-            return item1.ownerName.localeCompare(item2.ownerName) * orderMultiplier;
+        if (activeSorting.columnKey === 'owner') {
+            return (item1.ownerName ?? '').localeCompare(item2.ownerName ?? '') * orderMultiplier;
         }
 
         if (activeSorting.columnKey === 'type') {
@@ -104,68 +107,62 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
         return 0;
     };
 
-    const isDomainItemInSearch: IsItemInSearchCallback<DomainRowData> = (item, searchValue) => {
-        const searchLowerCase = searchValue.toLowerCase();
-        return item.title.toLowerCase().includes(searchLowerCase);
+    const isTableItemInSearch: IsItemInSearchCallback<WorkspaceDomainListItemData> = (item, searchValue) => {
+        if (item.rowType === 'domain') {
+            return item.title.toLowerCase().includes(searchValue.toLowerCase());
+        }
+
+        if (item.rowType === 'workspace') {
+            return item.title.toLowerCase().includes(searchValue.toLowerCase());
+        }
+
+        return false;
     };
 
-    const isWorkspaceItemInSearch: IsItemInSearchCallback<WorkspaceRowData> = (item, searchValue) => {
-        const searchLowerCase = searchValue.toLowerCase();
-        return item.title.toLowerCase().includes(searchLowerCase);
-    };
+    const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceDomainListItemData>) => {
+        if (item.rowType === 'spacer') {
+            return <View style={styles.mb5} />;
+        }
 
-    const renderDomainItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
-        return (
-            <DomainTableRow
-                item={item}
-                rowIndex={index}
-                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-            />
-        );
-    };
+        if (item.rowType === 'workspace') {
+            return (
+                <WorkspaceRow
+                    item={item}
+                    rowIndex={index}
+                    shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+                />
+            );
+        }
 
-    const renderWorkspaceItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
-        return (
-            <WorkspaceRow
-                item={item}
-                rowIndex={index}
-                shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-            />
-        );
+        if (item.rowType === 'domain') {
+            return (
+                <DomainTableRow
+                    item={item}
+                    rowIndex={index}
+                    shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+                />
+            );
+        }
+
+        return null;
     };
 
     return (
-        <ScrollView>
-            <Table
-                scrollEnabled={false}
-                data={workspaces}
-                columns={workspaceTableColumns}
-                renderItem={renderWorkspaceItem}
-                compareItems={compareWorkspaceItems}
-                isItemInSearch={isWorkspaceItemInSearch}
-                keyExtractor={(row) => row.policyID}
-                initialSortColumn="workspaces"
-                title={translate('common.workspaces')}
-            >
-                <Table.SearchBar label={translate('workspace.common.findWorkspace')} />
+        <Table
+            data={tableData}
+            columns={workspaceTableColumns}
+            renderItem={renderTableItem}
+            compareItems={compareTableItems}
+            isItemInSearch={isTableItemInSearch}
+            // JACK_TODO
+            keyExtractor={(row) => ''}
+            initialSortColumn="workspaces"
+            title={translate('common.workspaces')}
+        >
+            <Table.SearchBar label={translate('workspace.common.findWorkspace')} />
 
-                <Table.Header />
-                <Table.Body />
-            </Table>
-
-            <Table
-                scrollEnabled={false}
-                data={domains}
-                columns={domainTableColumns}
-                renderItem={renderDomainItem}
-                compareItems={compareDomainItems}
-                isItemInSearch={isDomainItemInSearch}
-                keyExtractor={(row) => row.domainAccountID.toString()}
-                title={translate('common.domains')}
-            >
-                <Table.Header />
-                <Table.Body />
-            </Table>
-        </ScrollView>
+            <Table.Header />
+            <Table.Body />
+        </Table>
     );
 }

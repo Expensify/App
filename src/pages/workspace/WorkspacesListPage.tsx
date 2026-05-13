@@ -1,5 +1,4 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import isEmpty from '@types/lodash/isEmpty';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -504,6 +503,7 @@ function WorkspacesListPage() {
             const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
 
             domainRows.push({
+                rowType: 'domain',
                 isAdmin: isDomainAdmin,
                 isValidated: domain.validated,
                 domainAccountID: domain.accountID,
@@ -561,6 +561,7 @@ function WorkspacesListPage() {
                 const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
                 const pendingWorkspaceRow: WorkspaceRowData = {
+                    rowType: 'workspace',
                     policyID,
                     disabled: true,
                     errors: undefined,
@@ -587,6 +588,7 @@ function WorkspacesListPage() {
                 const ownerDetails = policyOwnerAccountID && getPersonalDetailsByIDs({accountIDs: [policyOwnerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
 
                 const workspaceRow: WorkspaceRowData = {
+                    rowType: 'workspace',
                     policyID: policy.id,
                     disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     errors: policy.errors,
