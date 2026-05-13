@@ -119,6 +119,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     {...props}
                     action={action}
                     isBillSplit={isBillSplit && !transaction?.comment?.originalTransactionID}
+                    chatReport={chatReport}
                     personalDetails={personalDetails}
                     transaction={transactionPreview}
                     transactionRawAmount={transactionRawAmount}
