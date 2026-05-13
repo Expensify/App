@@ -1,7 +1,7 @@
 ---
 title: Create Expense Categories
 description: Add categories to use for coding expenses.
-keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline]
+keywords: [New Expensify, expense categories, GL codes, payroll codes, chart of accounts, import categories, expense coding, add category from expense, create category inline, CSV import receipt requirements, require receipts over, require itemized receipts over]
 internalScope: Audience is Workspace Admins. Covers creating, importing, enabling, and managing expense categories, including GL and payroll codes and inline category creation from the expense flow. Does not cover personal expense rules or accounting integration setup.
 ---
 
@@ -49,10 +49,24 @@ The new category is immediately applied to the expense and added to the workspac
 1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Click your **workspace name**.
 3. Click **Categories**.
-4. Click the **three-dot menu**, then select **Import Spreadsheet**.
+4. Click the three dots **(⋮)**, then select **Import Spreadsheet**.
 5. Format your spreadsheet using the required columns.
 6. Download the template using **Download CSV** if needed.
-7. Upload your completed file and follow the prompts.
+7. Upload your completed file and map each column to a category field, then confirm the import.
+
+The following columns are available when importing categories:
+
+- **Name** (required) – The category name.
+- **Enabled** – Whether the category is enabled (`true` or `false`).
+- **GL Code** – The GL code for the category (**Control** plan only).
+- **Require receipts over** – Set a threshold for when receipts are required (**Control** plan only).
+- **Require itemized receipts over** – Set a threshold for when itemized receipts are required (**Control** plan only).
+
+For the receipt requirement columns, supported values are:
+- `default` – Preserve the existing workspace setting.
+- `required` or `always_required` – Always require a receipt.
+- `not_required` – Never require a receipt.
+- A numeric amount (e.g., `2500`) – Require a receipt for expenses over that amount.
 
 ---
 
