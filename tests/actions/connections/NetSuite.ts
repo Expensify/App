@@ -158,18 +158,17 @@ describe('actions/connections/NetSuite', () => {
     });
 
     describe('updateNetSuiteTravelInvoicingPayableAccount', () => {
-        it('writes the UpdateManyPolicyConnectionConfigs command with travelInvoicingPayableAccountID', () => {
+        it('writes the UpdateNetSuiteTravelInvoicingPayableAccount command with the bankAccountID', () => {
             updateNetSuiteTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
             const {command} = getFirstWriteCall();
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
 
             const call = writeSpy.mock.calls.at(0);
 
-            const params = call?.[1] as {connectionName: string; configUpdate: string; policyID: string};
+            const params = call?.[1] as {bankAccountID: string; policyID: string};
             expect(params.policyID).toBe(MOCK_POLICY_ID);
-            expect(params.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
-            expect(JSON.parse(params.configUpdate)).toEqual({[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: 'account-123'});
+            expect(params.bankAccountID).toBe('account-123');
         });
 
         it('merges travelInvoicingPayableAccountID optimistically onto the NetSuite options config', () => {
