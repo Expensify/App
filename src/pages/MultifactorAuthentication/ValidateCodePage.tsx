@@ -49,9 +49,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const {requestCancel} = useMultifactorAuthentication();
 
-    const state = useMultifactorAuthenticationState();
     const {dispatch} = useMultifactorAuthenticationActions();
-    const {continuableError} = state;
+    const {continuableError} = useMultifactorAuthenticationState();
 
     // Refs
     const inputRef = useRef<MagicCodeInputHandle>(null);
