@@ -526,3 +526,4 @@ export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSec
 export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';
 export type {default as DeleteDomainSecurityGroupParams} from './DeleteDomainSecurityGroupParams';
 export type {default as CreateAgentParams} from './CreateAgentParams';
+export type {default as CreateDomainSecurityGroupParams} from './CreateDomainSecurityGroupParams';

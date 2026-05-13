@@ -1308,14 +1308,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         apiParams.attendees = JSON.stringify(apiParams?.attendees);
     }
 
-    // Clear out the error fields and loading states on success.
-    // Only clear `routes` when waypoints/rate changed (the server will push a fresh route via Pusher).
-    // For pure distance edits the route is unchanged, and clearing it would make the map briefly disappear.
-    // When the caller already supplied a valid optimistic route (waypoint edit with route pre-fetched
-    // locally), keep it so the receipt thumbnail and ConfirmedRoute don't flicker between success and
-    // the Pusher route push.
-    const hasValidOptimisticRoute = !!transactionChanges.routes?.route0?.geometry?.coordinates?.length;
-    const shouldClearRoutes = (hasWaypointAddressesChanged || hasModifiedDistanceRate) && !hasValidOptimisticRoute;
+    // Clear out the error fields and loading states on success. Keep `routes`: the BE never returns it,
+    // so it's the only source `ConfirmedRoute`/the preview can draw the map from while the receipt
+    // regenerates after a rate/distance edit (GH #90057); a waypoint edit clears + re-fetches it anyway.
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -1323,7 +1318,6 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
-            ...(shouldClearRoutes && {routes: null}),
         },
     });
 
@@ -1683,7 +1677,7 @@ function getUpdateTrackExpenseParams(
         });
     }
 
-    // Clear out the error fields and loading states on success
+    // Clear out the error fields and loading states on success. Keep `routes` (see `getUpdateMoneyRequestParams`) — GH #90057.
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -1691,7 +1685,6 @@ function getUpdateTrackExpenseParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
-            routes: null,
         },
     });
 

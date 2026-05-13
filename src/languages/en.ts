@@ -1193,7 +1193,6 @@ const translations = {
         dropTitle: 'Let it go',
         dropMessage: 'Drop your file here',
         flash: 'flash',
-        flipCamera: 'Flip camera',
         multiScan: 'multi-scan',
         shutter: 'shutter',
         gallery: 'gallery',
@@ -2603,6 +2602,9 @@ const translations = {
         addApprovalTip: 'This default workflow applies to all members, unless a more specific workflow exists.',
         approver: 'Approver',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
+        configureViaGusto: 'Configure via Gusto.',
+        gustoApprovalWorkflowLockedPrompt: 'Approvals are managed by your Gusto integration. To update your approval workflow, head to your Gusto connection settings.',
+        goToGustoSettings: 'Go to Gusto settings',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         customApprovalWorkflowEnabled:
@@ -2922,6 +2924,7 @@ const translations = {
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
+        avoidScamsMessage: '<strong>Avoid scams. Do not share your code with anyone.</strong> Our team will never call, text, or email you for this code.',
         enterAuthenticatorCode: 'Please enter your authenticator code',
         enterRecoveryCode: 'Please enter your recovery code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
@@ -2987,10 +2990,10 @@ const translations = {
             title: 'What do you want to do today?',
             errorContinue: 'Please press continue to get set up',
             errorBackButton: 'Please finish the setup questions to start using the app',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Submit expenses to my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chat and split expenses with friends',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Track expenses for my business',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organize my personal spending',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Something else',
         },
         employees: {
@@ -4819,6 +4822,7 @@ const translations = {
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Vendor bills',
                 },
             },
+            travelInvoicingDescription: 'Travel expenses will export as credit card charges to the Sage Intacct account specified below.',
             creditCardAccount: 'Credit card account',
             defaultVendor: 'Default vendor',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -4864,8 +4868,8 @@ const translations = {
             journalPostingPreference: {
                 label: 'Journal entries posting preference',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Single, itemized entry for each report',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single entry for each expense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Single entry for each expense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Single, itemized entry for each report',
                 },
             },
             invoiceItem: {
@@ -5231,6 +5235,7 @@ const translations = {
             addNewCard: {
                 other: 'Other',
                 fileImport: 'Import transactions from file',
+                fileImportDescription: "A manual option if your bank can't send a feed.",
                 createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
                 companyCardLayoutName: 'Company card layout name',
                 cardLayoutNameRequired: 'The Company card layout name is required',
@@ -6842,6 +6847,7 @@ const translations = {
                 gambling: 'Gambling',
                 tobacco: 'Tobacco',
                 adultEntertainment: 'Adult entertainment',
+                giftCard: 'Gift card purchases',
                 handwrittenReceipt: 'Handwritten receipts',
                 requireCompanyCard: 'Require company cards for all purchases',
                 requireCompanyCardDescription: 'Flag all cash spend, including mileage and per-diem expenses.',
@@ -7051,6 +7057,10 @@ const translations = {
                 corporate: {
                     label: 'Control',
                     description: 'For organizations with advanced requirements.',
+                },
+                submit2026: {
+                    label: 'Submit',
+                    description: 'For employees looking to submit expenses to their employer.',
                 },
             },
             description: "Choose a plan that's right for you. For a detailed list of features and pricing, check out our",
@@ -7744,6 +7754,7 @@ const translations = {
         deleteSavedSearchConfirm: 'Are you sure you want to delete this search?',
         searchName: 'Search name',
         savedSearchesMenuItemTitle: 'Saved',
+        urlCopied: 'URL copied',
         spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
@@ -8125,6 +8136,14 @@ const translations = {
         selectAllFeatures: 'Select all features',
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',
+        selectAllCategories: 'Select all categories',
+        selectAllDistanceRates: 'Select all distance rates',
+        selectAllTags: 'Select all tags',
+        selectAllTaxes: 'Select all taxes',
+        selectAllPerDiemRates: 'Select all per diem rates',
+        selectAllMembers: 'Select all members',
+        selectAllValues: 'Select all values',
+        selectAllRules: 'Select all rules',
     },
     parentReportAction: {
         deletedReport: 'Deleted report',
@@ -8221,6 +8240,7 @@ const translations = {
         companyCard: 'Company card',
         expensifyCard: 'Expensify Card',
         centralInvoicing: 'Central invoicing',
+        travelCard: 'Travel Card',
     },
     distance: {
         addStop: 'Add stop',
@@ -8453,6 +8473,8 @@ const translations = {
                         return `adult entertainment`;
                     case 'hotelIncidentals':
                         return `hotel incidentals`;
+                    case 'giftCard':
+                        return `gift card purchases`;
                     case 'handwrittenReceipt':
                         return `handwritten receipts`;
                     default:
@@ -9238,7 +9260,13 @@ const translations = {
                 `Are you sure you want to make ${newName} the default group? New members will be invited to this group instead of the previous default group (${currentName}). `,
             makeDefault: 'Make default',
             neverMind: 'Never mind',
+            createGroupError: 'Unable to create this group. Please try again.',
             permissions: 'Group permissions',
+            createNewGroupButton: 'New group',
+            createGroupSubmitButton: 'Create group',
+            expensifyCardPreferredWorkspace: 'Expensify Card Preferred Workspace',
+            expensifyCardPreferredWorkspaceDescription:
+                'All Expensify Card transactions will be created on the Expensify Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for Expensify Card transactions only.',
             strictlyEnforceWorkspaceRules: 'Strictly enforce workspace rules',
             strictlyEnforceWorkspaceRulesDescription: 'All workspace rules must be met before submitting a report. No manual exceptions allowed.',
             restrictExpenseWorkspaceCreation: 'Restrict expense workspace creation/removal',
@@ -9255,9 +9283,6 @@ const translations = {
             noWorkspacesMessage: 'There are no workspaces on this domain. A workspace is required to enable this restriction.',
             restrictDefaultLoginSelection: 'Restrict default login selection',
             restrictDefaultLoginSelectionDescription: 'Prevent members from changing their login email away from their company domain to avoid policy restrictions.',
-            expensifyCardPreferredWorkspace: 'Expensify Card Preferred Workspace',
-            expensifyCardPreferredWorkspaceDescription:
-                'All Expensify Card transactions will be created on the Expensify Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for Expensify Card transactions only.',
             expensifyCardPreferredWorkspaceDisabledMessage: 'To use this setting, Preferred Workspace must be enabled and the domain must have Expensify Card set up.',
             findGroup: 'Find group',
         },

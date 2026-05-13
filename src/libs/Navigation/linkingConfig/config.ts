@@ -594,6 +594,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
                             path: ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ADVANCED]: {
                             path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.route,
                         },
@@ -769,6 +772,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]:
                             DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.path,
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION.path,
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]:
+                            DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_AUTO_SYNC]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_ACCOUNTING_METHOD]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD.path,
@@ -824,15 +830,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.route,
                         },
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
-                        },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path,
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.route,
-                        },
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.path,
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
                         },
@@ -1174,10 +1173,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.route,
                             exact: true,
                         },
-                        [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
-                            path: ROUTES.BANK_ACCOUNT_USD_SETUP.route,
-                            exact: true,
-                        },
                         [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: {
                             path: ROUTES.BANK_ACCOUNT_NON_USD_SETUP.route,
                             exact: true,
@@ -1402,6 +1397,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.SECURITY_GROUPS_PREFERRED_WORKSPACE]: {
                             path: ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.route,
                         },
+                        [SCREENS.DOMAIN.GROUP_CREATE]: {
+                            path: ROUTES.DOMAIN_GROUP_CREATE.route,
+                        },
+                        [SCREENS.DOMAIN.GROUP_CREATE_PREFERRED_WORKSPACE]: {
+                            path: ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
@@ -1563,15 +1564,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.EXPENSIFY_CARD_DETAILS.route,
                         },
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_NAME]: {
-                            path: ROUTES.EXPENSIFY_CARD_NAME.route,
-                        },
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT]: {
-                            path: ROUTES.EXPENSIFY_CARD_LIMIT.route,
-                        },
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
-                            path: ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.route,
-                        },
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME]: DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path,
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path,
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path,
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_EXPIRY_OPTIONS]: {
                             path: ROUTES.EXPENSIFY_CARD_EXPIRY_OPTIONS.route,
                         },
