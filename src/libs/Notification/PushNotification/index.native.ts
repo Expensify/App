@@ -89,7 +89,8 @@ const register: Register = (notificationID) => {
                 return;
             }
 
-            // Get permissions to display push notifications if not determined (prompts user on iOS, but not Android)
+            // Get permissions to display push notifications if not determined (prompts user on iOS, but not Android).
+            // For UI surfaces that need to read or request notification permission, use @libs/Notification/notificationPermission.
             Airship.push.getNotificationStatus().then(({notificationPermissionStatus}) => {
                 if (notificationPermissionStatus !== PermissionStatus.NotDetermined) {
                     return;
