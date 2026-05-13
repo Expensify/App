@@ -10,6 +10,8 @@ import useOnyx from './useOnyx';
  * - 2FA already enabled  → static enabled page
  * - user not validated   → dynamic verify-account page
  * - otherwise            → dynamic setup (copy codes) page
+ *
+ * @returns A function `(backTo?: Route) => Route` that computes the target route.
  */
 function useTwoFactorAuthRoute(): (backTo?: Route) => Route {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
