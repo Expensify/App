@@ -29,7 +29,7 @@ After submitting, the report status updates and a **”submitted”** entry appe
 
 **Note:** If your workspace uses automatic submission, you’ll see **”Waiting for your expenses to automatically submit”** at the top of the report instead of a Submit button.
 
-**Note:** If you selected “Track and budget expenses” during onboarding and your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**, and the activity entry will say **”marked as done”** instead of **”submitted”**.
+**Note:** If you selected “Track expenses for my business” or “Organize my personal spending” during onboarding and your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**, and the activity entry will say **”marked as done”** instead of **”submitted”**.
 
 ---
 
@@ -179,7 +179,7 @@ Unsubmitted reports will remain in your Open reports section. You can go back an
 
 ## Why don’t I see the “Submit” button?
 
-The Submit button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If you selected “Track and budget expenses” during onboarding and your workspace has no approval workflow, the button will say **Mark as done** instead of **Submit**.
+The Submit button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If you selected “Track expenses for my business” or “Organize my personal spending” during onboarding and your workspace has no approval workflow, the button will say **Mark as done** instead of **Submit**.
 
 ## Can I remove an expense after submitting?
 
