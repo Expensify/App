@@ -195,6 +195,7 @@ type PolicyCashExpenseMode = ValueOf<typeof CONST.POLICY.CASH_EXPENSE_REIMBURSEM
 
 type CurrentUser = {
     accountID: number;
+    // TODO: We'll make these required in a follow-up PR (https://github.com/Expensify/App/issues/66412)
     displayName?: string;
     email?: string;
     avatar?: AvatarSource;
@@ -4184,7 +4185,6 @@ function createWorkspaceFromIOUPayment(
     }
 
     // Create the expense chat for the employee whose IOU is being paid
-    // TODO: We'll pass in the current user's display name, email, and avatar in a follow-up PR (https://github.com/Expensify/App/issues/66412)
     const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, {accountID: currentUserAccountID}, reportActionsList, true);
     const newWorkspace = {
         id: policyID,
