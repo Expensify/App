@@ -279,7 +279,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
         const reportID = route.params.reportID;
 
         // Only allReports should be checked here
-        if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
+        if (!getReportOrDraftReport(reportID, undefined, undefined, undefined)) {
             return getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         }
 

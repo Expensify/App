@@ -12113,10 +12113,9 @@ describe('ReportUtils', () => {
             expect(result).toEqual(mockOnyxReport);
         });
 
-        test('returns draft report when neither search nor onyx report exists but draft exists', async () => {
+        test('returns draft report when neither search nor onyx report exists but draft exists', () => {
             const searchReports: Report[] = [];
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport(mockReportID, searchReports, undefined, mockDraftReport);
             expect(result).toEqual(mockDraftReport);
         });
 
@@ -12160,16 +12159,14 @@ describe('ReportUtils', () => {
         test('prioritizes onyx report over draft report when both exist', async () => {
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport(mockReportID, searchReports, undefined, mockDraftReport);
             expect(result).toEqual(mockOnyxReport);
             expect(result).not.toEqual(mockDraftReport);
         });
 
-        test('prioritizes draft report over fallback when both exist', async () => {
+        test('prioritizes draft report over fallback when both exist', () => {
             const searchReports: Report[] = [];
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport);
+            const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport, mockDraftReport);
             expect(result).toEqual(mockDraftReport);
             expect(result).not.toEqual(mockFallbackReport);
         });
@@ -12198,32 +12195,14 @@ describe('ReportUtils', () => {
             expect(result).toEqual(mockOnyxReport);
         });
 
-        test('still finds draft report when 5th param is undefined', async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${mockReportID}`, mockDraftReport);
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, undefined);
+        test('still finds draft report when 5th param is undefined', () => {
+            const result = getReportOrDraftReport(mockReportID, undefined, undefined, mockDraftReport, undefined);
             expect(result).toEqual(mockDraftReport);
         });
     });
 
     describe('buildOptimisticExpenseReport', () => {
         beforeEach(Onyx.clear);
-
-        it('should include the policy name in report name from report draft', async () => {
-            const chatReportID = '1';
-            const policyID = '2';
-            const reportDraft: Report = {
-                ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                policyID,
-            };
-            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReportID}`, reportDraft);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-
-            const total = 100;
-            const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport({chatReportID, policyID: undefined, payeeAccountID: 1, total, currency, betas: [CONST.BETAS.ALL]});
-            expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
-        });
 
         it('should set reportName to "New Report" when policy field list is empty', async () => {
             // Given a policy with an empty field list
