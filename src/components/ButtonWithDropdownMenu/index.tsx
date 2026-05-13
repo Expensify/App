@@ -177,7 +177,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         shouldStayNormalOnDisable={shouldStayNormalOnDisable}
                         isLoading={isLoading}
                         shouldRemoveRightBorderRadius
-                        style={isSplitButton ? [styles.pr0, isInLandscapeMode ? undefined : styles.flex1] : {}}
+                        style={isSplitButton ? [styles.pr0, styles.flexGrow1] : {}}
                         extraSmall={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
                         large={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
                         medium={buttonSize === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
