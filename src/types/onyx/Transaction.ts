@@ -64,7 +64,7 @@ type Comment = {
     comment?: string;
 
     /** Whether the transaction is on hold */
-    hold?: string;
+    hold?: string | null;
 
     /** Collection of waypoints associated with the transaction */
     waypoints?: WaypointCollection;
