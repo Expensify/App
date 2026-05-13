@@ -48,10 +48,11 @@ function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: s
         }
     }
 
-    // Reset local activation state when leaving Concierge so a fresh boundary
-    // is captured on next visit. Without this, the reused route component would
-    // keep prevShouldActivate=true and skip re-activation.
-    if (prevShouldActivate && !shouldActivate) {
+    // Reset local activation state only when navigating to a different chat
+    // (isConciergeChat flips to false), not when merely losing focus to
+    // settings/profile/workspaces. Without this, the reused route component
+    // would keep prevShouldActivate=true and skip re-activation.
+    if (prevShouldActivate && !shouldActivate && !isConciergeChat) {
         setPrevShouldActivate(false);
         setMainDMSessionStartTime(null);
     }
