@@ -3,6 +3,7 @@ import type {ReactNode} from 'react';
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Pressable as RNPressable, Text as RNText} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type * as CardUtils from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import YourSpendSection from '@pages/home/YourSpendSection';
@@ -104,9 +105,9 @@ jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => {
     return {
         ...actual,
         useYourSpendData: jest.fn(() => ({
-            approvalRowState: 'loading',
+            approvalRowState: actual.YOUR_SPEND_ROW_STATE.LOADING,
             approvalTotals: {total: undefined, currency: undefined},
-            paymentRowState: 'loading',
+            paymentRowState: actual.YOUR_SPEND_ROW_STATE.LOADING,
             paymentTotals: {total: undefined, currency: undefined},
             cardRows: [],
             awaitingApprovalQuery: '',
@@ -116,9 +117,9 @@ jest.mock('@pages/home/YourSpendSection/useYourSpendData', () => {
 });
 
 type MockHookData = {
-    approvalRowState: string;
+    approvalRowState: ValueOf<typeof YOUR_SPEND_ROW_STATE>;
     approvalTotals: {total: number | undefined; currency: string | undefined};
-    paymentRowState: string;
+    paymentRowState: ValueOf<typeof YOUR_SPEND_ROW_STATE>;
     paymentTotals: {total: number | undefined; currency: string | undefined};
     cardRows: Array<{cardID: number; query: string; lastFour: string; total: number | undefined; currency: string | undefined}>;
     awaitingApprovalQuery: string;
