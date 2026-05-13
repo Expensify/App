@@ -58,7 +58,7 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
-import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
+import {getCreated, hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -366,7 +366,7 @@ function MoneyRequestReportPreviewContent({
                 return rbrComparison;
             }
             // Tiebreak by date (ascending — oldest first) so position is stable across RBR state changes
-            return localeCompare(a.created ?? '', b.created ?? '');
+            return localeCompare(getCreated(a), getCreated(b));
         });
         return sorted.slice(0, 11);
     }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy, localeCompare]);
