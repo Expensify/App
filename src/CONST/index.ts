@@ -1843,18 +1843,6 @@ const CONST = {
         MAX_LINES_FULL: -1,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
-        /**
-         * TestIDs for the main report composer vs inline message editor (E2E / integration tests only).
-         * See tests/ui/ReportActionMessageEditLayoutTest.tsx
-         */
-        TEST_ID: {
-            REPORT_ACTION_COMPOSE: 'reportActionCompose',
-            DRAFT_MESSAGE_ACTION_ROW: 'reportActionCompose_draftMessageActionRow',
-            EDITING_MESSAGE_ACTION_ROW: 'reportActionCompose_editingMessageActionRow',
-            REPORT_ACTION_ITEM_MESSAGE_EDIT: 'reportActionItemMessageEdit',
-            MESSAGE_EDIT_CANCEL_MAIN_COMPOSER: 'messageEditCancel_mainComposer',
-            MESSAGE_EDIT_CANCEL_INLINE: 'messageEditCancel_inlineMessageEdit',
-        },
     },
     MODAL: {
         MODAL_TYPE: {
@@ -2783,6 +2771,7 @@ const CONST = {
         ENTITY: 'entity',
         DIMENSION_PREFIX: 'dimension_',
         ACCOUNTING_METHOD: 'accountingMethod',
+        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     SAGE_INTACCT: {
