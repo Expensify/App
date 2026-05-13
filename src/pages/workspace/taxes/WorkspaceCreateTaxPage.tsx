@@ -22,7 +22,6 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {TaxRate} from '@src/types/onyx';
@@ -124,7 +123,6 @@ function WorkspaceCreateTaxPage({
                                     title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
                                     description={translate('workspace.taxes.value')}
                                     rightLabel={translate('common.required')}
-                                    amountRoute={ROUTES.WORKSPACE_TAX_CREATE_VALUE.getRoute(policyID)}
                                 />
                             </View>
                         </FormProvider>

@@ -7,37 +7,29 @@ import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 
-type WorkspaceCreateTaxValuePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE_VALUE>;
-
-function WorkspaceCreateTaxValuePage({
-    route: {
-        params: {policyID},
-    },
-}: WorkspaceCreateTaxValuePageProps) {
+function WorkspaceCreateTaxValuePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AMOUNT_SELECTOR.path);
 
-    const backToRoute = ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM_DRAFT);
     const [currentValue, setCurrentValue] = useState(formDraft?.[INPUT_IDS.VALUE]);
 
     const save = () => {
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM, {[INPUT_IDS.VALUE]: currentValue});
-        Navigation.goBack(backToRoute);
+        Navigation.goBack(backPath);
     };
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
@@ -60,7 +52,7 @@ function WorkspaceCreateTaxValuePage({
         >
             <HeaderWithBackButton
                 title={translate('workspace.taxes.value')}
-                onBackButtonPress={() => Navigation.goBack(backToRoute)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <ScrollView
                 contentContainerStyle={[styles.flexGrow1, styles.mb5]}
