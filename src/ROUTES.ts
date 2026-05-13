@@ -257,6 +257,14 @@ const DYNAMIC_ROUTES = {
         path: 'credit-card-account',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION: {
+        path: 'travel-invoicing',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_EXPORT],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
+        path: 'payable-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION],
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
         path: 'sage-intacct-autosync',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED],
@@ -382,9 +390,17 @@ const DYNAMIC_ROUTES = {
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
         ],
     },
-    WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE: {
+    EXPENSIFY_CARD_LIMIT_TYPE: {
         path: 'edit/limit-type',
-        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS],
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS],
+    },
+    EXPENSIFY_CARD_LIMIT: {
+        path: 'edit/limit',
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS],
+    },
+    EXPENSIFY_CARD_NAME: {
+        path: 'edit/name',
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS],
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
         path: 'account',
@@ -2030,6 +2046,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing/payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-invoicing/payable-account` as const,
     },
+    POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT: {
+        route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing/journal-posting-preference',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-invoicing/journal-posting-preference` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/card-select',
         getRoute: (policyID?: string, backTo?: string) => {
@@ -2815,36 +2835,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}`, backTo),
-    },
-    WORKSPACE_EXPENSIFY_CARD_NAME: {
-        route: 'workspaces/:policyID/expensify-card/:cardID/edit/name',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/${cardID}/edit/name`, backTo),
-    },
-    EXPENSIFY_CARD_NAME: {
-        route: 'settings/:policyID/expensify-card/:cardID/edit/name',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/name`, backTo),
-    },
-    WORKSPACE_EXPENSIFY_CARD_LIMIT: {
-        route: 'workspaces/:policyID/expensify-card/:cardID/edit/limit',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/${cardID}/edit/limit`, backTo),
-    },
-    EXPENSIFY_CARD_LIMIT: {
-        route: 'settings/:policyID/expensify-card/:cardID/edit/limit',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/limit`, backTo),
-    },
-    EXPENSIFY_CARD_LIMIT_TYPE: {
-        route: 'settings/:policyID/expensify-card/:cardID/edit/limit-type',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}/edit/limit-type`, backTo),
     },
     EXPENSIFY_CARD_EXPIRY_OPTIONS: {
         route: 'settings/:policyID/expensify-card/:cardID/edit/expiry-options',
@@ -4156,6 +4146,15 @@ const ROUTES = {
     DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE: {
         route: 'domain/:domainAccountID/groups/:groupID/preferred-workspace',
         getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/preferred-workspace` as const,
+    },
+
+    DOMAIN_GROUP_CREATE: {
+        route: 'domain/:domainAccountID/groups/new',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups/new` as const,
+    },
+    DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE: {
+        route: 'domain/:domainAccountID/groups/new/preferred-workspace',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups/new/preferred-workspace` as const,
     },
 } as const;
 
