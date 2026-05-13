@@ -6,7 +6,6 @@ type ButtonContextValue = {
     size?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
     variant: ButtonVariant | undefined;
     isHovered: boolean;
-    isLoading: boolean;
     iconFill?: string;
     iconHoverFill?: string;
 };

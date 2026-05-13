@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useButtonContext} from '@components/ButtonComposed/context';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -22,7 +21,7 @@ type ButtonIconProps = {
     fill?: string;
 };
 
-function ButtonIconBase({src, style, hoverFill, fill}: ButtonIconProps) {
+function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
     const theme = useTheme();
     const {isHovered, variant, size} = useButtonContext();
 
@@ -43,28 +42,5 @@ function ButtonIconBase({src, style, hoverFill, fill}: ButtonIconProps) {
     );
 }
 
-function ButtonIconLeft({src, style, hoverFill, fill}: ButtonIconProps) {
-    const styles = useThemeStyles();
-    const {isLoading} = useButtonContext();
-
-    return (
-        <ButtonIconBase
-            {...{src, hoverFill, fill}}
-            style={[style, isLoading && styles.opacity0]}
-        />
-    );
-}
-
-function ButtonIconRight({src, style, hoverFill, fill}: ButtonIconProps) {
-    const styles = useThemeStyles();
-
-    return (
-        <ButtonIconBase
-            {...{src, hoverFill, fill}}
-            style={[styles.mlAuto, style]}
-        />
-    );
-}
-
-export {ButtonIconLeft, ButtonIconRight};
+export default ButtonIcon;
 export type {ButtonIconProps};

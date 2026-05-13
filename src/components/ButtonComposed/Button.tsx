@@ -56,11 +56,10 @@ function Button({
     const contextValue = useMemo(
         () => ({
             isHovered,
-            isLoading,
             variant,
             size,
         }),
-        [isHovered, isLoading, variant, size],
+        [isHovered, variant, size],
     );
 
     const buttonVariantStyles = useMemo(() => {
@@ -184,6 +183,7 @@ function Button({
                         contentContainerStyle,
                         styles.mw100,
                         (size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM || size === CONST.DROPDOWN_BUTTON_SIZE.LARGE) && styles.gap1,
+                        isLoading && styles.opacity0,
                     ]}
                 >
                     {children}

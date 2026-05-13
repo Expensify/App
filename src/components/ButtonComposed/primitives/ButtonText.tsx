@@ -22,7 +22,7 @@ type ButtonTextProps = {
 };
 
 function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonTextProps) {
-    const {isLoading, variant, size, isHovered} = useButtonContext();
+    const {variant, size, isHovered} = useButtonContext();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -46,7 +46,6 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
             style={[
                 styles.ph1,
                 numberOfLines !== 1 && styles.breakAll,
-                isLoading && styles.opacity0,
                 styles.pointerEventsNone,
                 styles.buttonText,
                 styles.flexShrink1,

@@ -25,12 +25,11 @@ const LABEL = 'test-button';
  * assertions can verify exactly what Button propagates to its children.
  */
 function ContextReadout() {
-    const {variant, size, isLoading, isHovered} = useButtonContext();
+    const {variant, size, isHovered} = useButtonContext();
     return (
         <View>
             <Text testID="ctx-variant">{variant ?? 'none'}</Text>
             <Text testID="ctx-size">{size}</Text>
-            <Text testID="ctx-isLoading">{String(isLoading)}</Text>
             <Text testID="ctx-isHovered">{String(isHovered)}</Text>
         </View>
     );
@@ -116,7 +115,6 @@ describe('ButtonComposed — Button', () => {
             // Then context reflects the expected initial state
             expect(screen.getByTestId('ctx-size')).toHaveTextContent(CONST.DROPDOWN_BUTTON_SIZE.MEDIUM);
             expect(screen.getByTestId('ctx-variant')).toHaveTextContent('none');
-            expect(screen.getByTestId('ctx-isLoading')).toHaveTextContent('false');
             expect(screen.getByTestId('ctx-isHovered')).toHaveTextContent('false');
         });
 
@@ -128,11 +126,6 @@ describe('ButtonComposed — Button', () => {
         it.each([CONST.DROPDOWN_BUTTON_SIZE.SMALL, CONST.DROPDOWN_BUTTON_SIZE.LARGE] as const)('propagates size="%s" to children via context', (size) => {
             renderButton({size});
             expect(screen.getByTestId('ctx-size')).toHaveTextContent(size);
-        });
-
-        it('propagates isLoading=true to children via context', () => {
-            renderButton({isLoading: true});
-            expect(screen.getByTestId('ctx-isLoading')).toHaveTextContent('true');
         });
 
         it('toggles isHovered on hoverIn / hoverOut', () => {

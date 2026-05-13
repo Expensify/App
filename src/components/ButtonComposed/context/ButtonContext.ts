@@ -4,7 +4,6 @@ import type {ButtonContextValue} from './types';
 
 const defaultButtonContextValue: ButtonContextValue = {
     isHovered: false,
-    isLoading: false,
     variant: undefined,
     size: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     iconFill: undefined,
