@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {validateCreateDistanceRateForm, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
+import {getOptimisticRateName, validateCreateDistanceRateForm, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -77,10 +77,10 @@ function CreateDistanceRatePage({
 
         const newRate: Rate = {
             currency,
+            name: isDateBoundMileageRateEnabled ? values.name.trim() : getOptimisticRateName(customUnit?.rates ?? {}),
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
-            ...(isDateBoundMileageRateEnabled ? {name: values.name.trim()} : {}),
             ...(isDateBoundMileageRateEnabled && values.startDate ? {startDate: values.startDate} : {}),
             ...(isDateBoundMileageRateEnabled && values.endDate ? {endDate: values.endDate} : {}),
         };
@@ -126,8 +126,8 @@ function CreateDistanceRatePage({
                         submitButtonStyles={[styles.mh5, styles.mt0]}
                         addBottomSafeAreaPadding
                     >
-                        <ScrollView contentContainerStyle={styles.flexGrow1}>
-                            {isDateBoundMileageRateEnabled && (
+                        {isDateBoundMileageRateEnabled ? (
+                            <ScrollView contentContainerStyle={styles.flexGrow1}>
                                 <View style={[styles.mh5]}>
                                     <InputWrapper
                                         ref={inputCallbackRef}
@@ -138,38 +138,42 @@ function CreateDistanceRatePage({
                                         role={CONST.ROLE.PRESENTATION}
                                     />
                                 </View>
-                            )}
-                            <View style={[styles.mh5, isDateBoundMileageRateEnabled ? styles.mt4 : undefined]}>
-                                <InputWrapper
-                                    InputComponent={AmountForm}
-                                    inputID={INPUT_IDS.RATE}
-                                    ref={isDateBoundMileageRateEnabled ? undefined : inputCallbackRef}
-                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
-                                    currency={currency}
-                                    isCurrencyPressable={false}
-                                    displayAsTextInput
-                                    label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
-                                />
-                            </View>
-                            {isDateBoundMileageRateEnabled && (
-                                <>
-                                    <View style={[styles.mh5, styles.mt4]}>
-                                        <InputWrapper
-                                            InputComponent={DatePicker}
-                                            inputID={INPUT_IDS.START_DATE}
-                                            label={translate('workspace.distanceRates.startDate')}
-                                        />
-                                    </View>
-                                    <View style={[styles.mh5, styles.mt4]}>
-                                        <InputWrapper
-                                            InputComponent={DatePicker}
-                                            inputID={INPUT_IDS.END_DATE}
-                                            label={translate('workspace.distanceRates.endDate')}
-                                        />
-                                    </View>
-                                </>
-                            )}
-                        </ScrollView>
+                                <View style={[styles.mh5, styles.mt4]}>
+                                    <InputWrapper
+                                        InputComponent={AmountForm}
+                                        inputID={INPUT_IDS.RATE}
+                                        decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                        currency={currency}
+                                        isCurrencyPressable={false}
+                                        displayAsTextInput
+                                        label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
+                                    />
+                                </View>
+                                <View style={[styles.mh5, styles.mt4]}>
+                                    <InputWrapper
+                                        InputComponent={DatePicker}
+                                        inputID={INPUT_IDS.START_DATE}
+                                        label={translate('workspace.distanceRates.startDate')}
+                                    />
+                                </View>
+                                <View style={[styles.mh5, styles.mt4]}>
+                                    <InputWrapper
+                                        InputComponent={DatePicker}
+                                        inputID={INPUT_IDS.END_DATE}
+                                        label={translate('workspace.distanceRates.endDate')}
+                                    />
+                                </View>
+                            </ScrollView>
+                        ) : (
+                            <InputWrapper
+                                InputComponent={AmountForm}
+                                inputID={INPUT_IDS.RATE}
+                                decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                isCurrencyPressable={false}
+                                currency={currency}
+                                ref={inputCallbackRef}
+                            />
+                        )}
                     </FormProvider>
                 </FullPageBlockingView>
             </ScreenWrapper>
