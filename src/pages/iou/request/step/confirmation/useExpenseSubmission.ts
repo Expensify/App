@@ -593,6 +593,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             betas,
             shouldHandleNavigation: shouldHandleNav,
             previousOdometerDraft: odometerDraft,
+            participantsPolicyTags,
         });
     }
 
@@ -706,6 +707,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();
@@ -741,6 +743,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     policyRecentlyUsedCurrencies,
                     betas,
                     personalDetails,
+                    participantsPolicyTags,
                 });
             }
             markSubmitExpenseEnd();

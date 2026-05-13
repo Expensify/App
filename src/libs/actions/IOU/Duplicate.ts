@@ -45,7 +45,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
-import {getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getMoneyRequestParticipantsFromReport} from '.';
+import {buildParticipantsPolicyTags, getAllReportActionsFromIOU, getAllReports, getAllTransactions, getAllTransactionViolations, getMoneyRequestParticipantsFromReport} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import type {RequestMoneyInformation} from './MoneyRequestBuilder';
 import type {PerDiemExpenseInformation} from './PerDiem';
@@ -676,6 +676,8 @@ function createExpenseByType({
                 customUnitPolicyID,
                 personalDetails,
                 recentWaypoints,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                participantsPolicyTags: buildParticipantsPolicyTags(participants),
             };
             return createDistanceRequest(distanceParams);
         }

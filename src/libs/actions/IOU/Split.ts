@@ -134,6 +134,7 @@ type CreateDistanceRequestInformation = {
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
     previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
+    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -187,6 +188,7 @@ type SplitBillActionsParams = {
     policyRecentlyUsedCurrencies: string[];
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    participantsPolicyTags: Record<string, OnyxTypes.PolicyTagLists>;
 };
 
 /**
@@ -220,6 +222,7 @@ function splitBill({
     policyRecentlyUsedTags,
     betas,
     personalDetails,
+    participantsPolicyTags,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -251,8 +254,7 @@ function splitBill({
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        participantsPolicyTags: buildParticipantsPolicyTags(participants),
+        participantsPolicyTags,
     });
 
     const parameters: SplitBillParams = {
@@ -316,6 +318,7 @@ function splitBillAndOpenReport({
     policyRecentlyUsedCurrencies,
     betas,
     personalDetails,
+    participantsPolicyTags,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -347,8 +350,7 @@ function splitBillAndOpenReport({
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        participantsPolicyTags: buildParticipantsPolicyTags(participants),
+        participantsPolicyTags,
     });
 
     const parameters: SplitBillParams = {
