@@ -43,7 +43,6 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
         <Text
             numberOfLines={numberOfLines}
             style={[
-                styles.ph1,
                 numberOfLines !== 1 && styles.breakAll,
                 styles.pointerEventsNone,
                 styles.buttonText,

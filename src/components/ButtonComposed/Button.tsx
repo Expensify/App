@@ -181,7 +181,7 @@ function Button({
                         styles.justifyContentCenter,
                         contentContainerStyle,
                         styles.mw100,
-                        size !== CONST.BUTTON_SIZE.SMALL && styles.gap1,
+                        size === CONST.BUTTON_SIZE.SMALL ? styles.gap1 : styles.gap2,
                         isLoading && styles.opacity0,
                     ]}
                 >
