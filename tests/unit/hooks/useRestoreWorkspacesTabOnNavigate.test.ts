@@ -14,10 +14,6 @@ jest.mock('@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigat
     getPreservedNavigatorState: jest.fn(() => undefined),
 }));
 
-jest.mock('@libs/Navigation/helpers/lastVisitedTabPathUtils', () => ({
-    getWorkspacesTabStateFromSessionStorage: jest.fn(() => undefined),
-}));
-
 const mockResponsiveLayout = jest.fn(() => ({shouldUseNarrowLayout: false}));
 jest.mock('@hooks/useResponsiveLayout', () => () => mockResponsiveLayout());
 
@@ -80,8 +76,6 @@ const useRestoreWorkspacesTabOnNavigate = (require('@hooks/useRestoreWorkspacesT
 
 const PolicyUtils = require('@libs/PolicyUtils') as {shouldShowPolicy: jest.Mock; isPendingDeletePolicy: jest.Mock};
 
-const lastVisitedTabPathUtils = require('@libs/Navigation/helpers/lastVisitedTabPathUtils') as {getWorkspacesTabStateFromSessionStorage: jest.Mock};
-
 function setupOnyxForPolicy() {
     mockUseOnyx.mockImplementation((key: unknown) => {
         if (key === ONYXKEYS.COLLECTION.POLICY) {
@@ -126,7 +120,6 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         jest.clearAllMocks();
         mockUseOnyx.mockReturnValue([undefined]);
         mockResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: false});
-        lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage.mockReturnValue(undefined);
         PolicyUtils.shouldShowPolicy.mockReturnValue(true);
         PolicyUtils.isPendingDeletePolicy.mockReturnValue(false);
         mockedGetRootState.mockReturnValue({routes: []});
@@ -220,10 +213,11 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
 
     // Inverted contract for the topmost-only behavior: the consumer restores via TabActions.jumpTo
     // against the topmost TAB_NAVIGATOR's state key, so workspace state held by older TAB_NAVIGATOR
-    // instances kept alive by ensureTabNavigatorRoutes is intentionally ignored. With an empty topmost
-    // workspace slot and empty session storage, the hook must fall back to the workspaces list rather
-    // than reach back into the older instance — guards against a regression to flat-walking all tabs.
-    it('falls back to the workspaces list when the topmost TabNavigator workspace slot is empty', () => {
+    // instances kept alive by ensureTabNavigatorRoutes is intentionally ignored — guards against a
+    // regression to flat-walking all tabs. With an empty topmost workspace slot the hook still jumps
+    // to the topmost tab (rather than pushing a new TAB_NAVIGATOR via Navigation.navigate); cold-start
+    // hydration is then handled by WorkspaceRouter.getInitialState from sessionStorage.
+    it('jumps to the topmost TabNavigator even when its workspace slot is empty', () => {
         setupOnyxForPolicy();
         mockedGetRootState.mockReturnValue({
             routes: [
@@ -269,8 +263,11 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
         result.current();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
-        expect(mockedDispatch).not.toHaveBeenCalled();
+        expect(mockedDispatch).toHaveBeenCalledWith({
+            ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
+            target: TAB_NAV_STATE_KEY,
+        });
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     // On narrow layouts (mobile), the consumer pops the workspace split to its initial page
@@ -302,57 +299,6 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         expect(mockedDispatch).toHaveBeenNthCalledWith(1, {...StackActions.popToTop(), target: WORKSPACE_SPLIT_STATE_KEY});
         expect(mockedDispatch).toHaveBeenNthCalledWith(2, {...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR), target: TAB_NAV_STATE_KEY});
         expect(TransitionTracker.runAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-    });
-
-    // Cold-start path: when no workspace route exists anywhere in the live nav tree, fall back to the
-    // sessionStorage-persisted state so a fresh page-load still restores the user's last workspace sub-page.
-    it('hydrates from sessionStorage when the live navigation tree has no workspace route', () => {
-        setupOnyxForPolicy();
-        mockedGetRootState.mockReturnValue({
-            routes: [
-                {
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    state: {key: TAB_NAV_STATE_KEY, index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
-                },
-            ],
-        });
-        lastVisitedTabPathUtils.getWorkspacesTabStateFromSessionStorage.mockReturnValue({
-            routes: [
-                {
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    state: {
-                        routes: [
-                            {
-                                name: NAVIGATORS.WORKSPACE_NAVIGATOR,
-                                state: {
-                                    routes: [
-                                        {
-                                            name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-                                            state: {
-                                                index: 1,
-                                                routes: [
-                                                    {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: fakePolicyID}},
-                                                    {name: SCREENS.WORKSPACE.WORKFLOWS, params: {policyID: fakePolicyID}},
-                                                ],
-                                            },
-                                        },
-                                    ],
-                                },
-                            },
-                        ],
-                    },
-                },
-            ],
-        });
-
-        const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
-        result.current();
-
-        expect(mockedDispatch).toHaveBeenCalledWith({
-            ...TabActions.jumpTo(NAVIGATORS.WORKSPACE_NAVIGATOR),
-            target: TAB_NAV_STATE_KEY,
-        });
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 

@@ -34,37 +34,24 @@ function useRestoreWorkspacesTabOnNavigate() {
         // Priority: live nav state (root level) -> inside TabNavigator -> preserved state -> session storage.
         const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
         const lastTabNavigatorRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-        const routeState = (() => {
-            if (!lastTabNavigatorRoute) {
-                return {};
+        const lastWorkspacesTabNavigatorRoute = (() => {
+            if (lastTabNavigatorRoute) {
+                const workspaceNavigatorRoute = getTabState(lastTabNavigatorRoute)?.routes?.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+                const workspaceNavigatorState = workspaceNavigatorRoute?.state ?? (workspaceNavigatorRoute?.key ? getPreservedNavigatorState(workspaceNavigatorRoute.key) : undefined);
+                const lastWorkspaceRoute = workspaceNavigatorState?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
+                if (lastWorkspaceRoute) {
+                    return lastWorkspaceRoute;
+                }
             }
 
-            const workspaceNavigatorRoute = getTabState(lastTabNavigatorRoute)?.routes?.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
-            const workspaceNavigatorState = workspaceNavigatorRoute?.state ?? (workspaceNavigatorRoute?.key ? getPreservedNavigatorState(workspaceNavigatorRoute.key) : undefined);
-            const lastWorkspaceRoute = workspaceNavigatorState?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
-
-            if (lastWorkspaceRoute) {
-                const tabState = lastWorkspaceRoute.state ?? (lastWorkspaceRoute.key ? getPreservedNavigatorState(lastWorkspaceRoute.key) : undefined);
-                return {lastWorkspacesTabNavigatorRoute: lastWorkspaceRoute, workspacesTabState: tabState};
-            }
-
-            // Fall back to session storage when no workspace route exists anywhere in the navigation tree.
-            // getStateFromPath returns state rooted at TAB_NAVIGATOR, so we must drill into it first.
+            // Fall back to session storage. Shape mirrors the live nav state: TabNavigator -> WorkspaceNavigator -> WorkspaceSplitNavigator.
             const sessionTabNavigatorRoute = getWorkspacesTabStateFromSessionStorage()?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-            const sessionRoute = getTabState(sessionTabNavigatorRoute)
-                ?.routes?.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)
-                ?.state?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
-            if (sessionRoute) {
-                return {lastWorkspacesTabNavigatorRoute: sessionRoute, workspacesTabState: sessionRoute.state};
-            }
-
-            return {};
+            const sessionWorkspaceNavigatorRoute = sessionTabNavigatorRoute?.state?.routes?.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
+            return sessionWorkspaceNavigatorRoute?.state?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
         })();
 
-        const {lastWorkspacesTabNavigatorRoute, workspacesTabState} = routeState;
-
         // If the last route was a specific workspace or domain, extract its ID from params
-        const params = workspacesTabState?.routes?.at(0)?.params as
+        const params = lastWorkspacesTabNavigatorRoute?.state?.routes?.at(0)?.params as
             | WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL]
             | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
         const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
