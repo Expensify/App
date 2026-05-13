@@ -4405,7 +4405,7 @@ const translations = {
             viewTransactions: 'View transactions',
             policyExpenseChatName: (displayName: string) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
-            travelInvoicing: 'Export Expensify Travel Payable To',
+            travelInvoicing: 'Export travel expenses as',
             travelInvoicingVendor: 'Travel vendor',
             travelInvoicingPayableAccount: 'Travel payable account',
         },
