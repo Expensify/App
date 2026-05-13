@@ -236,4 +236,3 @@ function getSearchOnyxUpdate({
 }
 
 export {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch};
-export type {GetSearchOnyxUpdateParams};

@@ -692,7 +692,7 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
-export type {CardFilterItem, CardFeedNamesWithType, CardFeedForDisplay};
+export type {CardFilterItem, CardFeedForDisplay};
 export type {DomainFeedData};
 export {
     buildCardsData,

@@ -13,23 +13,21 @@ type ComposerBoxProps = {
 function ComposerBox({reportID, children}: ComposerBoxProps) {
     const styles = useThemeStyles();
     const {isFocused} = useComposerState();
-    const {isExceedingMaxLength, isBlockedFromConcierge} = useComposerSendState();
+    const {exceededMaxLength, isBlockedFromConcierge} = useComposerSendState();
     const {containerRef} = useComposerMeta();
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
 
-    const containerStyles = [
-        shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-        styles.flexRow,
-        styles.chatItemComposeBox,
-        isComposerFullSize && styles.chatItemFullComposeBox,
-        isExceedingMaxLength && styles.borderColorDanger,
-    ];
-
     return (
         <View
             ref={containerRef}
-            style={containerStyles}
+            style={[
+                shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                styles.flexRow,
+                styles.chatItemComposeBox,
+                isComposerFullSize && styles.chatItemFullComposeBox,
+                !!exceededMaxLength && styles.borderColorDanger,
+            ]}
         >
             {children}
         </View>

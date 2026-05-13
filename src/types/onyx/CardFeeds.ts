@@ -39,11 +39,6 @@ type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 type NonConnectableBankName = ValueOf<typeof CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS>;
 
 /**
- *
- */
-type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
-
-/**
  * Card type name
  */
 type CardTypeName = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE_NAMES>;
@@ -357,13 +352,11 @@ export type {
     CardFeedWithDomainID,
     BankName,
     NonConnectableBankName,
-    CardType,
     CardTypeName,
     CompanyCardFeed,
     CompanyCardFeedWithNumber,
     CompanyCardFeedWithDomainID,
     CardFeedDetails,
-    DirectCardFeedData,
     CardFeedProvider,
     CardFeedData,
     CardFeedsStatus,

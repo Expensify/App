@@ -46,6 +46,7 @@ import {
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
     isHarvestCreatedExpenseReport,
+    isUnread,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
@@ -83,23 +84,14 @@ type BaseReportActionContextMenuProps = {
     /** The copy selection. */
     selection?: string;
 
+    /** Draft message - if this is set the comment is in 'edit' mode */
+    draftMessage?: string;
+
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type?: ContextMenuType;
 
     /** Target node which is the target of ContentMenu */
     anchor?: RefObject<ContextMenuAnchor>;
-
-    /** Flag to check if the chat participant is Chronos */
-    isChronosReport?: boolean;
-
-    /** Whether the provided report is an archived room */
-    isArchivedRoom?: boolean;
-
-    /** Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action */
-    isPinnedChat?: boolean;
-
-    /** Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action */
-    isUnreadChat?: boolean;
 
     /**
      * Is the action a thread's parent reportAction viewed from within the thread report?
@@ -124,14 +116,11 @@ function BaseReportActionContextMenu({
     type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor,
     contentRef,
-    isChronosReport = false,
-    isArchivedRoom = false,
     isMini = false,
     isVisible = false,
-    isPinnedChat = false,
-    isUnreadChat = false,
     isThreadReportParentAction = false,
     selection = '',
+    draftMessage = '',
     reportActionID,
     reportID,
     originalReportID,
@@ -192,6 +181,11 @@ function BaseReportActionContextMenu({
         : undefined;
     const originalReportOfUnapprovedTransaction = useReportOrReportDraft(unapprovedOriginalID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    // Needed to compute the one-transaction thread for the context menu's report so isUnreadChat is correct
+    // for expense/IOU reports shown directly in the LHN (where unread state is based on the thread's lastVisibleActionCreated).
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions);
+    const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const [harvestReport] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID))}`,
@@ -270,6 +264,10 @@ function BaseReportActionContextMenu({
         isMoneyRequestOrReport &&
         !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? isChildReportArchived : isParentReportArchived);
 
+    const isArchivedRoom = isArchivedNonExpenseReport(originalReport, isOriginalReportArchived);
+    const isChronosReport = chatIncludesChronosWithID(originalReportID);
+    const isPinnedChat = !!report?.isPinned;
+    const isUnreadChat = isUnread(report, lhnOneTransactionThreadReport, isOriginalReportArchived);
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
 
@@ -354,11 +352,10 @@ function BaseReportActionContextMenu({
             report: {
                 reportID,
                 originalReportID,
-                isArchivedRoom: isArchivedNonExpenseReport(originalReport, isOriginalReportArchived),
-                isChronos: chatIncludesChronosWithID(originalReportID),
             },
             reportAction: {
                 reportActionID: reportAction?.reportActionID,
+                draftMessage,
                 isThreadReportParentAction,
             },
             callbacks: {
@@ -394,6 +391,7 @@ function BaseReportActionContextMenu({
                                 reportID,
                                 originalReportID,
                                 report,
+                                draftMessage,
                                 selection,
                                 close: () => setShouldKeepOpen(false),
                                 transitionActionSheetState,

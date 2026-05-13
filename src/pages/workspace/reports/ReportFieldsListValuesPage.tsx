@@ -411,6 +411,7 @@ function ReportFieldsListValuesPage({
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllValues')}
                         onSelectionButtonPress={toggleValue}
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}

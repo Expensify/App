@@ -25,7 +25,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {
     areSettingsInErrorFields,
-    findSelectedBankAccountWithDefaultSelect,
     getFilteredApprovalAccountOptions,
     getFilteredCollectionAccountOptions,
     getFilteredReimbursableAccountOptions,
@@ -76,21 +75,22 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const shouldAnimateAccordionSection = useSharedValue(false);
 
     const selectedReimbursementAccount = useMemo(
-        () => findSelectedBankAccountWithDefaultSelect(getFilteredReimbursableAccountOptions(payableList), config?.reimbursementAccountID),
+        () => getFilteredReimbursableAccountOptions(payableList).find(({id}) => id === config?.reimbursementAccountID),
         [payableList, config?.reimbursementAccountID],
     );
     const selectedCollectionAccount = useMemo(
-        () => findSelectedBankAccountWithDefaultSelect(getFilteredCollectionAccountOptions(payableList), config?.collectionAccount),
+        () => getFilteredCollectionAccountOptions(payableList).find(({id}) => id === config?.collectionAccount),
         [payableList, config?.collectionAccount],
     );
     const selectedApprovalAccount = useMemo(() => {
-        if (config?.approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
+        // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
+        if (!config?.approvalAccount || config.approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
             return {
                 id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
                 name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
             };
         }
-        return findSelectedBankAccountWithDefaultSelect(getFilteredApprovalAccountOptions(payableList), config?.approvalAccount);
+        return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === config?.approvalAccount);
     }, [config?.approvalAccount, payableList, translate]);
 
     const navigateToTravelInvoicingReconciliationAccountSettings = () => {
