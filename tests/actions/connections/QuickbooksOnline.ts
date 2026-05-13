@@ -5,11 +5,7 @@ import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
-import {
-    updateQuickbooksOnlineSyncReimbursedReports,
-    updateQuickbooksOnlineTravelInvoicingPayableAccount,
-    updateQuickbooksOnlineTravelInvoicingVendor,
-} from '@src/libs/actions/connections/QuickbooksOnline';
+import {updateQuickbooksOnlineSyncReimbursedReports, updateQuickbooksOnlineTravelInvoicingPayableAccount} from '@src/libs/actions/connections/QuickbooksOnline';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
@@ -160,39 +156,6 @@ describe('actions/connections/QuickbooksOnline', () => {
             const configUpdate = getRequiredQuickBooksConfig(optimisticUpdate);
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID]).toBeNull();
             expect(configUpdate[CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID]).toBeNull();
-        });
-    });
-
-    describe('updateQuickbooksOnlineTravelInvoicingVendor', () => {
-        beforeEach(() => {
-            writeSpy.mockClear();
-        });
-
-        it('writes the UpdateQuickbooksOnlineTravelInvoicingVendor command with the vendor ID', () => {
-            updateQuickbooksOnlineTravelInvoicingVendor(MOCK_POLICY_ID, 'vendor-123', 'vendor-456');
-
-            const {command} = getFirstWriteCall();
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR);
-
-            const call = writeSpy.mock.calls.at(0);
-            const params = call?.[1] as {policyID: string; settingValue: string; idempotencyKey: string};
-            expect(params.policyID).toBe(MOCK_POLICY_ID);
-            expect(params.settingValue).toBe('vendor-123');
-            expect(params.idempotencyKey).toBe(String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR));
-        });
-
-        it('updates travelInvoicingVendorID optimistically and reverts to the old value on failure', () => {
-            updateQuickbooksOnlineTravelInvoicingVendor(MOCK_POLICY_ID, 'vendor-123', 'vendor-456');
-
-            const {onyxData} = getFirstWriteCall();
-            const optimisticUpdate = onyxData?.optimisticData?.at(0);
-            const optimisticConfig = getRequiredQuickBooksConfig(optimisticUpdate);
-            expect(optimisticConfig[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR]).toBe('vendor-123');
-            expect(optimisticConfig.pendingFields?.[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-
-            const failureUpdate = onyxData?.failureData?.at(0);
-            const failureConfig = getRequiredQuickBooksConfig(failureUpdate);
-            expect(failureConfig[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR]).toBe('vendor-456');
         });
     });
 

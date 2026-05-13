@@ -488,16 +488,6 @@ function updateQuickbooksOnlinePreferredExporter<TSettingValue extends Connectio
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT, parameters, onyxData);
 }
 
-function updateQuickbooksOnlineTravelInvoicingVendor(policyID: string, vendorID: string, oldVendorID?: string) {
-    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR, vendorID, oldVendorID);
-    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
-        policyID,
-        settingValue: vendorID,
-        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR),
-    };
-    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR, parameters, onyxData);
-}
-
 function updateQuickbooksOnlineTravelInvoicingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
     const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
@@ -529,6 +519,5 @@ export {
     updateQuickbooksOnlineSyncLocations,
     updateQuickbooksOnlineSyncCustomers,
     updateQuickbooksOnlineAccountingMethod,
-    updateQuickbooksOnlineTravelInvoicingVendor,
     updateQuickbooksOnlineTravelInvoicingPayableAccount,
 };
