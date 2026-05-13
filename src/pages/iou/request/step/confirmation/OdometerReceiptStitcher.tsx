@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import Log from '@libs/Log';
 import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import stitchOdometerImages from '@libs/stitchOdometerImages';
-import STITCHED_ODOMETER_FILENAME_PREFIX from '@libs/stitchOdometerImages/constants';
+import {SINGLE_ODOMETER_FILENAME} from '@libs/stitchOdometerImages/constants';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import CONST from '@src/CONST';
@@ -83,7 +83,7 @@ function OdometerReceiptStitcher({
             }
 
             // Fallback name keeps ReceiptFileValidator from failing on an unnamed FileObject.
-            const singleImageName = getOdometerImageName(singleImage) || `${STITCHED_ODOMETER_FILENAME_PREFIX}.jpg`;
+            const singleImageName = getOdometerImageName(singleImage) || SINGLE_ODOMETER_FILENAME;
             const singleImageUri = getOdometerImageUri(singleImage);
             setMoneyRequestReceipt(transaction.transactionID, singleImageUri, singleImageName, true, getOdometerImageType(singleImage));
             lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};

@@ -4,7 +4,7 @@ import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils'
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
+import {isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -125,7 +125,7 @@ function ReceiptFileValidator({
             // by useRestartOnOdometerImagesFailure. While source images are alive, a failed fetch is just
             // mid-stitch transience - the next cycle will rewrite. Don't clear or navigate away.
             const initialLive = transactionsRef.current.find((t) => t.transactionID === initialTransactionID);
-            const isOdometerInitial = !!initialLive && isOdometerDistanceRequestTransactionUtils(initialLive);
+            const isOdometerInitial = !!initialLive && isOdometerDistanceRequest(initialLive);
             const hasLiveOdometerImage = !!(initialLive?.comment?.odometerStartImage ?? initialLive?.comment?.odometerEndImage);
             if (isOdometerInitial && hasLiveOdometerImage && !isScanFilesCanBeRead) {
                 return;
