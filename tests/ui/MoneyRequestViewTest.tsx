@@ -281,4 +281,25 @@ describe('MoneyRequestView edit fields', () => {
             expect(screen.getByTestId('menu-item-common.merchant')).toHaveTextContent('readonly');
         });
     });
+
+    it('should append "Non-reimbursable" to the Amount description when the transaction is non-reimbursable', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+        });
+    });
 });

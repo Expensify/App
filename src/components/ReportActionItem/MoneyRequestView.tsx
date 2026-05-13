@@ -561,6 +561,10 @@ function MoneyRequestView({
     if (shouldShowConvertedAmount) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(transactionConvertedAmount, moneyRequestReport?.currency)}`;
     }
+    const isCurrentTransactionReimbursable = updatedTransaction?.reimbursable ?? !!transactionReimbursable;
+    if (!isCurrentTransactionReimbursable) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${Str.UCFirst(translate('iou.nonReimbursable'))}`;
+    }
 
     if (isFromMergeTransaction && !rateName) {
         // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
