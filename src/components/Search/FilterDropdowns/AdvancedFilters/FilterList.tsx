@@ -21,6 +21,7 @@ function FilterList({selectedFilter, onFilterSelected}: FilterListProps) {
     return (
         <ScrollView
             style={[styles.typeFiltersContainer, fullscreen && styles.pv0]}
+            contentContainerStyle={[fullscreen && styles.pb5]}
             showsVerticalScrollIndicator={false}
         >
             {typeFiltersKeys.map((section, index) => (
