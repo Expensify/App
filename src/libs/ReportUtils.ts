@@ -12078,6 +12078,7 @@ function prepareOnboardingOnyxData({
                 addExpenseApprovals: addExpenseApprovalsTaskReportID,
                 setupTags: setupTagsTaskReportID,
                 setupCategoriesAndTags: setupCategoriesAndTagsTaskReportID,
+                onboardingPolicyID,
             },
         },
     );
@@ -12181,6 +12182,7 @@ function prepareOnboardingOnyxData({
                 addExpenseApprovals: null,
                 setupCategoriesAndTags: null,
                 setupTags: null,
+                onboardingPolicyID: null,
             },
         },
     );
