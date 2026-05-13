@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Parser from '@libs/Parser';
 import {getOriginalMessage, hasReasoning} from '@libs/ReportActionsUtils';
 import {getUnreportedTransactionMessage} from '@libs/ReportUtils';
@@ -16,19 +17,17 @@ type UnreportedTransactionActionProps = {
     /** The action when a transaction is unreported */
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>;
 
-    /** The child report of the action item */
-    childReport: OnyxEntry<Report>;
-
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
 };
 
-function UnreportedTransactionAction({action, childReport, originalReport}: UnreportedTransactionActionProps) {
+function UnreportedTransactionAction({action, originalReport}: UnreportedTransactionActionProps) {
     const unreportedTransactionOriginalMessage = getOriginalMessage(action);
     const fromReportID = unreportedTransactionOriginalMessage?.fromReportID;
 
     const {translate} = useLocalize();
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const unreportedTransactionMessage = getUnreportedTransactionMessage(translate, action);

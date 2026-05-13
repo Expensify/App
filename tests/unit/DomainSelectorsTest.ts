@@ -10,6 +10,7 @@ import {
     groupsSelector,
     isAdminSelector,
     isSecurityGroupEntry,
+    isSecurityGroupPendingDeleteSelector,
     memberAccountIDsSelector,
     selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
@@ -390,6 +391,39 @@ describe('domainSelectors', () => {
                 securityGroup: group1,
             });
         });
+
+        it('Should skip a group whose shared entry for the account is a null tombstone and return the active group', () => {
+            // After changeDomainSecurityGroup fires optimistically, the old group gets
+            // shared[accountID] = null while the new group gets shared[accountID] = 'read'.
+            // The selector must skip the tombstone and return the new (active) group.
+            const key1 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`;
+            const key2 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`;
+
+            const domain: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'test@example.com',
+                [key1]: {shared: {'123': null}, enableRestrictedPrimaryLogin: false, enableRestrictedPolicyCreation: false},
+                [key2]: {shared: {'123': 'read'}, enableRestrictedPrimaryLogin: false, enableRestrictedPolicyCreation: false},
+            } as unknown as Domain;
+
+            const result = selectSecurityGroupForAccount(123)(domain);
+
+            expect(result?.key).toBe(key2);
+        });
+
+        it('Should return undefined when the only matching shared entry is a null tombstone', () => {
+            const key1 = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`;
+
+            const domain: Domain = {
+                validated: true,
+                accountID: 1,
+                email: 'test@example.com',
+                [key1]: {shared: {'123': null}, enableRestrictedPrimaryLogin: false, enableRestrictedPolicyCreation: false},
+            } as unknown as Domain;
+
+            expect(selectSecurityGroupForAccount(123)(domain)).toBeUndefined();
+        });
     });
 
     describe('isSecurityGroupEntry', () => {
@@ -521,6 +555,77 @@ describe('domainSelectors', () => {
             } as unknown as OnyxEntry<DomainErrors>;
             expect(domainSecurityGroupSettingErrorsSelector('nameErrors', '1')(domainErrors)).toEqual(errors1);
             expect(domainSecurityGroupSettingErrorsSelector('nameErrors', '2')(domainErrors)).toEqual(errors2);
+        });
+    });
+
+    describe('isSecurityGroupPendingDeleteSelector', () => {
+        it('Should return false when domainPendingActions is undefined', () => {
+            expect(isSecurityGroupPendingDeleteSelector('1')(undefined)).toBe(false);
+        });
+
+        it('Should return false when domainPendingActions is empty', () => {
+            const domainPendingActions = {} as OnyxEntry<DomainPendingActions>;
+            expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(false);
+        });
+
+        it('Should return false when groupID is undefined', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(isSecurityGroupPendingDeleteSelector(undefined)(domainPendingActions)).toBe(false);
+        });
+
+        it('Should return false when the group key does not exist in domainPendingActions', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(isSecurityGroupPendingDeleteSelector('999')(domainPendingActions)).toBe(false);
+        });
+
+        it('Should return false when the group has only non-delete pending actions', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(false);
+        });
+
+        it('Should return true when the group has a top-level delete pending action', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(true);
+        });
+
+        it('Should return true when at least one field-level pending action is delete', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(true);
+        });
+
+        it('Should distinguish between groups when multiple are present', () => {
+            const domainPendingActions = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            } as unknown as OnyxEntry<DomainPendingActions>;
+            expect(isSecurityGroupPendingDeleteSelector('1')(domainPendingActions)).toBe(false);
+            expect(isSecurityGroupPendingDeleteSelector('2')(domainPendingActions)).toBe(true);
         });
     });
 

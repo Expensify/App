@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
+import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -73,6 +74,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether this is the last item in the list */
     isLastItem?: boolean;
+
+    /** Whether the list is horizontally scrollable */
+    shouldScrollHorizontally?: boolean;
 };
 
 function MoneyRequestReportTransactionItem({
@@ -93,6 +97,7 @@ function MoneyRequestReportTransactionItem({
     shouldBeHighlighted,
     nonPersonalAndWorkspaceCards,
     isLastItem = false,
+    shouldScrollHorizontally = false,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -151,7 +156,7 @@ function MoneyRequestReportTransactionItem({
                 }}
                 disabled={isTransactionPendingDelete(transaction)}
                 ref={viewRef}
-                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && styles.borderBottom]}
+                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -164,7 +169,7 @@ function MoneyRequestReportTransactionItem({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         shouldShowTooltip
-                        shouldUseNarrowLayout={shouldUseNarrowLayout || isMediumScreenWidth}
+                        shouldUseNarrowLayout={shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally)}
                         shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
@@ -176,7 +181,7 @@ function MoneyRequestReportTransactionItem({
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        shouldRemoveTotalColumnFlex
+                        shouldRemoveTotalColumnFlex={hasFlexColumn(columns)}
                     />
                 )}
             </PressableWithFeedback>
