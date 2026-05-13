@@ -14,24 +14,56 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
-function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
-    const DATA = Array.from({length: 31}, (_, i) => ({
-        x: i,
-        y: 40 + 30 * Math.random(),
-        z: 50,
-    }));
+/**
+ * Traverse node and extract and parse `data` attributes
+ * The retured array is 1D - All nested data are flattened
+ */
+function extractData(tnode: TNode): Array<Record<string, unknown>> {
+    const data: Array<Record<string, unknown>> = [];
+    if (tnode.attributes?.data) {
+        const parsedData = JSON5.parse(tnode.attributes.data);
+        if (Array.isArray(parsedData)) {
+            data.push(...parsedData);
+        }
+    }
+    data.push(...tnode.children.flatMap((child) => extractData(child)));
+    return data;
+}
 
-    console.log('parsed data', JSON5.parse("[ {x: 'Jan', y: 3}, {x: 'Feb', y: 5}, {x: 'Mar', y: 2}, {x: 'Apr', y: 7} ]"));
+/**
+ * Process raw data and combines points based on shared xKey
+ */
+function processDataForCartesianChart(rawData: Array<Record<string, unknown>>) {
+    const xKey = 'x';
+    const yKeys = [];
+    const data = Object.values(
+        rawData.reduce((points, point) => {
+            const yLevel = (points[point.x]?.yLevel ?? 0) + 1;
+            const yKey = 'y' + yLevel;
+            yKeys.push(yKey);
+            points[point.x] = {
+                ...points[point.x],
+                [xKey]: point.x,
+                [yKey]: point.y,
+                yLevel,
+            };
+            return points;
+        }, {}),
+    );
+    return {
+        data,
+        xKey,
+        yKeys,
+    };
+}
+
+function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
+    const rawData = useMemo(() => extractData(tnode), []);
+    const isPolarChart = useMemo(() => false, [rawData]);
+    const {data, xKey, yKeys} = useMemo(() => (isPolarChart ? {} : processDataForCartesianChart(rawData)), [rawData, isPolarChart]);
 
     window.tnode = tnode;
-
-    const data = useMemo(() => {
-        let currentNode: TNode | null = tnode;
-        while (currentNode) {
-            console.log(currentNode);
-            currentNode = null;
-        }
-    }, []);
+    console.log({data});
 
     const renderChild = useCallback((tnode, index, points, chartBounds) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
@@ -67,9 +99,9 @@ function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}
     return (
         <View style={{height: 200, width: 200}}>
             <CartesianChart
-                data={DATA}
-                xKey="x"
-                yKeys={['y', 'z']}
+                data={data}
+                xKey={xKey}
+                yKeys={yKeys}
             >
                 {({points, chartBounds}) => tnode.children.map((child, childIndex) => renderChild(child, childIndex, points, chartBounds))}
             </CartesianChart>
