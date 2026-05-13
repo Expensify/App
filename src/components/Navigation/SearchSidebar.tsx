@@ -32,7 +32,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {collapseProgress, peekProgress, isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const {collapseProgress, peekProgress, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
@@ -114,7 +114,6 @@ function SearchSidebar({state}: SearchSidebarProps) {
     return (
         <Animated.View style={[{height: '100%'}, layoutSpacerStyle]}>
             <Hoverable
-                isDisabled={!isCollapsed}
                 onHoverIn={startPeek}
                 onHoverOut={endPeek}
             >

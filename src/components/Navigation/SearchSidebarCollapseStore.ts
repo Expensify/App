@@ -32,13 +32,32 @@ function getPeekSnapshot() {
     return isPeeking;
 }
 
-function toggleSidebar() {
-    isCollapsed = !isCollapsed;
-    collapseProgress.set(withTiming(isCollapsed ? 1 : 0, ANIMATION));
+function clearPeekProgress() {
+    peekProgress.set(0);
+}
 
-    if (!isCollapsed && isPeeking) {
+function toggleSidebar() {
+    const wasCollapsedAndPeeking = isCollapsed && isPeeking;
+    isCollapsed = !isCollapsed;
+
+    if (wasCollapsedAndPeeking) {
+        // Transitioning from peek-overlay → fully expanded. Keep peekProgress pinned to 1
+        // for the duration of the collapseProgress animation so visualExpansion stays at 1
+        // (no shrink-then-grow). Once collapseProgress reaches 0, reset peekProgress to 0
+        // since at that point cp=0 makes visualExpansion=1 regardless of pp.
         isPeeking = false;
-        peekProgress.set(0);
+        peekProgress.set(1);
+        collapseProgress.set(
+            withTiming(0, ANIMATION, (finished) => {
+                'worklet';
+
+                if (finished) {
+                    scheduleOnRN(clearPeekProgress);
+                }
+            }),
+        );
+    } else {
+        collapseProgress.set(withTiming(isCollapsed ? 1 : 0, ANIMATION));
     }
 
     notify();
