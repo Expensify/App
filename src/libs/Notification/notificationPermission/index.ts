@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import type NotificationPermissionModule from './types';
 import type {NotificationPermissionStatus} from './types';
 
@@ -20,7 +21,12 @@ const NotificationPermissionWeb: NotificationPermissionModule = {
         if (typeof window === 'undefined' || !window.Notification) {
             return Promise.resolve('denied');
         }
-        return Notification.requestPermission().then(toStatus);
+        return Notification.requestPermission()
+            .then(toStatus)
+            .catch((error: unknown) => {
+                Log.warn('[NotificationPermission] request failed', {error: String(error)});
+                return 'denied';
+            });
     },
 };
 
