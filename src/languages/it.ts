@@ -9217,6 +9217,8 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
                 vacationDelegate: 'Impossibile impostare questo utente come delegato per le ferie. Riprova.',
                 moveMember: 'Impossibile spostare questo membro. Riprova.',
+                moveMemberNotPolicyAdmin:
+                    'Impossibile spostare il membro nel gruppo di dominio. Devi essere Amministratore di Criteri per il Criterio Preferito impostato nel gruppo di dominio in cui stai cercando di spostare questo utente.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Non puoi impostare un delegato per le vacanze per ${email} perché al momento è il delegato per i seguenti membri:`,
             reportSuspiciousActivityPrompt: (email: string) =>

@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
+import Avatar from './OptionRow/Avatar';
 import DescriptiveText from './OptionRow/DescriptiveText';
 import DraftIndicator from './OptionRow/DraftIndicator';
 import ErrorBadge from './OptionRow/ErrorBadge';
@@ -23,7 +24,6 @@ import ProductTrainingTooltip from './OptionRow/ProductTrainingTooltip';
 import Status from './OptionRow/Status';
 import Subtitle from './OptionRow/Subtitle';
 import Title from './OptionRow/Title';
-import OptionRowAvatar from './OptionRowAvatar';
 import OptionRowPressable from './OptionRowPressable';
 
 function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment, testID}: OptionRowLHNProps) {
@@ -107,7 +107,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                             <>
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <OptionRowAvatar
+                                        <Avatar
                                             optionItem={optionItem}
                                             isInFocusMode={isInFocusMode}
                                             subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}

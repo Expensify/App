@@ -8949,6 +8949,7 @@ ${reportName}
                 addMember: '无法添加此成员。请重试。',
                 vacationDelegate: '无法将此用户设置为休假代理人。请重试。',
                 moveMember: '无法移动此成员。请重试。',
+                moveMemberNotPolicyAdmin: '无法将成员移动到域组。您必须是您尝试将此用户移动到的域组上设置的首选策略的策略管理员。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `您无法为 ${email} 设置休假代理人，因为 TA 当前是以下成员的代理人：`,
             reportSuspiciousActivityPrompt: (email: string) =>
