@@ -35,8 +35,6 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldShowApprove
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow]}></View>
-
                     <View style={[styles.flex1, styles.flexRow]}>
                         <Text>{item.name}</Text>
                     </View>

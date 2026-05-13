@@ -117,6 +117,9 @@ type TableProps<T, ColumnKey extends string = string, FilterKey extends string =
         /** Array of data items to display in the table. */
         data: T[] | undefined;
 
+        /** Whether multi selection is enabled */
+        selectionEnabled?: boolean;
+
         /** Column configuration defining what columns to display and how. */
         columns: Array<TableColumn<ColumnKey>>;
 

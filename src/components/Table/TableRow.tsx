@@ -1,6 +1,7 @@
 import React from 'react';
 import type {PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
@@ -53,12 +54,16 @@ export default function TableRow({
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {processedData, columns, shouldUseNarrowTableLayout} = useTableContext();
+    const {processedData, columns, shouldUseNarrowTableLayout, selectionEnabled} = useTableContext();
 
     const rowCount = processedData.length;
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
-    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
+
+    if (selectionEnabled) {
+        gridTemplateColumns.unshift('64px');
+    }
 
     const tableRowPressableStyles = [
         styles.mh5,
@@ -81,7 +86,7 @@ export default function TableRow({
         styles.gap3,
         styles.dFlex,
         // Use Grid on web when available (will override flex if supported)
-        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns}],
+        !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
     ];
 
     const renderChildren = (state: PressableStateCallbackType) => {
@@ -124,7 +129,18 @@ export default function TableRow({
                             </SkeletonViewContentLoader>
                         </View>
                     ) : (
-                        <View style={tableRowContentStyles}>{renderChildren(state)}</View>
+                        <View style={tableRowContentStyles}>
+                            {selectionEnabled && (
+                                <View style={styles.flex1}>
+                                    <Checkbox
+                                        accessibilityLabel="TEST"
+                                        onPress={() => {}}
+                                    />
+                                </View>
+                            )}
+
+                            {renderChildren(state)}
+                        </View>
                     )
                 }
             </PressableWithFeedback>

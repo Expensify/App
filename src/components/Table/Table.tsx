@@ -140,6 +140,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     isItemInSearch,
     initialSortColumn,
     children,
+    selectionEnabled,
     ...listProps
 }: TableProps<T, ColumnKey, FilterKey>) {
     if (!columns || columns.length === 0) {
@@ -200,6 +201,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         title,
         listRef,
         listProps,
+        selectionEnabled,
         processedData,
         originalDataLength,
         columns,

@@ -52,7 +52,7 @@ type TableHeaderProps = ViewProps & {
 function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHeaderWhenEmptySearch = true, ...props}: TableHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout} = useTableContext<T, ColumnKey>();
+    const {columns, isEmptyResult, title, shouldUseNarrowTableLayout, selectionEnabled} = useTableContext<T, ColumnKey>();
 
     if (shouldUseNarrowTableLayout && !title) {
         return null;
@@ -62,7 +62,11 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
         return null;
     }
 
-    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
+
+    if (selectionEnabled) {
+        gridTemplateColumns.unshift('64px');
+    }
 
     return (
         <View
@@ -80,7 +84,7 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 styles.gap3,
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
-                !shouldUseNarrowTableLayout && {gridTemplateColumns},
+                !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
                 style,
             ]}
             // eslint-disable-next-line react/jsx-props-no-spreading

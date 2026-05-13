@@ -6,7 +6,7 @@ import {AvatarSource} from '@libs/UserAvatarUtils';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 
-export type WorkspaceCategoryTableColumnKey = 'selection' | 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
+export type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
 
 export type WorkspaceCategoryTableRowData = {
     keyForList: string;
@@ -31,12 +31,6 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
     const {translate, localeCompare} = useLocalize();
 
     const categoryTableColumns: Array<TableColumn<WorkspaceCategoryTableColumnKey>> = [
-        {
-            key: 'selection',
-            label: '',
-            sortable: false,
-            width: 52,
-        },
         {
             key: 'name',
             label: translate('common.name'),
@@ -101,6 +95,7 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
 
     return (
         <Table
+            selectionEnabled
             data={categories}
             columns={categoryTableColumns}
             compareItems={compareItems}

@@ -21,6 +21,9 @@ type TableContextValue<T, ColumnKey extends string = string, FilterKey extends s
     /** FlashList props passed through from the Table component. */
     listProps: SharedListProps<T>;
 
+    /** Whether or not selection is enabled for the table */
+    selectionEnabled?: boolean;
+
     /** The data array after filtering, searching, and sorting have been applied. */
     processedData: T[];
 
