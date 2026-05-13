@@ -5,7 +5,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {collapseProgress, peekProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import {collapseProgress, peekProgress, useSidebarCollapse} from '@components/Navigation/SidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -75,7 +75,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isExpanded);
-    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
+    const {isVisuallyCollapsed} = useSidebarCollapse();
 
     // Re-sync the shared value with the React prop whenever the sidebar's visual state flips.
     // useAccordionAnimation only updates isAccordionExpanded when its isExpanded *prop* changes,

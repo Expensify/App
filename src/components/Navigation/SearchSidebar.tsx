@@ -18,7 +18,7 @@ import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
-import {useSearchSidebarCollapse} from './SearchSidebarCollapseStore';
+import {useSidebarCollapse} from './SidebarCollapseStore';
 import TopBar from './TopBar';
 
 type SearchSidebarProps = {
@@ -32,7 +32,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {collapseProgress, peekProgress, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const {collapseProgress, peekProgress, toggleSidebar, startPeek, endPeek} = useSidebarCollapse();
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();

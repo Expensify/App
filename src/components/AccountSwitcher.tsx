@@ -2,6 +2,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -28,6 +29,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
 import Icon from './Icon';
 import {ModalActions} from './Modal/Global/ModalContext';
+import {collapseProgress, peekProgress} from './Navigation/SidebarCollapseStore';
 import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
@@ -70,6 +72,18 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
     const displayName = currentUserPersonalDetails?.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
+
+    // Fade + slide the user's name/login text to match the sidebar collapse animation
+    // (same formula as the breadcrumb / section header fades in InitialSettingsPage).
+    const labelAnimatedStyle = useAnimatedStyle(() => {
+        const cp = collapseProgress.get();
+        const pp = peekProgress.get();
+        const visualExpansion = 1 - cp * (1 - pp);
+        return {
+            opacity: visualExpansion,
+            transform: [{translateX: -8 * (1 - visualExpansion)}],
+        };
+    });
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
@@ -243,7 +257,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             source={currentUserPersonalDetails?.avatar}
                             fallbackIcon={currentUserPersonalDetails.fallbackIcon}
                         />
-                        <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, {gap: 2}]}>
+                        <Animated.View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, {gap: 2}, labelAnimatedStyle]}>
                             <View style={[styles.flexRow, styles.gap1]}>
                                 {doesDisplayNameContainEmojis ? (
                                     <Text numberOfLines={1}>
@@ -285,7 +299,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                     AccountID: {accountID}
                                 </Text>
                             )}
-                        </View>
+                        </Animated.View>
                     </View>
                 </PressableWithFeedback>
             </TooltipToRender>

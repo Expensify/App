@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {collapseProgress, peekProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import {collapseProgress, peekProgress, useSidebarCollapse} from '@components/Navigation/SidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -40,7 +40,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
+    const {isVisuallyCollapsed} = useSidebarCollapse();
 
     const labelAnimatedStyle = useAnimatedStyle(() => {
         const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());

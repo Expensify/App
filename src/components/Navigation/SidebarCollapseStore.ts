@@ -95,7 +95,7 @@ function endPeek() {
     );
 }
 
-function useSearchSidebarCollapse() {
+function useSidebarCollapse() {
     const collapsed = useSyncExternalStore(subscribe, getCollapseSnapshot, getCollapseSnapshot);
     const peeking = useSyncExternalStore(subscribe, getPeekSnapshot, getPeekSnapshot);
     return {
@@ -110,4 +110,4 @@ function useSearchSidebarCollapse() {
     };
 }
 
-export {collapseProgress, peekProgress, toggleSidebar, startPeek, endPeek, useSearchSidebarCollapse};
+export {collapseProgress, peekProgress, toggleSidebar, startPeek, endPeek, useSidebarCollapse};

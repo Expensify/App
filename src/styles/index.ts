@@ -2849,8 +2849,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         accountSettingsSectionContainer: {
-            borderBottomWidth: 1,
-            borderBottomColor: theme.border,
             ...spacing.mt0,
             ...spacing.mb0,
             ...spacing.pt0,

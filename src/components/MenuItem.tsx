@@ -3,6 +3,8 @@ import type {ReactElement, ReactNode, Ref} from 'react';
 import React, {useMemo, useRef} from 'react';
 import type {GestureResponderEvent, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Animated from 'react-native-reanimated';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -123,6 +125,11 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Used to apply styles specifically to the title */
         titleStyle?: StyleProp<TextStyle>;
+
+        /** Reanimated animated style applied to the title wrapper, allowing smooth UI-thread
+         *  animations like opacity / translateX (e.g. fading the title when a collapsible
+         *  sidebar contracts). When provided, the title is wrapped in an Animated.View. */
+        titleAnimatedStyle?: AnimatedStyle<ViewStyle>;
 
         /** Any additional styles to apply on the badge element */
         badgeStyle?: StyleProp<ViewStyle>;
@@ -490,6 +497,7 @@ function MenuItem({
     outerWrapperStyle,
     containerStyle,
     titleStyle,
+    titleAnimatedStyle,
     labelStyle,
     descriptionTextStyle,
     badgeStyle,
@@ -1014,16 +1022,30 @@ function MenuItem({
                                                                         <RenderHTML html={processedTitle} />
                                                                     </View>
                                                                 )}
-                                                                {!shouldRenderAsHTML && !shouldParseTitle && !!title && (
-                                                                    <Text
-                                                                        style={combinedTitleTextStyle}
-                                                                        numberOfLines={numberOfLinesTitle || undefined}
-                                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
-                                                                        accessibilityRole={titleAccessibilityRole}
-                                                                    >
-                                                                        {renderTitleContent()}
-                                                                    </Text>
-                                                                )}
+                                                                {!shouldRenderAsHTML &&
+                                                                    !shouldParseTitle &&
+                                                                    !!title &&
+                                                                    (titleAnimatedStyle ? (
+                                                                        <Animated.View style={titleAnimatedStyle}>
+                                                                            <Text
+                                                                                style={combinedTitleTextStyle}
+                                                                                numberOfLines={numberOfLinesTitle || undefined}
+                                                                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                                accessibilityRole={titleAccessibilityRole}
+                                                                            >
+                                                                                {renderTitleContent()}
+                                                                            </Text>
+                                                                        </Animated.View>
+                                                                    ) : (
+                                                                        <Text
+                                                                            style={combinedTitleTextStyle}
+                                                                            numberOfLines={numberOfLinesTitle || undefined}
+                                                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                            accessibilityRole={titleAccessibilityRole}
+                                                                        >
+                                                                            {renderTitleContent()}
+                                                                        </Text>
+                                                                    ))}
                                                                 {!!shouldShowTitleIcon && !!titleIcon && (
                                                                     <View style={[styles.ml2]}>
                                                                         <Icon

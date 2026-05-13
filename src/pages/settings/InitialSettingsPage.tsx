@@ -5,15 +5,18 @@ import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import MenuIcon from '@assets/images/menu.svg';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import {collapseProgress, peekProgress, toggleSidebar, useSidebarCollapse} from '@components/Navigation/SidebarCollapseStore';
 import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
-import {PressableWithFeedback} from '@components/Pressable';
+import {PressableWithFeedback, PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
@@ -150,6 +153,31 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {isExecuting, singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const {isVisuallyCollapsed} = useSidebarCollapse();
+
+    // Fade + slide text labels (breadcrumb, section headers) when the sidebar collapses.
+    // Matches the Spend sidebar exactly: opacity tracks visualExpansion, with a small
+    // translateX(-8) trail on collapse for the same subtle slide effect.
+    const sidebarLabelAnimatedStyle = useAnimatedStyle(() => {
+        const cp = collapseProgress.get();
+        const pp = peekProgress.get();
+        const visualExpansion = 1 - cp * (1 - pp);
+        return {
+            opacity: visualExpansion,
+            transform: [{translateX: -8 * (1 - visualExpansion)}],
+        };
+    });
+
+    // Slide the toggle button horizontally so it ends up centered in the collapsed sidebar.
+    // Toggle's natural center (inside the 280-wide TopBar): SIDEBAR_WIDTH - mr3(12) - toggleHalfWidth(16) = 252.
+    // Collapsed-sidebar target center: COLLAPSED_WIDTH / 2 = 76/2 = 38. Plus a 1px nudge left
+    // at both ends for visual centering: -1 (expanded) → -215 (collapsed).
+    const sidebarToggleAnimatedStyle = useAnimatedStyle(() => {
+        const cp = collapseProgress.get();
+        const pp = peekProgress.get();
+        const visualExpansion = 1 - cp * (1 - pp);
+        return {transform: [{translateX: -1 - 214 * (1 - visualExpansion)}]};
+    });
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
@@ -372,9 +400,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      */
     const signOutTranslationKey = isSupportAuthToken() && hasStashedSession(stashedSession, stashedCredentials) ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
     const generalMenuItemsData: Menu = {
-        sectionStyle: {
-            ...styles.pt4,
-        },
+        sectionStyle: {},
         sectionTranslationKey: 'initialSettingsPage.general',
         items: [
             ...(classicRedirectMenuItem && tryNewDot?.nudgeMigration ? [classicRedirectMenuItem] : []),
@@ -435,13 +461,32 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      */
     const getMenuItemsSection = (menuItemsData: Menu) => {
         return (
-            <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
-                <Text
-                    style={styles.sectionTitle}
-                    accessibilityRole={CONST.ROLE.HEADER}
-                >
-                    {translate(menuItemsData.sectionTranslationKey)}
-                </Text>
+            <View style={[menuItemsData.sectionStyle, styles.mh3]}>
+                {isVisuallyCollapsed ? (
+                    // Match the Spend section header collapsed look: a slot of the same
+                    // height (sectionTitle: pv2 + lineHeight 16 = 32) containing a thin
+                    // border-colored divider centered vertically. Non-interactive.
+                    // Width 52 matches MENU_ITEM_COLLAPSED_WIDTH so the divider line ends up
+                    // with the same 12 (mh3) + 8 (p2) = 20px padding on each side that the
+                    // menu-item icons get, instead of stretching the divider all the way to
+                    // the (clipped) right edge of the section.
+                    <View
+                        style={[styles.flexRow, styles.p2, styles.gap2, styles.alignItemsCenter, styles.br2, {width: 52, alignSelf: 'flex-start'}]}
+                        accessibilityElementsHidden
+                        importantForAccessibility="no-hide-descendants"
+                    >
+                        <View style={{flex: 1, height: variables.iconSizeSmall, justifyContent: 'center'}}>
+                            <View style={{height: 1, width: '100%', backgroundColor: theme.border}} />
+                        </View>
+                    </View>
+                ) : (
+                    <Animated.Text
+                        style={[styles.sectionTitle, sidebarLabelAnimatedStyle]}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {translate(menuItemsData.sectionTranslationKey)}
+                    </Animated.Text>
+                )}
                 {menuItemsData.items.map((item) => {
                     const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                     const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
@@ -481,7 +526,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 />
             ) : (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
-                    <AccountSwitcher isScreenFocused={isScreenFocused} />
+                    <View style={{paddingLeft: 4, flex: 1}}>
+                        <AccountSwitcher isScreenFocused={isScreenFocused} />
+                    </View>
                     <Tooltip text={translate('statusPage.status')}>
                         <PressableWithFeedback
                             accessibilityLabel={
@@ -542,9 +589,28 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         >
             <TopBarWithLoadingBar
                 breadcrumbLabel={translate('initialSettingsPage.account')}
+                breadcrumbAnimatedStyle={sidebarLabelAnimatedStyle}
                 shouldDisplaySearch={shouldUseNarrowLayout}
                 shouldDisplayHelpButton={shouldUseNarrowLayout}
-            />
+            >
+                {!shouldUseNarrowLayout && (
+                    <Animated.View style={sidebarToggleAnimatedStyle}>
+                        <PressableWithoutFeedback
+                            accessibilityLabel="Toggle sidebar"
+                            onPress={toggleSidebar}
+                            sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.CANCEL_BUTTON}
+                            style={[styles.p2, styles.br2]}
+                        >
+                            <Icon
+                                src={MenuIcon}
+                                width={variables.iconSizeSmall}
+                                height={variables.iconSizeSmall}
+                                fill={theme.icon}
+                            />
+                        </PressableWithoutFeedback>
+                    </Animated.View>
+                )}
+            </TopBarWithLoadingBar>
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
