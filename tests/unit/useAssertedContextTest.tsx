@@ -1,7 +1,7 @@
-import {render} from '@testing-library/react-native';
-import React, {createContext} from 'react';
-import type {ReactNode} from 'react';
-import {Text} from 'react-native';
+import {render, screen} from '@testing-library/react-native';
+import React, {createContext, useImperativeHandle} from 'react';
+import type {Ref} from 'react';
+import Text from '@components/Text';
 import useAssertedContext from '@hooks/useAssertedContext';
 
 type FooValue = {label: string};
@@ -10,6 +10,24 @@ const FooContext = createContext<FooValue | null>(null);
 function Consumer() {
     const value = useAssertedContext(FooContext, 'useFoo', '<FooProvider>');
     return <Text>{value.label}</Text>;
+}
+
+type CaptureHandle<T> = {value: T};
+
+function CaptureConsumer<T>({
+    contextRef,
+    hookName,
+    parentDisplayName,
+    captureRef,
+}: {
+    contextRef: React.Context<T | null>;
+    hookName: string;
+    parentDisplayName: string;
+    captureRef: Ref<CaptureHandle<T>>;
+}) {
+    const value = useAssertedContext(contextRef, hookName, parentDisplayName);
+    useImperativeHandle(captureRef, () => ({value}), [value]);
+    return null;
 }
 
 // Silence the React error-boundary console.error noise from intentional throws.
@@ -23,12 +41,12 @@ beforeEach(() => {
 
 describe('useAssertedContext', () => {
     it('returns the context value when the provider is present', () => {
-        const {getByText} = render(
+        render(
             <FooContext.Provider value={{label: 'hello'}}>
                 <Consumer />
             </FooContext.Provider>,
         );
-        expect(getByText('hello')).toBeTruthy();
+        expect(screen.getByText('hello')).toBeTruthy();
     });
 
     it('throws with a formatted message when the context is null (provider missing)', () => {
@@ -45,31 +63,33 @@ describe('useAssertedContext', () => {
 
     it('returns the value verbatim including object identity', () => {
         const value: FooValue = {label: 'identity-check'};
-        let captured: FooValue | undefined;
-        function CaptureConsumer() {
-            captured = useAssertedContext(FooContext, 'useFoo', '<FooProvider>');
-            return null;
-        }
+        const captureRef = React.createRef<CaptureHandle<FooValue>>();
         render(
             <FooContext.Provider value={value}>
-                <CaptureConsumer />
+                <CaptureConsumer<FooValue>
+                    contextRef={FooContext}
+                    hookName="useFoo"
+                    parentDisplayName="<FooProvider>"
+                    captureRef={captureRef}
+                />
             </FooContext.Provider>,
         );
-        expect(captured).toBe(value);
+        expect(captureRef.current?.value).toBe(value);
     });
 
     it('does NOT throw when the value is a falsy-but-non-null primitive (e.g. 0, "")', () => {
         const ZeroContext = createContext<number | null>(null);
-        let captured: number | undefined;
-        function ZeroConsumer({children}: {children?: ReactNode}) {
-            captured = useAssertedContext(ZeroContext, 'useZero', '<ZeroProvider>');
-            return <>{children}</>;
-        }
+        const captureRef = React.createRef<CaptureHandle<number>>();
         render(
             <ZeroContext.Provider value={0}>
-                <ZeroConsumer />
+                <CaptureConsumer<number>
+                    contextRef={ZeroContext}
+                    hookName="useZero"
+                    parentDisplayName="<ZeroProvider>"
+                    captureRef={captureRef}
+                />
             </ZeroContext.Provider>,
         );
-        expect(captured).toBe(0);
+        expect(captureRef.current?.value).toBe(0);
     });
 });

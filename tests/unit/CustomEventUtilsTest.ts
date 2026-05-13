@@ -128,8 +128,8 @@ describe('CustomEventUtils', () => {
             const event = createCustomEvent({tag: 'identity'});
             composeHandlers(a, b)(event);
             expect(seen).toHaveLength(2);
-            expect(seen[0]).toBe(seen[1]);
-            expect(seen[0]).toBe(event);
+            expect(seen.at(0)).toBe(seen.at(1));
+            expect(seen.at(0)).toBe(event);
         });
     });
 });

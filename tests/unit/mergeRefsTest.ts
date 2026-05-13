@@ -65,9 +65,7 @@ describe('mergeRefs', () => {
             cleanup?.();
 
             expect(cleanupSpy).toHaveBeenCalledTimes(1);
-            // Object ref nulled.
             expect(objectRef.current).toBeNull();
-            // Plain callback ref called with null on unmount.
             expect(callbackNoReturn).toHaveBeenLastCalledWith(null);
         });
 
@@ -81,7 +79,6 @@ describe('mergeRefs', () => {
 
             cleanup?.();
 
-            // The per-ref cleanup ran; callback ref was NOT re-invoked with null.
             expect(cleanupSpy).toHaveBeenCalledTimes(1);
             expect(callbackWithCleanup).toHaveBeenCalledTimes(1);
         });

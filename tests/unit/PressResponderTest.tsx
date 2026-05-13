@@ -1,12 +1,14 @@
 import {render} from '@testing-library/react-native';
-import React, {useImperativeHandle, useRef} from 'react';
-import type {Ref} from 'react';
-import {Pressable, Text, View} from 'react-native';
+import React, {useImperativeHandle} from 'react';
+import type {ReactNode, Ref} from 'react';
+import {View} from 'react-native';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressResponder from '@components/Pressable/PressResponder/PressResponder';
 import usePressResponderProps from '@components/Pressable/PressResponder/usePressResponderProps';
 import useResponderRef from '@components/Pressable/PressResponder/useResponderRef';
+import Text from '@components/Text';
 import Log from '@libs/Log';
 
 const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined as ReturnType<typeof Log.warn>);
@@ -33,33 +35,40 @@ type ProbeHandle = {
 
 type ProbeForwardedProps = ProbeProps & {probeRef?: Ref<ProbeHandle>};
 
-// Probe pressable: calls both hooks (the "ref-attached handshake") and exposes the merged result for assertions.
 function Probe({consumerOnPress, consumerNativeID, consumerAccessibilityState, consumerRef, probeRef}: ProbeForwardedProps) {
     const merged = usePressResponderProps({onPress: consumerOnPress, nativeID: consumerNativeID, accessibilityState: consumerAccessibilityState});
     const mergedRef = useResponderRef(consumerRef);
-    const localCapture = useRef<ProbeHandle>({capturedProps: merged, capturedRef: mergedRef});
-    localCapture.current = {capturedProps: merged, capturedRef: mergedRef};
-    useImperativeHandle(probeRef, () => localCapture.current, [merged, mergedRef]);
+    useImperativeHandle(probeRef, () => ({capturedProps: merged, capturedRef: mergedRef}), [merged, mergedRef]);
     return (
-        <Pressable
-            ref={mergedRef as PressableProps['ref']}
-            onPress={merged.onPress}
+        <PressableWithFeedback
+            ref={mergedRef}
+            onPress={merged.onPress ?? (() => {})}
             nativeID={merged.nativeID}
             accessibilityState={merged.accessibilityState}
+            accessibilityLabel="probe"
+            sentryLabel="probe"
         >
             <Text>probe</Text>
-        </Pressable>
+        </PressableWithFeedback>
     );
 }
 
-// Pressable that consumes props but skips useResponderRef — triggers the dev warning.
+// Must use <View>, not PressableWithFeedback — the latter internally calls useResponderRef and would complete the handshake.
 function PropsOnlyProbe() {
-    const merged = usePressResponderProps({});
+    usePressResponderProps({});
     return (
-        <Pressable onPress={merged.onPress}>
+        <View>
             <Text>props-only</Text>
-        </Pressable>
+        </View>
     );
+}
+
+function Tooltip({children}: {children: ReactNode}) {
+    return <View>{children}</View>;
+}
+
+function IconButton({children}: {children: ReactNode}) {
+    return <View>{children}</View>;
 }
 
 describe('PressResponder', () => {
@@ -101,6 +110,7 @@ describe('PressResponder', () => {
             const probeRef = React.createRef<ProbeHandle>();
             render(
                 <PressResponder
+                    ref={undefined}
                     nativeID="ancestor-id"
                     accessibilityControls="content-id"
                     onPress={() => {}}
@@ -116,6 +126,7 @@ describe('PressResponder', () => {
             const probeRef = React.createRef<ProbeHandle>();
             render(
                 <PressResponder
+                    ref={undefined}
                     accessibilityState={{expanded: true}}
                     onPress={() => {}}
                 >
@@ -131,10 +142,17 @@ describe('PressResponder', () => {
         it('chains consumer onPress before the responder onPress', () => {
             const probeRef = React.createRef<ProbeHandle>();
             const calls: string[] = [];
-            const consumerOnPress = () => calls.push('consumer');
-            const responderOnPress = () => calls.push('responder');
+            const consumerOnPress = () => {
+                calls.push('consumer');
+            };
+            const responderOnPress = () => {
+                calls.push('responder');
+            };
             render(
-                <PressResponder onPress={responderOnPress}>
+                <PressResponder
+                    ref={undefined}
+                    onPress={responderOnPress}
+                >
                     <Probe
                         consumerOnPress={consumerOnPress}
                         probeRef={probeRef}
@@ -149,7 +167,10 @@ describe('PressResponder', () => {
             const probeRef = React.createRef<ProbeHandle>();
             const consumerOnPress = jest.fn();
             render(
-                <PressResponder nativeID="just-aria" /* no onPress */>
+                <PressResponder
+                    ref={undefined}
+                    nativeID="just-aria"
+                >
                     <Probe
                         consumerOnPress={consumerOnPress}
                         probeRef={probeRef}
@@ -161,10 +182,9 @@ describe('PressResponder', () => {
 
         it('flows props through arbitrary wrapper depth (no cloneElement required)', () => {
             const probeRef = React.createRef<ProbeHandle>();
-            const Tooltip = ({children}: {children: React.ReactNode}) => <View>{children}</View>;
-            const IconButton = ({children}: {children: React.ReactNode}) => <View>{children}</View>;
             render(
                 <PressResponder
+                    ref={undefined}
                     nativeID="deep-ancestor"
                     onPress={() => {}}
                 >
@@ -195,7 +215,6 @@ describe('PressResponder', () => {
                     />
                 </PressResponder>,
             );
-            // After render, both refs should point to the same Pressable node.
             expect(responderRef.current).toBeTruthy();
             expect(consumerRef.current).toBe(responderRef.current);
         });
@@ -205,6 +224,7 @@ describe('PressResponder', () => {
             const consumerRef = React.createRef<RNViewType>();
             render(
                 <PressResponder
+                    ref={undefined}
                     nativeID="no-ref"
                     onPress={() => {}}
                 >
@@ -214,7 +234,6 @@ describe('PressResponder', () => {
                     />
                 </PressResponder>,
             );
-            // Without a responder ref to merge with, consumer ref is the one that attaches.
             expect(consumerRef.current).toBeTruthy();
         });
     });
@@ -222,7 +241,10 @@ describe('PressResponder', () => {
     describe('dev-mode handshake warnings', () => {
         it('warns when handlers are published but no descendant consumed them', () => {
             render(
-                <PressResponder onPress={() => {}}>
+                <PressResponder
+                    ref={undefined}
+                    onPress={() => {}}
+                >
                     <View>
                         <Text>no-pressable-descendant</Text>
                     </View>
@@ -233,7 +255,10 @@ describe('PressResponder', () => {
 
         it('warns when secondary handler is published but no descendant consumed it', () => {
             render(
-                <PressResponder onSecondaryInteraction={() => {}}>
+                <PressResponder
+                    ref={undefined}
+                    onSecondaryInteraction={() => {}}
+                >
                     <View>
                         <Text>no-secondary-consumer</Text>
                     </View>
@@ -270,7 +295,10 @@ describe('PressResponder', () => {
 
         it('does not warn when no handlers and no ref are published', () => {
             render(
-                <PressResponder nativeID="aria-only">
+                <PressResponder
+                    ref={undefined}
+                    nativeID="aria-only"
+                >
                     <Probe />
                 </PressResponder>,
             );
