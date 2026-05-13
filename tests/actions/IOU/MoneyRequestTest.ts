@@ -1100,7 +1100,7 @@ describe('MoneyRequest', () => {
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
             conciergeReportID: undefined,
-            reportDrafts: undefined,
+            reportDraft: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1506,7 +1506,6 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: undefined,
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 8010,
-                reportDrafts: undefined,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1557,11 +1556,7 @@ describe('MoneyRequest', () => {
             expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
         });
 
-        it('should pass reportDrafts to getMoneyRequestParticipantOptions and mark participant as disabled', async () => {
-            const reportDrafts = {
-                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${fakeReport.reportID}`]: fakeReport,
-            };
-
+        it('should pass reportDraft to getMoneyRequestParticipantOptions and mark participant as disabled', async () => {
             let capturedParticipants: Participant[] = [];
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
@@ -1569,7 +1564,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
-                reportDrafts,
+                reportDraft: fakeReport,
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
                 },
@@ -1580,9 +1575,7 @@ describe('MoneyRequest', () => {
             expect(capturedParticipants.at(0)).toMatchObject({isDisabled: true});
         });
 
-        it('should not mark participant as disabled when reportDrafts does not include the report', async () => {
-            const reportDrafts = {};
-
+        it('should not mark participant as disabled when reportDraft is undefined', async () => {
             let capturedParticipants: Participant[] = [];
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
@@ -1590,7 +1583,7 @@ describe('MoneyRequest', () => {
                 shouldSkipConfirmation: false,
                 isArchivedExpenseReport: false,
                 draftTransactionIDs: [baseParams.transactionID],
-                reportDrafts,
+                reportDraft: undefined,
                 setDistanceRequestData: (participants) => {
                     capturedParticipants = participants;
                 },
@@ -1655,18 +1648,14 @@ describe('MoneyRequest', () => {
         });
 
         it('should mark policy expense chat participant as disabled when reportDrafts contains the report', () => {
-            const reportDrafts = {
-                [`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${fakeReport.reportID}`]: fakeReport,
-            };
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, reportDrafts);
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, fakeReport);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: true});
         });
 
-        it('should not mark participant as disabled when reportDrafts does not contain the report', () => {
-            const reportDrafts = {};
-            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, reportDrafts);
+        it('should not mark participant as disabled when reportDraft is undefined', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, undefined, undefined, undefined);
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
             expect(participants.at(0)).toMatchObject({isDisabled: false});

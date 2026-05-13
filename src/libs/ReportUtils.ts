@@ -1070,11 +1070,11 @@ Onyx.connect({
     },
 });
 
-let allReportsDraft: OnyxCollection<Report>;
+let deprecatedAllReportsDraft: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_DRAFT,
     waitForCollectionCallback: true,
-    callback: (value) => (allReportsDraft = value),
+    callback: (value) => (deprecatedAllReportsDraft = value),
 });
 
 let allPolicies: OnyxCollection<Policy>;
@@ -1281,12 +1281,12 @@ function getReportOrDraftReport(
     reportID: string | undefined,
     searchReports?: Array<OnyxEntry<Report>>,
     fallbackReport?: Report,
-    reportDrafts?: OnyxCollection<Report>,
+    reportDraft?: OnyxEntry<Report>,
     report?: OnyxEntry<Report>,
 ): OnyxEntry<Report> {
     const searchReport = searchReports?.find((searchItem) => searchItem?.reportID === reportID);
     const onyxReport = report ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    return searchReport ?? onyxReport ?? (reportDrafts ?? allReportsDraft)?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
+    return searchReport ?? onyxReport ?? reportDraft ?? fallbackReport;
 }
 
 /**
@@ -1306,7 +1306,7 @@ function getReportTransactions(reportID: string | undefined, allReportsTransacti
  * Check if a report is a draft report
  */
 function isDraftReport(reportID: string | undefined): boolean {
-    const draftReport = allReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
+    const draftReport = deprecatedAllReportsDraft?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`];
 
     return !!draftReport;
 }

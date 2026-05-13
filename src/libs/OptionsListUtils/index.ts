@@ -144,7 +144,6 @@ import {
     isArchivedNonExpenseReport,
     isChatThread,
     isDM,
-    isDraftReport,
     isExpenseReport,
     isHiddenForCurrentUser,
     isInvoiceRoom,
@@ -1160,11 +1159,11 @@ function getReportOption(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
-    reportDrafts?: OnyxCollection<Report>,
+    reportDraft?: OnyxEntry<Report>,
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
 ): OptionData {
-    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts);
+    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
@@ -1204,7 +1203,7 @@ function getReportOption(
             }
         }
     }
-    option.isDisabled = reportDrafts ? !!reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] : isDraftReport(participant.reportID);
+    option.isDisabled = !!reportDraft;
     option.isSelected = participant.selected;
     option.selected = participant.selected; // Keep for backwards compatibility
     option.brickRoadIndicator = null;

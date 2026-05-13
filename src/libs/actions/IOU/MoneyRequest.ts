@@ -183,7 +183,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     conciergeReportID: string | undefined;
-    reportDrafts: OnyxCollection<Report> | undefined;
+    reportDraft: OnyxEntry<Report> | undefined;
 };
 
 function createTransaction({
@@ -306,14 +306,14 @@ function getMoneyRequestParticipantOptions(
     conciergeReportID: string | undefined,
     privateIsArchived: boolean | undefined,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
-    reportDrafts: OnyxCollection<Report> | undefined,
+    reportDraft: OnyxEntry<Report> | undefined,
 ): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDrafts);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft);
     });
 }
 
@@ -611,7 +611,7 @@ function handleMoneyRequestStepDistanceNavigation({
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
     conciergeReportID,
-    reportDrafts,
+    reportDraft,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -642,7 +642,7 @@ function handleMoneyRequestStepDistanceNavigation({
             conciergeReportID,
             privateIsArchived,
             reportAttributesDerived,
-            reportDrafts,
+            reportDraft,
         );
 
         setDistanceRequestData?.(participants);
