@@ -84,7 +84,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const [fundCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const [allFeedsCards, allFeedsCardsResult] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const workspaceCards = getAllCardsForWorkspace(defaultFundID, allFeedsCards, cardFeeds, expensifyCardSettings);
+    const workspaceCards = getAllCardsForWorkspace(defaultFundID, allFeedsCards, cardFeeds, expensifyCardSettings, /* includeDeactivated */ true);
 
     const workspaceCard = workspaceCards?.[cardID];
     const card = workspaceCard ?? cardFromCardList;
@@ -96,6 +96,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const displayName = getDisplayNameOrDefault(cardholder);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
     const isAdmin = isPolicyAdmin(policy, session?.email);
+    const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
+
     const shouldGoBack = useRef(false);
 
     const fetchCardDetails = useCallback(() => {
@@ -345,12 +347,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             onPress={handleFreezePress}
                         />
                     )}
-                    <MenuItem
-                        icon={expensifyIcons.Trashcan}
-                        title={translate('workspace.expensifyCard.deactivate')}
-                        style={styles.mb1}
-                        onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
-                    />
+                    {!isDeactivated && (
+                        <MenuItem
+                            icon={expensifyIcons.Trashcan}
+                            title={translate('workspace.expensifyCard.deactivate')}
+                            style={styles.mb1}
+                            onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
+                        />
+                    )}
                     <ConfirmModal
                         title={translate('workspace.card.deactivateCardModal.deactivateCard')}
                         isVisible={isDeactivateModalVisible}

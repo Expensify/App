@@ -55,10 +55,10 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({
-                step: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE,
                 data: {
                     selectedCountry: currentCountry,
-                    selectedFeedType: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
+                    selectedFeedType: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : undefined,
                 },
                 isEditing: false,
             });
