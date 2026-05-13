@@ -25,11 +25,9 @@ describe('useShouldShowEnableNotificationsBanner', () => {
     beforeEach(async () => {
         mockCurrentPermission = 'default';
         await Onyx.clear();
-        await Onyx.multiSet({
-            [ONYXKEYS.CONCIERGE_REPORT_ID]: CONCIERGE_REPORT_ID,
-            [`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`]: {reportID: CONCIERGE_REPORT_ID},
-            [`${ONYXKEYS.COLLECTION.REPORT}${OTHER_REPORT_ID}`]: {reportID: OTHER_REPORT_ID},
-        });
+        await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {reportID: CONCIERGE_REPORT_ID});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_REPORT_ID}`, {reportID: OTHER_REPORT_ID});
     });
 
     it('returns false when reportID is undefined', async () => {
