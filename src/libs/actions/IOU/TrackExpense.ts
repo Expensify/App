@@ -2070,7 +2070,8 @@ function convertBulkTrackedExpensesToIOU({
 }
 
 function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUserAccountID} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUser} = trackedExpenseParams;
+    const {accountID: currentUserAccountID} = currentUser;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
@@ -2133,7 +2134,8 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 }
 
 function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams, currentUserAccountID} = trackedExpenseParams;
+    const {onyxData: trackedExpenseOnyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, accountantParams, currentUser} = trackedExpenseParams;
+    const {accountID: currentUserAccountID} = currentUser;
 
     const policyID = policyParams?.policyID;
     const chatReportID = reportInformation?.chatReportID;
@@ -2194,14 +2196,9 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
             failureData: addAccountantToWorkspaceFailureData,
-        } = buildAddMembersToWorkspaceOnyxData(
-            {[accountantEmail]: accountantAccountID},
-            policyParams.policy,
-            policyMemberAccountIDs,
-            CONST.POLICY.ROLE.ADMIN,
-            formatPhoneNumber,
-            currentUserAccountID,
-        );
+        } = buildAddMembersToWorkspaceOnyxData({[accountantEmail]: accountantAccountID}, policyParams.policy, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN, formatPhoneNumber, {
+            accountID: currentUserAccountID,
+        });
         onyxData.optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         onyxData.successData?.push(...addAccountantToWorkspaceSuccessData);
         onyxData.failureData?.push(...addAccountantToWorkspaceFailureData);
@@ -2271,8 +2268,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         shouldHandleNavigation = true,
         shouldPlaySound = true,
         isASAPSubmitBetaEnabled,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
+        currentUser,
         introSelected,
         activePolicy,
         quickAction,
@@ -2283,6 +2279,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         defaultWorkspaceName,
         previousOdometerDraft,
     } = params;
+    const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
     const parsedComment = getParsedComment(transactionData.comment ?? '');
@@ -2512,7 +2509,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
-                currentUserAccountID: currentUserAccountIDParam,
+                currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -2564,7 +2561,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 accountantParams,
-                currentUserAccountID: currentUserAccountIDParam,
+                currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
             };
             shareTrackedExpense(trackedExpenseParams);
             break;

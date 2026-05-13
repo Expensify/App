@@ -96,6 +96,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import {getCustomUnitsForDuplication, getMemberAccountIDsForWorkspace, goBackWhenEnableFeature, isControlPolicy, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import {hasValidModifiedAmount} from '@libs/TransactionUtils';
+import {AvatarSource} from '@libs/UserAvatarUtils';
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -191,6 +192,13 @@ type WorkspaceFromIOUCreationData = {
 };
 
 type PolicyCashExpenseMode = ValueOf<typeof CONST.POLICY.CASH_EXPENSE_REIMBURSEMENT_CHOICES>;
+
+type CurrentUser = {
+    accountID: number;
+    displayName?: string;
+    email?: string;
+    avatar?: AvatarSource;
+};
 
 type BuildPolicyDataOptions = {
     policyOwnerEmail?: string;
@@ -1568,12 +1576,13 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentU
 function createPolicyExpenseChats(
     policyID: string,
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    currentUserAccountID: number,
+    currentUser: CurrentUser,
     // TODO: Remove optional (?) once all is updated (https://github.com/Expensify/App/issues/66578)
     reportActionsList?: OnyxCollection<ReportActions>,
     hasOutstandingChildRequest = false,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
 ): WorkspaceMembersChats {
+    const {accountID: currentUserAccountID, displayName: currentUserDisplayName, email: currentUserEmail, avatar: currentUserAvatar} = currentUser;
     const workspaceMembersChats: WorkspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
@@ -1647,7 +1656,13 @@ function createPolicyExpenseChats(
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             };
         }
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction({emailCreatingAction: login});
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction({
+            emailCreatingAction: login,
+            currentUserDisplayName,
+            currentUserEmail,
+            currentUserAvatar,
+            currentUserAccountID,
+        });
 
         workspaceMembersChats.reportCreationData[login] = {
             reportID: optimisticReport.reportID,
@@ -3053,7 +3068,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         const employeeWorkspaceChat = createPolicyExpenseChats(
             policyID,
             {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID},
-            currentUserAccountIDParam,
+            {accountID: currentUserAccountIDParam},
             undefined,
             hasOutstandingChildRequest,
         );
@@ -4169,7 +4184,8 @@ function createWorkspaceFromIOUPayment(
     }
 
     // Create the expense chat for the employee whose IOU is being paid
-    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, currentUserAccountID, reportActionsList, true);
+    // TODO: We'll pass in the current user's display name, email, and avatar in a follow-up PR (https://github.com/Expensify/App/issues/66412)
+    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, {accountID: currentUserAccountID}, reportActionsList, true);
     const newWorkspace = {
         id: policyID,
 
@@ -7393,4 +7409,4 @@ export {
     setPolicyRequireCompanyCardsEnabled,
     setPolicyTimeTrackingDefaultRate,
 };
-export type {BuildPolicyDataKeys, WorkspaceMembersChats};
+export type {BuildPolicyDataKeys, CurrentUser, WorkspaceMembersChats};

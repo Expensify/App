@@ -236,8 +236,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 recentWaypoints,
                 targetPolicyTags,
                 conciergeReportID,
-                currentUserAccountID: accountID,
-                currentUserLogin: currentUserLogin ?? '',
+                currentUser: {accountID, email: currentUserLogin ?? ''},
             });
         }
     };
