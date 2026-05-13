@@ -83,7 +83,7 @@ function useEditMessage({reportID, originalReportID, reportAction, shouldScrollT
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             composerRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(actionOwnerReportID ?? reportID, reportAction, true, deleteDraft, () => focusEditAfterCancelDelete(composerRef.current));
+            ReportActionContextMenu.showDeleteModal(actionOwnerReportID, reportAction, true, deleteDraft, () => focusEditAfterCancelDelete(composerRef.current));
             return;
         }
 
