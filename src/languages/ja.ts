@@ -2639,7 +2639,7 @@ ${date} の ${merchant} への ${amount}`,
     reportFraudConfirmationPage: {
         title: 'カード不正利用を報告済み',
         description: '既存のカードは永久に無効化しました。カードの詳細画面に戻ると、新しいバーチャルカードが利用可能になっています。',
-        descriptionCardNotReplaced: 'カードは完全に無効化されましたが、凍結されている間は再発行できません。凍結を解除するか、ドメイン管理者に新しいカードの発行を依頼してください。',
+        descriptionCardNotReplaced: 'カードは完全に無効化されました。新しいカードを発行するには管理者に連絡してください。',
         buttonText: '了解しました、ありがとうございます！',
     },
     activateCardPage: {

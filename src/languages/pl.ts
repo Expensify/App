@@ -2658,8 +2658,7 @@ ${amount} dla ${merchant} - ${date}`,
     reportFraudConfirmationPage: {
         title: 'Zgłoszono oszustwo kartowe',
         description: 'Trwale dezaktywowaliśmy Twoją dotychczasową kartę. Gdy wrócisz do szczegółów karty, będzie tam dostępna nowa wirtualna karta.',
-        descriptionCardNotReplaced:
-            'Twoja karta została trwale dezaktywowana, ale nie może zostać wymieniona, gdy jest zablokowana. Odblokuj ją lub poproś administratora domeny o wydanie nowej.',
+        descriptionCardNotReplaced: 'Twoja karta została trwale dezaktywowana. Skontaktuj się z administratorem, aby wydać nową kartę.',
         buttonText: 'Jasne, dzięki!',
     },
     activateCardPage: {
