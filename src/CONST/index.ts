@@ -9734,6 +9734,12 @@ const CONST = {
         ANDROID: 16,
         NEWDOT: 83,
     },
+
+    REPORT_ACTION_EDIT_MESSAGE_STATE: {
+        OFF: 'off',
+        EDITING: 'editing',
+        SUBMITTED: 'submitted',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
