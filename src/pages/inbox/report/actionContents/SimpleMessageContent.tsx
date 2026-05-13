@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -63,27 +63,24 @@ function ReceiptScanFailedContent({action, report}: {action: OnyxTypes.ReportAct
     const actionReportID = action.reportID;
     // Prefer parentReportActionID (specific IOU action when `report` is a transaction thread).
     // Fall back to childReportID match, then to the only IOU action for one-transaction reports.
-    const getIouActionSelector = useCallback(
-        (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction | undefined => {
-            if (!isIouReport && parentReportActionID) {
-                const candidate = reportActions?.[parentReportActionID];
-                if (isActionOfType(candidate, CONST.REPORT.ACTIONS.TYPE.IOU)) {
-                    return candidate;
-                }
+    const getIouActionSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>): OnyxTypes.ReportAction | undefined => {
+        if (!isIouReport && parentReportActionID) {
+            const candidate = reportActions?.[parentReportActionID];
+            if (isActionOfType(candidate, CONST.REPORT.ACTIONS.TYPE.IOU)) {
+                return candidate;
             }
-            const iouActions = Object.values(reportActions ?? {}).filter((a): a is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-                isActionOfType(a, CONST.REPORT.ACTIONS.TYPE.IOU),
-            );
-            if (actionReportID) {
-                const match = iouActions.find((a) => a.childReportID === actionReportID);
-                if (match) {
-                    return match;
-                }
+        }
+        const iouActions = Object.values(reportActions ?? {}).filter((a): a is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+            isActionOfType(a, CONST.REPORT.ACTIONS.TYPE.IOU),
+        );
+        if (actionReportID) {
+            const match = iouActions.find((a) => a.childReportID === actionReportID);
+            if (match) {
+                return match;
             }
-            return iouActions.length === 1 ? iouActions.at(0) : undefined;
-        },
-        [isIouReport, parentReportActionID, actionReportID],
-    );
+        }
+        return iouActions.length === 1 ? iouActions.at(0) : undefined;
+    };
     const [iouAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {selector: getIouActionSelector});
     const transactionID = getLinkedTransactionID(iouAction);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
