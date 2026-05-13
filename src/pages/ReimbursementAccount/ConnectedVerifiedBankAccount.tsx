@@ -27,10 +27,10 @@ type ConnectedVerifiedBankAccountProps = {
     onBackButtonPress: () => void;
 
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
-    setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
+    setShouldShowConnectedVerifiedBankAccount: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
     /** Method to set the state of USD bank account step */
-    setUSDBankAccountStep?: (step: string | null) => void;
+    setUSDBankAccountStep: (step: string | null) => void;
 
     /** Whether the workspace currency is set to non USD currency */
     isNonUSDWorkspace: boolean;

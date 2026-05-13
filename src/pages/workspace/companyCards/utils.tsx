@@ -218,7 +218,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 data,
-                exportPageLink: ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID, backTo),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path),
             };
         }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
