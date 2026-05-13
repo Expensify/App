@@ -118,7 +118,8 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     };
 
     const handleViewTransactionsPress = useCallback(() => {
-        const feedKey = createCardFeedKey(String(defaultFundID), CONST.EXPENSIFY_CARD.BANK);
+        const fundIDForFeedKey = defaultFundID === CONST.DEFAULT_NUMBER_ID ? undefined : String(defaultFundID);
+        const feedKey = createCardFeedKey(fundIDForFeedKey, CONST.EXPENSIFY_CARD.BANK, undefined);
         const query = `type:expense feed:"${feedKey}" withdrawn:never withdrawal-status:pending`;
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
     }, [defaultFundID]);
