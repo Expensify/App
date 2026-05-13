@@ -18,8 +18,15 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
-import {setShouldShowComposeInput} from '@userActions/Composer';
-import {createTransactionThreadReport, openReport, readNewestAction, subscribeToReportLeavingEvents, unsubscribeFromLeavingRoomReportChannel, updateLastVisitTime} from '@userActions/Report';
+import {
+    clearStaleDMRecoveryTargetByTargetReportID,
+    createTransactionThreadReport,
+    openReport,
+    readNewestAction,
+    subscribeToReportLeavingEvents,
+    unsubscribeFromLeavingRoomReportChannel,
+    updateLastVisitTime,
+} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -140,7 +147,15 @@ function ReportFetchHandler() {
         );
         const oneTransactionID = currentReportTransactions.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransactions.at(0));
+        createTransactionThreadReport({
+            introSelected,
+            currentUserLogin: currentUserEmail ?? '',
+            currentUserAccountID,
+            betas,
+            iouReport: report,
+            iouReportAction: iouAction,
+            transaction: currentReportTransactions.at(0),
+        });
     });
 
     const onUnmount = useEffectEvent(() => {
@@ -234,11 +249,7 @@ function ReportFetchHandler() {
     }, [reportID, isFocused, isInSidePanel]);
 
     useEffect(() => {
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setShouldShowComposeInput(true);
-        });
         return () => {
-            interactionTask.cancel();
             onUnmount();
         };
     }, []);
@@ -268,13 +279,14 @@ function ReportFetchHandler() {
     }, [isFocused, prevIsFocused]);
 
     useEffect(() => {
-        if (!isValidReportIDFromPath(reportIDFromRoute)) {
+        if (!reportIDFromRoute || !isValidReportIDFromPath(reportIDFromRoute)) {
             return;
         }
         // Ensures the optimistic report is created successfully
         if (reportIDFromRoute !== report?.reportID || report?.pendingFields?.createChat) {
             return;
         }
+        clearStaleDMRecoveryTargetByTargetReportID(reportIDFromRoute);
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
@@ -341,7 +353,14 @@ function ReportFetchHandler() {
 
         // For legacy transactions, pass undefined as IOU action and the transaction object
         // It will be created optimistically and in the backend when call openReport
-        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, undefined, transaction);
+        createTransactionThreadReport({
+            introSelected,
+            currentUserLogin: currentUserEmail ?? '',
+            currentUserAccountID,
+            betas,
+            iouReport: report,
+            transaction,
+        });
     }, [
         introSelected,
         currentUserEmail,

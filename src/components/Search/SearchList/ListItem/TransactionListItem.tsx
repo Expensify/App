@@ -181,6 +181,7 @@ function TransactionListItem<TItem extends ListItem>({
             goToItem: () => onSelectRow(item, transactionPreviewData),
             snapshotReport,
             snapshotPolicy,
+            policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
             currentSearchKey,

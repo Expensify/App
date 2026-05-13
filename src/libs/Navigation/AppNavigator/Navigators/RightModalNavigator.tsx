@@ -108,7 +108,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const containerRef = useRef(null);
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
-    const {superWideRHPRouteKeys, wideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
+    const {superWideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
     const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
     const {windowWidth} = useWindowDimensions();
     const modalStackScreenOptions = useModalStackScreenOptions();
@@ -133,7 +133,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     // Animation should be disabled when we open the wide rhp from the narrow one.
     // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
-    const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || isSmallScreenWidth;
+    const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || isSmallScreenWidth;
 
     const animatedWidth = expandedRHPProgress.interpolate({
         inputRange: [0, 1, 2],
@@ -329,6 +329,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE}
                                     component={ModalStackNavigators.WorkspaceDuplicateModalStackNavigator}
+                                />
+                                <Stack.Screen
+                                    name={SCREENS.RIGHT_MODAL.POLICY_COPY_SETTINGS}
+                                    component={ModalStackNavigators.PolicyCopySettingsModalStackNavigator}
                                 />
                                 <Stack.Screen
                                     name={SCREENS.RIGHT_MODAL.NEW_TASK}
