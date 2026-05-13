@@ -4511,6 +4511,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             notConfigured: '未設定',
             bankAccountDescription: '小切手の送金元を選択してください。',
             creditCardAccount: 'クレジットカード口座',
+            travelInvoicingDescription: '旅費は、以下で指定した QuickBooks Online アカウントにクレジットカード請求としてエクスポートされます。',
             companyCardsLocationEnabledDescription:
                 'QuickBooks Online は仕入先請求書のエクスポートでロケーションをサポートしていません。ワークスペースでロケーションが有効になっているため、このエクスポートオプションは使用できません。',
             outOfPocketTaxEnabledDescription:
@@ -4695,6 +4696,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: '仕入先請求書',
                 },
             },
+            travelInvoicingDescription: '旅費は、以下で指定した Sage Intacct アカウントにクレジットカード請求としてエクスポートされます。',
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -8031,6 +8033,14 @@ ${reportName}
         selectAllFeatures: 'すべての機能を選択',
         selectAllTransactions: 'すべての取引を選択',
         selectAllItems: 'すべての項目を選択',
+        selectAllCategories: 'すべてのカテゴリを選択',
+        selectAllDistanceRates: 'すべての距離レートを選択',
+        selectAllTags: 'すべてのタグを選択',
+        selectAllTaxes: 'すべての税を選択',
+        selectAllPerDiemRates: 'すべての日当レートを選択',
+        selectAllMembers: 'すべてのメンバーを選択',
+        selectAllValues: 'すべての値を選択',
+        selectAllRules: 'すべてのルールを選択',
     },
     parentReportAction: {
         deletedReport: '削除されたレポート',
@@ -9091,6 +9101,8 @@ ${reportName}
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
                 vacationDelegate: 'このユーザーを休暇代理人として設定できませんでした。もう一度お試しください。',
                 moveMember: 'このメンバーを移動できませんでした。もう一度お試しください。',
+                moveMemberNotPolicyAdmin:
+                    'メンバーをドメイングループに移動できません。このユーザーを移動しようとしているドメイングループに設定された優先ポリシーのポリシー管理者である必要があります。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
             reportSuspiciousActivityPrompt: (email: string) =>
@@ -9124,7 +9136,7 @@ ${reportName}
             permissions: 'グループの権限',
             createNewGroupButton: '新しいグループ',
             createGroupSubmitButton: 'グループを作成',
-            expensifyCardPreferredWorkspace: 'Expensify Card 優先ワークスペース',
+            expensifyCardPreferredWorkspace: 'Expensify Card の優先ワークスペース',
             expensifyCardPreferredWorkspaceDescription: 'すべてのExpensify Cardトランザクションは、優先ワークスペースではなくExpensify Card優先ワークスペースで作成されます。',
             strictlyEnforceWorkspaceRules: 'ワークスペースのルールを厳密に適用する',
             strictlyEnforceWorkspaceRulesDescription: 'レポートを送信する前にすべてのワークスペースのルールを満たす必要があります。手動による例外は許可されていません。',
@@ -9142,7 +9154,7 @@ ${reportName}
             noWorkspacesMessage: 'このドメインにワークスペースがありません。この制限を有効にするにはワークスペースが必要です。',
             restrictDefaultLoginSelection: 'デフォルトのログイン選択を制限する',
             restrictDefaultLoginSelectionDescription: 'メンバーがポリシー制限を回避するために、ログイン用のメールアドレスを会社のドメイン以外に変更することを防ぎます。',
-            expensifyCardPreferredWorkspaceDisabledMessage: 'この設定を使用するには、優先ワークスペースを有効にし、ドメインに Expensify Card が設定されている必要があります。',
+            expensifyCardPreferredWorkspaceDisabledMessage: 'この設定を有効にするには、まず優先するワークスペースを有効にし、ドメインでExpensify Cardsを設定してください。',
             findGroup: 'グループを検索',
         },
     },

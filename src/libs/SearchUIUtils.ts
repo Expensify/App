@@ -146,6 +146,7 @@ import {
     getSearchReportName,
     hasHeldExpenses,
     hasInvoiceReports,
+    hasOnlyNonReimbursableTransactions,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
@@ -2409,9 +2410,9 @@ function getActions(
  * @private
  * Returns the primary action to show in the Action column for a given transaction or report
  */
-function getAction(allActions: SearchTransactionAction[]) {
+function getAction(allActions: SearchTransactionAction[], primaryActionExclusions: SearchTransactionAction[] = []) {
     // Do not set CHANGE_APPROVER as the primary action as it is less frequently used than VIEW
-    return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
+    return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER && !primaryActionExclusions.includes(action)) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
 /**
@@ -2734,10 +2735,12 @@ function getReportSections({
                     reportItem.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
                     reportItem.ownerAccountID === currentAccountID &&
                     reportItem.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT;
+                const shouldHidePayAsPrimaryAction = hasOnlyNonReimbursableTransactions(reportItem.reportID, allReportTransactions);
+                const primaryActionExclusions: SearchTransactionAction[] = shouldHidePayAsPrimaryAction ? [CONST.SEARCH.ACTION_TYPES.PAY] : [];
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
-                    action: getAction(allActions),
+                    action: getAction(allActions, primaryActionExclusions),
                     allActions,
                     keyForList: String(reportItem.reportID),
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
