@@ -14,7 +14,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const POLICY_ID = 'testPolicy123';
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actualNav = jest.requireActual('@react-navigation/native');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -32,13 +32,11 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@hooks/useWorkspaceAccountID', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => 999888,
 }));
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
 }));
