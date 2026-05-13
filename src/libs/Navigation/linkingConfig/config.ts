@@ -1522,12 +1522,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS]: {
                             path: ROUTES.SETTINGS_TAGS_SETTINGS.route,
                         },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT]: {
-                            path: ROUTES.SETTINGS_TAGS_EDIT.route,
-                            parse: {
-                                orderWeight: Number,
-                            },
-                        },
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT]: DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path,
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE]: {
                             path: ROUTES.SETTINGS_TAG_CREATE.route,
                         },
