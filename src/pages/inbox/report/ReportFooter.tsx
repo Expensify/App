@@ -91,7 +91,7 @@ function ReportFooter() {
     if (!shouldHideComposer) {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                <EnableNotificationsBanner reportID={reportIDFromRoute} />
+                {shouldShowEnableNotificationsBanner && <EnableNotificationsBanner />}
                 <View style={shouldShowEnableNotificationsBanner ? {marginTop: -BANNER_COMPOSER_OVERLAP_PX} : undefined}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose reportID={reportIDFromRoute} />

@@ -7,16 +7,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissForSession} from '@libs/actions/ConciergeNotificationBanner';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import variables from '@styles/variables';
-import useShouldShowEnableNotificationsBanner from './useShouldShowEnableNotificationsBanner';
 
 // Vertical overlap (px) between the bottom of the cream banner and the top of the composer.
 // ReportFooter applies marginTop: -BANNER_COMPOSER_OVERLAP_PX to the composer so this many
 // pixels of cream are hidden behind the composer's rounded top, exposing only its corner curves.
 const BANNER_COMPOSER_OVERLAP_PX = 32;
-
-type EnableNotificationsBannerProps = {
-    reportID: string;
-};
 
 function requestAndDismissIfGranted() {
     NotificationPermission.request().then((status) => {
@@ -27,14 +22,9 @@ function requestAndDismissIfGranted() {
     });
 }
 
-function EnableNotificationsBanner({reportID}: EnableNotificationsBannerProps) {
+function EnableNotificationsBanner() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const shouldShow = useShouldShowEnableNotificationsBanner(reportID);
-
-    if (!shouldShow) {
-        return null;
-    }
 
     return (
         <View
