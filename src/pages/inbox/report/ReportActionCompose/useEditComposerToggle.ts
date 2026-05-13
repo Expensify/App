@@ -43,7 +43,6 @@ function useEditComposerToggle({selection, draftComment, composerRef, onFocus, o
 
     const wasEditingRef = useRef(isEditing);
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
-    const wasComposerFocusedBeforeEditingRef = useRef(false);
     const previousDraftSelectionRef = useRef<TextSelection | null>(null);
     const previousEditingReportActionIDRef = useRef<string | null>(null);
 
@@ -88,10 +87,6 @@ function useEditComposerToggle({selection, draftComment, composerRef, onFocus, o
                 if (isEditingInComposer) {
                     setDidResetComposerHeight(false);
                 }
-
-                if (!wasComposerFocusedBeforeEditingRef.current) {
-                    composerRef.current?.blur();
-                }
             }
 
             wasEditingRef.current = false;
@@ -102,7 +97,6 @@ function useEditComposerToggle({selection, draftComment, composerRef, onFocus, o
 
         // Editing just started.
         if (!wasEditingRef.current) {
-            wasComposerFocusedBeforeEditingRef.current = composerRef.current?.isFocused() ?? false;
             // Store the draft selection before switching into edit mode so we can restore it later.
             previousDraftSelectionRef.current = selection;
 
