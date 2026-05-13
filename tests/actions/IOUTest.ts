@@ -3899,7 +3899,7 @@ describe('actions/IOU', () => {
                 policyRecentlyUsedCurrencies: [],
                 betas: [CONST.BETAS.ALL],
                 personalDetails: splitMockPersonalDetails,
-                participantsPolicyTags: {},
+                participantsPolicyTags: {[policyID]: {[tagName]: {name: tagName}} as unknown as PolicyTagLists},
             });
 
             waitForBatchedUpdates();
