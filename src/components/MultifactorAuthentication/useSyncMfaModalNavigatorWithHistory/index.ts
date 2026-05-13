@@ -1,5 +1,6 @@
 import {useEffect} from 'react';
 import {BackHandler} from 'react-native';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
@@ -53,10 +54,14 @@ function useSyncMfaModalNavigatorWithHistory(isModalOpen: boolean, requestCancel
             return;
         }
 
-        const backSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
-            requestCancel();
-            return true;
-        });
+        // BackHandler is Android-only: react-native-web stubs `addEventListener` with a `console.error`, and iOS has no hardware back.
+        const backSubscription =
+            getPlatform() === CONST.PLATFORM.ANDROID
+                ? BackHandler.addEventListener('hardwareBackPress', () => {
+                      requestCancel();
+                      return true;
+                  })
+                : null;
 
         let previousLastEntry = getLastHistoryEntry();
         const unsubscribe = navigationRef.addListener('state', () => {
@@ -72,7 +77,7 @@ function useSyncMfaModalNavigatorWithHistory(isModalOpen: boolean, requestCancel
         });
 
         return () => {
-            backSubscription.remove();
+            backSubscription?.remove();
             unsubscribe();
         };
     }, [isModalOpen, requestCancel]);
