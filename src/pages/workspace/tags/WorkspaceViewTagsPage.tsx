@@ -219,7 +219,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const navigateToTagSettings = (tag: TagListItem) => {
         Navigation.navigate(
             isQuickSettingsFlow
-                ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, orderWeight, tag.value, backTo)
+                ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.getRoute(orderWeight, tag.value))
                 : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tag.value, tag?.rules?.parentTagsFilter ?? undefined),
         );
     };

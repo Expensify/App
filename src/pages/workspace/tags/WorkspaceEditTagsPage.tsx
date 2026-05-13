@@ -23,9 +23,9 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PolicyTagNameForm';
 
-type DynamicWorkspaceEditTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT>;
+type WorkspaceEditTagsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_EDIT>;
 
-function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps) {
+function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -56,9 +56,7 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
             return;
         }
         Navigation.goBack(
-            isMultiLevelTagsEnabled
-                ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, route.params.orderWeight)
-                : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
+            isMultiLevelTagsEnabled ? ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(route?.params?.policyID, orderWeight) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(route?.params?.policyID),
         );
     };
 
@@ -112,4 +110,4 @@ function DynamicWorkspaceEditTagsPage({route}: DynamicWorkspaceEditTagsPageProps
     );
 }
 
-export default DynamicWorkspaceEditTagsPage;
+export default WorkspaceEditTagsPage;
