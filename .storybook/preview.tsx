@@ -5,6 +5,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import type {Parameters} from 'storybook/internal/types';
 import EnvironmentProvider from '@components/EnvironmentContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import colors from '@styles/theme/colors';
 import ComposeProviders from '@src/components/ComposeProviders';
@@ -36,7 +37,9 @@ const decorators = [
                 SearchContextProvider,
             ]}
         >
-            <Story />
+            <ScreenWrapperStatusContext.Provider value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: false, isSafeAreaBottomPaddingApplied: false}}>
+                <Story />
+            </ScreenWrapperStatusContext.Provider>
         </ComposeProviders>
     ),
 ];
