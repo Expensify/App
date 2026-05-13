@@ -4280,7 +4280,17 @@ function getReasonAndReportActionThatRequiresAttention(
 
     if (isInvoiceRoom(optionOrReport)) {
         const reportAction = Object.values(reportActions)
-            .sort((a, b) => (a?.created ?? '').localeCompare(b?.created ?? ''))
+            .sort((a, b) => {
+                const createdA = a?.created ?? '';
+                const createdB = b?.created ?? '';
+                if (createdA < createdB) {
+                    return -1;
+                }
+                if (createdA > createdB) {
+                    return 1;
+                }
+                return 0;
+            })
             .find(
                 (action) =>
                     action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
