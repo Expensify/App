@@ -15,7 +15,6 @@ import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
@@ -185,9 +184,18 @@ function ScreenWrapper({
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldBlockSingleEntryOldAppExit = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
-    const activeRouteWithoutParams = useRootNavigationState(() => Navigation.getActiveRouteWithoutParams?.() ?? '');
+    const [activeRouteWithoutParams, setActiveRouteWithoutParams] = useState(() => Navigation.getActiveRouteWithoutParams?.() ?? '');
     const initialURLWithoutParams = initialURL?.split('?').at(0);
     const doesInitialURLMatchActiveRoute = activeRouteWithoutParams !== '' && !!initialURLWithoutParams?.endsWith(activeRouteWithoutParams);
+
+    useEffect(() => {
+        if (activeRouteWithoutParams !== '') {
+            return;
+        }
+        Navigation.isNavigationReady().then(() => {
+            setActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams?.() ?? '');
+        });
+    }, [activeRouteWithoutParams]);
 
     usePreventRemove(isSingleNewDotEntry && doesInitialURLMatchActiveRoute && !shouldBlockSingleEntryOldAppExit, () => {
         if (!CONFIG.IS_HYBRID_APP) {
