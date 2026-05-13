@@ -298,7 +298,7 @@ function BaseTextInput({
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
     const accessibilityValue = useMemo(() => (Platform.OS === 'ios' ? {text: value ?? ''} : undefined), [value]);
     const labelId = useId();
-    const labelNativeID = Platform.OS === 'android' ? `label-${labelId}` : undefined;
+    const labelNativeID = Platform.OS === 'android' && accessibilityLabel ? `label-${labelId}` : undefined;
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
