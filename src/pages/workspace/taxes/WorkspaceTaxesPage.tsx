@@ -462,6 +462,7 @@ function WorkspaceTaxesPage({
                     selectedItems={selectedTaxesIDs}
                     onSelectRow={navigateToEditTaxRate}
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllTaxes')}
                     onTurnOnSelectionMode={(item) => item && toggleTax(item)}
                     onSelectAll={filteredTaxesList.length > 0 ? toggleAllTaxes : undefined}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}

@@ -4618,6 +4618,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: '供应商账单',
                 },
             },
+            travelInvoicingDescription: '差旅费用将作为信用卡费用导出到下面指定的 Sage Intacct 账户。',
             creditCardAccount: '信用卡账户',
             defaultVendor: '默认供应商',
             defaultVendorDescription: (isReimbursable: boolean) => `为没有在 Sage Intacct 中匹配供应商的${isReimbursable ? '' : '非'}可报销费用设置一个默认供应商。`,
@@ -4660,8 +4661,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             journalPostingPreference: {
                 label: '日记账分录过账偏好',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: '每个报表使用单独的分项条目',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: '每笔报销一条记录',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: '每笔报销仅一条记录',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: '每份报表使用单一分项明细记录',
                 },
             },
             invoiceItem: {
@@ -5161,6 +5162,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     requiredColumns: (missingColumns: string) => `请为以下每个属性分配一列：${missingColumns}`,
                     duplicateColumns: (duplicateColumn: string) => `哎呀！你已将单个字段（“${duplicateColumn}”）映射到了多个列。请检查后重试。`,
                 },
+                fileImportDescription: '如果您的银行无法发送数据馈送时的手动选项。',
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月末最后一天',
@@ -6593,6 +6595,7 @@ ${reportName}
                 gambling: '赌博',
                 tobacco: '烟草',
                 adultEntertainment: '成人娱乐',
+                giftCard: '礼品卡购买',
                 handwrittenReceipt: '手写收据',
                 requireCompanyCard: '所有消费均需使用公司卡',
                 requireCompanyCardDescription: '标记所有现金支出，包括里程和每日津贴报销。',
@@ -6808,6 +6811,10 @@ ${reportName}
                 corporate: {
                     label: '控制',
                     description: '适用于具有高级需求的组织。',
+                },
+                submit2026: {
+                    label: '提交',
+                    description: '适用于希望向雇主提交费用的员工。',
                 },
             },
             description: '选择适合您的方案。要查看详细的功能和价格列表，请访问我们的',
@@ -7493,6 +7500,7 @@ ${reportName}
         deleteSavedSearchConfirm: '确定要删除此搜索吗？',
         searchName: '搜索名称',
         savedSearchesMenuItemTitle: '已保存',
+        urlCopied: 'URL 已复制',
         groupedExpenses: '已分组的报销费用',
         bulkActions: {
             editMultiple: '批量编辑',
@@ -7889,6 +7897,14 @@ ${reportName}
         selectAllFeatures: '选择所有功能',
         selectAllTransactions: '选择所有交易',
         selectAllItems: '全选所有项目',
+        selectAllCategories: '选择所有类别',
+        selectAllDistanceRates: '选择所有距离费率',
+        selectAllTags: '选择所有标签',
+        selectAllTaxes: '全选所有税种',
+        selectAllPerDiemRates: '选择所有每日津贴费率',
+        selectAllMembers: '全选所有成员',
+        selectAllValues: '选择所有值',
+        selectAllRules: '选择所有规则',
     },
     parentReportAction: {
         deletedReport: '已删除的报告',
@@ -7983,6 +7999,7 @@ ${reportName}
         companyCard: '公司卡',
         expensifyCard: 'Expensify 卡',
         centralInvoicing: '集中开票',
+        travelCard: '旅行卡',
     },
     distance: {
         addStop: '添加站点',
@@ -8198,6 +8215,8 @@ ${reportName}
                         return `成人娱乐`;
                     case 'hotelIncidentals':
                         return `酒店杂费`;
+                    case 'giftCard':
+                        return `礼品卡购买`;
                     case 'handwrittenReceipt':
                         return `手写收据`;
                     default:
@@ -8957,7 +8976,12 @@ ${reportName}
             defaultGroupPrompt: (currentName: string, newName: string) => `您确定要将 ${newName} 设为默认群组吗？新成员将被邀请加入此群组，而不是之前的默认群组（${currentName}）。`,
             makeDefault: '设为默认',
             neverMind: '算了',
+            createGroupError: '无法创建此群组。请重试。',
             permissions: '群组权限',
+            createNewGroupButton: '新建群组',
+            createGroupSubmitButton: '创建群组',
+            expensifyCardPreferredWorkspace: 'Expensify Card 首选工作区',
+            expensifyCardPreferredWorkspaceDescription: '所有Expensify Card交易将在Expensify Card首选工作区而非首选工作区中创建。',
             strictlyEnforceWorkspaceRules: '严格执行工作空间规则',
             strictlyEnforceWorkspaceRulesDescription: '提交报告前必须满足所有工作空间规则。不允许手动例外。',
             restrictExpenseWorkspaceCreation: '限制创建/删除费用工作区',
@@ -8973,9 +8997,6 @@ ${reportName}
             noWorkspacesMessage: '此域上没有工作区。启用此限制需要一个工作区。',
             restrictDefaultLoginSelection: '限制默认登录选择',
             restrictDefaultLoginSelectionDescription: '防止成员将登录邮箱更改为公司域名以外的地址，以规避政策限制。',
-            expensifyCardPreferredWorkspace: 'Expensify Card 首选工作区',
-            expensifyCardPreferredWorkspaceDescription:
-                '所有 Expensify Card 交易将在 Expensify Card 首选工作区中创建，而不是在首选工作区中创建。启用此功能将仅覆盖 Expensify Card 交易的首选工作区设置。',
             expensifyCardPreferredWorkspaceDisabledMessage: '要使用此设置，必须启用首选工作区，并且域必须已设置 Expensify Card。',
             findGroup: '查找群组',
         },
