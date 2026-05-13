@@ -13,6 +13,9 @@ import variables from '@styles/variables';
 // pixels of cream are hidden behind the composer's rounded top, exposing only its corner curves.
 const BANNER_COMPOSER_OVERLAP_PX = 32;
 
+// The visible cream below the text equals p3's 12px top padding; the rest sits behind the composer.
+const containerInlineStyle = {paddingBottom: 12 + BANNER_COMPOSER_OVERLAP_PX, borderRadius: variables.componentBorderRadiusRounded};
+
 function requestAndDismissIfGranted() {
     NotificationPermission.request().then((status) => {
         if (status !== 'granted') {
@@ -27,17 +30,7 @@ function EnableNotificationsBanner() {
     const {translate} = useLocalize();
 
     return (
-        <View
-            style={[
-                styles.flexRow,
-                styles.alignItemsCenter,
-                styles.hoveredComponentBG,
-                styles.p3,
-                // The visible cream below the text equals p3's 12px top padding; the rest is
-                // hidden behind the composer via the negative marginTop in ReportFooter.
-                {paddingBottom: 12 + BANNER_COMPOSER_OVERLAP_PX, borderRadius: variables.componentBorderRadiusRounded},
-            ]}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.hoveredComponentBG, styles.p3, containerInlineStyle]}>
             <Text style={[styles.flex1, styles.flexWrap, styles.textNormal]}>{translate('concierge.enableNotifications.prompt')}</Text>
             <Button
                 success

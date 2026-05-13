@@ -38,6 +38,8 @@ import useShouldShowEnableNotificationsBanner from './useShouldShowEnableNotific
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
 
+const composerOverlapStyle = {marginTop: -BANNER_COMPOSER_OVERLAP_PX};
+
 /**
  * Footer component that decides between the composer and
  * archived/anonymous/blocked/system chat/admins-only footer.
@@ -92,7 +94,7 @@ function ReportFooter() {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                 {shouldShowEnableNotificationsBanner && <EnableNotificationsBanner />}
-                <View style={shouldShowEnableNotificationsBanner ? {marginTop: -BANNER_COMPOSER_OVERLAP_PX} : undefined}>
+                <View style={shouldShowEnableNotificationsBanner ? composerOverlapStyle : undefined}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose reportID={reportIDFromRoute} />
                     </SwipeableView>
