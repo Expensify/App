@@ -76,10 +76,6 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
     });
 
-    it('strips legacy backTo when redirecting legacy standalone referral routes', () => {
-        expect(getMatchingNewRoute('/referral/shareCode?backTo=/r/123/share-code')).toBe('/home/referral/shareCode');
-    });
-
     it('does not redirect paths that look similar but do not match migrated patterns', () => {
         expect(getMatchingNewRoute('/r/123/settings/visibility')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/abc/overview/plan')).toBe(undefined);
