@@ -106,6 +106,17 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                             return;
                         }
 
+                        // Replaying the original request after successful re-authentication might hit the same server-side 2FA check and loop indefinitely. So we skip it.
+                        if (is2FASetupRequired) {
+                            if (isFromSequentialQueue) {
+                                return data;
+                            }
+                            if (request.resolve) {
+                                request.resolve(data);
+                            }
+                            return data;
+                        }
+
                         if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
                             return processWithMiddleware(request, isFromSequentialQueue);
                         }
