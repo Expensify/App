@@ -4,6 +4,7 @@ import SkeletonRect from '@components/SkeletonRect';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 
 const BAR_HEIGHT = 32;
 const BAR_GAP = 8;
@@ -16,6 +17,7 @@ const BAR_WIDTHS = [220, 280, 180] as const;
 function FollowupListSkeleton() {
     const styles = useThemeStyles();
     const theme = useTheme();
+    useSkeletonSpan('FollowupListSkeleton', {context: 'ReportScreen.ChatActionableButtons'});
 
     return (
         <View style={[styles.mt2, styles.alignItemsStart]}>
