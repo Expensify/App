@@ -38,6 +38,9 @@ type IntroSelected = {
 
     /** The previous onboarding choices of the user */
     previousChoices?: OnboardingPurpose[];
+
+    /** The policyID of the policy that the user was onboarded to */
+    onboardingPolicyID?: string;
 };
 
 export default IntroSelected;

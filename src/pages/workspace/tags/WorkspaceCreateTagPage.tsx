@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -24,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {onboardingPolicyIDSelector} from '@src/selectors/IntroSelected';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
 type WorkspaceCreateTagPageProps =
@@ -38,6 +40,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE;
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: onboardingPolicyIDSelector});
 
     const policyHasCustomCategories = hasCustomCategories(policyCategories);
 
@@ -94,6 +97,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             setupCategoriesAndTagsParentReportAction,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             policyHasCustomCategories,
+            onboardingPolicyID,
         });
         Keyboard.dismiss();
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
