@@ -146,7 +146,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title: travelPayableAccount?.name,
             description: translate('workspace.common.travelInvoicing'),
             onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID)),
-            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE],
             shouldHide: !isTravelInvoicingEnabled,
         },
         {
