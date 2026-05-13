@@ -33,6 +33,7 @@ import {
     getRateID,
     getTaxValue,
     getValidWaypoints,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
@@ -313,7 +314,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 action,
                 transactionParams: {
                     amount: itemAmount,
-                    distance: isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
+                    // Pass the stored quantity for any distance request so that a manually-edited distance
+                    // on a map-based expense survives `convertTrackedExpenseToRequest`. Without this, BE
+                    // would recompute the distance from waypoints and drop the user's edit. Check the
+                    // per-item transaction (not the page-level `isDistanceRequest` prop) because in
+                    // submit-from-self-DM flows the page-level transaction can be a draft optimistic one
+                    // that hasn't yet inherited the distance custom unit.
+                    distance:
+                        isDistanceRequestTransactionUtils(item) && typeof item.comment?.customUnit?.quantity === 'number'
+                            ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity)
+                            : undefined,
                     attendees: item.comment?.attendees,
                     currency: itemCurrency,
                     created: item.created,
