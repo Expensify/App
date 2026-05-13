@@ -15,6 +15,9 @@ type TextInputLabelProps = {
 
     /** For attribute for label */
     for?: string;
+
+    /** nativeID for accessibilityLabelledBy on Android */
+    nativeID?: string;
 };
 
 export default TextInputLabelProps;

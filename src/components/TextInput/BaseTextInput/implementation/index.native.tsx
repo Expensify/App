@@ -344,17 +344,10 @@ function BaseTextInput({
                                 labelTranslateY={labelTranslateY}
                                 labelScale={labelScale}
                                 for={inputProps.nativeID}
+                                nativeID={labelNativeID}
                                 isMultiline={isMultiline}
                             />
                         ) : null}
-                        {Platform.OS === 'android' && !!accessibilityLabel && (
-                            <Text
-                                nativeID={labelNativeID}
-                                style={styles.visuallyHidden}
-                            >
-                                {accessibilityLabel}
-                            </Text>
-                        )}
                         <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
