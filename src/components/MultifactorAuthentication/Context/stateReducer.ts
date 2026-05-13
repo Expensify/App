@@ -85,7 +85,9 @@ function stateReducer(state: MultifactorAuthenticationState, action: Action): Mu
             };
         }
         case 'CLOSE_MODAL':
-            return {...state, isModalOpen: false};
+            // Also clear the cancel-confirm flag: an async path (e.g. handleCallback → SKIP_OUTCOME_SCREEN) can dispatch
+            // CLOSE_MODAL while the confirm modal is still visible, and the modal would linger during the close animation.
+            return {...state, isModalOpen: false, isCancelConfirmVisible: false};
         case 'RESET':
             return DEFAULT_STATE;
         case 'REREGISTER':
