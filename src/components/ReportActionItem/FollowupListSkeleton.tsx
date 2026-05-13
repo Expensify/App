@@ -35,7 +35,7 @@ function FollowupListSkeleton() {
             >
                 {BAR_WIDTHS.map((width, index) => (
                     <SkeletonRect
-                        key={`skeletonRect${index}`}
+                        key={`skeletonRect${width}`}
                         transform={[{translateY: index * (BAR_HEIGHT + BAR_GAP)}]}
                         width={width}
                         height={BAR_HEIGHT}
