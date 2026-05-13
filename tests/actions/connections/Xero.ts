@@ -1,6 +1,5 @@
 import Onyx from 'react-native-onyx';
 import {updateXeroTravelInvoicingPayableAccount} from '@libs/actions/connections/Xero';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -11,7 +10,6 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 jest.mock('@expensify/react-native-hybrid-app', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         isHybridApp: jest.fn(),
@@ -51,12 +49,11 @@ describe('actions/connections/Xero', () => {
             expect(command).toBe(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS);
 
             const call = writeSpy.mock.calls.at(0);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- API.write's params argument is typed as a broad union, so narrow to the shape this command sends
             const params = call?.[1] as {connectionName: string; configUpdate: string; idempotencyKey: string; policyID: string};
             expect(params.policyID).toBe(MOCK_POLICY_ID);
             expect(params.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(params.idempotencyKey).toBe(CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT);
-            expect(JSON.parse(params.configUpdate)).toEqual({[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: 'account-123'});
+            expect(JSON.parse(params.configUpdate)).toEqual({[CONST.XERO_CONFIG.EXPORT]: {[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: 'account-123'}});
         });
 
         it('merges travelInvoicingPayableAccountID optimistically onto the Xero config', () => {
@@ -66,9 +63,8 @@ describe('actions/connections/Xero', () => {
             const optimisticUpdate = onyxData?.optimisticData?.at(0);
             expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- optimisticData values are typed as unknown; narrow to the partial Policy shape this update writes
-            const value = optimisticUpdate?.value as {connections: {xero: {config: Record<string, unknown>}}};
-            expect(value.connections.xero.config[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe('account-123');
+            const value = optimisticUpdate?.value as {connections: {xero: {config: {export: Record<string, unknown>; pendingFields: Record<string, unknown>}}}};
+            expect(value.connections.xero.config.export[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe('account-123');
             expect(value.connections.xero.config.pendingFields).toEqual({[CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
         });
     });
