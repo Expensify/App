@@ -15,6 +15,19 @@ import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
 /**
+ * Get node unique ID based on hierarchy
+ */
+function getHierarchyID(tnode: TNode): string {
+    let id = String(tnode.nodeIndex);
+    let parent = tnode.parent;
+    while (parent) {
+        id = `${parent.nodeIndex}-${id}`;
+        parent = parent.parent;
+    }
+    return id;
+}
+
+/**
  * Traverse node and extract and parse `data` attributes
  * The retured array is 1D - All nested data are flattened
  */
@@ -31,7 +44,7 @@ function extractData(tnode: TNode): Array<Record<string, unknown>> {
 }
 
 /**
- * Process raw data and combines points based on shared xKey
+ * Process raw data and combine points based on shared xKey
  */
 function processDataForCartesianChart(rawData: Array<Record<string, unknown>>) {
     const xKey = 'x';
@@ -67,6 +80,7 @@ function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}
 
     const renderChild = useCallback((tnode, index, points, chartBounds) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
+        const hierarchyID = getHierarchyID(tnode);
         switch (tnode.tagName) {
             case 'victorybar':
                 return (
