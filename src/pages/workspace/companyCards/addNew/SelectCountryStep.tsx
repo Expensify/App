@@ -58,7 +58,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE,
                 data: {
                     selectedCountry: currentCountry,
-                    selectedFeedType: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : undefined,
+                    selectedFeedType: doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
                 },
                 isEditing: false,
             });
