@@ -2192,6 +2192,7 @@ const CONST = {
         BAD_REQUEST: 400,
         INVALID_SEARCH_QUERY: 401,
         NOT_AUTHENTICATED: 407,
+        NEEDS_2FA_SETUP: 432,
         EXP_ERROR: 666,
         UNABLE_TO_RETRY: 'unableToRetry',
         UPDATE_REQUIRED: 426,
@@ -2236,10 +2237,12 @@ const CONST = {
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
+        NEEDS_2FA_SETUP: 'Expensify\\Error\\Policy\\PolicyRequires2FA',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
         DUPLICATE_RECORD: '400 Unique Constraints Violation',
+        NEEDS_2FA_SETUP: 'Two-Factor Authentication required',
     },
     NETWORK: {
         METHOD: {
