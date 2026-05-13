@@ -129,3 +129,7 @@ Expensify assigns central billing expenses to the cardholder by matching card de
 
 To have expenses assigned to you, make sure your Expensify profile name matches the cardholder name and that your card is connected to your account.  
 
+## How can I identify Central Billing expenses in a report?
+
+Expenses paid with a Central Billing card display a credit card with plane icon and a **Travel Card** label in the expense list. This distinguishes them from regular Expensify Card expenses, which display the standard Expensify Card icon. You can hover over (or tap on mobile) the expense type icon to see the label.
+
