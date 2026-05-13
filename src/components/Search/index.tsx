@@ -27,6 +27,7 @@ import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import {flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
@@ -270,13 +271,15 @@ function Search({
     // cache (cachedOptimisticItemRef) is intentionally kept alive so the item
     // stays visible at its sorted position until server-confirmed data arrives;
     // clearOptimisticTracking handles that cleanup when pendingAction !== ADD.
+    // Re-fires when showPendingExpensePlaceholder is re-armed (subsequent expense
+    // creation while Search stays mounted) so each cycle gets a fresh safety net.
     useEffect(() => {
-        if (!hasPendingWriteOnMountRef.current) {
+        if (!showPendingExpensePlaceholder) {
             return;
         }
         const id = setTimeout(() => setShowPendingExpensePlaceholder(false), OPTIMISTIC_TRACKING_TIMEOUT_MS);
         return () => clearTimeout(id);
-    }, []);
+    }, [showPendingExpensePlaceholder]);
 
     // Flush (not cancel) on unmount so the API.write() still executes if the
     // user navigates away before onLayout fires. This also clears the channel,
@@ -1207,6 +1210,16 @@ function Search({
                     unmarkReportIDAsMultiTransactionExpense(reportID);
                 }
 
+                // Persist the current search context so prev/next navigation arrows
+                // in the report RHP can reference the correct result set.
+                saveLastSearchParams({
+                    queryJSON,
+                    offset,
+                    searchKey: currentSearchKey,
+                    hasMoreResults: !!searchResults?.search?.hasMoreResults,
+                    allowPostSearchRecount: true,
+                });
+
                 requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo})));
                 return;
             }
@@ -1246,6 +1259,10 @@ function Search({
             betas,
             email,
             accountID,
+            queryJSON,
+            offset,
+            searchResults?.search?.hasMoreResults,
+            currentSearchKey,
         ],
     );
 
@@ -1547,9 +1564,7 @@ function Search({
                 // Clear stale cached item so the new optimistic row is picked up fresh.
                 cachedOptimisticItemRef.current = null;
                 const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                if (latestKey) {
-                    optimisticWatchKeyRef.current = latestKey;
-                }
+                optimisticWatchKeyRef.current = latestKey;
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
