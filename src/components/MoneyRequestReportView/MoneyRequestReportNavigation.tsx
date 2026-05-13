@@ -13,7 +13,7 @@ import {saveLastSearchParams} from '@userActions/ReportNavigation';
 import {search} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {SearchResults} from '@src/types/onyx';
+import type {SearchResults} from '@src/types/onyx';
 import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 type MoneyRequestReportNavigationProps = {
