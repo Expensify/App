@@ -1,6 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import FixedFooter from '@components/FixedFooter';
@@ -32,8 +33,6 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/acti
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-// eslint-disable-next-line no-restricted-imports
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -241,12 +240,9 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             });
 
             // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-            TransitionTracker.runAfterTransitions({
-                callback: () => {
-                    setOnboardingAdminsChatReportID();
-                    setOnboardingPolicyID();
-                },
-                waitForUpcomingTransition: true,
+            InteractionManager.runAfterInteractions(() => {
+                setOnboardingAdminsChatReportID();
+                setOnboardingPolicyID();
             });
 
             // We need to wait the policy is created before navigating out the onboarding flow
