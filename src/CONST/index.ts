@@ -378,6 +378,13 @@ const CONST = {
         },
     },
 
+    // Used to track the editing state of report action messages in the ReportActionEditMessageContext provider.
+    REPORT_ACTION_EDIT_MESSAGE_STATE: {
+        OFF: 'off',
+        EDITING: 'editing',
+        SUBMITTED: 'submitted',
+    },
+
     // Maximum width and height size in px for a selected image
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
@@ -9733,12 +9740,6 @@ const CONST = {
         IPHONE: 14,
         ANDROID: 16,
         NEWDOT: 83,
-    },
-
-    REPORT_ACTION_EDIT_MESSAGE_STATE: {
-        OFF: 'off',
-        EDITING: 'editing',
-        SUBMITTED: 'submitted',
     },
 } as const;
 

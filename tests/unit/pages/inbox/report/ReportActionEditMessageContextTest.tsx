@@ -10,20 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, ReportActionsDrafts} from '@src/types/onyx';
 import {getFakeReport, getFakeReportAction} from '../../../../utils/LHNTestUtils';
 
-jest.mock('@src/CONST', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@src/CONST');
-    // Jest's Babel pipeline currently truncates the tail of the huge default CONST object (properties after PARTNER_ID).
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    actual.default.REPORT_ACTION_EDIT_MESSAGE_STATE = {
-        OFF: 'off',
-        EDITING: 'editing',
-        SUBMITTED: 'submitted',
-    };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return actual;
-});
-
 jest.mock('@hooks/useTransactionThreadReportID', () => ({
     __esModule: true,
     default: jest.fn(() => ({
