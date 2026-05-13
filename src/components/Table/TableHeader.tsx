@@ -62,6 +62,8 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
         return null;
     }
 
+    const gridTemplateColumns = columns.map((column) => column.width ?? '1fr').join(' ');
+
     return (
         <View
             style={[
@@ -78,7 +80,7 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 styles.gap3,
                 // Use Grid on web when available (will override flex if supported)
                 styles.dGrid,
-                !shouldUseNarrowTableLayout && {gridTemplateColumns: `repeat(${columns.length}, 1fr)`},
+                !shouldUseNarrowTableLayout && {gridTemplateColumns},
                 style,
             ]}
             // eslint-disable-next-line react/jsx-props-no-spreading
@@ -148,6 +150,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
         styles.tableHeaderContentHeight,
         column.styling?.flex ? {flex: column.styling.flex} : styles.flex1,
         column.styling?.containerStyles,
+        !column.sortable && styles.cursorDefault,
     ];
 
     return (
@@ -155,6 +158,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
+            disabled={!column.sortable}
             sentryLabel={CONST.SENTRY_LABEL.TABLE_HEADER.SORTABLE_COLUMN}
             style={tableHeaderStyles}
             onPress={() => toggleSorting(column.key)}

@@ -6,7 +6,7 @@ import {AvatarSource} from '@libs/UserAvatarUtils';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 
-export type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
+export type WorkspaceCategoryTableColumnKey = 'selection' | 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
 
 export type WorkspaceCategoryTableRowData = {
     keyForList: string;
@@ -31,11 +31,40 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
     const {translate, localeCompare} = useLocalize();
 
     const categoryTableColumns: Array<TableColumn<WorkspaceCategoryTableColumnKey>> = [
-        {key: 'name', label: translate('common.name')},
-        {key: 'glCode', label: translate('workspace.categories.glCode')},
-        ...(shouldShowApproverColumn ? [{key: 'approver', label: translate('common.approver')} as const] : []),
-        {key: 'enabled', label: translate('common.enabled')},
-        {key: 'actions', label: ''},
+        {
+            key: 'selection',
+            label: '',
+            sortable: false,
+        },
+        {
+            key: 'name',
+            label: translate('common.name'),
+            sortable: true,
+        },
+        {
+            key: 'glCode',
+            label: translate('workspace.categories.glCode'),
+            sortable: true,
+        },
+        ...(shouldShowApproverColumn
+            ? [
+                  {
+                      key: 'approver' as const,
+                      label: translate('common.approver'),
+                      sortable: true,
+                  },
+              ]
+            : []),
+        {
+            key: 'enabled',
+            label: translate('common.enabled'),
+            sortable: true,
+        },
+        {
+            key: 'actions',
+            label: '',
+            sortable: false,
+        },
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceCategoryTableRowData> = (item1, item2, activeSorting) => {
@@ -56,7 +85,7 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
 
     const isItemInSearch: IsItemInSearchCallback<WorkspaceCategoryTableRowData> = (item, searchValue) => {
         const searchLower = searchValue.toLowerCase();
-        return item.name.toLowerCase().includes(searchLower) || item.glCode.toLowerCase().includes(searchLower);
+        return !!item.name.toLowerCase().includes(searchLower) || !!item.glCode?.toLowerCase().includes(searchLower);
     };
 
     const renderCategoryItem = ({item, index}: ListRenderItemInfo<WorkspaceCategoryTableRowData>) => (

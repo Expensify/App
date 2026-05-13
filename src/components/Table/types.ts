@@ -31,6 +31,12 @@ type TableColumn<ColumnKey extends string = string> = {
     /** Display label shown in the table header. */
     label: string;
 
+    /** Whether the column is sortable or not */
+    sortable: boolean;
+
+    /** Optional fixed width for the column */
+    width?: number | string;
+
     /** Optional styling configuration for the column. */
     styling?: TableColumnStyling;
 };
