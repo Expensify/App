@@ -1136,7 +1136,6 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Odpuść to',
         dropMessage: 'Upuść tutaj plik',
         flash: 'błysk',
-        flipCamera: 'Przełącz kamerę',
         multiScan: 'wielokrotne skanowanie',
         shutter: 'migawka',
         gallery: 'galeria',
@@ -2856,6 +2855,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Nie otrzymano magicznego kodu?',
+        avoidScamsMessage: '<strong>Unikaj oszustw. Nie udostępniaj nikomu swojego kodu.</strong> Nasz zespół nigdy nie zadzwoni, nie wyśle SMS-a ani e-maila z prośbą o ten kod.',
         enterAuthenticatorCode: 'Wprowadź swój kod z aplikacji uwierzytelniającej',
         enterRecoveryCode: 'Wprowadź swój kod odzyskiwania',
         requiredWhen2FAEnabled: 'Wymagane, gdy włączone jest 2FA',
@@ -4767,8 +4767,8 @@ ${amount} dla ${merchant} - ${date}`,
             journalPostingPreference: {
                 label: 'Preferencje księgowania zapisów w dzienniku',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Pojedynczy, wyszczególniony wpis dla każdego raportu',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Pojedynczy wpis dla każdego wydatku',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Pojedynczy wpis dla każdego wydatku',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Pojedyncza, wyszczególniona pozycja dla każdego raportu',
                 },
             },
             invoiceItem: {
@@ -5277,6 +5277,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     requiredColumns: (missingColumns: string) => `Przypisz kolumnę do każdego z atrybutów: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Ups! Przypisałeś jedno pole („${duplicateColumn}”) do wielu kolumn. Sprawdź i spróbuj ponownie.`,
                 },
+                fileImportDescription: 'Ręczna opcja, jeśli Twój bank nie może wysyłać kanału danych.',
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ostatni dzień miesiąca',
@@ -6758,6 +6759,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 gambling: 'Hazard',
                 tobacco: 'Tytoń',
                 adultEntertainment: 'Rozrywka dla dorosłych',
+                giftCard: 'Zakup kart podarunkowych',
                 handwrittenReceipt: 'Odręczne paragony',
                 requireCompanyCard: 'Wymagaj kart służbowych dla wszystkich zakupów',
                 requireCompanyCardDescription: 'Oznacz wszystkie wydatki gotówkowe, w tym koszty za przejechane kilometry i ryczałty dzienne.',
@@ -6976,6 +6978,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 corporate: {
                     label: 'Sterowanie',
                     description: 'Dla organizacji z zaawansowanymi wymaganiami.',
+                },
+                submit2026: {
+                    label: 'Prześlij',
+                    description: 'Dla pracowników, którzy chcą przesyłać wydatki do pracodawcy.',
                 },
             },
             description: 'Wybierz plan odpowiedni dla siebie. Szczegółową listę funkcji i cen znajdziesz w naszej',
@@ -7680,6 +7686,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         deleteSavedSearchConfirm: 'Na pewno chcesz usunąć to wyszukiwanie?',
         searchName: 'Wyszukaj nazwę',
         savedSearchesMenuItemTitle: 'Zapisano',
+        urlCopied: 'URL skopiowany',
         groupedExpenses: 'zgrupowane wydatki',
         bulkActions: {
             editMultiple: 'Edytuj wiele',
@@ -8183,6 +8190,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         companyCard: 'Karta firmowa',
         expensifyCard: 'Karta Expensify',
         centralInvoicing: 'Centralne fakturowanie',
+        travelCard: 'Karta podróżna',
     },
     distance: {
         addStop: 'Dodaj przystanek',
@@ -8403,6 +8411,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                         return `rozrywka dla dorosłych`;
                     case 'hotelIncidentals':
                         return `dodatkowe opłaty hotelowe`;
+                    case 'giftCard':
+                        return `zakup kart podarunkowych`;
                     case 'handwrittenReceipt':
                         return `odręczne paragony`;
                     default:
@@ -9179,7 +9189,13 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
                 `Czy na pewno chcesz ustawić ${newName} jako grupę domyślną? Nowi członkowie będą zapraszani do tej grupy zamiast do poprzedniej grupy domyślnej (${currentName}). `,
             makeDefault: 'Ustaw jako domyślną',
             neverMind: 'Nieważne',
+            createGroupError: 'Nie udało się utworzyć tej grupy. Spróbuj ponownie.',
             permissions: 'Uprawnienia grupy',
+            createNewGroupButton: 'Nowa grupa',
+            createGroupSubmitButton: 'Utwórz grupę',
+            expensifyCardPreferredWorkspace: 'Preferowany obszar roboczy Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Wszystkie transakcje Expensify Card będą tworzone w preferowanym obszarze roboczym Expensify Card zamiast w preferowanym obszarze roboczym.',
             strictlyEnforceWorkspaceRules: 'Ściśle egzekwuj reguły przestrzeni roboczej',
             strictlyEnforceWorkspaceRulesDescription: 'Przed przesłaniem raportu muszą zostać spełnione wszystkie reguły przestrzeni roboczej. Ręczne wyjątki są niedozwolone.',
             restrictExpenseWorkspaceCreation: 'Ogranicz tworzenie/usuwanie przestrzeni roboczej wydatków',
@@ -9196,9 +9212,6 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             noWorkspacesMessage: 'W tej domenie nie ma żadnych obszarów roboczych. Obszar roboczy jest wymagany, aby włączyć to ograniczenie.',
             restrictDefaultLoginSelection: 'Ogranicz wybór domyślnego logowania',
             restrictDefaultLoginSelectionDescription: 'Zapobiega zmianie adresu e-mail do logowania przez członków na adres spoza domeny firmowej, aby obejść ograniczenia zasad.',
-            expensifyCardPreferredWorkspace: 'Preferowana przestrzeń robocza dla Expensify Card',
-            expensifyCardPreferredWorkspaceDescription:
-                'Wszystkie transakcje Expensify Card będą tworzone w preferowanej przestrzeni roboczej dla Expensify Card zamiast w preferowanej przestrzeni roboczej. Włączenie tej funkcji zastąpi ustawienie preferowanej przestrzeni roboczej wyłącznie dla transakcji Expensify Card.',
             expensifyCardPreferredWorkspaceDisabledMessage:
                 'Aby korzystać z tego ustawienia, preferowana przestrzeń robocza musi być włączona, a domena musi mieć skonfigurowaną Expensify Card.',
             findGroup: 'Znajdź grupę',

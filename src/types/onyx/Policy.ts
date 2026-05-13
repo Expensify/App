@@ -1086,6 +1086,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
 
+        /** Whether Travel Invoicing JEs post as individual entries per expense or a single grouped entry */
+        travelInvoicingJournalPostingPreference?: NetSuiteJournalPostingPreferences;
+
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
         provincialTaxPostingAccount?: string;
 
@@ -1579,6 +1582,9 @@ type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the policy prohibits adult entertainment expenses */
     adultEntertainment?: boolean;
+
+    /** Whether the policy prohibits gift card purchases */
+    giftCard?: boolean;
 
     /** Whether the policy prohibits handwritten receipt expenses */
     handwrittenReceipt?: boolean;

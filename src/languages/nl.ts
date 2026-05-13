@@ -1136,7 +1136,6 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laat het los',
         dropMessage: 'Zet je bestand hier neer',
         flash: 'flits',
-        flipCamera: 'Camera wisselen',
         multiScan: 'meerscannen',
         shutter: 'sluiter',
         gallery: 'galerij',
@@ -2861,6 +2860,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Geen magische code ontvangen?',
+        avoidScamsMessage: '<strong>Voorkom oplichting. Deel je code met niemand.</strong> Ons team zal je nooit bellen, sms’en of e-mailen om deze code te vragen.',
         enterAuthenticatorCode: 'Voer je authenticatiecode in',
         enterRecoveryCode: 'Voer uw herstelcode in',
         requiredWhen2FAEnabled: 'Vereist wanneer 2FA is ingeschakeld',
@@ -4774,8 +4774,8 @@ ${amount} voor ${merchant} - ${date}`,
             journalPostingPreference: {
                 label: 'Voorkeur voor het boeken van journaalposten',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Enkele, uitgesplitste boeking voor elk rapport',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Eén boeking per uitgave',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Enkele boeking per uitgave',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Enkele, uitgesplitste boeking per rapport',
                 },
             },
             invoiceItem: {
@@ -5285,6 +5285,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     duplicateColumns: (duplicateColumn: string) =>
                         `Oeps! Je hebt één enkel veld (“${duplicateColumn}”) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
                 },
+                fileImportDescription: 'Een handmatige optie als je bank geen feed kan versturen.',
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Laatste dag van de maand',
@@ -6764,6 +6765,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 gambling: 'Gokken',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Volwassenenentertainment',
+                giftCard: 'Cadeaukaartaankopen',
                 handwrittenReceipt: 'Handgeschreven bonnen',
                 requireCompanyCard: 'Verplicht bedrijfskaarten voor alle aankopen',
                 requireCompanyCardDescription: 'Markeer alle contante uitgaven, inclusief kilometer- en dagvergoedingen.',
@@ -6981,6 +6983,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 corporate: {
                     label: 'Beheer',
                     description: 'Voor organisaties met geavanceerde vereisten.',
+                },
+                submit2026: {
+                    label: 'Indienen',
+                    description: 'Voor werknemers die onkosten bij hun werkgever willen indienen.',
                 },
             },
             description: 'Kies een pakket dat bij je past. Voor een gedetailleerd overzicht van functies en prijzen, bekijk onze',
@@ -7688,6 +7694,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         deleteSavedSearchConfirm: 'Weet je zeker dat je deze zoekopdracht wilt verwijderen?',
         searchName: 'Zoeknaam',
         savedSearchesMenuItemTitle: 'Opgeslagen',
+        urlCopied: 'URL gekopieerd',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
             editMultiple: 'Meerdere bewerken',
@@ -8192,6 +8199,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         companyCard: 'Bedrijfskaart',
         expensifyCard: 'Expensify Kaart',
         centralInvoicing: 'Gecentraliseerde facturatie',
+        travelCard: 'Reiskaart',
     },
     distance: {
         addStop: 'Stop toevoegen',
@@ -8416,6 +8424,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                         return `entertainment voor volwassenen`;
                     case 'hotelIncidentals':
                         return `hotelincidentals`;
+                    case 'giftCard':
+                        return `cadeaukaartaankopen`;
                     case 'handwrittenReceipt':
                         return `handgeschreven bonnen`;
                     default:
@@ -9196,7 +9206,12 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 `Weet je zeker dat je ${newName} de standaardgroep wilt maken? Nieuwe leden worden uitgenodigd voor deze groep in plaats van de vorige standaardgroep (${currentName}). `,
             makeDefault: 'Standaard maken',
             neverMind: 'Laat maar',
+            createGroupError: 'Kan deze groep niet aanmaken. Probeer het opnieuw.',
             permissions: 'Groepsmachtigingen',
+            createNewGroupButton: 'Nieuwe groep',
+            createGroupSubmitButton: 'Groep aanmaken',
+            expensifyCardPreferredWorkspace: 'Expensify Card voorkeurswerkruimte',
+            expensifyCardPreferredWorkspaceDescription: 'Alle Expensify Card-transacties worden aangemaakt in de Expensify Card-voorkeurswerkruimte in plaats van de voorkeurswerkruimte.',
             strictlyEnforceWorkspaceRules: 'Werkruimteregels strikt afdwingen',
             strictlyEnforceWorkspaceRulesDescription:
                 'Aan alle werkruimteregels moet worden voldaan voordat een rapport kan worden ingediend. Handmatige uitzonderingen zijn niet toegestaan.',
@@ -9214,9 +9229,6 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             noWorkspacesMessage: 'Er zijn geen werkruimtes op dit domein. Een werkruimte is vereist om deze beperking in te schakelen.',
             restrictDefaultLoginSelection: 'Standaard login-selectie beperken',
             restrictDefaultLoginSelectionDescription: 'Voorkomt dat leden hun login-e-mail wijzigen naar een adres buiten het bedrijfsdomein om beleidsbeperkingen te omzeilen.',
-            expensifyCardPreferredWorkspace: 'Voorkeurswerkruimte voor Expensify Card',
-            expensifyCardPreferredWorkspaceDescription:
-                'Alle Expensify Card-transacties worden aangemaakt in de voorkeurswerkruimte voor Expensify Card in plaats van de voorkeurswerkruimte. Door deze functie in te schakelen, wordt de instelling voor de voorkeurswerkruimte alleen voor Expensify Card-transacties overschreven.',
             expensifyCardPreferredWorkspaceDisabledMessage:
                 'Om deze instelling te gebruiken, moet de voorkeurswerkruimte zijn ingeschakeld en moet voor het domein een Expensify Card zijn ingesteld.',
             findGroup: 'Groep zoeken',

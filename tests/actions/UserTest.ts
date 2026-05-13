@@ -590,9 +590,10 @@ describe('actions/User', () => {
     });
 
     describe('lockAccount', () => {
+        const currentUserAccountID = 999;
         it('should execute with explicit accountID ', async () => {
             const accountID = 123456;
-            UserActions.lockAccount(accountID);
+            UserActions.lockAccount(currentUserAccountID, accountID, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -608,14 +609,10 @@ describe('actions/User', () => {
         });
 
         it('should execute without accountID (uses current user)', async () => {
-            UserActions.lockAccount();
+            UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(
-                SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT,
-                expect.objectContaining({accountID: expect.any(Number) as number}),
-                expect.any(Object),
-            );
+            expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, {accountID: currentUserAccountID}, expect.any(Object));
         });
 
         it('should pass domainAccountID and domainName as params when provided', async () => {
@@ -623,7 +620,7 @@ describe('actions/User', () => {
             const domainAccountID = 200;
             const domainName = 'expensify.com';
 
-            UserActions.lockAccount(accountID, domainAccountID, domainName);
+            UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
             await waitForBatchedUpdates();
 
             expect(mockAPI.makeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, {accountID, domainAccountID, domainName}, expect.any(Object));
@@ -631,7 +628,7 @@ describe('actions/User', () => {
 
         describe('when locking current user (no accountID or matching currentUserAccountID)', () => {
             it('should include correct ACCOUNT optimistic, success, and failure data', async () => {
-                UserActions.lockAccount();
+                UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
@@ -675,7 +672,7 @@ describe('actions/User', () => {
             });
 
             it('should NOT include domain-related onyx data', async () => {
-                UserActions.lockAccount();
+                UserActions.lockAccount(currentUserAccountID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
@@ -704,7 +701,7 @@ describe('actions/User', () => {
             const userLockKey = `${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`;
 
             it('should include correct domain optimistic, success, and failure data', async () => {
-                UserActions.lockAccount(accountID, domainAccountID, domainName);
+                UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
                 await waitForBatchedUpdates();
 
                 const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;
@@ -773,7 +770,7 @@ describe('actions/User', () => {
                 await Onyx.merge(ONYXKEYS.SESSION, {accountID: 999, email: 'admin@expensify.com'});
                 await waitForBatchedUpdates();
 
-                UserActions.lockAccount(accountID, domainAccountID, domainName);
+                UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
                 await waitForBatchedUpdates();
 
                 const calls = (mockAPI.makeRequestWithSideEffects as jest.Mock).mock.calls;

@@ -223,16 +223,6 @@ type TransactionWeekGroupSorting = ColumnSortMapping<TransactionWeekGroupListIte
 type TransactionYearGroupSorting = ColumnSortMapping<TransactionYearGroupListItemType>;
 type TransactionQuarterGroupSorting = ColumnSortMapping<TransactionQuarterGroupListItemType>;
 
-function isPayActionSearch(queryJSON: SearchQueryJSON | undefined): boolean {
-    return (
-        queryJSON?.flatFilters.some(
-            (filter) =>
-                filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION &&
-                filter.filters.some((queryFilter) => queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && queryFilter.value.toString() === CONST.SEARCH.ACTION_FILTERS.PAY),
-        ) ?? false
-    );
-}
-
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
     policies: OnyxCollection<OnyxTypes.Policy>;
@@ -2071,7 +2061,6 @@ function getTransactionsSections({
     const transactionsSections: TransactionListItemType[] = [];
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
-    const isPaySearch = isPayActionSearch(currentQueryJSON);
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2119,9 +2108,6 @@ function getTransactionsSections({
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
-            if (isPaySearch && !allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY)) {
-                continue;
-            }
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -2531,16 +2517,16 @@ function createAndOpenSearchTransactionThread(
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
-        transactionThreadReport = createTransactionThreadReport(
+        transactionThreadReport = createTransactionThreadReport({
             introSelected,
-            currentUserLogin ?? '',
+            currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             betas,
-            getReportOrDraftReport(item.reportID) ?? item.report,
-            reportActionToPass,
+            iouReport: getReportOrDraftReport(item.reportID) ?? item.report,
+            iouReportAction: reportActionToPass,
             transaction,
             transactionViolations,
-        );
+        });
     }
 
     if (shouldNavigate) {
@@ -2675,7 +2661,6 @@ function getReportSections({
     } = classifyAndPreprocess(data);
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
-    const isPaySearch = isPayActionSearch(currentQueryJSON);
     const reportIDToTransactions: Record<string, TransactionReportGroupListItemType> = {};
 
     const orderedKeys: string[] = [...reportKeys, ...transactionKeys];
@@ -2716,9 +2701,6 @@ function getReportSections({
                 const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
                 const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
                 const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions, allReportTransactions);
-                if (isPaySearch && !allActions.includes(CONST.SEARCH.ACTION_TYPES.PAY)) {
-                    continue;
-                }
 
                 const fromDetails =
                     mergedPersonalDetails?.[reportItem.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ??
@@ -4166,10 +4148,15 @@ function isColumnSortable(column: SearchColumnType) {
     return !nonSortableColumns.has(column);
 }
 
-type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan', IconAsset>;
+type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset>;
+
+type ShareProps = {
+    onShare: () => void;
+    isCopied: boolean;
+};
 
 /**
- * Constructs and configures the overflow menu for search items, handling interactions such as renaming or deleting items.
+ * Constructs and configures the overflow menu for search items, handling interactions such as sharing, renaming or deleting items.
  */
 function getOverflowMenu(
     icons: OverflowMenuIconsType,
@@ -4180,6 +4167,7 @@ function getOverflowMenu(
     showDeleteModal: (hash: number) => void,
     isMobileMenu?: boolean,
     closeMenu?: () => void,
+    shareProps?: ShareProps,
 ) {
     return [
         {
@@ -4194,6 +4182,19 @@ function getOverflowMenu(
             shouldShowRightIcon: false,
             shouldShowRightComponent: false,
             shouldCallAfterModalHide: true,
+        },
+        {
+            text: shareProps?.isCopied ? translate('search.urlCopied') : translate('common.share'),
+            onSelected: () => {
+                shareProps?.onShare();
+            },
+            icon: shareProps?.isCopied ? icons.Checkmark : icons.LinkCopy,
+            shouldShowRightIcon: false,
+            shouldShowRightComponent: false,
+            disabled: shareProps?.isCopied,
+            shouldGreyOutWhenDisabled: false,
+            shouldUseDefaultCursorWhenDisabled: true,
+            shouldCloseModalOnSelect: false,
         },
         {
             text: translate('common.delete'),
@@ -4400,7 +4401,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
         const insightsSearchKeys = [
             CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME,
-            CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+            ...(!isTrackIntentUser ? [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS] : []),
             CONST.SEARCH.SEARCH_KEYS.TOP_CATEGORIES,
             CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS,
         ];

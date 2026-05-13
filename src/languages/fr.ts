@@ -1142,7 +1142,6 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Laisse tomber',
         dropMessage: 'Déposez votre fichier ici',
         flash: 'flash',
-        flipCamera: 'Retourner la caméra',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
         gallery: 'galerie',
@@ -2875,6 +2874,8 @@ ${amount} pour ${merchant} - ${date}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: "Vous n'avez pas reçu de code magique ?",
+        avoidScamsMessage:
+            '<strong>Évitez les arnaques. Ne partagez votre code avec personne.</strong> Notre équipe ne vous appellera, ne vous enverra jamais de SMS ni d’e-mail pour demander ce code.',
         enterAuthenticatorCode: 'Veuillez saisir votre code d’authentification',
         enterRecoveryCode: 'Veuillez saisir votre code de récupération',
         requiredWhen2FAEnabled: 'Obligatoire lorsque l’authentification à deux facteurs est activée',
@@ -4808,8 +4809,8 @@ ${amount} pour ${merchant} - ${date}`,
             journalPostingPreference: {
                 label: 'Préférence de comptabilisation des écritures de journal',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Saisie unique et détaillée pour chaque note de frais',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Une seule entrée pour chaque dépense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Saisie unique pour chaque dépense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Entrée unique et détaillée pour chaque rapport',
                 },
             },
             invoiceItem: {
@@ -5321,6 +5322,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     requiredColumns: (missingColumns: string) => `Veuillez attribuer une colonne à chacun des attributs : ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Oups ! Vous avez associé un seul champ (« ${duplicateColumn} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
                 },
+                fileImportDescription: 'Une option manuelle si votre banque ne peut pas envoyer de flux.',
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
@@ -6821,6 +6823,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 gambling: 'Jeux d’argent',
                 tobacco: 'Tabac',
                 adultEntertainment: 'Divertissement pour adultes',
+                giftCard: 'Achats de cartes-cadeaux',
                 handwrittenReceipt: 'Reçus manuscrits',
                 requireCompanyCard: "Exiger l'utilisation de cartes d'entreprise pour tous les achats",
                 requireCompanyCardDescription: 'Signaler toutes les dépenses en espèces, y compris le kilométrage et les indemnités journalières.',
@@ -7040,6 +7043,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 corporate: {
                     label: 'Contrôle',
                     description: 'Pour les organisations ayant des exigences avancées.',
+                },
+                submit2026: {
+                    label: 'Soumettre',
+                    description: 'Pour les employés souhaitant soumettre des dépenses à leur employeur.',
                 },
             },
             description: 'Choisissez l’offre qui vous convient. Pour une liste détaillée des fonctionnalités et des tarifs, consultez notre',
@@ -7747,6 +7754,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
+        urlCopied: 'URL copiée',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             editMultiple: 'Modifier plusieurs',
@@ -8251,6 +8259,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
         centralInvoicing: 'Facturation centralisée',
+        travelCard: 'Carte de voyage',
     },
     distance: {
         addStop: 'Ajouter un arrêt',
@@ -8476,6 +8485,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                         return `divertissement pour adultes`;
                     case 'hotelIncidentals':
                         return `Frais annexes d'hôtel`;
+                    case 'giftCard':
+                        return `achats de cartes-cadeaux`;
                     case 'handwrittenReceipt':
                         return `reçus manuscrits`;
                     default:
@@ -9257,7 +9268,13 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 `Êtes-vous sûr de vouloir faire de ${newName} le groupe par défaut ? Les nouveaux membres seront invités à ce groupe au lieu du groupe par défaut précédent (${currentName}). `,
             makeDefault: 'Définir par défaut',
             neverMind: 'Peu importe',
+            createGroupError: 'Impossible de créer ce groupe. Veuillez réessayer.',
             permissions: 'Autorisations du groupe',
+            createNewGroupButton: 'Nouveau groupe',
+            createGroupSubmitButton: 'Créer le groupe',
+            expensifyCardPreferredWorkspace: "Espace de travail préféré pour l'Expensify Card",
+            expensifyCardPreferredWorkspaceDescription:
+                "Toutes les transactions Expensify Card seront créées dans l'espace de travail préféré Expensify Card au lieu de l'espace de travail préféré.",
             strictlyEnforceWorkspaceRules: 'Appliquer strictement les règles de l’espace de travail',
             strictlyEnforceWorkspaceRulesDescription:
                 'Toutes les règles de l’espace de travail doivent être respectées avant de soumettre un rapport. Aucune exception manuelle n’est autorisée.',
@@ -9277,9 +9294,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             restrictDefaultLoginSelection: 'Restreindre la sélection de connexion par défaut',
             restrictDefaultLoginSelectionDescription:
                 'Empêche les membres de modifier leur e-mail de connexion en dehors du domaine de leur entreprise afin d’éviter les restrictions de politique.',
-            expensifyCardPreferredWorkspace: 'Espace de travail préféré pour la Expensify Card',
-            expensifyCardPreferredWorkspaceDescription:
-                'Toutes les transactions Expensify Card seront créées dans l’espace de travail préféré pour la Expensify Card au lieu de l’espace de travail préféré. L’activation de cette fonctionnalité remplacera le paramètre d’espace de travail préféré uniquement pour les transactions Expensify Card.',
             expensifyCardPreferredWorkspaceDisabledMessage:
                 'Pour utiliser ce paramètre, l’espace de travail préféré doit être activé et la Expensify Card doit être configurée pour le domaine.',
             findGroup: 'Trouver un groupe',
