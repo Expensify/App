@@ -5984,7 +5984,7 @@ ${amount} para ${merchant} - ${date}`,
                     connectionName && CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] : 'integración';
                 return `¿Estás seguro de que quieres desconectar ${integrationName}?`;
             },
-            connectPrompt: ({connectionName}) =>
+            connectPrompt: (connectionName) =>
                 `¿Estás seguro de que quieres conectar a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'}? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
             claimOffer: {
