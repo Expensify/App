@@ -120,6 +120,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         } else {
             askToJoinPolicy(policy.policyID);
         }
+        finishOnboarding(policy);
     };
 
     const allPolicyIDItems = Object.values(joinablePolicies ?? {})
