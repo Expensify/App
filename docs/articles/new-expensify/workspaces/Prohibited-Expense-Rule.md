@@ -1,10 +1,10 @@
 ---
 title: Prohibited Expenses Rule
-description: Learn how to enable and use the Prohibited expenses rule to automatically flag receipts with restricted items such as alcohol, gambling, or tobacco.
-keywords: [New Expensify, prohibited expenses, receipt violation, SmartScan, alcohol, gambling, expense rules, workspace settings, line item compliance]
+description: Learn how to enable and use the Prohibited expenses rule to automatically flag receipts with restricted items such as alcohol, gambling, gift cards, or tobacco.
+keywords: [New Expensify, prohibited expenses, receipt violation, SmartScan, alcohol, gambling, gift card, expense rules, workspace settings, line item compliance]
 ---
 
-Enable the Prohibited Expenses rule to help Workspace Admins enforce compliance by automatically flagging receipts that contain restricted purchases like alcohol, gambling, or tobacco. This rule uses Expensify’s AI-powered SmartScan to review individual line items and alert admins when prohibited categories are detected.
+Enable the Prohibited Expenses rule to help Workspace Admins enforce compliance by automatically flagging receipts that contain restricted purchases like alcohol, gambling, gift cards, or tobacco. This rule uses Expensify’s AI-powered SmartScan to review individual line items and alert admins when prohibited categories are detected.
 
 Once set up, SmartScan reviews scanned receipts at the line-item level:
 
@@ -27,6 +27,7 @@ To turn on the Prohibited Expenses rule:
    - Adult entertainment
    - Alcohol
    - Gambling
+   - Gift card purchases
    - Hotel incidentals
    - Tobacco
 
