@@ -76,17 +76,14 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
-    const additionalReportIDs = useMemo(() => {
-        // In one-transaction reports, the visible action can belong to the transaction thread report.
-        // Edit drafts are stored against that owner report ID, so the edit state has to watch it too.
-        // Sent-money reports do not surface transaction-thread actions in this view; use the effective ID so we
-        // never pull drafts from a thread that is not editable here.
-        if (!effectiveTransactionThreadReportID || effectiveTransactionThreadReportID === CONST.FAKE_REPORT_ID || effectiveTransactionThreadReportID === reportID) {
-            return [];
-        }
 
-        return [effectiveTransactionThreadReportID];
-    }, [reportID, effectiveTransactionThreadReportID]);
+    // In one-transaction reports, the visible action can belong to the transaction thread report.
+    // Edit drafts are stored against that owner report ID, so the edit state has to watch it too.
+    // Sent-money reports do not surface transaction-thread actions in this view; use the effective ID so we
+    // never pull drafts from a thread that is not editable here.
+    const shouldIncludeTransactionThreadReport =
+        !!effectiveTransactionThreadReportID && effectiveTransactionThreadReportID !== CONST.FAKE_REPORT_ID && effectiveTransactionThreadReportID !== reportID;
+    const additionalReportIDs = shouldIncludeTransactionThreadReport ? [effectiveTransactionThreadReportID] : [];
 
     const additionalReportActionsSelector = (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
         if (!allReportActions) {
