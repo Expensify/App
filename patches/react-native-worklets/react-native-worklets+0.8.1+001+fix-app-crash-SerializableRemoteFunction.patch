@@ -115,56 +115,6 @@ index 914811d..b2b8020 100644
    });
  
    jsi_utils::installJsiFunction(rt, "_createSerializableSynchronizable", [](jsi::Runtime &rt, const jsi::Value &value) {
-diff --git a/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/debug b/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/debug
-new file mode 100644
-index 0000000..a86273c
---- /dev/null
-+++ b/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/debug
-@@ -0,0 +1,18 @@
-+{
-+  "installationFolder": "/Users/chris/Projects/Margelo/ExpensifyApp3/node_modules/react-native-worklets/android/build/intermediates/prefab_package/debug/prefab",
-+  "gradlePath": ":react-native-worklets",
-+  "packageInfo": {
-+    "packageName": "react-native-worklets",
-+    "packageVersion": "0.8.1",
-+    "packageSchemaVersion": 2,
-+    "packageDependencies": [],
-+    "modules": [
-+      {
-+        "moduleName": "worklets",
-+        "moduleHeaders": "/Users/chris/Projects/Margelo/ExpensifyApp3/node_modules/react-native-worklets/android/build/prefab-headers/worklets",
-+        "moduleExportLibraries": [],
-+        "abis": []
-+      }
-+    ]
-+  }
-+}
-\ No newline at end of file
-diff --git a/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/release b/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/release
-new file mode 100644
-index 0000000..a621265
---- /dev/null
-+++ b/node_modules/react-native-worklets/android/build/intermediates/prefab_package_header_only/prefab_publication.json/release
-@@ -0,0 +1,18 @@
-+{
-+  "installationFolder": "/Users/chris/Projects/Margelo/ExpensifyApp3/node_modules/react-native-worklets/android/build/intermediates/prefab_package/release/prefab",
-+  "gradlePath": ":react-native-worklets",
-+  "packageInfo": {
-+    "packageName": "react-native-worklets",
-+    "packageVersion": "0.8.1",
-+    "packageSchemaVersion": 2,
-+    "packageDependencies": [],
-+    "modules": [
-+      {
-+        "moduleName": "worklets",
-+        "moduleHeaders": "/Users/chris/Projects/Margelo/ExpensifyApp3/node_modules/react-native-worklets/android/build/prefab-headers/worklets",
-+        "moduleExportLibraries": [],
-+        "abis": []
-+      }
-+    ]
-+  }
-+}
-\ No newline at end of file
 diff --git a/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts b/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts
 index e9ac98b..3297997 100644
 --- a/node_modules/react-native-worklets/src/WorkletsModule/NativeWorklets.native.ts
