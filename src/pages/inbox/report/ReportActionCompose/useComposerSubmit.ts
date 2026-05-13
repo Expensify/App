@@ -21,13 +21,14 @@ import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, 
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
+import {setIsComposerFullSize} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {useComposerMeta} from './ComposerContext';
+import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import useSidePanelContext from './useSidePanelContext';
 
-function useComposerSubmit(reportID: string): (comment: string) => void {
+function useComposerSubmit(reportID: string) {
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -35,9 +36,15 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
     const isInSidePanel = useIsInSidePanel();
     const sidePanelContext = useSidePanelContext(reportID);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
 
-    const {attachmentFileRef} = useComposerMeta();
+    const {composerRef, attachmentFileRef} = useComposerMeta();
+    const {didResetComposerHeight, draftComment} = useComposerState();
+    const {setDidResetComposerHeight, clearComposer} = useComposerActions();
+    const {isSendDisabled, debouncedCommentMaxLengthValidation} = useComposerSendState();
+    const {isEditingInComposer, editingMessage, effectiveDraft} = useComposerEditState();
+    const {publishDraft} = useComposerEditActions();
     const {scrollOffsetRef} = useContext(ActionListContext);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -59,8 +66,21 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
 
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
-    return (newComment: string) => {
-        const newCommentTrimmed = newComment.trim();
+    /**
+     * Add or edit a comment in the composer
+     */
+    const validateAndSubmitDraft = (draftMessage: string) => {
+        const draftMessageTrimmed = draftMessage.trim();
+
+        const isSubmittingEdit = isEditingInComposer || didResetComposerHeight;
+        if (isSubmittingEdit && !attachmentFileRef.current) {
+            publishDraft(draftMessageTrimmed);
+            return;
+        }
+
+        if (!draftMessageTrimmed && !attachmentFileRef.current) {
+            return;
+        }
 
         if (attachmentFileRef.current) {
             addAttachmentWithComment({
@@ -69,7 +89,7 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
                 ancestors: targetReportAncestors,
                 attachments: attachmentFileRef.current,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
-                text: newCommentTrimmed,
+                text: draftMessageTrimmed,
                 timezone: currentUserPersonalDetails.timezone,
                 shouldPlaySound: true,
                 isInSidePanel,
@@ -80,7 +100,7 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
             return;
         }
 
-        const taskMatch = newCommentTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
+        const taskMatch = draftMessageTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
         if (taskMatch) {
             let taskTitle = taskMatch[3] ? taskMatch[3].trim().replaceAll('\n', ' ') : undefined;
             if (taskTitle) {
@@ -113,6 +133,8 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
                     assigneeEmail: assignee?.login ?? '',
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail,
+                    currentUserDisplayName: currentUserPersonalDetails.displayName,
+                    currentUserAvatar: currentUserPersonalDetails.avatar,
                     assigneeAccountID: assignee?.accountID,
                     assigneeChatReport,
                     policyID: report?.policyID,
@@ -132,7 +154,7 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
                 op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
                 attributes: {
                     [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                    [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
+                    [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
                 },
             });
         }
@@ -140,7 +162,7 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
             report: targetReport,
             notifyReportID: reportID,
             ancestors: targetReportAncestors,
-            text: newCommentTrimmed,
+            text: draftMessageTrimmed,
             timezoneParam: currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             shouldPlaySound: true,
@@ -149,6 +171,37 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
             reportActionID: optimisticReportActionID,
             delegateAccountID,
         });
+    };
+
+    const submitDraftAndClearComposer = () => {
+        if (isSendDisabled || !debouncedCommentMaxLengthValidation?.flush()) {
+            return;
+        }
+
+        if (isComposerFullSize) {
+            setIsComposerFullSize(reportID, false);
+        }
+
+        // If there is a draft comment and we are submitting an edit, we don't want to clear the composer height and the draft comment.
+        // Therefore, we directly trigger the validation and submission of the draft comment.
+        if (isEditingInComposer && editingMessage !== null && draftComment) {
+            validateAndSubmitDraft(editingMessage);
+            return;
+        }
+
+        if (effectiveDraft !== null && effectiveDraft !== '') {
+            composerRef.current?.resetHeight();
+            if (isEditingInComposer) {
+                setDidResetComposerHeight(true);
+            }
+        }
+
+        clearComposer();
+    };
+
+    return {
+        validateAndSubmitDraft,
+        submitDraftAndClearComposer,
     };
 }
 
