@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -26,11 +26,13 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
+    const [isPressed, setIsPressed] = useState(false);
+
     const {labelKey, icon} = FILTER_VIEW_MAP[filterKey];
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', icon]);
 
-    const getPressableBackgroundStyle = (pressed: boolean, isSelected: boolean) => {
-        if (pressed) {
+    const getPressableBackgroundStyle = () => {
+        if (isPressed) {
             return styles.buttonHoveredBG;
         }
 
@@ -43,31 +45,32 @@ function FilterItem({filterKey, isSelected, onPress, onHoverIn, onFocus}: Filter
 
     return (
         <PressableWithFeedback
-            style={({pressed}) => [styles.typeFilterMenu, getPressableBackgroundStyle(pressed, !!isSelected)]}
+            style={[styles.typeFilterMenu, getPressableBackgroundStyle()]}
             accessible
             accessibilityLabel={filterKey}
             onHoverIn={onHoverIn}
             onFocus={onFocus}
-            onPress={onPress}
+            onPress={() => {
+                onPress?.();
+                setIsPressed(false);
+            }}
+            onPressIn={() => setIsPressed(true)}
+            onPressOut={() => setIsPressed(false)}
             sentryLabel={`Search-Advanced-Filter-${filterKey}`}
         >
-            {({pressed}) => (
-                <>
-                    <Icon
-                        src={icons[icon]}
-                        fill={theme.icon}
-                        width={variables.iconSizeSmall}
-                        height={variables.iconSizeSmall}
-                    />
-                    <Text style={[styles.flex1]}>{translate(labelKey)}</Text>
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(isSelected, pressed))}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
-                </>
-            )}
+            <Icon
+                src={icons[icon]}
+                fill={theme.icon}
+                width={variables.iconSizeSmall}
+                height={variables.iconSizeSmall}
+            />
+            <Text style={[styles.flex1]}>{translate(labelKey)}</Text>
+            <Icon
+                src={icons.ArrowRight}
+                fill={StyleUtils.getIconFillColor(getButtonState(isSelected, isPressed))}
+                width={variables.iconSizeNormal}
+                height={variables.iconSizeNormal}
+            />
         </PressableWithFeedback>
     );
 }
