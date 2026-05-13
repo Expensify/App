@@ -33,9 +33,13 @@ type ReactionTooltipContentProps = {
 function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const [users] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsWithCustomNameSelector({accountIDs, shouldChangeUserDisplayName: true, currentUserAccountID, translate}),
-    }, [accountIDs, currentUserAccountID, translate]);
+    const [users] = useOnyx(
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        {
+            selector: personalDetailsWithCustomNameSelector({accountIDs, shouldChangeUserDisplayName: true, currentUserAccountID, translate}),
+        },
+        [accountIDs, currentUserAccountID, translate],
+    );
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     const namesString =

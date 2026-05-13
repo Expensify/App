@@ -31,9 +31,13 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
     const isReady = !!selectedReaction;
     const {emojiCodes = [], reactionCount = 0, hasUserReacted = false, userAccountIDs = []} = selectedReaction ? getEmojiReactionDetails(emojiName, selectedReaction, accountID) : {};
 
-    const [users = getEmptyArray<PersonalDetails>()] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: isReady ? personalDetailsWithCustomNameSelector({accountIDs: userAccountIDs, currentUserAccountID: accountID, shouldChangeUserDisplayName: true, translate}) : () => [],
-    }, [userAccountIDs, accountID, translate]);
+    const [users = getEmptyArray<PersonalDetails>()] = useOnyx(
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        {
+            selector: isReady ? personalDetailsWithCustomNameSelector({accountIDs: userAccountIDs, currentUserAccountID: accountID, shouldChangeUserDisplayName: true, translate}) : () => [],
+        },
+        [userAccountIDs, accountID, translate],
+    );
 
     // Hide the list when all reactions are removed
     useEffect(() => {
