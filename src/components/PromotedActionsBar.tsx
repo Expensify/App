@@ -76,18 +76,22 @@ const PromotedActions = {
         icon: 'CommentBubbles',
         translationKey: 'common.message',
         onSelected: () => {
-            if (reportID) {
+            if (reportID && accountID === currentUserAccountID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 
-            // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
+                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false, true);
                 return;
             }
             if (accountID) {
-                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails);
+                navigateToAndOpenReportWithAccountIDs([accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails, true);
+                return;
+            }
+
+            if (reportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             }
         },
     }),
@@ -114,7 +118,6 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                         iconFill={theme.icon}
                         text={translate(translationKey)}
                         icon={typeof icon === 'string' ? icons[icon] : icon}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                     />
                 </View>
             ))}

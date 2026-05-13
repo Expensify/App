@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -17,15 +17,6 @@ type MonthPickerModalProps = {
     /** Currently selected month (0-indexed) */
     currentMonth?: number;
 
-    /** The year currently being viewed */
-    currentYear?: number;
-
-    /** A minimum date (earliest) allowed to select */
-    minDate?: Date;
-
-    /** A maximum date (latest) allowed to select */
-    maxDate?: Date;
-
     /** Function to call when the user selects a month */
     onMonthChange?: (month: number) => void;
 
@@ -33,13 +24,13 @@ type MonthPickerModalProps = {
     onClose?: () => void;
 };
 
-function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear(), minDate, maxDate, onMonthChange, onClose}: MonthPickerModalProps) {
+function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMonthChange, onClose}: MonthPickerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const monthNames = DateUtils.getMonthNames();
 
-    const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, currentYear, currentMonth, minDate, maxDate), [monthNames, currentMonth, currentYear, minDate, maxDate]);
+    const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, currentMonth), [monthNames, currentMonth]);
 
     const {data, headerMessage} = useMemo(() => {
         const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
@@ -89,7 +80,7 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), curr
                 />
                 <SelectionList
                     data={data}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={(option) => {
                         Keyboard.dismiss();
                         onMonthChange?.(option.value);

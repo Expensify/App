@@ -169,7 +169,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                             isAnonymousAction
                             title={translate('common.download')}
                             icon={icons.Download}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
                             onPress={() => qrCodeRef.current?.download?.()}
                         />
                     )}
