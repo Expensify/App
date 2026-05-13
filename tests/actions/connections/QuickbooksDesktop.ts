@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -11,7 +10,6 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
 jest.mock('@expensify/react-native-hybrid-app', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         isHybridApp: jest.fn(),
@@ -51,7 +49,6 @@ describe('actions/connections/QuickbooksDesktop', () => {
             expect(command).toBe(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS);
 
             const call = writeSpy.mock.calls.at(0);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- API.write params are a broad union; narrow to this command's shape for assertions
             const params = call?.[1] as {connectionName: string; configUpdate: string; policyID: string};
             expect(params.policyID).toBe(MOCK_POLICY_ID);
             expect(params.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.QBD);
@@ -65,7 +62,6 @@ describe('actions/connections/QuickbooksDesktop', () => {
             const optimisticUpdate = onyxData?.optimisticData?.at(0);
             expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- optimisticData values are typed broadly; narrow to the partial shape written by this action
             const value = optimisticUpdate?.value as {connections: {quickbooksDesktop: {config: {export: {travelInvoicingVendorID: string}}}}};
             expect(value.connections.quickbooksDesktop.config.export.travelInvoicingVendorID).toBe('vendor-123');
         });
@@ -79,7 +75,6 @@ describe('actions/connections/QuickbooksDesktop', () => {
             expect(command).toBe(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS);
 
             const call = writeSpy.mock.calls.at(0);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- API.write params are a broad union; narrow to this command's shape for assertions
             const params = call?.[1] as {connectionName: string; configUpdate: string; policyID: string};
             expect(params.policyID).toBe(MOCK_POLICY_ID);
             expect(params.connectionName).toBe(CONST.POLICY.CONNECTIONS.NAME.QBD);
@@ -93,7 +88,6 @@ describe('actions/connections/QuickbooksDesktop', () => {
             const optimisticUpdate = onyxData?.optimisticData?.at(0);
             expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- optimisticData values are typed broadly; narrow to the partial shape written by this action
             const value = optimisticUpdate?.value as {connections: {quickbooksDesktop: {config: {export: {travelInvoicingPayableAccountID: string}}}}};
             expect(value.connections.quickbooksDesktop.config.export.travelInvoicingPayableAccountID).toBe('account-123');
         });
