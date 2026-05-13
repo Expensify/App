@@ -89,9 +89,7 @@ function EditTagPage({route}: EditTagPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.editTag')}
-                    onBackButtonPress={() =>
-                        Navigation.goBack(isDynamicFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, orderWeight, route.params.tagName))
-                    }
+                    onBackButtonPress={() => Navigation.goBack(isDynamicFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(route?.params?.policyID, orderWeight, route.params.tagName))}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
