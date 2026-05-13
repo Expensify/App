@@ -42,7 +42,7 @@ type MultiSelectProps<T> = SearchFilterSelectionListProps & {
     /** Whether the data for the popover is loading */
     loading?: boolean;
 
-    /** Whether the text input should be autofocused or not. Defaults to true. */
+    /** Whether the text input should be auto-focused or not. Defaults to true. */
     autoFocus?: boolean;
 };
 
