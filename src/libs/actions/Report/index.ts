@@ -2006,6 +2006,7 @@ function navigateToAndOpenReport(
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     shouldDismissModal = true,
+    linkToOptions?: LinkToOptions,
 ) {
     let newChat: OptimisticChatReport | undefined;
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
@@ -2031,7 +2032,7 @@ function navigateToAndOpenReport(
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
-    navigateToReport(report?.reportID, {shouldDismissModal});
+    navigateToReport(report?.reportID, {shouldDismissModal, ...linkToOptions});
 }
 
 function navigateToAndCreateGroupChat(
@@ -3528,12 +3529,21 @@ function navigateToConciergeChat(
                 return;
             }
             // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails ?? allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal);
+            navigateToAndOpenReport(
+                [CONST.EMAIL.CONCIERGE],
+                personalDetails ?? allPersonalDetails,
+                currentUserAccountID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                shouldDismissModal,
+                linkToOptions,
+            );
         });
     } else if (shouldDismissModal) {
-        Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
+        Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID}, undefined, {...linkToOptions});
     } else {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), linkToOptions);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), {...linkToOptions});
     }
 }
 
@@ -4004,11 +4014,18 @@ function navigateToConciergeChatAndDeleteReport(
         Navigation.goBack();
     }
     // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, undefined, undefined, undefined, personalDetails ?? allPersonalDetails);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    InteractionManager.runAfterInteractions(() => {
-        deleteReport(reportID, shouldDeleteChildReports);
-    });
+    navigateToConciergeChat(
+        conciergeReportID,
+        introSelected,
+        currentUserAccountID,
+        isSelfTourViewed,
+        betas,
+        false,
+        undefined,
+        {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
+        undefined,
+        personalDetails ?? allPersonalDetails,
+    );
 }
 
 function clearCreateChatError(
