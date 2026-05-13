@@ -15,6 +15,7 @@ export type WorkspaceCategoryTableRowData = {
     isDisabled: boolean;
     errors: OnyxCommon.Errors;
     pendingAction: OnyxCommon.PendingAction;
+    action: () => void;
 };
 
 type WorkspaceCategoriesTableProps = {
