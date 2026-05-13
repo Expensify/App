@@ -1,4 +1,5 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
+import React from 'react';
 import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table/';
 import useLocalize from '@hooks/useLocalize';
 import {AvatarSource} from '@libs/UserAvatarUtils';
@@ -8,13 +9,15 @@ import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 export type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
 
 export type WorkspaceCategoryTableRowData = {
+    keyForList: string;
     name: string;
-    glCode: string;
+    glCode?: string;
     approverAvatar?: AvatarSource;
+    approverAccountID?: number;
     approverDisplayName?: string;
     isDisabled: boolean;
-    errors: OnyxCommon.Errors;
-    pendingAction: OnyxCommon.PendingAction;
+    errors?: OnyxCommon.Errors;
+    pendingAction?: OnyxCommon.PendingAction;
     action: () => void;
 };
 
@@ -60,6 +63,7 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
         <WorkspaceCategoriesTableRow
             item={item}
             rowIndex={index}
+            shouldShowApproverColumn={shouldShowApproverColumn}
         />
     );
 

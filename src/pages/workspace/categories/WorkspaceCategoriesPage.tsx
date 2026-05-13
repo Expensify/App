@@ -20,6 +20,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Switch from '@components/Switch';
+import WorkspaceCategoriesTable, {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
@@ -219,9 +220,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
     const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
 
-    const categoryList = useMemo<ListItem[]>(() => {
+    const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         const categories = Object.values(policyCategories ?? {});
-        return categories.reduce<ListItem[]>((acc, value) => {
+
+        return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (!isOffline && isDisabled) {
@@ -230,81 +232,102 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             const approverEmail = shouldShowApproverColumn ? (getCategoryApproverRule(policy?.rules?.approvalRules ?? [], value.name)?.approver ?? '') : '';
             const approverPersonalDetail = getPersonalDetailByEmail(approverEmail);
-            const {avatar, displayName = approverEmail, accountID} = approverPersonalDetail ?? {};
+            const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
 
             acc.push({
-                text: getDecodedCategoryName(value.name),
                 keyForList: value.name,
+                name: getDecodedCategoryName(value.name),
+                glCode: value['GL Code'],
+                approverAvatar,
+                approverAccountID,
+                approverDisplayName,
                 isDisabled,
-                pendingAction: value.pendingAction,
                 errors: value.errors ?? undefined,
-                rightElement: isControlPolicyWithWideLayout ? (
-                    <>
-                        <View style={glCodeContainerStyle}>
-                            <Text
-                                numberOfLines={1}
-                                style={glCodeTextStyle}
-                            >
-                                {value['GL Code']}
-                            </Text>
-                        </View>
-                        {shouldShowApproverColumn && (
-                            <View style={[glCodeContainerStyle, styles.flexRow, styles.alignItemsCenter]}>
-                                {approverDisplayName ? (
-                                    <>
-                                        <Avatar
-                                            source={avatar}
-                                            name={approverDisplayName}
-                                            avatarID={accountID}
-                                            type={CONST.ICON_TYPE_AVATAR}
-                                            size={CONST.AVATAR_SIZE.SUBSCRIPT}
-                                            containerStyles={[styles.mr3]}
-                                        />
-                                        <Text
-                                            numberOfLines={1}
-                                            style={glCodeTextStyle}
-                                        >
-                                            {approverDisplayName}
-                                        </Text>
-                                    </>
-                                ) : null}
-                            </View>
-                        )}
-                        <View style={switchContainerStyle}>
-                            <Switch
-                                isOn={value.enabled}
-                                disabled={isDisabled}
-                                accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
-                                onToggle={(newValue: boolean) => {
-                                    if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                                        showCannotDeleteOrDisableLastCategoryModal();
-                                        return;
-                                    }
-                                    updateWorkspaceCategoryEnabled(newValue, value.name);
-                                }}
-                                showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
-                            />
-                        </View>
-                    </>
-                ) : (
-                    <Switch
-                        isOn={value.enabled}
-                        disabled={isDisabled}
-                        accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
-                        onToggle={(newValue: boolean) => {
-                            if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                                showCannotDeleteOrDisableLastCategoryModal();
-                                return;
-                            }
-                            updateWorkspaceCategoryEnabled(newValue, value.name);
-                        }}
-                        showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
-                    />
-                ),
+                pendingAction: value.pendingAction,
+                action: () => {
+                    const path = isQuickSettingsFlow
+                        ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, value.name, backTo)
+                        : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, value.name);
+
+                    Navigation.navigate(path);
+                },
             });
 
             return acc;
+
+            // acc.push({
+            //     text: getDecodedCategoryName(value.name),
+            //     keyForList: value.name,
+            //     isDisabled,
+            //     pendingAction: value.pendingAction,
+            //     errors: value.errors ?? undefined,
+            //     rightElement: isControlPolicyWithWideLayout ? (
+            //         <>
+            //             <View style={glCodeContainerStyle}>
+            //                 <Text
+            //                     numberOfLines={1}
+            //                     style={glCodeTextStyle}
+            //                 >
+            //                     {value['GL Code']}
+            //                 </Text>
+            //             </View>
+            //             {shouldShowApproverColumn && (
+            //                 <View style={[glCodeContainerStyle, styles.flexRow, styles.alignItemsCenter]}>
+            //                     {approverDisplayName ? (
+            //                         <>
+            //                             <Avatar
+            //                                 source={avatar}
+            //                                 name={approverDisplayName}
+            //                                 avatarID={accountID}
+            //                                 type={CONST.ICON_TYPE_AVATAR}
+            //                                 size={CONST.AVATAR_SIZE.SUBSCRIPT}
+            //                                 containerStyles={[styles.mr3]}
+            //                             />
+            //                             <Text
+            //                                 numberOfLines={1}
+            //                                 style={glCodeTextStyle}
+            //                             >
+            //                                 {approverDisplayName}
+            //                             </Text>
+            //                         </>
+            //                     ) : null}
+            //                 </View>
+            //             )}
+            //             <View style={switchContainerStyle}>
+            //                 <Switch
+            //                     isOn={value.enabled}
+            //                     disabled={isDisabled}
+            //                     accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
+            //                     onToggle={(newValue: boolean) => {
+            //                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
+            //                             showCannotDeleteOrDisableLastCategoryModal();
+            //                             return;
+            //                         }
+            //                         updateWorkspaceCategoryEnabled(newValue, value.name);
+            //                     }}
+            //                     showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
+            //                 />
+            //             </View>
+            //         </>
+            //     ) : (
+            //         <Switch
+            //             isOn={value.enabled}
+            //             disabled={isDisabled}
+            //             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
+            //             onToggle={(newValue: boolean) => {
+            //                 if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
+            //                     showCannotDeleteOrDisableLastCategoryModal();
+            //                     return;
+            //                 }
+            //                 updateWorkspaceCategoryEnabled(newValue, value.name);
+            //             }}
+            //             showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
+            //         />
+            //     ),
+            // });
+
+            // return acc;
         }, []);
     }, [
         showCannotDeleteOrDisableLastCategoryModal,
@@ -333,9 +356,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         },
         [localeCompare],
     );
-    const [inputValue, setInputValue, filteredCategoryList] = useSearchResults(categoryList, filterCategory, sortCategories);
+    const [inputValue, setInputValue, filteredCategoryList] = useSearchResults(categoryRows, filterCategory, sortCategories);
 
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryRows);
 
     const toggleCategory = useCallback(
         (category: ListItem) => {
@@ -434,7 +457,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             setSelectedCategories([]);
         });
     };
-    const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const hasVisibleCategories = categoryRows.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const policyHasAccountingConnections = hasAccountingConnections(policy);
 
@@ -695,7 +718,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
                 )}
             </View>
-            {categoryList.length > CONST.SEARCH_ITEM_LIMIT && (
+            {categoryRows.length > CONST.SEARCH_ITEM_LIMIT && (
                 <SearchBar
                     label={translate('workspace.categories.findCategory')}
                     inputValue={inputValue}
@@ -762,26 +785,31 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     />
                 )}
                 {hasVisibleCategories && !isLoading && (
-                    <SelectionListWithModal
-                        data={filteredCategoryList}
-                        ListItem={TableListItem}
-                        onSelectionButtonPress={toggleCategory}
-                        selectedItems={selectedCategories}
-                        onSelectRow={navigateToCategorySettings}
-                        onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                        onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        turnOnSelectionModeOnLongPress={isSmallScreenWidth}
-                        customListHeader={getCustomListHeader()}
-                        customListHeaderContent={headerContent}
-                        canSelectMultiple={canSelectMultiple}
-                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllCategories')}
-                        shouldShowListEmptyContent={false}
-                        onDismissError={dismissError}
-                        showScrollIndicator={false}
-                        shouldHeaderBeInsideList
-                        shouldShowRightCaret
+                    <WorkspaceCategoriesTable
+                        categories={categoryRows}
+                        shouldShowApproverColumn={shouldShowApproverColumn}
                     />
+
+                    // <SelectionListWithModal
+                    //     data={filteredCategoryList}
+                    //     ListItem={TableListItem}
+                    //     onSelectionButtonPress={toggleCategory}
+                    //     selectedItems={selectedCategories}
+                    //     onSelectRow={navigateToCategorySettings}
+                    //     onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
+                    //     onSelectAll={filteredCategoryList.length > 0 ? toggleAllCategories : undefined}
+                    //     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    //     turnOnSelectionModeOnLongPress={isSmallScreenWidth}
+                    //     customListHeader={getCustomListHeader()}
+                    //     customListHeaderContent={headerContent}
+                    //     canSelectMultiple={canSelectMultiple}
+                    //     selectAllAccessibilityLabel={translate('accessibilityHints.selectAllCategories')}
+                    //     shouldShowListEmptyContent={false}
+                    //     onDismissError={dismissError}
+                    //     showScrollIndicator={false}
+                    //     shouldHeaderBeInsideList
+                    //     shouldShowRightCaret
+                    // />
                 )}
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
