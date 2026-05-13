@@ -34,9 +34,6 @@ type MultifactorAuthenticationContextValue = {
     /** Execute a multifactor authentication scenario */
     executeScenario: <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>) => Promise<void>;
 
-    /** Cancel the current authentication flow and navigate to failure outcome */
-    cancel: () => Promise<void>;
-
     /**
      * Centralized back-press entry. Decides — based on current MFA state and the
      * route shown by the modal navigator — whether to close the modal directly
@@ -536,12 +533,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const contextValue: MultifactorAuthenticationContextValue = useMemo(
         () => ({
             executeScenario,
-            cancel,
             requestCancel,
             hideCancelConfirm,
             confirmCancel,
         }),
-        [cancel, executeScenario, requestCancel, hideCancelConfirm, confirmCancel],
+        [executeScenario, requestCancel, hideCancelConfirm, confirmCancel],
     );
 
     return <MultifactorAuthenticationContext.Provider value={contextValue}>{children}</MultifactorAuthenticationContext.Provider>;
