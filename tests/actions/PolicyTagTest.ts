@@ -2347,7 +2347,7 @@ describe('actions/Policy', () => {
                 setupCategoriesAndTagsParentReportAction: undefined,
                 currentUserAccountID: FAKE_ACCOUNT_ID,
                 policyHasCustomCategories: false,
-                onboardingPolicyID: '0'
+                onboardingPolicyID: '0',
             });
 
             await waitForBatchedUpdates();
@@ -2403,7 +2403,7 @@ describe('actions/Policy', () => {
                 setupCategoriesAndTagsParentReportAction: undefined,
                 currentUserAccountID: FAKE_ACCOUNT_ID,
                 policyHasCustomCategories: true,
-                onboardingPolicyID: '0'
+                onboardingPolicyID: '0',
             });
 
             await waitForBatchedUpdates();
@@ -2492,7 +2492,7 @@ describe('actions/Policy', () => {
                 ownerAccountID: FAKE_ACCOUNT_ID,
                 parentReportID: FAKE_PARENT_REPORT_ID,
                 policyID: differentPolicyID,
-                onboardingPolicyID: '1'
+                onboardingPolicyID: '1',
             };
 
             mockFetch?.pause?.();
