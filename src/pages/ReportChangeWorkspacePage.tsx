@@ -9,6 +9,7 @@ import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -74,6 +75,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -87,7 +89,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
             if (!policyID || !policy) {
                 return;
             }
-            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
+            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -156,6 +158,7 @@ function ReportChangeWorkspacePage({report}: ReportChangeWorkspacePageProps) {
             isASAPSubmitBetaEnabled,
             reportNextStep,
             isChangePolicyTrainingModalDismissed,
+            currentUserPersonalDetails.accountID,
         ],
     );
 

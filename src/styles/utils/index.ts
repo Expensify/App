@@ -1842,14 +1842,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderRadius: 0,
         borderBottomWidth: isLastItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
-        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
     getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
         borderRadius: 0,
         borderTopWidth: isFirstItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
-        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(isLastItem ? styles.tableBottomRadius : {}),
     }),
 
     getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
@@ -1860,7 +1860,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         borderBottomRightRadius: 0,
         borderBottomWidth: isLastItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
-        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(isLastItem ? styles.tableBottomRadius : {}),
         ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
         ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
     }),

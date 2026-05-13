@@ -40,8 +40,8 @@ import {
     isPerDiemRequest,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
-import {startMoneyRequest} from '@userActions/IOU';
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
+import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -548,7 +548,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -567,4 +567,3 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 }
 
 export default useExpenseActions;
-export type {UseExpenseActionsParams, UseExpenseActionsReturn};

@@ -381,6 +381,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             ref: textInputRef,
                         }}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                         turnOnSelectionModeOnLongPress={isCurrentUserGroupChatAdmin}
                         shouldSingleExecuteRowSelect={!isCurrentUserGroupChatAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}

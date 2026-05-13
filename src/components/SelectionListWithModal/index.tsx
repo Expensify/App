@@ -143,5 +143,4 @@ function SelectionListWithModal<TItem extends ListItem>({
     );
 }
 
-export type {SelectionListWithModalProps};
 export default SelectionListWithModal;

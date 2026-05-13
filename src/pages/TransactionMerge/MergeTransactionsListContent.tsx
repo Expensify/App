@@ -213,8 +213,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             textInputOptions={textInputOptions}
             shouldShowTextInput={shouldShowTextInput}
             style={{
-                listStyle: [styles.mh5, styles.searchTableTopRadius, styles.searchTableBottomRadius, styles.mb4, styles.overflowHidden],
-                contentContainerStyle: [styles.pb0, styles.searchTableBottomRadius, styles.overflowHidden],
+                listStyle: [styles.mh5, styles.tableTopRadius, styles.tableBottomRadius, styles.mb4, styles.overflowHidden],
+                contentContainerStyle: [styles.pb0, styles.tableBottomRadius, styles.overflowHidden],
             }}
         />
     );

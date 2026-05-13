@@ -471,6 +471,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(data)}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                         customListHeader={customListHeader}
                         onDismissError={dismissError}
                         turnOnSelectionModeOnLongPress
