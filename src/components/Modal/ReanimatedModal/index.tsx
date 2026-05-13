@@ -20,6 +20,8 @@ import Backdrop from './Backdrop';
 import Container from './Container';
 import type ReanimatedModalProps from './types';
 
+type ModalState = 'closed' | 'opening' | 'open' | 'closing';
+
 function ReanimatedModal({
     testID,
     animationInDelay,
@@ -55,18 +57,37 @@ function ReanimatedModal({
     shouldReturnFocus,
     ...props
 }: ReanimatedModalProps) {
-    const [isContainerOpen, setIsContainerOpen] = useState(false);
+    // --- Hooks ---
+    const [modalState, setModalState] = useState<ModalState>('closed');
+    const [prevIsVisible, setPrevIsVisible] = useState(isVisible);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
 
+    // --- Refs ---
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const handleRef = useRef<number | undefined>(undefined);
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
 
-    const isTransitioning = isVisible !== isContainerOpen;
+    // --- Render-time state adjustment ---
+    // When isVisible changes, advance the state machine from stable states only.
+    // Mid-animation changes are ignored — the animation runs to completion and the
+    // final isVisible value is honored when the callback fires.
+    // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+    if (prevIsVisible !== isVisible) {
+        setPrevIsVisible(isVisible);
+        if (isVisible && modalState === 'closed') {
+            setModalState('opening');
+        } else if (!isVisible && modalState === 'open') {
+            setModalState('closing');
+        }
+    }
+
+    // --- Derived values ---
+    const isTransitioning = modalState === 'opening' || modalState === 'closing';
     const backdropStyle: ViewStyle = {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
     const modalStyle = {zIndex: StyleSheet.flatten(style)?.zIndex};
 
+    // --- Callbacks ---
     const onBackButtonPressHandler = useEffectEvent(() => {
         if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
             return false;
@@ -98,13 +119,13 @@ function ReanimatedModal({
     };
 
     const onOpenCallBack = () => {
-        setIsContainerOpen(true);
+        setModalState('open');
         clearTransitionHandles();
         onModalShow();
     };
 
     const onCloseCallBack = () => {
-        setIsContainerOpen(false);
+        setModalState('closed');
         clearTransitionHandles();
 
         // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
@@ -115,6 +136,7 @@ function ReanimatedModal({
         }
     };
 
+    // --- Effects ---
     useEffect(() => {
         if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
@@ -132,7 +154,7 @@ function ReanimatedModal({
     }, []);
 
     useEffect(() => {
-        if (isTransitioning) {
+        if (modalState === 'opening' || modalState === 'closing') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             transitionHandleRef.current = TransitionTracker.startTransition();
@@ -141,12 +163,12 @@ function ReanimatedModal({
         return () => {
             clearTransitionHandles();
         };
-    }, [isTransitioning]);
+    }, [modalState]);
 
     const fireTransitionCallbacks = useEffectEvent(() => {
-        if (isVisible && !isContainerOpen) {
+        if (modalState === 'opening') {
             onModalWillShow();
-        } else if (!isVisible && isContainerOpen) {
+        } else if (modalState === 'closing') {
             onModalWillHide();
             blurActiveElement();
         }
@@ -154,8 +176,18 @@ function ReanimatedModal({
 
     useEffect(() => {
         fireTransitionCallbacks();
-    }, [isVisible, isContainerOpen]);
+    }, [modalState]);
 
+    // Safety net: release handles if the component unmounts mid-transition
+    // (e.g. navigation removes the modal before its exit animation completes).
+    useEffect(
+        () => () => {
+            clearTransitionHandles();
+        },
+        [],
+    );
+
+    // --- JSX ---
     const containerView = (
         <Container
             pointerEvents="box-none"
@@ -199,8 +231,12 @@ function ReanimatedModal({
             </View>
         );
     }
-    const isBackdropMounted = isVisible || (isTransitioning && getPlatform() === CONST.PLATFORM.WEB);
-    const modalVisibility = isVisible || isTransitioning;
+
+    // Backdrop stays mounted on web during 'closing' so it can play its own exit animation
+    // while the Container is still finishing its exit animation.
+    const isBackdropMounted = isVisible || (modalState === 'closing' && getPlatform() === CONST.PLATFORM.WEB);
+    const modalVisibility = modalState !== 'closed';
+
     return (
         <LayoutAnimationConfig skipExiting={getPlatform() !== CONST.PLATFORM.WEB}>
             <Modal
@@ -228,7 +264,7 @@ function ReanimatedModal({
                         pointerEvents="box-none"
                         style={[style, {margin: 0}]}
                     >
-                        {isVisible && containerView}
+                        {(modalState === 'opening' || modalState === 'open') && containerView}
                     </KeyboardAvoidingView>
                 ) : (
                     <FocusTrapForModal
@@ -237,7 +273,7 @@ function ReanimatedModal({
                         shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
-                        {isVisible && containerView}
+                        {(modalState === 'opening' || modalState === 'open') && containerView}
                     </FocusTrapForModal>
                 )}
             </Modal>
