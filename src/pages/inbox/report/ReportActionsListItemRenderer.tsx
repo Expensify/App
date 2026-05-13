@@ -1,8 +1,10 @@
 import React, {memo, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useOnyx from '@hooks/useOnyx';
 import {getOriginalMessage, isSentMoneyReportAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import ReportActionItem from './ReportActionItem';
 import ReportActionItemParentAction from './ReportActionItemParentAction';
@@ -50,6 +52,9 @@ type ReportActionsListItemRendererProps = {
     /** Animate highlight action in few seconds */
     shouldHighlight?: boolean;
 
+    /** The original report ID for draft message lookups */
+    originalReportID: string | undefined;
+
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 
@@ -83,6 +88,7 @@ function ReportActionsListItemRenderer({
     shouldUseThreadDividerLine = false,
     shouldHighlight = false,
     parentReportActionForTransactionThread,
+    originalReportID,
     userBillingFundID,
     personalDetails,
     isTryNewDotNVPDismissed = false,
@@ -91,6 +97,9 @@ function ReportActionsListItemRenderer({
     reportNameValuePairsOriginalID,
 }: ReportActionsListItemRendererProps) {
     const originalMessage = useMemo(() => getOriginalMessage(reportAction), [reportAction]);
+
+    const [reportDraftMessages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
+    const draftMessage = reportDraftMessages?.[reportAction.reportActionID]?.message;
 
     /**
      * Create a lightweight ReportAction so as to keep the re-rendering as light as possible by
@@ -202,6 +211,7 @@ function ReportActionsListItemRenderer({
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
             personalDetails={personalDetails}
+            draftMessage={draftMessage}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             reportNameValuePairsOrigin={reportNameValuePairsOrigin}
