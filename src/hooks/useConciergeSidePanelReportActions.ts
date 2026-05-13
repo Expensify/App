@@ -93,15 +93,12 @@ function useConciergeReportActions({
     }, [isConciergeChat, visibleReportActions, sessionStartTime, currentUserAccountID]);
 
     const hasPreviousMessages = useMemo(() => {
-        if (!isConciergeChat || !sessionStartTime) {
-            return false;
-        }
-        if (!hadUserMessageAtSessionStart && !hasUnreadMessages) {
+        if (!isConciergeChat || !sessionStartTime || !hadUserMessageAtSessionStart) {
             return false;
         }
         const hasReadMessagesInLoadedSet = visibleReportActions.some((action) => !isCreatedAction(action) && action.created <= sessionStartTime);
         return hasReadMessagesInLoadedSet || hasOlderActions;
-    }, [isConciergeChat, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasUnreadMessages, hasOlderActions]);
+    }, [isConciergeChat, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasOlderActions]);
 
     const showConciergeWelcome = isConciergeChat && hadUserMessageAtSessionStart && !hasUserSentMessage && !hasUnreadMessages && !showFullHistory;
     const showConciergeGreeting = isConciergeChat && hadUserMessageAtSessionStart && !showFullHistory;
