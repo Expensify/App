@@ -110,6 +110,6 @@ describe('ValidateLoginPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
-        expect(screen.queryByTestId('validate-code')).not.toBeNull();
+        expect(screen.getByTestId('validate-code')).toBeOnTheScreen();
     });
 });
