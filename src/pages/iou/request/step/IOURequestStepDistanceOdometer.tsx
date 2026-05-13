@@ -172,6 +172,7 @@ function IOURequestStepDistanceOdometer({
         initialStartImageRef,
         initialEndImageRef,
         resetOdometerLocalState,
+        hasInitializedRefs,
     } = useOdometerReadingsState({currentTransaction, isEditing, selectedTab, isLoadingSelectedTab, hasVerifiedBlobs, odometerDraft});
 
     useEffect(() => {
@@ -241,6 +242,9 @@ function IOURequestStepDistanceOdometer({
             initialStartImageRef.current = currentTransaction?.comment?.odometerStartImage;
             initialEndImageRef.current = currentTransaction?.comment?.odometerEndImage;
         }
+        // The refs and setters destructured from `useOdometerReadingsState` are stable; we intentionally omit them
+        // to keep this effect driven only by transaction changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         currentTransaction?.comment?.odometerStart,
         currentTransaction?.comment?.odometerEnd,
