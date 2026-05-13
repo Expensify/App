@@ -1,6 +1,6 @@
+import type {MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {Ref} from 'react';
-import type {StyleProp, TextInput, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
-import type {AnimatedMarkdownTextInputRef} from '@components/RNMarkdownTextInput';
+import type {StyleProp, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {FileObject} from '@src/types/utils/Attachment';
 
@@ -14,6 +14,8 @@ type CustomSelectionChangeEvent = TextInputSelectionChangeEvent & {
     positionX?: number;
     positionY?: number;
 };
+
+type ComposerRef = MarkdownTextInput & HTMLInputElement & HTMLTextAreaElement;
 
 type ComposerProps = Omit<TextInputProps, 'onClear'> &
     ForwardedFSClassProps & {
@@ -74,7 +76,7 @@ type ComposerProps = Omit<TextInputProps, 'onClear'> &
         isGroupPolicyReport?: boolean;
 
         /** Ref exposing imperative methods on the underlying text input */
-        ref?: Ref<TextInput | HTMLInputElement | HTMLTextAreaElement | AnimatedMarkdownTextInputRef>;
+        ref?: Ref<ComposerRef>;
     };
 
-export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};
+export type {TextSelection, ComposerProps, CustomSelectionChangeEvent, ComposerRef};

@@ -1,6 +1,6 @@
 # `react-native-worklets` patches
 
-### [react-native-worklets+0.7.2+001+fix-app-crash-SerializableRemoteFunction.patch](react-native-worklets+0.7.2+001+fix-app-crash-SerializableRemoteFunction.patch)
+### [react-native-worklets+0.8.1+001+fix-app-crash-SerializableRemoteFunction.patch](react-native-worklets+0.8.1+001+fix-app-crash-SerializableRemoteFunction.patch)
 
 - Reason: Fixes SIGSEGV crash in `SerializableRemoteFunction` destructor caused by a data race on `globalMarkdownWorkletRuntime`. The fix replaces the stored `jsi::Value` function reference with an ID-based lookup via a `__remoteFunctionCache` map, avoiding the unsafe cross-thread `~jsi::Value()` call during runtime teardown.
 

@@ -7751,6 +7751,96 @@ describe('SearchUIUtils', () => {
             const response = SearchUIUtils.getSuggestedSearchesVisibility(regularEmail, {}, policies, undefined);
             expect(response.visibility.topSpenders).toBe(false);
         });
+
+        test('Should show Unapproved Cash for Auditor role in paid policy with approvals and payments enabled', () => {
+            const auditorEmail = 'auditor@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, undefined);
+            expect(response.visibility.unapprovedCash).toBe(true);
+        });
+
+        test('Should show Unapproved Card for Auditor role in paid policy with approvals enabled and a default Expensify card', () => {
+            const auditorEmail = 'auditor@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, {} as CardFeedForDisplay);
+            expect(response.visibility.unapprovedCard).toBe(true);
+        });
+
+        test('Should show Reconciliation for Auditor role in paid policy with Expensify Cards enabled', () => {
+            const auditorEmail = 'auditor@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.AUDITOR,
+                    areExpensifyCardsEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(auditorEmail, {}, policies, undefined);
+            expect(response.visibility.reconciliation).toBe(true);
+        });
+
+        test('Should hide Unapproved Cash, Unapproved Card, and Reconciliation for User role even when prerequisites are met', () => {
+            const userEmail = 'user@policy.com';
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(userEmail, {}, policies, {} as CardFeedForDisplay);
+            expect(response.visibility.unapprovedCash).toBe(false);
+            expect(response.visibility.unapprovedCard).toBe(false);
+            expect(response.visibility.reconciliation).toBe(false);
+        });
+
+        test('Should still show Unapproved Cash, Unapproved Card, and Reconciliation for Admin role when prerequisites are met (regression)', () => {
+            const policyKey = `policy_${policyID}`;
+
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [policyKey]: {
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    areExpensifyCardsEnabled: true,
+                } as OnyxTypes.Policy,
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, {} as CardFeedForDisplay);
+            expect(response.visibility.unapprovedCash).toBe(true);
+            expect(response.visibility.unapprovedCard).toBe(true);
+            expect(response.visibility.reconciliation).toBe(true);
+        });
     });
 
     describe('Test getSuggestedSearches sort defaults', () => {
@@ -7787,13 +7877,37 @@ describe('SearchUIUtils', () => {
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS, CONST.SEARCH.TABLE_COLUMNS.TITLE, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
 
             expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
-                // Avatar should always be visible
-                CONST.SEARCH.TABLE_COLUMNS.AVATAR,
                 CONST.SEARCH.TABLE_COLUMNS.DATE,
                 CONST.SEARCH.TABLE_COLUMNS.STATUS,
                 CONST.SEARCH.TABLE_COLUMNS.TITLE,
                 CONST.SEARCH.TABLE_COLUMNS.TOTAL,
             ]);
+        });
+
+        test('Should include Avatar when user keeps it in visible columns for expense reports', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+
+            expect(SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})).toEqual([
+                CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            ]);
+        });
+
+        test('Should omit Avatar but keep Total when Avatar is toggled off for expense reports', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS];
+
+            const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
+            expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+        });
+
+        test('Should not force Avatar for group-by:from when toggled off', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL];
+
+            const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, groupBy: CONST.SEARCH.GROUP_BY.FROM});
+            expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
+            expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM);
         });
 
         test('Should hide To for strict default expense columns', () => {
@@ -8462,7 +8576,16 @@ describe('SearchUIUtils', () => {
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, undefined, report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith({
+                introSelected: introSelectedData,
+                currentUserLogin,
+                currentUserAccountID,
+                betas: undefined,
+                iouReport: report1,
+                iouReportAction: reportAction1,
+                transaction: undefined,
+                transactionViolations: undefined,
+            });
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
@@ -8543,7 +8666,7 @@ describe('SearchUIUtils', () => {
                 false,
             );
 
-            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toEqual(customIntroSelected);
+            expect(jest.mocked(createTransactionThreadReport).mock.calls.at(0)?.at(0)?.introSelected).toEqual(customIntroSelected);
         });
 
         test('Should pass undefined introSelected without bypassing with empty values', () => {
@@ -8551,7 +8674,7 @@ describe('SearchUIUtils', () => {
 
             SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, currentUserLogin, currentUserAccountID, undefined, threadReportID, undefined, false);
 
-            expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toBeUndefined();
+            expect(jest.mocked(createTransactionThreadReport).mock.calls.at(0)?.at(0)?.introSelected).toBeUndefined();
         });
     });
 
@@ -9727,5 +9850,44 @@ describe('getCardDescriptionForSearchTable', () => {
 
     it('uses only last four with leading separator when displayName is missing (search table card group shape)', () => {
         expect(getCardDescriptionForSearchTable(baseCompanyCard, translateLocal)).toBe(` ${CONST.DOT_SEPARATOR} 2554`);
+    });
+});
+
+describe('getWithdrawalStatusOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns three options keyed by SETTLEMENT_STATUS values in enum order', () => {
+        const options = SearchUIUtils.getWithdrawalStatusOptions(translateLocal);
+        expect(options).toEqual([
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.PENDING, text: 'Pending'},
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.CLEARED, text: 'Cleared'},
+            {value: CONST.SEARCH.SETTLEMENT_STATUS.FAILED, text: 'Failed'},
+        ]);
+    });
+});
+
+describe('getWithdrawalStatusDisplayText', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('returns undefined for empty input', () => {
+        expect(SearchUIUtils.getWithdrawalStatusDisplayText(undefined, translateLocal)).toBeUndefined();
+        expect(SearchUIUtils.getWithdrawalStatusDisplayText([], translateLocal)).toBeUndefined();
+    });
+
+    it('returns the translated label for a single-element selection', () => {
+        expect(SearchUIUtils.getWithdrawalStatusDisplayText([CONST.SEARCH.SETTLEMENT_STATUS.PENDING], translateLocal)).toBe('Pending');
+    });
+
+    it('joins translated labels for a multi-value selection, preserving options order', () => {
+        expect(
+            SearchUIUtils.getWithdrawalStatusDisplayText(
+                [CONST.SEARCH.SETTLEMENT_STATUS.FAILED, CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED],
+                translateLocal,
+            ),
+        ).toBe('Pending, Cleared, Failed');
     });
 });

@@ -5640,6 +5640,12 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        searchSectionBadge: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: 16,
+        },
+
         stickToBottom: {
             position: 'absolute',
             bottom: 0,
