@@ -135,7 +135,7 @@ describe('TravelInvoicing', () => {
         expect(spyAPIWrite).toHaveBeenCalledWith(
             'ToggleTravelInvoicingContinuousReconciliation',
             {
-                workspaceAccountID,
+                policyAccountID: workspaceAccountID,
                 shouldUseContinuousReconciliation: true,
                 travelInvoicingContinuousReconciliationConnection: connectionName,
             },
@@ -175,18 +175,17 @@ describe('TravelInvoicing', () => {
     });
 
     it('setTravelInvoicingReconciliationBankAccount sends the selected bank account and reverts on failure', () => {
-        const policyID = '123';
         const workspaceAccountID = 456;
+        const domainName = 'expensify_policy_123.expensify.com';
         const selectedBankAccountID = 'account-123';
         const previousBankAccountID = 'account-111';
 
-        setTravelInvoicingReconciliationBankAccount(policyID, workspaceAccountID, selectedBankAccountID, previousBankAccountID);
+        setTravelInvoicingReconciliationBankAccount(workspaceAccountID, domainName, selectedBankAccountID, previousBankAccountID);
 
         expect(spyAPIWrite).toHaveBeenCalledWith(
             'SetTravelInvoicingReconciliationBankAccount',
             {
-                policyID,
-                workspaceAccountID,
+                domainName,
                 travelInvoicingReconciliationBankAccountID: selectedBankAccountID,
             },
             expect.objectContaining({

@@ -1,6 +1,5 @@
 type SetTravelInvoicingReconciliationBankAccountParams = {
-    policyID: string;
-    workspaceAccountID: number;
+    domainName: string;
     travelInvoicingReconciliationBankAccountID: string;
 };
 

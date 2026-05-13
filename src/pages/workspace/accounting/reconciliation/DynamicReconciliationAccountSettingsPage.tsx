@@ -41,6 +41,7 @@ type ReconciliationAccountSettingsRendererParams = {
 type DynamicReconciliationProps = {
     policyID: string;
     workspaceAccountID: number;
+    domainName: string;
     bankAccountList: OnyxEntry<BankAccountList>;
     goBack: () => void;
     renderReconciliationAccountSettings: (params: ReconciliationAccountSettingsRendererParams) => React.ReactElement;
@@ -49,7 +50,7 @@ type DynamicReconciliationProps = {
 const policyConnectionsSelector = (policy: OnyxEntry<Policy>) => policy?.connections;
 const policyWorkspaceAccountIDSelector = (policy: OnyxEntry<Policy>) => policy?.workspaceAccountID;
 
-function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, bankAccountList, goBack, renderReconciliationAccountSettings}: DynamicReconciliationProps) {
+function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domainName, bankAccountList, goBack, renderReconciliationAccountSettings}: DynamicReconciliationProps) {
     const {translate} = useLocalize();
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -62,14 +63,14 @@ function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, bankA
     const selectedBankAccount = bankAccountList?.[paymentBankAccountID?.toString() ?? ''];
     const bankAccountNumber = selectedBankAccount?.accountData?.accountNumber ?? '';
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
-    const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
+    const reconciliationDomainName = settings?.domainName ?? domainName;
     const {environmentURL} = useEnvironment();
 
     const selectBankAccount = (newBankAccountID?: string) => {
         if (!newBankAccountID) {
             return;
         }
-        setCardReconciliationAccount(workspaceAccountID, domainName, newBankAccountID, reconciliationBankAccountID);
+        setCardReconciliationAccount(workspaceAccountID, reconciliationDomainName, newBankAccountID, reconciliationBankAccountID);
         goBack();
     };
 
@@ -85,7 +86,7 @@ function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, bankA
     });
 }
 
-function TravelInvoicingDynamicReconciliation({policyID, workspaceAccountID, bankAccountList, goBack, renderReconciliationAccountSettings}: DynamicReconciliationProps) {
+function TravelInvoicingDynamicReconciliation({workspaceAccountID, domainName, bankAccountList, goBack, renderReconciliationAccountSettings}: DynamicReconciliationProps) {
     const {translate} = useLocalize();
 
     const [travelInvoicingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
@@ -98,7 +99,7 @@ function TravelInvoicingDynamicReconciliation({policyID, workspaceAccountID, ban
         if (!newBankAccountID) {
             return;
         }
-        setTravelInvoicingReconciliationBankAccount(policyID, workspaceAccountID, newBankAccountID, travelInvoicingReconciliationBankAccountID);
+        setTravelInvoicingReconciliationBankAccount(workspaceAccountID, domainName, newBankAccountID, travelInvoicingReconciliationBankAccountID);
         goBack();
     };
 
@@ -116,6 +117,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path);
 
     const connectionName = getConnectionNameFromRouteParam(connection);
+    const domainName = getDomainNameForPolicy(policyID);
 
     const [connections] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyConnectionsSelector});
     const [workspaceAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyWorkspaceAccountIDSelector});
@@ -165,6 +167,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
     const dynamicReconciliationProps: DynamicReconciliationProps = {
         policyID,
         workspaceAccountID,
+        domainName,
         bankAccountList,
         goBack,
         renderReconciliationAccountSettings,
@@ -175,6 +178,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
             <TravelInvoicingDynamicReconciliation
                 policyID={dynamicReconciliationProps.policyID}
                 workspaceAccountID={dynamicReconciliationProps.workspaceAccountID}
+                domainName={dynamicReconciliationProps.domainName}
                 bankAccountList={dynamicReconciliationProps.bankAccountList}
                 goBack={dynamicReconciliationProps.goBack}
                 renderReconciliationAccountSettings={dynamicReconciliationProps.renderReconciliationAccountSettings}
@@ -186,6 +190,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
         <ExpensifyCardDynamicReconciliation
             policyID={dynamicReconciliationProps.policyID}
             workspaceAccountID={dynamicReconciliationProps.workspaceAccountID}
+            domainName={dynamicReconciliationProps.domainName}
             bankAccountList={dynamicReconciliationProps.bankAccountList}
             goBack={dynamicReconciliationProps.goBack}
             renderReconciliationAccountSettings={dynamicReconciliationProps.renderReconciliationAccountSettings}

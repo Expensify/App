@@ -176,12 +176,12 @@ function toggleTravelInvoicingContinuousReconciliation(
 ) {
     const parameters: ToggleTravelInvoicingContinuousReconciliationParams = shouldUseContinuousReconciliation
         ? {
-              workspaceAccountID,
+              policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
               travelInvoicingContinuousReconciliationConnection: connectionName,
           }
         : {
-              workspaceAccountID,
+              policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
           };
 
@@ -247,14 +247,13 @@ function toggleTravelInvoicingContinuousReconciliation(
 }
 
 function setTravelInvoicingReconciliationBankAccount(
-    policyID: string,
     workspaceAccountID: number,
+    domainName: string,
     travelInvoicingReconciliationBankAccountID: string,
     currentReconciliationBankAccountID?: string,
 ) {
     const parameters: SetTravelInvoicingReconciliationBankAccountParams = {
-        policyID,
-        workspaceAccountID,
+        domainName,
         travelInvoicingReconciliationBankAccountID,
     };
 

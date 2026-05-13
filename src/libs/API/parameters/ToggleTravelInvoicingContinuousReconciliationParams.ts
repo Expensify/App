@@ -1,5 +1,5 @@
 type ToggleTravelInvoicingContinuousReconciliationParams = {
-    workspaceAccountID: number;
+    policyAccountID: number;
     shouldUseContinuousReconciliation: boolean;
     travelInvoicingContinuousReconciliationConnection?: string;
 };
