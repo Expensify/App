@@ -106,6 +106,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
         {},
     );
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
@@ -197,6 +198,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                conciergeReportID,
                 onPaid: () => {
                     startAnimation();
                 },
