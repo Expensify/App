@@ -257,6 +257,14 @@ const DYNAMIC_ROUTES = {
         path: 'credit-card-account',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION: {
+        path: 'travel-invoicing',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_EXPORT],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
+        path: 'payable-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION],
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
         path: 'sage-intacct-autosync',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED],
@@ -2037,6 +2045,10 @@ const ROUTES = {
     POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing/payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-invoicing/payable-account` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT: {
+        route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing/journal-posting-preference',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-invoicing/journal-posting-preference` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/card-select',
@@ -4134,6 +4146,15 @@ const ROUTES = {
     DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE: {
         route: 'domain/:domainAccountID/groups/:groupID/preferred-workspace',
         getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/preferred-workspace` as const,
+    },
+
+    DOMAIN_GROUP_CREATE: {
+        route: 'domain/:domainAccountID/groups/new',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups/new` as const,
+    },
+    DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE: {
+        route: 'domain/:domainAccountID/groups/new/preferred-workspace',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups/new/preferred-workspace` as const,
     },
 } as const;
 

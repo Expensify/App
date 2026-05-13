@@ -25,13 +25,10 @@ type ShowContextMenuParams = {
     report?: {
         reportID?: string;
         originalReportID?: string;
-        isArchivedRoom?: boolean;
-        isChronos?: boolean;
-        isPinnedChat?: boolean;
-        isUnreadChat?: boolean;
     };
     reportAction?: {
         reportActionID?: string;
+        draftMessage?: string;
         isThreadReportParentAction?: boolean;
     };
     callbacks?: {
@@ -120,12 +117,9 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
  * @param reportID - Active Report Id
  * @param reportActionID - ReportActionID for ContextMenu
  * @param originalReportID - The current Report Id of the reportAction
+ * @param draftMessage - ReportAction draft message
  * @param [onShow=() => {}] - Run a callback when Menu is shown
  * @param [onHide=() => {}] - Run a callback when Menu is hidden
- * @param isArchivedRoom - Whether the provided report is an archived room
- * @param isChronosReport - Flag to check if the chat participant is Chronos
- * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
- * @param isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
  */
 function showContextMenu(showContextMenuParams: ShowContextMenuParams) {
     if (!contextMenuRef.current) {

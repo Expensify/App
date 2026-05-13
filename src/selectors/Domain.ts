@@ -182,6 +182,16 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
 
 const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];
 
+function selectRestrictedPrimaryPolicyID(groupID?: string) {
+    return (domain: OnyxEntry<Domain>): string | undefined => {
+        const targetGroup = groupsSelector(domain)?.find((g) => g.id === groupID);
+        if (!targetGroup?.details.enableRestrictedPrimaryPolicy || !targetGroup?.details.restrictedPrimaryPolicyID) {
+            return undefined;
+        }
+        return targetGroup.details.restrictedPrimaryPolicyID;
+    };
+}
+
 /**
  * Creates a selector that checks if a given account ID is an admin of the domain.
  * It checks whether the account ID appears as a value in any expensify_adminPermissions_* entry.
@@ -225,6 +235,7 @@ function isSecurityGroupPendingDeleteSelector(groupID?: string) {
 
 export {
     domainMemberSettingsSelector,
+    selectRestrictedPrimaryPolicyID,
     domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
     domainNameSelector,

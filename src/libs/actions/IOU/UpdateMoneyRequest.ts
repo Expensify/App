@@ -497,6 +497,7 @@ type UpdateMoneyRequestDistanceParams = {
     odometerStart?: number;
     odometerEnd?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -518,6 +519,7 @@ function updateMoneyRequestDistance({
     odometerStart,
     odometerEnd,
     parentReportNextStep,
+    distanceOriginalPolicy,
 }: UpdateMoneyRequestDistanceParams) {
     const transactionChanges: TransactionChanges = {
         // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
@@ -534,7 +536,7 @@ function updateMoneyRequestDistance({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, undefined, distanceOriginalPolicy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -1535,6 +1537,7 @@ function getUpdateTrackExpenseParams(
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
+    distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
 ): UpdateMoneyRequestData<
     typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
 > {
@@ -1551,12 +1554,13 @@ function getUpdateTrackExpenseParams(
     const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const transaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const chatReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+    const policyForTransaction = distanceOriginalPolicy ?? policy;
     const updatedTransaction = transaction
         ? getUpdatedTransaction({
               transaction,
               transactionChanges,
               isFromExpenseReport: false,
-              policy,
+              policy: policyForTransaction,
           })
         : null;
     const transactionDetails = getTransactionDetails(updatedTransaction);
@@ -1571,6 +1575,7 @@ function getUpdateTrackExpenseParams(
         ...dataToIncludeInParams,
         reportID: chatReport?.reportID,
         transactionID,
+        policyID: policyForTransaction?.id,
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
