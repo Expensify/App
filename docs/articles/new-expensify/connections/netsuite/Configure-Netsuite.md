@@ -78,6 +78,9 @@ To manage how reports are exported from Expensify to NetSuite:
 - **Export to Next Open Period** – Enable to skip closed periods and use the next available NetSuite period
 - **Export Expensify Travel Payable To** – If Expensify Travel's Central invoicing feature is enabled, configure where travel card expenses are exported:
   - **Travel payable account** – Select the payable account for Expensify Travel expenses
+  - **Journal entries posting preference** – Choose how travel invoicing journal entries are grouped when exported:
+    - *Single entry for each expense* (default) – Creates one journal entry per expense
+    - *Single, itemized entry for each report* – Creates one combined journal entry for the entire report
 
 3. Click the **three-dot icon** > **Sync Now** to apply changes
 
