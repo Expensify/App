@@ -184,7 +184,7 @@ function ScreenWrapper({
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldBlockSingleEntryOldAppExit = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
-    const [activeRouteWithoutParams, setActiveRouteWithoutParams] = useState(() => Navigation.getActiveRouteWithoutParams?.() ?? '');
+    const [activeRouteWithoutParams, setActiveRouteWithoutParams] = useState(() => Navigation.getActiveRouteWithoutParams());
     const initialURLWithoutParams = initialURL?.split('?').at(0);
     const doesInitialURLMatchActiveRoute = activeRouteWithoutParams !== '' && !!initialURLWithoutParams?.endsWith(activeRouteWithoutParams);
 
@@ -193,7 +193,7 @@ function ScreenWrapper({
             return;
         }
         Navigation.isNavigationReady().then(() => {
-            setActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams?.() ?? '');
+            setActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams());
         });
     }, [activeRouteWithoutParams]);
 
