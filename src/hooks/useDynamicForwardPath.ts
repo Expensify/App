@@ -4,7 +4,7 @@ import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocus
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import type {State} from '@libs/Navigation/types';
-import type {Route} from '@src/ROUTES';
+import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import useRootNavigationState from './useRootNavigationState';
@@ -28,17 +28,8 @@ const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route>> = {
         [SCREENS.SETTINGS.WALLET.ROOT]: ROUTES.SETTINGS_ENABLE_PAYMENTS,
         [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route,
     },
-    [DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path]: {
-        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: ROUTES.SETTINGS_SECURITY,
-    },
-    [DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path]: {
-        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: ROUTES.SETTINGS_SECURITY,
-    },
-    [DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY.path]: {
-        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: ROUTES.SETTINGS_SECURITY,
-    },
     [DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path]: {
-        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: ROUTES.SETTINGS_SECURITY,
+        [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: ROUTES.WORKSPACE_ACCOUNTING.route,
     },
 };
 
@@ -48,9 +39,12 @@ const FORWARD_TO_MAPPINGS: Record<string, Record<string, Route>> = {
  * Determines the dynamic suffix and entry screen from the current URL,
  * then looks up the corresponding forward path in FORWARD_TO_MAPPINGS.
  *
+ * If the matched suffix doesn't equal the expected one, returns undefined.
+ *
+ * @param dynamicRouteSuffix - The dynamic route suffix expected in the current URL.
  * @returns The forward route if a mapping exists for the current (suffix, entryScreen) pair, undefined otherwise.
  */
-function useDynamicForwardPath(): Route | undefined {
+function useDynamicForwardPath(dynamicRouteSuffix: DynamicRouteSuffix): Route | undefined {
     const path = useRootNavigationState((state) => {
         if (!state) {
             return undefined;
@@ -65,7 +59,7 @@ function useDynamicForwardPath(): Route | undefined {
 
     const pathWithoutLeadingSlash = path.replaceAll(/^\/+/g, '');
     const match = findMatchingDynamicSuffix(pathWithoutLeadingSlash);
-    if (!match) {
+    if (!match || match.pattern !== dynamicRouteSuffix) {
         return undefined;
     }
 
@@ -75,7 +69,7 @@ function useDynamicForwardPath(): Route | undefined {
     }
 
     const basePath = getPathWithoutDynamicSuffix(pathWithoutLeadingSlash, match.actualSuffix, match.pattern);
-    const baseState = getStateFromPath(basePath as Route);
+    const baseState = getStateFromPath(basePath);
     if (!baseState) {
         return undefined;
     }

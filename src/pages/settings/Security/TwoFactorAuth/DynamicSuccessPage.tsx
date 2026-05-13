@@ -29,7 +29,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const {environmentURL} = useEnvironment();
     const styles = useThemeStyles();
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path);
-    const dynamicForwardPath = useDynamicForwardPath();
+    const dynamicForwardPath = useDynamicForwardPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path);
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);

@@ -13,7 +13,7 @@ type DynamicVerifyAccountPageRoute = PlatformStackScreenProps<SettingsNavigatorP
 function DynamicVerifyAccountPage() {
     const route = useRoute<DynamicVerifyAccountPageRoute>();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
-    let forwardPath = useDynamicForwardPath();
+    let forwardPath = useDynamicForwardPath(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path);
 
     if (forwardPath === ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route) {
         forwardPath = ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(route.params?.backTo);

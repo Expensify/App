@@ -60,16 +60,16 @@ function DynamicTwoFactorAuthPage() {
     const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTwoFactorAuthPage', isLoading: !!account?.isLoading};
 
     useEffect(() => {
-        if (!isFocused || !account?.requiresTwoFactorAuth) {
-            return;
-        }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
-    }, [isFocused, account?.requiresTwoFactorAuth]);
-
-    useEffect(() => {
         if (!isUserValidated) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backPath), {forceReplace: true});
+            });
+            return;
+        }
+
+        if (isFocused && account?.requiresTwoFactorAuth) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
             });
             return;
         }
@@ -84,7 +84,7 @@ function DynamicTwoFactorAuthPage() {
 
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused]);
+    }, [isUserValidated, accountMetadata.status, isFocused, account?.requiresTwoFactorAuth]);
 
     return (
         <TwoFactorAuthWrapper
