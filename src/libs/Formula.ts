@@ -656,11 +656,12 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
 
     // O(1) lookups instead of repeated findIndex scans.
     const indexByTransactionID = new Map<string, number>();
-    transactions.forEach((transaction, i) => {
-        if (transaction?.transactionID) {
-            indexByTransactionID.set(transaction.transactionID, i);
+    for (const [i, transaction] of transactions.entries()) {
+        if (!transaction?.transactionID) {
+            continue;
         }
-    });
+        indexByTransactionID.set(transaction.transactionID, i);
+    }
 
     const upsert = (transaction: Transaction) => {
         const existingIndex = indexByTransactionID.get(transaction.transactionID);

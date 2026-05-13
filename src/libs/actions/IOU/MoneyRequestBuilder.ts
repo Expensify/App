@@ -1604,7 +1604,7 @@ function getUpdatedMoneyRequestReportData(
             }
         }
         if (transactionChanges) {
-            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy, (updatedTransaction ?? undefined) as OnyxTypes.Transaction | undefined);
+            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy, updatedTransaction ?? undefined);
         }
     } else {
         updatedMoneyRequestReport = updateIOUOwnerAndTotal(iouReport, actorAccountID ?? CONST.DEFAULT_NUMBER_ID, diff, getCurrency(transaction), false, true, isTransactionOnHold);
