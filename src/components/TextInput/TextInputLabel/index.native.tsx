@@ -15,7 +15,7 @@ function TextInputLabel({label, labelScale, labelTranslateY, isMultiline, native
                 nativeID={nativeID}
                 accessible={false}
                 accessibilityElementsHidden
-                importantForAccessibility="no"
+                importantForAccessibility={nativeID ? 'yes' : 'no'}
                 numberOfLines={!isMultiline ? 1 : undefined}
                 ellipsizeMode={!isMultiline ? 'tail' : undefined}
                 allowFontScaling={false}
