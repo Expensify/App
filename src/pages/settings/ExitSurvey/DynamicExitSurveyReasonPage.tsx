@@ -58,7 +58,6 @@ function DynamicExitSurveyReasonPage() {
         saveResponse(draftResponse);
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path), {forceReplace: true});
     }, [draftResponse]);
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, submitForm);
 
     const goBackJustOnce = useCallback(() => {
         Log.info('[ExitSurvey] User chose Go back just once');
@@ -82,6 +81,7 @@ function DynamicExitSurveyReasonPage() {
         }
         submitForm();
     }, [draftResponse, submitForm, translate]);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER, switchToClassic);
 
     const formTopMarginsStyle = styles.mt3;
     const baseResponseInputContainerStyle = styles.mt3;
@@ -139,7 +139,6 @@ function DynamicExitSurveyReasonPage() {
                             ref={inputCallbackRef}
                             containerStyles={[baseResponseInputContainerStyle]}
                             shouldSaveDraft
-                            shouldSubmitForm
                         />
                     </>
                 )}
