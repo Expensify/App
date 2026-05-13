@@ -8,6 +8,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -72,6 +73,7 @@ function IOURequestStepDistanceManual({
     const reportAttributesDerived = useReportAttributes();
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -114,7 +116,7 @@ function IOURequestStepDistanceManual({
     const mileageRate = DistanceRequestUtils.getRate({
         transaction,
         policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy,
-        useTransactionDistanceUnit: false,
+        useTransactionDistanceUnit: isEditing,
     });
     const unit = mileageRate.unit;
     const rate = mileageRate.rate ?? 0;
@@ -183,6 +185,7 @@ function IOURequestStepDistanceManual({
                     // Not required for manual distance request
                     transactionBackup: undefined,
                     policy,
+                    distanceOriginalPolicy,
                     policyTagList: policyTags,
                     policyCategories,
                     currentUserAccountIDParam,
