@@ -175,4 +175,3 @@ function buildOnyxDataForPolicyDistanceRateUpdates(
 }
 
 export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates};
-export type {PolicyDistanceRateUpdateField};

@@ -64,7 +64,7 @@ function CardSelector({value = [], onChange}: CardSelectorProps) {
 
     const closedCardsSectionData = buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, value, illustrations, companyCardFeedIcons, true, customCardNames);
 
-    const shouldShowSearchInput = individualCardsSectionData.selected.length + individualCardsSectionData.unselected.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowSearchInput = individualCardsSectionData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const searchFunction = (item: CardFilterItem) =>
         !!item.text?.toLocaleLowerCase().includes(debouncedSearchTerm.toLocaleLowerCase()) ||
@@ -77,9 +77,9 @@ function CardSelector({value = [], onChange}: CardSelectorProps) {
     let sectionHeaderCount = 0;
 
     if (searchAdvancedFiltersForm) {
-        const selectedData = [...individualCardsSectionData.selected, ...closedCardsSectionData.selected].filter(searchFunction);
-        const unselectedIndividualCardsData = individualCardsSectionData.unselected.filter(searchFunction);
-        const unselectedClosedCardsData = closedCardsSectionData.unselected.filter(searchFunction);
+        const selectedData = [...individualCardsSectionData, ...closedCardsSectionData].filter((item) => item.isSelected && searchFunction(item));
+        const unselectedIndividualCardsData = individualCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
+        const unselectedClosedCardsData = closedCardsSectionData.filter((item) => !item.isSelected && searchFunction(item));
 
         itemCount = selectedData.length + unselectedIndividualCardsData.length + unselectedClosedCardsData.length;
         sectionHeaderCount = unselectedClosedCardsData.length > 0 ? 1 : 0;
