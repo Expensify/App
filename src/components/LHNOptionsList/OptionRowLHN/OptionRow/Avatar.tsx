@@ -7,7 +7,7 @@ import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
-type OptionRowAvatarProps = {
+type AvatarProps = {
     optionItem: OptionData;
     isInFocusMode: boolean;
     subscriptAvatarBorderColor: ColorValue;
@@ -15,7 +15,7 @@ type OptionRowAvatarProps = {
     singleAvatarContainerStyle: ViewStyle[];
 };
 
-function OptionRowAvatarInner({optionItem, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: OptionRowAvatarProps) {
+function AvatarInner({optionItem, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: AvatarProps) {
     const personalDetails = usePersonalDetails();
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(optionItem?.parentReportAction);
@@ -64,15 +64,15 @@ function OptionRowAvatarInner({optionItem, isInFocusMode, subscriptAvatarBorderC
     );
 }
 
-OptionRowAvatarInner.displayName = 'OptionRowAvatarInner';
+AvatarInner.displayName = 'OptionRow.AvatarInner';
 
-function OptionRowAvatar({optionItem, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: OptionRowAvatarProps) {
+function Avatar({optionItem, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: AvatarProps) {
     // Bail out before subscribing to personal details when the row has no avatar to render.
     if (!optionItem.icons?.length || !optionItem.icons.at(0)) {
         return null;
     }
     return (
-        <OptionRowAvatarInner
+        <AvatarInner
             optionItem={optionItem}
             isInFocusMode={isInFocusMode}
             subscriptAvatarBorderColor={subscriptAvatarBorderColor}
@@ -82,6 +82,6 @@ function OptionRowAvatar({optionItem, isInFocusMode, subscriptAvatarBorderColor,
     );
 }
 
-OptionRowAvatar.displayName = 'OptionRowAvatar';
+Avatar.displayName = 'OptionRow.Avatar';
 
-export default OptionRowAvatar;
+export default Avatar;
