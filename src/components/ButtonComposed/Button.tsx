@@ -10,7 +10,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {ButtonContext} from './context';
 import type {ButtonProps} from './types';
@@ -18,7 +17,7 @@ import type {ButtonProps} from './types';
 function Button({
     children,
     contentContainerStyle = [],
-    size = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+    size = CONST.BUTTON_SIZE.MEDIUM,
     isLoading = false,
     isDisabled = false,
     onLayout = () => {},
@@ -182,7 +181,7 @@ function Button({
                         styles.justifyContentCenter,
                         contentContainerStyle,
                         styles.mw100,
-                        (size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM || size === CONST.DROPDOWN_BUTTON_SIZE.LARGE) && styles.gap1,
+                        size !== CONST.BUTTON_SIZE.SMALL && styles.gap1,
                         isLoading && styles.opacity0,
                     ]}
                 >
@@ -193,7 +192,6 @@ function Button({
                 <ActivityIndicator
                     color={variant === 'success' || variant === 'danger' ? theme.textLight : theme.text}
                     style={[styles.pAbsolute, styles.l0, styles.r0]}
-                    size={size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? variables.iconSizeExtraSmall : undefined}
                     reasonAttributes={buttonLoadingReasonAttributes}
                 />
             )}

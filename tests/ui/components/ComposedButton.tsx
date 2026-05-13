@@ -304,7 +304,6 @@ describe('ButtonComposed — Button', () => {
             {size: CONST.DROPDOWN_BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 12},
             {size: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 16},
             {size: CONST.DROPDOWN_BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 20},
-            {size: CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL, minHeight: variables.componentSizeXSmall, paddingHorizontal: 8},
         ])('size="$size" applies minHeight=$minHeight and paddingHorizontal=$paddingHorizontal', ({size, minHeight, paddingHorizontal}) => {
             renderButton({size});
             expect(screen.getByLabelText(LABEL)).toHaveStyle({minHeight, paddingHorizontal});

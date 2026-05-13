@@ -32,10 +32,9 @@ function ButtonIcon({src, style, hoverFill, fill}: ButtonIconProps) {
             <Icon
                 src={src}
                 fill={propsFill ?? defaultFill}
-                extraSmall={size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL}
-                small={size === CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                medium={size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                large={size === CONST.DROPDOWN_BUTTON_SIZE.LARGE}
+                small={size === CONST.BUTTON_SIZE.SMALL}
+                medium={size === CONST.BUTTON_SIZE.MEDIUM}
+                large={size === CONST.BUTTON_SIZE.LARGE}
                 isButtonIcon
             />
         </View>

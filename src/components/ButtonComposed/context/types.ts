@@ -3,7 +3,7 @@ import type {ButtonVariant} from '@styles/utils/types';
 import type CONST from '@src/CONST';
 
 type ButtonContextValue = {
-    size?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    size: ValueOf<typeof CONST.BUTTON_SIZE>;
     variant: ButtonVariant | undefined;
     isHovered: boolean;
     iconFill?: string;

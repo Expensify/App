@@ -28,10 +28,9 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
     const StyleUtils = useStyleUtils();
 
     const sizeTextStyles = {
-        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmallText,
-        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmallText,
-        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: styles.buttonMediumText,
-        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: styles.buttonLargeText,
+        [CONST.BUTTON_SIZE.SMALL]: styles.buttonSmallText,
+        [CONST.BUTTON_SIZE.MEDIUM]: styles.buttonMediumText,
+        [CONST.BUTTON_SIZE.LARGE]: styles.buttonLargeText,
     };
 
     const variantTextStyles = {
@@ -49,7 +48,7 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
                 styles.pointerEventsNone,
                 styles.buttonText,
                 styles.flexShrink1,
-                size ? sizeTextStyles[size] : undefined,
+                sizeTextStyles[size],
                 variant ? variantTextStyles[variant] : undefined,
                 isHovered && hoverStyle,
                 style,
