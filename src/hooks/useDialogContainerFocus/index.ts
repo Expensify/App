@@ -52,7 +52,6 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         let cancelled = false;
         let frameId: number;
         // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionHandle = InteractionManager.runAfterInteractions(() => {
             if (cancelled) {
                 return;

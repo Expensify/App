@@ -343,10 +343,11 @@ function cancelIfStaleForNavState() {
     }
 
     const lastRoute = rootState.routes.at(-1);
-    const hasModalOpen = lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
-
-    // While a modal/RHP is open, the submit flow may still be in progress
-    // (the confirmation screen itself is a modal). Don't cancel prematurely.
+    // Treat any non-fullscreen route on top as "a modal/overlay is open" - the submit flow may still
+    // be in progress (the confirmation screen itself is a modal, but FeatureTraining/Explanation/
+    // TestDrive/TestTools/Share/etc. can also legitimately be on top mid-flow). Inverting
+    // `isFullScreenName` keeps this future-proof against new modal navigator names.
+    const hasModalOpen = !!lastRoute && !isFullScreenName(lastRoute.name);
     if (hasModalOpen) {
         return;
     }

@@ -170,6 +170,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         });
     };
 
+    const warnDisconnectGustoFirst = async () => {
+        if (!policy?.connections?.gusto) {
+            return;
+        }
+        await showConfirmModal({
+            title: translate('workspace.distanceRates.oopsNotSoFast'),
+            prompt: translate('workspace.moreFeatures.hrWarningModal.disconnectText'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
     const promptDisableExpensifyCardViaConcierge = async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.expensifyCard.disableCardTitle'),
@@ -311,6 +323,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 }
                                 pendingAction={policy?.pendingFields?.isHREnabled}
                                 disabled={!!policy?.connections?.gusto}
+                                disabledAction={warnDisconnectGustoFirst}
                                 onToggle={(isEnabled) => {
                                     if (!policyID) {
                                         return;

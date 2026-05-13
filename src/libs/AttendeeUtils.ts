@@ -56,6 +56,20 @@ function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], p
     return [capitalizedFirst, ...lowercasedRest].join(', ');
 }
 
+/**
+ * Converts raw attendees value to an array.
+ * Onyx may deserialize arrays as plain objects, so both shapes are handled.
+ */
+function convertAttendeesToArray(rawAttendees: unknown): Attendee[] {
+    if (Array.isArray(rawAttendees)) {
+        return rawAttendees as Attendee[];
+    }
+    if (rawAttendees && typeof rawAttendees === 'object') {
+        return Object.values(rawAttendees as Record<string, Attendee>);
+    }
+    return [];
+}
+
 /** Returns whether there are missing attendees for the given category */
 function getIsMissingAttendeesViolation(
     policyCategories: PolicyCategories | undefined,
@@ -78,7 +92,7 @@ function getIsMissingAttendeesViolation(
 
     const creatorLogin = userPersonalDetails.login ?? '';
     const creatorEmail = userPersonalDetails.email ?? '';
-    const attendees = Array.isArray(iouAttendees) ? iouAttendees : [];
+    const attendees = convertAttendeesToArray(iouAttendees);
     // Check both login and email since attendee objects may have identifier in either property
     const attendeesMinusCreatorCount = attendees.filter((a) => {
         const attendeeIdentifier = a?.login ?? a?.email;
@@ -169,4 +183,4 @@ function enrichAndSortAttendees(
     );
 }
 
-export {enrichAndSortAttendees, formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation};
+export {enrichAndSortAttendees, formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};

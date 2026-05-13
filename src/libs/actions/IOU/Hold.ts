@@ -74,7 +74,7 @@ function putOnHold(
         transactionThreadReport = buildTransactionThread(iouAction, moneyRequestReport, currentUserAccountID, undefined, reportID);
     }
 
-    const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserLogin);
+    const optimisticCreatedAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserLogin});
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -142,6 +142,14 @@ function putOnHold(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 pendingAction: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: {pendingAction: null},
+                [createdReportActionComment.reportActionID]: {pendingAction: null},
             },
         },
     ];
@@ -259,7 +267,6 @@ function putOnHold(
 
     if (iouReport) {
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: iouReport,
             predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
@@ -420,7 +427,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -429,6 +436,13 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
                 comment: {
                     hold: null,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: {pendingAction: null},
             },
         },
     ];
@@ -476,7 +490,6 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
 
     if (iouReport) {
         // buildOptimisticNextStep is used in parallel
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const optimisticNextStepDeprecated = buildNextStepNew({
             report: iouReport,
             policy,
@@ -672,6 +685,7 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp,
     betas,
     isApprovalFlow = false,
+    conciergeReportID,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -680,6 +694,8 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp?: string;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
+    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
+    conciergeReportID?: string;
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -739,6 +755,7 @@ function getReportFromHoldRequestsOnyxData({
         firstHoldTransaction,
         optimisticExpenseReport.reportID,
         newParentReportActionID,
+        conciergeReportID,
     );
 
     let optimisticCreatedReportForUnapprovedAction: OnyxTypes.ReportAction | null = null;

@@ -61,7 +61,7 @@ type DomainSecurityGroupErrors = {
     enableRestrictedPolicyCreationErrors?: OnyxCommon.Errors;
 
     /**
-     * Errors related to deleting the security group
+     * Errors related to group-level operations (create, delete) on the security group
      */
     errors?: OnyxCommon.Errors;
 
@@ -79,6 +79,11 @@ type DomainSecurityGroupErrors = {
      * Errors related to the restricted default login selection
      */
     enableRestrictedPrimaryLoginErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the override preferred policy with card policy setting
+     */
+    overridePreferredPolicyWithCardPolicyErrors?: OnyxCommon.Errors;
 };
 
 /**

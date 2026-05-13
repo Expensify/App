@@ -1,6 +1,5 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import RenderHTML from '@components/RenderHTML';
 import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
@@ -11,6 +10,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {getActionableMentionWhisperMessage, getOriginalMessage, isSystemUserMentioned} from '@libs/ReportActionsUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+import {resolveActionableMentionWhisper} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -20,16 +20,9 @@ type MentionWhisperContentProps = {
     report: OnyxEntry<Report>;
     originalReport: OnyxEntry<Report>;
     originalReportID: string | undefined;
-    resolveActionableMentionWhisper: (
-        report: OnyxEntry<Report>,
-        reportAction: OnyxEntry<ReportAction>,
-        resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
-        isReportArchived: boolean,
-        parentReport?: OnyxEntry<Report>,
-    ) => void;
 };
 
-function MentionWhisperContent({action, report, originalReport, originalReportID, resolveActionableMentionWhisper}: MentionWhisperContentProps) {
+function MentionWhisperContent({action, report, originalReport, originalReportID}: MentionWhisperContentProps) {
     const {translate} = useLocalize();
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();

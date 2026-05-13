@@ -426,7 +426,6 @@ function ParticipantSearchResults({
         // `InteractionManager.runAfterInteractions` is marked deprecated in RN types but remains the
         // supported primitive for deferring work until native animations/gestures settle. No
         // replacement exists in the RN API we can migrate to today.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     };
 
