@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import useAncestors from '@hooks/useAncestors';
 import useOnyx from '@hooks/useOnyx';
-import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
+import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 import {getOriginalReportID, shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,7 +72,7 @@ type ReportActionEditMessageContextProviderProps = {
 
 function ReportActionEditMessageContextProvider({reportID, children}: ReportActionEditMessageContextProviderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {effectiveTransactionThreadReportID} = useTransactionThreadReport(reportID);
+    const {effectiveTransactionThreadReportID} = useTransactionThreadReportID(reportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
