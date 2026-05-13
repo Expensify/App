@@ -20,7 +20,7 @@ const NotificationPermissionNative: NotificationPermissionModule = {
             .then(({notificationPermissionStatus}) => fromAirshipStatus(notificationPermissionStatus))
             .catch((error: unknown) => {
                 Log.warn('[NotificationPermission] getStatus failed', {error: String(error)});
-                return 'default';
+                return 'denied';
             });
     },
 
