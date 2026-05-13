@@ -10,6 +10,13 @@ import ULRenderer from './HTMLEngineProvider/HTMLRenderers/ULRenderer';
 
 type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 
+// Matches &amp;#91; (→ "[") and &amp;#93; (→ "]"). Index 7 is the distinguishing digit ('1' vs '3').
+const RE_BRACKET_ESCAPE = /&amp;#9[13];/g;
+// Matches consecutive duplicate <emoji> or </emoji> tags, keeping only the outermost one.
+const RE_EMOJI_OPEN_OR_CLOSE = /(<emoji[^>]*>)(?:<emoji[^>]*>)+|(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g;
+// Strips orphaned <br/> tags inside <ul> that would render as extra empty bullets.
+const RE_BR_CLEANUP = /<br\s*\/?>\s*(<\/ul>)|(<\/li>)\s*<br\s*\/?>\s*(?=<(?:li|\/ul)>)/gi;
+
 type RenderHTMLProps = {
     /** HTML string to render */
     html: string;
@@ -36,14 +43,11 @@ function RenderHTML({html: htmlParam, onLinkPress, isSelectable}: RenderHTMLProp
         return (
             Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
                 // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
-                .replaceAll('&amp;#91;', '[')
-                .replaceAll('&amp;#93;', ']')
+                .replaceAll(RE_BRACKET_ESCAPE, (m) => (m.at(7) === '1' ? '[' : ']'))
                 // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
-                .replaceAll(/(<emoji[^>]*>)(?:<emoji[^>]*>)+/g, '$1')
-                .replaceAll(/(<\/emoji[^>]*>)(?:<\/emoji[^>]*>)+/g, '$1')
+                .replaceAll(RE_EMOJI_OPEN_OR_CLOSE, '$1$2')
                 // Strip orphaned <br/> tags inside <ul> that would render as extra empty bullets
-                .replaceAll(/<br\s*\/?>\s*(<\/ul>)/gi, '$1')
-                .replaceAll(/(<\/li>)\s*<br\s*\/?>\s*(?=<(?:li|\/ul)>)/gi, '$1')
+                .replaceAll(RE_BR_CLEANUP, '$1$2')
         );
     }, [htmlParam]);
 

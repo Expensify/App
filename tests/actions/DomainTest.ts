@@ -1,3 +1,4 @@
+import {Num} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import {
     addAdminToDomain,
@@ -7,11 +8,13 @@ import {
     clearDomainMemberError,
     clearDomainMembersSelectedForMove,
     clearDomainSecurityGroupSettingError,
+    clearGroupCreateError,
     clearGroupDeleteError,
     clearTwoFactorAuthExemptEmailsErrors,
     clearVacationDelegateError,
     closeUserAccount,
     createDomain,
+    createDomainSecurityGroup,
     deleteDomainSecurityGroup,
     deleteDomainVacationDelegate,
     resetCreateDomainForm,
@@ -1313,6 +1316,149 @@ describe('actions/Domain', () => {
             );
 
             apiWriteSpy.mockRestore();
+        });
+    });
+
+    describe('createDomainSecurityGroup', () => {
+        const FIXED_GROUP_ID = '123456';
+
+        beforeEach(() => {
+            jest.spyOn(Num, 'generateRandom6DigitID').mockReturnValue(Number(FIXED_GROUP_ID));
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('sends CREATE_DOMAIN_SECURITY_GROUP with correct optimistic, success, and failure data', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const newSecurityGroup: DomainSecurityGroup = {
+                name: 'New Group',
+                shared: {},
+                enableRestrictedPolicyCreation: false,
+                enableRestrictedPrimaryLogin: false,
+            };
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${FIXED_GROUP_ID}`;
+
+            createDomainSecurityGroup(domainAccountID, newSecurityGroup);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_DOMAIN_SECURITY_GROUP,
+                {domainAccountID, name: SECURITY_GROUP_KEY, value: JSON.stringify(newSecurityGroup), shouldSetAsDefaultGroup: false},
+                {
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: newSecurityGroup},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {createGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {errors: null}},
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {createGroup: null}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {errors: null}},
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: newSecurityGroup},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: {[SECURITY_GROUP_KEY]: {createGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                            value: {[SECURITY_GROUP_KEY]: {errors: expect.any(Object)}},
+                        }),
+                    ]),
+                },
+            );
+        });
+
+        it('optimistically sets domain_defaultSecurityGroupID to the new group when shouldSetAsDefaultGroup is true and reverts it on failure', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const previousDefaultGroupID = '999';
+            const newSecurityGroup: DomainSecurityGroup = {
+                name: 'Default Group',
+                shared: {},
+                enableRestrictedPolicyCreation: false,
+                enableRestrictedPrimaryLogin: false,
+            };
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${FIXED_GROUP_ID}`;
+
+            createDomainSecurityGroup(domainAccountID, newSecurityGroup, true, previousDefaultGroupID);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.CREATE_DOMAIN_SECURITY_GROUP,
+                {domainAccountID, name: SECURITY_GROUP_KEY, value: JSON.stringify(newSecurityGroup), shouldSetAsDefaultGroup: true},
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: expect.objectContaining({domain_defaultSecurityGroupID: FIXED_GROUP_ID}),
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: expect.objectContaining({domain_defaultSecurityGroupID: previousDefaultGroupID}),
+                        }),
+                    ]),
+                }),
+            );
+        });
+    });
+
+    describe('clearGroupCreateError', () => {
+        it('removes the optimistic group entry and its errors from Onyx', async () => {
+            const domainAccountID = 123;
+            const groupID = '456';
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+            const timestamp = 789;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {[SECURITY_GROUP_KEY]: {name: 'Test Group', shared: {}}} as PrefixedRecord<
+                typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX,
+                DomainSecurityGroup
+            >);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+                [SECURITY_GROUP_KEY]: {errors: {[timestamp]: 'error'}},
+            });
+
+            clearGroupCreateError(domainAccountID, groupID);
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                waitForCollectionCallback: false,
+                callback: (domain) => {
+                    expect((domain as Record<string, unknown>)?.[SECURITY_GROUP_KEY]).toBeFalsy();
+                },
+            });
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                waitForCollectionCallback: false,
+                callback: (errors) => {
+                    expect((errors as Record<string, unknown>)?.[SECURITY_GROUP_KEY]).toBeFalsy();
+                },
+            });
         });
     });
 });

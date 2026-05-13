@@ -12,6 +12,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useEnvironment from '@hooks/useEnvironment';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -90,6 +91,7 @@ function IOURequestStepDistance({
     const [originalSplitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const selfDMReport = useSelfDMReport();
     const policy = usePolicy(report?.policyID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
@@ -180,28 +182,50 @@ function IOURequestStepDistance({
         [distanceInMeters, distanceUnit],
     );
 
-    // Track whether the user has started editing on the manual tab to prevent route updates
-    // from overwriting in-progress manual input.
+    // Track whether the user has typed in the manual tab so route re-fetches don't clobber in-progress
+    // input. Editing waypoints clears this (in the effect below) — a recalculated route supersedes a
+    // manual value the same way it would on a fresh map expense (GH #90083).
     const isManuallyEditing = useRef(false);
 
-    // Push the route distance into the manual tab input only on a real waypoint-driven recalculation
-    // (a non-null → different non-null transition). Skip the initial null → value transition, which
-    // is the post-save re-fetch, so we don't overwrite a saved manual quantity with the route distance.
+    // Keep the manual tab input in sync with the recalculated route distance:
+    //  - On a waypoint edit, `saveWaypoint`/`updateWaypoints` clear `routes.route0.distance` (and
+    //    `customUnit.quantity`) to null, then the BE returns the new geometry. That recalculation wins
+    //    over any earlier manual value, so the null → value transition flows back into the manual tab
+    //    and re-enables future syncs (GH #90082, #90083).
+    //  - A re-fetch of an already-saved expense is also a null → value transition but keeps a non-null
+    //    `customUnit.quantity` (the persisted value, possibly a manual override), so we skip it there
+    //    to avoid overwriting it (GH #90082).
+    // Both signals are read off the same transaction object. The waypoint-edit path clears `routes` and
+    // `customUnit.quantity` together, so by the time `routeDistance` comes back non-null `customUnitQuantity`
+    // is already null; the re-fetch path never clears `customUnit.quantity` at all. So the `!= null` check
+    // below stays correct regardless of the order Onyx delivers those two updates in.
     const routeDistance = currentTransaction?.routes?.route0?.distance;
+    const customUnitQuantity = currentTransaction?.comment?.customUnit?.quantity;
     const lastSyncedRouteDistance = useRef<number | null | undefined>(routeDistance);
     useEffect(() => {
-        if (routeDistance == null || !distanceUnit || isManuallyEditing.current) {
+        if (routeDistance == null) {
+            // The route was cleared because the user edited waypoints — let the new value flow back
+            // into the manual tab even if the user had typed a manual distance before (GH #90083).
+            if (lastSyncedRouteDistance.current != null) {
+                isManuallyEditing.current = false;
+            }
             lastSyncedRouteDistance.current = routeDistance;
             return;
         }
-        if (lastSyncedRouteDistance.current == null || lastSyncedRouteDistance.current === routeDistance) {
+        if (!distanceUnit || isManuallyEditing.current) {
+            lastSyncedRouteDistance.current = routeDistance;
+            return;
+        }
+        const isNullToValueTransition = lastSyncedRouteDistance.current == null;
+        const isPostSaveRefetch = isNullToValueTransition && customUnitQuantity != null;
+        if (isPostSaveRefetch || lastSyncedRouteDistance.current === routeDistance) {
             lastSyncedRouteDistance.current = routeDistance;
             return;
         }
         const routeDistanceInUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistance, distanceUnit));
         manualNumberFormRef.current?.updateNumber(routeDistanceInUnit.toString());
         lastSyncedRouteDistance.current = routeDistance;
-    }, [routeDistance, distanceUnit]);
+    }, [routeDistance, distanceUnit, customUnitQuantity]);
 
     const setDistanceRequestData = useDistanceRequestData({policy, personalPolicy, transaction, customUnitRateID, transactionID, isSplitRequest});
 
@@ -277,6 +301,19 @@ function IOURequestStepDistance({
         }
         Navigation.closeRHPFlow();
     }, [isEditingSplit, backTo]);
+
+    // In the edit flow this page is rendered inside an OnyxTabNavigator. A plain `goBack()` with no
+    // target would be swallowed by that tab navigator (reverting to the Map tab) instead of leaving
+    // the page, so the header back must leave explicitly: honor an explicit `backTo` (e.g. the
+    // edit-split page) and otherwise close the RHP — matching other tabbed RHP pages like
+    // IOURequestStartPage. The browser/hardware back keeps the default tab behavior (revert tab first).
+    const navigateBackFromEditFlow = useCallback(() => {
+        if (backTo) {
+            Navigation.goBack(backTo);
+            return;
+        }
+        Navigation.closeRHPFlow();
+    }, [backTo]);
 
     /**
      * Takes the user to the page for editing a specific waypoint
@@ -403,14 +440,19 @@ function IOURequestStepDistance({
                 return;
             }
 
-            // If nothing was changed, simply go to transaction thread
-            // We compare only addresses because numbers are rounded while backup
+            // If nothing was changed, simply go to transaction thread.
+            // We compare addresses only because numbers are rounded vs. the backup. We also send the
+            // update when a manual `customUnit.quantity` override was cleared by `saveWaypoint` (a
+            // waypoint re-save resets the distance to the route value), so the BE re-evaluates and
+            // clears stale distance violations like `increasedDistance` (GH #90105).
             const hasRouteChanged = !deepEqual(transactionBackup?.routes, transaction?.routes);
-            if (!haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints)) {
+            const distanceWasReset = transactionBackup?.comment?.customUnit?.quantity != null && transactionBackup.comment.customUnit.quantity !== transaction?.comment?.customUnit?.quantity;
+            if (!haveWaypointAddressesChanged(transactionBackup?.comment?.waypoints, waypoints) && !distanceWasReset) {
                 transactionWasSaved.current = true;
                 navigateBackAfterSave();
                 return;
             }
+            const routeDistanceInUnit = currentDistanceInMeters > 0 ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(currentDistanceInMeters, distanceUnit)) : undefined;
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
                     transaction,
@@ -419,6 +461,7 @@ function IOURequestStepDistance({
                     waypoints,
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
+                    ...(distanceWasReset && routeDistanceInUnit !== undefined ? {distance: routeDistanceInUnit} : {}),
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
@@ -427,6 +470,7 @@ function IOURequestStepDistance({
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
                     parentReportNextStep,
+                    distanceOriginalPolicy,
                 });
             }
             transactionWasSaved.current = true;
@@ -456,6 +500,8 @@ function IOURequestStepDistance({
         report,
         currentTransaction?.comment?.waypoints,
         currentTransaction?.routes,
+        currentDistanceInMeters,
+        distanceUnit,
         policy,
         parentReport,
         recentWaypoints,
@@ -465,6 +511,7 @@ function IOURequestStepDistance({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        distanceOriginalPolicy,
     ]);
 
     const submitManualDistance = useCallback(() => {
@@ -640,7 +687,7 @@ function IOURequestStepDistance({
         return (
             <StepScreenWrapper
                 headerTitle={translate('common.distance')}
-                onBackButtonPress={navigateBack}
+                onBackButtonPress={navigateBackFromEditFlow}
                 testID="IOURequestStepDistance"
                 shouldShowNotFoundPage={!currentTransaction?.comment?.waypoints || shouldShowNotFoundPage}
                 shouldShowWrapper

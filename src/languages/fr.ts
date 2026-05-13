@@ -4763,6 +4763,7 @@ ${amount} pour ${merchant} - ${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Factures fournisseurs',
                 },
             },
+            travelInvoicingDescription: 'Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte Sage Intacct indiqué ci-dessous.',
             creditCardAccount: 'Compte de carte de crédit',
             defaultVendor: 'Fournisseur par défaut',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -4809,8 +4810,8 @@ ${amount} pour ${merchant} - ${date}`,
             journalPostingPreference: {
                 label: 'Préférence de comptabilisation des écritures de journal',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Saisie unique et détaillée pour chaque note de frais',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Une seule entrée pour chaque dépense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Saisie unique pour chaque dépense',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Entrée unique et détaillée pour chaque rapport',
                 },
             },
             invoiceItem: {
@@ -5322,6 +5323,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     requiredColumns: (missingColumns: string) => `Veuillez attribuer une colonne à chacun des attributs : ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Oups ! Vous avez associé un seul champ (« ${duplicateColumn} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
                 },
+                fileImportDescription: 'Une option manuelle si votre banque ne peut pas envoyer de flux.',
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
@@ -7753,6 +7755,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         deleteSavedSearchConfirm: 'Voulez-vous vraiment supprimer cette recherche ?',
         searchName: 'Rechercher un nom',
         savedSearchesMenuItemTitle: 'Enregistré',
+        urlCopied: 'URL copiée',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
             editMultiple: 'Modifier plusieurs',
@@ -8161,6 +8164,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         selectAllFeatures: 'Sélectionner toutes les fonctionnalités',
         selectAllTransactions: 'Sélectionner toutes les transactions',
         selectAllItems: 'Sélectionner tous les éléments',
+        selectAllCategories: 'Sélectionner toutes les catégories',
+        selectAllDistanceRates: 'Sélectionner tous les taux de distance',
+        selectAllTags: 'Sélectionner toutes les étiquettes',
+        selectAllTaxes: 'Sélectionner toutes les taxes',
+        selectAllPerDiemRates: 'Sélectionner tous les taux de per diem',
+        selectAllMembers: 'Sélectionner tous les membres',
+        selectAllValues: 'Sélectionner toutes les valeurs',
+        selectAllRules: 'Sélectionner toutes les règles',
     },
     parentReportAction: {
         deletedReport: 'Note de frais supprimée',
@@ -8257,6 +8268,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         companyCard: 'Carte d’entreprise',
         expensifyCard: 'Carte Expensify',
         centralInvoicing: 'Facturation centralisée',
+        travelCard: 'Carte de voyage',
     },
     distance: {
         addStop: 'Ajouter un arrêt',
@@ -9234,6 +9246,8 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 addMember: 'Impossible d’ajouter ce membre. Veuillez réessayer.',
                 vacationDelegate: 'Impossible de définir cet utilisateur comme délégué de vacances. Veuillez réessayer.',
                 moveMember: 'Impossible de déplacer ce membre. Veuillez réessayer.',
+                moveMemberNotPolicyAdmin:
+                    'Impossible de déplacer le membre vers le groupe de domaine. Vous devez être Administrateur de Politique pour la Politique Préférée définie sur le groupe de domaine vers lequel vous essayez de déplacer cet utilisateur.',
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `Vous ne pouvez pas définir un délégué de vacances pour ${email}, car cette personne est actuellement le délégué des membres suivants :`,
@@ -9265,7 +9279,13 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
                 `Êtes-vous sûr de vouloir faire de ${newName} le groupe par défaut ? Les nouveaux membres seront invités à ce groupe au lieu du groupe par défaut précédent (${currentName}). `,
             makeDefault: 'Définir par défaut',
             neverMind: 'Peu importe',
+            createGroupError: 'Impossible de créer ce groupe. Veuillez réessayer.',
             permissions: 'Autorisations du groupe',
+            createNewGroupButton: 'Nouveau groupe',
+            createGroupSubmitButton: 'Créer le groupe',
+            expensifyCardPreferredWorkspace: 'Espace de travail préféré pour la carte Expensify',
+            expensifyCardPreferredWorkspaceDescription:
+                "Toutes les transactions Expensify Card seront créées dans l'espace de travail préféré Expensify Card au lieu de l'espace de travail préféré.",
             strictlyEnforceWorkspaceRules: 'Appliquer strictement les règles de l’espace de travail',
             strictlyEnforceWorkspaceRulesDescription:
                 'Toutes les règles de l’espace de travail doivent être respectées avant de soumettre un rapport. Aucune exception manuelle n’est autorisée.',
@@ -9285,11 +9305,9 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             restrictDefaultLoginSelection: 'Restreindre la sélection de connexion par défaut',
             restrictDefaultLoginSelectionDescription:
                 'Empêche les membres de modifier leur e-mail de connexion en dehors du domaine de leur entreprise afin d’éviter les restrictions de politique.',
-            expensifyCardPreferredWorkspace: 'Espace de travail préféré pour la Expensify Card',
-            expensifyCardPreferredWorkspaceDescription:
-                'Toutes les transactions Expensify Card seront créées dans l’espace de travail préféré pour la Expensify Card au lieu de l’espace de travail préféré. L’activation de cette fonctionnalité remplacera le paramètre d’espace de travail préféré uniquement pour les transactions Expensify Card.',
+
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Pour utiliser ce paramètre, l’espace de travail préféré doit être activé et la Expensify Card doit être configurée pour le domaine.',
+                'Pour activer ce paramètre, veuillez d’abord activer un espace de travail préféré et configurer les cartes Expensify sur votre domaine.',
             findGroup: 'Trouver un groupe',
         },
     },
