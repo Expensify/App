@@ -481,16 +481,13 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     );
 
     /**
-     * Cancel the current authentication flow.
-     * When the scenario provides onCancel, awaits it to get the reason and sets the error accordingly.
-     * Otherwise, sets an error state with LOCAL_ERRORS.CANCELED. In both cases, the error triggers
-     * process() which calls handleCallback and navigates to the failure outcome.
+     * Cancel the current authentication flow. Dispatches SET_ERROR which drives process() to handleCallback
+     * and the failure outcome. When the scenario or network is unavailable, process() short-circuits, so we
+     * close the modal directly instead to avoid getting stuck.
      */
     const cancel = useCallback(async () => {
-        // When the app is reopened (e.g. page refresh on web), the MFA context resets to its default state
-        // and scenario becomes undefined. Without a scenario, the state machine in process() won't run,
-        // so dispatching SET_ERROR would have no effect. In this case we close directly.
-        if (!state.scenario) {
+        if (!state.scenario || isOffline) {
+            addMFABreadcrumb('Flow cancelled - closing directly', {hasScenario: !!state.scenario, isOffline}, 'warning');
             dispatch({type: 'CLOSE_MODAL'});
             return;
         }
@@ -507,7 +504,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             type: 'SET_ERROR',
             payload: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, 'User cancelled the MFA flow'),
         });
-    }, [dispatch, state.scenario, state.payload]);
+    }, [dispatch, isOffline, state.scenario, state.payload]);
 
     const requestCancel = useCallback(() => {
         if (state.isFlowComplete) {
