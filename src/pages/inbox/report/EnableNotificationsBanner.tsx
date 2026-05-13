@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Text from '@components/Text';
@@ -13,23 +13,19 @@ type EnableNotificationsBannerProps = {
     reportID: string;
 };
 
+function requestAndDismissIfGranted() {
+    NotificationPermission.request().then((status) => {
+        if (status !== 'granted') {
+            return;
+        }
+        dismissForSession();
+    });
+}
+
 function EnableNotificationsBanner({reportID}: EnableNotificationsBannerProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldShow = useShouldShowEnableNotificationsBanner(reportID);
-
-    const dismiss = useCallback(() => {
-        dismissForSession();
-    }, []);
-
-    const handleNotifyMe = useCallback(() => {
-        NotificationPermission.request().then((status) => {
-            if (status !== 'granted') {
-                return;
-            }
-            dismissForSession();
-        });
-    }, []);
 
     if (!shouldShow) {
         return null;
@@ -51,13 +47,13 @@ function EnableNotificationsBanner({reportID}: EnableNotificationsBannerProps) {
                 small
                 style={[styles.ml2]}
                 text={translate('concierge.enableNotifications.cta')}
-                onPress={handleNotifyMe}
+                onPress={requestAndDismissIfGranted}
             />
             <Button
                 small
                 style={[styles.ml2]}
                 text={translate('common.notNow')}
-                onPress={dismiss}
+                onPress={dismissForSession}
             />
         </View>
     );
