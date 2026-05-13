@@ -42,7 +42,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
     const headerTitle = formatPhoneNumber(displayName);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = !avatarURL;
 
     const onDownloadAttachment = useDownloadAttachment();

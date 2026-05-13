@@ -17,6 +17,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -46,7 +47,7 @@ function BaseSelectionList<TItem extends ListItem>({
     onSelectRow,
     onSelectAll,
     onLongPressRow,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onScrollBeginDrag,
     onDismissError,
     onEndReached,
@@ -81,17 +82,19 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldShowRightCaret = false,
     shouldStopPropagation = false,
     shouldHeaderBeInsideList = false,
+    selectAllAccessibilityLabel,
     shouldScrollToFocusedIndex = true,
     shouldScrollToFocusedIndexOnMount = true,
+    shouldHighlightInitiallyFocusedItem = false,
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldClearInputOnSelect = false,
-    shouldHighlightSelectedItem = true,
-    shouldUseDefaultRightHandSideCheckmark,
+    shouldHighlightSelectedItem,
     shouldDisableHoverStyle = false,
+    selectionButtonPosition,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -105,9 +108,11 @@ function BaseSelectionList<TItem extends ListItem>({
     const innerTextInputRef = useRef<BaseTextInputRef | null>(null);
     const isTextInputFocusedRef = useRef<boolean>(false);
     const hasKeyBeenPressed = useRef(false);
+    const [isKeyboardNavigating, setIsKeyboardNavigating] = useState(false);
     const listRef = useRef<FlashListRef<TItem> | null>(null);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);
+    const suppressNextFocusScrollRef = useRef(false);
 
     const initialFocusedIndex = useMemo(() => data.findIndex((i) => i.keyForList === initiallyFocusedItemKey), [data, initiallyFocusedItemKey]);
     const [itemsToHighlight, setItemsToHighlight] = useState<Set<string> | null>(null);
@@ -155,10 +160,27 @@ function BaseSelectionList<TItem extends ListItem>({
             return;
         }
         hasKeyBeenPressed.current = true;
+        setIsKeyboardNavigating(true);
     }, []);
 
+    // Only handle Tab as keyboard navigation here, arrow keys are already handled via useArrowKeyFocusManager.
+    const handleNavigationKeyDown = useCallback(
+        (event: KeyboardEvent) => {
+            if (event.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                return;
+            }
+            setHasKeyBeenPressed();
+        },
+        [setHasKeyBeenPressed],
+    );
+
+    useEffect(() => {
+        addKeyDownPressListener(handleNavigationKeyDown);
+        return () => removeKeyDownPressListener(handleNavigationKeyDown);
+    }, [handleNavigationKeyDown]);
+
     const scrollToIndex = useCallback(
-        (index: number) => {
+        (index: number, animated = true) => {
             // Bounds check: ensure index is valid for current data
             if (index < 0 || index >= data.length) {
                 return;
@@ -168,7 +190,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 return;
             }
             try {
-                listRef.current.scrollToIndex({index});
+                listRef.current.scrollToIndex({index, animated});
             } catch (error) {
                 // FlashList may throw if layout for this index doesn't exist yet
                 // This can happen when data changes rapidly (e.g., during search filtering)
@@ -190,6 +212,10 @@ function BaseSelectionList<TItem extends ListItem>({
         disabledIndexes: dataDetails.disabledArrowKeyIndexes,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
+            if (suppressNextFocusScrollRef.current) {
+                suppressNextFocusScrollRef.current = false;
+                return;
+            }
             if (!shouldScrollToFocusedIndex) {
                 return;
             }
@@ -216,12 +242,15 @@ function BaseSelectionList<TItem extends ListItem>({
                     textInputOptions?.onChangeText?.('');
                 } else if (isSmallScreenWidth) {
                     if (!item.isDisabledCheckbox) {
-                        onCheckboxPress?.(item);
+                        onSelectionButtonPress?.(item);
                     }
                     return;
                 }
             }
             if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
+                if (indexToFocus !== focusedIndex) {
+                    suppressNextFocusScrollRef.current = true;
+                }
                 setFocusedIndex(indexToFocus);
             }
             onSelectRow(item);
@@ -234,13 +263,14 @@ function BaseSelectionList<TItem extends ListItem>({
             isFocused,
             canSelectMultiple,
             shouldUpdateFocusedIndex,
+            focusedIndex,
             onSelectRow,
             shouldShowTextInput,
             shouldClearInputOnSelect,
             shouldPreventDefaultFocusOnSelectRow,
             isSmallScreenWidth,
             textInputOptions,
-            onCheckboxPress,
+            onSelectionButtonPress,
             setFocusedIndex,
         ],
     );
@@ -288,12 +318,16 @@ function BaseSelectionList<TItem extends ListItem>({
             isActive: !disableKeyboardShortcuts && isFocused && !confirmButtonOptions?.isDisabled,
         },
     );
-    const textInputKeyPress = useCallback((event: TextInputKeyPressEvent) => {
-        const key = event.nativeEvent.key;
-        if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+    const textInputKeyPress = useCallback(
+        (event: TextInputKeyPressEvent) => {
+            if (event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                return;
+            }
+            setHasKeyBeenPressed();
             focusedItemRef?.focus();
-        }
-    }, []);
+        },
+        [setHasKeyBeenPressed],
+    );
 
     const focusTextInput = useCallback(() => {
         innerTextInputRef.current?.focus();
@@ -323,9 +357,10 @@ function BaseSelectionList<TItem extends ListItem>({
     };
 
     const renderItem: ListRenderItem<TItem> = ({item, index}: ListRenderItemInfo<TItem>) => {
-        const isItemDisabled = isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
+        const isItemDisabled = isDisabled || (!!item.isDisabled && !selected);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
+        const isItemVisuallyFocused = isItemFocused && (shouldHighlightInitiallyFocusedItem || isKeyboardNavigating);
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList);
 
         return (
@@ -341,14 +376,13 @@ function BaseSelectionList<TItem extends ListItem>({
                 setFocusedIndex={setFocusedIndex}
                 index={index}
                 isFocused={isItemFocused}
+                isFocusVisible={isItemVisuallyFocused}
                 isDisabled={isItemDisabled}
                 canSelectMultiple={canSelectMultiple}
                 onDismissError={onDismissError}
                 onLongPressRow={onLongPressRow}
-                onCheckboxPress={onCheckboxPress}
+                onSelectionButtonPress={onSelectionButtonPress}
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
                 isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
@@ -360,11 +394,12 @@ function BaseSelectionList<TItem extends ListItem>({
                 errorRowStyles={style?.listItemErrorRowStyles}
                 singleExecution={singleExecution}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
-                shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
+                shouldSyncFocus={!isTextInputFocusedRef.current && isKeyboardNavigating}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
                 isLastItem={index === data.length - 1}
                 shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
+                selectionButtonPosition={selectionButtonPosition}
             />
         );
     };
@@ -499,6 +534,10 @@ function BaseSelectionList<TItem extends ListItem>({
         setFocusedIndex,
     });
 
+    const suppressNextFocusScroll = useCallback(() => {
+        suppressNextFocusScrollRef.current = true;
+    }, []);
+
     useSearchFocusSync({
         searchValue: textInputOptions?.value,
         data,
@@ -508,6 +547,8 @@ function BaseSelectionList<TItem extends ListItem>({
         shouldUpdateFocusedIndex,
         scrollToIndex,
         setFocusedIndex,
+        focusedIndex,
+        suppressNextFocusScroll,
     });
 
     useEffect(() => {
@@ -542,6 +583,7 @@ function BaseSelectionList<TItem extends ListItem>({
             selectAllTextStyle={style?.listHeaderSelectAllTextStyle}
             shouldShowSelectAllButton={!!onSelectAll}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+            selectAllAccessibilityLabel={selectAllAccessibilityLabel}
         />
     );
 

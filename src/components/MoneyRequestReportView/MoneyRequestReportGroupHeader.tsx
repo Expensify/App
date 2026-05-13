@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -6,14 +6,13 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {GroupedTransactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-
-const DESKTOP_HEIGHT = 28;
 
 type MoneyRequestReportGroupHeaderProps = {
     /** The grouped transaction data */
@@ -65,6 +64,7 @@ function MoneyRequestReportGroupHeader({
 }: MoneyRequestReportGroupHeaderProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutHook} = useResponsiveLayoutOnWideRHP();
     const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutHook;
@@ -75,18 +75,27 @@ function MoneyRequestReportGroupHeader({
 
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
-    const textStyle = useMemo(
-        () => (shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: 16} : {fontSize: variables.fontSizeNormal, lineHeight: DESKTOP_HEIGHT}),
-        [shouldUseNarrowLayout],
-    );
+    const textStyle = shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: 16} : [styles.labelStrong];
 
-    const handleToggleSelection = useCallback(() => {
+    const handleToggleSelection = () => {
         onToggleSelection?.(groupKey);
-    }, [onToggleSelection, groupKey]);
+    };
+
+    const groupHeaderStyle = !shouldUseNarrowLayout
+        ? [
+              {minHeight: variables.tableGroupRowHeight},
+              styles.justifyContentCenter,
+              styles.highlightBG,
+              styles.pv2,
+              styles.ph3,
+              styles.borderBottom,
+              isSelected && {borderColor: theme.buttonHoveredBG},
+          ]
+        : [styles.ph4, styles.pv3, styles.borderBottom];
 
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
-            <View style={[shouldUseNarrowLayout ? [styles.ph4, styles.pv3, styles.borderBottom] : [styles.reportLayoutGroupHeader, {height: DESKTOP_HEIGHT, minHeight: DESKTOP_HEIGHT}]]}>
+            <View style={groupHeaderStyle}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {shouldShowCheckbox && (
                         <Checkbox
@@ -95,11 +104,12 @@ function MoneyRequestReportGroupHeader({
                             disabled={isDisabled}
                             onPress={handleToggleSelection}
                             accessibilityLabel={translate('reportLayout.selectGroup', {groupName: displayName})}
-                            style={styles.mr2}
+                            containerStyle={!shouldUseNarrowLayout && styles.m0}
+                            style={!shouldUseNarrowLayout ? styles.mr3 : styles.mr2}
                         />
                     )}
                     <Text
-                        style={[styles.textBold, textStyle, styles.flexShrink1, shouldShowCheckbox && styles.ml2]}
+                        style={[styles.textBold, textStyle, styles.flexShrink1, shouldShowCheckbox && shouldUseNarrowLayout && styles.ml2]}
                         numberOfLines={1}
                     >
                         {displayName}

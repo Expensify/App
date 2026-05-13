@@ -55,7 +55,6 @@ type MobileWebCameraViewProps = {
     shouldSkipConfirmation: boolean;
     setStartLocationPermissionFlow: (value: boolean) => void;
     onBackButtonPress: () => void;
-    onLayout?: () => void;
     shouldShowWrapper: boolean;
 };
 
@@ -79,7 +78,6 @@ function MobileWebCameraView({
     shouldSkipConfirmation,
     setStartLocationPermissionFlow,
     onBackButtonPress,
-    onLayout,
     shouldShowWrapper,
 }: MobileWebCameraViewProps) {
     const {blinkStyle, canUseMultiScan, shouldShowMultiScanEducationalPopup, showBlink, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
@@ -213,10 +211,7 @@ function MobileWebCameraView({
             shouldShowWrapper={shouldShowWrapper}
             testID="IOURequestStepScan"
         >
-            <View
-                onLayout={onLayout}
-                style={[styles.flex1]}
-            >
+            <View style={[styles.flex1]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <View style={[styles.cameraView]}>
                         {PDFValidationComponent}

@@ -2,10 +2,12 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {areAllGroupPoliciesExpenseChatDisabled, getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+type ReusablePolicyConnectionName = typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT | typeof CONST.POLICY.CONNECTIONS.NAME.QBD;
 
 const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
 
@@ -90,7 +92,19 @@ const groupPaidPoliciesWithExpenseChatEnabledSelector = (policies: OnyxCollectio
     );
 };
 
-const shouldRedirectToExpensifyClassicSelector = (policies: OnyxCollection<Policy>) => areAllGroupPoliciesExpenseChatDisabled(policies);
+type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
+
+const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
+    (policy && {
+        type: policy.type,
+        role: policy.role,
+        id: policy.id,
+        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+        pendingAction: policy.pendingAction,
+        avatarURL: policy.avatarURL,
+        name: policy.name,
+        areInvoicesEnabled: policy.areInvoicesEnabled,
+    }) as PolicySelector;
 
 // deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
 const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
@@ -131,34 +145,44 @@ const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): bool
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
 
-const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
-    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.intacct);
-
-const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
-    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
-
-const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
-    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.quickbooksDesktop);
-
-function getReusablePoliciesConnectedToQBD(policies: OnyxCollection<Policy>, currentPolicyID?: string) {
-    return adminPoliciesConnectedToQBDSelector(policies).filter((policy) => {
-        if (policy.id === currentPolicyID) {
-            return false;
-        }
-
-        return !isConnectionUnverified(policy, CONST.POLICY.CONNECTIONS.NAME.QBD) && !hasSynchronizationErrorMessage(policy, CONST.POLICY.CONNECTIONS.NAME.QBD, false);
-    });
+function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {
+    return !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy.connections?.[connectionName];
 }
 
-const reusablePoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>, currentPolicyID?: string) => getReusablePoliciesConnectedToQBD(policies, currentPolicyID);
+const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT));
 
-const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
+const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE));
 
-const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
+const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.QBD));
+
+const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
+    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.QBD]: adminPoliciesConnectedToQBDSelector,
+};
+
+function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
+    if (policy.id === currentPolicyID) {
+        return false;
+    }
+
+    return !isConnectionUnverified(policy, connectionName) && !hasSynchronizationErrorMessage(policy, connectionName, false);
+}
+
+function getReusablePoliciesConnectedTo(policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
+    return reusableConnectionAdminSelectors[connectionName](policies).filter((policy) => isReusablePolicyConnection(policy, connectionName, currentPolicyID));
+}
+
+const reusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
+    getReusablePoliciesConnectedTo(policies, connectionName, currentPolicyID);
 
 const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
 
-const hasReusablePoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>, currentPolicyID?: string) => !!getReusablePoliciesConnectedToQBD(policies, currentPolicyID).length;
+const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
+    Object.values(policies ?? {}).some((policy) => isAdminPolicyConnectedTo(policy, connectionName) && isReusablePolicyConnection(policy, connectionName, currentPolicyID));
 
 // Locales are loaded on demand. Instead of getting each workspace translation using `translate`, we hardcoded it here.
 // en|es|fr|it|ja|nl|pl|pt-BR|zh-hans
@@ -188,6 +212,25 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
     return lastWorkspaceNumber;
 }
 
+const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
+
+const createAdminPoliciesSelector =
+    (currentPolicyID: string | undefined = undefined) =>
+    (policies: OnyxCollection<Policy>) => {
+        return Object.entries(policies ?? {}).reduce<Record<string, Pick<Policy, 'name' | 'id' | 'avatarURL' | 'created'>>>((acc, [key, policy]) => {
+            if (!policy?.id || !policy?.name) {
+                return acc;
+            }
+            const isCurrentPolicy = policy.id === currentPolicyID;
+            if (!isCurrentPolicy && (policy.type === CONST.POLICY.TYPE.PERSONAL || policy.role !== CONST.POLICY.ROLE.ADMIN)) {
+                return acc;
+            }
+            acc[key] = {id: policy.id, name: policy.name, avatarURL: policy.avatarURL, created: policy.created};
+            return acc;
+        }, {});
+    };
+
+export type {PolicySelector};
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
@@ -199,15 +242,16 @@ export {
     hasMultipleOutputCurrenciesSelector,
     groupPaidPoliciesWithExpenseChatEnabledSelector,
     iouRequestPolicyCollectionSelector,
-    shouldRedirectToExpensifyClassicSelector,
+    policyMapper,
     adminPoliciesConnectedToSageIntacctSelector,
     adminPoliciesConnectedToNetSuiteSelector,
     adminPoliciesConnectedToQBDSelector,
-    reusablePoliciesConnectedToQBDSelector,
-    hasPoliciesConnectedToSageIntacctSelector,
-    hasPoliciesConnectedToNetSuiteSelector,
+    reusablePoliciesConnectedToSelector,
     hasPoliciesConnectedToQBDSelector,
-    hasReusablePoliciesConnectedToQBDSelector,
+    hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
+    policyNameSelector,
+    createAdminPoliciesSelector,
 };
+export type {ReusablePolicyConnectionName};

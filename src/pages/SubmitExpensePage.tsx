@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {confirmReadyToOpenApp} from '@userActions/App';
-import {startMoneyRequest} from '@userActions/IOU';
+import {startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 

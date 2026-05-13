@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Parser from '@libs/Parser';
 import {getOriginalMessage, hasReasoning} from '@libs/ReportActionsUtils';
 import {getMovedTransactionMessage} from '@libs/ReportUtils';
@@ -19,14 +20,11 @@ type MovedTransactionActionProps = {
     /** The element to render when there is no report that the transaction was moved to or from */
     emptyHTML: React.JSX.Element;
 
-    /** The child report of the action item */
-    childReport: OnyxEntry<Report>;
-
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
 };
 
-function MovedTransactionAction({action, emptyHTML, childReport, originalReport}: MovedTransactionActionProps) {
+function MovedTransactionAction({action, emptyHTML, originalReport}: MovedTransactionActionProps) {
     const {translate} = useLocalize();
     const movedTransactionOriginalMessage = getOriginalMessage(action);
     const toReportID = movedTransactionOriginalMessage?.toReportID;
@@ -35,6 +33,7 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport}
     const [toReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`);
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports

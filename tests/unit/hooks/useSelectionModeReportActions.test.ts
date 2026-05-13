@@ -168,7 +168,7 @@ jest.mock('@libs/ReportUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        hasHeldExpenses: jest.fn(() => false),
+        hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasOnlyHeldExpenses: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
         hasViolations: jest.fn(() => false),
@@ -242,20 +242,19 @@ jest.mock('@userActions/Transaction', () => ({
     markPendingRTERTransactionsAsCash: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const ReportUtils = require('@libs/ReportUtils') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const DelegateProvider = require('@components/DelegateNoAccessModalProvider') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const LockedProvider = require('@components/LockedAccountModalProvider') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const IOUActions = require('@libs/actions/IOU/ReportWorkflow') as Record<string, jest.Mock>;
 const PayMoneyRequestActions = require('@libs/actions/IOU/PayMoneyRequest') as Record<string, jest.Mock>;
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+
 const usePaymentOptionsMock = require('@hooks/usePaymentOptions') as {default: jest.Mock};
 
 function resetMocksToDefaults() {
-    ReportUtils.hasHeldExpenses.mockReturnValue(false);
+    ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(false);
     ReportUtils.hasOnlyHeldExpenses.mockReturnValue(false);
     ReportUtils.isReportOwner.mockReturnValue(false);
     ReportUtils.getNextApproverAccountID.mockReturnValue(0);
@@ -656,7 +655,7 @@ describe('useSelectionModeReportActions', () => {
         });
 
         it('opens hold menu when there are held expenses during payment', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
+            ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(true);
 
             const {result} = renderSelectionModeHook();
             act(() => {
@@ -695,7 +694,7 @@ describe('useSelectionModeReportActions', () => {
 
     describe('confirmApproval branches', () => {
         it('opens hold menu when there are held expenses during approval', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
+            ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(true);
 
             const {result} = renderSelectionModeHook();
             act(() => {
@@ -719,7 +718,7 @@ describe('useSelectionModeReportActions', () => {
 
     describe('handleHoldMenuClose', () => {
         it('resets hold menu state', () => {
-            ReportUtils.hasHeldExpenses.mockReturnValue(true);
+            ReportUtils.hasHeldExpensesFromTransactions.mockReturnValue(true);
 
             const {result} = renderSelectionModeHook();
 

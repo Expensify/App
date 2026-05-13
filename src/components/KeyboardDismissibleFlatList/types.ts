@@ -19,5 +19,4 @@ type KeyboardDismissibleFlatListActionsContextValue = {
 
 type KeyboardDismissibleFlatListContextValue = KeyboardDismissibleFlatListStateContextValue & KeyboardDismissibleFlatListActionsContextValue;
 
-// eslint-disable-next-line import/prefer-default-export
 export type {KeyboardDismissibleFlatListContextValue, KeyboardDismissibleFlatListStateContextValue, KeyboardDismissibleFlatListActionsContextValue, ListBehavior};

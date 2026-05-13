@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -33,10 +34,11 @@ function IOURequestStepTimeRate({
     report,
 }: IOURequestStepTimeRateProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isTransactionDraft = shouldUseTransactionDraft(action);
@@ -64,7 +66,7 @@ function IOURequestStepTimeRate({
         }
 
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
-        setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate), isTransactionDraft);
+        setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate, convertToDisplayString), isTransactionDraft);
         setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
 
         navigateBack();
@@ -93,9 +95,8 @@ function IOURequestStepTimeRate({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTimeRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTimeRate);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepTimeRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTimeRateWithFullTransactionOrNotFound);
 
 export default IOURequestStepTimeRateWithWritableReportOrNotFound;

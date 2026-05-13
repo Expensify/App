@@ -2,7 +2,6 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {accountIDSelector} from '@selectors/Session';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {ImageStyle, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -10,12 +9,10 @@ import Animated from 'react-native-reanimated';
 import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
@@ -26,13 +23,12 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {startMoneyRequest} from '@libs/actions/IOU';
-import {openOldDotLink} from '@libs/actions/Link';
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
@@ -134,7 +130,6 @@ function EmptySearchViewContent({
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
-    const {showConfirmModal} = useConfirmModal();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -153,8 +148,6 @@ function EmptySearchViewContent({
     const [hasExpenseReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: hasExpenseReportsSelector,
     });
-
-    const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
 
@@ -210,26 +203,8 @@ function EmptySearchViewContent({
         }
     };
 
-    const handleRedirectToExpensifyClassic = () => {
-        showConfirmModal({
-            prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
-            title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
-            confirmText: translate('exitSurvey.goToExpensifyClassic'),
-            cancelText: translate('common.cancel'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
-        });
-    };
-
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
-            if (shouldRedirectToExpensifyClassic) {
-                handleRedirectToExpensifyClassic();
-                return;
-            }
             startMoneyRequest(iouType, generateReportID(), draftTransactionIDs);
         });
     };
@@ -334,7 +309,13 @@ function EmptySearchViewContent({
                                                   if (
                                                       !workspaceIDForReportCreation ||
                                                       (defaultChatEnabledPolicy &&
-                                                          shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
+                                                          shouldRestrictUserBillableActions(
+                                                              defaultChatEnabledPolicy,
+                                                              ownerBillingGracePeriodEnd,
+                                                              userBillingGracePeriodEnds,
+                                                              amountOwed,
+                                                              accountID,
+                                                          ) &&
                                                           groupPoliciesWithChatEnabled.length > 1)
                                                   ) {
                                                       // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
@@ -344,7 +325,13 @@ function EmptySearchViewContent({
 
                                                   if (
                                                       !defaultChatEnabledPolicy ||
-                                                      !shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+                                                      !shouldRestrictUserBillableActions(
+                                                          defaultChatEnabledPolicy,
+                                                          ownerBillingGracePeriodEnd,
+                                                          userBillingGracePeriodEnds,
+                                                          amountOwed,
+                                                          accountID,
+                                                      )
                                                   ) {
                                                       handleCreateReportClick();
                                                   } else {

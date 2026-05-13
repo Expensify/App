@@ -5,7 +5,7 @@ import Log from '@libs/Log';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import {SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -43,6 +43,7 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     SCREENS.MONEY_REQUEST.ODOMETER_PREVIEW,
     SCREENS.PROFILE_AVATAR,
     SCREENS.WORKSPACE_AVATAR,
+    SCREENS.WORKSPACE_DOCUMENT,
     SCREENS.REPORT_AVATAR,
     SCREENS.CONCIERGE,
     SCREENS.SEARCH_ROUTER.ROOT,
@@ -364,14 +365,19 @@ function handleReplaceFullscreenUnderRHP(
             }
             // Prepend the existing sidebar/root route (e.g. Inbox) to the incoming state when
             // it starts with a different screen, so back navigation from the new screen
-            // lands on the sidebar.
+            // lands on the sidebar. When the existing tab doesn't have nested
+            // routes (e.g. cold-start through a deep link that opens straight into a modal),
+            // fall back to the split navigator's default sidebar route so there is still
+            // something to pop back to.
             let mergedNestedState = focusedTargetTab.state;
             const existingNestedRoutes = (r.state as PartialState<NavigationState> | undefined)?.routes;
             const newNestedRoutes = focusedTargetTab.state?.routes;
             const existingFirstRoute = existingNestedRoutes?.at(0);
             const newFirstRoute = newNestedRoutes?.at(0);
-            if (existingFirstRoute && newFirstRoute && existingFirstRoute.name !== newFirstRoute.name) {
-                const prependedRoutes = [existingFirstRoute, ...(newNestedRoutes ?? [])];
+            const defaultSidebarRouteName = r.name in SPLIT_TO_SIDEBAR ? SPLIT_TO_SIDEBAR[r.name as keyof typeof SPLIT_TO_SIDEBAR] : undefined;
+            const sidebarRoute: NavigationPartialRoute | undefined = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
+            if (sidebarRoute && newFirstRoute && sidebarRoute.name !== newFirstRoute.name) {
+                const prependedRoutes = [sidebarRoute, ...(newNestedRoutes ?? [])];
                 mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
             }
             return {

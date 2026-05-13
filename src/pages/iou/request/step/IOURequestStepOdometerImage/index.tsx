@@ -314,7 +314,7 @@ function IOURequestStepOdometerImage({
         for (const file of files) {
             const blobUrl = URL.createObjectURL(file);
             blobUrls.push(blobUrl);
-            // eslint-disable-next-line no-param-reassign
+
             file.uri = blobUrl;
         }
         dropBlobUrlsRef.current = blobUrls;
@@ -406,7 +406,6 @@ function IOURequestStepOdometerImage({
 
 IOURequestStepOdometerImage.displayName = 'IOURequestStepOdometerImage';
 
-// eslint-disable-next-line rulesdir/no-negated-variables -- withFullTransactionOrNotFound HOC requires this pattern
 const IOURequestStepOdometerImageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepOdometerImage);
 
 export default IOURequestStepOdometerImageWithFullTransactionOrNotFound;

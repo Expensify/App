@@ -4,6 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import {
     areAllTransactionsExpenseCompatible,
+    hasCustomUnitMerchantInSelection,
     isBulkEditTaxTrackingEnabled,
     withSnapshotReports,
     withSnapshotTransactions,
@@ -15,6 +16,7 @@ const POLICY_C = 'policyC';
 const REPORT_ID = 'report1';
 const TRANSACTION_ID_1 = 'tx1';
 const TRANSACTION_ID_2 = 'tx2';
+const TRANSACTION_ID_3 = 'tx3';
 
 function makeTransaction(transactionID: string, reportID: string): Transaction {
     return {transactionID, reportID, amount: 100, currency: 'USD', created: '2025-01-01', comment: {}} as Transaction;
@@ -135,6 +137,31 @@ describe('SearchEditMultipleUtils', () => {
         it('returns activePolicyID when no transactions selected', () => {
             const result = getSearchBulkEditPolicyID([], POLICY_A, undefined, undefined);
             expect(result).toBe(POLICY_A);
+        });
+    });
+
+    describe('hasCustomUnitMerchantInSelection', () => {
+        const manualTransaction = {transactionID: TRANSACTION_ID_1, reportID: 'report1', comment: {}} as Transaction;
+        const perDiemTransaction = {transactionID: TRANSACTION_ID_2, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM} as unknown as Transaction;
+        const distanceTransaction = {transactionID: TRANSACTION_ID_3, reportID: CONST.REPORT.UNREPORTED_REPORT_ID, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE} as unknown as Transaction;
+
+        it('returns true when any transaction is an unreported per-diem request', () => {
+            const contexts = [{transaction: manualTransaction}, {transaction: perDiemTransaction}];
+            expect(hasCustomUnitMerchantInSelection(contexts)).toBe(true);
+        });
+
+        it('returns true when any transaction is a distance request', () => {
+            const contexts = [{transaction: manualTransaction}, {transaction: distanceTransaction}];
+            expect(hasCustomUnitMerchantInSelection(contexts)).toBe(true);
+        });
+
+        it('returns false when no transaction is a distance or per-diem request', () => {
+            const contexts = [{transaction: manualTransaction}];
+            expect(hasCustomUnitMerchantInSelection(contexts)).toBe(false);
+        });
+
+        it('returns false for an empty selection', () => {
+            expect(hasCustomUnitMerchantInSelection([])).toBe(false);
         });
     });
 

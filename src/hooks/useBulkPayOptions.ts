@@ -143,6 +143,7 @@ function useBulkPayOptions({
                         iconHeight: typeof account.icon === 'number' ? undefined : account.iconSize,
                         key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                         shouldIgnoreKeyForRendering: true,
+                        shouldIgnoreCompactStyle: true,
                         additionalData: {
                             bankAccountID: account.methodID,
                             paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,

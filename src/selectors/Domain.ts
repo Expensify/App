@@ -135,7 +135,7 @@ function selectSecurityGroupForAccount(accountID: number) {
 
             const [key, group] = entry;
 
-            if (group.shared && accountIDStr in group.shared) {
+            if (group.shared?.[accountIDStr] != null) {
                 return {
                     key,
                     securityGroup: group,
@@ -215,6 +215,14 @@ function domainSecurityGroupSettingErrorsSelector(settingName: keyof DomainSecur
     };
 }
 
+/** Creates a selector that returns true if a security group has any pending delete action. */
+function isSecurityGroupPendingDeleteSelector(groupID?: string) {
+    return (domainPendingActions: OnyxEntry<DomainPendingActions>): boolean => {
+        const groupPendingActions = domainPendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`];
+        return Object.values(groupPendingActions ?? {}).some((action) => action === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    };
+}
+
 export {
     domainMemberSettingsSelector,
     domainSettingsPrimaryContactSelector,
@@ -237,6 +245,7 @@ export {
     selectGroupByID,
     domainSecurityGroupSettingPendingActionSelector,
     domainSecurityGroupSettingErrorsSelector,
+    isSecurityGroupPendingDeleteSelector,
 };
 
 export {type DomainSecurityGroupWithID};

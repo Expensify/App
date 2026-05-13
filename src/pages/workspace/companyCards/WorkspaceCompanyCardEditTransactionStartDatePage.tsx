@@ -121,7 +121,6 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
                         initiallyFocusedItemKey={dateOptionSelected}
                         shouldUpdateFocusedIndex
                         addBottomSafeAreaPadding
-                        shouldHighlightSelectedItem={false}
                         footerContent={
                             <Button
                                 success
