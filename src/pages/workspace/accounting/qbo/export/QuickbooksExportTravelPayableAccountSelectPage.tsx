@@ -1,6 +1,6 @@
 import React from 'react';
 import type {SelectorType} from '@components/SelectionScreen';
-import {updateConnectionConfig} from '@libs/actions/PolicyConnections';
+import {updateQuickbooksOnlineTravelInvoicingPayableAccount} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -27,12 +27,7 @@ function QuickbooksExportTravelPayableAccountSelectPage({policy}: WithPolicyConn
 
     const selectAccount = (row: SelectorType<string>) => {
         if (row.value !== qboConfig?.travelInvoicingPayableAccountID) {
-            updateConnectionConfig(
-                policyID,
-                CONST.POLICY.CONNECTIONS.NAME.QBO,
-                {travelInvoicingPayableAccountID: row.value},
-                {travelInvoicingPayableAccountID: qboConfig?.travelInvoicingPayableAccountID},
-            );
+            updateQuickbooksOnlineTravelInvoicingPayableAccount(policyID, row.value, qboConfig?.travelInvoicingPayableAccountID);
         }
         Navigation.goBack(backPath);
     };

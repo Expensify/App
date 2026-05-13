@@ -1,7 +1,7 @@
 import React from 'react';
 import type {SelectorType} from '@components/SelectionScreen';
+import {updateQuickbooksOnlineTravelInvoicingVendor} from '@libs/actions/connections/QuickbooksOnline';
 import {clearQBOErrorField} from '@libs/actions/Policy/Policy';
-import {updateConnectionConfig} from '@libs/actions/PolicyConnections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -27,7 +27,7 @@ function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsP
 
     const selectVendor = (row: SelectorType<string>) => {
         if (row.value !== qboConfig?.travelInvoicingVendorID) {
-            updateConnectionConfig(policyID, CONST.POLICY.CONNECTIONS.NAME.QBO, {travelInvoicingVendorID: row.value}, {travelInvoicingVendorID: qboConfig?.travelInvoicingVendorID});
+            updateQuickbooksOnlineTravelInvoicingVendor(policyID, row.value, qboConfig?.travelInvoicingVendorID);
         }
         Navigation.goBack(backPath);
     };
