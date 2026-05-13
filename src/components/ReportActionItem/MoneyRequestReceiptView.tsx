@@ -54,11 +54,8 @@ import trackExpenseCreationError from '@libs/telemetry/trackExpenseCreationError
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
     hasReceipt as hasReceiptTransactionUtils,
-    isAmountMissing,
-    isCreatedMissing,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest,
-    isMerchantMissing,
     isScanning,
 } from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
@@ -187,10 +184,6 @@ function MoneyRequestReceiptView({
         }
     }, [isLoading, hoverBind]);
 
-    // Track the actually-displayed image source. ReportActionItemImage prefers `localSource` over
-    // `source` when both are set, so resetting `isLoading` on every `source` change spuriously
-    // re-enters the loading state when the backend swaps in a server URL but `localSource` (the
-    // preserved client-side blob) keeps rendering — the underlying <Image> never re-fires onLoad.
     const displayedReceiptSource = transaction?.receipt?.localSource ?? transaction?.receipt?.source;
     const prevDisplayedReceiptSource = usePrevious(displayedReceiptSource);
 
@@ -269,10 +262,9 @@ function MoneyRequestReceiptView({
     const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
     const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
 
-    const receiptState = transactionToCheck?.receipt?.state;
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
-        const imageViolations: string[] = [];
-        const allViolations: string[] = [];
+        const imageViolations = [];
+        const allViolations = [];
         const filteredViolations = filterReceiptViolations(transactionViolations ?? []);
 
         for (const violation of filteredViolations) {
@@ -299,42 +291,8 @@ function MoneyRequestReceiptView({
                 }
             }
         }
-
-        // When the backend updates receipt state to SCAN_FAILED, the violation data may not
-        // have arrived in Onyx yet (it's computed client-side by getViolationsOnyxData which
-        // only runs during explicit user actions). Add a fallback so the message appears immediately.
-        const hasSmartScanFailedViolation = filteredViolations.some((v) => v.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
-        if (receiptState === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && !hasSmartScanFailedViolation) {
-            const missingFields: string[] = [];
-            if (isMerchantMissing(transactionToCheck)) {
-                missingFields.push('merchant');
-            }
-            if (isCreatedMissing(transactionToCheck)) {
-                missingFields.push('date');
-            }
-            if (isAmountMissing(transactionToCheck)) {
-                missingFields.push('amount');
-            }
-            const fallbackMessage = translate('violations.smartscanFailed', {canEdit: isActionTakenByCurrentUser && isEditable, missingFields});
-            imageViolations.push(fallbackMessage);
-            allViolations.push(fallbackMessage);
-        }
-
         return [imageViolations, allViolations];
-    }, [
-        transactionViolations,
-        translate,
-        isActionTakenByCurrentUser,
-        isEditable,
-        companyCardPageURL,
-        connectionLink,
-        cardList,
-        isMarkAsCash,
-        routeDistanceMeters,
-        distanceUnit,
-        receiptState,
-        transactionToCheck,
-    ]);
+    }, [transactionViolations, translate, isActionTakenByCurrentUser, isEditable, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
