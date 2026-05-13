@@ -61,7 +61,13 @@ const Reauthentication: Middleware = (response, request, isFromSequentialQueue) 
                 return;
             }
 
-            if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+            // Two server-side signals indicate the user must set up 2FA:
+            // 1. Server throws PolicyRequires2FA error, with 666 jsonCode with the specefic error title or error type.
+            // 2. Server rejects a stale normal type token whose account now requires 2FA with jsonCode 432.
+            const is2FASetupRequired =
+                (data.jsonCode === CONST.JSON_CODE.EXP_ERROR && (data.type === CONST.ERROR_TYPE.NEEDS_2FA_SETUP || data.title === CONST.ERROR_TITLE.NEEDS_2FA_SETUP)) ||
+                data.jsonCode === CONST.JSON_CODE.NEEDS_2FA_SETUP;
+            if (data.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED || is2FASetupRequired) {
                 if (getIsOffline()) {
                     // If we are offline and somehow handling this response we do not want to reauthenticate
                     throw new Error('Unable to reauthenticate because we are offline');
