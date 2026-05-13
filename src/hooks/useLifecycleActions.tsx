@@ -168,7 +168,6 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
                 startApprovedAnimation();
             },
             delegateEmail,
-            conciergeReportID: undefined,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);

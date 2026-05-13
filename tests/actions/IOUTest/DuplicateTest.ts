@@ -1164,7 +1164,6 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1229,7 +1228,6 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1287,7 +1285,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1341,7 +1338,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1404,7 +1400,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1453,7 +1448,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1495,7 +1489,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1539,7 +1532,6 @@ describe('actions/Duplicate', () => {
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1592,7 +1584,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints: [],
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1658,7 +1649,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1709,7 +1699,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1771,7 +1760,6 @@ describe('actions/Duplicate', () => {
                 personalDetails: {},
                 recentWaypoints,
                 targetPolicyTags,
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -1942,7 +1930,6 @@ describe('actions/Duplicate', () => {
             currentUserAccountID: RORY_ACCOUNT_ID,
             currentUserLogin: RORY_EMAIL,
             recentWaypoints: [],
-            conciergeReportID: undefined,
             ...overrides,
         });
 
@@ -2487,7 +2474,6 @@ describe('actions/Duplicate', () => {
                 draftTransactionIDs: [],
                 betas: [CONST.BETAS.ALL],
                 recentWaypoints: [],
-                conciergeReportID: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 currentUserLogin: RORY_EMAIL,
             });
@@ -2603,7 +2589,6 @@ describe('actions/Duplicate', () => {
             transactionViolations: {},
             translate: mockTranslate,
             recentWaypoints: [],
-            conciergeReportID: undefined,
             ...overrides,
         });
 

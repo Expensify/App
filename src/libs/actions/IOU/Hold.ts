@@ -685,7 +685,6 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp,
     betas,
     isApprovalFlow = false,
-    conciergeReportID,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -694,8 +693,6 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp?: string;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
-    // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
-    conciergeReportID?: string;
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -755,7 +752,6 @@ function getReportFromHoldRequestsOnyxData({
         firstHoldTransaction,
         optimisticExpenseReport.reportID,
         newParentReportActionID,
-        conciergeReportID,
     );
 
     let optimisticCreatedReportForUnapprovedAction: OnyxTypes.ReportAction | null = null;
