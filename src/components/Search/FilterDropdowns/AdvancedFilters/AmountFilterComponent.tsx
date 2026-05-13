@@ -46,6 +46,7 @@ function getFrontendAmount(amount: string | undefined) {
 
 function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps) {
     const styles = useThemeStyles();
+    const fullscreen = useFullscreenAdvancedFilters();
     const [amount, setAmount] = useState(() => getFrontendAmount(value));
 
     useImperativeHandle(ref, () => ({
@@ -65,6 +66,7 @@ function AmountInput({ref, filterKey, modifier, value, label}: AmountInputProps)
             role={CONST.ROLE.PRESENTATION}
             inputMode={CONST.INPUT_MODE.DECIMAL}
             shouldAllowNegative
+            autoFocus={fullscreen}
         />
     );
 }
@@ -79,6 +81,7 @@ type AmountBetweenInputProps = {
 function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: AmountBetweenInputProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const fullscreen = useFullscreenAdvancedFilters();
     const [greaterThanAmount, setGreaterThanAmount] = useState(() => getFrontendAmount(greaterThanValue));
     const [lessThanAmount, setLessThanAmount] = useState(() => getFrontendAmount(lessThanValue));
 
@@ -104,7 +107,7 @@ function AmountBetweenInput({ref, filterKey, greaterThanValue, lessThanValue}: A
                 role={CONST.ROLE.PRESENTATION}
                 inputMode={CONST.INPUT_MODE.DECIMAL}
                 shouldAllowNegative
-                autoFocus
+                autoFocus={fullscreen}
             />
             <AmountWithoutCurrencyInput
                 containerStyles={styles.flex1}
