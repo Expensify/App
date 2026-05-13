@@ -2,7 +2,7 @@ import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Button from '@components/ButtonComposed/Button';
 import ButtonDoubleLineText from '@components/ButtonComposed/primitives/ButtonDoubleLineText';
-import {ButtonIconLeft, ButtonIconRight} from '@components/ButtonComposed/primitives/ButtonIcons';
+import ButtonIcon from '@components/ButtonComposed/primitives/ButtonIcon';
 import ButtonKeyboardShortcut from '@components/ButtonComposed/primitives/ButtonKeyboardShortcut';
 import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
 import type {BaseButtonProps, ButtonKeyboardShortcutProps} from '@components/ButtonComposed/types';
@@ -119,7 +119,7 @@ function ButtonWithIcons({
                 />
             )}
             {!!iconLeft && (
-                <ButtonIconLeft
+                <ButtonIcon
                     src={iconLeft}
                     fill={iconLeftFill}
                     hoverFill={iconLeftHoverFill}
@@ -146,7 +146,7 @@ function ButtonWithIcons({
                 )
             )}
             {!!iconRight && (
-                <ButtonIconRight
+                <ButtonIcon
                     src={iconRight}
                     fill={iconRightFill ?? iconLeftFill}
                     hoverFill={iconRightHoverFill ?? iconLeftHoverFill}

@@ -113,7 +113,7 @@ describe('ButtonComposed — Button', () => {
             renderButton();
 
             // Then context reflects the expected initial state
-            expect(screen.getByTestId('ctx-size')).toHaveTextContent(CONST.DROPDOWN_BUTTON_SIZE.MEDIUM);
+            expect(screen.getByTestId('ctx-size')).toHaveTextContent(CONST.BUTTON_SIZE.MEDIUM);
             expect(screen.getByTestId('ctx-variant')).toHaveTextContent('none');
             expect(screen.getByTestId('ctx-isHovered')).toHaveTextContent('false');
         });
@@ -123,7 +123,7 @@ describe('ButtonComposed — Button', () => {
             expect(screen.getByTestId('ctx-variant')).toHaveTextContent(variant);
         });
 
-        it.each([CONST.DROPDOWN_BUTTON_SIZE.SMALL, CONST.DROPDOWN_BUTTON_SIZE.LARGE] as const)('propagates size="%s" to children via context', (size) => {
+        it.each([CONST.BUTTON_SIZE.SMALL, CONST.BUTTON_SIZE.LARGE] as const)('propagates size="%s" to children via context', (size) => {
             renderButton({size});
             expect(screen.getByTestId('ctx-size')).toHaveTextContent(size);
         });
@@ -300,10 +300,12 @@ describe('ButtonComposed — Button', () => {
     // Wrong values here would break the visual rhythm of forms and toolbars.
 
     describe('size styles', () => {
+        // getComposedButtonSizeStyle subtracts 4px from the base buttonSmall/Medium/Large
+        // paddingHorizontal (12/16/20) to compensate for the gap between children.
         it.each([
-            {size: CONST.DROPDOWN_BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 12},
-            {size: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 16},
-            {size: CONST.DROPDOWN_BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 20},
+            {size: CONST.BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 8},
+            {size: CONST.BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 12},
+            {size: CONST.BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 16},
         ])('size="$size" applies minHeight=$minHeight and paddingHorizontal=$paddingHorizontal', ({size, minHeight, paddingHorizontal}) => {
             renderButton({size});
             expect(screen.getByLabelText(LABEL)).toHaveStyle({minHeight, paddingHorizontal});

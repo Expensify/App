@@ -21,7 +21,7 @@
 import withNavigationFallback from '@components/withNavigationFallback';
 import ButtonComponent from './Button';
 import ButtonDoubleLineText from './primitives/ButtonDoubleLineText';
-import ButtonIcon from './primitives/ButtonIcons';
+import ButtonIcon from './primitives/ButtonIcon';
 import ButtonKeyboardShortcut from './primitives/ButtonKeyboardShortcut';
 import ButtonText from './primitives/ButtonText';
 
