@@ -24,6 +24,9 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
     /** Name of the selected tab */
     defaultSelectedTab?: TTabName;
 
+    /** Initial tab selected by the current route */
+    routeSelectedTab?: TTabName;
+
     /** A function triggered when a tab has been selected */
     onTabSelected?: (newTabName: TTabName) => void;
 
@@ -63,6 +66,16 @@ type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = Child
     equalWidth?: boolean;
 };
 
+type RouteWithNestedTabState = {
+    params?: unknown;
+    state?: {
+        index?: number;
+        routes?: Array<{
+            name?: unknown;
+        }>;
+    };
+};
+
 const TopTab = createMaterialTopTabNavigator<ParamListBase, string>();
 
 // The TabFocusTrapContext is to collect the focus trap container element of each tab screen.
@@ -87,12 +100,40 @@ const getTabNames = (children: React.ReactNode): string[] => {
     return result;
 };
 
+function getSelectedTabFromRoute(route: RouteWithNestedTabState | undefined, tabNames: string[]): string | undefined {
+    const nestedRoutes = route?.state?.routes;
+    const nestedIndex = typeof route?.state?.index === 'number' ? route.state.index : (nestedRoutes?.length ?? 0) - 1;
+    const selectedTabFromState = nestedRoutes?.at(nestedIndex)?.name;
+    const selectedTabFromParams = route?.params && typeof route.params === 'object' && 'screen' in route.params ? route.params.screen : undefined;
+    const selectedTabFromRoute = typeof selectedTabFromState === 'string' ? selectedTabFromState : selectedTabFromParams;
+
+    if (typeof selectedTabFromRoute !== 'string' || !tabNames.includes(selectedTabFromRoute)) {
+        return undefined;
+    }
+
+    return selectedTabFromRoute;
+}
+
+function getInitialTabName<TTabName extends string>(
+    tabNames: string[],
+    selectedTab: string | undefined,
+    defaultSelectedTab: TTabName | undefined,
+    routeSelectedTab?: TTabName,
+): TTabName | undefined {
+    if (routeSelectedTab && tabNames.includes(routeSelectedTab)) {
+        return routeSelectedTab;
+    }
+
+    return selectedTab && tabNames.includes(selectedTab) ? (selectedTab as TTabName) : defaultSelectedTab;
+}
+
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
 // It also takes 2 more optional callbacks to manage the focus trap container elements of the tab bar and the active tab
 function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     id,
     defaultSelectedTab,
+    routeSelectedTab,
     tabBar: TabBar,
     children,
     onTabBarFocusTrapContainerElementChanged,
@@ -115,7 +156,7 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
 
     const tabNames = useMemo(() => getTabNames(children), [children]);
 
-    const validInitialTab = selectedTab && tabNames.includes(selectedTab) ? selectedTab : defaultSelectedTab;
+    const validInitialTab = getInitialTabName(tabNames, selectedTab, defaultSelectedTab, routeSelectedTab);
 
     const LazyPlaceholder = useCallback(() => {
         return (
@@ -188,15 +229,17 @@ function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
                         const state = event.data.state;
                         const index = state.index;
                         const routeNames = state.routeNames;
-                        if (isFirstMountRef.current) {
+                        const isFirstMount = isFirstMountRef.current;
+                        if (isFirstMount) {
                             onTabSelect?.({index});
                             isFirstMountRef.current = false;
                         }
                         const newSelectedTab = routeNames.at(index);
-                        if (selectedTab === newSelectedTab) {
+                        const shouldNotifyRouteSelectedTabOnMount = isFirstMount && routeSelectedTab === newSelectedTab;
+                        if (selectedTab === newSelectedTab && !shouldNotifyRouteSelectedTabOnMount) {
                             return;
                         }
-                        if (newSelectedTab) {
+                        if (newSelectedTab && selectedTab !== newSelectedTab) {
                             Tab.setSelectedTab<TTabName>(id, newSelectedTab as TTabName);
                         }
                         onTabSelected(newSelectedTab as TTabName);
@@ -256,4 +299,4 @@ function TabScreenWithFocusTrapWrapper({children}: {children?: React.ReactNode})
 
 export default OnyxTabNavigator;
 
-export {TabScreenWithFocusTrapWrapper, TopTab};
+export {getInitialTabName, getSelectedTabFromRoute, TabScreenWithFocusTrapWrapper, TopTab};

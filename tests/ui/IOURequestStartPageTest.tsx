@@ -86,4 +86,98 @@ describe('IOURequestStartPage', () => {
         });
         expect(iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.MANUAL);
     });
+
+    it('uses the route-selected scan tab when a stale manual tab is persisted', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.MANUAL);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                reportID: 'old-report',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            });
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <NavigationContainer>
+                        <IOURequestStartPage
+                            route={
+                                {
+                                    params: {iouType: CONST.IOU.TYPE.SUBMIT, reportID: '1', transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID},
+                                    state: {
+                                        index: 0,
+                                        routes: [{name: CONST.TAB_REQUEST.SCAN}],
+                                    },
+                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['route']
+                            }
+                            report={undefined}
+                            reportDraft={undefined}
+                            navigation={{} as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']}
+                            defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
+                        />
+                    </NavigationContainer>
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+
+        const iouRequestType = await new Promise<OnyxEntry<IOURequestType>>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+                callback: (val) => {
+                    resolve(val?.iouRequestType);
+                    Onyx.disconnect(connection);
+                },
+            });
+        });
+        expect(iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+    });
+
+    it('rebuilds a stale draft when the route-selected tab matches the stale request type', async () => {
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.SCAN);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                reportID: 'old-report',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            });
+        });
+
+        render(
+            <OnyxListItemProvider>
+                <LocaleContextProvider>
+                    <NavigationContainer>
+                        <IOURequestStartPage
+                            route={
+                                {
+                                    params: {iouType: CONST.IOU.TYPE.SUBMIT, reportID: '1', transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID},
+                                    state: {
+                                        index: 0,
+                                        routes: [{name: CONST.TAB_REQUEST.SCAN}],
+                                    },
+                                } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['route']
+                            }
+                            report={undefined}
+                            reportDraft={undefined}
+                            navigation={{} as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>['navigation']}
+                            defaultSelectedTab={CONST.TAB_REQUEST.MANUAL}
+                        />
+                    </NavigationContainer>
+                </LocaleContextProvider>
+            </OnyxListItemProvider>,
+        );
+
+        await waitForBatchedUpdatesWithAct();
+
+        const transactionReportID = await new Promise<OnyxEntry<string>>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
+                callback: (val) => {
+                    resolve(val?.reportID);
+                    Onyx.disconnect(connection);
+                },
+            });
+        });
+        expect(transactionReportID).toBe('1');
+    });
 });

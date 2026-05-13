@@ -110,6 +110,25 @@ describe('IOU Utils', () => {
             expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, true, undefined, undefined);
         });
 
+        it('should be navigated to odometer distance Expense depending on lastDistanceExpenseType', () => {
+            const draftTransactionIDs: string[] = [];
+            // When the quick action is REQUEST_DISTANCE with odometer as the last distance type
+            navigateToQuickAction({
+                isValidReport: true,
+                quickAction: {action: CONST.QUICK_ACTIONS.REQUEST_DISTANCE, chatReportID: reportID},
+                selectOption: (onSelected: () => void) => {
+                    onSelected();
+                },
+                targetAccountPersonalDetails: createPersonalDetails(1),
+                lastDistanceExpenseType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                draftTransactionIDs,
+            });
+
+            // Then we should start odometer distance request flow
+            expect(startDistanceRequest).toHaveBeenCalledWith(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, true, undefined, undefined);
+        });
+
         it('should pass draftTransactionIDs with existing drafts to startDistanceRequest for TRACK_DISTANCE', () => {
             // Given draftTransactionIDs with some existing draft IDs
             const draftTransactionIDs = ['123'];

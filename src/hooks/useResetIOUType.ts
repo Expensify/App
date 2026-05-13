@@ -80,7 +80,7 @@ function useResetIOUType({
             Keyboard.dismiss();
         }
 
-        if (transaction?.iouRequestType === newIOUType) {
+        if (transaction?.iouRequestType === newIOUType && transaction?.reportID === reportID) {
             return;
         }
 

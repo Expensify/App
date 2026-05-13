@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import OnyxTabNavigator, {getSelectedTabFromRoute, TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -45,7 +45,7 @@ function DistanceRequestStartPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
+    const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
@@ -62,13 +62,18 @@ function DistanceRequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.trackDistance'),
     };
 
+    const availableTabs = useMemo(() => [CONST.TAB_REQUEST.DISTANCE_MAP, CONST.TAB_REQUEST.DISTANCE_MANUAL, CONST.TAB_REQUEST.DISTANCE_GPS, CONST.TAB_REQUEST.DISTANCE_ODOMETER], []);
+    const selectedTabFromRoute = getSelectedTabFromRoute(route, availableTabs) as SelectedTabRequest | undefined;
+    const selectedTab = selectedTabFromRoute ?? lastSelectedTab;
+    const isStaleTransactionDraft = !!transaction?.reportID && transaction.reportID !== reportID;
+
     const transactionRequestType = useMemo(() => {
-        if (!transaction?.iouRequestType) {
-            return lastDistanceExpenseType ?? selectedTab ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+        if (!transaction?.iouRequestType || isStaleTransactionDraft) {
+            return selectedTabFromRoute ?? lastDistanceExpenseType ?? lastSelectedTab ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
         }
 
         return transaction.iouRequestType;
-    }, [transaction?.iouRequestType, selectedTab, lastDistanceExpenseType]);
+    }, [transaction?.iouRequestType, isStaleTransactionDraft, selectedTabFromRoute, lastDistanceExpenseType, lastSelectedTab]);
 
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
@@ -122,6 +127,7 @@ function DistanceRequestStartPage({
                     <OnyxTabNavigator
                         id={CONST.TAB.DISTANCE_REQUEST_TYPE}
                         defaultSelectedTab={defaultSelectedTab}
+                        routeSelectedTab={selectedTabFromRoute}
                         onTabSelected={resetIOUTypeIfChanged}
                         tabBar={TabSelector}
                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}

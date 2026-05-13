@@ -1,7 +1,13 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
-import {createTransaction, getMoneyRequestParticipantOptions, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import {
+    createTransaction,
+    getMoneyRequestParticipantOptions,
+    handleMoneyRequestStepDistanceNavigation,
+    handleMoneyRequestStepScanParticipants,
+    startDistanceRequest,
+} from '@libs/actions/IOU/MoneyRequest';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -1595,6 +1601,23 @@ describe('MoneyRequest', () => {
             };
             const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined);
             expect(Array.isArray(participants)).toBe(true);
+        });
+    });
+
+    describe('startDistanceRequest', () => {
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('should navigate directly to the odometer distance tab', () => {
+            const reportID = '123';
+            const backToReport = '456';
+
+            startDistanceRequest(CONST.IOU.TYPE.SUBMIT, reportID, [], CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, true, backToReport);
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport),
+            );
         });
     });
 
