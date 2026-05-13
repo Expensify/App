@@ -1467,7 +1467,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 onSelected: () => {
                     if (shouldShowEditSplitOnDeleteAction && firstTransaction) {
                         initSplitExpense(firstTransaction, firstTransactionPolicy, {navigateToEditSplitExpense: true});
-                        clearSelectedTransactions();
                         return;
                     }
                     handleDeleteSelectedTransactions();

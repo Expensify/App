@@ -450,6 +450,7 @@ describe('useSelectedTransactionsActions', () => {
 
         mockSelectedTransactionIDs.push(transactionID);
         mockShouldOpenSplitExpenseEditFlowOnDelete.mockReturnValue(true);
+        mockDeleteTransactions.mockReturnValue({action: 'redirected'});
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
@@ -476,10 +477,11 @@ describe('useSelectedTransactionsActions', () => {
         expect(deleteOption).toBeDefined();
         expect(deleteOption?.text).toBe('iou.editSplits');
 
+        const clearSelectedTransactionsCallsBeforeSelection = mockClearSelectedTransactions.mock.calls.length;
         deleteOption?.onSelected?.();
 
         expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, undefined, false);
-        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+        expect(mockClearSelectedTransactions.mock.calls.length).toBe(clearSelectedTransactionsCallsBeforeSelection);
     });
 
     it('should pass currentSearchHash to delete transactions when on search', async () => {

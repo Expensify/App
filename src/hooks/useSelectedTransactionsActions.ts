@@ -215,13 +215,13 @@ function useSelectedTransactionsActions({
 
     const handleDeleteTransactions = () => {
         const deleteResult = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, isOnSearch ? currentSearchHash : undefined, false);
-        clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
 
         if (deleteResult.action === 'redirected') {
             return deleteResult;
         }
 
+        clearSelectedTransactions(true);
         Navigation.removeReportScreen(new Set(deleteResult.deletedTransactionThreadReportIDs));
         return deleteResult;
     };
