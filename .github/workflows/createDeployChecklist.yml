@@ -2,6 +2,11 @@ name: Create or update deploy checklist
 
 on:
   workflow_call:
+    inputs:
+      REF:
+        description: 'Git ref (branch, tag, or SHA) to check out. Defaults to the caller commit SHA.'
+        type: string
+        required: false
   workflow_dispatch:
 
 jobs:
@@ -11,6 +16,8 @@ jobs:
       - name: Checkout
         # v6
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.REF || github.sha }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode

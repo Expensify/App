@@ -42,7 +42,6 @@ const buildExpenseReport = (overrides: Partial<OnyxTypes.Report> = {}): OnyxType
 const noopState: ShowContextMenuStateContextType = {
     anchor: null,
     report: undefined,
-    isReportArchived: false,
     action: undefined,
     transactionThreadReport: undefined,
     isDisabled: true,
