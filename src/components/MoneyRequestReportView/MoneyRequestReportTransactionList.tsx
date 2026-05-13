@@ -63,7 +63,7 @@ import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
-import {getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
+import {getTransactionPendingAction, isScanning, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
@@ -295,6 +295,16 @@ function MoneyRequestReportTransactionList({
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions].sort((a, b) => {
+            // Scanning receipts always appear at the top regardless of sort direction
+            const aIsScanning = isScanning(a);
+            const bIsScanning = isScanning(b);
+            if (aIsScanning && !bIsScanning) {
+                return -1;
+            }
+            if (!aIsScanning && bIsScanning) {
+                return 1;
+            }
+
             // When on default sort (Date/ASC), prioritize RBR-flagged transactions
             if (isDefaultSort && allTransactionViolations) {
                 const rbrComparison = compareByRBR(

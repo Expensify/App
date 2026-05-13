@@ -9,13 +9,15 @@ type DateCellProps = {
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
     suffixText?: string;
+    textOverride?: string;
 };
 
-function DateCell({date, showTooltip, isLargeScreenWidth, suffixText}: DateCellProps) {
+function DateCell({date, showTooltip, isLargeScreenWidth, suffixText, textOverride}: DateCellProps) {
     const styles = useThemeStyles();
 
     const formattedDate = DateUtils.formatWithUTCTimeZone(date, DateUtils.doesDateBelongToAPastYear(date) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-    const displayText = suffixText ? `${formattedDate} • ${suffixText}` : formattedDate;
+    const dateText = textOverride ?? formattedDate;
+    const displayText = suffixText ? `${dateText} • ${suffixText}` : dateText;
 
     return (
         <TextWithTooltip

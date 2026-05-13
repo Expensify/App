@@ -330,6 +330,7 @@ function TransactionItemRow({
                             date={createdAt}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth={!shouldUseNarrowLayout}
+                            textOverride={isScanning(transactionItem) ? translate('iou.receiptStatusTitle') : undefined}
                         />
                     </View>
                 );
@@ -772,6 +773,7 @@ function TransactionItemRow({
                                     showTooltip={shouldShowTooltip}
                                     isLargeScreenWidth={false}
                                     suffixText={categoryForDisplay}
+                                    textOverride={isScanning(transactionItem) ? translate('iou.receiptStatusTitle') : undefined}
                                 />
                                 <TypeCell
                                     transactionItem={transactionItem}

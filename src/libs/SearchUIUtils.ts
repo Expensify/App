@@ -3657,6 +3657,31 @@ function getSortedTransactionData(
     sortBy?: SearchColumnType,
     sortOrder?: SortOrder,
 ) {
+    const sorted = sortTransactionsByColumn(data, localeCompare, translate, sortBy, sortOrder);
+
+    // Scanning transactions always appear at the top regardless of sort column or direction
+    return sorted.sort((a, b) => {
+        const aIsScanning = isScanning(a);
+        const bIsScanning = isScanning(b);
+        if (aIsScanning === bIsScanning) {
+            return 0;
+        }
+        return aIsScanning ? -1 : 1;
+    });
+}
+
+/**
+ * @private
+ * Sorts transaction data by the specified column. Called by getSortedTransactionData
+ * before scanning transactions are promoted to the top of the list.
+ */
+function sortTransactionsByColumn(
+    data: TransactionListItemType[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    translate: LocaleContextProps['translate'],
+    sortBy?: SearchColumnType,
+    sortOrder?: SortOrder,
+) {
     if (!sortBy || !sortOrder) {
         return data;
     }
