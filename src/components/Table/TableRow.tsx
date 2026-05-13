@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import {useTableContext} from './TableContext';
 
@@ -120,10 +121,10 @@ export default function TableRow({
                     !!isLoading && LoadingComponent ? (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                             <SkeletonViewContentLoader
-                                height={32}
                                 width="100%"
                                 backgroundColor={theme.skeletonLHNIn}
                                 foregroundColor={theme.skeletonLHNOut}
+                                height={variables.tableSkeletonHeight}
                             >
                                 <LoadingComponent />
                             </SkeletonViewContentLoader>

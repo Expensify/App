@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -50,6 +51,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The error message for the form */
     formError: string;
+
+    /** Clears specific form errors by key */
+    clearFormErrors: (errors: string[]) => void;
+
+    /** Sets a form error message */
+    setFormError: (error: TranslationPaths | '') => void;
 
     /** Flag indicating if there is a route */
     hasRoute: boolean;
@@ -179,6 +186,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Toggles compact mode by showing all fields */
     setShowMoreFields?: (showMoreFields: boolean) => void;
+
+    /** Triggers submit from inline inputs */
+    onSubmitForm?: () => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -190,6 +200,8 @@ function MoneyRequestConfirmationListFooter({
     formattedAmount,
     formattedAmountPerAttendee,
     formError,
+    clearFormErrors,
+    setFormError,
     hasRoute,
     iouType,
     isCategoryRequired,
@@ -233,6 +245,7 @@ function MoneyRequestConfirmationListFooter({
     isDescriptionRequired = false,
     showMoreFields = false,
     setShowMoreFields = () => {},
+    onSubmitForm,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
@@ -396,6 +409,8 @@ function MoneyRequestConfirmationListFooter({
                 isPerDiemRequest={isPerDiemRequest}
                 shouldDisplayFieldError={shouldDisplayFieldError}
                 formError={formError}
+                clearFormErrors={clearFormErrors}
+                setFormError={setFormError}
                 iouCurrencyCode={flags.iouCurrencyCode}
                 amount={amount}
                 formattedAmount={formattedAmount}
@@ -410,6 +425,7 @@ function MoneyRequestConfirmationListFooter({
                 onToggleBillable={onToggleBillable}
                 setShowMoreFields={setShowMoreFields}
                 isCompactMode={compact.isCompactMode}
+                onSubmitForm={onSubmitForm}
             />
         </View>
     );

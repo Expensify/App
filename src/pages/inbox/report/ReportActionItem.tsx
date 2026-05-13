@@ -10,9 +10,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
-import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 
 type ReportActionItemProps = PureReportActionItemProps & {
+    /** Whether to show the draft message or not */
+    shouldShowDraftMessage?: boolean;
+
     /** Draft message for the report action */
     draftMessage?: string;
 
@@ -29,7 +31,7 @@ type ReportActionItemProps = PureReportActionItemProps & {
 function ReportActionItem({
     action,
     report,
-    draftMessage: draftMessageProp,
+    draftMessage,
     personalDetails,
     userBillingFundID,
     linkedTransactionRouteError: linkedTransactionRouteErrorProp,
@@ -53,10 +55,6 @@ function ReportActionItem({
     );
 
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
-
-    const {editingMessage, editingReportAction} = useReportActionActiveEdit();
-    const draftMessageFromEditingContext = editingReportAction && action && editingReportAction.reportActionID === action.reportActionID ? (editingMessage ?? undefined) : undefined;
-    const draftMessage = draftMessageProp ?? draftMessageFromEditingContext;
 
     return (
         <PureReportActionItem

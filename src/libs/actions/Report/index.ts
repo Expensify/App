@@ -3305,24 +3305,16 @@ function editReportComment(
     );
 }
 
-/** Clears drafts for all comment report action across all reports */
-function clearAllReportActionDrafts() {
-    Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {});
+/** Deletes the draft for a comment report action. */
+function deleteReportActionDraft(reportID: string | undefined, reportAction: ReportAction) {
+    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
 }
 
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
-function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null, draftMessage: string) {
-    if (!reportAction) {
-        return;
-    }
-
+function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
-
-    Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`]: {
-            [reportAction.reportActionID]: {message: draftMessage},
-        },
-    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
 }
 
 function updateNotificationPreference(
@@ -7879,7 +7871,7 @@ export {
     extractRHPVariantFromResponse,
     createNewReport,
     deleteReport,
-    clearAllReportActionDrafts,
+    deleteReportActionDraft,
     deleteReportComment,
     deleteReportField,
     dismissTrackExpenseActionableWhisper,
