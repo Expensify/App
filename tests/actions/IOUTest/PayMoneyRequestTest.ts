@@ -3,11 +3,13 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import * as Hold from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {cancelPayment, completePaymentOnboarding, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {cancelPayment, completePaymentOnboarding, payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report';
+import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -120,6 +122,65 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    describe('payInvoice', () => {
+        it('passes the selected business bank account ID to PayInvoice', () => {
+            const bankAccountID = 123;
+            const policyID = 'policyID';
+            const chatReport = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                policyID,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                },
+            } as Report;
+            const invoiceReport = {
+                reportID: '2',
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                policyID,
+            } as Report;
+            const activePolicy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            } as Policy;
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation();
+
+            payInvoice({
+                paymentMethodType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                chatReport,
+                invoiceReport,
+                introSelected: undefined,
+                invoiceReportCurrentNextStepDeprecated: undefined,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                payAsBusiness: true,
+                methodID: bankAccountID,
+                paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                activePolicy,
+                betas: [],
+                isSelfTourViewed: false,
+                defaultWorkspaceName: 'Workspace',
+            });
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.PAY_INVOICE,
+                expect.objectContaining({
+                    bankAccountID,
+                    paymentMethodType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    payAsBusiness: true,
+                }),
+                expect.any(Object),
+            );
+        });
     });
 
     describe('payMoneyRequestElsewhere', () => {

@@ -17,6 +17,7 @@ import Navigation from '@navigation/Navigation';
 import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {AccountData, BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -100,6 +101,7 @@ function usePaymentOptions({
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
     const [bankAccountList = getEmptyObject<BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
@@ -191,14 +193,18 @@ function usePaymentOptions({
                     }));
             };
 
-            const addBankAccountItem = {
+            const getAddBankAccountItem = (payAsBusiness: boolean) => ({
                 text: translate('bankAccount.addBankAccount'),
                 icon: icons.Bank,
                 onSelected: () => {
-                    const bankAccountRoute = getBankAccountRoute(chatReport);
+                    const businessBankAccountPolicyID = activePolicyID ?? policyID;
+                    const bankAccountRoute =
+                        payAsBusiness && businessBankAccountPolicyID && businessBankAccountPolicyID !== CONST.POLICY.ID_FAKE
+                            ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: businessBankAccountPolicyID, backTo: Navigation.getActiveRoute()})
+                            : getBankAccountRoute(chatReport);
                     Navigation.navigate(bankAccountRoute);
                 },
-            };
+            });
 
             if (isIndividualInvoiceRoomUtil(chatReport)) {
                 buttonOptions.push({
@@ -214,7 +220,7 @@ function usePaymentOptions({
                             value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                             onSelected: () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}),
                         },
-                        ...(showPayViaExpensifyOptions ? [addBankAccountItem] : []),
+                        ...(showPayViaExpensifyOptions ? [getAddBankAccountItem(false)] : []),
                     ],
                 });
             }
@@ -226,7 +232,7 @@ function usePaymentOptions({
                 backButtonText: translate('iou.business'),
                 subMenuItems: [
                     ...(showPayViaExpensifyOptions ? getPaymentSubItems(true) : []),
-                    ...(showPayViaExpensifyOptions ? [addBankAccountItem] : []),
+                    ...(showPayViaExpensifyOptions ? [getAddBankAccountItem(true)] : []),
                     {
                         text: translate('iou.payElsewhere', ''),
                         icon: icons.Cash,
@@ -265,6 +271,8 @@ function usePaymentOptions({
         onPress,
         onlyShowPayElsewhere,
         icons,
+        policyID,
+        activePolicyID,
     ]);
 
     return paymentButtonOptions;

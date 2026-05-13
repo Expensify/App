@@ -857,7 +857,7 @@ function payInvoice({
         payAsBusiness,
     };
 
-    if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+    if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
         params.bankAccountID = methodID;
     }
 
