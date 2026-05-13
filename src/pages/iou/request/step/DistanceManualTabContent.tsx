@@ -30,7 +30,7 @@ function DistanceManualTabContent({currentDistance, distanceUnit, onSubmit, manu
     const {inputCallbackRef} = useAutoFocusInput();
 
     const setInputRef = (ref: BaseTextInputRef | null) => {
-        // eslint-disable-next-line no-param-reassign
+        // eslint-disable-next-line no-param-reassign -- Assign to ref's .current which is a safe mutation, not a true parameter reassignment
         manualTextInputRef.current = ref;
         inputCallbackRef(ref as unknown as TextInput | null);
     };

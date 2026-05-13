@@ -1,7 +1,7 @@
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
-import type {PropsWithChildren, SetStateAction} from 'react';
+import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {FilterConfig, FilterConfigEntry, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
+import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
@@ -61,20 +61,6 @@ type TableHandle<T, ColumnKey extends string = string, FilterKey extends string 
  * @template T - The type of items in the table's data array.
  */
 type SharedListProps<T> = Omit<FlashListProps<T>, 'data'>;
-
-/**
- * Callback types for getting active state.
- */
-type GetActiveFiltersCallback<FilterKey extends string = string> = () => Record<FilterKey, unknown>;
-type GetActiveSearchStringCallback = () => string;
-
-/**
- * Callback types for updating table state.
- */
-type UpdateFilterCallback = (params: {key: string; value: unknown}) => void;
-type UpdateSortingCallback<ColumnKey extends string = string> = (value: SetStateAction<ActiveSorting<ColumnKey>>) => void;
-type UpdateSearchStringCallback = (value: string) => void;
-type ToggleSortingCallback<ColumnKey extends string = string> = (columnKey?: ColumnKey) => void;
 
 /**
  * Props for the Table component.
@@ -146,23 +132,4 @@ type TableProps<T, ColumnKey extends string = string, FilterKey extends string =
         ref?: React.Ref<TableHandle<T, ColumnKey, FilterKey>>;
     }>;
 
-export type {
-    TableColumn,
-    TableColumnStyling,
-    TableMethods,
-    TableHandle,
-    TableProps,
-    SharedListProps,
-    CompareItemsCallback,
-    IsItemInFilterCallback,
-    IsItemInSearchCallback,
-    FilterConfig,
-    FilterConfigEntry,
-    GetActiveFiltersCallback,
-    GetActiveSearchStringCallback,
-    UpdateFilterCallback,
-    UpdateSortingCallback,
-    UpdateSearchStringCallback,
-    ToggleSortingCallback,
-    ActiveSorting,
-};
+export type {TableColumn, TableMethods, TableHandle, TableProps, SharedListProps, CompareItemsCallback, IsItemInFilterCallback, IsItemInSearchCallback, FilterConfig, ActiveSorting};

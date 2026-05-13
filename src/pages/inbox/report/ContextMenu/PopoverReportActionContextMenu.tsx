@@ -84,10 +84,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
     const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
 
-    const [isRoomArchived, setIsRoomArchived] = useState(false);
-    const [isChronosReportEnabled, setIsChronosReportEnabled] = useState(false);
-    const [isChatPinned, setIsChatPinned] = useState(false);
-    const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
@@ -181,10 +177,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * @param draftMessage - ReportAction draft message
      * @param [onShow] - Run a callback when Menu is shown
      * @param [onHide] - Run a callback when Menu is hidden
-     * @param isArchivedRoom - Whether the provided report is an archived room
-     * @param isChronosReport - Flag to check if the chat participant is Chronos
-     * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
-     * @param isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
     const showContextMenu: ReportActionContextMenu['showContextMenu'] = (showContextMenuParams) => {
         cancelAnimation(hideDelayProgress);
@@ -207,7 +199,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             setComposerToRefocusOnClose('edit');
         }
 
-        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
+        const {reportID, originalReportID} = currentReport;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
@@ -255,10 +247,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
-            setIsRoomArchived(isArchivedRoom);
-            setIsChronosReportEnabled(isChronos);
-            setIsChatPinned(isPinnedChat);
-            setHasUnreadMessages(isUnreadChat);
             setIsThreadReportParentAction(isThreadReportParentActionParam);
             setShouldSwitchPositionIfOverflow(isOverflowMenu);
         });
@@ -451,10 +439,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
         setIsDeleteCommentConfirmModalVisible(false);
         setShouldSetModalVisibilityForDeleteConfirmation(true);
-        setIsRoomArchived(false);
-        setIsChronosReportEnabled(false);
-        setIsChatPinned(false);
-        setHasUnreadMessages(false);
     };
 
     /** Opens the Confirm delete action modal */
@@ -509,10 +493,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     reportActionID={reportActionIDRef.current}
                     draftMessage={reportActionDraftMessageRef.current}
                     selection={selectionRef.current}
-                    isArchivedRoom={isRoomArchived}
-                    isChronosReport={isChronosReportEnabled}
-                    isPinnedChat={isChatPinned}
-                    isUnreadChat={hasUnreadMessages}
                     isThreadReportParentAction={isThreadReportParentAction}
                     anchor={contextMenuTargetNode}
                     contentRef={contentRef}

@@ -19,6 +19,7 @@ import ShortMentionRenderer from './ShortMentionRenderer';
 import SparklesIconRenderer from './SparklesIconRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
 import TransactionHistoryLinkRenderer from './TransactionHistoryLinkRenderer';
+import ULRenderer from './ULRenderer';
 import UserDetailsRenderer from './UserDetailsRenderer';
 import VideoRenderer from './VideoRenderer';
 
@@ -30,6 +31,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImageRenderer,
+    ul: ULRenderer,
     video: VideoRenderer,
 
     // Custom tag renderers

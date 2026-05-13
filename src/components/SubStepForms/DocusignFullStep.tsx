@@ -1,8 +1,8 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
@@ -61,6 +61,8 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
 
+    const formRef = useRef<FormRef | null>(null);
+
     const [uploadedFiles, setUploadedFiles] = useState<FileObject[]>(defaultValue);
 
     const validate = useCallback(
@@ -87,6 +89,8 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
             return;
         }
 
+        formRef.current?.resetFormFieldError(inputID as string);
+        clearErrors(formID);
         setErrorFields(formID, {[inputID]: {onUpload: error}});
     };
 
@@ -106,6 +110,7 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
             startStepIndex={startStepIndex}
         >
             <FormProvider
+                ref={formRef}
                 formID={formID}
                 submitButtonText={translate('common.submit')}
                 onSubmit={onSubmit}
@@ -148,13 +153,14 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                     onRemove={(fileName) => {
                         handleRemoveFile(fileName);
                     }}
-                    acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                    acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                     value={uploadedFiles}
                     inputID={inputID as string}
                     setError={(error) => {
                         setUploadError(error);
                     }}
                     fileLimit={1}
+                    maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
                 />
             </FormProvider>
         </InteractiveStepWrapper>
