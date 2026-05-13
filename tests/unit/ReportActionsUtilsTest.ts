@@ -5339,4 +5339,42 @@ describe('ReportActionsUtils', () => {
             expect(getModerationFlagState(action)).toEqual({latestDecision: undefined, hasBeenFlagged: false});
         });
     });
+
+    describe('getExportIntegrationActionFragments', () => {
+        function buildExportedToIntegrationAction(label: string): ReportAction {
+            return {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportID: '12345',
+                created: '2026-05-13 00:00:00',
+                originalMessage: {
+                    label,
+                    markedManually: false,
+                    automaticAction: false,
+                    nonReimbursableUrls: ['id-1', 'id-2'],
+                },
+            } as ReportAction;
+        }
+
+        it('does not generate a non-reimbursable URL for Intacct exports', () => {
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.INTACCT);
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            expect(fragments.at(2)?.url).toBe('');
+        });
+
+        it('does not generate a non-reimbursable URL for Sage Intacct exports', () => {
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.SAGE_INTACCT);
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            expect(fragments.at(2)?.url).toBe('');
+        });
+
+        it('keeps the existing QBO non-reimbursable URL for QBO exports', () => {
+            const action = buildExportedToIntegrationAction(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline);
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            expect(fragments.at(2)?.url).toBe('https://qbo.intuit.com/app/expenses');
+        });
+    });
 });

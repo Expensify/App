@@ -2741,6 +2741,11 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
                     // The first three characters in a Salesforce ID is the expense type
                     url = nonReimbursableUrls.at(0)?.substring(0, SALESFORCE_EXPENSES_URL_PREFIX.length + 3) ?? '';
                     break;
+                case CONST.EXPORT_LABELS.INTACCT:
+                case CONST.EXPORT_LABELS.SAGE_INTACCT:
+                    // Intacct exports store IDs instead of browsable URLs.
+                    url = '';
+                    break;
                 default:
                     url = QBO_EXPENSES_URL;
             }
