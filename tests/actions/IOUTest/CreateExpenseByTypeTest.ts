@@ -124,7 +124,7 @@ describe('actions/IOU/createExpenseByType', () => {
             existingTransactionDraft: undefined,
             draftTransactionIDs: [],
             isSelfTourViewed: false,
-            betas: null,
+            betas: undefined,
             personalDetails: {},
         };
 
@@ -145,7 +145,7 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
@@ -167,14 +167,14 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
             expect(TrackExpense.requestMoney).toHaveBeenCalledWith(params);
         });
 
-        it('calls requestMoney for an unrecognised transaction type (fallthrough default)', () => {
+        it('calls requestMoney for an unrecognized transaction type (fallthrough default)', () => {
             const {transaction, transactionDetails, params} = buildBaseParams();
 
             createExpenseByType({
@@ -187,7 +187,7 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
@@ -218,7 +218,7 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
@@ -240,11 +240,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
-            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls[0] as [Parameters<typeof Split.createDistanceRequest>[0]];
+            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
             expect(distanceParams.existingTransaction?.modifiedCreated).toBe('');
         });
 
@@ -261,11 +261,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
-            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls[0] as [Parameters<typeof Split.createDistanceRequest>[0]];
+            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
             expect(distanceParams.existingTransaction?.comment?.waypoints).toEqual(waypoints);
         });
 
@@ -282,11 +282,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
-            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls[0] as [Parameters<typeof Split.createDistanceRequest>[0]];
+            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
             expect(distanceParams.transactionParams.validWaypoints).toEqual(waypoints);
         });
 
@@ -305,11 +305,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
-            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls[0] as [Parameters<typeof Split.createDistanceRequest>[0]];
+            const [distanceParams] = (Split.createDistanceRequest as jest.Mock).mock.calls.at(0) as [Parameters<typeof Split.createDistanceRequest>[0]];
             expect(distanceParams.existingTransaction?.comment?.hold).toBeUndefined();
             expect(distanceParams.existingTransaction?.comment?.originalTransactionID).toBeUndefined();
         });
@@ -337,7 +337,7 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
@@ -361,11 +361,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls[0] as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
             expect(perDiemParams.hasViolations).toBe(false);
         });
 
@@ -384,11 +384,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls[0] as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
             expect(perDiemParams.transactionParams.customUnit).toEqual(customUnit);
         });
 
@@ -408,11 +408,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls[0] as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
             // transactionDetails.comment comes from getDescription which returns the raw comment field
             expect(perDiemParams.transactionParams.comment).toBe(transactionDetails?.comment);
         });
@@ -433,11 +433,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID,
             });
 
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls[0] as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
             expect(perDiemParams.conciergeReportID).toBe(conciergeReportID);
         });
 
@@ -456,11 +456,11 @@ describe('actions/IOU/createExpenseByType', () => {
                 policyRecentlyUsedCurrencies: [],
                 quickAction: undefined,
                 personalDetails: {},
-                recentWaypoints: null,
+                recentWaypoints: undefined,
                 conciergeReportID: undefined,
             });
 
-            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls[0] as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
+            const [perDiemParams] = (PerDiem.submitPerDiemExpense as jest.Mock).mock.calls.at(0) as [Parameters<typeof PerDiem.submitPerDiemExpense>[0]];
             expect(perDiemParams.transactionParams.customUnit).toEqual({});
         });
     });

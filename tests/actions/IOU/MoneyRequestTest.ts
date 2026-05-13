@@ -543,7 +543,7 @@ describe('MoneyRequest', () => {
             createTransaction({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
-                report: null,
+                report: undefined,
                 allTransactionDrafts: {},
             });
 
@@ -598,7 +598,7 @@ describe('MoneyRequest', () => {
         });
 
         it('should pass introSelected to trackExpense when provided', () => {
-            const introSelected = {choice: 'track' as const, inviteType: 'strong' as const};
+            const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM, inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU};
 
             createTransaction({
                 ...baseParams,
@@ -635,10 +635,8 @@ describe('MoneyRequest', () => {
         });
 
         it('should default reimbursable to true when not explicitly provided', () => {
-            const {reimbursable: _ignored, ...paramsWithoutReimbursable} = baseParams;
-
             createTransaction({
-                ...paramsWithoutReimbursable,
+                ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
                 allTransactionDrafts: {},
             });
@@ -656,9 +654,7 @@ describe('MoneyRequest', () => {
             const transaction1 = {...createRandomTransaction(301), currency: 'EUR', created: '2025-01-01'};
             const transaction2 = {...createRandomTransaction(302), currency: 'GBP', created: '2025-06-15'};
 
-            const files = [
-                {...fakeReceiptFile, transactionID: transaction2.transactionID},
-            ];
+            const files = [{...fakeReceiptFile, transactionID: transaction2.transactionID}];
 
             createTransaction({
                 ...baseParams,
@@ -1802,9 +1798,7 @@ describe('MoneyRequest', () => {
                 draftTransactionIDs: [baseParams.transactionID],
             });
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(
-                ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, baseParams.reportID),
-            );
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, baseParams.reportID));
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
