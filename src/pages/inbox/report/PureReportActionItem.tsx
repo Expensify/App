@@ -745,7 +745,11 @@ function PureReportActionItem({
                     originalReport={originalReport}
                 />
             );
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN || action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN) {
+        } else if (
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN ||
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN ||
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_DEACTIVATED
+        ) {
             children = (
                 <ReportActionItemBasicMessage message="">
                     <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action)}</muted-text></comment>`} />
