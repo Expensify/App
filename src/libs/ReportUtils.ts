@@ -4279,13 +4279,15 @@ function getReasonAndReportActionThatRequiresAttention(
     }
 
     if (isInvoiceRoom(optionOrReport)) {
-        const reportAction = Object.values(reportActions).find(
-            (action) =>
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-                action.childReportID &&
-                hasMissingInvoiceBankAccount(action.childReportID) &&
-                !isSettled(action.childReportID),
-        );
+        const reportAction = Object.values(reportActions)
+            .sort((a, b) => (a?.created ?? '').localeCompare(b?.created ?? ''))
+            .find(
+                (action) =>
+                    action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+                    action.childReportID &&
+                    hasMissingInvoiceBankAccount(action.childReportID) &&
+                    !isSettled(action.childReportID),
+            );
 
         return reportAction
             ? {

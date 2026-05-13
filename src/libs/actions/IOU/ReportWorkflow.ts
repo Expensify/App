@@ -308,18 +308,20 @@ function getIOUReportActionWithBadge(
     const chatReportActions = getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
-    const reportAction = Object.values(chatReportActions).find((action) => {
-        if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
+    const reportAction = Object.values(chatReportActions)
+        .sort((a, b) => (a?.created ?? '').localeCompare(b?.created ?? ''))
+        .find((action) => {
+            if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
+                return false;
+            }
+            const iouReport = getReportOrDraftReport(action.childReportID);
+            const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+            if (badge) {
+                actionBadge = badge;
+                return true;
+            }
             return false;
-        }
-        const iouReport = getReportOrDraftReport(action.childReportID);
-        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
-        if (badge) {
-            actionBadge = badge;
-            return true;
-        }
-        return false;
-    });
+        });
 
     return {reportAction, actionBadge};
 }
