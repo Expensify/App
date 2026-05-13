@@ -15,6 +15,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRootNavigationState from '@hooks/useRootNavigationState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
@@ -184,7 +185,7 @@ function ScreenWrapper({
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldBlockSingleEntryOldAppExit = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
 
-    const activeRouteWithoutParams = Navigation.getActiveRouteWithoutParams?.() ?? '';
+    const activeRouteWithoutParams = useRootNavigationState(() => Navigation.getActiveRouteWithoutParams?.() ?? '');
     const initialURLWithoutParams = initialURL?.split('?').at(0);
     const doesInitialURLMatchActiveRoute = activeRouteWithoutParams !== '' && !!initialURLWithoutParams?.endsWith(activeRouteWithoutParams);
 
