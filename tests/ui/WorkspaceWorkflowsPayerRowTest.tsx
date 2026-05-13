@@ -134,7 +134,7 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
 
     it('hides the Payer row when reimbursementChoice is REIMBURSEMENT_MANUAL', async () => {
@@ -166,9 +166,10 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
     it('shows the Payer row during partial bank setup when reimbursementChoice is REIMBURSEMENT_YES', async () => {
         await TestHelper.signInWithTestUser();
 
+        const bankAccountID = 123456;
         const bankAccountList: BankAccountList = {
-            '123456': {
-                methodID: 123456,
+            [bankAccountID]: {
+                methodID: bankAccountID,
                 bankCurrency: 'USD',
                 bankCountry: 'US',
                 accountData: {
@@ -195,6 +196,6 @@ describe('WorkspaceWorkflowsPage - Payer row visibility', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
+        expect(screen.getByText(TestHelper.translateLocal('workflowsPayerPage.payer'))).toBeOnTheScreen();
     });
 });
