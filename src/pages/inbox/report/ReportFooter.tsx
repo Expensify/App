@@ -34,6 +34,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import EnableNotificationsBanner from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
+import useShouldShowEnableNotificationsBanner from './useShouldShowEnableNotificationsBanner';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
 
@@ -71,6 +72,7 @@ function ReportFooter() {
 
     const isUserPolicyAdmin = policyRole === CONST.POLICY.ROLE.ADMIN;
     const isArchivedRoom = isArchivedNonExpenseReport(report, isReportArchived);
+    const shouldShowEnableNotificationsBanner = useShouldShowEnableNotificationsBanner(reportIDFromRoute ?? '');
 
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!isLoadingInitialReportActions;
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
@@ -89,11 +91,12 @@ function ReportFooter() {
     if (!shouldHideComposer) {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                <EnableNotificationsBanner reportID={reportIDFromRoute}>
+                <EnableNotificationsBanner reportID={reportIDFromRoute} />
+                <View style={shouldShowEnableNotificationsBanner ? {marginTop: -32} : undefined}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose reportID={reportIDFromRoute} />
                     </SwipeableView>
-                </EnableNotificationsBanner>
+                </View>
             </View>
         );
     }
