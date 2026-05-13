@@ -133,6 +133,8 @@ function useComposerSubmit(reportID: string) {
                     assigneeEmail: assignee?.login ?? '',
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail,
+                    currentUserDisplayName: currentUserPersonalDetails.displayName,
+                    currentUserAvatar: currentUserPersonalDetails.avatar,
                     assigneeAccountID: assignee?.accountID,
                     assigneeChatReport,
                     policyID: report?.policyID,

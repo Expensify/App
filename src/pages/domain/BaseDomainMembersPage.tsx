@@ -297,6 +297,7 @@ function BaseDomainMembersPage({
                     customListHeader={getFilteredListHeader()}
                     shouldHeaderBeInsideList
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                     customListHeaderContent={listHeaderContent}
                     onSelectAll={toggleAllUsers}
                     onSelectionButtonPress={toggleUser}
