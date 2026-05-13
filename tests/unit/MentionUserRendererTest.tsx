@@ -113,7 +113,6 @@ function withProvider(children: ReactNode, overrides: ContextMenuStateOverrides 
                 value={{
                     anchor: null,
                     report: overrides.report,
-                    isReportArchived: false,
                     action: overrides.action,
                     isDisabled: overrides.isDisabled ?? true,
                     shouldDisplayContextMenu: overrides.shouldDisplayContextMenu ?? false,
