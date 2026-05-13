@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +13,7 @@ import Text from './Text';
 // cspell:disable
 function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
     let attribute = '';
-    const formattedHeader = Str.removeSpaces(String(header).toLowerCase().trim());
+    const formattedHeader = String(header).toLowerCase().trim().replaceAll(' ', '');
     switch (formattedHeader) {
         case 'email':
         case 'emailaddress':
@@ -142,6 +141,19 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             attribute = CONST.CSV_IMPORT_COLUMNS.ENABLED;
             break;
 
+        case 'receiptsrequired':
+        case 'requirereceiptsover':
+        case 'maxamountnoreceipt':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_RECEIPT;
+            break;
+
+        case 'itemisedreceiptrequirement':
+        case 'itemizedreceiptrequirement':
+        case 'requireitemizedreceiptsover':
+        case 'maxamountnoitemizedreceipt':
+            attribute = CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_ITEMIZED_RECEIPT;
+            break;
+
         default:
             break;
     }
@@ -256,7 +268,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                            shouldShowSelectedItemCheck
+                            shouldShowRadioButton
                             menuHeaderText={columnHeader}
                             isSplitButton={false}
                             onOptionSelected={(option) => {

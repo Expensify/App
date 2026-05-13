@@ -84,15 +84,22 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
-    const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports: OnyxCollection<OnyxTypes.Report>) => {
-            if (!accountID) {
-                return {};
-            }
+    const [todos] = useOnyx(ONYXKEYS.DERIVED.TODOS);
+    const transactionsByReportID = todos?.transactionsByReportID;
 
-            return getPolicyIDsWithEmptyReportsForAccount(reports, accountID);
+    const [policiesWithEmptyReports] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT,
+        {
+            selector: (reports: OnyxCollection<OnyxTypes.Report>) => {
+                if (!accountID) {
+                    return {};
+                }
+
+                return getPolicyIDsWithEmptyReportsForAccount(reports, accountID, transactionsByReportID ?? {});
+            },
         },
-    });
+        [accountID, transactionsByReportID],
+    );
 
     const navigateToNewReport = (optimisticReportID: string) => {
         if (isRHPOnReportInSearch) {

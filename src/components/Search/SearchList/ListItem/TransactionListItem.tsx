@@ -45,7 +45,7 @@ function TransactionListItem<TItem extends ListItem>({
     isDisabled,
     canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
@@ -122,7 +122,6 @@ function TransactionListItem<TItem extends ListItem>({
               }
             : {...styles.flexColumn, ...styles.alignItemsStretch},
         isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
-        !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
         !isLargeScreenWidth && isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
         !isLargeScreenWidth && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
     ];
@@ -131,7 +130,7 @@ function TransactionListItem<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
@@ -182,6 +181,7 @@ function TransactionListItem<TItem extends ListItem>({
             goToItem: () => onSelectRow(item, transactionPreviewData),
             snapshotReport,
             snapshotPolicy,
+            policy: parentPolicy,
             lastPaymentMethod,
             userBillingGracePeriodEnds,
             currentSearchKey,
@@ -227,6 +227,7 @@ function TransactionListItem<TItem extends ListItem>({
                     isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
                     !isLargeScreenWidth && isFirstItem && styles.searchTableTopRadius,
                     !isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius,
+                    !isLargeScreenWidth && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(item.isSelected),
                 ]}
             >
                 {({hovered}) => (
@@ -237,6 +238,7 @@ function TransactionListItem<TItem extends ListItem>({
                                 shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
                                 stateNum={transactionItem.report?.stateNum}
                                 statusNum={transactionItem.report?.statusNum}
+                                isSelected={!!transactionItem.isSelected}
                             />
                         )}
                         <TransactionItemRow
@@ -245,7 +247,7 @@ function TransactionListItem<TItem extends ListItem>({
                             policy={transactionItem.policy}
                             shouldShowTooltip={showTooltip}
                             onButtonPress={handleActionButtonPress}
-                            onCheckboxPress={() => onCheckboxPress?.(item)}
+                            onCheckboxPress={() => onSelectionButtonPress?.(item)}
                             shouldUseNarrowLayout={!isLargeScreenWidth}
                             isLargeScreenWidth={isLargeScreenWidth}
                             columns={columns}

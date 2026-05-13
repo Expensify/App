@@ -34,13 +34,6 @@ type ReportArchiveReasonsRemovedFromPolicyParams = {
     shouldUseYou?: boolean;
 };
 
-type CreatedReportForUnapprovedTransactionsParams = {
-    reportUrl: string;
-    reportName: string;
-    reportID: string;
-    isReportDeleted: boolean;
-};
-
 type PaidElsewhereParams = {payer?: string; comment?: string};
 
 type MovedFromPersonalSpaceParams = {workspaceName?: string; reportName?: string};
@@ -53,15 +46,7 @@ type NotAllowedExtensionParams = {allowedExtensions: string[]};
 
 type StepCounterParams = {step: number; total?: number; text?: string};
 
-type UserIsAlreadyMemberParams = {login: string; name: string};
-
 type ParentNavigationSummaryParams = {reportName?: string; workspaceName?: string};
-
-type UpdatedTheRequestParams = {valueName: string; newValueToDisplay: string; oldValueToDisplay: string};
-
-type UpdatedTheDistanceMerchantParams = {translatedChangedField: string; newMerchant: string; oldMerchant: string; newAmountToDisplay: string; oldAmountToDisplay: string};
-
-type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
@@ -179,15 +164,10 @@ export type {
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsMergedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
-    CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     ResolutionConstraintsParams,
     SizeExceededParams,
     StepCounterParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
-    UserIsAlreadyMemberParams,
-    ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     ViolationsIncreasedDistanceParams,
     ChangeFieldParams,

@@ -44,7 +44,6 @@ function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TK
  * @param error - The translation key for the error message.
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error: TranslationPaths, errorKey?: number): Errors {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return {[errorKey ?? DateUtils.getMicroseconds()]: translateLocal(error)};
 }
 

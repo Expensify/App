@@ -175,7 +175,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
         // Refetch plaid card list
         if (!isFeedExpired && plaidAccessToken && !hasImportedPlaidAccounts.current) {
             const country = feedData?.country ?? '';
-            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
+            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', plaidAccessToken);
             hasImportedPlaidAccounts.current = true;
         }
 

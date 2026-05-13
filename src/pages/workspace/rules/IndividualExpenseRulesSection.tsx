@@ -127,6 +127,10 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
             prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.tobacco'));
         }
 
+        if (policy?.prohibitedExpenses?.handwrittenReceipt) {
+            prohibitedExpensesList.push(translate('workspace.rules.individualExpenseRules.handwrittenReceipt'));
+        }
+
         // If no expenses are prohibited, return empty string
         if (!prohibitedExpensesList.length) {
             return '';

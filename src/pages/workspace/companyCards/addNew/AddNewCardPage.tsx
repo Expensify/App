@@ -11,7 +11,6 @@ import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
@@ -29,21 +28,18 @@ import CardInstructionsStep from './CardInstructionsStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
-import DirectStatementCloseDateStep from './DirectStatementCloseDatePage';
 import ImportFromFileStep from './ImportFromFileStep';
 import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
 import SelectFeedType from './SelectFeedType';
-import StatementCloseDateStep from './StatementCloseDateStep';
 
 function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const {currentStep} = addNewCardFeed ?? {};
-    const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+    const {isBlockedToAddNewFeeds, isAllFeedsResultLoading, cardFeeds, workspaceAccountID} = useIsBlockedToAddFeed(policyID);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -121,24 +117,19 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <CardNameStep />;
             break;
         case CONST.COMPANY_CARDS.STEP.CARD_DETAILS:
-            CurrentStep = <DetailsStep />;
+            CurrentStep = (
+                <DetailsStep
+                    policyID={policyID}
+                    cardFeeds={cardFeeds}
+                    workspaceAccountID={workspaceAccountID}
+                />
+            );
             break;
         case CONST.COMPANY_CARDS.STEP.AMEX_CUSTOM_FEED:
             CurrentStep = <AmexCustomFeed />;
             break;
         case CONST.COMPANY_CARDS.STEP.PLAID_CONNECTION:
             CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
-            break;
-        case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
-            CurrentStep = (
-                <StatementCloseDateStep
-                    policyID={policyID}
-                    workspaceAccountID={workspaceAccountID}
-                />
-            );
-            break;
-        case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
-            CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
         case CONST.COMPANY_CARDS.STEP.IMPORT_FROM_FILE:
             CurrentStep = <ImportFromFileStep />;
