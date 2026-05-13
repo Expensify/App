@@ -19,7 +19,6 @@ import {
     wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
 import {getDeletedTransactionMessage, getPolicyChangeMessage} from '@libs/ReportUtils';
-import {isAmountMissing, isCreatedMissing, isMerchantMissing} from '@libs/TransactionUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -87,26 +86,9 @@ function ReceiptScanFailedContent({action, report}: {action: OnyxTypes.ReportAct
     );
     const [iouAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {selector: getIouActionSelector});
     const transactionID = getLinkedTransactionID(iouAction);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionID)}`);
     const smartscanFailedViolation = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
-    let missingFields = smartscanFailedViolation?.data?.missingFields ?? [];
-
-    // Fallback: when the violation data hasn't arrived in Onyx yet but the transaction's receipt
-    // state is already SCAN_FAILED, compute missingFields from the transaction directly.
-    if (missingFields.length === 0 && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED) {
-        const computed: string[] = [];
-        if (isMerchantMissing(transaction)) {
-            computed.push('merchant');
-        }
-        if (isCreatedMissing(transaction)) {
-            computed.push('date');
-        }
-        if (isAmountMissing(transaction)) {
-            computed.push('amount');
-        }
-        missingFields = computed;
-    }
+    const missingFields = smartscanFailedViolation?.data?.missingFields ?? [];
 
     return <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields})} />;
 }
