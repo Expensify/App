@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
-import Text from '@components/Text';
+import Banner from '@components/Banner';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissForSession} from '@libs/actions/ConciergeNotificationBanner';
@@ -16,10 +15,14 @@ const BANNER_COMPOSER_OVERLAP_PX = 32;
 // Visible cream below the text, matching the pt3 top padding for symmetry around the prompt.
 const BANNER_VISIBLE_BOTTOM_GAP_PX = 12;
 
-// Rounded top corners only (16px), flat bottom. paddingBottom = visible gap below text + the
+// Rounded top corners only, flat bottom. paddingBottom = visible gap below text + the
 // overlap that hides behind the composer.
-const containerInlineStyle = {
+const containerOverrideStyle = {
+    paddingTop: 12,
+    paddingRight: 12,
+    paddingLeft: 16,
     paddingBottom: BANNER_VISIBLE_BOTTOM_GAP_PX + BANNER_COMPOSER_OVERLAP_PX,
+    borderRadius: 0,
     borderTopLeftRadius: variables.componentBorderRadiusLarge,
     borderTopRightRadius: variables.componentBorderRadiusLarge,
 };
@@ -41,21 +44,18 @@ function EnableNotificationsBanner() {
         <View
             accessibilityRole="alert"
             accessibilityLiveRegion="polite"
-            style={[styles.flexRow, styles.alignItemsCenter, styles.hoveredComponentBG, styles.pt3, styles.pr3, styles.pl4, containerInlineStyle]}
         >
-            <Text style={[styles.flex1, styles.flexWrap, styles.textNormal]}>{translate('concierge.enableNotifications.prompt')}</Text>
-            <Button
-                success
-                small
-                style={[styles.ml3]}
-                text={translate('concierge.enableNotifications.cta')}
-                onPress={requestAndDismissIfGranted}
-            />
-            <Button
-                small
-                style={[styles.ml1]}
-                text={translate('common.notNow')}
-                onPress={dismissForSession}
+            <Banner
+                text={translate('concierge.enableNotifications.prompt')}
+                textStyles={[styles.textNormal]}
+                containerStyles={[containerOverrideStyle]}
+                shouldShowButton
+                shouldUseSmallButtons
+                buttonText={translate('concierge.enableNotifications.cta')}
+                onButtonPress={requestAndDismissIfGranted}
+                shouldShowSecondaryButton
+                secondaryButtonText={translate('common.notNow')}
+                onSecondaryButtonPress={dismissForSession}
             />
         </View>
     );
