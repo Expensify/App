@@ -8,12 +8,12 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -26,14 +26,19 @@ function ReportVirtualCardFraudConfirmationPage({
 }: ReportVirtualCardFraudConfirmationPageProps) {
     const themeStyles = useThemeStyles();
     const {translate} = useLocalize();
-    const cardList = useNonPersonalCardList();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlassSpyMouthClosed']);
-    const card = cardList?.[cardID];
-    const description = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED ? 'reportFraudConfirmationPage.descriptionCardNotReplaced' : 'reportFraudConfirmationPage.description';
+    const [physicalCardForm] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
+    const isCardTerminatedWithoutReplacement = !!physicalCardForm?.cardTerminatedWithoutReplacement;
+    const description = isCardTerminatedWithoutReplacement ? 'reportFraudConfirmationPage.descriptionCardNotReplaced' : 'reportFraudConfirmationPage.description';
 
     const close = useCallback(() => {
+        if (isCardTerminatedWithoutReplacement) {
+            Navigation.goBack(ROUTES.SETTINGS_WALLET);
+            return;
+        }
+
         Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
-    }, [cardID]);
+    }, [cardID, isCardTerminatedWithoutReplacement]);
 
     return (
         <ScreenWrapper
