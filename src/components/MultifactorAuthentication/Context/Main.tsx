@@ -452,6 +452,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      */
     const executeScenario = useCallback(
         async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
+            // Guard against rapid double-tap: if a scenario is already active, ignore the second invocation
+            // so we don't dispatch a second INIT that would reset progress of the in-flight flow.
+            if (state.scenario) {
+                return;
+            }
+
             startStateRef.current = await captureCredentialsState();
 
             const breadcrumbData = {
@@ -477,7 +483,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 },
             });
         },
-        [captureCredentialsState, dispatch, isOffline, platform],
+        [captureCredentialsState, dispatch, isOffline, platform, state.scenario],
     );
 
     /**
