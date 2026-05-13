@@ -11839,6 +11839,7 @@ const CONST = {
         INTERNAL_QA: 'InternalQA',
         HELP_WANTED: 'Help Wanted',
         CP_STAGING: 'CP Staging',
+        DAILY: 'Daily',
     },
     STATE: {
         OPEN: 'open',
@@ -11935,7 +11936,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const core = __importStar(__nccwpck_require__(2186));
 const utils_1 = __nccwpck_require__(3030);
 const plugin_paginate_rest_1 = __nccwpck_require__(4193);
@@ -12647,6 +12648,19 @@ class Git {
         }
     }
     /**
+     * Abbreviated hash for HEAD in the current working directory.
+     *
+     * @returns Short commit hash, or `unknown` when not a git repo or git fails.
+     */
+    static getHeadShort() {
+        try {
+            return execSync('git rev-parse --short HEAD').trim();
+        }
+        catch {
+            return 'unknown';
+        }
+    }
+    /**
      * Ensure a git reference is available locally, fetching it if necessary.
      *
      * @param ref - The git reference to ensure is available (commit hash, branch, tag, etc.)
@@ -12658,7 +12672,7 @@ class Git {
             return; // Reference is already available locally
         }
         try {
-            (0, Logger_1.log)(`🔄 Fetching missing ref: ${ref}`);
+            console.log(`🔄 Fetching missing ref: ${ref}`);
             await exec(`git fetch ${remote} ${ref} --no-tags --depth=1 --quiet`);
             // Verify the ref is now available
             if (!this.isValidRef(ref)) {
@@ -12869,7 +12883,7 @@ exports["default"] = Git;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.bold = exports.formatLink = exports.success = exports.error = exports.note = exports.warn = exports.info = exports.log = void 0;
+exports.bold = exports.formatLink = exports.success = exports.errorDetail = exports.error = exports.note = exports.warn = exports.info = void 0;
 const COLOR_DIM = '\x1b[2m';
 const COLOR_RESET = '\x1b[0m';
 const COLOR_YELLOW = '\x1b[33m';
@@ -12884,40 +12898,34 @@ const EMOJIS = {
     SUCCESS: '✅',
     ERROR: '🔴',
 };
-const log = (...args) => {
-    console.debug(...args);
-};
-exports.log = log;
 const info = (...args) => {
-    const lines = [EMOJIS.INFO, ...args];
-    log(...lines);
+    console.log(EMOJIS.INFO, ...args);
 };
 exports.info = info;
 const bold = (...args) => {
-    const lines = [COLOR_BOLD, ...args, COLOR_RESET];
-    log(...lines);
+    console.log(COLOR_BOLD, ...args, COLOR_RESET);
 };
 exports.bold = bold;
 const success = (...args) => {
-    const lines = [`${EMOJIS.SUCCESS}${COLOR_GREEN}`, ...args, COLOR_RESET];
-    log(...lines);
+    console.log(`${EMOJIS.SUCCESS}${COLOR_GREEN}`, ...args, COLOR_RESET);
 };
 exports.success = success;
 const warn = (...args) => {
-    const lines = [`${EMOJIS.WARN}${COLOR_YELLOW}`, ...args, COLOR_RESET];
-    log(...lines);
+    console.warn(`${EMOJIS.WARN}${COLOR_YELLOW}`, ...args, COLOR_RESET);
 };
 exports.warn = warn;
 const note = (...args) => {
-    const lines = [COLOR_DIM, ...args, COLOR_RESET];
-    log(...lines);
+    console.log(COLOR_DIM, ...args, COLOR_RESET);
 };
 exports.note = note;
 const error = (...args) => {
-    const lines = [`${EMOJIS.ERROR}${COLOR_RED}`, ...args, COLOR_RESET];
-    log(...lines);
+    console.error(`${EMOJIS.ERROR}${COLOR_RED}`, ...args, COLOR_RESET);
 };
 exports.error = error;
+const errorDetail = (...args) => {
+    console.error(`   ${COLOR_RED}↳`, ...args, COLOR_RESET);
+};
+exports.errorDetail = errorDetail;
 const formatLink = (name, url) => `\x1b]8;;${url}\x1b\\${name}\x1b]8;;\x1b\\`;
 exports.formatLink = formatLink;
 

@@ -26,13 +26,9 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
 
     const {
-        allFeeds,
         autocompleteSubstitutions,
         autocompleteQueryValue,
-        personalAndWorkspaceCards,
-        personalDetails,
-        reports,
-        searchQueryItem,
+        searchQueryItems,
         selection,
         textInputRef,
         textInputValue,
@@ -78,6 +74,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     inputStyle={isAutocompleteListVisible ? undefined : styles.fontSizeLabel}
                     inputContainerStyle={isAutocompleteListVisible ? undefined : styles.ph2}
                     touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputWideTouchableWrapper}
+                    clearButtonStyle={isAutocompleteListVisible ? undefined : styles.mh0}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption();
                         if (focusedOption) {
@@ -97,19 +94,16 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     onKeyPress={handleKeyPress}
                 />
                 {isAutocompleteListVisible && (
-                    <View style={[styles.mh65vh]}>
+                    <View style={[styles.mh65vh, styles.mt3]}>
                         <SearchAutocompleteList
                             autocompleteQueryValue={autocompleteQueryValue}
                             handleSearch={handleSearchAction}
-                            searchQueryItem={searchQueryItem}
+                            searchQueryItems={searchQueryItems}
                             onListItemPress={onListItemPress}
                             ref={listRef}
                             shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
-                            personalDetails={personalDetails}
-                            reports={reports}
-                            allCards={personalAndWorkspaceCards}
-                            allFeeds={allFeeds}
                             textInputRef={textInputRef}
+                            autocompleteSubstitutions={autocompleteSubstitutions}
                         />
                     </View>
                 )}

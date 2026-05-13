@@ -37,5 +37,5 @@ function useThemeStylesActions() {
 }
 
 export default ThemeStylesProvider;
-export {ThemeStylesStateContext, ThemeStylesActionsContext, useThemeStylesState, useThemeStylesActions};
+export {useThemeStylesState, useThemeStylesActions};
 export type {ThemeStylesStateContextType, ThemeStylesActionsContextType};

@@ -3,12 +3,22 @@ name: Deploy code to staging or production
 on:
   push:
     branches: [staging, production]
+  workflow_dispatch:
+    inputs:
+      ENVIRONMENT:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options: [staging, production]
 
 env:
   IS_APP_REPO: ${{ github.repository == 'Expensify/App' }}
+  # For push triggers, fall back to deriving environment from the branch name.
+  # For workflow_dispatch, use the explicit input.
+  DEPLOY_ENV: ${{ inputs.ENVIRONMENT || (github.ref == 'refs/heads/production' && 'production' || 'staging') }}
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ inputs.ENVIRONMENT || (github.ref == 'refs/heads/production' && 'production' || 'staging') }}
   cancel-in-progress: true
 
 jobs:
@@ -17,10 +27,12 @@ jobs:
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
       TAG: ${{ steps.getTagName.outputs.TAG }}
+      DEPLOY_SHA: ${{ steps.getDeploySHA.outputs.SHA }}
+      DEPLOY_ENV: ${{ steps.getDeploySHA.outputs.DEPLOY_ENV }}
       # Is this deploy for a cherry-pick?
       IS_CHERRY_PICK: ${{ steps.isCherryPick.outputs.IS_CHERRY_PICK }}
       # Should we build native apps? (only on staging or cherry-pick, not production)
-      SHOULD_BUILD_NATIVE: ${{ github.ref == 'refs/heads/staging' || fromJSON(steps.isCherryPick.outputs.IS_CHERRY_PICK) }}
+      SHOULD_BUILD_NATIVE: ${{ env.DEPLOY_ENV == 'staging' || fromJSON(steps.isCherryPick.outputs.IS_CHERRY_PICK) }}
       VERSION_CODE: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
       IOS_VERSION: ${{ steps.getIOSVersion.outputs.IOS_VERSION }}
     steps:
@@ -28,8 +40,15 @@ jobs:
         # v6
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
+          ref: ${{ inputs.ENVIRONMENT || github.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           submodules: true
+
+      - name: Get deploy SHA and environment
+        id: getDeploySHA
+        run: |
+          echo "SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "DEPLOY_ENV=${{ env.DEPLOY_ENV }}" >> "$GITHUB_OUTPUT"
 
       - name: Validate actor
         id: validateActor
@@ -52,24 +71,109 @@ jobs:
 
       - name: Get tag
         id: getTagName
-        run: echo "TAG=${{ github.ref == 'refs/heads/production' && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
+        run: echo "TAG=${{ env.DEPLOY_ENV == 'production' && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
 
       - name: Create and push tag
         run: |
-          git tag ${{ steps.getTagName.outputs.TAG }}
-          git push origin --tags
+          # Idempotent tag creation: if the tag already exists at HEAD (e.g. a prior deploy
+          # attempt tagged successfully before failing later), skip creation so that a manual
+          # re-trigger of the workflow doesn't abort in prep. If the tag exists but points
+          # to a different commit, fail loudly to avoid deploying the wrong code.
+          create_tag_idempotent() {
+            local tag="$1"
+            local head_sha
+            head_sha=$(git rev-parse HEAD)
+            # Fetch the tag from remote before checking locally. actions/checkout uses
+            # fetch-depth=1 and fetch-tags=false by default, so a previously pushed tag
+            # won't be present in the workspace. Without this fetch, git tag "$tag" would
+            # succeed locally and then git push would fail because the tag already exists
+            # on the remote, causing the idempotent path below to be unreachable.
+            git fetch origin "refs/tags/$tag:refs/tags/$tag" 2>/dev/null || true
+            if git rev-parse "refs/tags/$tag" >/dev/null 2>&1; then
+              local existing_sha
+              existing_sha=$(git rev-parse "refs/tags/$tag")
+              if [ "$existing_sha" = "$head_sha" ]; then
+                echo "Tag $tag already exists at $head_sha, skipping creation."
+              else
+                echo "ERROR: Tag $tag exists at $existing_sha, expected $head_sha"
+                exit 1
+              fi
+            else
+              git tag "$tag"
+              git push origin --tags
+            fi
+          }
+          create_tag_idempotent ${{ steps.getTagName.outputs.TAG }}
           cd Mobile-Expensify
-          git tag ${{ steps.getTagName.outputs.TAG }}
-          git push origin --tags
+          create_tag_idempotent ${{ steps.getTagName.outputs.TAG }}
 
         # We use JS here instead of bash/jq because inlining potentially large json into a bash command is non-trivial.
         # JS is better at handling JSON: https://stackoverflow.com/questions/72953526/github-actions-how-to-pass-tojson-result-to-shell-commands
       - name: Check if this deploy was triggered by a cherry-pick
         id: isCherryPick
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          HEAD_COMMIT_SHA: ${{ steps.getDeploySHA.outputs.SHA }}
+          DEPLOY_TAG: ${{ steps.getTagName.outputs.TAG }}
         with:
           script: |
-            const commitMessages = context.payload.commits.map((commit) => commit.message);
+            let commitMessages;
+            if (context.payload.commits) {
+                // push trigger: all pushed commits are in the payload
+                commitMessages = context.payload.commits.map((commit) => commit.message);
+            } else {
+                // workflow_dispatch: payload has no commits array.
+                // We must inspect the full commit range since the previous deploy, not just HEAD.
+                // Two cases where HEAD alone misses the marker:
+                //   1. Linear push: Mobile-Expensify cherry-picks amend the marker onto the
+                //      version-bump commit, then push a final unmarked submodule-update commit on top.
+                //   2. Merge commit: a conflict-resolution PR creates a merge commit at HEAD; the
+                //      cherry-picked commit with the marker is an inner commit, not HEAD itself.
+                // compareCommits(prevTag, HEAD) follows all parents and covers both cases.
+                const headSha = process.env.HEAD_COMMIT_SHA;
+                const currentTag = process.env.DEPLOY_TAG;
+                const isStaging = currentTag.endsWith('-staging');
+
+                // Paginate tags (max 100 per page) until we find the most recent prior tag
+                // on the same branch. A single page of 20 isn't enough: a production deploy
+                // that follows many staging releases may have the last production tag beyond
+                // the first page, causing prevTag to be undefined and falling back to HEAD only.
+                let prevTag = null;
+                for (let page = 1; !prevTag; page++) {
+                    const { data: tags } = await github.rest.repos.listTags({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        per_page: 100,
+                        page,
+                    });
+                    if (tags.length === 0) break;
+                    // Find the most recent prior tag on the same branch (staging or production)
+                    // to bound the commit range and avoid false positives from prior cherry-picks.
+                    prevTag = tags.find((t) => {
+                        if (t.name === currentTag) return false;
+                        return isStaging ? t.name.endsWith('-staging') : !t.name.endsWith('-staging');
+                    });
+                    if (tags.length < 100) break;
+                }
+
+                if (prevTag) {
+                    const { data: comparison } = await github.rest.repos.compareCommits({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        base: prevTag.commit.sha,
+                        head: headSha,
+                    });
+                    commitMessages = comparison.commits.map((c) => c.commit.message);
+                } else {
+                    // No previous tag found: fall back to HEAD only
+                    const { data: headCommit } = await github.rest.git.getCommit({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        commit_sha: headSha,
+                    });
+                    commitMessages = [headCommit.message];
+                }
+            }
             const isCherryPick = commitMessages.some((message) => /.*\(cherry-picked to .* by .*\)$/.test(message));
             console.log('Is cherry pick?', isCherryPick);
             core.setOutput(
@@ -89,8 +193,10 @@ jobs:
   deployChecklist:
     name: Create or update deploy checklist
     uses: ./.github/workflows/createDeployChecklist.yml
-    if: ${{ github.ref == 'refs/heads/staging' }}
+    if: ${{ needs.prep.outputs.DEPLOY_ENV == 'staging' }}
     needs: prep
+    with:
+      REF: ${{ needs.prep.outputs.DEPLOY_SHA }}
     secrets: inherit
 
   androidBuild:
@@ -99,7 +205,7 @@ jobs:
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildAndroid.yml
     with:
-      ref: ${{ github.sha }}
+      ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       variant: Release
     secrets: inherit
 
@@ -112,6 +218,8 @@ jobs:
       - name: Checkout
         # v6
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Download Android build artifact
         # v7
@@ -160,11 +268,13 @@ jobs:
     name: Submit Android for production rollout
     needs: [prep, androidBuild, androidUploadGooglePlay]
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ always() && !cancelled() && github.ref == 'refs/heads/production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
+    if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.androidBuild.result != 'failure' && needs.androidUploadGooglePlay.result != 'failure' }}
     steps:
       - name: Checkout
         # v6
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Ruby
         # v1.229.0
@@ -258,7 +368,7 @@ jobs:
     name: Upload Android to Applause
     needs: [prep, androidBuild]
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ github.repository == 'Expensify/App' && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    if: ${{ github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     continue-on-error: true
     steps:
       - name: Download Android APK artifact
@@ -308,14 +418,14 @@ jobs:
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     uses: ./.github/workflows/buildIOS.yml
     with:
-      ref: ${{ github.sha }}
+      ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       variant: Release
     secrets: inherit
 
   iosUploadTestflight:
     name: Upload iOS to TestFlight
     needs: [prep, iosBuild]
-    runs-on: macos-15-xlarge
+    runs-on: blacksmith-12vcpu-macos-latest
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
@@ -324,6 +434,7 @@ jobs:
         # v6
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
+          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           submodules: true
 
@@ -395,14 +506,16 @@ jobs:
   iosSubmit:
     name: Submit iOS for production rollout
     needs: [prep, iosBuild, iosUploadTestflight]
-    runs-on: macos-15-xlarge
-    if: ${{ always() && !cancelled() && github.ref == 'refs/heads/production' && needs.iosBuild.result != 'failure' && needs.iosUploadTestflight.result != 'failure' }}
+    runs-on: blacksmith-12vcpu-macos-latest
+    if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.iosBuild.result != 'failure' && needs.iosUploadTestflight.result != 'failure' }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     steps:
       - name: Checkout
         # v6
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Ruby
         # v1.229.0
@@ -488,7 +601,7 @@ jobs:
     name: Upload iOS to Applause
     needs: [prep, iosBuild]
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ github.repository == 'Expensify/App' && github.ref == 'refs/heads/staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    if: ${{ github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && !fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     continue-on-error: true
     steps:
       - name: Download iOS build artifact
@@ -537,8 +650,8 @@ jobs:
     needs: [prep]
     uses: ./.github/workflows/buildWeb.yml
     with:
-      ref: ${{ github.sha }}
-      environment: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
+      ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
+      environment: ${{ needs.prep.outputs.DEPLOY_ENV }}
     secrets: inherit
 
   webDeploy:
@@ -551,7 +664,7 @@ jobs:
         # v6
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Download web build artifact
         # v7
@@ -588,21 +701,21 @@ jobs:
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association
           aws s3 cp --acl public-read --content-type 'application/json' --metadata-directive REPLACE ${{ env.S3_BUCKET }}/.well-known/apple-app-site-association ${{ env.S3_BUCKET }}/apple-app-site-association
         env:
-          S3_BUCKET: s3://${{ github.ref == 'refs/heads/staging' && 'staging-' || '' }}${{ vars.PRODUCTION_S3_BUCKET }}
+          S3_BUCKET: s3://${{ env.DEPLOY_ENV == 'staging' && 'staging-' || '' }}${{ vars.PRODUCTION_S3_BUCKET }}
 
       - name: Purge Cloudflare cache
         run: |
           /home/runner/.local/bin/cli4 --verbose --delete hosts=["$HOST"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
-          HOST: ${{ github.ref == 'refs/heads/production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
+          HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
       - name: Verify deploy
         run: |
           APP_VERSION=$(jq -r .version < package.json)
           ./.github/scripts/verifyDeploy.sh "$HOST" "$APP_VERSION"
         env:
-          HOST: ${{ github.ref == 'refs/heads/production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
+          HOST: ${{ env.DEPLOY_ENV == 'production' && vars.WEB_PRODUCTION_HOST || vars.WEB_STAGING_HOST }}
 
   buildStorybook:
     name: Build storybook docs
@@ -614,14 +727,14 @@ jobs:
         # v6
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
       - name: Build storybook docs
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/production" ]; then
+          if [ "${{ env.DEPLOY_ENV }}" == "production" ]; then
             npm run storybook-build
           else
             npm run storybook-build-staging
@@ -649,6 +762,42 @@ jobs:
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
 
+  postSlackMessageOnCancellation:
+    name: Post a Slack message when the deploy is cancelled manually
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: ${{ cancelled() }}
+    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy]
+    steps:
+      - name: Check whether a newer deploy run exists
+        id: check
+        run: |
+          # If a newer run exists, the cherry-pick workflow already announced this. Skip to avoid double-posting.
+          LATEST=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/deploy.yml/runs?branch=${{ github.ref_name }}&per_page=1" \
+            --jq '.workflow_runs[0].id')
+          if [ "$LATEST" != "${{ github.run_id }}" ]; then
+            echo "SKIP=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Post Slack message on manual cancellation
+        if: ${{ steps.check.outputs.SKIP != 'true' }}
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'warning',
+                text: `⚠️ ${{ env.DEPLOY_ENV == 'production' && 'Production' || 'Staging' }} <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|deploy> cancelled manually`
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
   checkDeploymentSuccess:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
@@ -666,7 +815,7 @@ jobs:
         run: |
           # Android: use submit result for production, upload result for staging.
           # On production cherry-picks, propagate build/upload failures that caused submit to be skipped.
-          if [ "${{ github.ref }}" == "refs/heads/production" ]; then
+          if [ "${{ env.DEPLOY_ENV }}" == "production" ]; then
             if [ "${{ needs.androidBuild.result }}" == "failure" ] || [ "${{ needs.androidUploadGooglePlay.result }}" == "failure" ]; then
               echo "ANDROID_RESULT=failure" >> "$GITHUB_OUTPUT"
             else
@@ -680,7 +829,7 @@ jobs:
 
           # iOS: use submit result for production, upload result for staging.
           # On production cherry-picks, propagate build/upload failures that caused submit to be skipped.
-          if [ "${{ github.ref }}" == "refs/heads/production" ]; then
+          if [ "${{ env.DEPLOY_ENV }}" == "production" ]; then
             if [ "${{ needs.iosBuild.result }}" == "failure" ] || [ "${{ needs.iosUploadTestflight.result }}" == "failure" ]; then
               echo "IOS_RESULT=failure" >> "$GITHUB_OUTPUT"
             else
@@ -750,13 +899,13 @@ jobs:
             echo "Release ${{ needs.prep.outputs.TAG }} does not exist, creating it now."
             readonly CREATE_MAX_RETRIES=5
             for ((i = 0; i <= CREATE_MAX_RETRIES; i++)); do
-              if gh release create "${{ needs.prep.outputs.TAG }}" ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
+              if gh release create "${{ needs.prep.outputs.TAG }}" ${{ env.DEPLOY_ENV == 'staging' && '--prerelease' || '' }} \
                 --repo "${{ github.repository }}" \
                 --title "${{ needs.prep.outputs.TAG }}" \
-                ${{ github.ref == 'refs/heads/production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
+                ${{ env.DEPLOY_ENV == 'production' && format('--notes-start-tag {0}', steps.get_last_prod_version.outputs.LAST_PROD_VERSION) || '' }} \
                 --generate-notes \
                 --verify-tag \
-                --target "${{ github.ref }}"; then
+                --target "${{ env.DEPLOY_ENV }}"; then
                 break
               fi
               if [[ $i -lt $CREATE_MAX_RETRIES ]]; then
@@ -829,7 +978,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 NewDot ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }} deploy failed. 💥`,
+                text: `💥 NewDot ${{ env.DEPLOY_ENV }} deploy failed. 💥`,
               }]
             }
         env:
@@ -846,7 +995,7 @@ jobs:
   #   2. CP that version bump to staging
   cherryPickExtraVersionBump:
     needs: [prep, checkDeploymentSuccess]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && github.ref == 'refs/heads/production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && needs.prep.outputs.DEPLOY_ENV == 'production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     uses: ./.github/workflows/cherryPick.yml
     secrets: inherit
     with:
@@ -869,7 +1018,7 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }} 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ env.DEPLOY_ENV }} 🎉️`,
               }]
             }
         env:
@@ -886,7 +1035,7 @@ jobs:
               channel: '#deployer',
               attachments: [{
                 color: 'good',
-                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }} 🎉️`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} <https://github.com/Expensify/App/releases/tag/${{ needs.prep.outputs.TAG }}|${{ needs.prep.outputs.TAG }}> to ${{ env.DEPLOY_ENV }} 🎉️`,
               }]
             }
         env:
@@ -896,7 +1045,7 @@ jobs:
       - name: 'Announces a production deploy in the #expensify-open-source Slack room'
         # v3
         uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
-        if: ${{ github.ref == 'refs/heads/production' }}
+        if: ${{ env.DEPLOY_ENV == 'production' }}
         with:
           status: custom
           custom_payload: |
@@ -918,7 +1067,7 @@ jobs:
     secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
-      env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
+      env: ${{ needs.prep.outputs.DEPLOY_ENV }}
       android: ${{ needs.checkDeploymentSuccess.outputs.ANDROID_RESULT }}
       ios: ${{ needs.checkDeploymentSuccess.outputs.IOS_RESULT }}
       web: ${{ needs.checkDeploymentSuccess.outputs.WEB_RESULT }}

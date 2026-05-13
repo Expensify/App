@@ -41,12 +41,13 @@ on:
 
 jobs:
   createNewVersion:
-    runs-on: macos-latest
+    runs-on: blacksmith-6vcpu-macos-latest
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
     steps:
+      # v3.2.4
       - name: Run turnstyle
-        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
+        uses: softprops/turnstyle@4415445a6780f85c074f0e4334cf8e65bae3ad45
         with:
           poll-interval-seconds: 10
         env:

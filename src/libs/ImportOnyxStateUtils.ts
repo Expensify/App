@@ -8,7 +8,7 @@ import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import {clearOnyxStateBeforeImport, importOnyxCollectionState, importOnyxRegularState} from './actions/ImportOnyxState';
 
 // List of Onyx keys from the .txt file we want to keep for the local override
-const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.PREFERRED_THEME];
+const keysToOmit = [ONYXKEYS.ACTIVE_CLIENTS, ONYXKEYS.FREQUENTLY_USED_EMOJIS, ONYXKEYS.NETWORK, ONYXKEYS.CREDENTIALS, ONYXKEYS.PREFERRED_THEME, ...Object.values(ONYXKEYS.DERIVED)];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && !Array.isArray(value) && value !== null;

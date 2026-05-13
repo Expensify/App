@@ -1,6 +1,5 @@
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import {sortedActionsSelector} from '@selectors/SortedReportActions';
-import {useCallback, useMemo, useState} from 'react';
+import {useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -15,6 +14,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDebounce from './useDebounce';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
+import useSortedActions from './useSortedActions';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
     typeof CONST.SEARCH_SELECTOR,
@@ -79,6 +79,9 @@ type UseSearchSelectorConfig = {
 
     /** Whether to allow name-only options */
     shouldAllowNameOnlyOptions?: boolean;
+
+    /** Whether to keep selected options in availableOptions instead of filtering them out */
+    shouldKeepSelectedInAvailableOptions?: boolean;
 };
 
 type ContactState = {
@@ -142,7 +145,7 @@ type UseSearchSelectorReturn = {
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
         (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
-        (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) ||
         (option1.login && option1.login === option2.login)
     );
 };
@@ -170,12 +173,13 @@ function useSearchSelectorBase({
     includeSelfDM = false,
     recentAttendees,
     shouldAllowNameOnlyOptions = false,
+    shouldKeepSelectedInAvailableOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {options: defaultOptions, areOptionsInitialized} = useOptionsList({
         shouldInitialize,
     });
 
-    const optionsWithContacts = useMemo(() => {
+    const optionsWithContacts = (() => {
         if (!contactOptions?.length || !areOptionsInitialized) {
             return defaultOptions;
         }
@@ -184,7 +188,7 @@ function useSearchSelectorBase({
             ...defaultOptions,
             personalDetails: personalDetailsWithContacts,
         };
-    }, [areOptionsInitialized, defaultOptions, contactOptions]);
+    })();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -194,9 +198,8 @@ function useSearchSelectorBase({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
+    const sortedActions = useSortedActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -204,19 +207,14 @@ function useSearchSelectorBase({
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const onListEndReached = useDebounce(
-        useCallback(() => {
-            setMaxResults((previous) => previous + maxResultsPerPage);
-        }, [maxResultsPerPage]),
-        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
-    );
+    const onListEndReached = useDebounce(() => {
+        setMaxResults((previous) => previous + maxResultsPerPage);
+    }, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
 
-    const computedSearchTerm = useMemo(() => {
-        return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
-    }, [debouncedSearchTerm, countryCode]);
+    const computedSearchTerm = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
     const trimmedSearchInput = debouncedSearchTerm.trim();
 
-    const baseOptions = useMemo(() => {
+    const baseOptions = (() => {
         if (!areOptionsInitialized) {
             return getEmptyOptions();
         }
@@ -226,7 +224,6 @@ function useSearchSelectorBase({
                 return getSearchOptions({
                     options: optionsWithContacts,
                     draftComments,
-                    nvpDismissedProductTraining,
                     betas: betas ?? [],
                     isUsedInChatFinder: true,
                     includeReadOnly: true,
@@ -240,10 +237,11 @@ function useSearchSelectorBase({
                     currentUserAccountID,
                     currentUserEmail,
                     personalDetails,
+                    sortedActions,
                     conciergeReportID,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -264,7 +262,7 @@ function useSearchSelectorBase({
                     sortedActions,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
                     searchInputValue: trimmedSearchInput,
@@ -287,7 +285,7 @@ function useSearchSelectorBase({
                     ...getValidOptionsConfig,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -311,7 +309,7 @@ function useSearchSelectorBase({
                     sortedActions,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, allPolicies, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
+                return getValidOptions(optionsWithContacts, allPolicies, draftComments, loginList, currentUserAccountID, currentUserEmail, conciergeReportID, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -336,136 +334,93 @@ function useSearchSelectorBase({
             default:
                 return getEmptyOptions();
         }
-    }, [
-        areOptionsInitialized,
-        searchContext,
-        optionsWithContacts,
-        allPolicies,
-        draftComments,
-        nvpDismissedProductTraining,
-        betas,
-        computedSearchTerm,
-        maxResults,
-        includeUserToInvite,
-        countryCode,
-        loginList,
-        currentUserAccountID,
-        currentUserEmail,
-        conciergeReportID,
-        personalDetails,
-        excludeLogins,
-        excludeFromSuggestionsOnly,
-        includeRecentReports,
-        maxRecentReportsToShow,
-        trimmedSearchInput,
-        includeCurrentUser,
-        includeSelfDM,
-        reportAttributesDerived?.reports,
-        getValidOptionsConfig,
-        shouldAllowNameOnlyOptions,
-        recentAttendees,
-        selectedOptions,
-        visibleReportActionsData,
-        allPolicyTags,
-        sortedActions,
-    ]);
+    })();
 
-    const isOptionSelected = useMemo(() => {
-        return (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
-    }, [selectedOptions]);
+    const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
 
-    const searchOptions = useMemo(() => {
-        return {
-            ...baseOptions,
-            personalDetails: baseOptions.personalDetails.map((option) => ({
-                ...option,
-                isSelected: isOptionSelected(option),
-            })),
-            recentReports: baseOptions.recentReports.map((option) => ({
-                ...option,
-                isSelected: isOptionSelected(option),
-            })),
-            userToInvite: baseOptions.userToInvite
-                ? {
-                      ...baseOptions.userToInvite,
-                      isSelected: isOptionSelected(baseOptions.userToInvite),
-                  }
-                : null,
-        };
-    }, [baseOptions, isOptionSelected]);
+    const searchOptions = {
+        ...baseOptions,
+        personalDetails: baseOptions.personalDetails.map((option) => ({
+            ...option,
+            isSelected: isOptionSelected(option),
+        })),
+        recentReports: baseOptions.recentReports.map((option) => ({
+            ...option,
+            isSelected: isOptionSelected(option),
+        })),
+        userToInvite: baseOptions.userToInvite
+            ? {
+                  ...baseOptions.userToInvite,
+                  isSelected: isOptionSelected(baseOptions.userToInvite),
+              }
+            : null,
+    };
 
-    const availableOptions = useMemo(() => {
-        const unselectedRecentReports = searchOptions.recentReports.filter((option) => !option.isSelected);
+    const filteredRecentReports = shouldKeepSelectedInAvailableOptions ? searchOptions.recentReports : searchOptions.recentReports.filter((option) => !option.isSelected);
 
-        // Filter out people who appear in recent reports from personal details (recents take priority)
-        const recentReportLogins = new Set(unselectedRecentReports.map((option) => option.login).filter(Boolean));
-        const unselectedPersonalDetails = searchOptions.personalDetails.filter((option) => !option.isSelected && !recentReportLogins.has(option.login));
+    // Filter out people who appear in recent reports from personal details (recents take priority)
+    const recentReportLogins = new Set(filteredRecentReports.map((option) => option.login).filter(Boolean));
+    const filteredPersonalDetails = searchOptions.personalDetails.filter((option) => (shouldKeepSelectedInAvailableOptions || !option.isSelected) && !recentReportLogins.has(option.login));
 
-        return {
-            ...searchOptions,
-            personalDetails: unselectedPersonalDetails,
-            recentReports: unselectedRecentReports,
-            userToInvite: searchOptions.userToInvite?.isSelected ? null : searchOptions.userToInvite,
-        };
-    }, [searchOptions]);
+    const availableOptions = {
+        ...searchOptions,
+        personalDetails: filteredPersonalDetails,
+        recentReports: filteredRecentReports,
+        userToInvite: !shouldKeepSelectedInAvailableOptions && searchOptions.userToInvite?.isSelected ? null : searchOptions.userToInvite,
+    };
 
     /**
      * Toggle selection state of option based on selection mode
      */
-    const toggleSelection = useCallback(
-        (option: OptionData) => {
-            if (selectionMode === CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE) {
-                onSingleSelect?.(option);
+    const toggleSelection = (option: OptionData) => {
+        if (selectionMode === CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE) {
+            onSingleSelect?.(option);
+            return;
+        }
+
+        if (shouldAllowNameOnlyOptions) {
+            const foundOptionIndex = selectedOptions.findIndex((selectedOption: Option) => {
+                // Match by accountID for real users (excluding DEFAULT_NUMBER_ID which is 0)
+                if (selectedOption.accountID && selectedOption.accountID !== CONST.DEFAULT_NUMBER_ID && selectedOption.accountID === option?.accountID) {
+                    return true;
+                }
+
+                // Skip reportID match for default '-1' value (used by name-only attendees)
+                if (selectedOption.reportID && selectedOption.reportID !== '-1' && selectedOption.reportID === option?.reportID) {
+                    return true;
+                }
+
+                // Match by login for name-only attendees
+                if (selectedOption.login && selectedOption.login === option?.login) {
+                    return true;
+                }
+
+                return false;
+            });
+
+            if (foundOptionIndex >= 0) {
+                const newSelectedOptions = [...selectedOptions.slice(0, foundOptionIndex), ...selectedOptions.slice(foundOptionIndex + 1)];
+                setSelectedOptions(newSelectedOptions);
+                onSelectionChange?.(newSelectedOptions);
                 return;
             }
+        }
 
-            if (shouldAllowNameOnlyOptions) {
-                const foundOptionIndex = selectedOptions.findIndex((selectedOption: Option) => {
-                    // Match by accountID for real users (excluding DEFAULT_NUMBER_ID which is 0)
-                    if (selectedOption.accountID && selectedOption.accountID !== CONST.DEFAULT_NUMBER_ID && selectedOption.accountID === option?.accountID) {
-                        return true;
-                    }
+        const isSelected = selectedOptions.some((selected) => doOptionsMatch(selected, option));
+        const newlySelected = isSelected ? selectedOptions.filter((selected) => !doOptionsMatch(selected, option)) : [...selectedOptions, {...option, isSelected: true}];
 
-                    // Skip reportID match for default '-1' value (used by name-only attendees)
-                    if (selectedOption.reportID && selectedOption.reportID !== '-1' && selectedOption.reportID === option?.reportID) {
-                        return true;
-                    }
+        setSelectedOptions(newlySelected);
+        onSelectionChange?.(newlySelected);
+    };
 
-                    // Match by login for name-only attendees
-                    if (selectedOption.login && selectedOption.login === option?.login) {
-                        return true;
-                    }
-
-                    return false;
-                });
-
-                if (foundOptionIndex >= 0) {
-                    const newSelectedOptions = [...selectedOptions.slice(0, foundOptionIndex), ...selectedOptions.slice(foundOptionIndex + 1)];
-                    setSelectedOptions(newSelectedOptions);
-                    onSelectionChange?.(newSelectedOptions);
-                    return;
-                }
-            }
-
-            const isSelected = selectedOptions.some((selected) => doOptionsMatch(selected, option));
-            const newlySelected = isSelected ? selectedOptions.filter((selected) => !doOptionsMatch(selected, option)) : [...selectedOptions, {...option, isSelected: true}];
-
-            setSelectedOptions(newlySelected);
-            onSelectionChange?.(newlySelected);
-        },
-        [selectionMode, selectedOptions, onSelectionChange, onSingleSelect, shouldAllowNameOnlyOptions],
-    );
-
-    const selectedOptionsForDisplay = useMemo(() => {
-        return selectedOptions.filter((option) => {
-            const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID);
-            return (
-                !!option.text?.toLowerCase().includes(computedSearchTerm) ||
-                !!option.login?.toLowerCase().includes(computedSearchTerm) ||
-                personalDetailSearchTerms.some((term) => term.toLocaleLowerCase().includes(computedSearchTerm))
-            );
-        });
-    }, [selectedOptions, computedSearchTerm, currentUserAccountID]);
+    const selectedOptionsForDisplay = selectedOptions.filter((option) => {
+        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID);
+        return (
+            !!option.text?.toLowerCase().includes(computedSearchTerm) ||
+            !!option.login?.toLowerCase().includes(computedSearchTerm) ||
+            personalDetailSearchTerms.some((term) => term.toLocaleLowerCase().includes(computedSearchTerm))
+        );
+    });
 
     return {
         searchTerm,

@@ -26,7 +26,9 @@ jest.mock('@react-navigation/native', () => ({
     useNavigationState: () => true,
     usePreventRemove: jest.fn(),
     useRoute: () => ({
-        params: {},
+        key: 'test-key',
+        name: 'Report' as never,
+        params: {reportID: FAKE_REPORT_ID},
     }),
 }));
 
@@ -97,7 +99,6 @@ jest.mock('@hooks/useSelectedTransactionsActions', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {default: C} = require('@src/CONST');
     return jest.fn(() => ({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         options: [
             {
                 text: 'Delete',
@@ -194,7 +195,7 @@ const renderComponent = () => {
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
-                    <MoneyRequestReportActionsList reportID={FAKE_REPORT_ID} />
+                    <MoneyRequestReportActionsList />
                 </ScreenWrapper>
             </SearchContextProvider>
         </ComposeProviders>,
@@ -210,17 +211,13 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
             keys: ONYXKEYS,
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
-        jest.spyOn(NativeNavigation, 'useRoute').mockReturnValue({
-            key: 'test-key',
-            name: 'Report' as never,
-            params: {reportID: FAKE_REPORT_ID},
-        });
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         await TestHelper.signInWithTestUser(FAKE_ACCOUNT_ID, FAKE_EMAIL);
     });
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -235,7 +232,7 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
                 [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
-                [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
                 [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
             });
         });

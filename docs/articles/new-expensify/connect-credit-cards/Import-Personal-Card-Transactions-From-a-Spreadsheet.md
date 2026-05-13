@@ -61,9 +61,9 @@ Your file must include at least the following columns:
 
 You’ll see an error message and won’t be able to proceed until the issue is resolved.
 
-## Can I import additional spreadsheet later on the same card entry? 
+## Can I import additional transactions to the same card?
 
-No. To import additional transactions, you must repeat the import process.
+Yes. You can simply repeat the import process.
 
 ## Can I delete personal card spreadsheet imports? 
 

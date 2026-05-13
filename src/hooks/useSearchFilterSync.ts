@@ -1,43 +1,44 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
+import type {SearchQueryJSON} from '@components/Search/types';
 import {updateAdvancedFilters} from '@libs/actions/Search';
+import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 /**
- * Syncs computed filter form values to the SEARCH_ADVANCED_FILTERS_FORM Onyx key
- * whenever they change. Call from SearchAdvanceFiltersButton which already computes formValues
- * via useFilterFormValues.
- *
- * The isFocused guard prevents the blurred (previous) SearchPage instance—kept
- * mounted during navigation transition animations—from overwriting the Onyx form
- * state that was already written by the newly focused instance.
- *
- * On narrow layout (iOS native), navigating to Advanced Filters causes this screen
- * to lose focus. When the user returns, the screen regains focus and this effect
- * would re-fire. Without the prevIsFocusedRef guard below, it would overwrite any
- * form changes made by Advanced Filters (e.g. resetting a date range) with stale
- * values derived from the unchanged URL query parameter.
+ * Module-level: tracks the last URL query signature that was synced into the
+ * SEARCH_ADVANCED_FILTERS_FORM Onyx key. We deliberately keep this outside the
+ * hook so it survives unmount/remount of SearchAdvancedFiltersButton. The
+ * button is gated by SearchActionsBarSwitch (`showStatic` flips during
+ * `startTransition` after navigation) which causes the hook to remount and
+ * would otherwise reset a per-component ref to null — causing the sync to
+ * fire again with form values derived from the *old* URL, clobbering any
+ * Onyx.merge that was just done by the Advanced Filters flow (e.g. Save Date
+ * before the URL has been replaced by View Results).
  */
-function useSearchFilterSync(formValues: Partial<SearchAdvancedFiltersForm>) {
+let lastSyncedQuerySig: string | null = null;
+
+/**
+ * Syncs computed filter form values to the SEARCH_ADVANCED_FILTERS_FORM Onyx
+ * key when the URL query string actually changes. The form is the source for
+ * the filter pills shown in the Search header — overwriting it on every
+ * re-render (or every fresh mount with the same URL) would erase concurrent
+ * Onyx.merge writes from Advanced Filters and leave the pill missing.
+ */
+function useSearchFilterSync(queryJSON: SearchQueryJSON | undefined, formValues: Partial<SearchAdvancedFiltersForm>) {
     const isFocused = useIsFocused();
-    const prevIsFocusedRef = useRef(isFocused);
 
     useEffect(() => {
-        const wasPreviouslyFocused = prevIsFocusedRef.current;
-        prevIsFocusedRef.current = isFocused;
-
         if (!isFocused) {
             return;
         }
-
-        // Skip syncing when just regaining focus to avoid overwriting form
-        // changes made while this screen was unfocused (e.g. Advanced Filters).
-        if (!wasPreviouslyFocused) {
+        const querySig = queryJSON ? buildSearchQueryString(queryJSON) : null;
+        if (lastSyncedQuerySig === querySig) {
             return;
         }
-
+        lastSyncedQuerySig = querySig;
         updateAdvancedFilters(formValues, true);
-    }, [formValues, isFocused]);
+    }, [queryJSON, formValues, isFocused]);
 }
 
 export default useSearchFilterSync;

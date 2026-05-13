@@ -4,11 +4,12 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSecondaryActionAPaymentOption} from '@libs/PaymentUtils';
+import {isSecondaryActionAPaymentOption, isSecondaryActionAWorkspacePolicyOption} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
@@ -21,6 +22,12 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
     applicableSecondaryActions: Array<DropdownOption<string>>;
 
     onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
+
+    /**
+     * Called when a workspace-policy sub-item is picked. The parent owns the full flow (guards, telemetry,
+     * then invoking `triggerKYCFlow({policy})` when ready). If omitted, defaults to `triggerKYCFlow({policy})`.
+     */
+    onWorkspacePolicySelect?: (policy: Policy, triggerKYCFlow: TriggerKYCFlow) => void;
 
     customText?: string;
 
@@ -40,6 +47,7 @@ function MoneyReportHeaderKYCDropdown({
     applicableSecondaryActions,
     iouReport,
     onPaymentSelect,
+    onWorkspacePolicySelect,
     customText,
     shouldShowSuccessStyle,
     dropdownMenuRef,
@@ -49,7 +57,7 @@ function MoneyReportHeaderKYCDropdown({
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {isOffline} = useNetwork();
 
     const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -75,7 +83,15 @@ function MoneyReportHeaderKYCDropdown({
                     ref={dropdownMenuRef}
                     success={shouldShowSuccessStyle ?? false}
                     onPress={() => {}}
-                    onSubItemSelected={(item, index, event) => {
+                    onSubItemSelected={(item, _index, event) => {
+                        if (isSecondaryActionAWorkspacePolicyOption(item)) {
+                            if (onWorkspacePolicySelect) {
+                                onWorkspacePolicySelect(item.workspacePolicy, triggerKYCFlow);
+                            } else {
+                                triggerKYCFlow({policy: item.workspacePolicy});
+                            }
+                            return;
+                        }
                         if (!isSecondaryActionAPaymentOption(item)) {
                             return;
                         }
@@ -87,7 +103,7 @@ function MoneyReportHeaderKYCDropdown({
                     customText={customText ?? translate('common.more')}
                     options={applicableSecondaryActions}
                     isSplitButton={false}
-                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && styles.flex1, !!customText && styles.w100]}
+                    wrapperStyle={shouldDisplayNarrowVersion && [!primaryAction && !customText && !isInLandscapeMode && styles.flex1, !!customText && styles.w100]}
                     shouldUseModalPaddingStyle
                     onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}

@@ -1,10 +1,11 @@
 import type {ForwardedRef, RefObject} from 'react';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
@@ -18,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSortedActions from '@hooks/useSortedActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
@@ -33,11 +35,12 @@ import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
+import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
@@ -52,8 +55,8 @@ type SearchAutocompleteListProps = {
     /** Callback to trigger search action * */
     handleSearch: (value: string) => void;
 
-    /** An optional item to always display on the top of the router list  */
-    searchQueryItem?: SearchQueryItem;
+    /** Optional items to always display at the top of the router list */
+    searchQueryItems?: SearchQueryItem[];
 
     /** Any extra sections that should be displayed in the router list. */
     getAdditionalSections?: GetAdditionalSectionsCallback;
@@ -70,18 +73,8 @@ type SearchAutocompleteListProps = {
     /** Ref for the external text input */
     textInputRef?: RefObject<AnimatedTextInputRef | null>;
 
-    /** Personal details */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** Reports */
-    reports: OnyxCollection<Report>;
-
-    /** All feeds */
-    allFeeds: Record<string, CardFeeds | undefined> | undefined;
-
-    /** All cards */
-    allCards: CardList | undefined;
-
+    /** Map of display values to actual IDs for filters (e.g. workspace name -> policy ID). Used to exclude by ID when multiple options share the same name. */
+    autocompleteSubstitutions?: SubstitutionMap;
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
 };
@@ -123,14 +116,26 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
         );
     }
 
-    const fsClass = FS.getChatFSClass((props.item as SearchOption<Report> | undefined)?.item);
+    const {item, isFocused, showTooltip, isDisabled, onSelectRow, onDismissError, shouldPreventEnterKeySubmit, rightHandSideComponent, onFocus, shouldSyncFocus, wrapperStyle} = props;
+    const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
 
     return (
-        <UserListItem
+        <BareUserListItem
+            item={item}
+            keyForList={item.keyForList}
+            isFocused={isFocused}
+            showTooltip={showTooltip}
+            isDisabled={isDisabled}
+            onSelectRow={onSelectRow}
+            onDismissError={onDismissError}
+            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
+            rightHandSideComponent={rightHandSideComponent}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
+            wrapperStyle={wrapperStyle}
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={fsClass}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            shouldHighlightSelectedItem
         />
     );
 }
@@ -138,16 +143,13 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
 function SearchAutocompleteList({
     autocompleteQueryValue,
     handleSearch,
-    searchQueryItem,
+    searchQueryItems,
     getAdditionalSections,
     onListItemPress,
     shouldSubscribeToArrowKeyEvents = true,
     onHighlightFirstItem,
     textInputRef,
-    personalDetails,
-    reports,
-    allFeeds,
-    allCards = CONST.EMPTY_OBJECT,
+    autocompleteSubstitutions,
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
@@ -158,18 +160,23 @@ function SearchAutocompleteList({
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const reportAttributes = useReportAttributes();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [recentSearches, recentSearchesMetadata] = useOnyx(ONYXKEYS.RECENT_SEARCHES);
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const sortedActions = useSortedActions();
+    const personalDetails = usePersonalDetails();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
-    const taxRates = getAllTaxRates(policies);
+    const taxRates = useMemo(() => getAllTaxRates(policies), [policies]);
 
     const {options: listOptions, isLoading: isLoadingOptions} = useFilteredOptions({enabled: true, isSearching: !!autocompleteQueryValue.trim(), betas: betas ?? []});
 
@@ -193,14 +200,13 @@ function SearchAutocompleteList({
         }
     }, [isLoadingOptions]);
 
-    const searchOptions = (() => {
+    const searchOptions = useMemo(() => {
         if (listOptions === null) {
             return defaultListOptions;
         }
         return getSearchOptions({
             options: listOptions,
             draftComments,
-            nvpDismissedProductTraining,
             betas: betas ?? [],
             isUsedInChatFinder: true,
             includeReadOnly: true,
@@ -218,9 +224,24 @@ function SearchAutocompleteList({
             currentUserEmail,
             policyCollection: policies,
             personalDetails,
+            sortedActions,
             conciergeReportID,
         });
-    })();
+    }, [
+        listOptions,
+        draftComments,
+        betas,
+        autocompleteQueryValue,
+        countryCode,
+        loginList,
+        visibleReportActionsData,
+        currentUserAccountID,
+        currentUserEmail,
+        policies,
+        personalDetails,
+        sortedActions,
+        conciergeReportID,
+    ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const prevQueryRef = useRef(autocompleteQueryValue);
@@ -285,7 +306,6 @@ function SearchAutocompleteList({
         allFeeds,
         options: listOptions ?? emptyOptionList,
         draftComments,
-        nvpDismissedProductTraining,
         betas,
         countryCode,
         loginList,
@@ -296,41 +316,58 @@ function SearchAutocompleteList({
         personalDetails,
         feedKeysWithCards,
         translate,
+        autocompleteSubstitutions,
     });
 
     const autocompleteQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
 
-    const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
-        localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
-    );
+    const recentSearchesData = useMemo(() => {
+        const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
+            localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
+        );
 
-    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(([recentSearchHash, {query}]) => {
-        const searchQueryJSON = buildSearchQueryJSON(query);
-        return {
-            text: searchQueryJSON
-                ? buildUserReadableQueryString({
-                      queryJSON: searchQueryJSON,
-                      PersonalDetails: personalDetails,
-                      reports,
-                      taxRates,
-                      cardList: allCards,
-                      cardFeeds: allFeeds,
-                      policies,
-                      currentUserAccountID,
-                      autoCompleteWithSpace: false,
-                      translate,
-                      feedKeysWithCards,
-                      reportAttributes,
-                  })
-                : query,
-            singleIcon: expensifyIcons.History,
-            searchQuery: query,
-            keyForList: recentSearchHash,
-            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
-        };
-    });
+        return sortedRecentSearches.slice(0, 5).map(([recentSearchHash, {query}]) => {
+            const searchQueryJSON = buildSearchQueryJSON(query);
+            return {
+                text: searchQueryJSON
+                    ? buildUserReadableQueryString({
+                          queryJSON: searchQueryJSON,
+                          PersonalDetails: personalDetails,
+                          reports,
+                          taxRates,
+                          cardList: allCards,
+                          cardFeeds: allFeeds,
+                          policies,
+                          currentUserAccountID,
+                          autoCompleteWithSpace: false,
+                          translate,
+                          feedKeysWithCards,
+                          reportAttributes,
+                      })
+                    : query,
+                singleIcon: expensifyIcons.History,
+                searchQuery: query,
+                keyForList: recentSearchHash,
+                searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
+            };
+        });
+    }, [
+        recentSearches,
+        localeCompare,
+        personalDetails,
+        reports,
+        taxRates,
+        allCards,
+        allFeeds,
+        policies,
+        currentUserAccountID,
+        translate,
+        feedKeysWithCards,
+        reportAttributes,
+        expensifyIcons.History,
+    ]);
 
-    const recentReportsOptions = (() => {
+    const recentReportsOptions = useMemo(() => {
         if (autocompleteQueryValue.trim() === '') {
             return searchOptions.recentReports;
         }
@@ -346,7 +383,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    })();
+    }, [autocompleteQueryValue, searchOptions]);
 
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
@@ -377,8 +414,8 @@ function SearchAutocompleteList({
             nextSuggestionsCount += section.data.filter((item) => item.keyForList !== CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM).length;
         };
 
-        if (searchQueryItem) {
-            pushSection({data: [searchQueryItem as AutocompleteListItem], sectionIndex: sectionIndex++});
+        if (searchQueryItems && searchQueryItems.length > 0) {
+            pushSection({data: searchQueryItems as AutocompleteListItem[], sectionIndex: sectionIndex++});
         }
 
         const additionalSections = getAdditionalSections?.(searchOptions, sectionIndex);
@@ -395,7 +432,7 @@ function SearchAutocompleteList({
         }
 
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
-            const report = getReportOrDraftReport(option.reportID);
+            const report = getReportOrDraftReport(option.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
             const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
@@ -468,11 +505,12 @@ function SearchAutocompleteList({
         recentReportsOptions,
         recentSearchesData,
         searchOptions,
-        searchQueryItem,
+        searchQueryItems,
         styles,
         translate,
         isLoadingOptions,
         isRecentSearchesDataLoaded,
+        reports,
     ]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
@@ -557,6 +595,7 @@ function SearchAutocompleteList({
             ref={setListRef}
             initialScrollIndex={0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+            shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
             addBottomSafeAreaPadding

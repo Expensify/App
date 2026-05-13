@@ -9,11 +9,11 @@ import {isMobile} from '@libs/Browser';
 import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Navigation from '@libs/Navigation/Navigation';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
-import {checkIfScanFileCanBeRead, replaceReceipt} from '@userActions/IOU/Receipt';
+import {checkIfLocalFileIsAccessible, replaceReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,16 +33,25 @@ function IOURequestStepScan({
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
-    onLayout,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const isMobileWeb = isMobile();
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
-    // End the create expense span on mount for web (no camera init tracking needed)
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
+
+    // End telemetry spans on mount for web (no camera init tracking needed)
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
+
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+        endSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
+
+        return () => {
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION);
+            cancelSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN);
+        };
     }, []);
 
     const navigateBack = useCallback(() => {
@@ -51,10 +60,17 @@ function IOURequestStepScan({
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
+            replaceReceipt({
+                transactionID: initialTransactionID,
+                file: file as File,
+                source,
+                transactionPolicy: policy,
+                transactionPolicyCategories: policyCategories,
+                transactionPolicyTagList: policyTagList,
+            });
             navigateBack();
         },
-        [initialTransactionID, navigateBack, policy, policyCategories],
+        [initialTransactionID, navigateBack, policy, policyCategories, policyTagList],
     );
 
     const getSource = useCallback((file: FileObject) => file.uri ?? URL.createObjectURL(file as Blob), []);
@@ -76,7 +92,6 @@ function IOURequestStepScan({
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        setTestReceiptAndNavigate,
     } = useReceiptScan({
         report,
         reportID,
@@ -91,10 +106,6 @@ function IOURequestStepScan({
         updateScanAndNavigate,
         getSource,
     });
-
-    const handleOnLayout = useCallback(() => {
-        onLayout?.(setTestReceiptAndNavigate);
-    }, [onLayout, setTestReceiptAndNavigate]);
 
     const hasValidatedInitialScanFiles = useRef(false);
 
@@ -122,7 +133,7 @@ function IOURequestStepScan({
                     isAllScanFilesCanBeRead = false;
                 };
 
-                return checkIfScanFileCanBeRead(item.receipt?.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
+                return checkIfLocalFileIsAccessible(item.receipt?.filename, itemReceiptPath, item.receipt?.type, () => {}, onFailure);
             }),
         ).then(() => {
             if (isAllScanFilesCanBeRead) {
@@ -178,7 +189,6 @@ function IOURequestStepScan({
                     navigateToConfirmationStep={navigateToConfirmationStep}
                     shouldSkipConfirmation={shouldSkipConfirmation}
                     setStartLocationPermissionFlow={setStartLocationPermissionFlow}
-                    onLayout={handleOnLayout}
                     onBackButtonPress={navigateBack}
                     shouldShowWrapper={!!backTo || isEditing}
                 />
@@ -187,7 +197,6 @@ function IOURequestStepScan({
                     PDFValidationComponent={PDFValidationComponent}
                     shouldAcceptMultipleFiles={shouldAcceptMultipleFiles}
                     isReplacingReceipt={isReplacingReceipt}
-                    onLayout={handleOnLayout}
                     validateFiles={validateFiles}
                     onBackButtonPress={navigateBack}
                     shouldShowWrapper={!!backTo || isEditing}
@@ -210,9 +219,9 @@ function IOURequestStepScan({
 }
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
 
 export default IOURequestStepScanWithFullTransactionOrNotFound;

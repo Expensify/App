@@ -184,15 +184,7 @@ const OnboardingGuard: NavigationGuard = {
         const isNavigatingWithReplace = isNavigatingToOnboardingFlowWithReplaceAction(action);
 
         const shouldSkipOnboarding =
-            skipOnboardingConfig ||
-            isLoading ||
-            isTransitioning ||
-            isOnboardingCompleted ||
-            isMigratedUser ||
-            isSingleEntry ||
-            needsExplanationModal ||
-            isInvitedOrGroupMember ||
-            isNavigatingWithReplace;
+            skipOnboardingConfig || isLoading || isTransitioning || isOnboardingCompleted || isMigratedUser || isSingleEntry || needsExplanationModal || isNavigatingWithReplace;
 
         if (shouldSkipOnboarding) {
             return {type: 'ALLOW'};

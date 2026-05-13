@@ -212,6 +212,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             shouldShowLoadingPlaceholder={!eligibleTransactions}
             textInputOptions={textInputOptions}
             shouldShowTextInput={shouldShowTextInput}
+            style={{
+                listStyle: [styles.mh5, styles.searchTableTopRadius, styles.searchTableBottomRadius, styles.mb4, styles.overflowHidden],
+                contentContainerStyle: [styles.pb0, styles.searchTableBottomRadius, styles.overflowHidden],
+            }}
         />
     );
 }

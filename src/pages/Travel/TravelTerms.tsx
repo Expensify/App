@@ -13,19 +13,19 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {buildTravelDotURL} from '@libs/actions/Link';
 import {addComment} from '@libs/actions/Report';
 import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
-import asyncOpenURL from '@libs/asyncOpenURL';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import {openTravelDotLink} from '@libs/openTravelDotLink';
 import colors from '@styles/theme/colors';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -49,6 +49,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const errorMessage = travelProvisioning?.errors && !travelProvisioning?.error ? getLatestErrorMessage(travelProvisioning) : '';
@@ -63,13 +64,21 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
         const message = translate('travel.verifyCompany.conciergeMessage', {domain: Str.extractEmailDomain(account?.primaryLogin ?? '')});
 
-        addComment({report: conciergeReport, notifyReportID: conciergeReportID, ancestors: [], text: message, timezoneParam: CONST.DEFAULT_TIME_ZONE, currentUserAccountID});
+        addComment({
+            report: conciergeReport,
+            notifyReportID: conciergeReportID,
+            ancestors: [],
+            text: message,
+            timezoneParam: CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID,
+            delegateAccountID,
+        });
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     };
 
     const acceptTermsAndOpenTravelDot = () => {
-        asyncOpenURL(
-            acceptSpotnanaTerms(domain, policyID).then((response) => {
+        acceptSpotnanaTerms(domain, policyID)
+            .then((response) => {
                 // Extract the error code from onyxData - the backend sets errors in TRAVEL_PROVISIONING via onyxData
                 const travelProvisioningData = response?.onyxData?.find((data) => data.key === ONYXKEYS.TRAVEL_PROVISIONING);
                 const errorCode = (travelProvisioningData?.value as Partial<TravelProvisioning> | undefined)?.error;
@@ -110,18 +119,19 @@ function TravelTerms({route}: TravelTermsPageProps) {
                     return Promise.reject(new Error('Request failed'));
                 }
 
-                // Handle success - build URL, cleanup, and return URL for asyncOpenURL to open
+                // Handle success - open travel in-app webview on native, or in browser on web
                 if (response?.spotnanaToken) {
-                    const travelDotURL = buildTravelDotURL(response.spotnanaToken, response.isTestAccount ?? false);
                     Navigation.closeRHPFlow();
                     cleanupTravelProvisioningSession();
-                    return travelDotURL;
+                    openTravelDotLink(policyID, undefined, response.spotnanaToken, response.isTestAccount ?? false);
+                    return;
                 }
 
                 return Promise.reject(new Error('No token received'));
-            }),
-            (travelDotURL) => travelDotURL ?? '',
-        );
+            })
+            .catch(() => {
+                // Errors are surfaced via TRAVEL_PROVISIONING in Onyx
+            });
     };
 
     return (

@@ -41,13 +41,15 @@ function MapViewImpl({
     waypoints,
     mapPadding,
     accessToken,
-    directionCoordinates,
+    directionCoordinates: directionCoordinatesProp,
     initialState = {location: CONST.MAPBOX.DEFAULT_COORDINATE, zoom: CONST.MAPBOX.DEFAULT_ZOOM},
     interactive = true,
     distanceInMeters,
     unit,
     ref,
 }: MapViewProps) {
+    const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
+
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const {isOffline} = useNetwork();
@@ -308,7 +310,7 @@ function MapViewImpl({
                         </Marker>
                     );
                 })}
-                {!!directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
             </Map>
             {interactive && (
                 <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>

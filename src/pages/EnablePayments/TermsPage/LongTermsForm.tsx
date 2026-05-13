@@ -4,14 +4,15 @@ import CollapsibleSection from '@components/CollapsibleSection';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 
 function LongTermsForm() {
+    const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['Printer']);
     const theme = useTheme();
     const styles = useThemeStyles();

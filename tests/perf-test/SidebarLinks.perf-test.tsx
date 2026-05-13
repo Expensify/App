@@ -1,6 +1,7 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
+import {setHasRadio} from '@libs/NetworkState';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -61,7 +62,7 @@ describe('SidebarLinks', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
 
         // Initialize the network key for OfflineWithFeedback
-        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        setHasRadio(true);
         TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One').then(waitForBatchedUpdates);
     });
 

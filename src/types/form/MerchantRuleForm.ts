@@ -22,4 +22,3 @@ type MerchantRuleForm = Form<
 >;
 
 export type {MerchantRuleForm, InputID};
-export default INPUT_IDS;

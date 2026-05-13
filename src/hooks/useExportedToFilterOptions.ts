@@ -76,7 +76,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
         standardAndCustomExportTemplates.push(filterValue);
     }
 
-    const connectedIntegrationNames = policyIDs && policyIDs.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
+    const connectedIntegrationNames = policyIDs?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 
     const displayNameToConnectionName = new Map<string, string>(
         Object.entries(CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY).map(([connectionName, displayName]) => [displayName, connectionName]),

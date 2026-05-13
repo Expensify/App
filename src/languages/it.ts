@@ -21,16 +21,11 @@ import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {OriginalMessageSettlementAccountLocked, PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddBudgetParams,
-    AddedOrDeletedPolicyReportFieldParams,
-    AddOrDeletePolicyCustomUnitRateParams,
     ChangeFieldParams,
     ConciergeBrokenCardConnectionParams,
     ConnectionNameParams,
-    CreatedReportForUnapprovedTransactionsParams,
     DelegateRoleParams,
     DeleteActionParams,
-    DeleteBudgetParams,
     DeleteConfirmationParams,
     EditActionParams,
     ExportAgainModalDescriptionParams,
@@ -57,21 +52,8 @@ import type {
     SyncStageNameConnectionsParams,
     UnshareParams,
     UnsupportedFormulaValueErrorParams,
-    UpdatedBudgetParams,
-    UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyCategoryMaxAmountNoReceiptParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
-    UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedTheDistanceMerchantParams,
-    UpdatedTheRequestParams,
-    UpdatePolicyCustomUnitDefaultCategoryParams,
-    UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
-    UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
-    ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
     WorkspaceLockedPlanTypeParams,
     YourPlanPriceParams,
@@ -108,8 +90,10 @@ const translations: TranslationDeepObject<typeof en> = {
         optional: 'Facoltativo',
         new: 'Nuovo',
         newFeature: 'Nuova funzionalità',
+        beta: 'Beta',
         search: 'Cerca',
         reports: 'Report',
+        spend: 'Spese',
         find: 'Trova',
         searchWithThreeDots: 'Cerca...',
         next: 'Avanti',
@@ -323,6 +307,7 @@ const translations: TranslationDeepObject<typeof en> = {
         letsStart: `Iniziamo`,
         showMore: 'Mostra di più',
         showLess: 'Mostra meno',
+        plusMore: ({count}: {count: number}) => `+${count} altri`,
         merchant: 'Esercente',
         change: 'Modifica',
         category: 'Categoria',
@@ -434,8 +419,7 @@ const translations: TranslationDeepObject<typeof en> = {
         collapsed: 'Comprresso',
         expanded: 'Espanso',
         expenseReport: 'Nota spese',
-        expenseReports: 'Note spese',
-        rateOutOfPolicy: 'Tariffa fuori policy',
+        rateOutOfPolicy: 'Tariffa fuori dalla policy',
         leaveWorkspace: 'Esci dallo spazio di lavoro',
         leaveWorkspaceConfirmation: 'Se lasci questo spazio di lavoro, non potrai più inviarvi note spese.',
         leaveWorkspaceConfirmationAuditor: 'Se lasci questo spazio di lavoro, non potrai visualizzarne i report e le impostazioni.',
@@ -453,9 +437,6 @@ const translations: TranslationDeepObject<typeof en> = {
         comments: 'Commenti',
         sharedIn: 'Condiviso in',
         unreported: 'Non rendicontato',
-        explore: 'Esplora',
-        insights: 'Approfondimenti',
-        todo: 'Da fare',
         invoice: 'Fattura',
         expense: 'Spesa',
         chat: 'Chat',
@@ -512,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Il prossimo mese',
         previousYear: 'Anno precedente',
         nextYear: "L'anno prossimo",
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Seguici su Podcast',
@@ -881,11 +863,14 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     adminOnlyCanPost: 'Solo gli amministratori possono inviare messaggi in questa stanza.',
+    readOnlyConversation: 'Questa conversazione è di sola lettura.',
     reportAction: {
         asCopilot: 'come copilota per',
+        assistedBy: (agentName: string) => `assistito da ${agentName}`,
+        humanSupportAgent: 'un agente di supporto umano',
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `ha creato questo report per raccogliere tutte le spese da <a href="${reportUrl}">${reportName}</a> che non potevano essere inviate con la frequenza scelta`,
-        createdReportForUnapprovedTransactions: ({reportUrl, reportName, reportID, isReportDeleted}: CreatedReportForUnapprovedTransactionsParams) =>
+        createdReportForUnapprovedTransactions: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
             isReportDeleted
                 ? `ha creato questo rendiconto per tutte le spese in sospeso dal rendiconto eliminato n. ${reportID}`
                 : `ha creato questo report per tutte le spese in sospeso da <a href="${reportUrl}">${reportName}</a>`,
@@ -935,10 +920,6 @@ const translations: TranslationDeepObject<typeof en> = {
         listOfChats: 'Elenco chat',
         saveTheWorld: 'Salva il mondo',
         tooltip: 'Inizia qui!',
-        redirectToExpensifyClassicModal: {
-            title: 'Prossimamente',
-            description: 'Stiamo rifinendo ancora alcuni dettagli della nuova Expensify per adattarla alla tua configurazione specifica. Nel frattempo, passa a Expensify Classic.',
-        },
     },
     homePage: {
         forYou: 'Per te',
@@ -970,6 +951,12 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             validateAccount: {title: 'Conferma il tuo account per continuare a usare Expensify', subtitle: 'Account', cta: 'Conferma'},
             fixFailedBilling: {title: 'Non abbiamo potuto addebitare la carta salvata nel profilo', subtitle: 'Abbonamento'},
+            unlockBankAccount: {
+                workspaceTitle: 'Il conto bancario della tua azienda è stato bloccato',
+                personalTitle: 'Il tuo conto bancario è stato bloccato',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Portafoglio',
+            },
         },
         assignedCards: 'Le tue Carte Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} rimanenti`,
@@ -1046,9 +1033,11 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Per iniziare',
             createWorkspace: 'Crea uno spazio di lavoro',
             connectAccounting: ({integrationName}: {integrationName: string}) => `Connetti a ${integrationName}`,
+            connectAccountingDefault: 'Connetti alla contabilità',
             customizeCategories: 'Personalizza le categorie contabili',
             linkCompanyCards: 'Collega carte aziendali',
             setupRules: 'Configura le regole di spesa',
+            inviteAccountant: 'Invita il tuo commercialista',
         },
     },
     allSettingsScreen: {
@@ -1123,6 +1112,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) =>
                 `Conferma i dettagli riportati di seguito per i ${count} nuovi membri dello spazio di lavoro che verranno aggiunti come parte di questo caricamento. I membri già esistenti non riceveranno aggiornamenti di ruolo o messaggi di invito.`,
         }),
+        importCompanyCardTransactionsPendingMessage: 'Le nuove carte e transazioni potrebbero impiegare un po’ di tempo per apparire, attendi per favore.',
     },
     receipt: {
         upload: 'Carica ricevuta',
@@ -1415,8 +1405,8 @@ const translations: TranslationDeepObject<typeof en> = {
         setTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, newAmountToDisplay: string) =>
             `imposta ${translatedChangedField} su ${newMerchant}, che ha impostato l’importo su ${newAmountToDisplay}`,
         removedTheRequest: (valueName: string, oldValueToDisplay: string) => `il/la ${valueName} (precedentemente ${oldValueToDisplay})`,
-        updatedTheRequest: ({valueName, newValueToDisplay, oldValueToDisplay}: UpdatedTheRequestParams) => `${valueName} a ${newValueToDisplay} (in precedenza ${oldValueToDisplay})`,
-        updatedTheDistanceMerchant: ({translatedChangedField, newMerchant, oldMerchant, newAmountToDisplay, oldAmountToDisplay}: UpdatedTheDistanceMerchantParams) =>
+        updatedTheRequest: (valueName: string, newValueToDisplay: string, oldValueToDisplay: string) => `${valueName} a ${newValueToDisplay} (in precedenza ${oldValueToDisplay})`,
+        updatedTheDistanceMerchant: (translatedChangedField: string, newMerchant: string, oldMerchant: string, newAmountToDisplay: string, oldAmountToDisplay: string) =>
             `ha modificato ${translatedChangedField} in ${newMerchant} (precedentemente ${oldMerchant}), aggiornando l'importo a ${newAmountToDisplay} (precedentemente ${oldAmountToDisplay})`,
         basedOnAI: 'in base all’attività precedente',
         basedOnMCC: ({rulesLink}: {rulesLink: string}) => (rulesLink ? `in base alle <a href="${rulesLink}">regole dello spazio di lavoro</a>` : 'in base alle regole della workspace'),
@@ -1430,7 +1420,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'Il nome del tag supera i 255 caratteri. Per favore accorcialo o scegli un tag diverso.',
             invalidAmount: 'Inserisci un importo valido prima di continuare',
             invalidDistance: 'Inserisci una distanza valida prima di continuare',
-            invalidReadings: 'Inserisci sia la lettura iniziale che quella finale',
+            invalidReadings: 'Inserisci sia la lettura iniziale che quella finale per continuare',
             negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
             distanceAmountTooLarge: "L'importo totale è troppo alto. Riduci la distanza o abbassa la tariffa.",
             distanceAmountTooLargeReduceDistance: "L'importo totale è troppo alto. Riduci la distanza.",
@@ -1468,6 +1458,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
+            failedToSaveOdometerDraft: 'Impossibile salvare la tua bozza del contachilometri. Riprova.',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Chiudere questo errore rimuoverà completamente la ricevuta che hai caricato. Sei sicuro?',
@@ -1484,11 +1475,11 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'ha messo in sospeso questa spesa',
         unheldExpense: 'ha sbloccato questa spesa',
         moveUnreportedExpense: 'Sposta spesa non rendicontata',
-        addUnreportedExpense: 'Aggiungi spesa non rendicontata',
-        selectUnreportedExpense: 'Seleziona almeno una spesa da aggiungere al rapporto.',
-        emptyStateUnreportedExpenseTitle: 'Nessuna spesa non dichiarata',
-        emptyStateUnreportedExpenseSubtitle: 'Sembra che tu non abbia alcuna spesa non rendicontata. Prova a crearne una qui sotto.',
-        addUnreportedExpenseConfirm: 'Aggiungi al report',
+        addExistingExpense: 'Aggiungi spesa esistente',
+        selectExistingExpense: 'Seleziona almeno una spesa da aggiungere al rapporto.',
+        emptyStateExistingExpenseTitle: 'Nessuna spesa esistente',
+        emptyStateExistingExpenseSubtitle: 'Sembra che tu non abbia alcuna spesa esistente. Prova a crearne una qui sotto.',
+        addExistingExpenseConfirm: 'Aggiungi al report',
         newReport: 'Nuovo report',
         explainHold: () => ({
             one: 'Spiega perché stai trattenendo questa spesa.',
@@ -1621,6 +1612,7 @@ const translations: TranslationDeepObject<typeof en> = {
             header: (workflowSettingLink: string) =>
                 `Scegli un'opzione per cambiare l'approvatore di questo report. (Aggiorna le <a href="${workflowSettingLink}">impostazioni dello spazio di lavoro</a> per cambiarlo in modo permanente per tutti i report.)`,
             changedApproverMessage: (managerID: number) => `ha cambiato l’approvatore in <mention-user accountID="${managerID}"/>`,
+            reassignedApproverMessage: (managerID: number) => `ha riassegnato l'approvatore a <mention-user accountID="${managerID}"/> tramite un aggiornamento del flusso di lavoro`,
             actions: {
                 addApprover: 'Aggiungi approvatore',
                 addApproverSubtitle: 'Aggiungi un ulteriore approvatore al flusso di approvazione esistente.',
@@ -1668,6 +1660,7 @@ const translations: TranslationDeepObject<typeof en> = {
             prompt: 'Abilita il monitoraggio delle imposte nello spazio di lavoro per modificare i dettagli della spesa o eliminare l’imposta da questa spesa.',
             confirmText: 'Elimina imposta',
         },
+        bulkDuplicateLimit: `Puoi duplicare fino a ${CONST.SEARCH.BULK_DUPLICATE_LIMIT} spese alla volta. Seleziona meno spese e riprova.`,
         deleted: 'Eliminato',
     },
     transactionMerge: {
@@ -2094,6 +2087,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Registra le richieste Sentry nella console',
             sentryHighlightedSpanOps: 'Nomi degli intervalli evidenziati',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigazione, ui.load',
+            showBranchNameInTitle: 'Mostra nome del ramo nel titolo del browser',
         },
         security: 'Sicurezza',
         signOut: 'Esci',
@@ -2107,8 +2101,8 @@ const translations: TranslationDeepObject<typeof en> = {
         account: 'Account',
         general: 'Generale',
         helpPage: {
-            title: 'Aiuto e supporto',
-            description: 'Siamo qui per aiutarti 24 ore su 24, 7 giorni su 7',
+            title: 'Domande?',
+            description: 'Siamo qui per aiutarti, a qualsiasi ora.',
             helpSite: 'Sito di assistenza',
             conciergeChat: 'Concierge',
             conciergeChatDescription: 'Il tuo assistente IA personale',
@@ -2206,6 +2200,12 @@ const translations: TranslationDeepObject<typeof en> = {
         yourAccountIsLocked: 'Il tuo account è bloccato',
         chatToConciergeToUnlock: 'Chatta con Concierge per risolvere i problemi di sicurezza e sbloccare il tuo account.',
         chatWithConcierge: 'Chatta con Concierge',
+    },
+    deviceManagementPage: {
+        title: 'Gestione dei dispositivi',
+        description: `Gestisci tutti i dispositivi su cui hai effettuato l'accesso con il tuo account Expensify.`,
+        revoke: 'Revoca',
+        unknownDevice: 'Dispositivo Sconosciuto',
     },
     twoFactorAuth: {
         headerTitle: 'Autenticazione a due fattori',
@@ -2527,6 +2527,8 @@ ${amount} per ${merchant} - ${date}`,
         frozenByAdminNeedsUnfreezePrefix: 'Questa carta è stata bloccata da ',
         frozenByAdminNeedsUnfreezeSuffix: '. Contatta un amministratore per sbloccarla.',
         frozenByAdminNeedsUnfreeze: ({person}: {person: string}) => `Questa carta è stata bloccata da ${person}. Contatta un amministratore per sbloccarla.`,
+        spendRules: 'Regole di spesa',
+        editSpendRules: 'Modifica regole di spesa',
     },
     workflowsPage: {
         workflowTitle: 'Spesa',
@@ -2588,6 +2590,10 @@ ${amount} per ${merchant} - ${date}`,
             approverSubtitle: 'Tutti gli approvatori appartengono a un workflow esistente.',
             bulkApproverSubtitle: 'Nessun approvatore corrisponde ai criteri per i report selezionati.',
         },
+        configureViaGusto: 'Configura tramite Gusto.',
+        gustoApprovalWorkflowLockedPrompt:
+            'Le approvazioni sono gestite dalla tua integrazione con Gusto. Per aggiornare il flusso di approvazione, vai alle impostazioni di connessione di Gusto.',
+        goToGustoSettings: 'Vai alle impostazioni di Gusto',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Impossibile modificare la frequenza di invio. Riprova oppure contatta l’assistenza.',
@@ -2607,6 +2613,9 @@ ${amount} per ${merchant} - ${date}`,
     workflowsExpensesFromPage: {
         title: 'Spese dal',
         header: 'Quando i seguenti membri inviano note spese:',
+        memberAlreadyInWorkflowTitle: 'Membro già in un flusso di lavoro',
+        memberAlreadyInWorkflowPrompt: ({memberName, approverName}: {memberName: string; approverName: string}) =>
+            `${memberName} è già in un flusso di approvazione che invia a ${approverName}. Aggiungendolo qui lo sposterà in questo flusso di lavoro.`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
@@ -2718,6 +2727,25 @@ ${amount} per ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Aggiungi un metodo di pagamento per inviare e ricevere pagamenti direttamente nell’app.',
         defaultPaymentMethod: 'Predefinito',
         bankAccountLastFour: (lastFour: string) => `Conto bancario • ${lastFour}`,
+    },
+    agentsPage: {
+        title: 'Agenti',
+        subtitle: 'Crea agenti per gestire il tuo flusso di lavoro. Elimina il lavoro manuale e recupera ore della tua giornata.',
+        newAgent: 'Nuovo agente',
+        emptyAgents: {title: 'Nessun agente creato', subtitle: 'Smetti di fare le cose manualmente. Dai istruzioni a un agente e risparmia un sacco di tempo.'},
+        error: {
+            genericAdd: "Si è verificato un problema durante l'aggiunta di questo agente",
+        },
+    },
+    addAgentPage: {
+        title: 'Nuovo agente',
+        agentName: 'Nome agente',
+        instructions: 'Scrivi istruzioni personalizzate',
+        createAgent: 'Crea agente',
+        switchAvatar: 'Cambia avatar',
+        defaultAgentName: (displayName: string) => `Agente di ${displayName}`,
+        defaultPrompt:
+            "Rifiuta le spese relative a gioco d'azzardo, cinema o altri motivi chiaramente non legati all'attività.\n\nRicorda all'utente di includere sempre un'immagine della ricevuta in cui la mancia sia ben visibile.\n\nApprova il report se è molto simile ai report precedenti dello stesso utente.\n\nRifiuta i report con più di 500 $ di spese di viaggio.",
     },
     expenseRulesPage: {
         title: 'Regole spese',
@@ -2836,6 +2864,8 @@ ${amount} per ${merchant} - ${date}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Non hai ricevuto un codice magico?',
+        avoidScamsMessage:
+            '<strong>Evita le truffe. Non condividere il tuo codice con nessuno.</strong> Il nostro team non ti chiamerà, invierà SMS o manderà email per chiederti questo codice.',
         enterAuthenticatorCode: "Inserisci il tuo codice dell'autenticatore",
         enterRecoveryCode: 'Inserisci il tuo codice di recupero',
         requiredWhen2FAEnabled: 'Obbligatorio quando l’autenticazione a due fattori è abilitata',
@@ -2901,18 +2931,20 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Cosa vuoi fare oggi?',
             errorContinue: 'Premi Continua per completare la configurazione',
             errorBackButton: 'Completa le domande di configurazione per iniziare a usare l’app',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Essere rimborsato dal mio datore di lavoro',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Inviare le spese al mio datore di lavoro',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestisci le spese del mio team',
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Tieni traccia delle spese e del budget',
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatta e dividi le spese con gli amici',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Tieni traccia delle spese aziendali',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Organizza le mie spese personali',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Altro',
         },
         employees: {
             title: 'Quanti dipendenti hai?',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL]: '1-4 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM]: '5-10 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MICRO]: '1-10 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.SMALL]: '11-50 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL]: '51-100 dipendenti',
-            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: '101-1.000 dipendenti',
+            [CONST.ONBOARDING_COMPANY_SIZE.MEDIUM]: 'Da 101 a 1.000 dipendenti',
             [CONST.ONBOARDING_COMPANY_SIZE.LARGE]: 'Più di 1.000 dipendenti',
         },
         accounting: {
@@ -3379,6 +3411,7 @@ ${amount} per ${merchant} - ${date}`,
         whenClearStatus: 'Quando dovremmo cancellare il tuo stato?',
         setVacationDelegate: `Imposta un delegato per le ferie per approvare i report per tuo conto mentre sei fuori ufficio.`,
         cannotSetVacationDelegate: `Non puoi impostare un delegato per le ferie perché al momento sei il delegato per i seguenti membri:`,
+        addVacationDelegate: 'Aggiungi delegato per le ferie',
         vacationDelegateError: 'Si è verificato un errore durante l’aggiornamento del tuo delegato per le ferie.',
         asVacationDelegate: (nameOrEmail: string) => `come delegato per le ferie di ${nameOrEmail}`,
         toAsVacationDelegate: (submittedToName: string, vacationDelegateName: string) => `a ${submittedToName} come delegato ferie per ${vacationDelegateName}`,
@@ -3481,6 +3514,11 @@ ${amount} per ${merchant} - ${date}`,
         confirmationStepHeader: 'Controlla le tue informazioni.',
         confirmationStepSubHeader: 'Controlla attentamente i dettagli qui sotto e seleziona la casella delle condizioni per confermare.',
         toGetStarted: 'Aggiungi un conto bancario personale per ricevere rimborsi, pagare fatture o attivare l’Expensify Wallet.',
+        updatePersonalInfo: 'Aggiorna conto bancario',
+        updatePersonalInfoFailure: 'Impossibile aggiornare le informazioni del conto bancario. Riprova più tardi.',
+        updateSuccessTitle: 'Conto bancario aggiornato!',
+        updateSuccessHeader: 'Conto bancario aggiornato',
+        updateSuccessMessage: 'Complimenti, il tuo conto bancario è configurato e pronto a ricevere rimborsi.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',
@@ -3508,8 +3546,8 @@ ${amount} per ${merchant} - ${date}`,
     messages: {
         errorMessageInvalidPhone: `Inserisci un numero di telefono valido senza parentesi né trattini. Se ti trovi fuori dagli Stati Uniti, includi il prefisso internazionale del tuo paese (ad es. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email non valida',
-        userIsAlreadyMember: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già membro di ${name}`,
-        userIsAlreadyAnAdmin: ({login, name}: UserIsAlreadyMemberParams) => `${login} è già un amministratore di ${name}`,
+        userIsAlreadyMember: (login: string, name: string) => `${login} è già membro di ${name}`,
+        userIsAlreadyAnAdmin: (login: string, name: string) => `${login} è già un amministratore di ${name}`,
     },
     onfidoStep: {
         acceptTerms: 'Continuando con la richiesta di attivazione del tuo Expensify Wallet, confermi di aver letto, compreso e accettato',
@@ -4155,7 +4193,6 @@ ${amount} per ${merchant} - ${date}`,
             everyone: 'Tutti',
             delete: 'Elimina spazio di lavoro',
             settings: 'Impostazioni',
-            reimburse: 'Rimborsi',
             categories: 'Categorie',
             tags: 'Tag',
             customField1: 'Campo personalizzato 1',
@@ -4279,6 +4316,14 @@ ${amount} per ${merchant} - ${date}`,
             budgetFrequencyUnit: {monthly: 'mese', yearly: 'anno'},
             budgetTypeForNotificationMessage: {tag: 'etichetta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni della Carta Expensify verranno esportate automaticamente in un "Conto Passivo Carta Expensify" creato con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">la nostra integrazione</a>.</muted-text-label>`,
+            travelInvoicing: 'Esporta conti da pagare di Expensify Travel a',
+            travelInvoicingVendor: 'Fornitore di viaggi',
+            travelInvoicingPayableAccount: 'Conto debiti per viaggi',
+            hr: 'Risorse umane',
+        },
+        createdForClient: {
+            title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
+            description: 'Ottime notizie 🎉. Contattaci se hanno bisogno di aiuto con la configurazione.',
         },
         receiptPartners: {
             uber: {
@@ -4567,9 +4612,6 @@ ${amount} per ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
-            travelInvoicing: 'Esporta debiti di Expensify Travel verso',
-            travelInvoicingVendor: 'Fornitore di viaggi',
-            travelInvoicingPayableAccount: 'Conto debiti per viaggi',
         },
         workspaceList: {
             joinNow: 'Iscriviti ora',
@@ -4696,6 +4738,7 @@ ${amount} per ${merchant} - ${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Fatture fornitori',
                 },
             },
+            travelInvoicingDescription: 'Le spese di viaggio verranno esportate come addebiti su carta di credito nel conto Sage Intacct specificato di seguito.',
             creditCardAccount: 'Conto della carta di credito',
             defaultVendor: 'Fornitore predefinito',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -4742,8 +4785,8 @@ ${amount} per ${merchant} - ${date}`,
             journalPostingPreference: {
                 label: 'Preferenze di registrazione delle scritture contabili',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Voce singola, con dettagli per ogni report',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Voce singola per ogni spesa',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Voce singola per ogni spesa',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Voce singola e dettagliata per ogni report',
                 },
             },
             invoiceItem: {
@@ -4809,6 +4852,7 @@ ${amount} per ${merchant} - ${date}`,
 
                             Se desideri impostare un fornitore specifico per ogni carta, vai su *Impostazioni > Domini > Carte aziendali*.
                         `),
+                        travelDescription: 'Le spese di viaggio verranno esportate come registrazioni contabili sull’account NetSuite specificato di seguito.',
                     },
                 },
                 expenseReportDestinationConfirmDescription:
@@ -5253,6 +5297,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     requiredColumns: (missingColumns: string) => `Assegna una colonna a ciascuno degli attributi: ${missingColumns}.`,
                     duplicateColumns: (duplicateColumn: string) => `Ops! Hai associato un singolo campo ("${duplicateColumn}") a più colonne. Controlla e riprova.`,
                 },
+                fileImportDescription: "Un'opzione manuale se la tua banca non può inviare un feed.",
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ultimo giorno del mese',
@@ -5346,12 +5391,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             settlementFrequencyDescription: 'Scegli con quale frequenza pagherai il saldo della tua Carta Expensify.',
             settlementFrequencyInfo:
                 'Se desideri passare alla liquidazione mensile, dovrai collegare il tuo conto bancario tramite Plaid e avere uno storico del saldo positivo di 90 giorni.',
+            applyCashbackToBill: 'Applica il cashback alla mia fattura Expensify',
+            applyCashbackToBillDescription: 'Il cashback della Carta Expensify verrà utilizzato per il pagamento della tua fattura Expensify.',
             frequency: {
                 daily: 'Quotidiano',
                 monthly: 'Mensile',
             },
             cardDetails: 'Dettagli carta',
-            cardPending: ({name}: {name: string}) => `La carta è al momento in sospeso e verrà emessa non appena l'account di ${name} sarà convalidato.`,
             virtual: 'Virtuale',
             physical: 'Fisico',
             deactivate: 'Disattiva carta',
@@ -5386,6 +5432,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             oneMoreStepDescription: 'Sembra che dobbiamo verificare manualmente il tuo conto bancario. Vai su Concierge, dove ti aspettano le istruzioni.',
             gotIt: 'Ho capito',
             goToConcierge: 'Vai a Concierge',
+            exportAsCSV: 'Esporta come CSV',
+            csvColumnType: 'Tipo',
+            csvColumnLimitType: 'Tipo di limite',
+            csvColumnLimit: 'Limite',
         },
         categories: {
             deleteCategories: 'Elimina categorie',
@@ -5508,6 +5558,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             reduceLimitTitle: 'Ridurre il limite di spesa per i viaggi?',
                             reduceLimitWarning:
                                 'Se riduci il limite, i membri che hanno già speso più di questo importo non potranno effettuare nuove prenotazioni di viaggio fino al mese prossimo.',
+                            provisioningError:
+                                'Non siamo riusciti a configurare alcuni membri del tuo spazio di lavoro per la fatturazione centralizzata. Riprova più tardi o contatta Concierge per assistenza.',
                         },
                     },
                     disableModal: {
@@ -5690,6 +5742,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 subtitle: 'Imposta una tariffa oraria fatturabile per il rilevamento del tempo.',
                 defaultHourlyRate: 'Tariffa oraria predefinita',
             },
+            hrWarningModal: {disconnectText: 'Per disattivare le risorse umane, disconnetti prima Gusto da questo spazio di lavoro.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
@@ -5976,6 +6029,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 `Se rimuovi ${memberName} da questo spazio di lavoro, lo sostituiremo come referente tecnico con ${workspaceOwner}, il proprietario dello spazio di lavoro.`,
             cannotRemoveUserDueToReport: ({memberName}: {memberName: string}) =>
                 `${memberName} ha un rapporto in sospeso su cui deve intervenire. Chiedi loro di completare l’azione richiesta prima di rimuoverlə dallo spazio di lavoro.`,
+            allMembers: 'Tutti i membri',
+            admins: 'Amministratori',
+            approvers: 'Approvatori',
+            auditors: 'Revisori',
+            emptyRoleFilter: {title: 'Nessun membro corrisponde a questo filtro', subtitle: 'Invita un membro o modifica il filtro qui sopra.'},
+            configureGustoSync: 'Configura la sincronizzazione con Gusto.',
+            syncWithGusto: 'Sincronizza con Gusto',
         },
         card: {
             getStartedIssuing: 'Inizia emettendo la tua prima carta virtuale o fisica.',
@@ -6413,7 +6473,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             updateToUSD: 'Aggiorna a USD',
             updateWorkspaceCurrency: 'Aggiorna la valuta dello spazio di lavoro',
             workspaceCurrencyNotSupported: 'Valuta dello spazio di lavoro non supportata',
-            yourWorkspace: `La tua area di lavoro è impostata su una valuta non supportata. Visualizza l’<a href="${CONST.CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL}">elenco delle valute supportate</a>.`,
+            yourWorkspace: `La tua area di lavoro è impostata su una valuta non supportata. Visualizza l’<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">elenco delle valute supportate</a>.`,
             chooseAnExisting: 'Scegli un conto bancario esistente per pagare le spese oppure aggiungine uno nuovo.',
         },
         changeOwner: {
@@ -6620,6 +6680,13 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 upgradeWorkspaceWarning: `Impossibile eseguire l'upgrade dello spazio di lavoro`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione degli spazi di lavoro. Contatta un amministratore per assistenza.',
             },
+            hr: {
+                title: 'Integrazioni HR',
+                description:
+                    'Collega il tuo provider HR per sincronizzare automaticamente i dipendenti e gestire i flussi di approvazione. Mantieni l’organigramma del tuo team e la struttura dei report sempre aggiornati senza lavoro manuale.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Le integrazioni HR sono disponibili solo con il piano Control, a partire da <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per membro al mese.` : `per membro attivo al mese.`}</muted-text>`,
+            },
         },
         downgrade: {
             commonFeatures: {
@@ -6721,6 +6788,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 gambling: 'Gioco d’azzardo',
                 tobacco: 'Tabacco',
                 adultEntertainment: 'Intrattenimento per adulti',
+                giftCard: 'Acquisto di carte regalo',
+                handwrittenReceipt: 'Ricevute scritte a mano',
                 requireCompanyCard: 'Richiedi le carte aziendali per tutti gli acquisti',
                 requireCompanyCardDescription: 'Contrassegna tutte le spese in contanti, inclusi chilometraggio e indennità giornaliere.',
                 requireCompanyCardDisabledTooltip: 'Abilita Carte aziendali (in Altre funzionalità) per sbloccare.',
@@ -6821,6 +6890,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             customRules: {
                 title: 'Politica di spesa',
                 cardSubtitle: 'Qui trovi il regolamento spese del tuo team, così tutti sono allineati su cosa è coperto.',
+                policyDocument: 'Documento di politica',
+                policyText: 'Testo della politica',
             },
             spendRules: {
                 title: 'Spesa',
@@ -6865,7 +6936,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 currencyMismatchTitle: 'Valuta non corrispondente',
                 currencyMismatchPrompt: 'Per impostare un importo massimo, seleziona carte che si regolano nella stessa valuta.',
                 reviewSelectedCards: 'Controlla le carte selezionate',
-                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} altro`,
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => (count > 0 ? `${summary}, +${count} altri` : summary),
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Applica almeno una regola di spesa a una carta',
                 confirmErrorCardRequired: 'Il campo Carta è obbligatorio',
                 confirmErrorApplyAtLeastOneSpendRule: 'Applica almeno una regola di spesa',
@@ -6873,6 +6944,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 merchants: 'Esercenti',
                 noAvailableCards: 'Tutte le carte hanno già una regola',
                 noAvailableCardsSubtitle: 'Modifica una regola carta esistente per apportare modifiche',
+                noCardsIssuedTitle: 'Nessuna Carta Expensify emessa',
+                noCardsIssuedSubtitle: 'Emetti Carte Expensify per creare regole di spesa',
                 max: 'Massimo',
                 categoryOptions: {
                     [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Compagnie aeree',
@@ -6900,6 +6973,30 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 editRuleTitle: 'Modifica regola',
                 deleteRule: 'Elimina regola',
                 deleteRuleConfirmation: 'Sei sicuro di voler eliminare questa regola?',
+                summaryMerchants: ({
+                    merchants,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    merchants: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'esercenti' : 'esercente'}: ${merchants}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
+                summaryCategories: ({
+                    categories,
+                    hiddenCount,
+                    shownCount,
+                    action,
+                }: {
+                    categories: string;
+                    hiddenCount: number;
+                    shownCount: number;
+                    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
+                }) =>
+                    `${action === CONST.SPEND_RULES.ACTION.BLOCK ? 'Bloccato' : 'Consentito'} ${shownCount > 1 ? 'categorie' : 'categoria'}: ${categories}${hiddenCount > 0 ? `, +${hiddenCount} in più` : ''}`,
             },
         },
         planTypePage: {
@@ -6912,6 +7009,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     label: 'Controllo',
                     description: 'Per le organizzazioni con requisiti avanzati.',
                 },
+                submit2026: {
+                    label: 'Invia',
+                    description: 'Per i dipendenti che desiderano inviare le spese al proprio datore di lavoro.',
+                },
             },
             description: 'Scegli il piano più adatto a te. Per un elenco dettagliato di funzionalità e prezzi, consulta la nostra',
             subscriptionLink: 'pagina di aiuto su tipi di piano e prezzi',
@@ -6920,6 +7021,50 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 other: `Ti sei impegnato per ${count} membri attivi nel piano Control fino alla fine dell’abbonamento annuale, il ${annualSubscriptionEndDate}. Puoi passare all’abbonamento a consumo e effettuare il downgrade al piano Collect a partire dal ${annualSubscriptionEndDate} disattivando il rinnovo automatico in`,
             }),
             subscriptions: 'Abbonamenti',
+        },
+        hr: {
+            title: 'Risorse umane',
+            subtitle: 'Collega gli strumenti HR e mantieni sincronizzate le approvazioni dei dipendenti.',
+            settingsTitle: 'Impostazioni Gusto',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'gustoSyncTitle':
+                        return 'Synchronizing Gusto Employees';
+                    case 'gustoSyncLoadData':
+                        return 'Loading data from Gusto';
+                    case 'gustoSyncProvisioning':
+                        return 'Provisioning employees in policy';
+                    case 'jobDone':
+                        return 'In attesa del caricamento dei dati importati';
+                    default: {
+                        return `Traduzione mancante per la fase: ${stage}`;
+                    }
+                }
+            },
+            gusto: {
+                title: 'Gusto',
+                approvalMode: 'Modalità approvazione',
+                finalApprover: 'Approvazione finale',
+                notSet: 'Non impostato',
+                approvalModeDescription: 'I membri e i responsabili sono configurati per la sincronizzazione con Gusto.',
+                approvalModeWarningTitle: 'Cambiare modalità di approvazione?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Sei sicuro di voler cambiare la modalità di approvazione per questo spazio di lavoro? Scopri di più sulle diverse modalità di flusso di lavoro abilitate per Gusto nel nostro <a href="${helpSiteURL}">sito di assistenza</a>.`,
+                approvalModeWarningConfirm: 'Cambia modalità di approvazione',
+                approvalModes: {
+                    basic: {label: 'Approvazione di base', description: 'Tutti gli utenti inviano a una singola persona per l’elaborazione e l’approvazione.'},
+                    manager: {label: 'Approvazione del responsabile', description: 'I dipendenti inviano i report al proprio responsabile diretto configurato in Gusto.'},
+                    custom: {label: 'Approvazione personalizzata', description: 'Imposterò manualmente i flussi di approvazione in Expensify.'},
+                },
+                connect: 'Collega',
+                connectionDescription: 'Collega Gusto per sincronizzare le approvazioni dei dipendenti con il tuo spazio di lavoro.',
+                syncNow: 'Sincronizza ora',
+                disconnect: 'Disconnetti',
+                lastSync: (relativeDate: string) => `Ultima sincronizzazione ${relativeDate}`,
+                syncError: 'Impossibile connettersi a Gusto',
+                disconnectTitle: 'Disconnetti Gusto',
+                disconnectPrompt: 'Sei sicuro di voler disconnettere Gusto?',
+            },
         },
     },
     getAssistancePage: {
@@ -7011,7 +7156,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `ha aggiunto ${approverName} (${approverEmail}) come approvatore per il campo ${field} «${name}»`,
         deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `ha rimosso ${approverName} (${approverEmail}) come approvatore per il campo ${field} "${name}"`,
-        updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
+        updateApprovalRule: (field: string, name: string, newApproverEmail: string, newApproverName: string | undefined, oldApproverEmail: string, oldApproverName: string | undefined) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `ha modificato l’approvatore per il campo ${field} «${name}» in ${formatApprover(newApproverName, newApproverEmail)} (in precedenza ${formatApprover(oldApproverName, oldApproverEmail)})`;
         },
@@ -7060,7 +7205,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             }
             return `ha modificato la categoria "${categoryName}" in ${newValue} (precedentemente ${oldValue})`;
         },
-        updateCategoryMaxAmountNoItemizedReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
+        updateCategoryMaxAmountNoItemizedReceipt: (categoryName: string, oldValue: string | undefined, newValue: string) => {
             if (!oldValue) {
                 return `ha aggiornato la categoria "${categoryName}" modificando Ricevute dettagliate in ${newValue}`;
             }
@@ -7087,7 +7232,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             }
             return `ha aggiornato il tag "${tagName}" nell'elenco "${tagListName}" aggiungendo un ${updatedField} di "${newValue}"`;
         },
-        updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
+        updateCustomUnit: (customUnitName: string, newValue: string, oldValue: string, updatedField: string) =>
             `ha modificato ${customUnitName} ${updatedField} in "${newValue}" (precedentemente "${oldValue}")`,
         updateCustomUnitTaxEnabled: (newValue: boolean) => `${newValue ? 'abilitato' : 'disabilitato'} monitoraggio delle tasse sulle tariffe chilometriche`,
         addCustomUnitRate: (customUnitName: string, rateName: string) => `ha aggiunto una nuova tariffa ${customUnitName} "${rateName}"`,
@@ -7108,7 +7253,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updatedCustomUnitRateEnabled: (customUnitName: string, customUnitRateName: string, newValue: boolean) => {
             return `${newValue ? 'abilitato' : 'disattivato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `ha rimosso la tariffa "${rateName}" per l'unità personalizzata "${customUnitName}"`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `ha rimosso la tariffa "${rateName}" per l'unità personalizzata "${customUnitName}"`,
         updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `imposta il valore predefinito del campo report "${fieldName}" su "${defaultValue}"`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `ha aggiunto l’opzione «${optionName}» al campo del rendiconto «${fieldName}»`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `ha rimosso l’opzione «${optionName}» dal campo del report «${fieldName}»`,
@@ -7163,7 +7308,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         downgradedWorkspace: 'ha effettuato il downgrade di questo spazio di lavoro al piano Collect',
         updatedAuditRate: (oldAuditRate: number, newAuditRate: number) =>
             `ha modificato la percentuale di report indirizzati casualmente per l’approvazione manuale a ${Math.round(newAuditRate * 100)}% (in precedenza ${Math.round(oldAuditRate * 100)}%)`,
-        updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
+        updatedManualApprovalThreshold: (oldLimit: string, newLimit: string) =>
             `ha modificato il limite di approvazione manuale per tutte le spese a ${newLimit} (in precedenza ${oldLimit})`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
@@ -7268,11 +7413,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 ? `ha modificato il pagatore autorizzato in "${newReimburser}" (in precedenza "${previousReimburser}")`
                 : `ha modificato il pagatore autorizzato in "${newReimburser}"`,
         updateReimbursementEnabled: (enabled: boolean) => `Rimborsi ${enabled ? 'abilitato' : 'disattivato'}`,
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `ha cambiato il nome dell'imposta personalizzata in "${newName}" (precedentemente "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+        updateCustomTaxName: (oldName: string, newName: string) => `ha cambiato il nome dell'imposta personalizzata in "${newName}" (precedentemente "${oldName}")`,
+        updateCurrencyDefaultTax: (oldName: string, newName: string) =>
             `ha modificato l'aliquota fiscale predefinita della valuta dello spazio di lavoro in "${newName}" (in precedenza "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `ha modificato l'aliquota fiscale predefinita per valuta estera in "${newName}" (in precedenza "${oldName}")`,
+        updateForeignCurrencyDefaultTax: (oldName: string, newName: string) => `ha modificato l'aliquota fiscale predefinita per valuta estera in "${newName}" (in precedenza "${oldName}")`,
         addTax: (taxName: string) => `ha aggiunto l’imposta “${taxName}”`,
         deleteTax: (taxName: string) => `ha rimosso l'imposta "${taxName}"`,
         updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
@@ -7300,6 +7444,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         setReceiptRequiredAmount: (newValue: string) => `imposta l’importo richiesto per la ricevuta su "${newValue}"`,
         changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `ha modificato l’importo richiesto per la ricevuta in "${newValue}" (in precedenza "${oldValue}")`,
         removedReceiptRequiredAmount: (oldValue: string) => `ha rimosso l’importo richiesto per la ricevuta (in precedenza «${oldValue}»)`,
+        setItemizedReceiptRequiredAmount: (newValue: string) => `imposta l’importo richiesto per la ricevuta con voci singole su "${newValue}"`,
+        changedItemizedReceiptRequiredAmount: (oldValue: string, newValue: string) =>
+            `ha modificato l’importo richiesto per la ricevuta con voci a "${newValue}" (in precedenza "${oldValue}")`,
+        removedItemizedReceiptRequiredAmount: (oldValue: string) => `ha rimosso l’importo richiesto per la ricevuta dettagliata (precedentemente "${oldValue}")`,
         setMaxExpenseAmount: (newValue: string) => `imposta l’importo massimo della spesa su "${newValue}"`,
         changedMaxExpenseAmount: (oldValue: string, newValue: string) => `ha modificato l'importo massimo della spesa a "${newValue}" (precedentemente "${oldValue}")`,
         removedMaxExpenseAmount: (oldValue: string) => `importo massimo spesa rimosso (precedentemente "${oldValue}")`,
@@ -7311,14 +7459,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         updateTagListRequired: (tagListsName: string, isRequired: boolean) => `ha modificato l’elenco tag "${tagListsName}" in ${isRequired ? 'obbligatorio' : 'non obbligatorio'}`,
         importTags: 'tag importati da un foglio di calcolo',
         deletedAllTags: 'ha eliminato tutti i tag',
-        updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
+        updateCustomUnitDefaultCategory: (customUnitName: string, newValue?: string, oldValue?: string) =>
             `ha cambiato la categoria predefinita di ${customUnitName} in "${newValue}" ${oldValue ? `(precedentemente "${oldValue}")` : ''}`,
         importCustomUnitRates: (customUnitName: string) => `tariffe importate per l'unità personalizzata "${customUnitName}"`,
         updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `ha modificato l’aliquota di "${customUnitName}", tariffa "${customUnitRateName}", sotto-tariffa "${customUnitSubRateName}" ${updatedField} in "${newValue}" (precedentemente "${oldValue}")`,
         removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `rimossa tariffa "${customUnitName}" tariffa "${customUnitRateName}" sottotariffa "${removedSubRateName}"`,
-        addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
+        addBudget: (frequency: string, entityName: string, entityType: string, shared?: string, individual?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `con soglia di notifica pari al "${notificationThreshold}%"` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
                 return `aggiunto ${frequency} budget individuale di "${individual}" e ${frequency} budget condiviso di "${shared}"${thresholdSuffix} a ${entityType} "${entityName}"`;
@@ -7328,18 +7476,18 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             }
             return `ha aggiunto un budget condiviso ${frequency} di "${shared}"${thresholdSuffix} a ${entityType} "${entityName}"`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }: UpdatedBudgetParams) => {
+        updateBudget: (
+            entityType: string,
+            entityName: string,
+            oldFrequency?: string,
+            newFrequency?: string,
+            oldIndividual?: string,
+            newIndividual?: string,
+            oldShared?: string,
+            newShared?: string,
+            oldNotificationThreshold?: number,
+            newNotificationThreshold?: number,
+        ) => {
             const frequencyChanged = !!(newFrequency && oldFrequency !== newFrequency);
             const sharedChanged = !!(newShared && oldShared !== newShared);
             const individualChanged = !!(newIndividual && oldIndividual !== newIndividual);
@@ -7374,7 +7522,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             }
             return `budget aggiornato per ${entityType} «${entityName}»: ${changesList.join('; ')}`;
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
+        deleteBudget: (entityType: string, entityName: string, frequency?: string, individual?: string, shared?: string, notificationThreshold?: number) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `con soglia di notifica pari al "${notificationThreshold}%"` : '';
             if (shared && individual) {
                 return `ha rimosso ${frequency} il budget condiviso di "${shared}" e il budget individuale di "${individual}"${thresholdSuffix} da ${entityType} "${entityName}"`;
@@ -7440,8 +7588,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `${enabled ? 'abilitato' : 'disabilitato'} titolari di carta per eliminare le transazioni della carta per il flusso di carte "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `ha modificato il giorno di fine periodo dell’estratto conto del flusso carta "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (in precedenza "${previousValue}")` : ''}`,
-        addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
+        addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `aggiunto campo di report ${fieldType} "${fieldName}"${defaultValue ? ` con valore predefinito "${defaultValue}"` : ''}`,
+        updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'abilitato' : 'disabilitato'} il requisito per gli acquisti con carta aziendale`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -7570,20 +7719,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         resetColumns: 'Reimposta colonne',
         groupColumns: 'Raggruppa colonne',
         expenseColumns: 'Colonne spese',
-        statements: 'Estratti conto',
-        cardStatements: 'Estratti carta',
-        monthlyAccrual: 'Rateo mensile',
-        unapprovedCash: 'Contanti non approvati',
-        unapprovedCard: 'Carta non approvata',
-        reconciliation: 'Riconciliazione',
-        topSpenders: 'Maggiori spendaccioni',
         saveSearch: 'Salva ricerca',
         deleteSavedSearch: 'Elimina ricerca salvata',
         deleteSavedSearchConfirm: 'Sei sicuro di voler eliminare questa ricerca?',
         searchName: 'Cerca nome',
         savedSearchesMenuItemTitle: 'Salvato',
-        topCategories: 'Categorie principali',
-        topMerchants: 'Commercianti principali',
+        urlCopied: 'URL copiato',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
             editMultiple: 'Modifica multipli',
@@ -7598,6 +7739,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             duplicateExpense: ({count}: {count: number}) => `Duplica ${count === 1 ? 'spesa' : 'spese'}`,
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
             undelete: 'Ripristina',
+            duplicateReport: ({count}: {count: number}) => `Duplica ${count === 1 ? 'report' : 'report'}`,
         },
         filtersHeader: 'Filtri',
         filters: {
@@ -7637,6 +7779,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 cardFeedName: ({cardFeedBankName, cardFeedLabel}: {cardFeedBankName: string; cardFeedLabel?: string}) =>
                     `Tutti ${cardFeedBankName}${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
                 cardFeedNameCSV: ({cardFeedLabel}: {cardFeedLabel?: string}) => `Tutte le carte CSV importate${cardFeedLabel ? ` - ${cardFeedLabel}` : ''}`,
+                centralInvoicing: 'Fatturazione centralizzata',
             },
             reportField: (name: string, value: string) => `${name} è ${value}`,
             current: 'Attuale',
@@ -7670,6 +7813,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Carta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Rimborso',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Fatturazione centralizzata',
             },
             is: 'È',
             action: {
@@ -7718,6 +7862,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         recentSearches: 'Ricerche recenti',
         recentChats: 'Chat recenti',
         searchIn: 'Cerca in',
+        askConcierge: (message: string) => `Chiedi a Concierge “${message}”`,
         searchPlaceholder: 'Cerca qualcosa...',
         suggestions: 'Suggerimenti',
         suggestionsAvailable: (
@@ -7744,6 +7889,24 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             pleaseSelectDatesForBothFromAndTo: 'Seleziona le date per Da e A',
         },
         spendOverTime: 'Spesa nel tempo',
+        tabs: {
+            expenseReports: 'Note spese',
+            reports: 'Report',
+            expenses: 'Spese',
+            submit: 'Bozze',
+            approve: 'Richiede approvazione',
+            pay: 'Pronto per pagare',
+            accounting: 'Contabilità',
+            export: 'In attesa di esportazione',
+            unapprovedCash: 'Ratei e risconti in contanti',
+            unapprovedCard: 'Ratei carta',
+            statements: 'Estratti conto carta',
+            reconciliation: 'Riconciliazione bancaria',
+            insights: 'Analisi',
+            topSpenders: 'Maggiori spendaccioni',
+            topCategories: 'Categorie principali',
+            topMerchants: 'Principali esercenti',
+        },
     },
     genericErrorPage: {
         title: 'Oops, qualcosa è andato storto!',
@@ -7799,7 +7962,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             emptyReportConfirmationTitle: 'Hai già un report vuoto',
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Sei sicuro di voler creare un altro report in ${workspaceName}? Puoi accedere ai tuoi report vuoti in`,
-            emptyReportConfirmationPromptLink: 'Report',
             emptyReportConfirmationDontShowAgain: 'Non mostrarmelo più',
             genericWorkspaceName: 'questo spazio di lavoro',
         },
@@ -7837,6 +7999,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     reimburseableLink: 'spese vive',
                     nonReimbursableLink: 'spese con carta aziendale',
                     pending: (label: string) => `ha iniziato a esportare questo resoconto su ${label}...`,
+                    travelCardLink: 'spese con carta di viaggio',
                 },
                 integrationsMessage: (errorMessage: string, label: string, linkText?: string, linkURL?: string) =>
                     `esportazione di questo report su ${label} non riuscita ("${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}")`,
@@ -7858,6 +8021,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 takeControl: `ha preso il controllo`,
                 integrationSyncFailed: (label: string, errorMessage: string, workspaceAccountingLink?: string) =>
                     `si è verificato un problema di sincronizzazione con ${label}${errorMessage ? ` ("${errorMessage}")` : ''}. Risolvi il problema nelle <a href="${workspaceAccountingLink}">impostazioni dello spazio di lavoro</a>.`,
+                integrationSyncFailedRecurrence: ({count}: {count: number}) => `(Ripetuto ${count} volte.)`,
                 companyCardConnectionBroken: ({feedName, workspaceCompanyCardRoute}: {feedName: string; workspaceCompanyCardRoute: string}) =>
                     `La connessione ${feedName} è interrotta. Per ripristinare le importazioni della carta, <a href='${workspaceCompanyCardRoute}'>accedi alla tua banca</a>.`,
                 plaidBalanceFailure: ({maskedAccountNumber, walletRoute}: {maskedAccountNumber: string; walletRoute: string}) =>
@@ -7969,6 +8133,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         selectAllFeatures: 'Seleziona tutte le funzionalità',
         selectAllTransactions: 'Seleziona tutte le transazioni',
         selectAllItems: 'Seleziona tutti gli elementi',
+        selectAllCategories: 'Seleziona tutte le categorie',
+        selectAllDistanceRates: 'Seleziona tutte le tariffe chilometriche',
+        selectAllTags: 'Seleziona tutti i tag',
+        selectAllTaxes: 'Seleziona tutte le imposte',
+        selectAllPerDiemRates: 'Seleziona tutte le tariffe giornaliere',
+        selectAllMembers: 'Seleziona tutti i membri',
+        selectAllValues: 'Seleziona tutti i valori',
+        selectAllRules: 'Seleziona tutte le regole',
     },
     parentReportAction: {
         deletedReport: 'Report eliminato',
@@ -8065,6 +8237,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         companyCard: 'Carta aziendale',
         expensifyCard: 'Carta Expensify',
         centralInvoicing: 'Fatturazione centralizzata',
+        travelCard: 'Carta Viaggio',
     },
     distance: {
         addStop: 'Aggiungi fermata',
@@ -8108,13 +8281,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         stopped: 'Interrotto',
         start: 'Avvia',
         stop: 'Interrompi',
+        save: 'Salva',
+        resume: 'Riprendi',
         discard: 'Scarta',
-        stopGpsTrackingModal: {
-            title: 'Interrompi tracciamento GPS',
-            prompt: 'Sei sicuro? Questo terminerà il percorso in corso.',
-            cancel: 'Riprendi monitoraggio',
-            confirm: 'Interrompi tracciamento GPS',
-        },
         discardDistanceTrackingModal: {
             title: 'Annulla rilevamento distanza',
             prompt: 'Sei sicuro? Questo eliminerà il tuo percorso attuale e non potrà essere annullato.',
@@ -8173,7 +8342,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             prompt: 'Consenti l’accesso alla posizione nelle impostazioni del dispositivo per iniziare il tracciamento della distanza GPS.',
         },
         gpsFloatingPillText: 'Tracciamento GPS in corso...',
-        liveActivity: {subtitle: 'Rilevamento distanza', button: 'Visualizza avanzamento'},
+        liveActivity: {subtitle: 'Rilevamento distanza', button: 'Visualizza avanzamento', lockScreenBadgeText: 'Distanza', lockScreenTrackingText: 'Tracciamento in corso...'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Pagella smarrita o danneggiata',
@@ -8242,7 +8411,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         missingCategory: 'Categoria mancante',
         missingComment: 'Descrizione obbligatoria per la categoria selezionata',
         missingAttendees: 'Per questa categoria sono richiesti più partecipanti',
-        missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manca ${tagName ?? 'etichetta'}`,
+        missingTag: (tagName?: string) => `Manca ${tagName ?? 'etichetta'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
                 case 'distance':
@@ -8294,6 +8463,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                         return `intrattenimento per adulti`;
                     case 'hotelIncidentals':
                         return `spese accessorie dell’hotel`;
+                    case 'giftCard':
+                        return `acquisto di carte regalo`;
+                    case 'handwrittenReceipt':
+                        return `ricevute scritte a mano`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -8588,6 +8761,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         details: {
             title: 'Dettagli dell’abbonamento',
             annual: 'Abbonamento annuale',
+            creditBalance: 'Saldo del credito',
             taxExempt: 'Richiedi esenzione fiscale',
             taxExemptEnabled: 'Esente da imposte',
             taxExemptStatus: 'Stato di esenzione fiscale',
@@ -8657,9 +8831,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             collectBillingDescription: 'Gli spazi di lavoro Collect vengono fatturati mensilmente per membro, senza impegno annuale.',
             pricing: 'Prezzi',
         },
-        requestEarlyCancellation: {
-            title: 'Richiedi annullamento anticipato',
-            subtitle: 'Qual è il motivo principale per cui stai richiedendo l’annullamento anticipato?',
+        cancelSubscription: {
+            title: 'Annulla abbonamento',
+            subtitle: 'Qual è il motivo principale per cui vuoi annullare il tuo abbonamento?',
             subscriptionCanceled: {
                 title: 'Abbonamento annullato',
                 subtitle: 'Il tuo abbonamento annuale è stato annullato.',
@@ -8672,7 +8846,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 subtitle:
                     'Grazie per averci informato che sei interessato/a a disdire il tuo abbonamento. Stiamo esaminando la tua richiesta e ti contatteremo presto tramite la tua chat con <concierge-link>Concierge</concierge-link>.',
             },
-            acknowledgement: `Richiedendo la cancellazione anticipata, riconosco e accetto che Expensify non ha alcun obbligo di concedere tale richiesta ai sensi dei <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termini di servizio</a> di Expensify o di altri contratti di servizio applicabili tra me ed Expensify e che Expensify mantiene esclusiva discrezionalità in merito alla concessione di qualsiasi tale richiesta.`,
+            acknowledgement: `Richiedendo la cancellazione, riconosco e accetto che Expensify non ha alcun obbligo di concedere tale richiesta ai sensi dei <a href=${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>Termini di servizio</a> di Expensify o di altri contratti di servizio applicabili tra me ed Expensify e che Expensify mantiene esclusiva discrezionalità in merito alla concessione di qualsiasi tale richiesta.`,
         },
     },
     feedbackSurvey: {
@@ -8836,12 +9010,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',
         saveSearchTooltip: '<tooltip><strong>Rinomina qui le ricerche salvate</strong>!</tooltip>',
         accountSwitcher: '<tooltip>Accedi ai tuoi <strong>account Copilot</strong> qui</tooltip>',
-        scanTestTooltip: {
-            main: '<tooltip><strong>Scansiona la nostra ricevuta di prova</strong> per vedere come funziona!</tooltip>',
-            manager: '<tooltip>Scegli il nostro <strong>test manager</strong> per provarlo!</tooltip>',
-            confirmation: '<tooltip>Ora, <strong>invia la tua nota spese</strong> e guarda la\nmagia che accade!</tooltip>',
-            tryItOut: 'Provalo',
-        },
         outstandingFilter: '<tooltip>Filtra per le spese\nche <strong>necessitano di approvazione</strong></tooltip>',
         scanTestDriveTooltip: '<tooltip>Invia questa ricevuta per\n<strong>completare il test drive!</strong></tooltip>',
         gpsTooltip: '<tooltip>Tracciamento GPS in corso! Quando hai finito, interrompi il tracciamento qui sotto.</tooltip>',
@@ -9018,7 +9186,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             resetDomain: 'Reimposta dominio',
             resetDomainExplanation: ({domainName}: {domainName?: string}) => `Digita <strong>${domainName}</strong> per confermare il ripristino del dominio.`,
             enterDomainName: 'Inserisci qui il tuo nome di dominio',
-            resetDomainInfo: `Questa azione è <strong>definitiva</strong> e i seguenti dati verranno eliminati: <br/> <bullet-list><bullet-item>Connessioni alle carte aziendali e tutte le spese non rendicontate di tali carte</bullet-item><bullet-item>Impostazioni SAML e di gruppo</bullet-item></bullet-list> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall’elenco dei tuoi domini eliminando l’email associata dalle tue <a href="#">modalità di contatto</a>.`,
+            resetDomainInfo: `Questa azione è <strong>definitiva</strong> e i seguenti dati verranno eliminati: <br/> <bullet-list><bullet-item>Connessioni alle carte aziendali e tutte le spese non rendicontate da tali carte</bullet-item><bullet-item>Impostazioni SAML e dei gruppi</bullet-item><bullet-item>Dati di viaggio e accesso a Expensify Travel</bullet-item></bullet-list> Tutti gli account, gli spazi di lavoro, i report, le spese e gli altri dati rimarranno. <br/><br/>Nota: puoi rimuovere questo dominio dall’elenco dei tuoi domini eliminando l’email associata dalle tue <a href="#">modalità di contatto</a>.`,
         },
         domainMembers: 'Membri del dominio',
         members: {
@@ -9048,12 +9216,17 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 removeMember: 'Impossibile rimuovere questo utente. Riprova.',
                 addMember: 'Impossibile aggiungere questo membro. Riprova.',
                 vacationDelegate: 'Impossibile impostare questo utente come delegato per le ferie. Riprova.',
+                moveMember: 'Impossibile spostare questo membro. Riprova.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `Non puoi impostare un delegato per le vacanze per ${email} perché al momento è il delegato per i seguenti membri:`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Sei sicuro? Questo bloccherà l’account di <strong>${email}</strong>. <br /><br /> Il nostro team esaminerà quindi l’account e rimuoverà qualsiasi accesso non autorizzato. Per riottenere l’accesso, dovranno collaborare con Concierge.`,
             reportSuspiciousActivityConfirmationPrompt: 'Esamineremo l’account per verificare che sia sicuro sbloccarlo e ti contatteremo tramite Concierge per qualsiasi domanda.',
             emptyMembers: {title: 'Nessun membro in questo gruppo', subtitle: 'Aggiungi un membro o prova a cambiare il filtro qui sopra.'},
+            moveToGroup: 'Sposta nel gruppo',
+            chooseWhereToMove: ({count}: {count: number}) => `Scegli dove spostare ${count} ${count === 1 ? 'membro' : 'membri'}.`,
+            domainGroup: 'Gruppo di domini',
+            chooseWhereToMoveName: ({name}: {name: string}) => `Scegli dove spostare ${name}.`,
         },
         common: {
             settings: 'Impostazioni',
@@ -9063,8 +9236,44 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             forceTwoFactorAuthDescription: `<muted-text>Richiedi l’autenticazione a due fattori per tutti i membri di questo dominio. Ai membri del dominio verrà chiesto di configurare l’autenticazione a due fattori sul proprio account quando effettuano l’accesso.</muted-text>`,
             forceTwoFactorAuthError: 'Impossibile modificare l’impostazione “Forza l’autenticazione a due fattori”. Riprova più tardi.',
             resetTwoFactorAuth: 'Reimposta l’autenticazione a due fattori',
+            error: 'Impossibile salvare questa modifica. Riprova.',
         },
-        groups: {title: 'Gruppi', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`})},
+        groups: {
+            title: 'Gruppi',
+            memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`}),
+            defaultGroup: 'Gruppo predefinito per i nuovi membri',
+            defaultGroupPrompt: (currentName: string, newName: string) =>
+                `Sei sicuro di voler impostare ${newName} come gruppo predefinito? I nuovi membri verranno invitati a questo gruppo invece del precedente gruppo predefinito (${currentName}). `,
+            makeDefault: 'Imposta come predefinito',
+            neverMind: 'Lascia perdere',
+            createGroupError: 'Impossibile creare questo gruppo. Riprova.',
+            permissions: 'Autorizzazioni del gruppo',
+            createNewGroupButton: 'Nuovo gruppo',
+            createGroupSubmitButton: 'Crea gruppo',
+            expensifyCardPreferredWorkspace: 'Area di lavoro preferita per Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                "Tutte le transazioni Expensify Card verranno create nell'area di lavoro preferita Expensify Card anziché nell'area di lavoro preferita.",
+            strictlyEnforceWorkspaceRules: 'Applica rigorosamente le regole dello spazio di lavoro',
+            strictlyEnforceWorkspaceRulesDescription: 'Tutte le regole dello spazio di lavoro devono essere soddisfatte prima di inviare un rapporto. Non sono consentite eccezioni manuali.',
+            restrictExpenseWorkspaceCreation: 'Limita la creazione/rimozione dell’area di lavoro spese',
+            restrictExpenseWorkspaceCreationDescription:
+                'Impedisci ai membri di poter creare un’area di lavoro spese o di rimuoversi da un’area di lavoro spese. Questo è utile per impedire alle persone di utilizzare Expensify per inviare report destinati a un uso al di fuori del tuo dominio, se combinato con un’applicazione rigorosa dell’area di lavoro.',
+            deleteGroup: 'Elimina gruppo',
+            deleteGroupDangerConfirmationModal: 'Elimina gruppo',
+            deleteGroupDangerConfirmationModalDescription: (defaultGroupName: string) =>
+                `Sei sicuro? Questo riassegnerà tutti i membri al gruppo predefinito (${defaultGroupName}) e non potrà essere annullato.`,
+            deleteGroupError: 'Impossibile eliminare questo gruppo. Riprova.',
+            preferredWorkspace: 'Spazio di lavoro preferito',
+            preferredWorkspaceDescription: (enabled: boolean) =>
+                `Tutti i nuovi report e le spese verranno creati ${enabled ? 'nello spazio di lavoro preferito selezionato' : 'in questo spazio di lavoro'}.`,
+            preferredWorkspaceSelectDescription: 'Tutte le nuove spese e i report verranno creati in questo spazio di lavoro.',
+            noWorkspacesMessage: 'Non ci sono spazi di lavoro su questo dominio. È necessario uno spazio di lavoro per abilitare questa restrizione.',
+            restrictDefaultLoginSelection: 'Limita la selezione di accesso predefinita',
+            restrictDefaultLoginSelectionDescription: 'Impedisce ai membri di modificare l’email di accesso al di fuori del dominio aziendale per eludere le restrizioni delle policy.',
+            expensifyCardPreferredWorkspaceDisabledMessage:
+                'Per utilizzare questa impostazione, l’area di lavoro preferita deve essere abilitata e la Expensify Card deve essere configurata per il dominio.',
+            findGroup: 'Trova gruppo',
+        },
     },
     proactiveAppReview: {
         title: 'Ti piace il nuovo Expensify?',

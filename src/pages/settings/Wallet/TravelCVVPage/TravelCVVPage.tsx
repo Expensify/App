@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect} from 'react';
+import {useNavigationState} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
@@ -19,6 +20,8 @@ import {resetValidateActionCodeSent} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
 /**
@@ -32,7 +35,8 @@ function TravelCVVPage() {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['TravelCVV']);
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [, lockAccountDetailsMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -45,6 +49,50 @@ function TravelCVVPage() {
     useEffect(() => () => setCvv(null), [setCvv]);
 
     const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
+    const isLoadingAccount = isLoadingOnyxValue(accountMetadata);
+    const isLoadingLockAccountDetails = isLoadingOnyxValue(lockAccountDetailsMetadata);
+    const isVerifyAccountInStack = useNavigationState((state) => state.routes.some((route) => route.name === SCREENS.SETTINGS.WALLET.TRAVEL_CVV_VERIFY_ACCOUNT));
+
+    // Auto-navigate to the magic code screen on first mount so the user
+    // doesn't have to click "Reveal Details" manually.
+    const hasAutoNavigatedRef = useRef(false);
+    useEffect(() => {
+        if (hasAutoNavigatedRef.current) {
+            return;
+        }
+        // If the verify-account (magic code) screen is already in the navigation
+        // stack, the user has previously visited it during this mount cycle (e.g.
+        // they completed or cancelled the magic code flow and returned here).
+        // Skip auto-navigation so we don't push a duplicate screen. This check
+        // runs before the loading guards because it doesn't depend on Onyx data.
+        if (isVerifyAccountInStack) {
+            hasAutoNavigatedRef.current = true;
+            return;
+        }
+        if (isLoadingAccount || isLoadingLockAccountDetails) {
+            return;
+        }
+        // Permanent conditions — set the ref so we never retry auto-navigation.
+        // If CVV is already revealed there's no reason to navigate to the magic
+        // code screen, and delegates are not allowed to request one. Unlike the
+        // transient guards below (offline / locked), these won't change during
+        // this mount, so we mark the ref to stop future effect re-runs.
+        if (cvv || isSignedInAsDelegate) {
+            hasAutoNavigatedRef.current = true;
+            return;
+        }
+        // Transient conditions — we intentionally do NOT set hasAutoNavigatedRef here.
+        // isOffline and isAccountLocked can change at any time (e.g. the user regains
+        // connectivity or the account is unlocked). By leaving the ref unset, the
+        // effect will re-run and auto-navigate once the blocking condition clears,
+        // rather than permanently giving up and forcing the user to tap "Reveal Details".
+        if (isOffline || isAccountLocked) {
+            return;
+        }
+        hasAutoNavigatedRef.current = true;
+        resetValidateActionCodeSent();
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT);
+    }, [isLoadingAccount, isLoadingLockAccountDetails, cvv, isSignedInAsDelegate, isOffline, isAccountLocked, isVerifyAccountInStack]);
 
     const handleRevealDetailsPress = useCallback(() => {
         if (isAccountLocked) {

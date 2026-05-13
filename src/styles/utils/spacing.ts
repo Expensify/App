@@ -619,6 +619,10 @@ export default {
         paddingRight: 4,
     },
 
+    pr1half: {
+        paddingRight: 6,
+    },
+
     pr2: {
         paddingRight: 8,
     },
@@ -904,5 +908,9 @@ export default {
     },
     maxHeight100Percentage: {
         maxHeight: '100%',
+    },
+
+    maxWidth100Percentage: {
+        maxWidth: '100%',
     },
 } satisfies Record<string, ViewStyle>;

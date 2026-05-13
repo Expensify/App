@@ -1,7 +1,9 @@
 import type {ValueOf} from 'type-fest';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
+import {isExpenseReport as isExpenseReportUtils} from '@libs/ReportUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +31,10 @@ function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CO
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+
+    if (isExpenseReportUtils(moneyRequestReport) && !isPaidGroupPolicy(policy)) {
+        return '';
+    }
 
     if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;

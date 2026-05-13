@@ -8,6 +8,7 @@ import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeFo
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
@@ -28,10 +29,12 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
 
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
+    const joinablePoliciesLength = Object.values(joinablePolicies ?? {}).filter((policy) => policy.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026).length;
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PRIVATE_DOMAIN);

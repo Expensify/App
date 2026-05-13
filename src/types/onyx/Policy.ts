@@ -188,12 +188,21 @@ type UberReceiptPartner = {
     errorFields?: OnyxCommon.ErrorFields;
 };
 
+/** Receipt partner data keyed by partner name */
+type ReceiptPartnerDataByName = {
+    /** uber partner */
+    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
+};
+
 /** Policy Receipt partners */
 type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Whether receipt partners are enabled */
         enabled?: boolean;
-    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+    } & {
+        /** Per receipt partner integration data */
+        [K in keyof ReceiptPartnerDataByName]?: OnyxCommon.OnyxValueWithOfflineFeedback<ReceiptPartnerDataByName[K]>;
+    }
 >;
 
 /** Policy disabled fields */
@@ -1074,6 +1083,12 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
 
+        /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
+        travelInvoicingPayableAccountID?: string;
+
+        /** Whether Travel Invoicing JEs post as individual entries per expense or a single grouped entry */
+        travelInvoicingJournalPostingPreference?: NetSuiteJournalPostingPreferences;
+
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
         provincialTaxPostingAccount?: string;
 
@@ -1283,6 +1298,9 @@ type SageIntacctExportConfig = {
 
     /** Accounting method for Sage Intacct */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** The payable account to use for Expensify Travel expenses when exporting to Sage Intacct */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /**
@@ -1567,6 +1585,12 @@ type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the policy prohibits adult entertainment expenses */
     adultEntertainment?: boolean;
+
+    /** Whether the policy prohibits gift card purchases */
+    giftCard?: boolean;
+
+    /** Whether the policy prohibits handwritten receipt expenses */
+    handwrittenReceipt?: boolean;
 }>;
 
 /** Day of the month to schedule submission  */
@@ -2004,6 +2028,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** A set of custom rules defined with natural language */
         customRules?: string;
 
+        /** URL of the workspace rules PDF document stored in a private S3 bucket */
+        rulesDocumentURL?: string;
+
         /** ReportID of the admins room for this workspace - This should be a string, we are keeping the number for backward compatibility */
         chatReportIDAdmins?: string | number;
 
@@ -2054,6 +2081,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Company Cards feature is enabled */
         areCompanyCardsEnabled?: boolean;
+
+        /** Whether the HR feature is enabled */
+        isHREnabled?: boolean;
 
         /** The verified bank account linked to the policy */
         achAccount?: ACHAccount;
@@ -2133,7 +2163,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the policy requires purchases to be on a company card */
         requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
-    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
+    'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes | 'isHREnabled' | 'isTimeTrackingEnabled' | 'timeTrackingDefaultRate'
 >;
 
 /** Stages of policy connection sync */

@@ -24,15 +24,16 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardDescription} from '@libs/CardUtils';
-import {isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
+import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getAmount,
     getAttendees,
+    getConvertedAmount,
     getCurrency,
     getDescription,
     getExchangeRate,
@@ -144,7 +145,10 @@ type TransactionItemRowProps = {
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
+    policyForMovingExpenses?: Policy;
     nonPersonalAndWorkspaceCards?: CardList;
+    isActionColumnWide?: boolean;
+    shouldRemoveTotalColumnFlex?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -198,13 +202,15 @@ function TransactionItemRow({
     checkboxSentryLabel,
     nonPersonalAndWorkspaceCards = {},
     isLargeScreenWidth: isLargeScreenWidthProp,
+    policyForMovingExpenses,
+    isActionColumnWide: isActionColumnWideProp,
+    shouldRemoveTotalColumnFlex,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const isLargeScreenWidth = isLargeScreenWidthProp ?? !shouldUseNarrowLayout;
-    const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -255,10 +261,12 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report]);
 
-    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency ?? policy?.outputCurrency);
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
     const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
-    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy) && transactionAttendees.length > 0;
+
+    const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
 
     const totalPerAttendee = useMemo(() => {
         const attendeesCount = transactionAttendees.length ?? 0;
@@ -412,7 +420,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION, {isActionColumnWide: isActionColumnWideProp ?? isDeletedTransaction})]}
                     >
                         {!!transactionItem.action && (
                             <ActionCell
@@ -542,7 +550,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide})]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
                     >
                         <TotalCell
                             transactionItem={transactionItem}
@@ -555,7 +563,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, {isAmountColumnWide})]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
                     >
                         {shouldShowAttendees && (
                             <AmountCell
@@ -570,7 +578,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, {isAmountColumnWide})]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
                     >
                         <AmountCell
                             total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
@@ -578,6 +586,27 @@ function TransactionItemRow({
                         />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL: {
+                const isFromExpenseReport = isExpenseReport(transactionItem.report ?? report);
+                const hasConvertedAmount = transactionItem.convertedAmount != null;
+                // Offline expenses don't have a BE-computed convertedAmount yet — fall back to the unconverted
+                // amount in the transaction's own currency so users don't see a misleading $0.00 placeholder.
+                // Pass isFromExpenseReport so IOU reports stay positive while expense reports get NewDot's signed display.
+                const totalAmount = hasConvertedAmount ? getConvertedAmount(transactionItem, isFromExpenseReport) : getAmount(transactionItem, isFromExpenseReport);
+                // When converted, display in the report's output currency; otherwise use the transaction's own currency.
+                const totalCurrency = hasConvertedAmount ? (report?.currency ?? policy?.outputCurrency ?? getCurrency(transactionItem)) : getCurrency(transactionItem);
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
+                    >
+                        <AmountCell
+                            total={totalAmount}
+                            currency={totalCurrency}
+                        />
+                    </View>
+                );
+            }
             case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
                 return (
                     <View
@@ -653,6 +682,7 @@ function TransactionItemRow({
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
                             isDeleted={isDeletedTransaction}
+                            isSelected={isSelected}
                         />
                     </View>
                 );
@@ -665,6 +695,15 @@ function TransactionItemRow({
                         <ExportedIconCell reportActions={reportActions} />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)]}
+                    >
+                        <TextCell text={transactionItem.withdrawalID} />
+                    </View>
+                );
             default:
                 return null;
         }
@@ -673,11 +712,13 @@ function TransactionItemRow({
         return columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
     }, [columns]);
 
+    const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+
     if (shouldUseNarrowLayout) {
         return (
             <>
                 <View
-                    style={[styles.expenseWidgetRadius, bgActiveStyles, styles.justifyContentEvenly, style, styles.overflowHidden]}
+                    style={[styles.expenseWidgetRadius, styles.overflowHidden, bgActiveStyles, styles.justifyContentEvenly, style]}
                     testID="transaction-item-row"
                 >
                     <View style={[styles.flexRow]}>
@@ -701,47 +742,46 @@ function TransactionItemRow({
                             style={styles.mr3}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
-                        <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
-                                <DateCell
-                                    date={createdAt}
-                                    showTooltip={shouldShowTooltip}
-                                    isLargeScreenWidth={!shouldUseNarrowLayout}
-                                />
-                                <Text style={[styles.textMicroSupporting]}> • </Text>
-                                <TypeCell
-                                    transactionItem={transactionItem}
-                                    shouldShowTooltip={shouldShowTooltip}
-                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                />
-                                {!merchantOrDescription && (
-                                    <View style={[styles.mlAuto]}>
-                                        <TotalCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                            {!!merchantOrDescription && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                        <View style={[styles.flex2, styles.flexColumn, styles.gap1]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                {merchantOrDescription ? (
                                     <MerchantOrDescriptionCell
                                         merchantOrDescription={merchantOrDescription}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                         isDescription={!merchant}
                                     />
+                                ) : null}
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, !merchantOrDescription && styles.mlAuto]}>
+                                    {shouldRenderChatBubbleCell && (
+                                        <ChatBubbleCell
+                                            transaction={transactionItem}
+                                            isInSingleTransactionReport={isInSingleTransactionReport}
+                                        />
+                                    )}
                                     <TotalCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
                                     />
                                 </View>
-                            )}
+                            </View>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                <DateCell
+                                    date={createdAt}
+                                    showTooltip={shouldShowTooltip}
+                                    isLargeScreenWidth={false}
+                                    suffixText={categoryForDisplay}
+                                />
+                                <TypeCell
+                                    transactionItem={transactionItem}
+                                    shouldShowTooltip={shouldShowTooltip}
+                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                />
+                            </View>
                         </View>
                         {!!shouldShowArrowRightOnNarrowLayout && !!onArrowRightPress && (
-                            <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
+                            <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml3]}>
                                 <Icon
                                     src={expensicons.ArrowRight}
                                     fill={theme.icon}
@@ -758,51 +798,26 @@ function TransactionItemRow({
                                     disabled={isDisabled}
                                     onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                     accessibilityLabel={CONST.ROLE.RADIO}
-                                    shouldUseNewStyle
                                 />
                             </View>
                         )}
                     </View>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
-                        <View style={[styles.flexColumn, styles.flex1]}>
-                            {hasCategoryOrTag && !isIOUReport(report) && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
-                                    <CategoryCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                    <TagCell
-                                        transactionItem={transactionItem}
-                                        shouldShowTooltip={shouldShowTooltip}
-                                        shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                    />
-                                </View>
-                            )}
-                            {shouldShowErrors && (
-                                <TransactionItemRowRBR
-                                    transaction={transactionItem}
-                                    violations={violations}
-                                    report={report}
-                                    containerStyles={[styles.mt2, styles.minHeight4]}
-                                    missingFieldError={missingFieldError}
-                                    transactionThreadReportID={transactionThreadReportID}
-                                />
-                            )}
-                        </View>
-                        {shouldRenderChatBubbleCell && (
-                            <ChatBubbleCell
-                                transaction={transactionItem}
-                                containerStyles={[styles.mt2]}
-                                isInSingleTransactionReport={isInSingleTransactionReport}
-                            />
-                        )}
-                    </View>
+                    {shouldShowErrors && (
+                        <TransactionItemRowRBR
+                            transaction={transactionItem}
+                            violations={violations}
+                            report={report}
+                            containerStyles={[styles.mt3, styles.minHeight4]}
+                            missingFieldError={missingFieldError}
+                            transactionThreadReportID={transactionThreadReportID}
+                            shouldUseNarrowLayout
+                        />
+                    )}
                 </View>
                 {!!shouldShowBottomBorder && (
                     <View style={bgActiveStyles}>
                         <View style={styles.ph3}>
-                            <View style={[styles.borderBottom]} />
+                            <View style={[StyleUtils.getSelectedBorderBottomStyle(isSelected)]} />
                         </View>
                     </View>
                 )}
@@ -812,7 +827,10 @@ function TransactionItemRow({
 
     return (
         <>
-            <View style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}>
+            <View
+                style={[styles.expenseWidgetRadius, styles.flex1, styles.gap2, bgActiveStyles, styles.mw100, style]}
+                testID="transaction-item-row"
+            >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                     {!shouldShowRadioButton && (
                         <Checkbox
@@ -835,7 +853,6 @@ function TransactionItemRow({
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
-                                shouldUseNewStyle
                             />
                         </View>
                     )}
@@ -874,7 +891,7 @@ function TransactionItemRow({
             {!!shouldShowBottomBorder && (
                 <View style={bgActiveStyles}>
                     <View style={styles.ph3}>
-                        <View style={styles.borderBottom} />
+                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isSelected)]} />
                     </View>
                 </View>
             )}

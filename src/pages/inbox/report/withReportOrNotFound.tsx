@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-negated-variables */
 import {useIsFocused} from '@react-navigation/native';
 import type {ComponentType} from 'react';
 import React, {useEffect} from 'react';
@@ -34,6 +33,9 @@ type WithReportOrNotFoundOnyxProps = {
     /** Metadata of the report currently being looked at */
     reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>;
 
+    /** Loading state of the report currently being looked at */
+    reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
+
     /** The policy linked to the report */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -59,7 +61,7 @@ type ScreenProps =
     | PlatformStackScreenProps<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY>
     | PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>
     | PlatformStackScreenProps<ReportChangeWorkspaceNavigatorParamList, typeof SCREENS.REPORT_CHANGE_WORKSPACE.ROOT>
-    | PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.ROOT>;
+    | PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT>;
 
 type WithReportOrNotFoundProps = WithReportOrNotFoundOnyxProps & {
     route: ScreenProps['route'];
@@ -73,6 +75,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`);
             const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
             const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
+            const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${props.route.params.reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
             const isFocused = useIsFocused();
@@ -81,7 +84,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const isReportLoaded = !isEmptyObject(report) && !!report?.reportID;
             const isReportArchived = useReportIsArchived(report?.reportID);
             // The `isLoadingInitialReportActions` value will become `false` only after the first OpenReport API call is finished (either succeeded or failed)
-            const shouldFetchReport = isReportIdInRoute && reportMetadata?.isLoadingInitialReportActions !== false;
+            const shouldFetchReport = isReportIdInRoute && reportLoadingState?.isLoadingInitialReportActions !== false;
 
             // When accessing certain report-dependant pages (e.g. Task Title) by deeplink, the OpenReport API is not called,
             // So we need to call OpenReport API here to make sure the report data is loaded if it exists on the Server
@@ -131,6 +134,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                     betas={betas}
                     policy={policy}
                     reportMetadata={reportMetadata}
+                    reportLoadingState={reportLoadingState}
                     isLoadingReportData={isLoadingReportData}
                 />
             );

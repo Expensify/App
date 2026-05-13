@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 

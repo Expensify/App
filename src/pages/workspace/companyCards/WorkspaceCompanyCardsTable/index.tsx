@@ -306,7 +306,7 @@ function WorkspaceCompanyCardsTable({
 
             isNarrowLayoutRef.current = true;
             const activeSorting = tableRef.current?.getActiveSorting();
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+
             setActiveSortingInWideLayout(activeSorting);
             tableRef.current?.updateSorting({columnKey: 'member', order: 'asc'});
             return;

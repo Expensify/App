@@ -135,6 +135,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 const currentUserAccountID = 1;
+const currentUserLogin = 'user@test.com';
 const originalReportID = '100';
 const reportActionID = '200';
 const childReportID = '300';
@@ -392,6 +393,6 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
         });
 
         expect(mockUnholdRequest).toHaveBeenCalledTimes(1);
-        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false);
+        expect(mockUnholdRequest).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false, currentUserLogin, currentUserAccountID);
     });
 });

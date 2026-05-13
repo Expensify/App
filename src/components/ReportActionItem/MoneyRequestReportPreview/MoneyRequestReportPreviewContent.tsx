@@ -18,6 +18,9 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,9 +30,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-imports
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
@@ -51,7 +55,9 @@ import {
 } from '@libs/ReportUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {hasPendingUI, isManagedCardTransaction, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -106,8 +112,30 @@ function MoneyRequestReportPreviewContent({
     originalReportID,
 }: MoneyRequestReportPreviewContentProps) {
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`);
-    const shouldShowLoading = !chatReportMetadata?.hasOnceLoadedReportActions && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
+    const [chatReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`);
+
+    const [isTransitionPending, setIsTransitionPending] = useState(() => {
+        const pending = getPendingSubmitFollowUpAction();
+        return pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT && (pending?.reportID === chatReportID || pending?.reportID === iouReportID);
+    });
+
+    useFocusEffect(
+        useCallback(() => {
+            if (!isTransitionPending) {
+                return;
+            }
+            const handle = TransitionTracker.runAfterTransitions({
+                callback: () => setIsTransitionPending(false),
+                waitForUpcomingTransition: true,
+            });
+            return () => handle.cancel();
+        }, [isTransitionPending]),
+    );
+
+    const shouldShowLoading =
+        chatReportLoadingState != null && chatReportLoadingState.hasOnceLoadedReportActions !== true && transactions.length === 0 && !chatReportMetadata?.isOptimisticReport;
     // `hasOnceLoadedReportActions` becomes true before transactions populate fully,
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     // so we defer the loading state update to ensure transactions are loaded
     const shouldShowLoadingDeferred = useDeferredValue(shouldShowLoading);
     const lastTransaction = transactions?.at(0);
@@ -118,10 +146,10 @@ function MoneyRequestReportPreviewContent({
     const showStatusAndSkeleton = !shouldShowEmptyPlaceholder;
     // Empty/access placeholders do not depend on measured carousel width, so we can show them immediately
     // once the report data is ready instead of keeping the taller loading state around and causing the preview to reflow.
-    const shouldShowPreviewLoading = shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
+    const shouldShowPreviewLoading = isTransitionPending || shouldShowLoading || shouldShowLoadingDeferred || (!currentWidth && !shouldShowPreviewPlaceholder);
     const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MoneyRequestReportPreviewContent',
-        hasOnceLoadedReportActions: chatReportMetadata?.hasOnceLoadedReportActions,
+        hasOnceLoadedReportActions: chatReportLoadingState?.hasOnceLoadedReportActions,
         isTransactionsEmpty: transactions.length === 0,
         isOptimisticReport: chatReportMetadata?.isOptimisticReport,
     };
@@ -134,7 +162,9 @@ function MoneyRequestReportPreviewContent({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const previewCarouselMinWidth = shouldUseNarrowLayout ? CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_NARROW_WIDTH : CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH;
@@ -326,7 +356,15 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const carouselTransactions = useMemo(() => (shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11)), [shouldShowAccessPlaceHolder, transactions]);
+    const carouselTransactions = useMemo(() => {
+        if (shouldShowAccessPlaceHolder) {
+            return [];
+        }
+        const sorted = [...transactions].sort((a, b) =>
+            compareByRBR(a, b, transactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, iouReport, policy),
+        );
+        return sorted.slice(0, 11);
+    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
@@ -374,31 +412,36 @@ function MoneyRequestReportPreviewContent({
         carouselTransactionsRef.current = carouselTransactions;
     }, [carouselTransactions]);
 
-    useFocusEffect(
-        useCallback(() => {
-            const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
+    const isFocusedRef = useIsFocusedRef();
 
-            if (index < 0) {
+    useEffect(() => {
+        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
+
+        if (index < 0) {
+            return;
+        }
+        const newTransaction = carouselTransactions.at(index);
+        setTimeout(() => {
+            if (!isFocusedRef.current) {
                 return;
             }
-            const newTransaction = carouselTransactions.at(index);
-            setTimeout(() => {
-                // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
-                // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
-                if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
-                    return;
-                }
 
-                carouselRef.current?.scrollToIndex({
-                    index,
-                    viewOffset: -2 * styles.gap2.gap,
-                    animated: true,
-                });
-            }, CONST.ANIMATED_TRANSITION);
+            // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
+            // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
+            if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
+                return;
+            }
 
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, [newTransactionIDs]),
-    );
+            carouselRef.current?.scrollToIndex({
+                index,
+                viewOffset: -2 * styles.gap2.gap,
+                animated: true,
+            });
+        }, CONST.ANIMATED_TRANSITION);
+
+        // We only want to scroll to a new transaction when the set of new transaction IDs changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newTransactionIDs]);
 
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
@@ -578,7 +621,7 @@ function MoneyRequestReportPreviewContent({
                 style={styles.mt1}
             >
                 <View
-                    style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles]}
+                    style={[styles.chatItemMessage, isReportDeleted && [styles.cursorDisabled, styles.pointerEventsAuto], containerStyles, isTransitionPending && styles.w100]}
                     onLayout={onCarouselLayout}
                     testID="carouselWidthSetter"
                 >
@@ -590,7 +633,7 @@ function MoneyRequestReportPreviewContent({
                             if (!shouldDisplayContextMenu) {
                                 return;
                             }
-                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
+                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, originalReportID);
                         }}
                         shouldUseHapticsOnLongPress
                         style={[
@@ -662,8 +705,8 @@ function MoneyRequestReportPreviewContent({
                                                         <Icon
                                                             src={expensifyIcons.BackArrow}
                                                             fill={theme.icon}
-                                                            width={variables.iconSizeNormal}
-                                                            height={variables.iconSizeNormal}
+                                                            width={variables.iconSizeExtraSmall}
+                                                            height={variables.iconSizeExtraSmall}
                                                         />
                                                     </PressableWithFeedback>
                                                     <PressableWithFeedback
@@ -683,8 +726,8 @@ function MoneyRequestReportPreviewContent({
                                                         <Icon
                                                             src={expensifyIcons.ArrowRight}
                                                             fill={theme.icon}
-                                                            width={variables.iconSizeNormal}
-                                                            height={variables.iconSizeNormal}
+                                                            width={variables.iconSizeExtraSmall}
+                                                            height={variables.iconSizeExtraSmall}
                                                         />
                                                     </PressableWithFeedback>
                                                 </View>
