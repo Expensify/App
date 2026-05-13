@@ -567,10 +567,7 @@ describe('getViolationsOnyxData', () => {
             const iouReport = {reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE} as Report;
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
             expect(result.value).toEqual(
-                expect.arrayContaining([
-                    {name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true, data: {missingFields: ['merchant']}},
-                    missingCategoryViolation,
-                ]),
+                expect.arrayContaining([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}, missingCategoryViolation]),
             );
         });
 
