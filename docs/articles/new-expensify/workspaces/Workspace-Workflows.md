@@ -43,6 +43,8 @@ Once enabled, go to the **Workflows** tab in the left menu to customize your sub
 
 Learn how to [enable Approvals](https://help.expensify.com/articles/new-expensify/workspaces/Add-Approvals) on your workspace. 
 
+**Note:** If your workspace is connected to an HR integration such as [Gusto](https://help.expensify.com/articles/new-expensify/connections/Gusto) or [TriNet](https://help.expensify.com/articles/new-expensify/connections/TriNet), the approval chains shown on this page are managed from the **HR** page. To change the approval mode or final approver, go to the integration's card on the HR page.
+
 ## How to enable Submissions
 
 - Controls when expenses are automatically submitted.
