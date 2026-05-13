@@ -163,7 +163,7 @@ function MoneyRequestReportPreviewContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -366,10 +366,10 @@ function MoneyRequestReportPreviewContent({
                 return rbrComparison;
             }
             // Tiebreak by date (ascending — oldest first) so position is stable across RBR state changes
-            return (a.created ?? '').localeCompare(b.created ?? '');
+            return localeCompare(a.created ?? '', b.created ?? '');
         });
         return sorted.slice(0, 11);
-    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy]);
+    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy, localeCompare]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
