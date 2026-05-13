@@ -360,9 +360,14 @@ function MoneyRequestReportPreviewContent({
         if (shouldShowAccessPlaceHolder) {
             return [];
         }
-        const sorted = [...transactions].sort((a, b) =>
-            compareByRBR(a, b, transactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, iouReport, policy),
-        );
+        const sorted = [...transactions].sort((a, b) => {
+            const rbrComparison = compareByRBR(a, b, transactionViolations, currentUserDetails?.login ?? '', currentUserDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID, iouReport, policy);
+            if (rbrComparison !== 0) {
+                return rbrComparison;
+            }
+            // Tiebreak by date (ascending — oldest first) so position is stable across RBR state changes
+            return (a.created ?? '').localeCompare(b.created ?? '');
+        });
         return sorted.slice(0, 11);
     }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, policy]);
     const prevCarouselTransactionLength = useRef(0);
