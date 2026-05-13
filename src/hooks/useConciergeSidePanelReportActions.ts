@@ -170,10 +170,11 @@ function useConciergeReportActions({
             if (filtered.length === 0) {
                 return actions;
             }
-            // Only splice greeting when there are no unread messages (user-initiated
-            // fresh session). When unread messages exist (e.g. mark-as-unread), the
-            // greeting is not appropriate since the conversation was not freshly started.
-            if (conciergeGreetingAction && !hasUnreadMessages) {
+            // Splice greeting when the user started a fresh conversation (sent a
+            // message from the welcome state) or when there are no unread messages.
+            // Skip it only when unread messages appeared without user action (e.g.
+            // mark-as-unread), since the conversation was not freshly started.
+            if (conciergeGreetingAction && (!hasUnreadMessages || hasUserSentMessage)) {
                 const createdIndex = filtered.findIndex(isCreatedAction);
                 filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
             }
