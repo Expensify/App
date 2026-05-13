@@ -17,7 +17,6 @@ jest.mock('@src/ROUTES', () => ({
         MEMBER_DETAILS: {path: 'member-details/:accountID'},
         OPT_TRAILING: {path: 'opt-page/:id?'},
         OPT_MIDDLE: {path: 'wrap/:p?/end'},
-        REPORT_DETAILS_SHARE_CODE: {path: 'share-code'},
     },
 }));
 
