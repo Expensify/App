@@ -33,7 +33,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistance} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistance} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {clearOdometerDraft, saveOdometerDraft, removeMoneyRequestOdometerImage, setMoneyRequestOdometerReading, isOdometerDraftPendingHydration} from '@libs/actions/OdometerTransactionUtils';
+import {
+    clearOdometerDraft,
+    isOdometerDraftPendingHydration,
+    removeMoneyRequestOdometerImage,
+    saveOdometerDraft,
+    setMoneyRequestOdometerReading,
+} from '@libs/actions/OdometerTransactionUtils';
 import {createBackupTransaction, removeBackupTransactionWithImageCleanup, restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -41,6 +47,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -53,7 +60,6 @@ import SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import { getOdometerImageUri } from '@libs/OdometerImageUtils';
 import useOdometerImageHandlers from './IOURequestStepDistance/hooks/useOdometerImageHandlers';
 import useOdometerNavigation from './IOURequestStepDistance/hooks/useOdometerNavigation';
 import useOdometerReadingsState from './IOURequestStepDistance/hooks/useOdometerReadingsState';
