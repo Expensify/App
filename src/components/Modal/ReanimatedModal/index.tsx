@@ -225,7 +225,7 @@ function ReanimatedModal({
                         pointerEvents="box-none"
                         style={[style, {margin: 0}]}
                     >
-                        {isVisible && containerView}
+                        {modalVisibility && containerView}
                     </KeyboardAvoidingView>
                 ) : (
                     <FocusTrapForModal
@@ -234,7 +234,7 @@ function ReanimatedModal({
                         shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
-                        {isVisible && containerView}
+                        {modalVisibility && containerView}
                     </FocusTrapForModal>
                 )}
             </Modal>
