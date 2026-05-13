@@ -52,6 +52,7 @@ function getAccountingIntegrationData(
     canUseNetSuiteUSATax?: boolean,
     expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare', IconAsset>,
 ): AccountingIntegration | undefined {
+    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
@@ -62,7 +63,7 @@ function getAccountingIntegrationData(
         if (existingConnections.sageIntacct) {
             return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID);
         }
-        return createDynamicRoute(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path);
+        return createDynamicRoute(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path, basePath);
     };
     const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
         if (integrationToDisconnect) {
@@ -93,7 +94,7 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
                 ],
-                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path, basePath)),
                 subscribedExportSettings: [
                     CONST.QUICKBOOKS_CONFIG.EXPORT,
                     CONST.QUICKBOOKS_CONFIG.EXPORT_DATE,
@@ -142,7 +143,7 @@ function getAccountingIntegrationData(
                     CONST.XERO_CONFIG.IMPORT_TAX_RATES,
                     ...getTrackingCategories(policy).map((category) => `${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${category.id}`),
                 ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path, basePath)),
                 subscribedExportSettings: [CONST.XERO_CONFIG.EXPORTER, CONST.XERO_CONFIG.BILL_DATE, CONST.XERO_CONFIG.BILL_STATUS, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
                 onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.XERO)),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_ADVANCED.getRoute(policyID)),
@@ -175,7 +176,7 @@ function getAccountingIntegrationData(
                     ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS, netsuiteConfig),
                     ...getImportCustomFieldsSettings(CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS, netsuiteConfig),
                 ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path)),
                 subscribedExportSettings: [
                     CONST.NETSUITE_CONFIG.EXPORTER,
                     CONST.NETSUITE_CONFIG.EXPORT_DATE,

@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {IOURequestType} from '@userActions/IOU';
-import {hydrateOdometerDraftIntoTransaction} from '@userActions/OdometerTransactionUtils';
+import {hydrateOdometerDraftIntoTransaction, isOdometerDraftPendingHydration} from '@userActions/OdometerTransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OdometerDraft, Transaction} from '@src/types/onyx';
@@ -37,6 +37,13 @@ function useOdometerDraftHydrator({
             return;
         }
         if (lastHydratedDraft === odometerDraft) {
+            return;
+        }
+        // Skip when the comment already reflects the draft. saveOdometerDraft writes from the
+        // edit-from-confirmation flow otherwise mint fresh blob URLs via the serialize/deserialize
+        // round-trip and revoke the URLs the confirm page is currently displaying.
+        if (!isOdometerDraftPendingHydration(odometerDraft, transaction?.comment)) {
+            lastHydratedDraft = odometerDraft;
             return;
         }
         hydrateOdometerDraftIntoTransaction(transaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID, odometerDraft, transaction?.comment);

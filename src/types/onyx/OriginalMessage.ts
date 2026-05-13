@@ -1240,6 +1240,11 @@ type OriginalMessageExportIntegration = {
     travelInvoicingUrls?: string[];
 
     /**
+     * The Concierge reasoning for the action
+     */
+    reasoning?: string;
+
+    /**
      * The type of the export action
      */
     type?: string;

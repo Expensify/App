@@ -60,7 +60,7 @@ import {
     isSortableColumnName,
 } from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
-import {compareValues, getColumnsToShow, getTableMinWidth, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
+import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
@@ -456,15 +456,15 @@ function MoneyRequestReportTransactionList({
 
             if (!reportIDToNavigate) {
                 const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
-                const transactionThreadReport = createTransactionThreadReport(
+                const transactionThreadReport = createTransactionThreadReport({
                     introSelected,
-                    currentUserDetails.email ?? '',
-                    currentUserDetails.accountID,
+                    currentUserLogin: currentUserDetails.email ?? '',
+                    currentUserAccountID: currentUserDetails.accountID,
                     betas,
-                    report,
-                    iouAction,
+                    iouReport: report,
+                    iouReportAction: iouAction,
                     transaction,
-                );
+                });
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
                     routeParams.reportID = reportIDToNavigate;
@@ -714,7 +714,7 @@ function MoneyRequestReportTransactionList({
                         shouldShowSorting
                         sortBy={sortBy}
                         sortOrder={sortOrder}
-                        shouldRemoveTotalColumnFlex
+                        shouldRemoveTotalColumnFlex={hasFlexColumn(columnsToShow)}
                         columns={columnsToShow}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}

@@ -1,5 +1,4 @@
 import React from 'react';
-import type {TextInput} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -40,12 +39,10 @@ type ChatMessageContentProps = {
     isHidden: boolean;
     updateHiddenState: (isHiddenValue: boolean) => void;
     isArchivedRoom?: boolean;
-    composerTextInputRef: React.RefObject<TextInput | HTMLTextAreaElement | null>;
     isOnSearch: boolean;
     contextMenuStateValue: {
         anchor: ContextMenuAnchor | null;
         report: OnyxEntry<OnyxTypes.Report>;
-        isReportArchived: boolean;
         action: OnyxTypes.ReportAction;
         transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
         isDisabled: boolean;
@@ -71,7 +68,6 @@ function ChatMessageContent({
     isHidden,
     updateHiddenState,
     isArchivedRoom,
-    composerTextInputRef,
     isOnSearch,
     contextMenuStateValue,
     contextMenuActionsValue,
@@ -143,7 +139,6 @@ function ChatMessageContent({
                                 originalReportID={originalReportID}
                                 policyID={report?.policyID}
                                 index={index}
-                                ref={composerTextInputRef}
                                 shouldDisableEmojiPicker={
                                     (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
                                 }

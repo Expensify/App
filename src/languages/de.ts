@@ -493,6 +493,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: 'Nächster Monat',
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
+        avatar: 'Avatar',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -1137,7 +1138,6 @@ const translations: TranslationDeepObject<typeof en> = {
         dropTitle: 'Lass es los',
         dropMessage: 'Datei hierher ziehen',
         flash: 'Blitz',
-        flipCamera: 'Kamera wechseln',
         multiScan: 'Mehrfachscan',
         shutter: 'Verschluss',
         gallery: 'Galerie',
@@ -2202,6 +2202,12 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'Chatte mit Concierge, um Sicherheitsbedenken zu klären und dein Konto zu entsperren.',
         chatWithConcierge: 'Mit Concierge chatten',
     },
+    deviceManagementPage: {
+        title: 'Geräteverwaltung',
+        description: 'Verwalten Sie alle Geräte, auf denen Sie sich mit Ihrem Expensify-Konto angemeldet haben.',
+        revoke: 'Widerrufen',
+        unknownDevice: 'Unbekanntes Gerät',
+    },
     twoFactorAuth: {
         headerTitle: 'Zwei-Faktor-Authentifizierung',
         twoFactorAuthEnabled: 'Zwei-Faktor-Authentifizierung aktiviert',
@@ -2589,6 +2595,10 @@ ${amount} für ${merchant} – ${date}`,
             approverSubtitle: 'Alle Genehmigenden gehören zu einem bestehenden Workflow.',
             bulkApproverSubtitle: 'Keine Genehmigenden entsprechen den Kriterien für die ausgewählten Berichte.',
         },
+        configureViaGusto: 'Über Gusto konfigurieren.',
+        gustoApprovalWorkflowLockedPrompt:
+            'Genehmigungen werden über deine Gusto-Integration verwaltet. Um deinen Genehmigungsworkflow zu aktualisieren, gehe zu deinen Gusto-Verbindungseinstellungen.',
+        goToGustoSettings: 'Zu den Gusto-Einstellungen gehen',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: 'Sendehäufigkeit konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
@@ -2858,6 +2868,8 @@ ${amount} für ${merchant} – ${date}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'Keinen magischen Code erhalten?',
+        avoidScamsMessage:
+            '<strong>Vermeiden Sie Betrug. Geben Sie Ihren Code nicht an andere weiter.</strong> Unser Team wird Sie niemals anrufen, per SMS kontaktieren oder Ihnen eine E-Mail senden, um diesen Code zu erfragen.',
         enterAuthenticatorCode: 'Bitte gib deinen Authentifizierungscode ein',
         enterRecoveryCode: 'Bitte gib deinen Wiederherstellungscode ein',
         requiredWhen2FAEnabled: 'Erforderlich, wenn 2FA aktiviert ist',
@@ -2925,10 +2937,10 @@ ${amount} für ${merchant} – ${date}`,
             title: 'Was möchtest du heute tun?',
             errorContinue: 'Bitte auf „Weiter“ drücken, um die Einrichtung abzuschließen',
             errorBackButton: 'Bitte beantworte die Einrichtungsfragen, um die App verwenden zu können',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Von meinem Arbeitgeber zurückerstattet werden',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Ausgaben bei meinem Arbeitgeber einreichen',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Verwalte die Ausgaben meines Teams',
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Ausgaben nachverfolgen und budgetieren',
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: 'Chatten und Ausgaben mit Freunden aufteilen',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'Geschäftsausgaben nachverfolgen',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: 'Meine persönlichen Ausgaben organisieren',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'Etwas anderes',
         },
         employees: {
@@ -4550,6 +4562,7 @@ ${amount} für ${merchant} – ${date}`,
             notConfigured: 'Nicht konfiguriert',
             bankAccountDescription: 'Wähle aus, von wo Schecks versendet werden sollen.',
             creditCardAccount: 'Kreditkartenkonto',
+            travelInvoicingDescription: 'Reisekosten werden als Kreditkartenbelastungen in das unten angegebene QuickBooks Online-Konto exportiert.',
             companyCardsLocationEnabledDescription:
                 'QuickBooks Online unterstützt keine Standorte beim Export von Kreditorenrechnungen. Da in deinem Workspace Standorte aktiviert sind, ist diese Exportoption nicht verfügbar.',
             outOfPocketTaxEnabledDescription:
@@ -4741,6 +4754,7 @@ ${amount} für ${merchant} – ${date}`,
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: 'Lieferantenrechnungen',
                 },
             },
+            travelInvoicingDescription: 'Reisekosten werden als Kreditkartenbelastungen in das unten angegebene Sage Intacct-Konto exportiert.',
             creditCardAccount: 'Kreditkartenkonto',
             defaultVendor: 'Standardanbieter',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -4787,8 +4801,8 @@ ${amount} für ${merchant} – ${date}`,
             journalPostingPreference: {
                 label: 'Bevorzugte Verbuchung von Journalbuchungen',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Einzelner, aufgeschlüsselter Eintrag für jeden Bericht',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Einzelner Eintrag für jede Ausgabe',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: 'Einzelner Eintrag für jede Ausgabe',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: 'Einzelner, aufgegliederter Eintrag für jeden Bericht',
                 },
             },
             invoiceItem: {
@@ -5302,6 +5316,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     duplicateColumns: (duplicateColumn: string) =>
                         `Ups! Du hast ein einzelnes Feld („${duplicateColumn}“) mehreren Spalten zugeordnet. Bitte überprüfe die Zuordnung und versuche es erneut.`,
                 },
+                fileImportDescription: 'Eine manuelle Option, falls Ihre Bank keinen Feed senden kann.',
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Letzter Tag des Monats',
@@ -5738,6 +5753,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 subtitle: 'Legen Sie einen abrechnungsfähigen Stundensatz für die Zeiterfassung fest.',
                 defaultHourlyRate: 'Standardstundensatz',
             },
+            hrWarningModal: {disconnectText: 'Um HR zu deaktivieren, trenne bitte zuerst die Verbindung von Gusto mit diesem Workspace.'},
         },
         reports: {
             reportsCustomTitleExamples: 'Beispiele:',
@@ -6030,6 +6046,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             approvers: 'Genehmigende',
             auditors: 'Prüfer',
             emptyRoleFilter: {title: 'Keine Mitglieder entsprechen diesem Filter', subtitle: 'Laden Sie ein Mitglied ein oder ändern Sie den Filter oben.'},
+            configureGustoSync: 'Gusto-Synchronisierung konfigurieren.',
+            syncWithGusto: 'Mit Gusto synchronisieren',
         },
         card: {
             getStartedIssuing: 'Beginne, indem du deine erste virtuelle oder physische Karte ausstellst.',
@@ -6786,6 +6804,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 gambling: 'Glücksspiel',
                 tobacco: 'Tabak',
                 adultEntertainment: 'Erwachsenenunterhaltung',
+                giftCard: 'Geschenkkartenkäufe',
                 handwrittenReceipt: 'Handschriftliche Belege',
                 requireCompanyCard: 'Firmenkarten für alle Käufe vorschreiben',
                 requireCompanyCardDescription: 'Kennzeichne alle Barausgaben, einschließlich Kilometer- und Tagegeldspesen.',
@@ -6886,6 +6905,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             customRules: {
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier ist die Spesenrichtlinie deines Teams hinterlegt, damit alle denselben Stand haben, was abgedeckt ist.',
+                policyDocument: 'Richtliniendokument',
+                policyText: 'Richtlinientext',
             },
             spendRules: {
                 title: 'Ausgaben',
@@ -7002,6 +7023,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 corporate: {
                     label: 'Steuerung',
                     description: 'Für Organisationen mit erweiterten Anforderungen.',
+                },
+                submit2026: {
+                    label: 'Einreichen',
+                    description: 'Für Mitarbeiter, die Ausgaben bei ihrem Arbeitgeber einreichen möchten.',
                 },
             },
             description: 'Wähle ein passendes Abo für dich. Eine detaillierte Liste der Funktionen und Preise findest du in unserem',
@@ -7709,6 +7734,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         deleteSavedSearchConfirm: 'Möchtest du diese Suche wirklich löschen?',
         searchName: 'Namen suchen',
         savedSearchesMenuItemTitle: 'Gespeichert',
+        urlCopied: 'URL kopiert',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
             editMultiple: 'Mehrere bearbeiten',
@@ -8117,6 +8143,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         selectAllFeatures: 'Alle Funktionen auswählen',
         selectAllTransactions: 'Alle Transaktionen auswählen',
         selectAllItems: 'Alle Einträge auswählen',
+        selectAllCategories: 'Alle Kategorien auswählen',
+        selectAllDistanceRates: 'Alle Entfernungssätze auswählen',
+        selectAllTags: 'Alle Tags auswählen',
+        selectAllTaxes: 'Alle Steuern auswählen',
+        selectAllPerDiemRates: 'Alle Pauschalspesen-Sätze auswählen',
+        selectAllMembers: 'Alle Mitglieder auswählen',
+        selectAllValues: 'Alle Werte auswählen',
+        selectAllRules: 'Alle Regeln auswählen',
     },
     parentReportAction: {
         deletedReport: 'Gelöschter Bericht',
@@ -8213,6 +8247,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         companyCard: 'Firmenkarte',
         expensifyCard: 'Expensify Karte',
         centralInvoicing: 'Zentrale Rechnungsstellung',
+        travelCard: 'Reisekarte',
     },
     distance: {
         addStop: 'Stopp hinzufügen',
@@ -8256,13 +8291,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         stopped: 'Angehalten',
         start: 'Start',
         stop: 'Stopp',
+        save: 'Speichern',
+        resume: 'Fortsetzen',
         discard: 'Verwerfen',
-        stopGpsTrackingModal: {
-            title: 'GPS-Tracking stoppen',
-            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Sitzung beendet.',
-            cancel: 'Tracking fortsetzen',
-            confirm: 'GPS-Tracking stoppen',
-        },
         discardDistanceTrackingModal: {
             title: 'Entfernungsverfolgung verwerfen',
             prompt: 'Bist du sicher? Dadurch wird dein aktueller Ablauf verworfen und das kann nicht rückgängig gemacht werden.',
@@ -8441,6 +8472,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                         return `Erwachsenenunterhaltung`;
                     case 'hotelIncidentals':
                         return `Nebenkosten im Hotel`;
+                    case 'giftCard':
+                        return `Geschenkkartenkäufe`;
                     case 'handwrittenReceipt':
                         return `handschriftliche Belege`;
                     default:
@@ -9193,6 +9226,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 addMember: 'Dieses Mitglied kann nicht hinzugefügt werden. Bitte versuche es erneut.',
                 vacationDelegate: 'Dieser Benutzer kann nicht als Urlaubsvertretung festgelegt werden. Bitte versuche es erneut.',
                 moveMember: 'Dieses Mitglied kann nicht verschoben werden. Bitte versuchen Sie es erneut.',
+                moveMemberNotPolicyAdmin:
+                    'Das Mitglied kann nicht in die Domänengruppe verschoben werden. Sie müssen Richtlinienadministrator für die bevorzugte Richtlinie sein, die für die Domänengruppe festgelegt ist, in die Sie diesen Benutzer verschieben möchten.',
             },
             reportSuspiciousActivityPrompt: (email: string) =>
                 `Bist du sicher? Dadurch wird das Konto von <strong>${email}</strong> gesperrt. <br /><br /> Unser Team wird das Konto anschließend überprüfen und unbefugten Zugriff entfernen. Um den Zugriff wiederherzustellen, muss die Person mit Concierge zusammenarbeiten.`,
@@ -9222,7 +9257,13 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 `Möchtest du ${newName} wirklich zur Standardgruppe machen? Neue Mitglieder werden zu dieser Gruppe anstelle der bisherigen Standardgruppe (${currentName}) eingeladen. `,
             makeDefault: 'Als Standard festlegen',
             neverMind: 'Vergiss es',
+            createGroupError: 'Diese Gruppe konnte nicht erstellt werden. Bitte versuche es erneut.',
             permissions: 'Gruppenberechtigungen',
+            createNewGroupButton: 'Neue Gruppe',
+            createGroupSubmitButton: 'Gruppe erstellen',
+            expensifyCardPreferredWorkspace: 'Bevorzugter Workspace für Expensify Card',
+            expensifyCardPreferredWorkspaceDescription:
+                'Alle Expensify Card-Transaktionen werden im bevorzugten Expensify Card-Arbeitsbereich anstelle des bevorzugten Arbeitsbereichs erstellt. Durch Aktivieren dieser Funktion wird die Einstellung des bevorzugten Arbeitsbereichs nur für Expensify Card-Transaktionen überschrieben.',
             strictlyEnforceWorkspaceRules: 'Workspace-Regeln strikt durchsetzen',
             strictlyEnforceWorkspaceRulesDescription: 'Alle Workspace-Regeln müssen erfüllt sein, bevor ein Bericht eingereicht wird. Manuelle Ausnahmen sind nicht zulässig.',
             restrictExpenseWorkspaceCreation: 'Erstellen/Entfernen von Ausgaben-Workspaces einschränken',
@@ -9240,11 +9281,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             restrictDefaultLoginSelection: 'Standard-Login-Auswahl einschränken',
             restrictDefaultLoginSelectionDescription:
                 'Verhindert, dass Mitglieder ihre Login-E-Mail-Adresse außerhalb der Unternehmensdomäne ändern, um Richtlinienbeschränkungen zu umgehen.',
-            expensifyCardPreferredWorkspace: 'Bevorzugter Workspace für die Expensify Card',
-            expensifyCardPreferredWorkspaceDescription:
-                'Alle Expensify-Card-Transaktionen werden im bevorzugten Workspace für die Expensify Card statt im bevorzugten Workspace erstellt. Die Aktivierung dieser Funktion überschreibt die Einstellung des bevorzugten Workspace ausschließlich für Expensify-Card-Transaktionen.',
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Um diese Einstellung zu verwenden, muss der bevorzugte Workspace aktiviert und für die Domain die Expensify Card eingerichtet sein.',
+                'Um diese Einstellung zu aktivieren, aktiviere zuerst einen bevorzugten Workspace und richte Expensify Cards in deiner Domain ein.',
             findGroup: 'Gruppe suchen',
         },
     },
