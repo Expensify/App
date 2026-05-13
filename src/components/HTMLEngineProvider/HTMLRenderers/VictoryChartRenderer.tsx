@@ -1,4 +1,5 @@
 import JSON5 from 'json5';
+import lodashMerge from 'lodash/merge';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
@@ -14,6 +15,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
+const X_KEY = 'x';
+const Y_KEY_PREFIX = 'y';
+
 /**
  * Get node unique ID based on hierarchy
  */
@@ -28,41 +32,33 @@ function getHierarchyID(tnode: TNode): string {
 }
 
 /**
- * Traverse node and extract and parse `data` attributes
- * The retured array is 1D - All nested data are flattened
+ * Traverse node and extract all points from `data` attributes
  */
-function extractData(tnode: TNode): Array<Record<string, unknown>> {
-    const data: Array<Record<string, unknown>> = [];
+function extractData(tnode: TNode): Record<string, Record<string, unknown>> {
+    const rawData = {};
     if (tnode.attributes?.data) {
         const parsedData = JSON5.parse(tnode.attributes.data);
         if (Array.isArray(parsedData)) {
-            data.push(...parsedData);
+            const xKey = X_KEY;
+            const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
+            parsedData.forEach((point) => {
+                rawData[point.x] = {
+                    [xKey]: point.x,
+                    [yKey]: point.y,
+                };
+            });
         }
     }
-    data.push(...tnode.children.flatMap((child) => extractData(child)));
-    return data;
+    return lodashMerge(rawData, ...tnode.children.map((child) => extractData(child)));
 }
 
 /**
- * Process raw data and combine points based on shared xKey
+ * Returns required attributes for `<CartesianChart />`
  */
-function processDataForCartesianChart(rawData: Array<Record<string, unknown>>) {
-    const xKey = 'x';
-    const yKeys = [];
-    const data = Object.values(
-        rawData.reduce((points, point) => {
-            const yLevel = (points[point.x]?.yLevel ?? 0) + 1;
-            const yKey = 'y' + yLevel;
-            yKeys.push(yKey);
-            points[point.x] = {
-                ...points[point.x],
-                [xKey]: point.x,
-                [yKey]: point.y,
-                yLevel,
-            };
-            return points;
-        }, {}),
-    );
+function prepareDataForCartesianChart(rawData: Record<string, Record<string, unknown>>) {
+    const data = Object.values(rawData);
+    const xKey = X_KEY;
+    const yKeys = data.length > 0 ? Object.keys(data[0]).filter((key) => key !== xKey) : [];
     return {
         data,
         xKey,
@@ -73,20 +69,20 @@ function processDataForCartesianChart(rawData: Array<Record<string, unknown>>) {
 function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
     const rawData = useMemo(() => extractData(tnode), []);
     const isPolarChart = useMemo(() => false, [rawData]);
-    const {data, xKey, yKeys} = useMemo(() => (isPolarChart ? {} : processDataForCartesianChart(rawData)), [rawData, isPolarChart]);
+    const {data, xKey, yKeys} = useMemo(() => (isPolarChart ? {} : prepareDataForCartesianChart(rawData)), [rawData, isPolarChart]);
 
     window.tnode = tnode;
     console.log({data});
 
     const renderChild = useCallback((tnode, index, points, chartBounds) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
-        const hierarchyID = getHierarchyID(tnode);
+        const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
         switch (tnode.tagName) {
             case 'victorybar':
                 return (
                     <Bar
                         key={key}
-                        points={points.y}
+                        points={points[yKey]}
                         chartBounds={chartBounds}
                         color="red"
                         roundedCorners={{topLeft: 10, topRight: 10}}
@@ -98,7 +94,7 @@ function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}
                 return (
                     <Line
                         key={key}
-                        points={points.z}
+                        points={points[yKey]}
                         strokeWidth={3}
                         color="green"
                     >
