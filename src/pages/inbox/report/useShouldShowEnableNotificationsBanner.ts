@@ -5,13 +5,13 @@ import type {NotificationPermissionStatus} from '@libs/Notification/notification
 import {isConciergeChatReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function useShouldShowEnableNotificationsBanner(reportID: string): boolean {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+function useShouldShowEnableNotificationsBanner(reportID: string | undefined): boolean {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID ?? ''}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [hasDismissed] = useOnyx(ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER);
     const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus | undefined>();
 
-    const isConcierge = isConciergeChatReport(report, conciergeReportID);
+    const isConcierge = !!reportID && isConciergeChatReport(report, conciergeReportID);
 
     useEffect(() => {
         if (!isConcierge || hasDismissed) {
