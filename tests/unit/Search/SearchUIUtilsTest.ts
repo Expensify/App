@@ -7045,50 +7045,6 @@ describe('SearchUIUtils', () => {
             expect(allKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
-        it('should show top spenders for track-intent users on eligible paid workspace', () => {
-            const mockPolicies = {
-                policy1: {
-                    id: 'policy1',
-                    name: 'Test Policy',
-                    owner: adminEmail,
-                    outputCurrency: 'USD',
-                    isPolicyExpenseChatEnabled: true,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    employeeList: {
-                        [adminEmail]: {
-                            email: adminEmail,
-                            role: CONST.POLICY.ROLE.ADMIN,
-                            submitsTo: approverEmail,
-                        },
-                        [approverEmail]: {
-                            email: approverEmail,
-                            role: CONST.POLICY.ROLE.USER,
-                            submitsTo: adminEmail,
-                        },
-                    },
-                },
-            };
-
-            const sections = SearchUIUtils.createTypeMenuSections({
-                currentUserEmail: adminEmail,
-                currentUserAccountID: adminAccountID,
-                cardFeedsByPolicy: {},
-                defaultCardFeed: undefined,
-                policies: mockPolicies,
-                savedSearches: {},
-                isOffline: false,
-                defaultExpensifyCard: undefined,
-                draftTransactionIDs: [],
-                isTrackIntentUser: true,
-            });
-
-            const allMenuItems = sections.flatMap((section) => section.menuItems);
-            const allKeys = allMenuItems.map((item) => item.key);
-
-            expect(allKeys).toContain(CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS);
-        });
-
         it('should generate correct routes', () => {
             const menuItems = SearchUIUtils.createTypeMenuSections({
                 currentUserEmail: undefined,

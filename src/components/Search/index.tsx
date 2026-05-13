@@ -271,13 +271,15 @@ function Search({
     // cache (cachedOptimisticItemRef) is intentionally kept alive so the item
     // stays visible at its sorted position until server-confirmed data arrives;
     // clearOptimisticTracking handles that cleanup when pendingAction !== ADD.
+    // Re-fires when showPendingExpensePlaceholder is re-armed (subsequent expense
+    // creation while Search stays mounted) so each cycle gets a fresh safety net.
     useEffect(() => {
-        if (!hasPendingWriteOnMountRef.current) {
+        if (!showPendingExpensePlaceholder) {
             return;
         }
         const id = setTimeout(() => setShowPendingExpensePlaceholder(false), OPTIMISTIC_TRACKING_TIMEOUT_MS);
         return () => clearTimeout(id);
-    }, []);
+    }, [showPendingExpensePlaceholder]);
 
     // Flush (not cancel) on unmount so the API.write() still executes if the
     // user navigates away before onLayout fires. This also clears the channel,
@@ -448,7 +450,7 @@ function Search({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
 
-    const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
+    const {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -460,6 +462,16 @@ function Search({
         previousReportActions,
         shouldUseLiveData,
     });
+
+    // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
+    // (which has empty deps) can read the latest value without re-creating its callback.
+    // Used to skip the deferral that would otherwise hide the freshly-added row from
+    // FlashList during the RHP dismiss transition, which would prevent the highlight
+    // animation from ever firing on it.
+    const hasQueuedHighlightsRef = useRef(hasQueuedHighlights);
+    useEffect(() => {
+        hasQueuedHighlightsRef.current = hasQueuedHighlights;
+    }, [hasQueuedHighlights]);
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
@@ -513,6 +525,14 @@ function Search({
 
             if (skipDeferralOnFocusRef.current) {
                 skipDeferralOnFocusRef.current = false;
+                return;
+            }
+
+            // If the highlight hook already queued rows for the post-create animation,
+            // skip the skeleton-during-transition defer. Otherwise FlashList stays empty
+            // for ~1s while the RHP dismiss transition runs, the row never mounts inside
+            // the 300ms highlight window, and `useAnimatedHighlightStyle` never fires.
+            if (hasQueuedHighlightsRef.current) {
                 return;
             }
 
@@ -1562,9 +1582,7 @@ function Search({
                 // Clear stale cached item so the new optimistic row is picked up fresh.
                 cachedOptimisticItemRef.current = null;
                 const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                if (latestKey) {
-                    optimisticWatchKeyRef.current = latestKey;
-                }
+                optimisticWatchKeyRef.current = latestKey;
             }
 
             onDestinationVisible?.(isSearchResultsEmptyRef.current, 'focus');
