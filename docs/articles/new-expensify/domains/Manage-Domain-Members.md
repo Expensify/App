@@ -1,7 +1,7 @@
 ---
 title: Manage Domain Members
 description: Learn how to manage domain members in New Expensify.
-internalScope: Audience is Domain Admins. Covers inviting/adding domain members, closing accounts, promoting members to Domain Admin, and moving a member between domain groups. Does not cover domain verification, SAML setup, Domain Groups configuration, or account access troubleshooting.
+internalScope: Audience is Domain Admins. Covers inviting/adding domain members, closing accounts, promoting members to Domain Admin, and moving a member between domain groups (including Policy Admin restrictions). Does not cover domain verification, SAML setup, Domain Groups configuration, or account access troubleshooting.
 keywords: [New Expensify, Workspaces, Domains, domain members, verify domain, domain admin, domain control, remove domain member, deactivate domain user, invite domain user, promote to domain admin, workspace admins, move member to group, domain group]
 ---
 
@@ -75,6 +75,8 @@ You can give any member permission to manage domain settings by promoting them t
 
 Domain Admins can move a member from one domain group to another to change which domain-level rules apply to them.
 
+**Note:** If the target domain group has a Preferred Policy configured, you must be a Policy Admin for that policy. If you are not a Policy Admin, the move will be blocked.
+
 1. Go to **Workspaces > Domains**.
 2. Select your domain.
 3. Click **Domain Members**.
@@ -90,6 +92,10 @@ Domain Admins can move a member from one domain group to another to change which
 ## What happens if a member removes their domain email?
 
 If a member removes their domain email from their contact methods, they’ll no longer be listed as a Domain Member.
+
+## Why can't I move a member to a domain group?
+
+You must be a Policy Admin for the Preferred Policy set on the target domain group. If you're not an admin of that policy, the move will be blocked. Contact a Policy Admin for the relevant workspace to get admin access, or ask them to move the member for you.
 
 ## Can Domain Admins be outside the company domain?
 
