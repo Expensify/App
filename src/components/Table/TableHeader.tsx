@@ -62,7 +62,7 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
         return null;
     }
 
-    const gridTemplateColumns = columns.map((column) => column.width ?? '1fr').join(' ');
+    const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr')).join(' ');
 
     return (
         <View

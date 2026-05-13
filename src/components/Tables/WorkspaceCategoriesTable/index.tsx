@@ -35,6 +35,7 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
             key: 'selection',
             label: '',
             sortable: false,
+            width: 52,
         },
         {
             key: 'name',
@@ -59,11 +60,13 @@ export default function WorkspaceCategoriesTable({categories, shouldShowApprover
             key: 'enabled',
             label: translate('common.enabled'),
             sortable: true,
+            width: 64,
         },
         {
             key: 'actions',
             label: '',
             sortable: false,
+            width: 52,
         },
     ];
 
