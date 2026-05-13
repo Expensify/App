@@ -30,7 +30,10 @@ function EnableNotificationsBanner() {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.hoveredComponentBG, styles.p3, containerInlineStyle]}>
+        <View
+            accessibilityRole="alert"
+            style={[styles.flexRow, styles.alignItemsCenter, styles.hoveredComponentBG, styles.p3, containerInlineStyle]}
+        >
             <Text style={[styles.flex1, styles.flexWrap, styles.textNormal]}>{translate('concierge.enableNotifications.prompt')}</Text>
             <Button
                 success
