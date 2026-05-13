@@ -66,13 +66,19 @@ const ReportActionEditMessageActionsContext = createContext<ReportActionEditMess
 type ReportActionEditMessageContextProviderProps = {
     /** The report ID */
     reportID: string | undefined;
+    /**
+     * When set, drafts for edits that render on money-request views but persist under the
+     * one-transaction thread report are wired into this provider. Omit on non-money-request
+     * screens, or supply the effective ID from `useTransactionThreadReportID` /
+     * `ReportScreenEditMessageProviderWithTransactionThread`.
+     */
+    effectiveTransactionThreadReportID?: string;
     /** The children */
     children: React.ReactNode;
 };
 
-function ReportActionEditMessageContextProvider({reportID, children}: ReportActionEditMessageContextProviderProps) {
+function ReportActionEditMessageContextProvider({reportID, effectiveTransactionThreadReportID, children}: ReportActionEditMessageContextProviderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const {effectiveTransactionThreadReportID} = useTransactionThreadReportID(reportID);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
@@ -296,6 +302,24 @@ function ReportActionEditMessageContextProvider({reportID, children}: ReportActi
     );
 }
 
+type ReportScreenEditMessageProviderWithTransactionThreadProps = {
+    reportID: string | undefined;
+    children: React.ReactNode;
+};
+
+/** Wires `effectiveTransactionThreadReportID` from `useTransactionThreadReportID` for money-request report views. */
+function ReportScreenEditMessageProviderWithTransactionThread({reportID, children}: ReportScreenEditMessageProviderWithTransactionThreadProps) {
+    const {effectiveTransactionThreadReportID} = useTransactionThreadReportID(reportID);
+    return (
+        <ReportActionEditMessageContextProvider
+            effectiveTransactionThreadReportID={effectiveTransactionThreadReportID}
+            reportID={reportID}
+        >
+            {children}
+        </ReportActionEditMessageContextProvider>
+    );
+}
+
 function useReportActionActiveEdit() {
     return useContext(ReportActionEditMessageContext);
 }
@@ -304,5 +328,11 @@ function useReportActionActiveEditActions() {
     return useContext(ReportActionEditMessageActionsContext);
 }
 
-export {ReportActionEditMessageContextProvider, useReportActionActiveEdit, useReportActionActiveEditActions, ReportActionEditMessageContext};
+export {
+    ReportActionEditMessageContextProvider,
+    ReportScreenEditMessageProviderWithTransactionThread,
+    useReportActionActiveEdit,
+    useReportActionActiveEditActions,
+    ReportActionEditMessageContext,
+};
 export type {ReportActionActiveEdit, ReportActionEditMessageContextValue, ReportActionEditMessageState};

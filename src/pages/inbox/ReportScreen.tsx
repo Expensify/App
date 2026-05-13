@@ -16,6 +16,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
+import {isMoneyRequestReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -28,7 +29,7 @@ import useFlushDeferredWriteOnFocus from './hooks/useFlushDeferredWriteOnFocus';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionComposePlaceholder from './report/ReportActionCompose/ReportActionComposePlaceholder';
-import {ReportActionEditMessageContextProvider} from './report/ReportActionEditMessageContext';
+import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
 import useClearReportActionDraftsOnReportChange from './report/useClearReportActionDraftsOnReportChange';
 import ReportActionsList from './ReportActionsList';
@@ -44,6 +45,24 @@ import type ReportScreenNavigationProps from './types';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
 
 type ReportScreenProps = ReportScreenNavigationProps;
+
+type ReportScreenEditMessageProviderProps = {
+    reportID: string | undefined;
+    children: React.ReactNode;
+};
+
+/** Money-request screens need transaction-thread derivation; others use the lighter provider path. */
+function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditMessageProviderProps) {
+    const [shouldDeriveMoneyRequestTransactionThread] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        selector: (reportEntry) => !!reportEntry && isMoneyRequestReport(reportEntry),
+    });
+
+    if (shouldDeriveMoneyRequestTransactionThread !== true) {
+        return <ReportActionEditMessageContextProvider reportID={reportID}>{children}</ReportActionEditMessageContextProvider>;
+    }
+
+    return <ReportScreenEditMessageProviderWithTransactionThread reportID={reportID}>{children}</ReportScreenEditMessageProviderWithTransactionThread>;
+}
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
@@ -83,7 +102,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     useClearReportActionDraftsOnReportChange(reportIDFromRoute);
 
     return (
-        <ReportActionEditMessageContextProvider reportID={reportIDFromRoute}>
+        <ReportScreenEditMessageProvider reportID={reportIDFromRoute}>
             <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
                 <ActionListContext.Provider value={actionListValue}>
                     <ReactionListWrapper>
@@ -141,7 +160,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                     </ReactionListWrapper>
                 </ActionListContext.Provider>
             </WideRHPOverlayWrapper>
-        </ReportActionEditMessageContextProvider>
+        </ReportScreenEditMessageProvider>
     );
 }
 

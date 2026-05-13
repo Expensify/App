@@ -2,22 +2,12 @@ import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
-import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 import * as ReportUtils from '@libs/ReportUtils';
 import {ReportActionEditMessageContextProvider, useReportActionActiveEdit, useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions, ReportActionsDrafts} from '@src/types/onyx';
 import {getFakeReport, getFakeReportAction} from '../../../../utils/LHNTestUtils';
-
-jest.mock('@hooks/useTransactionThreadReportID', () => ({
-    __esModule: true,
-    default: jest.fn(() => ({
-        effectiveTransactionThreadReportID: undefined,
-        transactionThreadReportID: undefined,
-        reportActions: [],
-    })),
-}));
 
 jest.mock('@hooks/useAncestors', () => ({
     __esModule: true,
@@ -30,7 +20,6 @@ jest.mock('@hooks/useOnyx', () => ({
     default: (key: unknown, opts?: {selector?: (collection: unknown) => unknown}) => mockUseOnyx(key, opts) as unknown[],
 }));
 
-const mockUseTransactionThreadReportID = jest.mocked(useTransactionThreadReportID);
 const mockUseAncestors = jest.mocked(useAncestors);
 
 let getOriginalReportIDSpy: jest.SpiedFunction<typeof ReportUtils.getOriginalReportID>;
@@ -91,16 +80,38 @@ function createReportActionWithId(reportActionID: string): ReportAction {
     };
 }
 
-function renderActiveEditHook(mockImplementation: ReturnType<typeof buildUseOnyxImplementation>) {
+function renderActiveEditHook(mockImplementation: ReturnType<typeof buildUseOnyxImplementation>, effectiveTransactionThreadReportID?: string) {
     mockUseOnyx.mockImplementation(mockImplementation);
 
+    function EditProviderWrapper({children}: {children: React.ReactNode}) {
+        return (
+            <ReportActionEditMessageContextProvider
+                effectiveTransactionThreadReportID={effectiveTransactionThreadReportID}
+                reportID={MAIN_REPORT_ID}
+            >
+                {children}
+            </ReportActionEditMessageContextProvider>
+        );
+    }
+
     return renderHook(() => useReportActionActiveEdit(), {
-        wrapper: ({children}: {children: React.ReactNode}) => <ReportActionEditMessageContextProvider reportID={MAIN_REPORT_ID}>{children}</ReportActionEditMessageContextProvider>,
+        wrapper: EditProviderWrapper,
     });
 }
 
-function renderActiveEditAndActionsHook(mockImplementation: ReturnType<typeof buildUseOnyxImplementation>) {
+function renderActiveEditAndActionsHook(mockImplementation: ReturnType<typeof buildUseOnyxImplementation>, effectiveTransactionThreadReportID?: string) {
     mockUseOnyx.mockImplementation(mockImplementation);
+
+    function EditProviderWrapper({children}: {children: React.ReactNode}) {
+        return (
+            <ReportActionEditMessageContextProvider
+                effectiveTransactionThreadReportID={effectiveTransactionThreadReportID}
+                reportID={MAIN_REPORT_ID}
+            >
+                {children}
+            </ReportActionEditMessageContextProvider>
+        );
+    }
 
     return renderHook(
         () => ({
@@ -108,7 +119,7 @@ function renderActiveEditAndActionsHook(mockImplementation: ReturnType<typeof bu
             activeEditActions: useReportActionActiveEditActions(),
         }),
         {
-            wrapper: ({children}: {children: React.ReactNode}) => <ReportActionEditMessageContextProvider reportID={MAIN_REPORT_ID}>{children}</ReportActionEditMessageContextProvider>,
+            wrapper: EditProviderWrapper,
         },
     );
 }
@@ -117,11 +128,6 @@ function resetProviderTestState() {
     jest.clearAllMocks();
     mockUseAncestors.mockReturnValue([]);
     getOriginalReportIDSpy.mockImplementation(() => undefined);
-    mockUseTransactionThreadReportID.mockReturnValue({
-        effectiveTransactionThreadReportID: undefined,
-        transactionThreadReportID: undefined,
-        reportActions: [],
-    });
     mockUseOnyx.mockReturnValue([undefined]);
 }
 
@@ -142,12 +148,6 @@ describe('ReportActionEditMessageContextProvider', () => {
     describe('additional report IDs (transaction thread)', () => {
         it('surfaces an edit on the effective transaction thread when it differs from the visible report', () => {
             const threadReportAction = createReportActionWithId(THREAD_ACTION_ID);
-
-            mockUseTransactionThreadReportID.mockReturnValue({
-                effectiveTransactionThreadReportID: THREAD_REPORT_ID,
-                transactionThreadReportID: THREAD_REPORT_ID,
-                reportActions: [],
-            });
 
             const mainReport = createReportWithId(MAIN_REPORT_ID);
             const mainReportActions: ReportActions = {};
@@ -175,7 +175,7 @@ describe('ReportActionEditMessageContextProvider', () => {
                 fullDraftsCollection,
             });
 
-            const {result} = renderActiveEditHook(mockImpl);
+            const {result} = renderActiveEditHook(mockImpl, THREAD_REPORT_ID);
 
             expect(result.current.editingState).toBe(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
             expect(result.current.editingReportID).toBe(THREAD_REPORT_ID);
@@ -185,12 +185,6 @@ describe('ReportActionEditMessageContextProvider', () => {
         });
 
         it('does not load transaction-thread drafts when effective thread ID is undefined', () => {
-            mockUseTransactionThreadReportID.mockReturnValue({
-                effectiveTransactionThreadReportID: undefined,
-                transactionThreadReportID: THREAD_REPORT_ID,
-                reportActions: [],
-            });
-
             const threadReportAction = createReportActionWithId(THREAD_ACTION_ID);
             const mainReport = createReportWithId(MAIN_REPORT_ID);
 
@@ -224,12 +218,6 @@ describe('ReportActionEditMessageContextProvider', () => {
         });
 
         it('does not load transaction-thread drafts when effective thread ID is the fake report ID', () => {
-            mockUseTransactionThreadReportID.mockReturnValue({
-                effectiveTransactionThreadReportID: CONST.FAKE_REPORT_ID,
-                transactionThreadReportID: CONST.FAKE_REPORT_ID,
-                reportActions: [],
-            });
-
             const threadReportAction = createReportActionWithId(THREAD_ACTION_ID);
             const mainReport = createReportWithId(MAIN_REPORT_ID);
 
@@ -256,19 +244,13 @@ describe('ReportActionEditMessageContextProvider', () => {
                 fullDraftsCollection,
             });
 
-            const {result} = renderActiveEditHook(mockImpl);
+            const {result} = renderActiveEditHook(mockImpl, CONST.FAKE_REPORT_ID);
 
             expect(result.current.editingState).toBe(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF);
             expect(result.current.editingReportID).toBeNull();
         });
 
         it('does not load transaction-thread drafts when effective thread ID equals the visible report ID', () => {
-            mockUseTransactionThreadReportID.mockReturnValue({
-                effectiveTransactionThreadReportID: MAIN_REPORT_ID,
-                transactionThreadReportID: MAIN_REPORT_ID,
-                reportActions: [],
-            });
-
             const threadReportAction = createReportActionWithId(THREAD_ACTION_ID);
             const mainReport = createReportWithId(MAIN_REPORT_ID);
 
@@ -295,19 +277,13 @@ describe('ReportActionEditMessageContextProvider', () => {
                 fullDraftsCollection,
             });
 
-            const {result} = renderActiveEditHook(mockImpl);
+            const {result} = renderActiveEditHook(mockImpl, MAIN_REPORT_ID);
 
             expect(result.current.editingState).toBe(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF);
             expect(result.current.editingReportID).toBeNull();
         });
 
         it('does not surface additional edits when a draft exists without its report action', () => {
-            mockUseTransactionThreadReportID.mockReturnValue({
-                effectiveTransactionThreadReportID: THREAD_REPORT_ID,
-                transactionThreadReportID: THREAD_REPORT_ID,
-                reportActions: [],
-            });
-
             const mainReport = createReportWithId(MAIN_REPORT_ID);
 
             const fullReportActionsCollection: OnyxCollection<ReportActions> = {
@@ -331,7 +307,7 @@ describe('ReportActionEditMessageContextProvider', () => {
                 fullDraftsCollection,
             });
 
-            const {result} = renderActiveEditHook(mockImpl);
+            const {result} = renderActiveEditHook(mockImpl, THREAD_REPORT_ID);
 
             expect(result.current.editingState).toBe(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF);
             expect(result.current.editingReportID).toBeNull();
@@ -340,12 +316,6 @@ describe('ReportActionEditMessageContextProvider', () => {
         it('prefers the main report draft over a transaction-thread draft when both exist', () => {
             const mainReportAction = createReportActionWithId(MAIN_ACTION_ID);
             const threadReportAction = createReportActionWithId(THREAD_ACTION_ID);
-
-            mockUseTransactionThreadReportID.mockReturnValue({
-                effectiveTransactionThreadReportID: THREAD_REPORT_ID,
-                transactionThreadReportID: THREAD_REPORT_ID,
-                reportActions: [],
-            });
 
             const mainReport = createReportWithId(MAIN_REPORT_ID);
             const mainReportActions: ReportActions = {
@@ -379,7 +349,7 @@ describe('ReportActionEditMessageContextProvider', () => {
                 fullDraftsCollection,
             });
 
-            const {result} = renderActiveEditHook(mockImpl);
+            const {result} = renderActiveEditHook(mockImpl, THREAD_REPORT_ID);
 
             expect(result.current.editingState).toBe(CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING);
             expect(result.current.editingReportID).toBe(MAIN_REPORT_ID);
