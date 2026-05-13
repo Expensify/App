@@ -64,8 +64,8 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isReportLastVisibleArchived = useReportIsArchived(report?.parentReportID);
-    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
-    const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.managerID)});
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)}, [report?.ownerAccountID]);
+    const [managerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.managerID)}, [report?.managerID]);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
