@@ -6,7 +6,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
-import variables from '@styles/variables';
 
 type TableSkeletonProps = {
     /** The number of skeleton rows to render */

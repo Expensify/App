@@ -21,7 +21,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {openDomainInitialPage} from '@libs/actions/Domain';
+import {openDomainPage} from '@libs/actions/Domain';
 import {hasDomainAdminsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -90,11 +90,11 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     ];
 
     const fetchDomainData = useCallback(() => {
-        if (!domainName) {
+        if (!domainAccountID) {
             return;
         }
-        openDomainInitialPage(domainName);
-    }, [domainName]);
+        openDomainPage(domainAccountID);
+    }, [domainAccountID]);
 
     useEffect(() => {
         fetchDomainData();

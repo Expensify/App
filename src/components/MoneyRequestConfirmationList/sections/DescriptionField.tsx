@@ -61,7 +61,6 @@ function DescriptionField({
     const contextMenuStateValue = {
         anchor: null,
         report: undefined,
-        isReportArchived: false,
         action: undefined,
         isDisabled: true,
         shouldDisplayContextMenu: false,
