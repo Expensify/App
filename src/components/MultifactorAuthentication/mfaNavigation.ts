@@ -24,7 +24,7 @@ function navigate<T extends keyof MultifactorAuthenticationModalNavigatorParamLi
     // Navigator mounts only while the overlay is visible. Buffer the request
     // until the placeholder MFA_INITIAL_SCREEN lays out and triggers the push.
     if (!mfaNavigationRef.isReady()) {
-        pendingNavigation = {screen: screen as string, params};
+        pendingNavigation = {screen, params};
         return;
     }
 
@@ -35,14 +35,14 @@ function navigate<T extends keyof MultifactorAuthenticationModalNavigatorParamLi
 
     if (currentRoute?.name === MFA_INITIAL_SCREEN) {
         if (hasInitialLaidOut) {
-            mfaNavigationRef.dispatch(StackActions.push(screen as string, params));
+            mfaNavigationRef.dispatch(StackActions.push(screen, params));
             return;
         }
-        pendingNavigation = {screen: screen as string, params};
+        pendingNavigation = {screen, params};
         return;
     }
 
-    mfaNavigationRef.dispatch(StackActions.replace(screen as string, params));
+    mfaNavigationRef.dispatch(StackActions.replace(screen, params));
 }
 
 function handleInitialScreenLayout() {
