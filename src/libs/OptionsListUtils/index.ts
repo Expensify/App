@@ -166,7 +166,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
-import {getMerchantOrDescription, isScanning} from '@libs/TransactionUtils';
+import {getMerchantOrDescription, getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -582,15 +582,15 @@ function getExpenseReportPreviewText(
     transactions: Transaction[] = [],
 ): string {
     const originalMessage = moneyRequestAction ? getOriginalMessage(moneyRequestAction) : undefined;
-    const amount = originalMessage?.amount;
-    const currency = originalMessage?.currency ?? report?.currency;
+    const linkedTransaction = transactions.find((transaction) => transaction.transactionID === originalMessage?.IOUTransactionID);
+    const amount = linkedTransaction ? getTransactionAmount(linkedTransaction, true) : originalMessage?.amount;
+    const currency = linkedTransaction ? getTransactionCurrency(linkedTransaction) : (originalMessage?.currency ?? report?.currency);
 
     if (typeof amount !== 'number' || !currency) {
         return '';
     }
 
     const formattedAmount = convertToDisplayString(amount, currency);
-    const linkedTransaction = transactions.find((transaction) => transaction.transactionID === originalMessage?.IOUTransactionID);
     const merchantOrDescription = linkedTransaction ? getMerchantOrDescription(linkedTransaction) : '';
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const comment = Parser.htmlToText(merchantOrDescription || originalMessage?.comment || '').trim();
