@@ -14,11 +14,11 @@ function dispatchToggle(isVisible: boolean) {
     });
 }
 
-function getLastHistoryEntry(): unknown {
+function getHistory(): readonly unknown[] {
     if (!navigationRef.isReady()) {
-        return undefined;
+        return [];
     }
-    return navigationRef.getRootState()?.history?.at(-1);
+    return navigationRef.getRootState()?.history ?? [];
 }
 
 /**
@@ -63,14 +63,16 @@ function useSyncMfaModalNavigatorWithHistory(isModalOpen: boolean, requestCancel
                   })
                 : null;
 
-        let previousLastEntry = getLastHistoryEntry();
+        let previousHistory = getHistory();
         const unsubscribe = navigationRef.addListener('state', () => {
-            const currentLastEntry = getLastHistoryEntry();
-            const wasMarkerOnTop = previousLastEntry === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR;
-            const isMarkerOnTop = currentLastEntry === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR;
-            previousLastEntry = currentLastEntry;
+            const currentHistory = getHistory();
+            // Compare presence anywhere in history, not at the top, so a sibling marker pushed
+            // on top of MFA (e.g. side panel) does not spuriously fire requestCancel.
+            const wasInHistory = previousHistory.includes(CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR);
+            const isInHistory = currentHistory.includes(CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MFA_MODAL_NAVIGATOR);
+            previousHistory = currentHistory;
 
-            if (wasMarkerOnTop && !isMarkerOnTop) {
+            if (wasInHistory && !isInHistory) {
                 dispatchToggle(true);
                 requestCancel();
             }
