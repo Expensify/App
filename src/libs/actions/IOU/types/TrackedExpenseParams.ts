@@ -57,6 +57,7 @@ type TrackedExpenseParams = {
         | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
         | typeof ONYXKEYS.GPS_DRAFT_DETAILS
         | typeof ONYXKEYS.SELF_DM_REPORT_ID
+        | typeof ONYXKEYS.ODOMETER_DRAFT
     >;
     reportInformation: TrackedExpenseReportInformation;
     transactionParams: TrackedExpenseTransactionParams;

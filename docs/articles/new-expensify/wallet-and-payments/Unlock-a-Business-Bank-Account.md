@@ -24,6 +24,8 @@ When a bank account is locked, you’ll see a **Locked** badge on the account in
  - **Settings > Wallet** in the **Bank accounts** section
  - **Workspaces > [Workspace Name] > Workflows** in the **Payments** section
 
+You’ll also see a Time-sensitive alert on **Home** with a **Fix** button that guides you through the unlock process.
+
 ---
 
 ## How to unlock a business bank account

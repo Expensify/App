@@ -94,6 +94,12 @@ type ParticipantSearchResultsProps = {
 
     /** Callback to advance the parent flow */
     onFinish: (value?: string, participants?: Participant[]) => void;
+
+    /** Report ID of a pre-selected participant whose selection state can't be derived from the participants array (e.g. self DM with accountID 0) */
+    initiallySelectedReportID?: string;
+
+    /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
+    shouldMoveSelectedToTop?: boolean;
 };
 
 function ParticipantSearchResults({
@@ -110,6 +116,8 @@ function ParticipantSearchResults({
     setTextInputAutoFocus,
     onParticipantsAdded,
     onFinish,
+    initiallySelectedReportID,
+    shouldMoveSelectedToTop = false,
 }: ParticipantSearchResultsProps) {
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE;
@@ -156,7 +164,8 @@ function ParticipantSearchResults({
 
     // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
     const hasMultipleTransactions = optimisticTransactions.length > 1;
-    const canShowManagerMcTest = !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT && !hasMultipleTransactions;
+    const isCurrentUserMemberOfAnyPolicy = Object.values(allPolicies ?? {}).some((pol) => pol?.isPolicyExpenseChatEnabled && pol?.id && pol.id !== CONST.POLICY.ID_FAKE);
+    const canShowManagerMcTest = !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT && !hasMultipleTransactions && !isCurrentUserMemberOfAnyPolicy;
 
     const getValidOptionsConfig = {
         selectedOptions: participants as Participant[],
@@ -345,6 +354,29 @@ function ParticipantSearchResults({
             });
         }
 
+        if (initiallySelectedReportID !== undefined) {
+            if (shouldMoveSelectedToTop && debouncedSearchTerm.trim() === '') {
+                const selectedEntry = sections
+                    .flatMap((section) => section.data.map((item, index) => ({item, section, index})))
+                    .find((entry) => entry.item.reportID === initiallySelectedReportID);
+                if (selectedEntry) {
+                    selectedEntry.section.data.splice(selectedEntry.index, 1);
+                    const firstSection = sections.at(0);
+                    if (firstSection) {
+                        firstSection.data = [{...selectedEntry.item, isSelected: true}, ...firstSection.data];
+                    }
+                }
+            } else {
+                for (const section of sections) {
+                    section.data = section.data.map((item) => ({
+                        ...item,
+                        isSelected: item.reportID === initiallySelectedReportID,
+                        canShowSeveralIndicators: true,
+                    }));
+                }
+            }
+        }
+
         if (!showImportContacts) {
             header = inputHelperText ?? '';
         }
@@ -394,7 +426,6 @@ function ParticipantSearchResults({
         // `InteractionManager.runAfterInteractions` is marked deprecated in RN types but remains the
         // supported primitive for deferring work until native animations/gestures settle. No
         // replacement exists in the RN API we can migrate to today.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     };
 

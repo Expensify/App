@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -77,7 +77,7 @@ function WorkspaceTravelInvoicingSettlementFrequencyPage({route}: WorkspaceTrave
             <SelectionList<FrequencyItem>
                 data={data}
                 onSelectRow={selectFrequency}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={currentFrequency}
                 customListHeaderContent={
                     <Text style={[styles.mh5, styles.mv3]}>

@@ -22,6 +22,7 @@ import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -209,6 +210,10 @@ function MoneyRequestView({
     });
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
+
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(
+        isDistanceRequestTransactionUtils(transaction) && isExpenseUnreported ? transaction?.comment?.customUnit?.customUnitRateID : undefined,
+    );
 
     let policy;
     let policyID;
@@ -453,7 +458,7 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy: distanceOriginalPolicy ?? policy});
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);
@@ -514,6 +519,7 @@ function MoneyRequestView({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
+            isOffline,
         });
     };
 
@@ -1054,6 +1060,13 @@ function MoneyRequestView({
                                             transactionID: transaction.transactionID,
                                             reportID: transactionThreadReport?.reportID,
                                             upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                                            backTo: ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
+                                                CONST.IOU.ACTION.EDIT,
+                                                iouType,
+                                                transaction.transactionID,
+                                                transactionThreadReport?.reportID,
+                                                Navigation.getActiveRoute(),
+                                            ),
                                         }),
                                     );
                                 } else if (!policy && shouldSelectPolicy) {

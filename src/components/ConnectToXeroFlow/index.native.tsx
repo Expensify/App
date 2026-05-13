@@ -11,7 +11,6 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
-import {close} from '@libs/actions/Modal';
 import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -55,9 +54,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
                 <RequireTwoFactorAuthenticationModal
                     onSubmit={() => {
                         setIsRequire2FAModalOpen(false);
-                        close(() => {
-                            Navigation.navigate(getTwoFactorAuthRoute());
-                        });
+                        Navigation.navigate(getTwoFactorAuthRoute());
                     }}
                     onCancel={() => setIsRequire2FAModalOpen(false)}
                     isVisible={isRequire2FAModalOpen}
