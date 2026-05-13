@@ -23,6 +23,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getPlatform from '@libs/getPlatform';
+import {navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -196,8 +197,11 @@ function IOURequestStepUpgrade({
             case CONST.UPGRADE_PATHS.REPORTS:
                 Navigation.goBack();
                 if (action === CONST.IOU.ACTION.CREATE) {
-                    // Coming from "Create report" button (no workspace) → go to workspace selection which creates the report
-                    navigateWithMicrotask(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                    // Coming from "Create report" without a workspace. After upgrade, continue through the
+                    // Reports-anchored workspace selection flow so the created report opens in Reports.
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        navigateToCreateReportWorkspaceSelection();
+                    });
                 } else {
                     navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 }
