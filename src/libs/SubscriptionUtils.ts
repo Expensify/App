@@ -477,7 +477,7 @@ function shouldRestrictUserBillableActions(
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
-    currentUserAccountID?: number,
+    currentUserAccountID: number,
 ): boolean {
     const currentDate = new Date();
 

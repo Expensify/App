@@ -271,6 +271,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         amountOwed,
         ownerBillingGracePeriodEnd,
         lastDistanceExpenseType,
+        currentUserAccountID: accountID,
     });
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
