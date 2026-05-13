@@ -1,7 +1,7 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights, Getting started, onboarding checklist]
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, assigned cards, Expensify Card limit, available limit, available balance, Spend over time, spending chart, insights, Getting started, onboarding checklist, track and budget my expenses]
 internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Spend over time, Discover, Announcements, Time-sensitive, Getting started, and Assigned cards sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
@@ -48,6 +48,7 @@ The **Time-sensitive alerts** section appears only when there is something that 
 
 These alerts appear when:
 - A workflow is blocked, such as a broken bank or accounting connection due to expired or invalid credentials
+- A bank account is locked, such as a business or personal bank account that has been locked due to a failed debit or bank-side restriction
 - There is potential risk, such as suspected Expensify Card fraud
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 
@@ -87,9 +88,11 @@ The **Getting started** section shows a checklist of key setup steps to help Wor
 This section appears only if:
 
  - The workspace is on a free trial
- - The workspace owner selected **manage my team** during setup
+ - The workspace owner selected **manage my team** or **track and budget my expenses** during setup
 
 If these conditions aren’t met, the section won’t appear.
+
+The checklist items vary based on the intent selected during onboarding. Users who chose **track and budget my expenses** see tasks for creating a workspace, customizing accounting categories, and inviting an accountant.
 
 ---
 
@@ -113,9 +116,11 @@ This section helps you stay informed about what’s new or recently changed in N
 
 ## How the Assigned cards section works on Home
 
-The **Assigned cards** section shows all Expensify Cards assigned to you, along with the available spending limit for each card.
+The **Assigned cards** section shows your active Expensify Cards along with the available spending limit for each card.
 
 Use this section to quickly check how much you can spend before making a purchase. The available limit updates automatically as transactions are made.
+
+Cards with a custom spending limit of $0 are not shown in this section.
 
 ---
 
@@ -151,11 +156,11 @@ The **Discover** section only appears until you’ve watched the demo. Once you�
 
 ## Why don’t I see the Getting started section?
 
-The **Getting started** section only appears if you selected the **manage my team** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
+The **Getting started** section only appears if you selected the **manage my team** or **track and budget my expenses** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
 
 ## Why don’t I see the Assigned cards section?
 
 The **Assigned cards** section only appears if you have an active **Expensify Card** assigned to you.
 
-If you don’t have an Expensify Card assigned, or your assigned card isn’t active, the **Assigned cards** section won’t be visible.
+If you don’t have an Expensify Card assigned, your assigned card isn’t active, or your card has a custom spending limit of $0, the **Assigned cards** section won’t be visible.
 

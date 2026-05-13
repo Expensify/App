@@ -172,7 +172,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report, accountIDsToRemove);
         setSearchValue('');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
@@ -381,11 +380,12 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             ref: textInputRef,
                         }}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                         turnOnSelectionModeOnLongPress={isCurrentUserGroupChatAdmin}
                         shouldSingleExecuteRowSelect={!isCurrentUserGroupChatAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(participants)}
-                        onCheckboxPress={toggleUser}
+                        onSelectionButtonPress={toggleUser}
                         shouldShowTextInput={shouldShowTextInput}
                         customListHeader={customListHeader}
                         showScrollIndicator

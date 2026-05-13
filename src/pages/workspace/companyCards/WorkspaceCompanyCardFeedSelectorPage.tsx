@@ -9,7 +9,7 @@ import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {CombinedCardFeed, CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
@@ -176,7 +176,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                         const isFeedWithError = feedWithError?.feed === feed.value;
                         const itemWithError = isFeedWithError && feedWithError?.error ? {...feed, errors: feedWithError.error} : feed;
                         return (
-                            <RadioListItem
+                            <SingleSelectListItem
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
                                 key={feed.keyForList}
@@ -188,7 +188,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                                 isAlternateTextMultilineSupported
                                 alternateTextNumberOfLines={2}
                                 titleNumberOfLines={2}
-                                // RadioListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
+                                // BaseSelectListItem defaults to flex1 on the row; inside a column footer that makes rows split height and overlap. Size rows to content instead.
                                 wrapperStyle={[styles.flexReset, styles.w100]}
                             />
                         );
@@ -215,7 +215,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                 />
                 {feeds.length ? (
                     <SelectionList
-                        ListItem={RadioListItem}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={selectFeed}
                         data={feeds}
                         alternateNumberOfSupportedLines={2}

@@ -6,9 +6,9 @@ import UserPills from '@components/UserPills';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {enrichAndSortAttendees} from '@libs/AttendeeUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {getAttendees} from '@libs/TransactionUtils';
+import {getAttendees, getAttendeesListDisplayString} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -33,13 +33,14 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     const personalDetailsList = usePersonalDetails();
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
-    const iouAttendees = getAttendees(transaction, currentUserPersonalDetails);
+    const rawIouAttendees = getAttendees(transaction, currentUserPersonalDetails);
+    const iouAttendees = enrichAndSortAttendees(rawIouAttendees, personalDetailsList, localeCompare);
 
     return (
         <MenuItemWithTopDescription
             key="attendees"
             shouldShowRightIcon={!isReadOnly}
-            accessibilityLabel={`${translate('iou.attendees')}, ${iouAttendees?.map((a) => a?.displayName ?? a?.login).join(', ')}`}
+            accessibilityLabel={`${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`}
             description={`${translate('iou.attendees')} ${
                 iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
             }`}
@@ -47,21 +48,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
             titleComponent={
                 Array.isArray(iouAttendees) ? (
                     <UserPills
-                        users={sortAlphabetically(
-                            iouAttendees.map((a) => {
-                                const pd = a?.accountID ? personalDetailsList?.[a.accountID] : undefined;
-                                const freshAvatar = typeof pd?.avatar === 'string' ? pd.avatar : undefined;
-                                return {
-                                    ...a,
-                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                    displayName: pd?.displayName || a?.displayName,
-                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                    avatarUrl: freshAvatar || a?.avatarUrl,
-                                };
-                            }),
-                            'displayName',
-                            localeCompare,
-                        ).map((a) => ({
+                        users={iouAttendees.map((a) => ({
                             avatar: a?.avatarUrl,
                             displayName: a?.displayName ?? a?.login ?? a?.email ?? '',
                             accountID: a?.accountID,

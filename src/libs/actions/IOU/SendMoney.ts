@@ -143,6 +143,7 @@ function getSendMoneyParams({
             transactionID: optimisticTransaction.transactionID,
             paymentType: paymentMethodType,
             isSendMoneyFlow: true,
+            currentUserAccountID,
         });
 
     const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport);

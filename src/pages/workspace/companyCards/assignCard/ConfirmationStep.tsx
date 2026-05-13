@@ -83,7 +83,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         if (backTo) {
             Navigation.navigate(backTo);
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard?.isAssignmentFinished, backTo]);
 

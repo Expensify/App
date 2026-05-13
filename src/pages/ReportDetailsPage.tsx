@@ -1061,7 +1061,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteTransaction();
             });

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
@@ -21,7 +22,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import {setCardReconciliationAccount} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type DynamicReconciliationAccountSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS>;
@@ -91,7 +92,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
                 <RenderHTML
                     html={translate(
                         'workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation',
-                        `${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())}`,
+                        `${environmentURL}${createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path)}`,
                         settlementAccountEnding,
                     )}
                 />
@@ -100,7 +101,7 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
             <SelectionList
                 data={options}
                 onSelectRow={({value}) => selectBankAccount(value)}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 initiallyFocusedItemKey={reconciliationBankAccountID}
             />
         </ConnectionLayout>
