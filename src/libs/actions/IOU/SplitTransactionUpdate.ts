@@ -1710,13 +1710,15 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // the brief "Not Found" flash caused by the original transaction being deleted while
     // the transaction thread is still visible in the central pane.
     //
-    // After dismissing the modal, pop any intermediate report screens above selfDM in the
-    // REPORTS_SPLIT_NAVIGATOR (e.g. the original transaction's thread). Those become stale
-    // after the split because the original transaction's reportID is set to SPLIT_REPORT_ID,
-    // and falling back on them would land the user on FullPageNotFoundView.
+    // Pop any intermediate report screens above selfDM in the REPORTS_SPLIT_NAVIGATOR
+    // (e.g. the original transaction's thread) BEFORE dismissing the modal. Those screens
+    // become stale after the split because the original transaction's reportID is set to
+    // SPLIT_REPORT_ID, so if the modal dismissal animation revealed them, the user would
+    // briefly see FullPageNotFoundView before the pop landed them on selfDM.
     const selfDMReportID = params.transactionReport?.reportID;
     if (isSelfDMSplit && selfDMReportID) {
-        Navigation.dismissModal({afterTransition: () => popReportsSplitNavigatorToReport(selfDMReportID)});
+        popReportsSplitNavigatorToReport(selfDMReportID);
+        Navigation.dismissModal();
         requestAnimationFrame(() => {
             updateSplitTransactions({...params, isFromSplitExpensesFlow: true});
         });
