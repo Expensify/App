@@ -23,7 +23,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateExpensifyCardLimitType} from '@libs/actions/Card';
 import {openPolicyEditCardLimitTypePage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
+import {filterInactiveCardsForWorkspace, getDefaultExpensifyCardLimitType} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getApprovalWorkflow} from '@libs/PolicyUtils';
@@ -48,7 +48,8 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const formRef = useRef<FormRef | null>(null);
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+
     const card = cardsList?.[cardID];
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultLimitType = getDefaultExpensifyCardLimitType(policy);

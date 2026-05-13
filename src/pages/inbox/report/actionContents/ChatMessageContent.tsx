@@ -44,7 +44,6 @@ type ChatMessageContentProps = {
     contextMenuStateValue: {
         anchor: ContextMenuAnchor | null;
         report: OnyxEntry<OnyxTypes.Report>;
-        isReportArchived: boolean;
         action: OnyxTypes.ReportAction;
         transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
         isDisabled: boolean;

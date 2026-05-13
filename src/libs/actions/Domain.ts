@@ -1,3 +1,4 @@
+import {Num} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -6,6 +7,7 @@ import type {
     AddAdminToDomainParams,
     AddMemberToDomainParams,
     ChangeDomainSecurityGroupParams,
+    CreateDomainSecurityGroupParams,
     DeleteDomainMemberParams,
     DeleteDomainParams,
     DeleteDomainSecurityGroupParams,
@@ -2160,6 +2162,137 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, previ
     API.write(WRITE_COMMANDS.SET_DEFAULT_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
 }
 
+function setDomainGroupCreatePreferredPolicyID(policyID: string) {
+    Onyx.set(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID, policyID);
+}
+
+function clearDomainGroupCreatePreferredPolicyID() {
+    Onyx.set(ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID, null);
+}
+
+/**
+ * Creates a new domain security group with the given configuration
+ * @param domainAccountID - The account ID of the domain
+ * @param newSecurityGroup - The security group data to create
+ * @param shouldSetAsDefaultGroup - Whether we want to set newly created security group as the default
+ * @param previousDefaultGroupID - The current default group ID, used to revert on failure when shouldSetAsDefaultGroup is true
+ */
+function createDomainSecurityGroup(domainAccountID: number, newSecurityGroup: DomainSecurityGroup, shouldSetAsDefaultGroup = false, previousDefaultGroupID?: string) {
+    const groupID = String(Num.generateRandom6DigitID());
+    const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: newSecurityGroup,
+                // backend API uses snake_case for domain_defaultSecurityGroupID
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                ...(shouldSetAsDefaultGroup && {domain_defaultSecurityGroupID: groupID}),
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    createGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>
+    > = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: newSecurityGroup,
+                // backend API uses snake_case for domain_defaultSecurityGroupID
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                ...(shouldSetAsDefaultGroup && {domain_defaultSecurityGroupID: previousDefaultGroupID}),
+            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    createGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('domain.groups.createGroupError'),
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    createGroup: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                [SECURITY_GROUP_KEY]: {
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const params: CreateDomainSecurityGroupParams = {
+        domainAccountID,
+        name: SECURITY_GROUP_KEY,
+        value: JSON.stringify(newSecurityGroup),
+        shouldSetAsDefaultGroup,
+    };
+
+    API.write(WRITE_COMMANDS.CREATE_DOMAIN_SECURITY_GROUP, params, {optimisticData, failureData, successData});
+}
+
+/**
+ * Removes an error and the optimistic security group entry after a failed group creation
+ */
+function clearGroupCreateError(domainAccountID: number, groupID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: null,
+    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: null,
+    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`]: null,
+    });
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -2205,4 +2338,8 @@ export {
     clearGroupDeleteError,
     clearDomainSecurityGroupSettingError,
     setDefaultSecurityGroup,
+    setDomainGroupCreatePreferredPolicyID,
+    clearDomainGroupCreatePreferredPolicyID,
+    createDomainSecurityGroup,
+    clearGroupCreateError,
 };
