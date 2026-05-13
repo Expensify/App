@@ -13331,13 +13331,14 @@ function getLinkedIOUTransaction(reportAction: OnyxEntry<ReportAction | Optimist
 
 /**
  * Returns true if the "Mark as done" copy/button should be shown.
- * Aligns with backend: only shown when all four conditions are true.
+ * Aligns with backend: only shown when all four conditions are true (isTrackIntentUser, isSubmitAndClose, isSubmitter, isSubmittingToSelf).
+ *
  */
 function shouldShowMarkAsDone({isTrackIntentUser, report, policy}: {isTrackIntentUser?: boolean; report: OnyxEntry<Report>; policy: OnyxEntry<Policy>}): boolean {
-    const isSubmitter = isReportOwner(report);
-    const nextApproverAccountID = getNextApproverAccountID(report);
-    const isSubmittingToSelf = isReportOwner(report) && nextApproverAccountID === report?.ownerAccountID;
-    return !!isTrackIntentUser && isSubmitAndClose(policy) && isSubmitter && isSubmittingToSelf;
+    if (!isTrackIntentUser || !isSubmitAndClose(policy) || !isReportOwner(report)) {
+        return false;
+    }
+    return getNextApproverAccountID(report) === report?.ownerAccountID;
 }
 
 export {

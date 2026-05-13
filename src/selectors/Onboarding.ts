@@ -1,5 +1,5 @@
 import type {OnyxValue} from 'react-native-onyx';
-import CONST from '@src/CONST';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -72,7 +72,7 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
  * Selector to check if the user selected a track-intent onboarding choice
  */
 function isTrackIntentUserSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP_INTRO_SELECTED>): boolean {
-    return introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+    return isTrackOnboardingChoice(introSelected?.choice);
 }
 
 export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, isTrackIntentUserSelector};

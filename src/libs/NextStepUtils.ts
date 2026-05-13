@@ -12,6 +12,7 @@ import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
+import isTrackOnboardingChoice from './OnboardingUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -36,10 +37,6 @@ Onyx.connect({
         introSelected = value;
     },
 });
-
-function isTrackIntentUser(): boolean {
-    return introSelected?.choice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || introSelected?.choice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
-}
 
 type BuildNextStepNewParams = {
     report: OnyxEntry<Report>;
@@ -155,7 +152,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
             if (isReopen) {
                 nextStep = {
-                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackIntentUser(), report, policy})
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice), report, policy})
                         ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
                         : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -219,7 +216,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: shouldShowMarkAsDone({
-                        isTrackIntentUser: isTrackIntentUser(),
+                        isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
                         report,
                         policy,
                     })
