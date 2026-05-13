@@ -2957,6 +2957,34 @@ describe('actions/Policy', () => {
             // Check if the pending action is cleared
             expect(policy?.pendingFields?.areRulesEnabled).toBeFalsy();
         });
+
+        it('should clear default max expense rule amounts when the rule feature is turned on', async () => {
+            (fetch as MockFetch)?.pause?.();
+            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                areRulesEnabled: false,
+                maxExpenseAmountNoReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+                maxExpenseAmountNoItemizedReceipt: CONST.POLICY.DEFAULT_MAX_AMOUNT_NO_RECEIPT,
+                maxExpenseAmount: CONST.POLICY.DEFAULT_MAX_EXPENSE_AMOUNT,
+                maxExpenseAge: CONST.POLICY.DEFAULT_MAX_EXPENSE_AGE,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            Policy.enablePolicyRules(fakePolicy, true);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+
+            expect(policy?.areRulesEnabled).toBeTruthy();
+            expect(policy?.maxExpenseAmountNoReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+            expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+            expect(policy?.maxExpenseAmount).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+            expect(policy?.maxExpenseAge).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
+
+            (fetch as MockFetch)?.resume?.();
+        });
     });
 
     describe('setWorkspaceApprovalMode', () => {

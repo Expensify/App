@@ -5141,6 +5141,13 @@ const DISABLED_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'm
     maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
 };
 
+const DEFAULT_MAX_EXPENSE_VALUES: Pick<Policy, 'maxExpenseAmountNoReceipt' | 'maxExpenseAmountNoItemizedReceipt' | 'maxExpenseAmount' | 'maxExpenseAge'> = {
+    maxExpenseAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+    maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+    maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE,
+    maxExpenseAge: CONST.DISABLED_MAX_EXPENSE_VALUE,
+};
+
 function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGoBack = true, policyData?: PolicyData) {
     if (!policy) {
         return;
@@ -5154,7 +5161,7 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGo
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     areRulesEnabled: enabled,
-                    ...(!enabled ? DISABLED_MAX_EXPENSE_VALUES : {}),
+                    ...(enabled ? DEFAULT_MAX_EXPENSE_VALUES : DISABLED_MAX_EXPENSE_VALUES),
                     pendingFields: {
                         areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     },
@@ -5197,7 +5204,7 @@ function enablePolicyRules(policy: OnyxEntry<Policy>, enabled: boolean, shouldGo
         ReportUtils.pushTransactionViolationsOnyxData(onyxData, policyData, {
             areRulesEnabled: enabled,
             preventSelfApproval: false,
-            ...(!enabled ? DISABLED_MAX_EXPENSE_VALUES : {}),
+            ...(enabled ? DEFAULT_MAX_EXPENSE_VALUES : DISABLED_MAX_EXPENSE_VALUES),
             pendingFields: {
                 areRulesEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
