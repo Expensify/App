@@ -53,4 +53,3 @@ function ListFilterWrapper({children, ...props}: ListFilterWrapperProps) {
 }
 
 export default ListFilterWrapper;
-export type {ListFilterWrapperProps};

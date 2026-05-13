@@ -567,4 +567,3 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 }
 
 export default useExpenseActions;
-export type {UseExpenseActionsParams, UseExpenseActionsReturn};

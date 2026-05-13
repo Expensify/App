@@ -2,7 +2,6 @@ import type {VideoPlayer} from 'expo-video';
 import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {FullScreenActionsContextType, FullScreenStateContextType} from './FullScreenContextProvider';
 
 type VolumeStateContextType = {
     /**
@@ -29,8 +28,6 @@ type VolumeActionsContextType = {
      */
     toggleMute: () => void;
 };
-
-type VolumeContext = VolumeStateContextType & VolumeActionsContextType;
 
 type VideoPopoverMenuStateContextType = {
     /** Currently-selected playback speed (drives the checkmark in the speeds submenu). */
@@ -63,8 +60,6 @@ type VideoPopoverMenuActionsContextType = {
     downloadAttachment: () => void;
 };
 
-type FullScreenContext = FullScreenStateContextType & FullScreenActionsContextType;
-
 type PlaybackSpeed = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;
 
-export type {VolumeContext, VolumeStateContextType, VolumeActionsContextType, VideoPopoverMenuStateContextType, VideoPopoverMenuActionsContextType, FullScreenContext, PlaybackSpeed};
+export type {VolumeStateContextType, VolumeActionsContextType, VideoPopoverMenuStateContextType, VideoPopoverMenuActionsContextType, PlaybackSpeed};
