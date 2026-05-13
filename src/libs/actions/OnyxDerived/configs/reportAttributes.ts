@@ -326,7 +326,6 @@ export default createOnyxDerivedValueConfig({
                               reports,
                               policies,
                               transactions,
-                              transactionViolations,
                               allReportNameValuePairs: reportNameValuePairs,
                               personalDetailsList: personalDetails,
                               reportActions,

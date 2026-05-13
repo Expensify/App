@@ -59,49 +59,6 @@ function filterReceiptViolations(violations: TransactionViolation[]): Transactio
     return violations;
 }
 
-/**
- * Returns the list of fields the SmartScan failed to extract for the given transaction.
- *
- * Prefers the `missingFields` array on the SMARTSCAN_FAILED violation (populated by Auth in
- * `Violations::getSmartScanFailedViolation`). When the violation isn't in Onyx yet, falls back
- * to computing the list from the transaction itself — same fallback used by
- * `ReceiptScanFailedContent` and `MoneyRequestReceiptView` so all three render the same text.
- *
- * Callers must pass the transaction and violation collections explicitly (typically sourced
- * from `useOnyx` in a React component or from an OnyxDerived config).
- */
-function getSmartscanFailedMissingFields(
-    transactionID: string | undefined,
-    allTransactions: OnyxCollection<Transaction> | undefined,
-    allTransactionViolations: OnyxCollection<TransactionViolation[]> | undefined,
-): string[] {
-    if (!transactionID) {
-        return [];
-    }
-    const violations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-    const smartscanFailed = violations.find((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
-    const fromViolation = smartscanFailed?.data?.missingFields;
-    if (fromViolation && fromViolation.length > 0) {
-        return fromViolation;
-    }
-
-    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    if (transaction?.receipt?.state !== CONST.IOU.RECEIPT_STATE.SCAN_FAILED) {
-        return [];
-    }
-    const computed: string[] = [];
-    if (TransactionUtils.isMerchantMissing(transaction)) {
-        computed.push('merchant');
-    }
-    if (TransactionUtils.isCreatedMissing(transaction)) {
-        computed.push('date');
-    }
-    if (TransactionUtils.isAmountMissing(transaction)) {
-        computed.push('amount');
-    }
-    return computed;
-}
-
 function isMaxExpenseAmountRuleEnabled(maxAmount: number | undefined) {
     return typeof maxAmount === 'number' && maxAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
@@ -994,4 +951,4 @@ const ViolationsUtils = {
 export {getIsViolationFixed};
 export type {ViolationFixParams, ViolationTranslationParams};
 export default ViolationsUtils;
-export {filterReceiptViolations, getSmartscanFailedMissingFields};
+export {filterReceiptViolations};

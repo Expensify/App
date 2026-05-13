@@ -19,7 +19,6 @@ import type {
     ReportMetadata,
     ReportNameValuePairs,
     Transaction,
-    TransactionViolation,
 } from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -56,7 +55,6 @@ import {
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getJoinRequestMessage,
-    getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -163,14 +161,12 @@ import {
     isTripRoom,
     isUserCreatedPolicyRoom,
 } from './ReportUtils';
-import {getSmartscanFailedMissingFields} from './Violations/ViolationsUtils';
 
 type ComputeReportName = {
     report?: Report;
     reports?: OnyxCollection<Report>;
     policies?: OnyxCollection<Policy>;
     transactions?: OnyxCollection<Transaction>;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     personalDetailsList?: PersonalDetailsList;
@@ -422,8 +418,6 @@ function computeReportNameBasedOnReportAction(
     parentReport: Report | undefined,
     personalDetailsList: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
-    allTransactions: OnyxCollection<Transaction> | undefined,
-    allTransactionViolations: OnyxCollection<TransactionViolation[]> | undefined,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -478,8 +472,7 @@ function computeReportNameBasedOnReportAction(
         if (!isActionOfType(iouAction, CONST.REPORT.ACTIONS.TYPE.IOU)) {
             iouAction = getReportAction(parentReport?.parentReportID, parentReport?.parentReportActionID);
         }
-        const missingFields = getSmartscanFailedMissingFields(getLinkedTransactionID(iouAction), allTransactions, allTransactionViolations);
-        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
@@ -879,7 +872,6 @@ function computeReportName({
     reports,
     policies,
     transactions,
-    transactionViolations,
     allReportNameValuePairs,
     personalDetailsList,
     reportActions,
@@ -905,8 +897,6 @@ function computeReportName({
         parentReport,
         personalDetailsList,
         conciergeReportID,
-        transactions,
-        transactionViolations,
     );
 
     if (parentReportActionBasedName) {
@@ -925,7 +915,6 @@ function computeReportName({
             reports,
             policies,
             transactions,
-            transactionViolations,
             allReportNameValuePairs,
             personalDetailsList,
             reportActions,

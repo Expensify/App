@@ -5761,8 +5761,6 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         parentReport,
         personalDetails as PersonalDetailsList,
         conciergeReportID,
-        undefined,
-        undefined,
     );
 
     if (parentReportActionBasedName) {
@@ -11353,6 +11351,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         modifiedMerchant: '',
         modifiedAttendees: undefined,
         mccGroup,
+        participants: [],
     } as Transaction);
 
     let firstPolicy: Policy | undefined;
