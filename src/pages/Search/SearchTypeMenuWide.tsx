@@ -3,7 +3,6 @@ import React, {useContext, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
-import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
@@ -109,7 +108,6 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash, sortBy, sortOrder, type} = queryJSON ?? {};
 
     const styles = useThemeStyles();
-    const {isCollapsed} = useSearchSidebarCollapse();
     const {isOffline} = useNetwork();
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -166,7 +164,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
         >
-            <View style={[styles.pb4, styles.mh3, !isCollapsed && styles.gap4]}>
+            <View style={[styles.pb4, styles.mh3, styles.gap4]}>
                 {!!expenseReportsSection && (
                     <Section
                         section={expenseReportsSection}

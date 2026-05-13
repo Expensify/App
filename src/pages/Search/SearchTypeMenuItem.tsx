@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {collapseProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import {collapseProgress, peekProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -40,20 +40,20 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isCollapsed} = useSearchSidebarCollapse();
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
 
     const labelAnimatedStyle = useAnimatedStyle(() => {
-        const progress = collapseProgress.get();
+        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
         return {
-            opacity: 1 - progress,
-            transform: [{translateX: -8 * progress}],
+            opacity: visualExpansion,
+            transform: [{translateX: -8 * (1 - visualExpansion)}],
         };
     });
 
     const pressable = (
         <PressableWithoutFeedback
             onPress={onPress}
-            onHoverIn={isCollapsed ? () => TooltipSense.activate() : undefined}
+            onHoverIn={isVisuallyCollapsed ? () => TooltipSense.activate() : undefined}
             accessibilityLabel={title}
             accessibilityState={{selected: focused}}
             role={CONST.ROLE.TAB}
@@ -61,7 +61,6 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
             style={({hovered, pressed}) => [
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
-                isCollapsed && {paddingHorizontal: 14},
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
                 hovered && !focused && !pressed && styles.hoveredComponentBG,
             ]}
@@ -78,7 +77,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                             />
                         </View>
                     )}
-                    {!isCollapsed && (
+                    {!isVisuallyCollapsed && (
                         <Animated.View style={[styles.justifyContentCenter, styles.flex1, styles.ml3, labelAnimatedStyle]}>
                             <Text
                                 style={[styles.popoverMenuText, styles.textStrong]}
@@ -88,7 +87,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                             </Text>
                         </Animated.View>
                     )}
-                    {!isCollapsed && !!badgeText && (
+                    {!isVisuallyCollapsed && !!badgeText && (
                         <Animated.View style={labelAnimatedStyle}>
                             <Badge
                                 text={badgeText}
@@ -102,7 +101,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
         </PressableWithoutFeedback>
     );
 
-    if (isCollapsed) {
+    if (isVisuallyCollapsed) {
         return <Tooltip text={title}>{pressable}</Tooltip>;
     }
 

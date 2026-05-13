@@ -5,7 +5,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import Accordion from '@components/Accordion';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
-import {collapseProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import {collapseProgress, peekProgress, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -75,7 +75,7 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isExpanded);
-    const {isCollapsed: isSidebarCollapsed} = useSearchSidebarCollapse();
+    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
 
     const arrowRotation = useSharedValue(getArrowRotation(isExpanded));
 
@@ -90,15 +90,28 @@ function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSect
     const arrowAnimatedStyle = useAnimatedStyle(() => ({transform: [{rotate: `${arrowRotation.get()}deg`}]}));
 
     const headerFadeAnimatedStyle = useAnimatedStyle(() => {
-        const progress = collapseProgress.get();
+        const visualExpansion = 1 - collapseProgress.get() * (1 - peekProgress.get());
         return {
-            opacity: 1 - progress,
-            transform: [{translateX: -8 * progress}],
+            opacity: visualExpansion,
+            transform: [{translateX: -8 * (1 - visualExpansion)}],
         };
     });
 
-    if (isSidebarCollapsed) {
-        return <View>{children}</View>;
+    if (isVisuallyCollapsed) {
+        return (
+            <View>
+                <View
+                    style={[styles.flexRow, styles.p2, styles.gap2, styles.alignItemsCenter, styles.br2]}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                >
+                    <View style={{flex: 1, height: variables.iconSizeSmall, justifyContent: 'center'}}>
+                        <View style={{height: 1, width: '100%', backgroundColor: theme.border}} />
+                    </View>
+                </View>
+                {children}
+            </View>
+        );
     }
 
     return (
