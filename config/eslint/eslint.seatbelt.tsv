@@ -116,9 +116,8 @@
 "../../src/components/Modal/BaseModal.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/Modal/Global/ConfirmModalWrapper.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/components/Modal/ReanimatedModal/Container/index.web.tsx"	"react-hooks/refs"	1
-"../../src/components/Modal/ReanimatedModal/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.clearInteractionHandle"	3
-"../../src/components/Modal/ReanimatedModal/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.createInteractionHandle"	2
-"../../src/components/Modal/ReanimatedModal/index.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/components/Modal/ReanimatedModal/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.clearInteractionHandle"	1
+"../../src/components/Modal/ReanimatedModal/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.createInteractionHandle"	1
 "../../src/components/MoneyReportHeaderActions/MoneyReportHeaderSecondaryActions.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/components/MoneyReportHeaderModals.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/components/MoneyRequestAmountInput.tsx"	"react-hooks/immutability"	2
@@ -224,7 +223,6 @@
 "../../src/hooks/useLazyAsset.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useNativeCamera.ts"	"react-hooks/refs"	1
 "../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
-"../../src/hooks/useOnboardingFlow.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useOutstandingBalanceGuard.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/hooks/usePaginatedReportActions.ts"	"react-hooks/refs"	1
 "../../src/hooks/usePaymentOptions.ts"	"react-hooks/refs"	1
@@ -343,7 +341,6 @@
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../src/libs/actions/IOU/PerDiem.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/IOU/Receipt.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/Receipt.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	2
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"no-restricted-syntax"	1
@@ -355,7 +352,6 @@
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	2
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
-"../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/Split.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
@@ -427,7 +423,6 @@
 "../../src/libs/actions/TwoFactorAuthActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/UnreportedExpenses.tsx"	"no-restricted-syntax"	1
 "../../src/libs/actions/User.ts"	"no-restricted-syntax"	8
-"../../src/libs/actions/User.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/VacationDelegate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/Wallet.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Welcome/index.ts"	"no-restricted-syntax"	1
@@ -469,12 +464,16 @@
 "../../src/pages/MultifactorAuthentication/BiometricsTestPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/MultifactorAuthentication/RevokePage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/MultifactorAuthentication/ValidateCodePage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/OnboardingInterestedFeatures/BaseOnboardingInterestedFeatures.tsx"	"react-hooks/preserve-manual-memoization"	2
 "../../src/pages/ReimbursementAccount/EnterSignerInfo/index.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/set-state-in-effect"	4
+"../../src/pages/ReimbursementAccount/USD/BankInfo/BankInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
+"../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/BeneficialOwnersStep.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
+"../../src/pages/ReimbursementAccount/USD/BusinessInfo/BusinessInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/IndustryCode/IndustryCodeSelector.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/pages/ReimbursementAccount/USD/CompleteVerification/CompleteVerification.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
+"../../src/pages/ReimbursementAccount/USD/Requestor/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
@@ -522,11 +521,9 @@
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/refs"	6
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/inbox/report/ReportActionsList.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	5
-"../../src/pages/inbox/report/ReportActionsList.tsx"	"react-hooks/refs"	7
+"../../src/pages/inbox/report/ReportActionsList.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
+"../../src/pages/inbox/report/ReportActionsList.tsx"	"react-hooks/refs"	5
 "../../src/pages/inbox/report/ReportActionsList.tsx"	"react-hooks/set-state-in-effect"	3
-"../../src/pages/inbox/report/ReportActionsView.tsx"	"react-hooks/globals"	1
-"../../src/pages/inbox/report/ReportActionsView.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/inbox/report/TripSummary.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/inbox/report/UserTypingEventListener.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
 "../../src/pages/inbox/report/shouldUseEmojiPickerSelection/index.website.ts"	"no-restricted-syntax"	1
@@ -550,9 +547,8 @@
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/GPSButtons/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceOdometer.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/iou/request/step/IOURequestStepDistanceOdometer.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepMerchant.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/iou/request/step/IOURequestStepReport.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
+"../../src/pages/iou/request/step/IOURequestStepReport/hooks/useReportSelectionActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/pages/iou/request/step/IOURequestStepScan/ReceiptView/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/ReceiptView/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/MobileWebCameraView.tsx"	"react-hooks/immutability"	1

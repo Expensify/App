@@ -129,7 +129,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
+                        return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
                     })
                 }
                 shouldUseHapticsOnLongPress

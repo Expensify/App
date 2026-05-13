@@ -172,7 +172,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
+                        showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
                     }}
                     shouldUseHapticsOnLongPress
                     sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.CARD}
