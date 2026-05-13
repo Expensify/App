@@ -78,17 +78,16 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        Navigation.dismissModal({
-            afterTransition: () => {
-                if (backTo) {
-                    Navigation.navigate(backTo, {
-                        afterTransition: () => clearAssignCardStepAndData(),
-                    });
-                } else {
-                    clearAssignCardStepAndData();
-                }
-            },
-        });
+        if(backTo) {
+            Navigation.dismissModal();
+            Navigation.navigate(backTo, {
+                afterTransition: () => clearAssignCardStepAndData(),
+            });
+        } else {
+            Navigation.dismissModal({
+                afterTransition: () => clearAssignCardStepAndData(),
+            });
+        }
     }, [assignCard?.isAssignmentFinished, backTo]);
 
     const submit = () => {
