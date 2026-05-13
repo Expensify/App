@@ -924,8 +924,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: '钱包',
             },
         },
-        assignedCards: '你的 Expensify 卡',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `剩余 ${amount}`,
         announcements: '公告',
         discoverSection: {
             title: '发现',

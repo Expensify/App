@@ -958,8 +958,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 personalSubtitle: 'Portafoglio',
             },
         },
-        assignedCards: 'Le tue Carte Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} rimanenti`,
         announcements: 'Annunci',
         discoverSection: {
             title: 'Scopri',

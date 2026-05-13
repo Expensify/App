@@ -931,8 +931,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (pluralCount: number) => `Tiempo restante: ${pluralCount} días`,
             }),
         },
-        assignedCards: 'Tus tarjetas Expensify',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
         yourSpend: {
             title: 'Tu gasto',
             awaitingApproval: 'Pendiente de aprobación',

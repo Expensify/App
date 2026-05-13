@@ -1017,8 +1017,6 @@ const translations = {
                 other: (pluralCount: number) => `Time remaining: ${pluralCount} days`,
             }),
         },
-        assignedCards: 'Your Expensify Cards',
-        assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
         yourSpend: {
             title: 'Your spend',
             awaitingApproval: 'Awaiting approval',
