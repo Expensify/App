@@ -10,6 +10,7 @@ import {isValidValidateCode} from '@libs/ValidationUtils';
 import {handleExitToNavigation, initAutoAuthState, signInWithValidateCode} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Session as SessionType} from '@src/types/onyx';
 import type ValidateLoginPageProps from './types';
 
@@ -66,18 +67,26 @@ function ValidateLoginPage({
     }, []);
 
     useEffect(() => {
-        if (!!login || !cachedAccountID || !is2FARequired) {
-            if (exitTo) {
-                handleExitToNavigation(exitTo);
-            }
+        if (exitTo) {
+            handleExitToNavigation(exitTo);
             return;
         }
-
-        // The user clicked the option to sign in the current tab
+        if (login) {
+            return;
+        }
         Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
+            // No `login` means there's no original tab to head back to (e.g. magic link opened
+            // in incognito). Once signed in, route to the app home instead of leaving a blank
+            // page; otherwise the existing same-tab 2FA flow falls back to goBack().
+            if (isSignedIn) {
+                Navigation.navigate(ROUTES.HOME);
+                return;
+            }
+            if (cachedAccountID && is2FARequired) {
+                Navigation.goBack();
+            }
         });
-    }, [login, cachedAccountID, is2FARequired, exitTo]);
+    }, [login, cachedAccountID, is2FARequired, exitTo, isSignedIn]);
 
     return (
         <>
