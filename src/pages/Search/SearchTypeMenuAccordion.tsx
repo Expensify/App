@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
@@ -17,8 +17,9 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SearchTypeMenuAccordionProps = ChildrenProps & {
     title: string;
-    defaultExpanded?: boolean;
+    isExpanded: boolean;
     badgeText?: string;
+    onSectionHeaderPress: () => void;
 };
 
 type AnimatedBadgeProps = {
@@ -69,18 +70,13 @@ function AnimatedBadge({text, isExpanded}: AnimatedBadgeProps) {
     );
 }
 
-function SearchTypeMenuAccordion({title, defaultExpanded = true, badgeText, children}: SearchTypeMenuAccordionProps) {
+function SearchTypeMenuAccordion({title, isExpanded, badgeText, children, onSectionHeaderPress}: SearchTypeMenuAccordionProps) {
     const icons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
-    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isExpanded);
 
-    const toggleSection = () => {
-        setIsExpanded((prevIsExpanded) => !prevIsExpanded);
-    };
-
-    const arrowRotation = useSharedValue(getArrowRotation(defaultExpanded));
+    const arrowRotation = useSharedValue(getArrowRotation(isExpanded));
 
     useAnimatedReaction(
         () => isAccordionExpanded.get(),
@@ -95,7 +91,7 @@ function SearchTypeMenuAccordion({title, defaultExpanded = true, badgeText, chil
     return (
         <View>
             <PressableWithoutFeedback
-                onPress={toggleSection}
+                onPress={onSectionHeaderPress}
                 style={[styles.flexRow, styles.p2, styles.gap2, styles.alignItemsCenter, styles.br2]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={title}

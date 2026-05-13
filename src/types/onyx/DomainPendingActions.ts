@@ -41,6 +41,16 @@ type DomainMemberPendingActions = {
  */
 type DomainSecurityGroupPendingActions = {
     /**
+     * Pending action for deleting a security group
+     */
+    deleteGroup?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for creating a new security group
+     */
+    createGroup?: OnyxCommon.PendingAction;
+
+    /**
      * Pending action for the security group name
      */
     name?: OnyxCommon.PendingAction;
@@ -59,11 +69,6 @@ type DomainSecurityGroupPendingActions = {
      * Pending action for the restricted expense workspace creation
      */
     enableRestrictedPolicyCreation?: OnyxCommon.PendingAction;
-
-    /**
-     * Base pending action for group-level operations (create, delete)
-     */
-    pendingAction?: OnyxCommon.PendingAction;
 
     /**
      * Pending action for toggling the preferred workspace setting

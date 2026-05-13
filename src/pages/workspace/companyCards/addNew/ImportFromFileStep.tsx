@@ -34,7 +34,7 @@ function ImportFromFileStep() {
     const {policyID} = route.params;
 
     const handleBackButtonPress = () => {
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
 
     const toggleAdvancedFields = (value: boolean) => {

@@ -33,6 +33,9 @@ type SingleSelectProps<T> = SearchFilterSelectionListProps & {
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
 
+    /** Custom height for each item in the list */
+    itemHeight?: number;
+
     hasTitle?: boolean;
     hasHeader?: boolean;
 };
@@ -48,6 +51,7 @@ function SingleSelect<T extends string>({
     hasTitle,
     hasHeader,
     onChange,
+    itemHeight,
 }: SingleSelectProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -111,7 +115,7 @@ function SingleSelect<T extends string>({
             hasHeader={hasHeader}
             hasTitle={hasTitle}
             isSearchable={isSearchable}
-            itemHeight={variables.optionRowHeight}
+            itemHeight={itemHeight ?? variables.optionRowHeight}
         >
             <Activity mode={shouldShowList ? 'visible' : 'hidden'}>
                 <SelectionList
@@ -120,7 +124,11 @@ function SingleSelect<T extends string>({
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     textInputOptions={textInputOptions}
-                    style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                    style={{
+                        contentContainerStyle: [styles.pb0],
+                        ...selectionListStyle,
+                        listItemWrapperStyle: [itemHeight !== undefined && {minHeight: itemHeight}, selectionListStyle?.listItemWrapperStyle],
+                    }}
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
