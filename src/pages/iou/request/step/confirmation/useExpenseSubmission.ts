@@ -129,6 +129,17 @@ type SendMoneyReportIDs = {
     chatReportID: string | undefined;
 };
 
+type SendMoneyOptions = {
+    /** Whether the send-money action should handle its own post-submit navigation. */
+    shouldHandleNavigation?: boolean;
+    /** Pre-resolved report IDs to avoid redundant resolution when the caller already resolved them. */
+    resolvedReportIDs?: SendMoneyReportIDs;
+    /** Whether to start telemetry tracking; false when the orchestrator starts tracking externally. */
+    shouldStartTracking?: boolean;
+    /** Whether to defer the API write for the Search skeleton optimization. */
+    shouldDeferForSearch?: boolean;
+};
+
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const {
         transaction,
@@ -470,7 +481,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint, shouldDeferForSearch?: boolean) {
+    function trackExpense(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, options?: {gpsPoint?: GpsPoint; shouldDeferForSearch?: boolean}) {
+        const {gpsPoint, shouldDeferForSearch} = options ?? {};
         if (!transactions.length) {
             return;
         }
@@ -547,11 +559,10 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    function createDistanceRequest(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav = true) {
+    function createDistanceRequest(selectedParticipantsArg: Participant[], trimmedComment: string, shouldHandleNav = true, shouldDeferForSearch = false) {
         if (!transaction) {
             return;
         }
-        const shouldDeferForSearch = iouType === CONST.IOU.TYPE.SPLIT && !shouldHandleNav && isSearchTopmostFullScreenRoute();
 
         createDistanceRequestIOUActions({
             report,
@@ -632,17 +643,20 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         formHasBeenSubmitted.current = true;
 
+        const isDeferredSearchSubmit = !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
+
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
         if (!isTrackExpense && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
-            createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment, shouldHandleNavigation);
+            const shouldDeferDistanceForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
+            createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipantsArg, trimmedComment, shouldHandleNavigation, shouldDeferDistanceForSearch);
             markSubmitExpenseEnd();
             return;
         }
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
-        const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
-        const shouldDeferTrackForSearch = isTrackExpense && !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
+        const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
+        const shouldDeferTrackForSearch = isTrackExpense && isDeferredSearchSubmit;
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
@@ -792,29 +806,26 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 // If the transaction amount is zero, then the money is being requested through the "Scan" flow and the GPS coordinates need to be included.
                 if (transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted) {
                     if (userLocation) {
-                        trackExpense(
-                            selectedParticipantsArg,
-                            shouldHandleNavigation,
-                            {
-                                lat: userLocation.latitude,
-                                long: userLocation.longitude,
-                            },
-                            shouldDeferTrackForSearch,
-                        );
+                        trackExpense(selectedParticipantsArg, shouldHandleNavigation, {
+                            gpsPoint: {lat: userLocation.latitude, long: userLocation.longitude},
+                            shouldDeferForSearch: shouldDeferTrackForSearch,
+                        });
                         markSubmitExpenseEnd();
                         return;
                     }
 
-                    getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipantsArg, shouldHandleNavigation, gpsCoords, shouldDeferTrackForSearch));
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) =>
+                        trackExpense(selectedParticipantsArg, shouldHandleNavigation, {gpsPoint: gpsCoords, shouldDeferForSearch: shouldDeferTrackForSearch}),
+                    );
                     return;
                 }
 
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
-                trackExpense(selectedParticipantsArg, shouldHandleNavigation, undefined, shouldDeferTrackForSearch);
+                trackExpense(selectedParticipantsArg, shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
                 markSubmitExpenseEnd();
                 return;
             }
-            trackExpense(selectedParticipantsArg, shouldHandleNavigation, undefined, shouldDeferTrackForSearch);
+            trackExpense(selectedParticipantsArg, shouldHandleNavigation, {shouldDeferForSearch: shouldDeferTrackForSearch});
             markSubmitExpenseEnd();
             return;
         }
@@ -857,13 +868,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         markSubmitExpenseEnd();
     }
 
-    function sendMoney(
-        paymentMethod: PaymentMethodType | undefined,
-        shouldHandleNavigation = true,
-        resolvedReportIDs?: SendMoneyReportIDs,
-        shouldStartTracking = true,
-        shouldDeferForSearch = false,
-    ) {
+    function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
+        const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true, shouldDeferForSearch = false} = options ?? {};
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const participant = participants?.at(0);
@@ -904,7 +910,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
     }
 
-    return {createTransaction, sendMoney, isConfirmed, formHasBeenSubmitted};
+    return {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted};
 }
 
 export default useExpenseSubmission;

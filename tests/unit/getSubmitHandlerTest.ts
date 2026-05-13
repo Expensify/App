@@ -6,7 +6,7 @@ const BASE_SNAPSHOT: SubmitNavigationSnapshot = {
     isReportPreInserted: false,
     isFromGlobalCreate: false,
     canDismissFromSearch: false,
-    dismissesToReport: false,
+    navigatesToDestinationReport: false,
     destinationReportID: undefined,
     isReportInRHP: false,
     isReportTopmostSplit: false,
@@ -64,12 +64,12 @@ describe('getSubmitHandler', () => {
         ).toBe(SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS);
     });
 
-    it('returns REPORT_IN_RHP_DISMISS for report-dismissing flows when report is in RHP', () => {
+    it('returns REPORT_IN_RHP_DISMISS for destination-report flows when report is in RHP', () => {
         expect(
             getSubmitHandler(
                 snap({
                     isFromGlobalCreate: true,
-                    dismissesToReport: true,
+                    navigatesToDestinationReport: true,
                     isReportInRHP: true,
                     destinationReportID: '456',
                     isDestinationReportLoaded: true,
@@ -135,7 +135,7 @@ describe('getSubmitHandler', () => {
             getSubmitHandler(
                 snap({
                     isFromGlobalCreate: true,
-                    dismissesToReport: true,
+                    navigatesToDestinationReport: true,
                     destinationReportID: '456',
                     isDestinationReportLoaded: true,
                 }),
@@ -143,12 +143,13 @@ describe('getSubmitHandler', () => {
         ).toBe(SUBMIT_HANDLER.DISMISS_TO_REPORT);
     });
 
-    it('returns DISMISS_MODAL for global create report-dismissing flows from Search/Spend', () => {
+    it('returns DISMISS_MODAL for destination-report flows (e.g. SPLIT) from global create on Search/Spend (canDismissFromSearch is false for SPLIT)', () => {
         expect(
             getSubmitHandler(
                 snap({
                     isFromGlobalCreate: true,
-                    dismissesToReport: true,
+                    canDismissFromSearch: false,
+                    navigatesToDestinationReport: true,
                     isSearchTopmostFullScreen: true,
                     destinationReportID: '456',
                     isDestinationReportLoaded: true,
@@ -157,12 +158,12 @@ describe('getSubmitHandler', () => {
         ).toBe(SUBMIT_HANDLER.DISMISS_MODAL);
     });
 
-    it('returns DEFAULT for global create report-dismissing flows when destination report is not loaded', () => {
+    it('returns DEFAULT for global create destination-report flows when destination report is not loaded', () => {
         expect(
             getSubmitHandler(
                 snap({
                     isFromGlobalCreate: true,
-                    dismissesToReport: true,
+                    navigatesToDestinationReport: true,
                     destinationReportID: '456',
                     isDestinationReportLoaded: false,
                 }),
@@ -207,6 +208,76 @@ describe('getSubmitHandler', () => {
                 }),
             ),
         ).toBe(SUBMIT_HANDLER.SEARCH_PRE_INSERT);
+    });
+
+    it('pre-insert takes priority over DISMISS_TO_REPORT', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isPreInserted: true,
+                    isReportPreInserted: false,
+                    isFromGlobalCreate: true,
+                    navigatesToDestinationReport: true,
+                    destinationReportID: '456',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_PRE_INSERT);
+    });
+
+    it('DISMISS_MODAL fast path takes priority over DISMISS_TO_REPORT when report topmost split', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    navigatesToDestinationReport: true,
+                    isReportTopmostSplit: true,
+                    destinationReportID: '456',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DISMISS_MODAL);
+    });
+
+    it('SEARCH_DISMISS takes priority over DISMISS_TO_REPORT when canDismissFromSearch is true', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    navigatesToDestinationReport: true,
+                    isSearchTopmostFullScreen: true,
+                    destinationReportID: '456',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_DISMISS);
+    });
+
+    it('returns DISMISS_MODAL (via fast path) for navigatesToDestinationReport when not isFromGlobalCreate but destination is loaded', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: false,
+                    navigatesToDestinationReport: true,
+                    destinationReportID: '456',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DISMISS_MODAL);
+    });
+
+    it('returns DEFAULT for navigatesToDestinationReport without destinationReportID (non-search)', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    navigatesToDestinationReport: true,
+                    destinationReportID: undefined,
+                    isDestinationReportLoaded: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DEFAULT);
     });
 });
 
@@ -263,11 +334,11 @@ describe('canUseDismissModalFastPath', () => {
         ).toBe(true);
     });
 
-    it('returns true for report-dismissing requests when other conditions are met', () => {
+    it('returns true for destination-report requests when other conditions are met', () => {
         expect(
             canUseDismissModalFastPath(
                 snap({
-                    dismissesToReport: true,
+                    navigatesToDestinationReport: true,
                     destinationReportID: '123',
                     isDestinationReportLoaded: true,
                 }),

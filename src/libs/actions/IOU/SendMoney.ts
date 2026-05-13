@@ -498,28 +498,21 @@ type SendMoneyActionParams = {
     shouldDeferForSearch?: boolean;
 };
 
-function sendMoneyElsewhere({
-    report,
-    quickAction,
-    amount,
-    currency,
-    comment,
-    currentUserAccountID,
-    recipient,
-    created,
-    merchant,
-    receipt,
-    optimisticChatReportID,
-    shouldStartTracking = true,
-    shouldDeferForSearch = false,
-}: SendMoneyActionParams) {
+function executeSendMoney(
+    actionParams: SendMoneyActionParams,
+    paymentMethodType: typeof CONST.IOU.PAYMENT_TYPE.ELSEWHERE | typeof CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+    writeCommand: typeof WRITE_COMMANDS.SEND_MONEY_ELSEWHERE | typeof WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
+) {
+    const {report, quickAction, amount, currency, comment, currentUserAccountID, recipient, created, merchant, receipt, optimisticChatReportID} = actionParams;
+    const {shouldStartTracking = true, shouldDeferForSearch = false} = actionParams;
+
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
         report,
         quickAction,
         amount,
         currency,
         commentParam: comment,
-        paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+        paymentMethodType,
         managerID: currentUserAccountID,
         recipient,
         created,
@@ -540,10 +533,13 @@ function sendMoneyElsewhere({
             {skipSubmitExpenseSpan: true},
         );
     }
+    // Sound acknowledges the action immediately, even when the write is deferred.
     playSound(SOUNDS.DONE);
+    const chatReportIDForNotification = params.chatReportID;
     deferOrExecuteWrite(
         () => {
-            API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
+            API.write(writeCommand, params, {optimisticData, successData, failureData});
+            notifyNewAction(chatReportIDForNotification, undefined, true);
         },
         {
             shouldDeferForSearch,
@@ -551,65 +547,14 @@ function sendMoneyElsewhere({
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
         },
     );
-
-    notifyNewAction(params.chatReportID, undefined, true);
 }
 
-function sendMoneyWithWallet({
-    report,
-    quickAction,
-    amount,
-    currency,
-    comment,
-    currentUserAccountID,
-    recipient,
-    created,
-    merchant,
-    receipt,
-    optimisticChatReportID,
-    shouldStartTracking = true,
-    shouldDeferForSearch = false,
-}: SendMoneyActionParams) {
-    const {params, optimisticData, successData, failureData} = getSendMoneyParams({
-        report,
-        quickAction,
-        amount,
-        currency,
-        commentParam: comment,
-        paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-        managerID: currentUserAccountID,
-        recipient,
-        created,
-        merchant,
-        receipt,
-        optimisticChatReportID,
-        currentUserAccountID,
-    });
-    if (shouldStartTracking) {
-        startTracking(
-            {
-                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
-                iouType: CONST.IOU.TYPE.PAY,
-                requestType: 'pay',
-                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
-                hasReceipt: !!receipt,
-            },
-            {skipSubmitExpenseSpan: true},
-        );
-    }
-    playSound(SOUNDS.DONE);
-    deferOrExecuteWrite(
-        () => {
-            API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
-        },
-        {
-            shouldDeferForSearch,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        },
-    );
+function sendMoneyElsewhere(actionParams: SendMoneyActionParams) {
+    executeSendMoney(actionParams, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, WRITE_COMMANDS.SEND_MONEY_ELSEWHERE);
+}
 
-    notifyNewAction(params.chatReportID, undefined, true);
+function sendMoneyWithWallet(actionParams: SendMoneyActionParams) {
+    executeSendMoney(actionParams, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, WRITE_COMMANDS.SEND_MONEY_WITH_WALLET);
 }
 
 export {sendMoneyElsewhere, sendMoneyWithWallet};

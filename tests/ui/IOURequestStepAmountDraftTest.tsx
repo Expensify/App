@@ -92,6 +92,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
     };
 });
 
+jest.mock('@libs/actions/IOU/submitWithDismissFirst', () => jest.requireActual('../__mocks__/submitWithDismissFirst'));
+
 jest.mock('@react-navigation/native', () => {
     const mockRef = {
         getCurrentRoute: jest.fn(() => ({

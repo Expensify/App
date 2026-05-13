@@ -15,7 +15,8 @@ type SubmitNavigationSnapshot = {
     isReportPreInserted: boolean;
     isFromGlobalCreate: boolean;
     canDismissFromSearch: boolean;
-    dismissesToReport: boolean;
+    /** Whether the flow navigates to a specific destination report (e.g. SPLIT, TRACK). */
+    navigatesToDestinationReport: boolean;
     destinationReportID: string | undefined;
     isReportInRHP: boolean;
     isReportTopmostSplit: boolean;
@@ -52,13 +53,14 @@ function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean
  * returns which submit handler should run. No side effects, no Navigation calls.
  *
  * Decision tree (evaluated top to bottom):
- *   isPreInserted && !isReportPreInserted  -> SEARCH_PRE_INSERT
- *   isReportPreInserted                    -> REPORT_PRE_INSERT
- *   canUseDismissModalFastPath()           -> DISMISS_MODAL
- *   isFromGlobalCreate && canDismissFromSearch && isSearchTopmostFullScreen -> SEARCH_DISMISS
- *   isReportInRHP && destinationReportID   -> REPORT_IN_RHP_DISMISS
- *   isFromGlobalCreate && dismissesToReport && destinationReportID && isDestinationReportLoaded -> DISMISS_TO_REPORT
- *   else                                   -> DEFAULT
+ *   isPreInserted && !isReportPreInserted                                       -> SEARCH_PRE_INSERT
+ *   isReportPreInserted                                                         -> REPORT_PRE_INSERT
+ *   canUseDismissModalFastPath()                                                -> DISMISS_MODAL
+ *   isFromGlobalCreate && canDismissFromSearch && isSearchTopmostFullScreen      -> SEARCH_DISMISS
+ *   isReportInRHP && destinationReportID                                        -> REPORT_IN_RHP_DISMISS
+ *   isFromGlobalCreate && navigatesToDestinationReport && isSearchTopmostFullScreen -> DISMISS_MODAL
+ *   isFromGlobalCreate && navigatesToDestinationReport && destinationReportID && isDestinationReportLoaded -> DISMISS_TO_REPORT
+ *   else                                                                        -> DEFAULT
  */
 function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     if (snapshot.isPreInserted && !snapshot.isReportPreInserted) {
@@ -76,10 +78,15 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     if (snapshot.isReportInRHP && snapshot.destinationReportID) {
         return SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS;
     }
-    if (snapshot.isFromGlobalCreate && snapshot.dismissesToReport && snapshot.isSearchTopmostFullScreen) {
+    // Covers SPLIT from global create on Spend/Search (canDismissFromSearch is false for SPLIT).
+    if (snapshot.isFromGlobalCreate && snapshot.navigatesToDestinationReport && snapshot.isSearchTopmostFullScreen) {
         return SUBMIT_HANDLER.DISMISS_MODAL;
     }
-    if (snapshot.isFromGlobalCreate && snapshot.dismissesToReport && snapshot.destinationReportID && snapshot.isDestinationReportLoaded) {
+    // Only global-create flows use DISMISS_TO_REPORT: non-global flows (e.g.
+    // split from within a report) handle navigation internally and fall through
+    // to DEFAULT, which is correct because their submit functions include the
+    // dismissModalAndOpenReportInInboxTab call.
+    if (snapshot.isFromGlobalCreate && snapshot.navigatesToDestinationReport && snapshot.destinationReportID && snapshot.isDestinationReportLoaded) {
         return SUBMIT_HANDLER.DISMISS_TO_REPORT;
     }
     return SUBMIT_HANDLER.DEFAULT;

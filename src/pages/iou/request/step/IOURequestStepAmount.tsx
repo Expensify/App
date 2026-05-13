@@ -19,13 +19,12 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import {submitWithDismissFirst} from '@libs/actions/IOU/submitWithDismissFirst';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     calculateDefaultReimbursable,
@@ -35,14 +34,10 @@ import {
     navigateToParticipantPage,
     resolveOptimisticChatReportID,
 } from '@libs/IOUUtils';
-import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU';
@@ -101,7 +96,6 @@ function IOURequestStepAmount({
 
     const selfDMReport = useSelfDMReport();
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const reportTransactions = useReportTransactions(report?.reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const iouOrExpenseReport = useReportOrReportDraft(report?.chatReportID);
@@ -272,81 +266,25 @@ function IOURequestStepAmount({
                         shouldStartTracking: false,
                     };
 
-                    const startSendMoneyTracking = (
-                        followUpAction: typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
-                        pendingReportID?: string,
-                    ) => {
-                        startTracking(
-                            {
-                                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
-                                iouType: CONST.IOU.TYPE.PAY,
-                                requestType: 'pay',
-                                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
-                                hasReceipt: false,
-                            },
-                            {skipSubmitExpenseSpan: true},
-                        );
-                        setFastPath(
-                            followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
-                                ? CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT
-                                : CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL,
-                            CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST,
-                        );
-                        setPendingSubmitFollowUpAction(followUpAction, pendingReportID);
-                    };
-
-                    const submitSendMoney = () => {
-                        if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                            sendMoneyWithWallet(sendMoneyParams);
+                    const executeSendMoneyWrite = (overrides?: {shouldDeferForSearch?: boolean}) => {
+                        const mergedParams = {...sendMoneyParams, ...overrides};
+                        if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                            sendMoneyWithWallet(mergedParams);
                         } else {
-                            sendMoneyElsewhere(sendMoneyParams);
+                            sendMoneyElsewhere(mergedParams);
                         }
                     };
 
-                    const isReportSplitTopmost = isReportTopmostSplitNavigator();
-                    const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
-                    const isDestinationAlreadyTopmost = isReportSplitTopmost && Navigation.getTopmostReportId() === chatReportID;
-                    const isDestinationReportLoaded = !!chatReportID && !!getReportOrDraftReport(chatReportID)?.reportID;
-                    if (!chatReportID) {
-                        if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                            sendMoneyWithWallet({...sendMoneyParams, shouldStartTracking: true});
-                        } else {
-                            sendMoneyElsewhere({...sendMoneyParams, shouldStartTracking: true});
-                        }
-                        dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
-                        return;
-                    }
-
-                    if (shouldStayOnSearch) {
-                        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                        startSendMoneyTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-                        Navigation.dismissModal({
-                            afterTransition: () => {
-                                if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                                    sendMoneyWithWallet({...sendMoneyParams, shouldDeferForSearch: true});
-                                } else {
-                                    sendMoneyElsewhere({...sendMoneyParams, shouldDeferForSearch: true});
-                                }
-                            },
-                        });
-                        return;
-                    }
-
-                    startSendMoneyTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, chatReportID);
-
-                    if (isDestinationAlreadyTopmost) {
-                        Navigation.dismissModal({afterTransition: submitSendMoney});
-                        return;
-                    }
-
-                    if (!isDestinationReportLoaded) {
-                        submitSendMoney();
-                        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(chatReportID));
-                        return;
-                    }
-
-                    Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(chatReportID), {
-                        afterTransition: submitSendMoney,
+                    submitWithDismissFirst({
+                        executeWrite: (overrides) => executeSendMoneyWrite({shouldDeferForSearch: overrides?.shouldDeferForSearch}),
+                        destinationReportID: chatReportID,
+                        telemetryContext: {
+                            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
+                            iouType: CONST.IOU.TYPE.PAY,
+                            requestType: 'pay',
+                            isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                            hasReceipt: false,
+                        },
                     });
                     return;
                 }
@@ -384,56 +322,22 @@ function IOURequestStepAmount({
                         personalDetails,
                     };
 
-                    const requestDestinationReportID = report?.reportID;
-                    const shouldStayOnSearchForRequest = isSearchTopmostFullScreenRoute();
-
-                    const startRequestMoneyTracking = (
-                        followUpAction: typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
-                        pendingReportID?: string,
-                    ) => {
-                        startTracking(
-                            {
-                                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                requestType: 'manual',
-                                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
-                                hasReceipt: false,
-                            },
-                            {skipSubmitExpenseSpan: true},
-                        );
-                        setFastPath(
-                            followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
-                                ? CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT
-                                : CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL,
-                            CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST,
-                        );
-                        setPendingSubmitFollowUpAction(followUpAction, pendingReportID);
-                    };
-
-                    if (shouldStayOnSearchForRequest) {
-                        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                        startRequestMoneyTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-                        Navigation.dismissModal({
-                            afterTransition: () => requestMoney({...requestMoneyParams, shouldHandleNavigation: false, shouldDeferForSearch: true}),
-                        });
-                        return;
-                    }
-
-                    if (requestDestinationReportID) {
-                        startRequestMoneyTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, requestDestinationReportID);
-                        const isRequestDestinationLoaded = !!getReportOrDraftReport(requestDestinationReportID)?.reportID;
-                        if (!isRequestDestinationLoaded) {
-                            requestMoney({...requestMoneyParams, shouldHandleNavigation: false});
-                            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(requestDestinationReportID));
-                            return;
-                        }
-                        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(requestDestinationReportID), {
-                            afterTransition: () => requestMoney({...requestMoneyParams, shouldHandleNavigation: false}),
-                        });
-                        return;
-                    }
-
-                    requestMoney(requestMoneyParams);
+                    submitWithDismissFirst({
+                        executeWrite: (overrides) =>
+                            requestMoney({
+                                ...requestMoneyParams,
+                                shouldHandleNavigation: overrides?.shouldHandleNavigation,
+                                shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                            }),
+                        destinationReportID: report?.reportID,
+                        telemetryContext: {
+                            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            requestType: 'manual',
+                            isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                            hasReceipt: false,
+                        },
+                    });
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.TRACK) {
@@ -463,56 +367,22 @@ function IOURequestStepAmount({
                         isSelfTourViewed,
                     };
 
-                    const trackDestinationReportID = selfDMReport?.reportID;
-                    const shouldStayOnSearchForTrack = isSearchTopmostFullScreenRoute();
-
-                    const startTrackExpenseTracking = (
-                        followUpAction: typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT | typeof CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
-                        pendingReportID?: string,
-                    ) => {
-                        startTracking(
-                            {
-                                scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
-                                iouType: CONST.IOU.TYPE.TRACK,
-                                requestType: 'manual',
-                                isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
-                                hasReceipt: false,
-                            },
-                            {skipSubmitExpenseSpan: true},
-                        );
-                        setFastPath(
-                            followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT
-                                ? CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT
-                                : CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL,
-                            CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST,
-                        );
-                        setPendingSubmitFollowUpAction(followUpAction, pendingReportID);
-                    };
-
-                    if (shouldStayOnSearchForTrack) {
-                        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                        startTrackExpenseTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-                        Navigation.dismissModal({
-                            afterTransition: () => trackExpense({...trackParams, shouldHandleNavigation: false, shouldDeferForSearch: true}),
-                        });
-                        return;
-                    }
-
-                    if (trackDestinationReportID) {
-                        startTrackExpenseTracking(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, trackDestinationReportID);
-                        const isTrackDestinationLoaded = !!getReportOrDraftReport(trackDestinationReportID)?.reportID;
-                        if (!isTrackDestinationLoaded) {
-                            trackExpense({...trackParams, shouldHandleNavigation: false});
-                            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(trackDestinationReportID));
-                            return;
-                        }
-                        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(trackDestinationReportID), {
-                            afterTransition: () => trackExpense({...trackParams, shouldHandleNavigation: false}),
-                        });
-                        return;
-                    }
-
-                    trackExpense(trackParams);
+                    submitWithDismissFirst({
+                        executeWrite: (overrides) =>
+                            trackExpense({
+                                ...trackParams,
+                                shouldHandleNavigation: overrides?.shouldHandleNavigation,
+                                shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                            }),
+                        destinationReportID: selfDMReport?.reportID,
+                        telemetryContext: {
+                            scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE,
+                            iouType: CONST.IOU.TYPE.TRACK,
+                            requestType: 'manual',
+                            isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
+                            hasReceipt: false,
+                        },
+                    });
                     return;
                 }
             }

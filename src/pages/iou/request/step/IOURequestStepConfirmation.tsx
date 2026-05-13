@@ -35,8 +35,8 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@libs/actions/IOU';
+import {submitWithDismissFirst} from '@libs/actions/IOU/submitWithDismissFirst';
 import {isMobileSafari} from '@libs/Browser';
-import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -54,10 +54,16 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {findSelfDMReportID, getPolicyExpenseChat, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {
+    findSelfDMReportID,
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    isMoneyRequestReport,
+    isPolicyExpenseChat as isPolicyExpenseChatUtils,
+    isSelectedManagerMcTest,
+} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getRequestType,
@@ -398,13 +404,13 @@ function IOURequestStepConfirmation({
     const odometerEndImage = transaction?.comment?.odometerEndImage;
     const {hasVerifiedBlobs} = useRestartOnOdometerImagesFailure(isOdometerDistanceRequest ? transaction : undefined, reportID, iouType, backToReport);
 
-    // Pre-insert Search is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
-    // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
-    // SPLIT-from-global-create, track self-DM) navigate to a specific report instead,
-    // so pre-inserting Search would leave a stale route in the stack.
-    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK;
+    // PAY, SPLIT, and per-diem TRACK navigate to a specific destination report
+    // (not Search) after submission. Pre-inserting the Search route would leave
+    // a stale entry in the navigation stack. Non-per-diem TRACK flows can still
+    // benefit from the Search pre-insert optimization.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && !(isPerDiemRequest && iouType === CONST.IOU.TYPE.TRACK);
 
-    const {createTransaction, sendMoney, isConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
+    const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
         transactions,
         receiptFiles,
@@ -514,6 +520,10 @@ function IOURequestStepConfirmation({
 
     const handleSendMoney = useCallback(
         (paymentMethod: PaymentMethodType | undefined) => {
+            if (isConfirmed) {
+                return;
+            }
+
             if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && paymentMethod !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 sendMoney(paymentMethod);
                 return;
@@ -527,62 +537,31 @@ function IOURequestStepConfirmation({
 
             const resolvedReportIDs = resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
             const payDestinationReportID = destinationReportID ?? resolvedReportIDs.chatReportID;
-            const isDestinationAlreadyTopmost = Navigation.getTopmostReportId() === payDestinationReportID;
-            const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
-            if (!payDestinationReportID || isDestinationAlreadyTopmost) {
-                sendMoney(paymentMethod, true, resolvedReportIDs);
+            if (!payDestinationReportID || Navigation.getTopmostReportId() === payDestinationReportID) {
+                sendMoney(paymentMethod, {resolvedReportIDs});
                 return;
             }
 
-            if (shouldStayOnSearch) {
-                reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                startTracking(
-                    {
-                        scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
-                        iouType: CONST.IOU.TYPE.PAY,
-                        requestType: 'pay',
-                        isFromGlobalCreate: !report?.reportID,
-                        hasReceipt: !!transaction?.receipt,
-                    },
-                    {skipSubmitExpenseSpan: true},
-                );
-                setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-                setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-                Navigation.dismissModal({
-                    afterTransition: () => {
-                        sendMoney(paymentMethod, false, resolvedReportIDs, false, true);
-                    },
-                });
-                return;
-            }
-
-            startTracking(
-                {
+            setIsConfirmed(true);
+            submitWithDismissFirst({
+                executeWrite: (overrides) =>
+                    sendMoney(paymentMethod, {
+                        shouldHandleNavigation: overrides?.shouldHandleNavigation,
+                        resolvedReportIDs,
+                        shouldStartTracking: false,
+                        shouldDeferForSearch: overrides?.shouldDeferForSearch,
+                    }),
+                destinationReportID: payDestinationReportID,
+                telemetryContext: {
                     scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.SEND_MONEY,
                     iouType: CONST.IOU.TYPE.PAY,
                     requestType: 'pay',
                     isFromGlobalCreate: !report?.reportID,
                     hasReceipt: !!transaction?.receipt,
                 },
-                {skipSubmitExpenseSpan: true},
-            );
-            setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, payDestinationReportID);
-
-            const isDestinationReportLoaded = !!getReportOrDraftReport(payDestinationReportID)?.reportID;
-            if (!isDestinationReportLoaded) {
-                sendMoney(paymentMethod, false, resolvedReportIDs, false);
-                Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(payDestinationReportID));
-                return;
-            }
-
-            Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(payDestinationReportID), {
-                afterTransition: () => {
-                    sendMoney(paymentMethod, false, resolvedReportIDs, false);
-                },
             });
         },
-        [currentUserPersonalDetails.accountID, destinationReportID, participants, report, sendMoney, transaction?.receipt],
+        [currentUserPersonalDetails.accountID, destinationReportID, isConfirmed, setIsConfirmed, participants, report, sendMoney, transaction?.receipt],
     );
 
     const navigateBack = useCallback(() => {

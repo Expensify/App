@@ -255,6 +255,7 @@ type GetTransactionSectionsParams = {
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
     policyForMovingExpenses?: OnyxTypes.Policy;
+    optimisticTransactionID?: string;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -598,6 +599,7 @@ type GetSectionsParams = {
     conciergeReportID: string | undefined;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
     policyForMovingExpenses?: OnyxTypes.Policy;
+    optimisticTransactionID?: string;
 };
 
 /**
@@ -2038,6 +2040,7 @@ function getTransactionsSections({
     reportActions = {},
     queryJSON,
     policyForMovingExpenses,
+    optimisticTransactionID,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number, boolean] {
     const {
         transactionKeys,
@@ -2070,7 +2073,12 @@ function getTransactionsSections({
         let shouldShow = true;
 
         const isActionLoading = isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`);
-        if (currentQueryJSON && !isActionLoading && transactionItem.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        // Skip status filtering for the tracked optimistic item so it stays
+        // visible before the server snapshot arrives. Scoped to the specific
+        // transaction ID to avoid leaking unrelated pending items into wrong
+        // status tabs (e.g. offline-queued expenses appearing in "approved").
+        const isTrackedOptimisticItem = !!optimisticTransactionID && transactionItem.transactionID === optimisticTransactionID;
+        if (currentQueryJSON && !isActionLoading && !isTrackedOptimisticItem) {
             if (currentQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) {
                 const status = currentQueryJSON.status;
                 if (Array.isArray(status)) {
@@ -3421,6 +3429,7 @@ function getSections({
     onyxPersonalDetailsList,
     policyForMovingExpenses,
     convertToDisplayString,
+    optimisticTransactionID,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return [...getReportActionsSections(data, visibleReportActionsData), false];
@@ -3489,6 +3498,7 @@ function getSections({
         reportActions,
         queryJSON,
         policyForMovingExpenses,
+        optimisticTransactionID,
     });
 }
 
