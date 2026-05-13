@@ -86,6 +86,10 @@ Yes, debit card transactions can be imported by following the same steps for set
 
 This is especially helpful in the EU, where open banking rules often block access to credit card data via aggregators. Debit cards are fully supported under these regulations.
 
+## What if my bank doesn't support a direct feed?
+
+If your bank doesn't support a direct or Plaid connection, you can manually import transactions from a spreadsheet file. [Learn how to import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet).
+
 ## How can I check if my bank is supported? 
 
 Below are examples of banks that support direct company card feeds. This is not a complete list:

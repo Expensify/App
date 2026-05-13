@@ -104,7 +104,9 @@ Expensify will notify you when the feed is connected.
 
 ## What can I do if my bank doesn't offer a commercial card feed? 
 
-If you're not eligible for a commercial card feed,  connect company cards using a direct feed or through Plaid using your online banking credentials. [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection). 
+If you're not eligible for a commercial card feed, you can connect company cards using a direct feed or through Plaid using your online banking credentials. [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection). 
+
+You can also manually import transactions from a spreadsheet file. [Learn how to import company card transactions from a spreadsheet](/articles/new-expensify/connect-credit-cards/Import-Company-Card-Transactions-From-a-Spreadsheet). 
 
 ## Can I connect the same commercial card feed connection across different workspaces? 
 
