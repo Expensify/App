@@ -67,7 +67,7 @@ function ReanimatedModal({
     const backdropStyle: ViewStyle = {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
     const modalStyle = {zIndex: StyleSheet.flatten(style)?.zIndex};
 
-    const onBackButtonPressHandler = () => {
+    const onBackButtonPressHandler = useEffectEvent(() => {
         if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
             return false;
         }
@@ -76,14 +76,14 @@ function ReanimatedModal({
             return true;
         }
         return false;
-    };
+    });
 
-    const handleEscape = (e: KeyboardEvent) => {
+    const handleEscape = useEffectEvent((e: KeyboardEvent) => {
         if (e.key !== 'Escape' || onBackButtonPressHandler() !== true) {
             return;
         }
         e.stopImmediatePropagation();
-    };
+    });
 
     const clearTransitionHandles = () => {
         if (handleRef.current) {
@@ -129,7 +129,7 @@ function ReanimatedModal({
                 backHandlerListener.current?.remove();
             }
         };
-    }, [handleEscape, onBackButtonPressHandler]);
+    }, []);
 
     useEffect(() => {
         if (isTransitioning) {
@@ -207,6 +207,7 @@ function ReanimatedModal({
                 transparent
                 animationType="none"
                 visible={modalVisibility}
+                // eslint-disable-next-line react-hooks/rules-of-hooks
                 onRequestClose={onBackButtonPressHandler}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
