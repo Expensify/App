@@ -67,7 +67,6 @@ function KYCWall({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -185,7 +184,6 @@ function KYCWall({
                             currentUserAccountID,
                             currentUserEmail,
                             employeeEmail,
-                            conciergeReportID,
                             localCurrency,
                             lastWorkspaceNumber,
                             translate,
@@ -243,7 +241,6 @@ function KYCWall({
             lastPaymentMethod,
             isSelfTourViewed,
             betas,
-            conciergeReportID,
             localCurrency,
         ],
     );
