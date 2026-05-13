@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
-import EnableNotificationsBanner from './EnableNotificationsBanner';
+import EnableNotificationsBanner, {BANNER_COMPOSER_OVERLAP_PX} from './EnableNotificationsBanner';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 import useShouldShowEnableNotificationsBanner from './useShouldShowEnableNotificationsBanner';
@@ -92,7 +92,7 @@ function ReportFooter() {
         return (
             <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
                 <EnableNotificationsBanner reportID={reportIDFromRoute} />
-                <View style={shouldShowEnableNotificationsBanner ? {marginTop: -32} : undefined}>
+                <View style={shouldShowEnableNotificationsBanner ? {marginTop: -BANNER_COMPOSER_OVERLAP_PX} : undefined}>
                     <SwipeableView onSwipeDown={Keyboard.dismiss}>
                         <ReportActionCompose reportID={reportIDFromRoute} />
                     </SwipeableView>
