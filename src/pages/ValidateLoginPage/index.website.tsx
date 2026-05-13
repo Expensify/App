@@ -67,11 +67,17 @@ function ValidateLoginPage({
     }, []);
 
     useEffect(() => {
-        if (exitTo) {
-            handleExitToNavigation(exitTo);
+        // Schedule the exitTo handoff once per page load. Keeping this out of the auth-state-
+        // driven effect below prevents multiple goBack()+navigate() pairs from being queued as
+        // `isSignedIn`/`autoAuthState` move through SIGNING_IN → JUST_SIGNED_IN during sign-in.
+        if (!exitTo) {
             return;
         }
-        if (login) {
+        handleExitToNavigation(exitTo);
+    }, [exitTo]);
+
+    useEffect(() => {
+        if (exitTo || login) {
             return;
         }
         Navigation.isNavigationReady().then(() => {
