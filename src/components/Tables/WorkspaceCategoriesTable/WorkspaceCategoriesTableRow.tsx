@@ -1,5 +1,11 @@
-type WorkspaceCategoriesTableRowProps = {};
+import {WorkspaceCategoryTableRowData} from '.';
 
-export default function WorkspaceCategoriesTableRow({}: WorkspaceCategoriesTableRowProps) {
+type WorkspaceCategoriesTableRowProps = {
+    item: WorkspaceCategoryTableRowData;
+
+    rowIndex: number;
+};
+
+export default function WorkspaceCategoriesTableRow({rowIndex, item}: WorkspaceCategoriesTableRowProps) {
     return <></>;
 }
