@@ -344,13 +344,21 @@ function transferWalletBalance(paymentMethod: PaymentMethod) {
         [paymentMethodIDKey]: paymentMethod.methodID,
     };
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_TRANSFER | typeof ONYXKEYS.USER_WALLET>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.WALLET_TRANSFER,
             value: {
                 loading: true,
                 errors: null,
+            },
+        },
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                currentBalance: 0,
+                availableBalance: 0,
             },
         },
     ];
