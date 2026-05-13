@@ -154,6 +154,7 @@ export default function WorkspaceDomainListTable({domains, workspaces}: Workspac
             </Table>
 
             <Table
+                scrollEnabled={false}
                 data={domains}
                 columns={domainTableColumns}
                 renderItem={renderDomainItem}
