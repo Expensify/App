@@ -497,14 +497,7 @@ const translations: TranslationDeepObject<typeof en> = {
         facebook: '在Facebook上关注我们',
         linkedin: '在LinkedIn上关注我们',
     },
-    concierge: {
-        collapseReasoning: '收起推理',
-        expandReasoning: '展开推理',
-        enableNotifications: {
-            prompt: '当 Concierge 回复时是否接收通知？',
-            cta: '通知',
-        },
-    },
+    concierge: {collapseReasoning: '收起推理', expandReasoning: '展开推理', enableNotifications: {prompt: '希望在 Concierge 回复时收到通知吗？', cta: '通知'}},
     supportalNoAccess: {
         title: '先别急',
         descriptionWithCommand: (command?: string) => `当以支持身份登录时，你无权执行此操作（命令：${command ?? ''}）。如果你认为 Success 应该能够执行此操作，请在 Slack 中发起一次会话。`,

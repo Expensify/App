@@ -501,14 +501,7 @@ const translations: TranslationDeepObject<typeof en> = {
         facebook: 'Facebookでフォロー',
         linkedin: 'LinkedInでフォロー',
     },
-    concierge: {
-        collapseReasoning: '推論を折りたたむ',
-        expandReasoning: '推論を展開',
-        enableNotifications: {
-            prompt: 'Conciergeからの返信を通知で受け取りますか？',
-            cta: '通知する',
-        },
-    },
+    concierge: {collapseReasoning: '推論を折りたたむ', expandReasoning: '推論を展開', enableNotifications: {prompt: 'Concierge から返信があったときに通知を受け取りますか？', cta: '通知'}},
     supportalNoAccess: {
         title: 'ちょっと待ってください',
         descriptionWithCommand: (command?: string) =>
