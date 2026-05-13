@@ -35,7 +35,7 @@ function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserA
     const {translate, preferredLocale} = useLocalize();
     const [users] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: personalDetailsWithCustomNameSelector({accountIDs, shouldChangeUserDisplayName: true, currentUserAccountID, translate}),
-    });
+    }, [accountIDs, currentUserAccountID, translate]);
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     const namesString =

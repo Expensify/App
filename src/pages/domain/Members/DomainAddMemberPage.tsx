@@ -53,7 +53,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const [memberIDs = getEmptyArray<number>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: memberAccountIDsSelector,
     });
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsWithCustomNameSelector({accountIDs: memberIDs})});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsWithCustomNameSelector({accountIDs: memberIDs})}, [memberIDs]);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
 
