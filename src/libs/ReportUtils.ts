@@ -11477,13 +11477,16 @@ function isReportOutstanding(
         !isExpenseReport(iouReport) ||
         iouReport?.stateNum === undefined ||
         iouReport?.statusNum === undefined ||
-        iouReport?.policyID !== policyID ||
-        hasForwardedAction(iouReport.reportID)
+        iouReport?.policyID !== policyID
     ) {
         return false;
     }
     const reportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     if (isArchivedReport(reportNameValuePair)) {
+        return false;
+    }
+    const isOpen = iouReport.stateNum === CONST.REPORT.STATE_NUM.OPEN && iouReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN;
+    if (!isOpen && hasForwardedAction(iouReport.reportID)) {
         return false;
     }
     const currentRoute = navigationRef.getCurrentRoute();

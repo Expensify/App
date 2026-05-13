@@ -340,6 +340,32 @@ describe('canEditFieldOfMoneyRequest', () => {
                 // Then they should be able to move the expense since there are multiple outstanding expense reports
                 expect(canEditReportField).toBe(false);
             });
+
+            it('should return true when a forwarded expense report is rejected back to open state', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    ...expenseReport,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOUReportID}`, {
+                    1: {
+                        ...createRandomReportAction(1),
+                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    },
+                });
+                await waitForBatchedUpdates();
+
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                });
+
+                expect(canEditReportField).toBe(true);
+            });
         });
 
         describe('Policy has Dynamic External Workflow', () => {
