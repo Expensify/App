@@ -56,7 +56,6 @@ function CardDetailsActionButton({innerStyles, style, ...props}: ButtonProps) {
 
     return (
         <Button
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             innerStyles={[shouldUseEqualButtonWidths && styles.ph2, innerStyles]}
             style={[shouldUseEqualButtonWidths && styles.w100, style]}
