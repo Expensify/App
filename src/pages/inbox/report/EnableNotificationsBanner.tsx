@@ -42,7 +42,10 @@ function EnableNotificationsBanner() {
     const {translate} = useLocalize();
 
     return (
-        <View accessibilityLiveRegion="polite">
+        <View
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+        >
             <Banner
                 text={translate('concierge.enableNotifications.prompt')}
                 textStyles={[styles.textNormal]}
