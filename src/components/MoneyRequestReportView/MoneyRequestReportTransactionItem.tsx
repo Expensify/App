@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
+import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -133,7 +134,7 @@ function MoneyRequestReportTransactionItem({
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
-            style={!shouldUseNarrowLayout && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden]}
+            style={!shouldUseNarrowLayout && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]}
         >
             <PressableWithFeedback
                 key={transaction.transactionID}
@@ -180,7 +181,7 @@ function MoneyRequestReportTransactionItem({
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                        shouldRemoveTotalColumnFlex
+                        shouldRemoveTotalColumnFlex={hasFlexColumn(columns)}
                     />
                 )}
             </PressableWithFeedback>

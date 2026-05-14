@@ -17,6 +17,7 @@ import RenderHTML from '@components/RenderHTML';
 import SearchBar from '@components/SearchBar';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -49,10 +50,12 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    canEditWorkspaceSettings,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
     isControlPolicy,
-    isPaidGroupPolicy as isPaidGroupPolicyUtil,
+    isGroupPolicy as isGroupPolicyUtil,
+    isGustoConnected as isGustoConnectionEnabled,
     isPolicyAdmin as isPolicyAdminUtil,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
@@ -191,6 +194,23 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         });
     }, [allReportNextSteps, betas, policy, transactionViolations, currentUserAccountID, currentUserEmail]);
 
+    const navigateToGustoSettings = useCallback(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(route.params.policyID));
+    }, [route.params.policyID]);
+
+    const promptConfigureApprovalsInGusto = useCallback(async () => {
+        const {action} = await showConfirmModal({
+            title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+            prompt: translate('workflowsPage.gustoApprovalWorkflowLockedPrompt'),
+            confirmText: translate('workflowsPage.goToGustoSettings'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        navigateToGustoSettings();
+    }, [navigateToGustoSettings, showConfirmModal, translate]);
+
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addApprovalAction = useCallback(() => {
         setApprovalWorkflow({
@@ -254,6 +274,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     }, [filteredApprovalWorkflows.length, setWorkflowSearchInput]);
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
+    const isGustoConnected = isGustoConnectionEnabled(policy);
+    const shouldBlockApprovalWorkflowEditing =
+        isGustoConnected && [CONST.GUSTO.APPROVAL_MODE.BASIC, CONST.GUSTO.APPROVAL_MODE.MANAGER].some((approvalMode) => approvalMode === policy?.connections?.gusto?.config?.approvalMode);
+    const approvalSubtitle = useMemo(() => {
+        if (!isGustoConnected) {
+            return translate('workflowsPage.addApprovalsDescription');
+        }
+
+        return (
+            <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
+                {translate('workflowsPage.addApprovalsDescription')} <TextLink onPress={navigateToGustoSettings}>{translate('workflowsPage.configureViaGusto')}</TextLink>
+            </Text>
+        );
+    }, [isGustoConnected, navigateToGustoSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
 
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const isBankAccountFullySetup = policy?.achAccount && (policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
@@ -291,6 +325,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 <RenderHTML html={translate('workspace.bankAccount.yourWorkspace')} />
             </View>
         );
+        const approvalOptionSubtitle = isGustoConnected || !isSmartLimitEnabled ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
 
         return [
             {
@@ -319,9 +354,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             },
             {
                 title: translate('workflowsPage.addApprovalsTitle'),
-                subtitle: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
+                subtitle: approvalOptionSubtitle,
                 switchAccessibilityLabel: isSmartLimitEnabled ? translate('workspace.moreFeatures.workflows.disableApprovalPrompt') : translate('workflowsPage.addApprovalsDescription'),
                 onToggle: (isEnabled: boolean) => {
+                    if (isGustoConnected) {
+                        return;
+                    }
                     if (!isEnabled) {
                         showConfirmModal({
                             title: translate('workspace.bankAccount.areYouSure'),
@@ -383,25 +421,34 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                             >
                                 <ApprovalWorkflowSection
                                     approvalWorkflow={workflow}
-                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''))}
+                                    onPress={
+                                        shouldBlockApprovalWorkflowEditing
+                                            ? undefined
+                                            : () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, workflow.approvers.at(0)?.email ?? ''))
+                                    }
                                     currency={policy?.outputCurrency}
+                                    isDisabled={shouldBlockApprovalWorkflowEditing}
                                 />
                             </OfflineWithFeedback>
                         ))}
-                        <MenuItem
-                            title={translate('workflowsPage.addApprovalButton')}
-                            titleStyle={styles.textStrong}
-                            icon={expensifyIcons.Plus}
-                            iconHeight={20}
-                            iconWidth={20}
-                            style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                            onPress={addApprovalAction}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
-                        />
+                        {!shouldBlockApprovalWorkflowEditing && (
+                            <MenuItem
+                                title={translate('workflowsPage.addApprovalButton')}
+                                titleStyle={styles.textStrong}
+                                icon={expensifyIcons.Plus}
+                                iconHeight={20}
+                                iconWidth={20}
+                                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                onPress={addApprovalAction}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.ADD_APPROVAL}
+                            />
+                        )}
                     </>
                 ),
-                disabled: isSmartLimitEnabled || isDEWEnabled,
+                disabled: isSmartLimitEnabled || isDEWEnabled || isGustoConnected,
+                disabledAction: isGustoConnected ? promptConfigureApprovalsInGusto : undefined,
                 isActive:
+                    isGustoConnected ||
                     isDEWEnabled ||
                     (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ?? false),
                 pendingAction: policy?.pendingFields?.approvalMode,
@@ -569,6 +616,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         translate,
         onPressAutoReportingFrequency,
         isSmartLimitEnabled,
+        isGustoConnected,
+        shouldBlockApprovalWorkflowEditing,
+        approvalSubtitle,
+        promptConfigureApprovalsInGusto,
         isDEWEnabled,
         shouldUseNarrowLayout,
         expensifyIcons.Info,
@@ -625,11 +676,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 errors={item.errors}
                 onCloseError={item.onCloseError}
                 disabled={item.disabled}
+                disabledAction={item.disabledAction}
             />
         </Section>
     );
 
-    const isPaidGroupPolicy = isPaidGroupPolicyUtil(policy);
+    const isGroupPolicy = isGroupPolicyUtil(policy);
     const isLoading = !!(policy?.isLoading && policy?.reimbursementChoice === undefined);
 
     return (
@@ -642,7 +694,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 icon={illustrations.Workflows}
                 route={route}
                 shouldShowOfflineIndicatorInWideScreen
-                shouldShowNotFoundPage={!isPaidGroupPolicy || !isPolicyAdmin}
+                shouldShowNotFoundPage={!isGroupPolicy || !canEditWorkspaceSettings(policy)}
                 isLoading={isLoading}
                 shouldShowLoading={isLoading}
                 shouldUseScrollView

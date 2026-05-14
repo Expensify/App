@@ -7,7 +7,8 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getActivePoliciesWithExpenseChatAndTimeEnabled, getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
-import {setMoneyRequestParticipantsFromReport, setMoneyRequestTimeRate} from '@userActions/IOU';
+import {setMoneyRequestTimeRate} from '@userActions/IOU';
+import {setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';

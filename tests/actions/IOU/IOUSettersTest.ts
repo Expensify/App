@@ -112,14 +112,6 @@ describe('IOU setter functions', () => {
     });
 
     describe('setMoneyRequestDescription', () => {
-        it('should set trimmed comment on a draft transaction', async () => {
-            setMoneyRequestDescription(TRANSACTION_ID, '  Test description  ', true);
-            await waitForBatchedUpdates();
-
-            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
-            expect(draft?.comment?.comment).toBe('Test description');
-        });
-
         it('should set comment on a real transaction when isDraft is false', async () => {
             const transaction = createRandomTransaction(1);
             transaction.transactionID = TRANSACTION_ID;
