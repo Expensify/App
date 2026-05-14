@@ -1,6 +1,10 @@
 import React, {useState} from 'react';
+import {View} from 'react-native';
+import InboxSidebar from '@components/Navigation/InboxSidebar';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import {SidebarWidthContext} from '@libs/Navigation/AppNavigator/createSplitNavigator/SidebarSpacerWrapper';
 import FreezeWrapper from '@libs/Navigation/AppNavigator/FreezeWrapper';
@@ -19,6 +23,7 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadReportScreen = () => require<ReactComponentModule>('@pages/inbox/ReportScreen').default;
 const loadSidebarScreen = () => require<ReactComponentModule>('@pages/inbox/sidebar/BaseSidebarScreen').default;
+const loadEmptyComponent = () => require<ReactComponentModule>('@components/EmptyComponent').default;
 const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
 
 /**
@@ -27,7 +32,12 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  */
 function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
-    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(variables.inboxSidebarWidth);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const styles = useThemeStyles();
+    // On wide, the sidebar lives OUTSIDE the navigator (see InboxSidebar). Pass 0 so the
+    // sidebar card doesn't reserve / collide with that space — the outside sidebar's
+    // animated width is what shifts the central content.
+    const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions(shouldUseNarrowLayout ? variables.inboxSidebarWidth : 0);
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const isOpenOnAdminRoom = shouldOpenOnAdminRoom();
 
@@ -64,26 +74,31 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorPar
 
     return (
         <FreezeWrapper>
-            <SidebarWidthContext.Provider value={variables.inboxSidebarWidth}>
-                <Split.Navigator
-                    persistentScreens={[SCREENS.INBOX]}
-                    sidebarScreen={SCREENS.INBOX}
-                    defaultCentralScreen={SCREENS.REPORT}
-                    parentRoute={route}
-                    screenOptions={splitNavigatorScreenOptions.centralScreen}
-                >
-                    <Split.Screen
-                        name={SCREENS.INBOX}
-                        getComponent={loadSidebarScreen}
-                        options={splitNavigatorScreenOptions.sidebarScreen}
-                    />
-                    <Split.Screen
-                        name={SCREENS.REPORT}
-                        initialParams={reportScreenInitialParams}
-                        getComponent={loadReportScreen}
-                    />
-                </Split.Navigator>
-            </SidebarWidthContext.Provider>
+            <View style={shouldUseNarrowLayout ? styles.flex1 : [styles.flex1, styles.flexRow]}>
+                {!shouldUseNarrowLayout && <InboxSidebar />}
+                <View style={styles.flex1}>
+                    <SidebarWidthContext.Provider value={shouldUseNarrowLayout ? variables.inboxSidebarWidth : 0}>
+                        <Split.Navigator
+                            persistentScreens={[SCREENS.INBOX]}
+                            sidebarScreen={SCREENS.INBOX}
+                            defaultCentralScreen={SCREENS.REPORT}
+                            parentRoute={route}
+                            screenOptions={splitNavigatorScreenOptions.centralScreen}
+                        >
+                            <Split.Screen
+                                name={SCREENS.INBOX}
+                                getComponent={shouldUseNarrowLayout ? loadSidebarScreen : loadEmptyComponent}
+                                options={splitNavigatorScreenOptions.sidebarScreen}
+                            />
+                            <Split.Screen
+                                name={SCREENS.REPORT}
+                                initialParams={reportScreenInitialParams}
+                                getComponent={loadReportScreen}
+                            />
+                        </Split.Navigator>
+                    </SidebarWidthContext.Provider>
+                </View>
+            </View>
         </FreezeWrapper>
     );
 }

@@ -1,9 +1,11 @@
 import React, {useRef} from 'react';
 import type {ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import Icon from '@components/Icon';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
+import {collapseProgress, peekProgress} from '@components/Navigation/SidebarCollapseStore';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
@@ -48,6 +50,32 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
+
+    // Fade + slide the row's text content in lockstep with the collapse animation.
+    // Avatar stays put; only the content side fades.
+    const sidebarLabelAnimatedStyle = useAnimatedStyle(() => {
+        const cp = collapseProgress.get();
+        const pp = peekProgress.get();
+        const visualExpansion = 1 - cp * (1 - pp);
+        return {
+            opacity: visualExpansion,
+            transform: [{translateX: -8 * (1 - visualExpansion)}],
+        };
+    });
+
+    // Clip the row down to the visible collapsed sidebar width (76) when collapsed, full
+    // inner width (320) when expanded. The Pressable inside applies its own
+    // `marginHorizontal: 12` via `sidebarLinkInnerLHN`, so the visible highlight ends up
+    // at `wrapper - 24` = 52 collapsed (a nicely-padded hug around the 28px avatar) and
+    // 296 expanded (matches the original full-width row).
+    const rowWrapperAnimatedStyle = useAnimatedStyle(() => {
+        const cp = collapseProgress.get();
+        const pp = peekProgress.get();
+        const visualExpansion = 1 - cp * (1 - pp);
+        return {
+            width: variables.searchSidebarCollapsedWidth + (variables.inboxSidebarWidth - variables.searchSidebarCollapsedWidth) * visualExpansion,
+        };
+    });
     const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
         isInFocusMode
             ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
@@ -128,7 +156,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                                     secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
                                     singleAvatarContainerStyle={singleAvatarContainerStyle}
                                 />
-                                <View style={contentContainerStyles}>
+                                <Animated.View style={[contentContainerStyles, sidebarLabelAnimatedStyle]}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <Title
                                             optionItem={optionItem}
@@ -151,15 +179,19 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                                         isOptionFocused={isOptionFocused}
                                         style={style}
                                     />
-                                </View>
-                                <DescriptiveText optionItem={optionItem} />
-                                <OptionRowErrorBadge
-                                    brickRoadIndicator={brickRoadIndicator}
-                                    actionBadgeText={actionBadgeText}
-                                />
+                                </Animated.View>
+                                <Animated.View style={sidebarLabelAnimatedStyle}>
+                                    <DescriptiveText optionItem={optionItem} />
+                                </Animated.View>
+                                <Animated.View style={sidebarLabelAnimatedStyle}>
+                                    <OptionRowErrorBadge
+                                        brickRoadIndicator={brickRoadIndicator}
+                                        actionBadgeText={actionBadgeText}
+                                    />
+                                </Animated.View>
                             </View>
                         </View>
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                        <Animated.View style={[styles.flexRow, styles.alignItemsCenter, sidebarLabelAnimatedStyle]}>
                             <OptionRowInfoBadge
                                 brickRoadIndicator={brickRoadIndicator}
                                 actionBadgeText={actionBadgeText}
@@ -182,7 +214,7 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                                     />
                                 </View>
                             )}
-                        </View>
+                        </Animated.View>
                     </>
                 );
             }}
@@ -190,10 +222,12 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
     );
 
     return (
-        <OptionRowTooltipLayer
-            optionItem={optionItem}
-            renderChildren={renderPressableRow}
-        />
+        <Animated.View style={[{overflow: 'hidden', alignSelf: 'flex-start'}, rowWrapperAnimatedStyle]}>
+            <OptionRowTooltipLayer
+                optionItem={optionItem}
+                renderChildren={renderPressableRow}
+            />
+        </Animated.View>
     );
 }
 

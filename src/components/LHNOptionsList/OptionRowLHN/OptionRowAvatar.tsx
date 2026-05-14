@@ -52,7 +52,7 @@ function OptionRowAvatarInner({optionItem, isInFocusMode, subscriptAvatarBorderC
         <LHNAvatar
             icons={icons}
             shouldShowSubscript={!!optionItem.shouldShowSubscript}
-            size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+            size={CONST.AVATAR_SIZE.LHN_ROW}
             subscriptAvatarBorderColor={subscriptAvatarBorderColor}
             useMidSubscriptSize={isInFocusMode}
             secondaryAvatarBackgroundColor={secondaryAvatarBackgroundColor}

@@ -58,23 +58,26 @@ function WorkspaceSplitNavigator({route}: PlatformStackScreenProps<WorkspaceNavi
     // both into a synthetic route the outside WorkspaceInitialPage can consume — it
     // expects `route.params.policyID` (used by withPolicyAndFullscreenLoading) and
     // `route.params.backTo` (used by the header back button).
-    const sidebarRoute: RouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL> = useMemo(() => {
+    const sidebarRoute: RouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL> | undefined = useMemo(() => {
         const rawParams = (route.params ?? {}) as {
             screen?: string;
             params?: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
         } & WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
         const params = rawParams.params ?? rawParams;
+        if (!params.policyID) {
+            return undefined;
+        }
         return {
             key: `${route.key}-sidebar`,
             name: SCREENS.WORKSPACE.INITIAL,
-            params: {policyID: params.policyID ?? '', backTo: params.backTo},
+            params: {policyID: params.policyID, backTo: params.backTo},
         };
     }, [route.key, route.params]);
 
     return (
         <FocusTrapForScreens>
             <View style={shouldUseNarrowLayout ? styles.flex1 : [styles.flex1, styles.flexRow]}>
-                {!shouldUseNarrowLayout && <WorkspaceSidebar route={sidebarRoute} />}
+                {!shouldUseNarrowLayout && !!sidebarRoute && <WorkspaceSidebar route={sidebarRoute} />}
                 <View style={styles.flex1}>
                     <SidebarWidthContext.Provider value={shouldUseNarrowLayout ? variables.sideBarWithLHBWidth : 0}>
                         <Split.Navigator
