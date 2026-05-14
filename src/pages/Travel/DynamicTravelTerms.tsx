@@ -14,6 +14,7 @@ import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,6 +24,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addComment} from '@libs/actions/Report';
 import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
@@ -30,13 +32,13 @@ import colors from '@styles/theme/colors';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TravelProvisioning} from '@src/types/onyx';
 
-type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TCS>;
+type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_TCS>;
 
-function TravelTerms({route}: TravelTermsPageProps) {
+function DynamicTravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -51,6 +53,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [conciergeReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const delegateAccountID = useDelegateAccountID();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_TCS.path);
 
     const errorMessage = travelProvisioning?.errors && !travelProvisioning?.error ? getLatestErrorMessage(travelProvisioning) : '';
     const isLoading = travelProvisioning?.isLoading;
@@ -85,7 +88,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
                 // Handle permission denied error
                 if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
-                    Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.path));
                     cleanupTravelProvisioningSession();
                     return Promise.reject(new Error('Permission denied'));
                 }
@@ -142,7 +145,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
                 <HeaderWithBackButton
                     title={translate('travel.termsAndConditions.header')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5, styles.pb5]}>
                     <View style={styles.flex1}>
@@ -172,4 +175,4 @@ function TravelTerms({route}: TravelTermsPageProps) {
     );
 }
 
-export default TravelTerms;
+export default DynamicTravelTerms;

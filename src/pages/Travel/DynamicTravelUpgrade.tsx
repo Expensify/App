@@ -1,27 +1,24 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getActivePolicies, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import UpgradeConfirmation from '@pages/workspace/upgrade/UpgradeConfirmation';
 import UpgradeIntro from '@pages/workspace/upgrade/UpgradeIntro';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-type TravelUpgradeProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.UPGRADE>;
-
-function TravelUpgrade({route}: TravelUpgradeProps) {
+function DynamicTravelUpgrade() {
     const styles = useThemeStyles();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_UPGRADE.path);
     const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.travel;
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -29,14 +26,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const groupPaidPolicies = getActivePolicies(policies, currentUserLogin).filter(isPaidGroupPolicy);
 
-    const [isUpgraded, setIsUpgraded] = useState(false);
-
-    useEffect(() => {
-        if (groupPaidPolicies.length < 1) {
-            return;
-        }
-        setIsUpgraded(true);
-    }, [groupPaidPolicies.length]);
+    const isUpgraded = groupPaidPolicies.length > 0;
 
     const openWorkspaceConfirmation = () => {
         Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute()));
@@ -51,7 +41,7 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
         >
             <HeaderWithBackButton
                 title={translate('common.upgrade')}
-                onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 {isUpgraded ? (
@@ -74,4 +64,4 @@ function TravelUpgrade({route}: TravelUpgradeProps) {
     );
 }
 
-export default TravelUpgrade;
+export default DynamicTravelUpgrade;

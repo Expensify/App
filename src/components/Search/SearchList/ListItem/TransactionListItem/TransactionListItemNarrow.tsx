@@ -37,7 +37,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     transactionPreviewData,
     exportedReportActions,
     nonPersonalAndWorkspaceCards,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -125,7 +125,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             isHover={false}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             reportActions={exportedReportActions}
-                            policyForMovingExpenses={policyForMovingExpenses}
+                            isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         />
                     </>
                 )}

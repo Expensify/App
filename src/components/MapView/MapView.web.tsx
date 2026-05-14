@@ -9,7 +9,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import type {MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 
-const MapViewImpl = lazy(() => import('./MapViewImpl.website'));
+const MapViewImpl = lazy(() => import('./MapViewImpl.web'));
 
 function MapView({ref, ...props}: MapViewProps) {
     const {isOffline} = useNetwork();
@@ -54,7 +54,6 @@ function MapView({ref, ...props}: MapViewProps) {
                 {!isOffline ? (
                     <MapViewImpl
                         ref={ref}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
                 ) : (

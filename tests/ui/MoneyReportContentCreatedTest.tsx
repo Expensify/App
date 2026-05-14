@@ -69,7 +69,6 @@ const renderWithProps = (props: Partial<React.ComponentProps<typeof MoneyReportC
         <OnyxListItemProvider>
             <ShowContextMenuStateContext.Provider value={noopState}>
                 <ShowContextMenuActionsContext.Provider value={noopActions}>
-                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                     <MoneyReportContentCreated {...merged} />
                 </ShowContextMenuActionsContext.Provider>
             </ShowContextMenuStateContext.Provider>
