@@ -452,4 +452,3 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
 }
 
 export default MoneyReportHeaderSecondaryActions;
-export type {MoneyReportHeaderSecondaryActionsProps};

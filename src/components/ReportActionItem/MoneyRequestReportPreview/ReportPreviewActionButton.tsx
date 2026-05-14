@@ -146,7 +146,6 @@ function ReportPreviewActionButton({
             return (
                 <SubmitActionButton
                     iouReportID={iouReportID}
-                    chatReportID={chatReportID}
                     isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                     stopAnimation={stopAnimation}
                     startSubmittingAnimation={startSubmittingAnimation}

@@ -462,4 +462,3 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
 }
 
 export default useLifecycleActions;
-export type {UseLifecycleActionsParams, UseLifecycleActionsResult};

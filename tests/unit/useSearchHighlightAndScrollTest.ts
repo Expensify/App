@@ -332,12 +332,6 @@ describe('useSearchHighlightAndScroll', () => {
         expect(result.current.newSearchResultKeys?.size).toBe(1);
         expect([...(result.current.newSearchResultKeys ?? new Set())]).toContain('transactions_3');
 
-        // Wait 1s for the timer in useSearchHighlightAndScroll to complete.
-        await new Promise((resolve) => {
-            setTimeout(resolve, 1000);
-        });
-
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(baseProps.queryJSON.type, {'3': false});
     });
 

@@ -16,7 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {clearAgentError, openAgentsPage} from '@userActions/Agent';
+import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, openAgentsPage} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,6 +29,7 @@ type AgentItem = {
     login: string;
     pendingAction?: PendingAction | null;
     errors?: Errors | null;
+    hasUpdateErrors: boolean;
 };
 
 function AgentsPage() {
@@ -64,9 +65,24 @@ function AgentsPage() {
                 login: details.login ?? '',
                 pendingAction: agentPrompt?.pendingAction,
                 errors: agentPrompt?.errors,
+                hasUpdateErrors:
+                    !!(agentPrompt?.nameErrors && Object.keys(agentPrompt.nameErrors).length > 0) || !!(agentPrompt?.promptErrors && Object.keys(agentPrompt.promptErrors).length > 0),
             };
         })
         .filter(Boolean) as AgentItem[];
+
+    const handleErrorClose = (pendingAction: PendingAction | null | undefined, accountID: number) => {
+        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            clearAgentError(accountID);
+        } else if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            clearAgentDeleteError(accountID);
+        } else {
+            clearAgentUpdateError(accountID);
+        }
+    };
+
+    const shouldShowErrors = (pendingAction: PendingAction | null | undefined) =>
+        pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const renderItem = ({item}: {item: AgentItem}) => (
         <AgentsListRow
@@ -74,8 +90,9 @@ function AgentsPage() {
             displayName={item.displayName}
             login={item.login}
             pendingAction={item.pendingAction}
-            errors={item.errors}
-            onErrorClose={() => clearAgentError(item.accountID)}
+            errors={shouldShowErrors(item.pendingAction) ? item.errors : null}
+            onErrorClose={() => handleErrorClose(item.pendingAction, item.accountID)}
+            brickRoadIndicator={item.hasUpdateErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null}
         />
     );
 
