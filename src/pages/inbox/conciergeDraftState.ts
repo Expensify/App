@@ -101,5 +101,5 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {applyConciergeDraftEvent, buildConciergeDraftReportAction, getCachedDraft, setCachedDraft};
+export {applyConciergeDraftEvent, getCachedDraft, setCachedDraft};
 export type {ConciergeDraft};

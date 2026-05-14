@@ -24,7 +24,6 @@ function Template(props: ReportActionItemImagesProps) {
         >
             {({hovered}) => (
                 <ReportActionItemImages
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     isHovered={hovered}
                 />

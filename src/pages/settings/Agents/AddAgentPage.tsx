@@ -10,9 +10,12 @@ import {botAvatarIDs, botAvatars} from '@components/Icon/DefaultBotAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isMobile} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {createAgent} from '@userActions/Agent';
 import CONST from '@src/CONST';
@@ -23,6 +26,8 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 function AddAgentPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const shouldUseScrollableLayout = useIsInLandscapeMode() || (isMobile() && windowWidth > windowHeight);
     const {displayName} = useCurrentUserPersonalDetails();
     const defaultAgentName = displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined;
     const defaultPrompt = translate('addAgentPage.defaultPrompt');
@@ -54,6 +59,7 @@ function AddAgentPage() {
             testID={AddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight={shouldUseScrollableLayout}
         >
             <HeaderWithBackButton
                 title={translate('addAgentPage.title')}
@@ -65,8 +71,8 @@ function AddAgentPage() {
                 validate={validate}
                 submitButtonText={translate('addAgentPage.createAgent')}
                 style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={false}
-                submitFlexEnabled={false}
+                shouldUseScrollView={shouldUseScrollableLayout}
+                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
                 shouldHideFixErrorsAlert
                 enabledWhenOffline
             >
@@ -93,7 +99,7 @@ function AddAgentPage() {
                         spellCheck={false}
                         defaultValue={defaultAgentName}
                     />
-                    <View style={[styles.flex1]}>
+                    <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.PROMPT}

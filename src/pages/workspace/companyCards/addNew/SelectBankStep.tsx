@@ -13,7 +13,6 @@ import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isUsingStagingApi} from '@libs/ApiUtils';
@@ -35,41 +34,28 @@ function SelectBankStep() {
     const illustrations = useThemeIllustrations();
     const companyCardBankIcons = useCompanyCardBankIcons();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
     const [localBankSelected, setLocalBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null>();
     const bankSelected = localBankSelected ?? addNewCard?.data.selectedBank;
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
-    const isFileImportSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT;
 
     const submit = useCallback(() => {
         if (!bankSelected) {
             setHasError(true);
         } else {
-            if (isFileImportSelected) {
-                setAddNewCompanyCardStepAndData({
-                    step: CONST.COMPANY_CARDS.STEP.IMPORT_FROM_FILE,
-                    data: {
-                        selectedBank: bankSelected,
-                    },
-                    isEditing: false,
-                });
-                return;
-            }
             setAddNewCompanyCardStepAndData({
                 step: getCorrectStepForPlaidSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
-                    cardTitle: !isOtherBankSelected && !isFileImportSelected ? bankSelected : undefined,
+                    cardTitle: !isOtherBankSelected ? bankSelected : undefined,
                     feedType: bankSelected === CONST.COMPANY_CARDS.BANKS.STRIPE ? CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE : undefined,
                 },
                 isEditing: false,
             });
         }
-    }, [bankSelected, isFileImportSelected, isOtherBankSelected]);
+    }, [bankSelected, isOtherBankSelected]);
 
     const handleBackButtonPress = () => {
         if (route?.params?.backTo) {
@@ -86,17 +72,12 @@ function SelectBankStep() {
                 return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
             }
             if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
-                return isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
+                return false;
             }
             return true;
         })
         .map((bank) => {
-            let bankText: string = bank;
-            if (bank === CONST.COMPANY_CARDS.BANKS.OTHER) {
-                bankText = translate('workspace.companyCards.addNewCard.other');
-            } else if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
-                bankText = translate('workspace.companyCards.addNewCard.fileImport');
-            }
+            const bankText = bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank;
 
             return {
                 value: bank,
@@ -107,8 +88,8 @@ function SelectBankStep() {
                     <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mr3, styles.selectBankStepIconSize]}>
                         <Icon
                             src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
-                            height={bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeLarge : variables.iconSizeExtraLarge}
-                            width={bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT ? variables.iconSizeLarge : variables.iconSizeExtraLarge}
+                            height={variables.iconSizeExtraLarge}
+                            width={variables.iconSizeExtraLarge}
                         />
                     </View>
                 ),

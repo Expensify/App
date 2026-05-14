@@ -27,8 +27,6 @@ import type {SearchFilter} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -37,7 +35,7 @@ type FilterValueProps = {
 };
 
 type FilterValueWithKeyProps = FilterValueProps & {
-    filterKey: SearchAdvancedFiltersKey;
+    filterKey: SearchFilter['key'];
 };
 
 function FilterUserValue({value}: FilterValueProps) {
@@ -48,16 +46,16 @@ function FilterWorkspaceValue({value}: FilterValueProps) {
     return useFilterWorkspaceValue(value);
 }
 
-function FilterFeedValue() {
-    return useFilterFeedValue();
+function FilterFeedValue({value}: FilterValueProps) {
+    return useFilterFeedValue(value as string[]);
 }
 
-function FilterCardValue() {
-    return useFilterCardValue();
+function FilterCardValue({value}: FilterValueProps) {
+    return useFilterCardValue(value as string[]);
 }
 
-function FilterTaxRateValue() {
-    return useFilterTaxRateValue();
+function FilterTaxRateValue({value}: FilterValueProps) {
+    return useFilterTaxRateValue(value as string[]);
 }
 
 function FilterReportValue({value}: FilterValueProps) {
@@ -65,27 +63,32 @@ function FilterReportValue({value}: FilterValueProps) {
 }
 
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
-    if (filterKey === FILTER_KEYS.FROM || filterKey === FILTER_KEYS.TO || filterKey === FILTER_KEYS.ATTENDEE || filterKey === FILTER_KEYS.ASSIGNEE) {
+    if (
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE
+    ) {
         return <FilterUserValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.POLICY_ID) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
         return <FilterWorkspaceValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.FEED) {
-        return <FilterFeedValue />;
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+        return <FilterFeedValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.CARD_ID) {
-        return <FilterCardValue />;
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+        return <FilterCardValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.TAX_RATE) {
-        return <FilterTaxRateValue />;
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+        return <FilterTaxRateValue value={value} />;
     }
 
-    if (filterKey === FILTER_KEYS.IN) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return <FilterReportValue value={value} />;
     }
 
