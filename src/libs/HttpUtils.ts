@@ -168,7 +168,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
             return response;
         })
         .finally(() => {
-            markEndAppStartupNetworkRequestSpan(url, command);
+            markEndAppStartupNetworkRequestSpan(command);
         });
 }
 

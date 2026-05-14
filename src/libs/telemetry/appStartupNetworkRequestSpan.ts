@@ -22,8 +22,8 @@ function markStartAppStartupNetworkRequestSpan(nativeAppStartupTimestampMsParam:
 }
 
 /** End the span for the app startup network request. */
-function markEndAppStartupNetworkRequestSpan(command: string): void {
-    const isStartupHandshakeHttp = APP_STARTUP_NETWORK_REQUEST.has(command);
+function markEndAppStartupNetworkRequestSpan(command: string | undefined): void {
+    const isStartupHandshakeHttp = !!command && APP_STARTUP_NETWORK_REQUEST.has(command);
 
     if (hasMarkedLastNetworkSpanEnd || !isStartupHandshakeHttp || !nativeAppStartupTimestampMs) {
         return;
