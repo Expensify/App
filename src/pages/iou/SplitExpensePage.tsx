@@ -250,14 +250,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction, transactionReport, effectivePolicy);
+        addSplitExpenseField(transaction, draftTransaction, transactionReport, effectivePolicy, isDraftSelfDMContext);
     };
 
     const onMakeSplitsEven = () => {
         if (!draftTransaction) {
             return;
         }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy, isDraftSelfDMContext);
     };
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
@@ -359,10 +359,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext);
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext);
         }
     };
 

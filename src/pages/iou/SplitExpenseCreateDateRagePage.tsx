@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
+import {isSelfDM} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -53,7 +54,15 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        resetSplitExpensesByDateRange(transaction, draftTransaction, currentReport, value[INPUT_IDS.START_DATE], value[INPUT_IDS.END_DATE], effectivePolicy);
+        resetSplitExpensesByDateRange(
+            transaction,
+            draftTransaction,
+            currentReport,
+            value[INPUT_IDS.START_DATE],
+            value[INPUT_IDS.END_DATE],
+            effectivePolicy,
+            isSelfDM(currentReport) || isSelfDM(parentReport),
+        );
         Navigation.goBack(backTo);
     };
 
