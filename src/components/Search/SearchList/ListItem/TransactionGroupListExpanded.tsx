@@ -56,7 +56,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     shouldDisplayEmptyView,
     searchTransactions,
     isInSingleTransactionReport,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     onLongPress,
     nonPersonalAndWorkspaceCards,
     onUndelete,
@@ -311,14 +311,14 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
                                     columns={currentColumns}
                                     onButtonPress={() => handleButtonPress(transaction)}
-                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.searchTableRowHeight] : styles.p4, styles.flex1]}
+                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}
                                     isReportItemChild
                                     isInSingleTransactionReport={isInSingleTransactionReport}
                                     shouldShowBottomBorder={shouldShowBottomBorder}
                                     onArrowRightPress={isDeletedOrPendingDelete ? undefined : () => openReportInRHP(transaction)}
                                     shouldShowArrowRightOnNarrowLayout
                                     reportActions={exportedReportActions}
-                                    policyForMovingExpenses={policyForMovingExpenses}
+                                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                                     isActionColumnWide={isActionColumnWide}
                                     isHover={hovered}

@@ -1,21 +1,18 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionList/types';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
-import {isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
 type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
@@ -37,7 +34,6 @@ function SelectionListWithModal<TItem extends ListItem>({
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<TItem | null>(null);
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout here because there is a race condition that causes shouldUseNarrowLayout to change indefinitely in this component
     // See https://github.com/Expensify/App/issues/48675 for more details
@@ -46,37 +42,19 @@ function SelectionListWithModal<TItem extends ListItem>({
     const isFocused = useIsFocused();
     const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
-    // Filter out the pending delete item without errors when online to prevent making multiple updates to debouncedData which causes the deleted item is shown again
-    const filteredData = useMemo(() => {
-        return data.filter((item) => item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline || !isEmptyValueObject(item?.errors));
-    }, [data, isOffline]);
-
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-
-    // Debounce the data prop to prevent rapid updates that cause FlashList layout errors
-    // This gives FlashList time to properly update its layout cache when searching/filtering
-    const [, debouncedData, setDataState] = useDebouncedState<TItem[]>(filteredData, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
-
-    // Determine if this is changed by filtering (to limit multiple rerenders)
-    const isFiltering = filteredData.length < debouncedData.length;
-
-    useEffect(() => {
-        setDataState(filteredData);
-    }, [filteredData, setDataState]);
-
-    const displayData = isFiltering ? debouncedData : filteredData;
 
     const selectedItems = useMemo(
         () =>
             selectedItemsProp ??
-            displayData.filter((item) => {
+            data.filter((item) => {
                 if (isSelected) {
                     return isSelected(item);
                 }
                 return !!item.isSelected;
             }) ??
             [],
-        [isSelected, displayData, selectedItemsProp],
+        [isSelected, data, selectedItemsProp],
     );
 
     useHandleSelectionMode(selectedItems);
@@ -116,7 +94,7 @@ function SelectionListWithModal<TItem extends ListItem>({
         <>
             <SelectionList
                 ref={ref}
-                data={displayData}
+                data={data}
                 addBottomSafeAreaPadding
                 selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
@@ -143,5 +121,4 @@ function SelectionListWithModal<TItem extends ListItem>({
     );
 }
 
-export type {SelectionListWithModalProps};
 export default SelectionListWithModal;
