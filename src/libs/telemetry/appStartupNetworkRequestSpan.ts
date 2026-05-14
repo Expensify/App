@@ -40,7 +40,7 @@ function markEndAppStartupNetworkRequestSpan(command: string): void {
 
     manualAppStartupLastNetworkSpan = undefined;
 
-    sentrySpan.setStatus({code: 1});
+    sentrySpan.setStatus({code: CONST.TELEMETRY.SPAN_STATUS_CODE.OK});
     sentrySpan.setAttributes({
         [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,
         [CONST.TELEMETRY.ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS]: durationSinceNativeAppStartupMs,
