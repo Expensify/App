@@ -40,15 +40,21 @@ jest.mock('@components/Modal/ReanimatedModal/Container', () => {
     const {default: useAnimationTransition} = require('@hooks/useAnimationTransition') as {
         default: () => {onAnimationComplete: () => void};
     };
+    // Hooks can assign to external variables (RC only restricts this in components).
+    // We use a hook to wire the captured callback, keeping MockContainer RC-compliant.
+    function useCaptureOpenCallback(onOpenCallBack: () => void, onAnimationComplete: () => void) {
+        capturedOnOpenCallBack = () => {
+            onOpenCallBack();
+            onAnimationComplete();
+        };
+    }
+
     function MockContainer({onOpenCallBack, onCloseCallBack: _onCloseCallBack, children, ...rest}: Record<string, unknown>) {
         const {onAnimationComplete} = useAnimationTransition();
 
         // Wire the captured callback to also fire onAnimationComplete, matching
         // real Container behavior where both callbacks fire at animation end.
-        capturedOnOpenCallBack = () => {
-            (onOpenCallBack as () => void)();
-            onAnimationComplete();
-        };
+        useCaptureOpenCallback(onOpenCallBack as () => void, onAnimationComplete);
 
         return (
             <View

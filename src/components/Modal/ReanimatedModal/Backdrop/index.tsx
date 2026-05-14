@@ -1,9 +1,9 @@
 import React from 'react';
 import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
-import useAnimationTransition from '@hooks/useAnimationTransition';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import useAnimationTransition from '@hooks/useAnimationTransition';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
