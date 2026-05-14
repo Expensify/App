@@ -6539,7 +6539,8 @@ const translations = {
                 existingRateName: 'A distance rate with this name already exists',
                 nameRequired: 'Name is required.',
                 nameAlreadyExists: 'A distance rate with this name already exists.',
-                startDateMustBeBeforeEndDate: 'Start date must occur before end date.',
+                startDateMustBeBeforeEndDate: 'Start date must be before end date.',
+                endDateMustBeAfterStartDate: 'End date must be after start date.',
             },
         },
         editor: {

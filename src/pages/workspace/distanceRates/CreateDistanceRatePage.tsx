@@ -121,7 +121,7 @@ function CreateDistanceRatePage({
                         validate={validate}
                         enabledWhenOffline
                         style={[styles.flexGrow1]}
-                        shouldHideFixErrorsAlert
+                        shouldHideFixErrorsAlert={!isDateBoundMileageRateEnabled}
                         submitFlexEnabled={false}
                         submitButtonStyles={[styles.mh5, styles.mt0]}
                         addBottomSafeAreaPadding
