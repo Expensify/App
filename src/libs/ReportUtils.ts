@@ -206,6 +206,7 @@ import {
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isMovedAction,
+    isOlderReportAction,
     isPendingRemove,
     isPolicyChangeLogAction,
     isReimbursementQueuedAction,
@@ -4289,7 +4290,7 @@ function getReasonAndReportActionThatRequiresAttention(
             ) {
                 continue;
             }
-            if (!earliestAction?.created || (action.created && action.created < earliestAction.created)) {
+            if (!earliestAction || isOlderReportAction(action, earliestAction)) {
                 earliestAction = action;
             }
         }
