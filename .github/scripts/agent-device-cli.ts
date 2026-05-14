@@ -49,18 +49,33 @@ const SESSION = process.env.AGENT_DEVICE_SESSION ?? "ci";
 
 /*
  * Bound every CLI invocation so a hung emulator can't wedge the smoke.
- * 30s is generous for read-only commands (snapshot/screenshot/appstate).
- * `fill` is special: typing a 30-char string into an editable on a
- * 2-core ubuntu-latest under load was observed to exceed 30s (the
- * CLI partial-typed and exited non-zero on timeout — visible at the
- * device level via screenshot but the runner threw before recording
- * the action). 90s gives ~3x headroom.
+ *
+ *  - 30s default: Android snapshot/screenshot/appstate consistently fit
+ *    well under this on warm AVDs.
+ *  - 60s for snapshot: iOS sims' first accessibility-tree collection
+ *    after `agent-device open` was observed to exceed 30s on
+ *    macos-latest. Run 25861525119 hit the 30s limit on every snapshot
+ *    call after launch and bailed out at the SignIn-wait budget.
+ *  - 90s for fill: typing a 30-char email into a single-line input on
+ *    a 2-core ubuntu-latest under load exceeds 30s. Run 25568731827
+ *    proved this — the CLI partial-typed and exited non-zero.
  */
 const CLI_TIMEOUT_MS = 30_000;
+const CLI_SNAPSHOT_TIMEOUT_MS = 60_000;
 const CLI_FILL_TIMEOUT_MS = 90_000;
 
+function timeoutForCommand(cmd: string): number {
+  if (cmd === "fill") {
+    return CLI_FILL_TIMEOUT_MS;
+  }
+  if (cmd === "snapshot") {
+    return CLI_SNAPSHOT_TIMEOUT_MS;
+  }
+  return CLI_TIMEOUT_MS;
+}
+
 function run(args: string[]): string {
-  const timeout = args[0] === "fill" ? CLI_FILL_TIMEOUT_MS : CLI_TIMEOUT_MS;
+  const timeout = timeoutForCommand(args[0]);
   return execFileSync("agent-device", args, {
     encoding: "utf8",
     timeout,
