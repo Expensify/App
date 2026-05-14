@@ -1,6 +1,7 @@
 import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useMemo, useState} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {StyleSheet, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
@@ -16,6 +17,7 @@ import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -105,10 +107,14 @@ function SearchFiltersWorkspacePage() {
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator
-                            style={[styles.flex1, styles.pRelative]}
-                            reasonAttributes={{context: 'SearchFiltersWorkspacePage', shouldShowLoadingIndicator}}
-                        />
+                        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100, styles.flex1, styles.pRelative]}>
+                            <View style={styles.w100}>
+                                <ActivityIndicator
+                                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                    reasonAttributes={{context: 'SearchFiltersWorkspacePage', shouldShowLoadingIndicator}}
+                                />
+                            </View>
+                        </View>
                     ) : (
                         <SelectionList<WorkspaceListItem>
                             data={data}
