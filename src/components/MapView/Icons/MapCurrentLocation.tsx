@@ -1,0 +1,47 @@
+import React from 'react';
+import {Defs, FeDropShadow, Filter, G, Path, Svg} from 'react-native-svg';
+import type {SvgProps} from 'react-native-svg';
+
+function MapCurrentLocation({width = 48, height = 48}: SvgProps) {
+    return (
+        <Svg
+            width={width}
+            height={height}
+            viewBox="0 0 48 48"
+            fill="none"
+        >
+            <Defs>
+                <Filter
+                    id="mapCurrentLocationShadow"
+                    x="0"
+                    y="0"
+                    width="48"
+                    height="48"
+                    filterUnits="userSpaceOnUse"
+                >
+                    <FeDropShadow
+                        dx={0}
+                        dy={4}
+                        stdDeviation={6}
+                        floodColor="#021204"
+                        floodOpacity={0.8}
+                    />
+                </Filter>
+            </Defs>
+            <G filter="url(#mapCurrentLocationShadow)">
+                <Path
+                    fill="#0185ff"
+                    d="M36 20c0 6.627-5.373 12-12 12s-12-5.373-12-12S17.373 8 24 8s12 5.373 12 12"
+                />
+                <Path
+                    fill="#fcfbf9"
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M24 8c6.627 0 12 5.373 12 12s-5.373 12-12 12-12-5.373-12-12S17.373 8 24 8m0 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18"
+                />
+            </G>
+        </Svg>
+    );
+}
+
+export default MapCurrentLocation;

@@ -161,10 +161,6 @@ import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-m
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
-import MapCurrentLocation from '@assets/images/map-current-location.svg';
-import MapStartWaypoint from '@assets/images/map-start-waypoint.svg';
-import MapStopWaypoint from '@assets/images/map-stop-waypoint.svg';
-import MapWaypoint from '@assets/images/map-waypoint.svg';
 import Map from '@assets/images/map.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
@@ -265,6 +261,9 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
+import MapStartWaypoint from '@components/MapView/Icons/MapStartWaypoint';
+import MapStopWaypoint from '@components/MapView/Icons/MapStopWaypoint';
+import MapWaypoint from '@components/MapView/Icons/MapWaypoint';
 
 const Expensicons = {
     ReceiptBody,
