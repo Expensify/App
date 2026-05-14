@@ -300,12 +300,11 @@ describe('ButtonComposed — Button', () => {
     // Wrong values here would break the visual rhythm of forms and toolbars.
 
     describe('size styles', () => {
-        // getComposedButtonSizeStyle subtracts 4px from the base buttonSmall/Medium/Large
-        // paddingHorizontal (12/16/20) to compensate for the gap between children.
+        // getButtonSizeStyle returns the base buttonSmall/Medium/Large styles unchanged.
         it.each([
-            {size: CONST.BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 8},
-            {size: CONST.BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 12},
-            {size: CONST.BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 16},
+            {size: CONST.BUTTON_SIZE.SMALL, minHeight: variables.componentSizeSmall, paddingHorizontal: 12},
+            {size: CONST.BUTTON_SIZE.MEDIUM, minHeight: variables.componentSizeNormal, paddingHorizontal: 16},
+            {size: CONST.BUTTON_SIZE.LARGE, minHeight: variables.componentSizeLarge, paddingHorizontal: 20},
         ])('size="$size" applies minHeight=$minHeight and paddingHorizontal=$paddingHorizontal', ({size, minHeight, paddingHorizontal}) => {
             renderButton({size});
             expect(screen.getByLabelText(LABEL)).toHaveStyle({minHeight, paddingHorizontal});

@@ -83,7 +83,7 @@ function Button({
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getComposedButtonSizeStyle(styles, size),
+            StyleUtils.getButtonSizeStyle(styles, size),
             buttonVariantStyles,
             shouldRemoveBorderRadius ? borderRadiusStyles[shouldRemoveBorderRadius] : undefined,
             styles.alignItemsStretch,

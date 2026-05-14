@@ -597,16 +597,6 @@ function getButtonSizeStyle(styles: ThemeStyles, size?: ButtonSizeValue): ViewSt
     return size ? sizeStyleMap[size] : undefined;
 }
 
-function getComposedButtonSizeStyle(styles: ThemeStyles, size: ButtonSizeValue): StyleProp<ViewStyle> {
-    const sizeStyleMap: Record<ButtonSizeValue, StyleProp<ViewStyle>> = {
-        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: [styles.buttonExtraSmall, {paddingHorizontal: styles.buttonExtraSmall.paddingHorizontal - 4}],
-        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: [styles.buttonSmall, {paddingHorizontal: styles.buttonSmall.paddingHorizontal - 4}],
-        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: [styles.buttonMedium, {paddingHorizontal: styles.buttonMedium.paddingHorizontal - 4}],
-        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: [styles.buttonLarge, {paddingHorizontal: styles.buttonLarge.paddingHorizontal - 4}],
-    };
-    return sizeStyleMap[size];
-}
-
 function getButtonPaddingStyle(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
     if (!size) {
         return hasIcon && !hasText ? {...styles.buttonMedium, ...styles.ph0} : undefined;
@@ -1454,7 +1444,6 @@ const staticStyleUtils = {
     getIconWidthAndHeightStyle,
     getButtonStyleWithIcon,
     getButtonSizeStyle,
-    getComposedButtonSizeStyle,
     getButtonPaddingStyle,
     getButtonVariantStyles,
     getCharacterWidth,
