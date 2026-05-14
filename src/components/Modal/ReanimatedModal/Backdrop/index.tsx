@@ -28,16 +28,6 @@ function Backdrop({
         .withCallback(onAnimationComplete);
     const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming).reduceMotion(ReduceMotion.Never).withCallback(onAnimationComplete);
 
-    const BackdropOverlay = (
-        <Animated.View
-            entering={Entering}
-            exiting={Exiting}
-            style={[styles.modalBackdrop, {opacity: backdropOpacity}, style]}
-        >
-            {!!customBackdrop && customBackdrop}
-        </Animated.View>
-    );
-
     if (!customBackdrop) {
         return (
             <PressableWithoutFeedback
@@ -46,12 +36,24 @@ function Backdrop({
                 onPressIn={onBackdropPress}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
-                {BackdropOverlay}
+                <Animated.View
+                    entering={Entering}
+                    exiting={Exiting}
+                    style={[styles.modalBackdrop, {opacity: backdropOpacity}, style]}
+                />
             </PressableWithoutFeedback>
         );
     }
 
-    return BackdropOverlay;
+    return (
+        <Animated.View
+            entering={Entering}
+            exiting={Exiting}
+            style={[styles.modalBackdrop, {opacity: backdropOpacity}, style]}
+        >
+            {customBackdrop}
+        </Animated.View>
+    );
 }
 
 export default Backdrop;

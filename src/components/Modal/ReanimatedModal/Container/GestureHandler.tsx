@@ -1,5 +1,5 @@
 import type {PropsWithChildren} from 'react';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {GestureStateChangeEvent, GestureType, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue} from 'react-native-reanimated';
@@ -52,18 +52,14 @@ function hasSwipeEnded(
 function GestureHandler({swipeDirection, onSwipeComplete, swipeThreshold = 100, children}: PropsWithChildren<GestureHandlerProps>) {
     const initialTranslationX = useSharedValue(0);
     const initialTranslationY = useSharedValue(0);
-    const panGesture: GestureType = useMemo(
-        () =>
-            Gesture.Pan()
-                .onStart((e) => {
-                    initialTranslationX.set(e.translationX);
-                    initialTranslationY.set(e.translationY);
-                })
-                .onEnd((e) => {
-                    hasSwipeEnded(e, {x: initialTranslationX.get(), y: initialTranslationY.get()}, swipeThreshold, swipeDirection, onSwipeComplete);
-                }),
-        [initialTranslationX, initialTranslationY, onSwipeComplete, swipeDirection, swipeThreshold],
-    );
+    const panGesture: GestureType = Gesture.Pan()
+        .onStart((e) => {
+            initialTranslationX.set(e.translationX);
+            initialTranslationY.set(e.translationY);
+        })
+        .onEnd((e) => {
+            hasSwipeEnded(e, {x: initialTranslationX.get(), y: initialTranslationY.get()}, swipeThreshold, swipeDirection, onSwipeComplete);
+        });
 
     if (!swipeDirection || !swipeDirection?.length || !onSwipeComplete) {
         return children;

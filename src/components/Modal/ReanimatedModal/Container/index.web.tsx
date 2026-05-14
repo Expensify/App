@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
@@ -47,21 +47,17 @@ function Container({
     }, [animationInTiming, onOpenCallBack, onAnimationComplete, initProgress, isInitiated]);
 
     // instead of an entering transition since keyframe animations break keyboard on mWeb Chrome (#62799)
-    const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [initProgress]);
+    const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [animationIn, initProgress]);
 
-    const Exiting = useMemo(
-        () =>
-            new Keyframe(getModalOutAnimation(animationOut))
-                .duration(animationOutTiming)
-                .withCallback(() => {
-                    onCloseCallBack();
-                    onAnimationComplete();
-                })
-                // on web the callbacks are not called when animations are disabled with the reduced motion setting on
-                // we enable the animations to make sure they are called
-                .reduceMotion(ReduceMotion.Never),
-        [animationOutTiming, animationOut, onCloseCallBack, onAnimationComplete],
-    );
+    const Exiting = new Keyframe(getModalOutAnimation(animationOut))
+        .duration(animationOutTiming)
+        .withCallback(() => {
+            onCloseCallBack();
+            onAnimationComplete();
+        })
+        // on web the callbacks are not called when animations are disabled with the reduced motion setting on
+        // we enable the animations to make sure they are called
+        .reduceMotion(ReduceMotion.Never);
 
     return (
         <Animated.View

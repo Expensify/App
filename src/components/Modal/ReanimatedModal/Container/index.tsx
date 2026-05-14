@@ -1,8 +1,7 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Animated, {Keyframe} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import useAnimationTransition from '@hooks/useAnimationTransition';
@@ -23,31 +22,23 @@ function Container({
     swipeDirection,
     swipeThreshold = 100,
     ...props
-}: Partial<ReanimatedModalProps> & ContainerProps) {
+}: ContainerProps) {
     const styles = useThemeStyles();
     const {onAnimationComplete} = useAnimationTransition();
 
-    const Entering = useMemo(() => {
-        const AnimationIn = new Keyframe(getModalInAnimation(animationIn));
+    const Entering = new Keyframe(getModalInAnimation(animationIn)).duration(animationInTiming).withCallback(() => {
+        'worklet';
 
-        return AnimationIn.duration(animationInTiming).withCallback(() => {
-            'worklet';
+        scheduleOnRN(onOpenCallBack);
+        scheduleOnRN(onAnimationComplete);
+    });
 
-            scheduleOnRN(onOpenCallBack);
-            scheduleOnRN(onAnimationComplete);
-        });
-    }, [animationIn, animationInTiming, onOpenCallBack, onAnimationComplete]);
+    const Exiting = new Keyframe(getModalOutAnimation(animationOut)).duration(animationOutTiming).withCallback(() => {
+        'worklet';
 
-    const Exiting = useMemo(() => {
-        const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
-
-        return AnimationOut.duration(animationOutTiming).withCallback(() => {
-            'worklet';
-
-            scheduleOnRN(onCloseCallBack);
-            scheduleOnRN(onAnimationComplete);
-        });
-    }, [animationOutTiming, onCloseCallBack, animationOut, onAnimationComplete]);
+        scheduleOnRN(onCloseCallBack);
+        scheduleOnRN(onAnimationComplete);
+    });
 
     return (
         <View

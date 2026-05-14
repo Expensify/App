@@ -146,7 +146,6 @@ function ReanimatedModal({
             pointerEvents="box-none"
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
-            animationInDelay={animationInDelay}
             onOpenCallBack={onOpenCallBack}
             onCloseCallBack={onCloseCallBack}
             animationIn={animationIn}
@@ -168,7 +167,6 @@ function ReanimatedModal({
             onBackdropPress={onBackdropPress}
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
-            animationInDelay={animationInDelay}
             backdropOpacity={backdropOpacity}
         />
     );
