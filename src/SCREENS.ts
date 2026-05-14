@@ -889,7 +889,7 @@ const SCREENS = {
 
     EDIT_REQUEST: {
         CURRENCY: 'EditRequest_Currency',
-        REPORT_FIELD: 'EditRequest_ReportField',
+        DYNAMIC_REPORT_FIELD: 'Dynamic_EditRequest_ReportField',
     },
 
     NEW_CHAT: {

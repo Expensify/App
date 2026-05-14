@@ -832,15 +832,16 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                     shouldCheckActionAllowedOnPress={false}
                     description={translate('task.title')}
                     onPress={
-                        shouldShowEditableTitleField
+                        shouldShowEditableTitleField && report.policyID
                             ? () => {
-                                  let policyID = report.policyID;
-
+                                  const policyID = report.policyID;
                                   if (!policyID) {
-                                      policyID = '';
+                                      return;
                                   }
 
-                                  Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report.reportID, policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID, backTo));
+                                  console.log('****** 4 ******', 4);
+
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
                               }
                             : undefined
                     }
