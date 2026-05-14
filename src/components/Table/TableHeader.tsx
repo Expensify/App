@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ViewProps} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -65,7 +66,7 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
 
     if (selectionEnabled) {
-        gridTemplateColumns.unshift('64px');
+        gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
     return (
@@ -100,15 +101,28 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 </Text>
             )}
 
-            {!shouldUseNarrowTableLayout &&
-                columns.map((column) => {
-                    return (
-                        <TableHeaderColumn
-                            column={column}
-                            key={column.key}
-                        />
-                    );
-                })}
+            {!shouldUseNarrowTableLayout && (
+                <>
+                    {selectionEnabled && (
+                        <View style={styles.flex1}>
+                            <Checkbox
+                                accessibilityLabel="TODO"
+                                isChecked={false}
+                                onPress={() => {}}
+                            />
+                        </View>
+                    )}
+
+                    {columns.map((column) => {
+                        return (
+                            <TableHeaderColumn
+                                column={column}
+                                key={column.key}
+                            />
+                        );
+                    })}
+                </>
+            )}
         </View>
     );
 }

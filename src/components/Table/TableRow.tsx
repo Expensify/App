@@ -63,7 +63,7 @@ export default function TableRow({
     const gridTemplateColumns = columns.map((column) => (column.width ? `${column.width}px` : '1fr'));
 
     if (selectionEnabled) {
-        gridTemplateColumns.unshift('64px');
+        gridTemplateColumns.unshift(`${variables.tableCheckboxColumnWidth}px`);
     }
 
     const tableRowPressableStyles = [

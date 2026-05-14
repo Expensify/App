@@ -131,6 +131,7 @@ export default {
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,
     tableSkeletonHeight: 32,
+    tableCheckboxColumnWidth: 20,
     sectionMenuItemHeight: 52,
     sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
