@@ -33,7 +33,7 @@ type ReanimatedModalProps = ViewProps &
     GestureProps &
     GestureHandlerProps & {
         /** Content inside the modal */
-        children: ReactNode;
+        children?: ReactNode;
 
         /** Style applied to the modal container */
         style?: StyleProp<ViewStyle>;
