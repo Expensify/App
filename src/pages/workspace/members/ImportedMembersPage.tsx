@@ -213,7 +213,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         } else {
             setIsImporting(true);
             const importFinalModal = await importPolicyMembers(policy, allMembers);
-            await showImportSpreadsheetConfirmModal(importFinalModal, {onModalHide: navigateBackToMembers});
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {onModalHide: navigateBackToMembers});
+            if (!didShowImportFinalModal) {
+                return;
+            }
             closeImportPageAndModal();
         }
     }, [

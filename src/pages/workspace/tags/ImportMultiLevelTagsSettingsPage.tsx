@@ -64,7 +64,10 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const importTags = useCallback(async () => {
         setIsImportingTags(true);
         const importFinalModal = await importMultiLevelTags(policyID, spreadsheet);
-        await showImportSpreadsheetConfirmModal(importFinalModal);
+        const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+        if (!didShowImportFinalModal) {
+            return;
+        }
         closeImportPageAndModal();
     }, [spreadsheet, policyID, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);
 

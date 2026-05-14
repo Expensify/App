@@ -121,7 +121,10 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
         if (tags) {
             setIsImportingTags(true);
             const importFinalModal = await importPolicyTags(policyID, tags);
-            await showImportSpreadsheetConfirmModal(importFinalModal);
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+            if (!didShowImportFinalModal) {
+                return;
+            }
             closeImportPageAndModal();
         }
     }, [validate, spreadsheet, containsHeader, policyTagLists, policyID, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);

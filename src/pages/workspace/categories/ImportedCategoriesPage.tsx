@@ -166,7 +166,10 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         if (categories) {
             setIsImportingCategories(true);
             const importFinalModal = await importPolicyCategories(policyID, categories, policyCategories);
-            await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
+            if (!didShowImportFinalModal) {
+                return;
+            }
             closeImportPageAndModal();
         }
     }, [validate, spreadsheet, containsHeader, policyID, policyCategories, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);

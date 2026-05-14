@@ -145,7 +145,10 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             workspaceCardFeeds,
             existingInstanceID: addNewCard?.data?.existingInstanceID,
         });
-        await showImportSpreadsheetConfirmModal(importFinalModal);
+        const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+        if (!didShowImportFinalModal) {
+            return;
+        }
         closeImportPageAndModal();
     };
 

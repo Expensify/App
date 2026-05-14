@@ -139,7 +139,10 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
         if (perDiemUnits) {
             setIsImportingPerDiemRates(true);
             const importFinalModal = await importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
-            await showImportSpreadsheetConfirmModal(importFinalModal);
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
+            if (!didShowImportFinalModal) {
+                return;
+            }
             closeImportPageAndModal();
         }
     };

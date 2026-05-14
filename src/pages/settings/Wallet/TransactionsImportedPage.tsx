@@ -117,7 +117,10 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         const cardIDNumber = existingCardID ? Number(existingCardID) : undefined;
         const previouslySavedLayout = cardIDNumber && savedColumnLayouts ? savedColumnLayouts[String(cardIDNumber)] : undefined;
         const importFinalModal = await importTransactionsFromCSV(spreadsheet, cardIDNumber, previouslySavedLayout);
-        await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
+        const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
+        if (!didShowImportFinalModal) {
+            return;
+        }
         closeImportPageAndModal();
     }, [validate, spreadsheet, existingCardID, savedColumnLayouts, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);
 

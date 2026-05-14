@@ -2,6 +2,7 @@ import {useCallback} from 'react';
 import type {TranslationParameters} from '@src/languages/types';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import useConfirmModal from './useConfirmModal';
+import useIsFocusedRef from './useIsFocusedRef';
 import useLocalize from './useLocalize';
 
 type ShowImportSpreadsheetConfirmModalOptions = {
@@ -15,15 +16,20 @@ type ShowImportSpreadsheetConfirmModalOptions = {
 function useImportSpreadsheetConfirmModal() {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
+    const isFocusedRef = useIsFocusedRef();
 
     return useCallback(
-        (importFinalModal: ImportFinalModal, {onModalHide, shouldHandleNavigationBack = true}: ShowImportSpreadsheetConfirmModalOptions = {}) => {
+        async (importFinalModal: ImportFinalModal, {onModalHide, shouldHandleNavigationBack = true}: ShowImportSpreadsheetConfirmModalOptions = {}) => {
+            if (!isFocusedRef.current) {
+                return false;
+            }
+
             const titleText = translate(importFinalModal.titleKey);
             const promptText = translate(importFinalModal.promptKey, importFinalModal.promptKeyParams as TranslationParameters<typeof importFinalModal.promptKey>[0]);
             const pendingText = importFinalModal.pendingMessageKey ? translate(importFinalModal.pendingMessageKey) : '';
             const fullPromptText = pendingText ? `${promptText} ${pendingText}` : promptText;
 
-            return showConfirmModal({
+            await showConfirmModal({
                 id: 'import-spreadsheet-confirm-modal',
                 title: titleText,
                 prompt: fullPromptText,
@@ -32,8 +38,10 @@ function useImportSpreadsheetConfirmModal() {
                 shouldHandleNavigationBack,
                 onModalHide,
             });
+
+            return true;
         },
-        [showConfirmModal, translate],
+        [isFocusedRef, showConfirmModal, translate],
     );
 }
 
