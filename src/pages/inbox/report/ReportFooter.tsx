@@ -58,7 +58,9 @@ function ReportFooter() {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
-    const [shouldShowComposeInput = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    // Default should be `true` so we don't accidentally hide the composer in narrow layouts
+    // (e.g. report threads opened in a side panel) before the Onyx key is set.
+    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [isBlockedFromChat] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CHAT, {
         selector: isBlockedFromChatSelector,
     });
