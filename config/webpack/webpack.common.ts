@@ -26,6 +26,8 @@ import ModuleInitTimingPlugin from './ModuleInitTimingPlugin.ts';
 import type Environment from './types.ts';
 
 const require = createRequire(import.meta.url);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const ReactCompilerConfig = require('../../config/babel/reactCompilerConfig');
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
@@ -290,10 +292,17 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         fullySpecified: false,
                     },
                 },
-                // Transpiles and lints all the JS
+                // Transpiles all JS/TS/JSX/TSX through a two-pass pipeline:
+                //   Pass 1 (babel-loader, runs first): only the three plugins that have no OXC equivalent —
+                //     react-compiler, worklets, and fullstory annotation. Babel also parses JSX/TS so
+                //     these plugins see the original source. configFile:false prevents babel.config.js
+                //     from being loaded; the webpack export there is now dead for webpack builds.
+                //   Pass 2 (oxc-loader, runs second): bulk transforms — TypeScript stripping, JSX
+                //     transform, class-properties, env target downleveling, etc.
+                //
+                // Webpack use[] runs right-to-left, so babel-loader executes before oxc-loader.
                 {
                     test: /\.(js|ts)x?$/,
-                    loader: 'babel-loader',
 
                     /**
                      * Exclude node_modules except any packages we need to convert for rendering HTML because they import
@@ -304,6 +313,41 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                      * use JSX/JS that needs to be transformed by babel.
                      */
                     exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|\\.native\\.(js|jsx|ts|tsx)$`)],
+                    use: [
+                        // Pass 2: bulk transforms handled natively by OXC (runs after babel-loader output)
+                        {
+                            loader: 'oxc-loader',
+                            options: {
+                                // Match the node 20 target used by the original @babel/preset-env config
+                                target: 'node20',
+                                // Babel's first pass already converted JSX to React.createElement calls,
+                                // so there is no JSX syntax left for oxc-loader to transform.
+                                autoDetectJsx: false,
+                            },
+                        },
+                        // Pass 1: only the plugins that have no OXC equivalent (runs on raw source first)
+                        {
+                            loader: 'babel-loader',
+                            options: {
+                                babelrc: false,
+                                // Prevent babel.config.js from being loaded; the webpack export there is
+                                // now kept only for tooling compatibility (e.g. babel-jest / IDE plugins).
+                                configFile: false,
+                                presets: [
+                                    // preset-react so Babel can parse JSX for react-compiler and fullstory
+                                    '@babel/preset-react',
+                                    // Strip TypeScript types so react-compiler sees plain JS
+                                    '@babel/preset-typescript',
+                                ],
+                                plugins: [
+                                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                                    ['babel-plugin-react-compiler', ReactCompilerConfig],
+                                    'react-native-worklets/plugin',
+                                    ['@fullstory/babel-plugin-annotate-react', {native: true}],
+                                ],
+                            },
+                        },
+                    ],
                 },
                 // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
                 // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
