@@ -579,29 +579,27 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                 brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             />
                         )}
-                        {shouldShowBankAccount &&
-                            policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO &&
-                            policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && (
-                                <OfflineWithFeedback
-                                    pendingAction={policy?.pendingFields?.reimburser}
-                                    shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
-                                    errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                    onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
-                                    errorRowStyles={[styles.ml7]}
-                                >
-                                    <MenuItemWithTopDescription
-                                        title={displayNameForAuthorizedPayer ?? ''}
-                                        titleStyle={styles.textNormalThemeText}
-                                        descriptionTextStyle={styles.textLabelSupportingNormal}
-                                        description={translate('workflowsPayerPage.payer')}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
-                                        shouldShowRightIcon
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
-                                        brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    />
-                                </OfflineWithFeedback>
-                            )}
+                        {shouldShowBankAccount && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && (
+                            <OfflineWithFeedback
+                                pendingAction={policy?.pendingFields?.reimburser}
+                                shouldDisableOpacity={isOffline && !!policy?.pendingFields?.reimbursementChoice && !!policy?.pendingFields?.reimburser}
+                                errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                onClose={() => clearPolicyErrorField(policy?.id, CONST.POLICY.COLLECTION_KEYS.REIMBURSER)}
+                                errorRowStyles={[styles.ml7]}
+                            >
+                                <MenuItemWithTopDescription
+                                    title={displayNameForAuthorizedPayer ?? ''}
+                                    titleStyle={styles.textNormalThemeText}
+                                    descriptionTextStyle={styles.textLabelSupportingNormal}
+                                    description={translate('workflowsPayerPage.payer')}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_PAYER.getRoute(route.params.policyID))}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.AUTHORIZED_PAYER}
+                                    shouldShowRightIcon
+                                    wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3, styles.mbn3]}
+                                    brickRoadIndicator={hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                />
+                            </OfflineWithFeedback>
+                        )}
                     </>
                 ),
                 isEndOptionRow: true,
