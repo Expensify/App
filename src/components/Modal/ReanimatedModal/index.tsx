@@ -74,7 +74,7 @@ function ReanimatedModal({
     const backdropStyle: ViewStyle = {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
     const modalStyle = {zIndex: StyleSheet.flatten(style)?.zIndex};
 
-    const onBackButtonPressHandler = () => {
+    const tryClose = () => {
         if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
             return false;
         }
@@ -85,10 +85,10 @@ function ReanimatedModal({
         return false;
     };
 
-    const onBackButtonPressEffectEvent = useEffectEvent(() => onBackButtonPressHandler());
+    const tryCloseEffectEvent = useEffectEvent(() => tryClose());
 
     const handleEscape = useEffectEvent((e: KeyboardEvent) => {
-        if (e.key !== 'Escape' || onBackButtonPressHandler() !== true) {
+        if (e.key !== 'Escape' || tryClose() !== true) {
             return;
         }
         e.stopImmediatePropagation();
@@ -114,7 +114,7 @@ function ReanimatedModal({
         if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
-            backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressEffectEvent);
+            backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', tryCloseEffectEvent);
         }
 
         return () => {
@@ -194,7 +194,7 @@ function ReanimatedModal({
                 transparent
                 animationType="none"
                 visible={modalVisibility}
-                onRequestClose={onBackButtonPressHandler}
+                onRequestClose={tryClose}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
                 onDismiss={() => {
