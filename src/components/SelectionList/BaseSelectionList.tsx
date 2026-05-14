@@ -201,10 +201,6 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const debouncedScrollToIndex = useDebounce(scrollToIndex, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME, {leading: true, trailing: true});
 
-    const onArrowUpDownCallback = useCallback(() => {
-        setShouldDisableHoverStyle(true);
-    }, [setShouldDisableHoverStyle]);
-
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
         maxIndex: data.length - 1,
@@ -223,7 +219,10 @@ function BaseSelectionList<TItem extends ListItem>({
         },
         setHasKeyBeenPressed,
         isFocused,
-        onArrowUpDownCallback,
+        onArrowUpDownCallback: () => {
+            setShouldDisableHoverStyle(true);
+            listRef.current?.announceProgrammaticScroll();
+        },
     });
 
     // extraData helps FlashList detect when data changes significantly (e.g., during filtering)

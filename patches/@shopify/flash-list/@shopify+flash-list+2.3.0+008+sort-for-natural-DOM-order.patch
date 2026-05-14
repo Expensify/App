@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/flash-list/dist/FlashListRef.d.ts b/node_modules/@shopify/flash-list/dist/FlashListRef.d.ts
-index 08b83f3..b58e59a 100644
+index 08b83f3..05a64b1 100644
 --- a/node_modules/@shopify/flash-list/dist/FlashListRef.d.ts
 +++ b/node_modules/@shopify/flash-list/dist/FlashListRef.d.ts
 @@ -167,6 +167,30 @@ export interface FlashListRef<T> {
@@ -23,13 +23,13 @@ index 08b83f3..b58e59a 100644
 +     * scroll's momentum ends. Safe to call multiple times.
 +     *
 +     * @example
-+     * listRef.current?.queueProgrammaticScroll();
++     * listRef.current?.announceProgrammaticScroll();
 +     * itemDomNode.focus();
 +     * setTimeout(() => {
 +     *   listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
 +     * }, 0);
 +     */
-+    queueProgrammaticScroll: () => void;
++    announceProgrammaticScroll: () => void;
      /**
       * Scrolls to a specific item in the list.
       *
@@ -364,7 +364,7 @@ index 62d55cd..b715484 100644
  //# sourceMappingURL=useRecyclerViewController.d.ts.map
 \ No newline at end of file
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 51b6f8c..c016d21 100644
+index 51b6f8c..a081498 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 @@ -25,6 +25,21 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
@@ -375,7 +375,7 @@ index 51b6f8c..c016d21 100644
 +    // flight. Cleared exactly once on `isMomentumEnd` via
 +    // `notifyProgrammaticScrollSettled`.
 +    const isProgrammaticScrollActiveRef = useRef(false);
-+    // Set by `queueProgrammaticScroll()` to announce an imminent scroll.
++    // Set by `announceProgrammaticScroll()` to announce an imminent scroll.
 +    // Handed off to `isProgrammaticScrollActiveRef` at `scrollToIndex` entry.
 +    const isProgrammaticScrollQueuedRef = useRef(false);
 +    // Source-agnostic "viewport in motion" flag.
@@ -399,8 +399,8 @@ index 51b6f8c..c016d21 100644
 +    const runAfterProgrammaticScroll = useCallback((cb) => {
 +        pendingAfterScrollRef.current = cb;
 +    }, []);
-+    // Public API; see `FlashListRef#queueProgrammaticScroll`.
-+    const queueProgrammaticScroll = useCallback(() => {
++    // Public API; see `FlashListRef#announceProgrammaticScroll`.
++    const announceProgrammaticScroll = useCallback(() => {
 +        isProgrammaticScrollQueuedRef.current = true;
 +    }, []);
 +    // Invoked from `RecyclerView.onScrollHandler` on `isMomentumEnd` (~100ms
@@ -429,9 +429,9 @@ index 51b6f8c..c016d21 100644
              },
 +            /**
 +             * Announces an imminent programmatic scroll. See
-+             * `FlashListRef#queueProgrammaticScroll` for full semantics.
++             * `FlashListRef#announceProgrammaticScroll` for full semantics.
 +             */
-+            queueProgrammaticScroll,
++            announceProgrammaticScroll,
              /**
               * Scrolls to a specific index in the list.
               * Supports viewPosition and viewOffset for precise positioning.
@@ -451,7 +451,7 @@ index 51b6f8c..c016d21 100644
          setTimeout,
          isUnmounted,
          updateScrollOffsetWithCallback,
-+        queueProgrammaticScroll,
++        announceProgrammaticScroll,
      ]);
      const applyInitialScrollIndex = useCallback(() => {
          var _a, _b, _c;
@@ -470,3 +470,39 @@ index 51b6f8c..c016d21 100644
  }
  //# sourceMappingURL=useRecyclerViewController.js.map
 \ No newline at end of file
+diff --git a/node_modules/@shopify/flash-list/src/FlashListRef.ts b/node_modules/@shopify/flash-list/src/FlashListRef.ts
+index 07bac2a..af9ee7d 100644
+--- a/node_modules/@shopify/flash-list/src/FlashListRef.ts
++++ b/node_modules/@shopify/flash-list/src/FlashListRef.ts
+@@ -181,6 +181,31 @@ export interface FlashListRef<T> {
+    */
+   scrollToIndex: (params: ScrollToIndexParams) => Promise<void>;
+ 
++  /**
++   * Announces an imminent programmatic scroll before `scrollToIndex` is
++   * actually called, so DOM-mutating side-effects gated on
++   * `isScrollingProgrammatically()` (notably the on-web sort applied by
++   * `ViewHolderCollection`) defer until the upcoming smooth scroll
++   * settles, rather than running synchronously and cancelling it.
++   *
++   * Useful when the focus assignment happens first and `scrollToIndex`
++   * follows a few ticks later — as long as the call is guaranteed to
++   * happen, queue it up front so the intervening `focusin` doesn't
++   * trigger an immediate sort that the smooth scroll would then cancel.
++   *
++   * Cleared automatically when the next `scrollToIndex` is invoked
++   * (handed off to the in-flight flag) and again when the resulting
++   * scroll's momentum ends. Safe to call multiple times.
++   *
++   * @example
++   * listRef.current?.announceProgrammaticScroll();
++   * itemDomNode.focus();
++   * setTimeout(() => {
++   *   listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
++   * }, 0);
++   */
++  announceProgrammaticScroll: () => void;
++
+   /**
+    * Scrolls to a specific item in the list.
+    *
