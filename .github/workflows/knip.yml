@@ -35,7 +35,7 @@ jobs:
         id: pr-ref
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Setup Node (PR)
+      - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
       - name: Run knip on PR
@@ -47,9 +47,6 @@ jobs:
         run: |
           git fetch origin main --no-tags --depth=1
           git checkout origin/main
-
-      - name: Setup Node (main)
-        uses: ./.github/actions/composite/setupNode
 
       - name: Run knip on main
         run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-main.json
