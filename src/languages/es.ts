@@ -1194,9 +1194,12 @@ const translations: TranslationDeepObject<typeof en> = {
         routePending: 'Ruta pendiente...',
         findExpense: 'Buscar gasto',
         deletedTransaction: (amount, merchant) => `eliminó un gasto (${amount} para ${merchant})`,
-        movedFromReport: (reportName) => `movió un gasto${reportName ? ` desde ${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl, reportName) => `movió este gasto${reportName ? ` a <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl, reportName) => `movió este gasto${reportName ? ` desde <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedFromReport: (reportName) => `movió un gasto desde ${reportName}`,
+        movedFromReportNoName: 'movió un gasto',
+        movedTransactionTo: (reportUrl, reportName) => `movió este gasto a <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionToAnotherReport: 'movió este gasto a otro informe',
+        movedTransactionFrom: (reportUrl, reportName) => `movió este gasto desde <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionFromAnotherReport: 'movió este gasto desde otro informe',
         unreportedTransaction: (reportUrl) => `movió este gasto a tu <a href="${reportUrl}">espacio personal</a>`,
         movedAction: (shouldHideMovedReportUrl, movedReportUrl, newParentReportUrl, toPolicyName) => {
             if (shouldHideMovedReportUrl) {

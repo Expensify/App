@@ -224,7 +224,6 @@
 "../../src/hooks/useNativeCamera.ts"	"react-hooks/refs"	1
 "../../src/hooks/useNewTransactions.ts"	"react-hooks/refs"	2
 "../../src/hooks/useOutstandingBalanceGuard.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
-"../../src/hooks/usePaginatedReportActions.ts"	"react-hooks/refs"	1
 "../../src/hooks/usePaymentOptions.ts"	"react-hooks/refs"	1
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
 "../../src/hooks/useProactiveAppReview.ts"	"react-hooks/purity"	1

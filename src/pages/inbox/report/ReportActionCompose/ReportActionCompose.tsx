@@ -20,7 +20,6 @@ import ComposerInput from './ComposerInput';
 import ComposerLocalTime from './ComposerLocalTime';
 import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 
 type ReportActionComposeProps = {
     reportID: string;
@@ -84,4 +83,4 @@ Composer.ExceededLength = ComposerExceededLength;
 Composer.ImportedState = ComposerImportedState;
 
 export default Composer;
-export type {SuggestionsRef, ComposerRef, ReportActionComposeProps};
+export type {SuggestionsRef, ReportActionComposeProps};

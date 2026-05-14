@@ -225,4 +225,3 @@ function TransactionItemRow({
 }
 
 export default TransactionItemRow;
-export type {TransactionWithOptionalSearchFields, TransactionItemRowProps};
