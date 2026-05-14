@@ -147,6 +147,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
         });
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
         if (!didShowImportFinalModal) {
+            setIsImportingTransactions(false);
             return;
         }
         closeImportPageAndModal();

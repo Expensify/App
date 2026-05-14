@@ -105,6 +105,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         const importFinalModal = await importPolicyMembers(policy, membersWithRole);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
+            setIsImporting(false);
             return;
         }
         closeImportPageAndModal();

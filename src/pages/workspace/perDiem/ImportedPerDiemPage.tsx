@@ -141,6 +141,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
             const importFinalModal = await importPerDiemRates(policyID, perDiemCustomUnit.customUnitID, perDiemUnits, rowsLength);
             const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
             if (!didShowImportFinalModal) {
+                setIsImportingPerDiemRates(false);
                 return;
             }
             closeImportPageAndModal();

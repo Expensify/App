@@ -119,6 +119,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
         const importFinalModal = await importTransactionsFromCSV(spreadsheet, cardIDNumber, previouslySavedLayout);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
+            setIsImporting(false);
             return;
         }
         closeImportPageAndModal();

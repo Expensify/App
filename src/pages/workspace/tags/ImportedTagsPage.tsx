@@ -123,6 +123,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
             const importFinalModal = await importPolicyTags(policyID, tags);
             const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal);
             if (!didShowImportFinalModal) {
+                setIsImportingTags(false);
                 return;
             }
             closeImportPageAndModal();
