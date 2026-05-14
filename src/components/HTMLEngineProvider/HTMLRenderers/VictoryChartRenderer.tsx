@@ -164,7 +164,6 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                         innerPadding={BAR_INNER_PADDING}
                         roundedCorners={parseCornerRadius(tnode.attributes.cornerradius)}
                         barWidth={parseAttribute(tnode.attributes.barwidth)}
-                        labels={parseAttribute(tnode.attributes.labels)}
                     >
                         {tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
                     </Bar>
