@@ -281,7 +281,6 @@ function ScreenWrapper({
                 includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
                 isFocused={isFocused}
                 shouldHideFromAccessibility={shouldHideFromAccessibility}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restContainerProps}
             >
                 {isDevelopment && <CustomDevMenu />}
@@ -306,4 +305,4 @@ function ScreenWrapper({
 }
 
 export default withNavigationFallback(ScreenWrapper);
-export type {ScreenWrapperProps, ScreenWrapperChildrenProps};
+export type {ScreenWrapperChildrenProps};
