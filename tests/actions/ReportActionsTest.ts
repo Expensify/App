@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {afterEach, beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -48,9 +49,10 @@ describe('emoji reactions write hex', () => {
             Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
                 callback: (val, key) => {
-                    if (key) {
-                        reactions[key] = val;
+                    if (!key) {
+                        return;
                     }
+                    reactions[key] = val;
                 },
             });
 
@@ -79,9 +81,10 @@ describe('emoji reactions write hex', () => {
             Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
                 callback: (val, key) => {
-                    if (key) {
-                        reactions[key] = val;
+                    if (!key) {
+                        return;
                     }
+                    reactions[key] = val;
                 },
             });
 
@@ -105,7 +108,7 @@ describe('emoji reactions write hex', () => {
 
             const emojiEntry = reactionEntry?.[THUMBS_UP_EMOJI.hexcode];
             expect(emojiEntry).toBeDefined();
-            expect(emojiEntry?.users?.[CURRENT_USER_ACCOUNT_ID]).toBeNull();
+            expect(emojiEntry?.users?.[CURRENT_USER_ACCOUNT_ID]).toBeUndefined();
         });
     });
 });

@@ -982,10 +982,10 @@ describe('actions/Report', () => {
 
                 // Expect the reaction to have the emoji on it
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                expect(reportActionReaction).toHaveProperty(EMOJI.name);
+                expect(reportActionReaction).toHaveProperty(EMOJI.hexcode);
 
                 // Expect the emoji to have the user accountID
-                const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
+                const reportActionReactionEmoji = reportActionReaction?.[EMOJI.hexcode];
                 expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
                 if (reportAction) {
@@ -998,7 +998,7 @@ describe('actions/Report', () => {
                 // Expect the reaction to have null where the users reaction used to be
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
+                expect(reportActionReaction?.[EMOJI.hexcode].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             })
             .then(() => {
                 reportAction = Object.values(reportActions).at(0);
@@ -1025,10 +1025,10 @@ describe('actions/Report', () => {
 
                         // Expect the reaction to have the emoji on it
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                        expect(reportActionReaction).toHaveProperty(EMOJI.name);
+                        expect(reportActionReaction).toHaveProperty(EMOJI.hexcode);
 
                         // Expect the emoji to have the user accountID
-                        const reportActionReactionEmoji = reportActionReaction?.[EMOJI.name];
+                        const reportActionReactionEmoji = reportActionReaction?.[EMOJI.hexcode];
                         expect(reportActionReactionEmoji?.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
                         // Expect two different skin tone reactions
@@ -1046,7 +1046,7 @@ describe('actions/Report', () => {
                         // Expect the reaction to have null where the users reaction used to be
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                        expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
+                        expect(reportActionReaction?.[EMOJI.hexcode].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
                     });
             });
     });
@@ -1127,7 +1127,7 @@ describe('actions/Report', () => {
                 // Expect the reaction to have null where the users reaction used to be
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`);
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
-                expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
+                expect(reportActionReaction?.[EMOJI.hexcode].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             });
     });
 
