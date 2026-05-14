@@ -234,7 +234,6 @@
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/preserve-manual-memoization"	2
 "../../src/hooks/useSearchBulkActions.ts"	"react-hooks/refs"	1
 "../../src/hooks/useSearchHighlightAndScroll.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/hooks/useSearchResults.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useSearchSelector.native.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/hooks/useSelectionModeReportActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/hooks/useSidebarOrderedReports.tsx"	"react-hooks/purity"	1
@@ -478,11 +477,10 @@
 "../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
 "../../src/pages/ReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/ReportParticipantsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/ReportParticipantsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/RoomMemberDetailsPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/RoomMembersPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/RoomMembersPage.tsx"	"react-hooks/preserve-manual-memoization"	1
-"../../src/pages/RoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	3
+"../../src/pages/RoomMembersPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/ScheduleCall/ScheduleCallPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchMoneyRequestReportPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1

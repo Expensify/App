@@ -786,7 +786,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <GenericEmptyStateComponent
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...genericIllustration}
                             title={translate('workspace.categories.emptyCategories.title')}
                             subtitleText={subtitleText}

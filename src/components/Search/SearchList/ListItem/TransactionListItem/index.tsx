@@ -49,7 +49,7 @@ function TransactionListItem<TItem extends ListItem>({
     isFirstItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -169,13 +169,12 @@ function TransactionListItem<TItem extends ListItem>({
         transactionPreviewData,
         exportedReportActions,
         nonPersonalAndWorkspaceCards,
-        policyForMovingExpenses,
+        isAttendeesEnabledForMovingPolicy,
     };
 
     if (!isLargeScreenWidth) {
         return (
             <TransactionListItemNarrow
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...sharedProps}
                 isLastItem={isLastItem}
                 isFirstItem={isFirstItem}
@@ -185,7 +184,6 @@ function TransactionListItem<TItem extends ListItem>({
 
     return (
         <TransactionListItemWide
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...sharedProps}
             isLastItem={isLastItem}
         />

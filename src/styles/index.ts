@@ -563,6 +563,11 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeXLarge,
         },
 
+        textXLargeThemeText: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+        },
+
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -5364,9 +5369,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 170,
         },
 
-        travelCCVIllustration: {
-            width: 240,
-            height: 100,
+        travelCVVDigitBox: {
+            width: variables.componentSizeLarge,
+            height: variables.componentSizeLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
         travelInvoicingIcon: {

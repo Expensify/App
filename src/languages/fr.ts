@@ -2482,6 +2482,7 @@ const translations: TranslationDeepObject<typeof en> = {
             revealDetails: 'Afficher les détails',
             revealCvv: 'Afficher le cryptogramme',
             copyCardNumber: 'Copier le numéro de carte',
+            copyCvv: 'Copier le CVV',
             updateAddress: 'Mettre à jour l’adresse',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Ajouté au portefeuille ${platform}`,
@@ -2748,6 +2749,9 @@ ${amount} pour ${merchant} - ${date}`,
         emptyAgents: {title: 'Aucun agent créé', subtitle: 'Arrêtez de faire les choses manuellement. Donnez plutôt des instructions à un agent et gagnez beaucoup de temps.'},
         error: {
             genericAdd: "Un problème est survenu lors de l'ajout de cet agent",
+            genericUpdate: 'Un problème est survenu lors de la mise à jour de cet agent',
+            updateName: 'Un problème est survenu lors de la mise à jour du nom de cet agent',
+            updatePrompt: 'Un problème est survenu lors de la mise à jour des instructions de cet agent',
         },
     },
     addAgentPage: {
@@ -2760,6 +2764,16 @@ ${amount} pour ${merchant} - ${date}`,
         defaultPrompt:
             'Rejeter les dépenses liées aux jeux d’argent, aux films ou à d’autres motifs manifestement non professionnels.\n\nRappeler à l’utilisateur d’inclure systématiquement une image du reçu où le pourboire est clairement visible.\n\nApprouver le rapport s’il est très similaire aux rapports précédents du même utilisateur.\n\nRejeter les rapports contenant plus de 500 $ de frais de déplacement.',
     },
+    editAgentPage: {
+        title: "Modifier l'agent",
+        agentName: "Nom de l'agent",
+        instructions: 'Rédiger des instructions personnalisées',
+        deleteAgent: "Supprimer l'agent",
+        deleteAgentTitle: "Supprimer l'agent ?",
+        deleteAgentMessage: 'Voulez-vous vraiment supprimer cet agent ? Cette action est irréversible.',
+    },
+    editAgentNamePage: {title: "Nom de l'agent"},
+    editAgentPromptPage: {title: 'Rédiger des instructions personnalisées', error: {emptyPrompt: 'Veuillez saisir les instructions pour votre agent.'}},
     expenseRulesPage: {
         title: 'Règles de dépenses',
         findRule: 'Rechercher une règle',
@@ -7764,7 +7778,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         bulkActions: {
             editMultiple: 'Modifier plusieurs',
             editMultipleTitle: 'Modifier plusieurs dépenses',
-            editMultipleDescription: 'Les modifications seront appliquées à toutes les dépenses sélectionnées et remplaceront toutes les valeurs précédemment définies.',
+            editMultipleDescription: 'Les modifications seront définies pour toutes les dépenses sélectionnées et remplaceront toutes les valeurs définies précédemment.',
             approve: 'Approuver',
             pay: 'Payer',
             delete: 'Supprimer',
@@ -9309,7 +9323,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             restrictDefaultLoginSelection: 'Restreindre la sélection de connexion par défaut',
             restrictDefaultLoginSelectionDescription:
                 'Empêche les membres de modifier leur e-mail de connexion en dehors du domaine de leur entreprise afin d’éviter les restrictions de politique.',
-
             expensifyCardPreferredWorkspaceDisabledMessage:
                 'Pour activer ce paramètre, veuillez d’abord activer un espace de travail préféré et configurer les cartes Expensify sur votre domaine.',
             findGroup: 'Trouver un groupe',
