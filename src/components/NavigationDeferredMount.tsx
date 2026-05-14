@@ -49,4 +49,3 @@ function NavigationDeferredMount({placeholder = null, children, waitForUpcomingT
 }
 
 export default NavigationDeferredMount;
-export type {NavigationDeferredMountProps};

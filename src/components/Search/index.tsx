@@ -1885,7 +1885,7 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {SearchProps, HoldMenuCallback};
+export type {HoldMenuCallback};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 

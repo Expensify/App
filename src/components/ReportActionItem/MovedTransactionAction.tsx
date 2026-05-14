@@ -24,24 +24,13 @@ type MovedTransactionActionProps = {
 function MovedTransactionAction({action, originalReport}: MovedTransactionActionProps) {
     const {translate} = useLocalize();
     const movedTransactionOriginalMessage = getOriginalMessage(action);
-    const toReportID = movedTransactionOriginalMessage?.toReportID;
     const fromReportID = movedTransactionOriginalMessage?.fromReportID;
 
-    const [toReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`);
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
-    const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
-
-    // Both referenced reports may be missing (e.g., expenses merged multiple times → previous fromReport deleted).
-    // Inbox filters this via shouldReportActionBeVisible; Search bypasses that filter, so this leaf-level guard is load-bearing there.
-    // Ref: https://github.com/Expensify/App/issues/70338
-    if (!toReport && !hasFromReport) {
-        return null;
-    }
 
     const message = getMovedTransactionMessage(translate, action, conciergeReportID);
 

@@ -156,5 +156,3 @@ function TagPicker({
 }
 
 export default TagPicker;
-
-export type {SelectedTagOption};

@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -24,18 +25,19 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyCategoryMaxAmount} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryFlagAmountsOverForm';
 
-type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER>;
+type DynamicCategoryFlagAmountsOverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER>;
 
-function CategoryFlagAmountsOverPage({
+function DynamicCategoryFlagAmountsOverPage({
     route: {
         params: {policyID, categoryName},
     },
-}: EditCategoryPageProps) {
+}: DynamicCategoryFlagAmountsOverPageProps) {
     const policy = usePolicy(policyID);
+    const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -68,19 +70,19 @@ function CategoryFlagAmountsOverPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID="CategoryFlagAmountsOverPage"
+                testID="DynamicCategoryFlagAmountsOverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.categoryRules.flagAmountsOver')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
+                    onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
                 />
                 <FormProvider
                     style={[styles.flexGrow1]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM}
                     onSubmit={({maxExpenseAmount}) => {
                         setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType, policyCategories);
-                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
+                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
                     }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
@@ -115,4 +117,4 @@ function CategoryFlagAmountsOverPage({
     );
 }
 
-export default CategoryFlagAmountsOverPage;
+export default DynamicCategoryFlagAmountsOverPage;

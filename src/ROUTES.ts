@@ -101,7 +101,7 @@ const DYNAMIC_ROUTES = {
     },
     EXPENSE_LIMIT_TYPE_SELECTOR: {
         path: 'expense-limit-type',
-        entryScreens: [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER],
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
@@ -329,6 +329,51 @@ const DYNAMIC_ROUTES = {
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_SETTINGS: {
+        path: 'category/:categoryName',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+        getRoute: (categoryName: string) => `category/${encodeURIComponent(categoryName)}` as const,
+    },
+    WORKSPACE_CATEGORY_EDIT: {
+        path: 'edit',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_PAYROLL_CODE: {
+        path: 'payroll-code',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_GL_CODE: {
+        path: 'gl-code',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_DEFAULT_TAX_RATE: {
+        path: 'tax-rate',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
+        path: 'flag-amounts',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_DESCRIPTION_HINT: {
+        path: 'description-hint',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
+        path: 'required-fields',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_APPROVER: {
+        path: 'approver',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
+        path: 'require-receipts-over',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: {
+        path: 'require-itemized-receipts-over',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
     },
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
@@ -2404,10 +2449,6 @@ const ROUTES = {
             return `workspaces/${policyID}/categories` as const;
         },
     },
-    WORKSPACE_CATEGORY_SETTINGS: {
-        route: 'workspaces/:policyID/category/:categoryName',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}` as const,
-    },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
         getRoute: (policyID?: string, featureName?: string, backTo?: string) =>
@@ -2425,46 +2466,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspaces/pay-and-downgrade` as const, backTo),
-    },
-    WORKSPACE_CATEGORY_EDIT: {
-        route: 'workspaces/:policyID/category/:categoryName/edit',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/edit` as const,
-    },
-    WORKSPACE_CATEGORY_PAYROLL_CODE: {
-        route: 'workspaces/:policyID/category/:categoryName/payroll-code',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/payroll-code` as const,
-    },
-    WORKSPACE_CATEGORY_GL_CODE: {
-        route: 'workspaces/:policyID/category/:categoryName/gl-code',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const,
-    },
-    WORKSPACE_CATEGORY_DEFAULT_TAX_RATE: {
-        route: 'workspaces/:policyID/category/:categoryName/tax-rate',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/tax-rate` as const,
-    },
-    WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
-        route: 'workspaces/:policyID/category/:categoryName/flag-amounts',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/flag-amounts` as const,
-    },
-    WORKSPACE_CATEGORY_DESCRIPTION_HINT: {
-        route: 'workspaces/:policyID/category/:categoryName/description-hint',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/description-hint` as const,
-    },
-    WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
-        route: 'workspaces/:policyID/category/:categoryName/require-receipts-over',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
-    },
-    WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: {
-        route: 'workspaces/:policyID/category/:categoryName/require-itemized-receipts-over',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-itemized-receipts-over` as const,
-    },
-    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
-        route: 'workspaces/:policyID/category/:categoryName/required-fields',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/required-fields` as const,
-    },
-    WORKSPACE_CATEGORY_APPROVER: {
-        route: 'workspaces/:policyID/category/:categoryName/approver',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/approver` as const,
     },
     WORKSPACE_MORE_FEATURES: {
         route: 'workspaces/:policyID/more-features',

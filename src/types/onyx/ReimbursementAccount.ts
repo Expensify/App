@@ -301,4 +301,4 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 }>;
 
 export default ReimbursementAccount;
-export type {Corpay, CorpayBeneficialOwner, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};
+export type {Corpay, BankAccountStep, BankAccountSubStep, ACHData, ReimbursementAccountStep, ReimbursementAccountSubStep, ACHDataReimbursementAccount};

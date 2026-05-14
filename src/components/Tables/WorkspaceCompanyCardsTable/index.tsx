@@ -5,9 +5,9 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
-import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import TableSkeleton from '@components/Table/TableSkeleton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
@@ -18,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetFailedWorkspaceCompanyCardUnassignment} from '@libs/actions/CompanyCards';
-import {getDefaultCardName, getPlaidInstitutionId} from '@libs/CardUtils';
+import {getDefaultCardName} from '@libs/CardUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
@@ -29,10 +29,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
-import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
-import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableItem';
+import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
+import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
+import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkeleton';
 
-type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName';
+type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName' | 'actions';
 
 type WorkspaceCompanyCardsTableProps = {
     /** Policy ID */
@@ -155,6 +156,10 @@ function WorkspaceCompanyCardsTable({
         {
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
+        },
+        {
+            key: 'actions',
+            label: '',
             styling: {
                 containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
@@ -185,6 +190,7 @@ function WorkspaceCompanyCardsTable({
     const tableBodyContentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: true,
         addOfflineIndicatorBottomSafeAreaPadding: true,
+        style: styles.pb4,
     });
 
     const compareItems: CompareItemsCallback<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey> = (a, b, activeSorting) => {
@@ -270,9 +276,9 @@ function WorkspaceCompanyCardsTable({
         <CardFeedIcon
             key={feedName}
             iconProps={{
-                height: variables.cardIconHeight,
-                width: variables.cardIconWidth,
                 additionalStyles: styles.cardIcon,
+                width: shouldUseNarrowTableLayout ? variables.cardIconWidth : variables.cardIconSmallWidth,
+                height: shouldUseNarrowTableLayout ? variables.cardIconHeight : variables.cardIconSmallHeight,
             }}
             selectedFeed={feedName}
             useSkeletonLoader
@@ -283,19 +289,18 @@ function WorkspaceCompanyCardsTable({
         <WorkspaceCompanyCardTableItem
             key={`${item.cardName}_${index}`}
             item={item}
+            rowIndex={index}
             policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
             CardFeedIcon={cardFeedIcon}
-            isPlaidCardFeed={!!getPlaidInstitutionId(feedName)}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-            columnCount={columns.length}
         />
     );
 
-    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
-    const shouldRenderHeaderAsChild = !shouldUseNarrowTableLayout || ((isFeedPending || isLoadingPage) && !showCards);
+    const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
+
     // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
     // When switching back to wide layout, we want to restore the previous sorting.
     useEffect(() => {
@@ -326,7 +331,7 @@ function WorkspaceCompanyCardsTable({
     });
 
     const headerButtonsComponent = showTableHeaderButtons ? (
-        <View style={shouldUseNarrowTableLayout && styles.mb5}>
+        <View style={styles.mb3}>
             <WorkspaceCompanyCardsTableHeaderButtons
                 isLoading={isLoading}
                 policyID={policyID}
@@ -343,40 +348,42 @@ function WorkspaceCompanyCardsTable({
         isLoadingCards,
     };
 
+    const LoadingComponent = (
+        <TableSkeleton
+            rowCount={5}
+            reasonAttributes={reasonAttributes}
+            renderSkeletonItem={WorkspaceCompanyCardsTableSkeleton}
+        />
+    );
+
+    const ListHeader = (
+        <>
+            {headerButtonsComponent}
+            {!isLoadingFeed && !isFeedPending && showCards && <Table.Header />}
+        </>
+    );
+
     return (
         <Table
             ref={tableRef}
             data={cardsData}
             columns={columns}
+            filters={filterConfig}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
-            filters={filterConfig}
             initialSortColumn="member"
-            ListEmptyComponent={
-                isLoadingCards ? (
-                    <TableRowSkeleton
-                        fixedNumItems={5}
-                        reasonAttributes={reasonAttributes}
-                    />
-                ) : (
-                    <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />
-                )
-            }
-            ListHeaderComponent={shouldUseNarrowTableLayout ? headerButtonsComponent : undefined}
+            title={translate('workspace.common.companyCards')}
+            ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
+            ListEmptyComponent={isLoadingCards ? LoadingComponent : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
-            {shouldRenderHeaderAsChild && headerButtonsComponent}
+            {!shouldUseNarrowTableLayout && ListHeader}
 
             {(isLoading || isFeedPending || isNoFeed) && !feedErrorKey && (
                 <ScrollView>
-                    {isLoading && (
-                        <TableRowSkeleton
-                            fixedNumItems={5}
-                            reasonAttributes={reasonAttributes}
-                        />
-                    )}
+                    {isLoading && LoadingComponent}
 
                     {!isLoading && isFeedPending && (
                         <View style={styles.flex1}>
@@ -417,12 +424,7 @@ function WorkspaceCompanyCardsTable({
                 </ScrollView>
             )}
 
-            {showCards && (
-                <>
-                    {!shouldUseNarrowTableLayout && !isLoadingFeed && <Table.Header />}
-                    <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />
-                </>
-            )}
+            {showCards && <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />}
         </Table>
     );
 }

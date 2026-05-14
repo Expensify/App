@@ -145,11 +145,9 @@ Onyx.connect({
 });
 
 let deprecatedUserAccountID = -1;
-let deprecatedCurrentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        deprecatedCurrentUserEmail = value?.email ?? '';
         deprecatedUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
@@ -207,10 +205,6 @@ function getAllReportNameValuePairs(): OnyxCollection<OnyxTypes.ReportNameValueP
 
 function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
     return allTransactionDrafts;
-}
-
-function getCurrentUserEmail(): string {
-    return deprecatedCurrentUserEmail;
 }
 
 function getUserAccountID(): number {
@@ -664,7 +658,6 @@ export {
     getAllReportActionsFromIOU,
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
-    getCurrentUserEmail,
     getUserAccountID,
     getCurrentUserPersonalDetails,
     getRecentAttendees,
