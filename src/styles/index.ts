@@ -483,6 +483,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         mutedNormalTextLabel: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
             color: theme.textSupporting,
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightNormal,
