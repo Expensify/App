@@ -39,7 +39,6 @@ export type {DebugReportActionForm} from './DebugReportActionForm';
 export type {DebugTransactionForm} from './DebugTransactionForm';
 export type {WorkspaceDuplicateForm} from './WorkspaceDuplicateForm';
 export type {DebugTransactionViolationForm} from './DebugTransactionViolationForm';
-export type {RequestPhysicalCardForm} from './RequestPhysicalCardForm';
 export type {RoomNameForm} from './RoomNameForm';
 export type {RoomSettingsForm} from './RoomSettingsForm';
 export type {SettingsStatusClearDateForm} from './SettingsStatusClearDateForm';
