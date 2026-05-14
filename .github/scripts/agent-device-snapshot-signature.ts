@@ -37,22 +37,29 @@ function project(node: SnapshotNode): string {
 /**
  * Transient nodes the signature must ignore.
  *
- * React Native dev-mode renders an inline "!, <warning>" bubble for
- * runtime warnings (StrictMode, dev-only assertions, etc.). These
- * appear and disappear between runs depending on bundler timing and
- * warning suppression state — same screen, different node count.
- * Runs 25659967543 and 25662443061 produced different signatures on
- * an identical SignIn screen because one had 3 extra dev-warning
- * nodes the other didn't, and cache replay never landed.
+ * Two source categories on both Android and iOS:
  *
- * These warnings are dev-only, never reach release builds, and never
- * mean anything to a user — exactly the kind of cosmetic node the
- * structural signature should disregard.
+ *   1. React Native dev-mode warning bubbles ("!, <warning>"). These
+ *      appear and disappear between runs depending on bundler timing
+ *      and warning suppression state. Runs 25659967543 and 25662443061
+ *      produced different signatures on an identical Android SignIn
+ *      because one had 3 extra dev-warning nodes the other didn't.
+ *
+ *   2. iOS-specific dev-mode chrome: the red-box error overlay, the
+ *      hot-reload pill at the top of the screen, the "Reload" /
+ *      "Debug" buttons that appear after a JS exception. None of
+ *      these are user-meaningful and they appear non-deterministically.
+ *
+ * All are dev-only, never ship in release builds, and never matter
+ * to a user — exactly the kind of cosmetic node the structural
+ * signature should disregard. Filtering them keeps cache replay
+ * deterministic across runs on the same screen.
  */
 function isTransientDevWarning(node: SnapshotNode): boolean {
   if (!node.text) {
     return false;
   }
+  /* RN dev-warning bubble (Android + iOS) */
   if (node.kind === "group" && node.text.startsWith("!, ")) {
     return true;
   }
@@ -68,6 +75,28 @@ function isTransientDevWarning(node: SnapshotNode): boolean {
   if (
     node.kind === "text" &&
     node.text.startsWith("The result of getSnapshot")
+  ) {
+    return true;
+  }
+  /*
+   * iOS-specific dev-mode chrome. These selectors are best-effort —
+   * the iOS RN dev menu's exact node shape varies by RN version. Each
+   * match is a single text-leaf node; missing one of them just means
+   * the cache may rotate on the next iOS run, which is a soft cost
+   * (one extra LLM-driven step) not a hard fail.
+   */
+  if (node.kind === "text" && /^reload\s*js\b/i.test(node.text)) {
+    return true;
+  }
+  if (node.kind === "text" && /^debugger\s+is\s+connected/i.test(node.text)) {
+    return true;
+  }
+  if (node.kind === "text" && /^developer\s+menu/i.test(node.text)) {
+    return true;
+  }
+  if (
+    node.kind === "text" &&
+    /^js\s+devtools|^remote\s+jsdebugger/i.test(node.text)
   ) {
     return true;
   }

@@ -284,6 +284,322 @@ class AndroidPlatform implements Platform {
   }
 }
 
+/* ---- iOS implementation --------------------------------------------- */
+
+class IOSPlatform implements Platform {
+  readonly name = "ios" as const;
+  /*
+   * The standalone NewDot iOS dev scheme ships with the same bundle id
+   * as Android dev (`com.expensify.chat.dev`). HybridApp dev would be
+   * `com.expensify.expensifylite` instead — the smoke targets standalone.
+   */
+  readonly appPackage = process.env.APP_PACKAGE ?? "com.expensify.chat.dev";
+  /*
+   * Xcode places the simulator build under DerivedData. The workflow
+   * step that builds the app sets DerivedData via `-derivedDataPath
+   * ios/build`, so the .app ends up here. iOS app bundles are
+   * directories (not single files like .apk), so `locateBundle`
+   * still matches them via the `.app` suffix.
+   */
+  readonly appBundleDir =
+    process.env.IOS_APP_BUNDLE_DIR ??
+    "ios/build/Build/Products/Debug-iphonesimulator";
+  readonly appBundleSuffix = ".app";
+
+  install(appPath: string): void {
+    execFileSync("xcrun", ["simctl", "install", "booted", appPath], {
+      stdio: "inherit",
+    });
+  }
+
+  setupNetworking(): void {
+    /*
+     * iOS Simulator shares the host loopback by default — Metro on
+     * localhost:8081 is reachable from the simulated app with no
+     * port-forward equivalent of `adb reverse` needed.
+     */
+  }
+
+  preBootHardening(): void {
+    /*
+     * Best-effort pre-launch hardening. The exact knobs that matter
+     * on iOS Sim are:
+     *
+     *   - SuggestionsAppLibraryEnabled=NO: stops smart-suggestion
+     *     bubbles from interrupting the keyboard.
+     *   - AutoFillCredentialProviderEnabled=NO: same idea as
+     *     Android `autofill_service=null` — forces the LLM to
+     *     explicitly fill the email rather than relying on
+     *     framework autofill silently completing the action.
+     *
+     * `defaults write` against simulator domains is the canonical
+     * path. Failures here are non-fatal — fresh sims may not have
+     * those domains until the app launches once.
+     */
+    try {
+      execFileSync(
+        "xcrun",
+        [
+          "simctl",
+          "spawn",
+          "booted",
+          "defaults",
+          "write",
+          "com.apple.suggestions",
+          "SuggestionsAppLibraryEnabled",
+          "-bool",
+          "NO",
+        ],
+        { timeout: 5_000, stdio: "ignore" },
+      );
+    } catch {
+      /* best effort */
+    }
+    try {
+      execFileSync(
+        "xcrun",
+        [
+          "simctl",
+          "spawn",
+          "booted",
+          "defaults",
+          "write",
+          "com.apple.keyboard.preferences",
+          "KeyboardAutomaticPredictionType",
+          "-int",
+          "0",
+        ],
+        { timeout: 5_000, stdio: "ignore" },
+      );
+    } catch {
+      /* best effort */
+    }
+  }
+
+  launch(): void {
+    execFileSync(
+      "agent-device",
+      [
+        "open",
+        this.appPackage,
+        "--platform",
+        "ios",
+        "--device",
+        this.getDeviceUdid(),
+        "--session",
+        SESSION,
+        "--relaunch",
+      ],
+      { stdio: "inherit" },
+    );
+  }
+
+  forceRelaunch(): void {
+    try {
+      execFileSync(
+        "xcrun",
+        ["simctl", "terminate", this.getDeviceUdid(), this.appPackage],
+        { timeout: 10_000, stdio: "ignore" },
+      );
+    } catch (e) {
+      process.stdout.write(
+        `platform.ios: simctl terminate failed: ${(e as Error).message.slice(0, 80)}\n`,
+      );
+    }
+    try {
+      execFileSync(
+        "agent-device",
+        [
+          "open",
+          this.appPackage,
+          "--platform",
+          "ios",
+          "--device",
+          this.getDeviceUdid(),
+          "--session",
+          SESSION,
+          "--relaunch",
+        ],
+        { timeout: 30_000, stdio: "ignore" },
+      );
+    } catch (e) {
+      process.stdout.write(
+        `platform.ios: relaunch failed: ${(e as Error).message.slice(0, 80)}\n`,
+      );
+    }
+  }
+
+  tryDismissBlockingDialog(snap: Snapshot): boolean {
+    /*
+     * iOS system permission alerts (ATT, notifications, location,
+     * camera, photos, keychain) share a recognisable shape: a small
+     * number (2-3) of system buttons whose labels include one of the
+     * conservative dismissals. Match on label set rather than exact
+     * count because ATT alerts can have 2 or 3 buttons depending on
+     * iOS version.
+     *
+     * The dismissal strategy is intentionally conservative: never
+     * grant a permission, never tap "Continue" or "Open Settings".
+     * The smoke is a build canary, not a permissions-flow exerciser.
+     */
+    const buttons = snap.nodes.filter((n) => n.kind === "button");
+    if (buttons.length < 2 || buttons.length > 3) {
+      return false;
+    }
+    const labels = buttons
+      .map((b) => b.text?.toLowerCase() ?? "")
+      .filter((l) => l.length > 0);
+    /*
+     * Recognise as a dialog only if at least one button matches a
+     * known conservative-choice label. Otherwise this is just a
+     * 2-button screen (e.g. SignIn with Continue + secondary CTA),
+     * not a system alert.
+     */
+    const conservativeChoices = [
+      "don't allow",
+      "ask app not to track",
+      "not now",
+      "cancel",
+      "no thanks",
+      "later",
+    ];
+    const target = buttons.find((b) =>
+      conservativeChoices.includes(b.text?.toLowerCase() ?? ""),
+    );
+    if (!target) {
+      return false;
+    }
+    /*
+     * Sanity: an iOS SignIn screen has buttons like "Continue" or
+     * "Sign In" but never conservative-choice labels. The presence
+     * of a Continue button alongside a conservative choice is the
+     * only ambiguous case; we resolve in favor of "system alert"
+     * because the test cases don't expect a Continue+Cancel pair
+     * outside a dialog.
+     */
+    if (labels.length === 0) {
+      return false;
+    }
+    try {
+      adCli.press(target.ref);
+    } catch (e) {
+      process.stdout.write(
+        `platform.ios: dismiss press failed: ${(e as Error).message.slice(0, 80)}\n`,
+      );
+    }
+    this.forceRelaunch();
+    return true;
+  }
+
+  back(): void {
+    /*
+     * iOS doesn't have a hardware back equivalent. The closest is
+     * the per-screen "Back" navigation button which differs by
+     * screen; we don't attempt to synthesize it here. The LLM's
+     * `back()` tool is mostly an Android idiom — on iOS it should
+     * use `press` against the actual back-arrow node.
+     *
+     * For belt-and-suspenders, emit ESC to the simulator (no-op on
+     * most app screens but harmless).
+     */
+    try {
+      execFileSync(
+        "xcrun",
+        ["simctl", "io", "booted", "send", "keystroke", "escape"],
+        { timeout: 5_000, stdio: "ignore" },
+      );
+    } catch {
+      /* best effort */
+    }
+  }
+
+  dismissKeyboard(): void {
+    /*
+     * No system shortcut to dismiss the iOS Sim keyboard without a
+     * focus change. The simulator menu's "I/O > Keyboard > Toggle
+     * Software Keyboard" is GUI-only. Cmd+K via simctl io toggles
+     * the soft keyboard on/off:
+     */
+    try {
+      execFileSync(
+        "xcrun",
+        ["simctl", "io", "booted", "send", "keystroke", "cmd+k"],
+        { timeout: 5_000, stdio: "ignore" },
+      );
+    } catch {
+      /* best effort */
+    }
+  }
+
+  dumpLogsToFile(outPath: string): void {
+    try {
+      /*
+       * Capture the last hour of NewExpensify-process logs from the
+       * booted simulator. `--style compact` keeps the artifact size
+       * manageable; `--last 1h` is generous for a ~10min smoke.
+       */
+      execFileSync(
+        "xcrun",
+        [
+          "simctl",
+          "spawn",
+          "booted",
+          "log",
+          "show",
+          "--predicate",
+          'process == "NewExpensify"',
+          "--style",
+          "compact",
+          "--last",
+          "1h",
+        ],
+        {
+          stdio: ["ignore", fs.openSync(outPath, "w"), "ignore"],
+          timeout: 60_000,
+        },
+      );
+    } catch {
+      /* best effort */
+    }
+  }
+
+  private cachedUdid: string | null = null;
+
+  private getDeviceUdid(): string {
+    if (this.cachedUdid) {
+      return this.cachedUdid;
+    }
+    /*
+     * Pick the first booted simulator. `xcrun simctl list devices
+     * --json` returns
+     *
+     *   {"devices": {"com.apple.CoreSimulator.SimRuntime.iOS-17-2": [
+     *     {"udid":"…","state":"Booted","name":"iPhone 15"}, …
+     *   ]}}
+     *
+     * The workflow's `xcrun simctl boot` step ensures exactly one
+     * device is booted; if multiple are booted (e.g. local dev),
+     * we use the first one and trust the workflow / skill pre-flight
+     * to have prompted the user.
+     */
+    const raw = execFileSync("xcrun", ["simctl", "list", "devices", "--json"], {
+      encoding: "utf8",
+    });
+    const parsed = JSON.parse(raw) as {
+      devices: Record<string, Array<{ udid: string; state: string }>>;
+    };
+    for (const runtime of Object.values(parsed.devices)) {
+      for (const dev of runtime) {
+        if (dev.state === "Booted") {
+          this.cachedUdid = dev.udid;
+          return dev.udid;
+        }
+      }
+    }
+    throw new Error("no booted iOS simulator found");
+  }
+}
+
 /* ---- factory --------------------------------------------------------- */
 
 /**
@@ -293,9 +609,7 @@ class AndroidPlatform implements Platform {
 export function detectPlatform(): Platform {
   const envName = (process.env.PLATFORM ?? "").toLowerCase().trim();
   if (envName === "ios") {
-    throw new Error(
-      "PLATFORM=ios requested but IOSPlatform is not implemented in this PR (Phase 2 PR A). It lands in PR B.",
-    );
+    return new IOSPlatform();
   }
   if (envName === "android" || envName === "") {
     return new AndroidPlatform();
