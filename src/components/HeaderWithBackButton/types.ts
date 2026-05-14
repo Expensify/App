@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
@@ -165,6 +166,9 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
+    /** Animated style applied to the left content group (back button, icon, avatar, title). Use to fade them in/out with the surrounding sidebar collapse animation. */
+    leftContentAnimatedStyle?: AnimatedStyle<ViewStyle>;
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
