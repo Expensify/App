@@ -80,6 +80,6 @@ function TextLink({href, onPress, children, style, onMouseDown = (event) => even
     );
 }
 
-export type {LinkProps, PressProps, TextLinkProps};
+export type {LinkProps, PressProps};
 
 export default TextLink;

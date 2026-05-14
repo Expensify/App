@@ -177,8 +177,8 @@ function SearchStaticList({
                         styles.flex1,
                         styles.userSelectNone,
                         {backgroundColor: theme.highlightBG},
-                        isFirstItem && styles.searchTableTopRadius,
-                        isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                        isFirstItem && styles.tableTopRadius,
+                        isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                         !isLastItem && styles.borderBottom,
                     ]}
                 >
@@ -236,14 +236,7 @@ function SearchStaticList({
 
         return (
             <View
-                style={[
-                    styles.mh5,
-                    styles.flex1,
-                    {backgroundColor: theme.highlightBG},
-                    styles.userSelectNone,
-                    isLastItem && styles.searchTableBottomRadius,
-                    isLastItem && styles.overflowHidden,
-                ]}
+                style={[styles.mh5, styles.flex1, {backgroundColor: theme.highlightBG}, styles.userSelectNone, isLastItem && styles.tableBottomRadius, isLastItem && styles.overflowHidden]}
             >
                 <PressableWithoutFeedback
                     sentryLabel="SearchStaticList-wide-item"
