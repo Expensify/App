@@ -390,6 +390,7 @@ describe('handleBulkPayItemSelected', () => {
         userBillingGracePeriodEnds: undefined,
         businessBankAccountOptions: undefined,
         ownerBillingGracePeriodEnd: undefined,
+        currentUserAccountID: ownerAccountID,
     };
 
     beforeEach(async () => {

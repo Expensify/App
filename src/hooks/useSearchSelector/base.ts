@@ -439,4 +439,4 @@ function useSearchSelectorBase({
 }
 
 export default useSearchSelectorBase;
-export type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn, SearchSelectorContext, SearchSelectorSelectionMode};
+export type {ContactState, UseSearchSelectorConfig, UseSearchSelectorReturn};
