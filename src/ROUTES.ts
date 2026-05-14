@@ -131,6 +131,12 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.REPORT_DETAILS.ROOT],
         getRoute: (policyID: string, fieldID: string) => `edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const,
     },
+    PROFILE: {
+        path: 'a/:accountID',
+        entryScreens: ['*'],
+        getRoute: (accountID?: number, login?: string) => getUrlWithParams(`a/${accountID}`, {login}),
+        queryParams: ['login'],
+    },
     PROFILE_AVATAR: {
         path: 'avatar/:accountID',
         entryScreens: ['*'],
@@ -393,7 +399,7 @@ const DYNAMIC_ROUTES = {
     },
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
-        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.PROFILE_ROOT],
+        entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.DYNAMIC_PROFILE],
         getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
         queryParams: ['reportID'],
     },
@@ -673,15 +679,6 @@ const ROUTES = {
     CONCIERGE: 'concierge',
     TRACK_EXPENSE: 'track-expense',
     SUBMIT_EXPENSE: 'submit-expense',
-    PROFILE: {
-        route: 'a/:accountID',
-        getRoute: (accountID?: number, backTo?: string, login?: string) => {
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
-            const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
-            return `${baseRoute}${loginParam}` as const;
-        },
-    },
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS: 'enable-payments',

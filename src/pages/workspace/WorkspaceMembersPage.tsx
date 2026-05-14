@@ -379,7 +379,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const openMemberDetails = useCallback(
         (item: MemberOption) => {
             if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(item.accountID)));
                 return;
             }
             clearWorkspaceOwnerChangeFlow(policyID);

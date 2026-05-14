@@ -249,7 +249,7 @@ function AvatarWithDisplayName({
         }
 
         if (isExpenseReport(report) && report?.ownerAccountID) {
-            Navigation.navigate(ROUTES.PROFILE.getRoute(report.ownerAccountID));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(report.ownerAccountID)));
             return;
         }
 
@@ -261,7 +261,7 @@ function AvatarWithDisplayName({
         if (isChatThread(report)) {
             // In an ideal situation account ID won't be 0
             if (actorAccountID.current && actorAccountID.current > 0) {
-                Navigation.navigate(ROUTES.PROFILE.getRoute(actorAccountID.current));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(actorAccountID.current)));
                 return;
             }
         }

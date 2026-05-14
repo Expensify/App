@@ -248,7 +248,7 @@ const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNa
 });
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
-    [SCREENS.PROFILE_ROOT]: () => require<ReactComponentModule>('../../../../pages/ProfilePage').default,
+    [SCREENS.DYNAMIC_PROFILE]: () => require<ReactComponentModule>('../../../../pages/ProfilePage').default,
 });
 
 const NewReportWorkspaceSelectionModalStackNavigator = createModalStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>({

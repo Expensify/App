@@ -4,10 +4,11 @@ import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type UserDetailsRendererProps = CustomRendererProps<TText | TPhrasing>;
 
@@ -37,7 +38,7 @@ function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRender
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     style={[styles.textStrong]}
-                    onPress={() => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()))}
+                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)))}
                     suppressHighlighting
                     role={CONST.ROLE.LINK}
                 >

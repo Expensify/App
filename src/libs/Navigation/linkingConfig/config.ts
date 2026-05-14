@@ -1633,7 +1633,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.PROFILE]: {
                     screens: {
-                        [SCREENS.PROFILE_ROOT]: ROUTES.PROFILE.route,
+                        [SCREENS.DYNAMIC_PROFILE]: DYNAMIC_ROUTES.PROFILE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PARTICIPANTS]: {

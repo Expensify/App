@@ -18,6 +18,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -46,13 +47,13 @@ import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES, type Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
-type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
+type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.DYNAMIC_PROFILE>;
 
 /**
  * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
@@ -88,6 +89,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
     const [report] = useOnyx(reportKey);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -143,7 +145,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = route?.params?.backTo;
+    const navigateBackTo = (backPath || ROUTES.HOME) as Route;
 
     const notificationPreferenceValue = getReportNotificationPreference(report);
 

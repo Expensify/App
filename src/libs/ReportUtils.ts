@@ -31,7 +31,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
@@ -116,6 +116,7 @@ import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
@@ -6111,7 +6112,8 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shoul
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID.at(0), isSelfDMReport || shouldUseActiveRoute ? Navigation.getActiveRoute() : backTo));
+        const basePath = isSelfDMReport || shouldUseActiveRoute ? Navigation.getActiveRoute() : (backTo ?? '');
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0)), basePath));
         return;
     }
 
@@ -6128,7 +6130,7 @@ function goBackToDetailsPage(report: OnyxEntry<Report>, backTo?: string, shouldG
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isOneOnOneChatReport) {
-        Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountID.at(0), backTo));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountID.at(0)), backTo ?? ''));
         return;
     }
 
@@ -6172,7 +6174,7 @@ function goBackFromPrivateNotes(report: OnyxEntry<Report>, accountID?: number, b
         const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
 
         if (isOneOnOneChat(report)) {
-            Navigation.goBack(ROUTES.PROFILE.getRoute(participantAccountIDs.at(0), backTo));
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(participantAccountIDs.at(0)), backTo ?? ''));
             return;
         }
 
