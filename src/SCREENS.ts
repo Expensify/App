@@ -509,7 +509,7 @@ const SCREENS = {
     },
 
     NEW_REPORT_WORKSPACE_SELECTION: {
-        ROOT: 'NewReportWorkspaceSelection_Root',
+        DYNAMIC_ROOT: 'Dynamic_NewReportWorkspaceSelection_Root',
     },
 
     SET_DEFAULT_WORKSPACE: 'SetDefaultWorkspace',

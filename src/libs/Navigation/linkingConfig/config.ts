@@ -1422,7 +1422,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION]: {
                     screens: {
-                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT]: ROUTES.NEW_REPORT_WORKSPACE_SELECTION.route,
+                        [SCREENS.NEW_REPORT_WORKSPACE_SELECTION.DYNAMIC_ROOT]: DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.REPORT_DETAILS]: {
