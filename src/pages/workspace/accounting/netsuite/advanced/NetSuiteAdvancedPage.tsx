@@ -136,22 +136,6 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             subscribedSettings: [CONST.NETSUITE_CONFIG.AUTO_SYNC, CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD],
         },
         {
-            type: 'toggle',
-            title: translate('workspace.accounting.syncCentralInvoicingSettlements'),
-            subtitle: travelInvoicingContinuousReconciliation ? travelInvoicingReconciliationBankAccount?.name : undefined,
-            isActive: !!travelInvoicingContinuousReconciliation,
-            switchAccessibilityLabel: translate('workspace.accounting.syncCentralInvoicingSettlements'),
-            onToggle: (isEnabled) => {
-                toggleTravelInvoicingContinuousReconciliation(workspaceAccountID, isEnabled, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, travelInvoicingContinuousReconciliationConnection);
-                if (isEnabled) {
-                    navigateToTravelInvoicingReconciliationAccountSettings();
-                }
-            },
-            onPress: navigateToTravelInvoicingReconciliationAccountSettings,
-            pendingAction: travelInvoicingContinuousReconciliationPendingAction,
-            shouldHide: !isTravelInvoicingEnabled,
-        },
-        {
             type: 'divider',
             key: 'divider1',
         },
@@ -188,6 +172,32 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             type: 'divider',
             key: 'divider2',
             shouldHide: shouldHideReimbursedReportsSection(config),
+        },
+        {
+            type: 'toggle',
+            title: translate('workspace.accounting.syncCentralInvoicingSettlements'),
+            isActive: !!travelInvoicingContinuousReconciliation,
+            switchAccessibilityLabel: translate('workspace.accounting.syncCentralInvoicingSettlements'),
+            onToggle: (isEnabled) => {
+                toggleTravelInvoicingContinuousReconciliation(workspaceAccountID, isEnabled, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, travelInvoicingContinuousReconciliationConnection);
+                if (isEnabled) {
+                    navigateToTravelInvoicingReconciliationAccountSettings();
+                }
+            },
+            pendingAction: travelInvoicingContinuousReconciliationPendingAction,
+            shouldHide: !isTravelInvoicingEnabled,
+        },
+        {
+            type: 'menuitem',
+            description: translate('workspace.expensifyCard.settlementAccount'),
+            onPress: navigateToTravelInvoicingReconciliationAccountSettings,
+            title: travelInvoicingReconciliationBankAccount?.name,
+            shouldHide: !isTravelInvoicingEnabled || !travelInvoicingContinuousReconciliation,
+        },
+        {
+            type: 'divider',
+            key: 'dividerTravelInvoicing',
+            shouldHide: !isTravelInvoicingEnabled,
         },
         {
             type: 'toggle',
