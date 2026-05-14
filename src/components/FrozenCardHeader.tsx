@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,6 +29,11 @@ type FrozenCardHeaderProps = {
     frozenDate?: string;
 };
 
+type ActionButtonElementProps = {
+    innerStyles?: React.ComponentProps<typeof Button>['innerStyles'];
+    style?: React.ComponentProps<typeof Button>['style'];
+};
+
 function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -43,6 +49,10 @@ function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfree
     const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
     const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');
     const frozenNeedsUnfreezeSuffix = translate('cardPage.frozenByAdminNeedsUnfreezeSuffix');
+    const actionButtons = React.Children.toArray(children).filter((child): child is React.ReactElement<ActionButtonElementProps> => React.isValidElement<ActionButtonElementProps>(child));
+    const shouldUseEqualButtonWidths = actionButtons.length > 0;
+    const equalButtonStyles = shouldUseEqualButtonWidths ? [styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, {minWidth: variables.cardDetailsActionButtonMinWidth}] : undefined;
+    const equalButtonInnerStyles = shouldUseEqualButtonWidths ? styles.ph2 : undefined;
 
     let statusText: React.ReactNode;
 
@@ -100,9 +110,17 @@ function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfree
                     iconFill={theme.icon}
                     onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
                     isDisabled={canUnfreezeCard && isOffline}
-                    style={[styles.alignSelfStart, styles.flexShrink0]}
+                    innerStyles={equalButtonInnerStyles}
+                    style={[styles.alignSelfStart, styles.flexShrink0, equalButtonStyles]}
                 />
-                {children}
+                {actionButtons.map((button) =>
+                    shouldUseEqualButtonWidths
+                        ? React.cloneElement(button, {
+                              innerStyles: [equalButtonInnerStyles, button.props.innerStyles],
+                              style: [button.props.style, equalButtonStyles],
+                          })
+                        : button,
+                )}
             </View>
         </View>
     );
