@@ -73,4 +73,3 @@ function useLetterAvatars(name: string | undefined, size?: AvatarSizeName): Lett
 }
 
 export default useLetterAvatars;
-export type {LetterAvatarItem, LetterAvatarsResult};

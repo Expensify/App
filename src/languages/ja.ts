@@ -492,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         nextMonth: '来月',
         previousYear: '前年',
         nextYear: '来年',
+        avatar: 'アバター',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -1210,9 +1211,12 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: '領収書を削除',
         findExpense: '経費を検索',
         deletedTransaction: (amount: string, merchant: string) => `経費を削除しました（${merchant} に ${amount}）`,
-        movedFromReport: (reportName: string) => `経費${reportName ? `${reportName} から` : ''}を移動しました`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a>へ` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> から` : ''}`,
+        movedFromReport: (reportName: string) => `${reportName} から経費を移動しました`,
+        movedFromReportNoName: '経費を移動しました',
+        movedTransactionTo: (reportUrl: string, reportName: string) => `この経費を<a href="${reportUrl}">${reportName}</a>に移動しました`,
+        movedTransactionToAnotherReport: 'この経費を別のレポートに移動しました',
+        movedTransactionFrom: (reportUrl: string, reportName: string) => `この経費を<a href="${reportUrl}">${reportName}</a>から移動しました`,
+        movedTransactionFromAnotherReport: 'この経費を別のレポートから移動しました',
         unreportedTransaction: (reportUrl: string) => `この経費をあなたの<a href="${reportUrl}">個人スペース</a>に移動しました`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
@@ -2179,6 +2183,12 @@ const translations: TranslationDeepObject<typeof en> = {
         chatToConciergeToUnlock: 'セキュリティに関する懸念を解決し、アカウントのロックを解除するには、Concierge とチャットしてください。',
         chatWithConcierge: 'Conciergeとチャット',
     },
+    deviceManagementPage: {
+        title: 'デバイス管理',
+        description: 'Expensifyアカウントでログインしたすべてのデバイスを管理します。',
+        revoke: '取り消す',
+        unknownDevice: '不明なデバイス',
+    },
     twoFactorAuth: {
         headerTitle: '2要素認証',
         twoFactorAuthEnabled: '2要素認証が有効になりました',
@@ -2558,6 +2568,9 @@ ${date} の ${merchant} への ${amount}`,
             approverSubtitle: 'すべての承認者は、既存のワークフローに属しています。',
             bulkApproverSubtitle: '選択されたレポートの条件に一致する承認者がいません。',
         },
+        configureViaGusto: 'Gusto で設定する。',
+        gustoApprovalWorkflowLockedPrompt: '承認はGusto連携によって管理されています。承認ワークフローを更新するには、Gusto接続設定に移動してください。',
+        goToGustoSettings: 'Gusto設定に移動',
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: '提出頻度を変更できませんでした。もう一度お試しいただくか、サポートまでご連絡ください。',
@@ -2826,6 +2839,7 @@ ${date} の ${merchant} への ${amount}`,
     },
     validateCodeForm: {
         magicCodeNotReceived: 'マジックコードを受け取っていませんか？',
+        avoidScamsMessage: '<strong>詐欺に注意してください。コードを他人と共有しないでください。</strong> 当社スタッフがこのコードを電話・SMS・メールでお尋ねすることは決してありません。',
         enterAuthenticatorCode: '認証コードを入力してください',
         enterRecoveryCode: 'リカバリーコードを入力してください',
         requiredWhen2FAEnabled: '2要素認証が有効な場合は必須',
@@ -2892,10 +2906,10 @@ ${date} の ${merchant} への ${amount}`,
             title: '今日は何をしたいですか？',
             errorContinue: '続行を押してセットアップを完了してください',
             errorBackButton: 'アプリを使い始めるには、セットアップの質問にすべて回答してください',
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '雇用主から立替金の精算を受ける',
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: '雇用主に経費を提出する',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'チームの経費を管理',
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: '経費を記録・予算管理',
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: '友だちとチャットして精算しよう',
+            [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: 'ビジネスの経費を記録',
+            [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: '個人の支出を管理',
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: 'その他',
         },
         employees: {
@@ -4500,6 +4514,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             notConfigured: '未設定',
             bankAccountDescription: '小切手の送金元を選択してください。',
             creditCardAccount: 'クレジットカード口座',
+            travelInvoicingDescription: '旅費は、以下で指定した QuickBooks Online アカウントにクレジットカード請求としてエクスポートされます。',
             companyCardsLocationEnabledDescription:
                 'QuickBooks Online は仕入先請求書のエクスポートでロケーションをサポートしていません。ワークスペースでロケーションが有効になっているため、このエクスポートオプションは使用できません。',
             outOfPocketTaxEnabledDescription:
@@ -4684,6 +4699,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL]: '仕入先請求書',
                 },
             },
+            travelInvoicingDescription: '旅費は、以下で指定した Sage Intacct アカウントにクレジットカード請求としてエクスポートされます。',
             creditCardAccount: 'クレジットカード口座',
             defaultVendor: 'デフォルトのベンダー',
             defaultVendorDescription: (isReimbursable: boolean) =>
@@ -4729,8 +4745,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             journalPostingPreference: {
                 label: '仕訳の記帳設定',
                 values: {
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: '各レポートごとの単一の項目別エントリ',
-                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: '各経費につき1件の入力',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE]: '各経費につき1件の入力',
+                    [CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE]: '各レポートごとの単一の明細エントリ',
                 },
             },
             invoiceItem: {
@@ -5234,6 +5250,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
                     duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
                 },
+                fileImportDescription: '銀行からフィードを送信できない場合の手動オプションです。',
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月末最終日',
@@ -5660,6 +5677,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 subtitle: '時間追跡用の請求可能な時間単価を設定します。',
                 defaultHourlyRate: 'デフォルトの時給率',
             },
+            hrWarningModal: {disconnectText: '人事機能を無効にするには、まずこのワークスペースから Gusto の連携を解除してください。'},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -5951,6 +5969,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             approvers: '承認者',
             auditors: '監査担当者',
             emptyRoleFilter: {title: 'このフィルターに一致するメンバーはいません', subtitle: 'メンバーを招待するか、上のフィルターを変更してください。'},
+            configureGustoSync: 'Gusto 同期を設定する。',
+            syncWithGusto: 'Gusto と同期',
         },
         card: {
             getStartedIssuing: 'まずは最初のバーチャルカードまたは物理カードを発行しましょう。',
@@ -6696,6 +6716,8 @@ ${reportName}
                 gambling: 'ギャンブル',
                 tobacco: 'たばこ',
                 adultEntertainment: 'アダルトエンターテインメント',
+                giftCard: 'ギフトカード購入',
+                handwrittenReceipt: '手書きレシート',
                 requireCompanyCard: 'すべての購入に会社カードを必須にする',
                 requireCompanyCardDescription: 'マイレージや日当経費を含む、すべての現金支出にフラグを付ける。',
                 requireCompanyCardDisabledTooltip: 'ロック解除するには、「その他の機能」内の「会社カード」を有効にしてください。',
@@ -6793,6 +6815,8 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+                policyDocument: 'ポリシー文書',
+                policyText: 'ポリシーテキスト',
             },
             spendRules: {
                 title: '支出',
@@ -6909,6 +6933,10 @@ ${reportName}
                 corporate: {
                     label: 'コントロール',
                     description: '高度な要件を持つ組織向け。',
+                },
+                submit2026: {
+                    label: '提出',
+                    description: '雇用主に経費を提出したい従業員向け。',
                 },
             },
             description: '自分に合ったプランをお選びください。機能と料金の詳細な一覧は、こちらのページをご覧ください',
@@ -7606,6 +7634,7 @@ ${reportName}
         deleteSavedSearchConfirm: 'この検索を削除してもよろしいですか？',
         searchName: '名前を検索',
         savedSearchesMenuItemTitle: '保存済み',
+        urlCopied: 'URLをコピーしました',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
             editMultiple: '複数を編集',
@@ -8007,6 +8036,14 @@ ${reportName}
         selectAllFeatures: 'すべての機能を選択',
         selectAllTransactions: 'すべての取引を選択',
         selectAllItems: 'すべての項目を選択',
+        selectAllCategories: 'すべてのカテゴリを選択',
+        selectAllDistanceRates: 'すべての距離レートを選択',
+        selectAllTags: 'すべてのタグを選択',
+        selectAllTaxes: 'すべての税を選択',
+        selectAllPerDiemRates: 'すべての日当レートを選択',
+        selectAllMembers: 'すべてのメンバーを選択',
+        selectAllValues: 'すべての値を選択',
+        selectAllRules: 'すべてのルールを選択',
     },
     parentReportAction: {
         deletedReport: '削除されたレポート',
@@ -8102,6 +8139,7 @@ ${reportName}
         companyCard: '会社カード',
         expensifyCard: 'Expensify カード',
         centralInvoicing: '集中請求',
+        travelCard: 'トラベルカード',
     },
     distance: {
         addStop: '経由地を追加',
@@ -8145,13 +8183,9 @@ ${reportName}
         stopped: '停止済み',
         start: '開始',
         stop: '停止',
+        save: '保存',
+        resume: '再開',
         discard: '破棄',
-        stopGpsTrackingModal: {
-            title: 'GPS追跡を停止',
-            prompt: '本当に終了してもよろしいですか？現在の進行状況が失われます。',
-            cancel: '追跡を再開',
-            confirm: 'GPS追跡を停止',
-        },
         discardDistanceTrackingModal: {
             title: '移動距離の追跡を破棄',
             prompt: '本当によろしいですか？現在の操作は破棄され、元に戻すことはできません。',
@@ -8326,6 +8360,10 @@ ${reportName}
                         return `アダルトエンターテインメント`;
                     case 'hotelIncidentals':
                         return `ホテル諸雑費`;
+                    case 'giftCard':
+                        return `ギフトカード購入`;
+                    case 'handwrittenReceipt':
+                        return `手書きレシート`;
                     default:
                         return `${prohibitedExpenseType}`;
                 }
@@ -9066,6 +9104,8 @@ ${reportName}
                 addMember: 'このメンバーを追加できませんでした。もう一度お試しください。',
                 vacationDelegate: 'このユーザーを休暇代理人として設定できませんでした。もう一度お試しください。',
                 moveMember: 'このメンバーを移動できませんでした。もう一度お試しください。',
+                moveMemberNotPolicyAdmin:
+                    'メンバーをドメイングループに移動できません。このユーザーを移動しようとしているドメイングループに設定された優先ポリシーのポリシー管理者である必要があります。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `${email} に休暇代理人を設定できません。現在、このユーザーは次のメンバーの代理人になっています。`,
             reportSuspiciousActivityPrompt: (email: string) =>
@@ -9095,7 +9135,12 @@ ${reportName}
                 `本当に ${newName} をデフォルトグループに設定しますか？新しいメンバーは、以前のデフォルトグループ (${currentName}) ではなく、このグループに招待されます。`,
             makeDefault: 'デフォルトに設定',
             neverMind: 'やめておく',
+            createGroupError: 'このグループを作成できませんでした。もう一度お試しください。',
             permissions: 'グループの権限',
+            createNewGroupButton: '新しいグループ',
+            createGroupSubmitButton: 'グループを作成',
+            expensifyCardPreferredWorkspace: 'Expensify Card の優先ワークスペース',
+            expensifyCardPreferredWorkspaceDescription: 'すべてのExpensify Cardトランザクションは、優先ワークスペースではなくExpensify Card優先ワークスペースで作成されます。',
             strictlyEnforceWorkspaceRules: 'ワークスペースのルールを厳密に適用する',
             strictlyEnforceWorkspaceRulesDescription: 'レポートを送信する前にすべてのワークスペースのルールを満たす必要があります。手動による例外は許可されていません。',
             restrictExpenseWorkspaceCreation: '経費ワークスペースの作成／削除を制限する',
@@ -9112,6 +9157,8 @@ ${reportName}
             noWorkspacesMessage: 'このドメインにワークスペースがありません。この制限を有効にするにはワークスペースが必要です。',
             restrictDefaultLoginSelection: 'デフォルトのログイン選択を制限する',
             restrictDefaultLoginSelectionDescription: 'メンバーがポリシー制限を回避するために、ログイン用のメールアドレスを会社のドメイン以外に変更することを防ぎます。',
+            expensifyCardPreferredWorkspaceDisabledMessage: 'この設定を有効にするには、まず優先するワークスペースを有効にし、ドメインでExpensify Cardsを設定してください。',
+            findGroup: 'グループを検索',
         },
     },
     proactiveAppReview: {
