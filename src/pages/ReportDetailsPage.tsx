@@ -861,7 +861,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 conciergeReportID,
                 delegateEmail,
                 ancestors,
-                backTo,
+                {backTo, shouldNavigateBack: false},
             );
             return;
         }
@@ -928,6 +928,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
 
             if (urlToNavigateBack) {
                 setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+                navigateBackOnDeleteTransaction(urlToNavigateBack);
             }
             return;
         }
@@ -1025,6 +1026,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             if (caseID === CASES.DEFAULT) {
+                navigateToTargetUrl();
                 deleteTransaction();
                 return;
             }

@@ -80,6 +80,11 @@ type CreateTaskAndNavigateParams = {
     currentUserAvatar: AvatarSource | undefined;
 };
 
+type DeleteTaskOptions = {
+    backTo?: Route;
+    shouldNavigateBack?: boolean;
+};
+
 /**
  * Clears out the task info from the store
  */
@@ -1263,11 +1268,12 @@ function deleteTask(
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
     ancestors: ReportUtils.Ancestor[] = [],
-    backTo?: Route,
+    options?: DeleteTaskOptions,
 ) {
     if (!report) {
         return;
     }
+    const {backTo, shouldNavigateBack = true} = options ?? {};
     const message = `deleted task: ${report.reportName}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(report.reportID, CONST.REPORT.ACTIONS.TYPE.TASK_CANCELLED, delegateEmail, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
@@ -1389,10 +1395,10 @@ function deleteTask(
     notifyNewAction(report.reportID, undefined, true);
 
     const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, backTo);
-    if (urlToNavigateBack) {
+    if (urlToNavigateBack && shouldNavigateBack) {
         Navigation.goBack(urlToNavigateBack);
-        return urlToNavigateBack;
     }
+    return urlToNavigateBack;
 }
 
 /**
