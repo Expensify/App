@@ -74,6 +74,10 @@ function hasReceiptBackedUnknownDirection(transaction: Transaction): boolean {
     return transaction.receipt?.source !== undefined && getTransactionDirectionSign(transaction) === undefined;
 }
 
+function hasNonPendingReceiptBackedUnknownDirection(transaction: Transaction): boolean {
+    return hasReceiptBackedUnknownDirection(transaction) && !hasPendingScanStateAndUnknownDirection(transaction);
+}
+
 function normalizeAccountID(accountID: number | string | undefined): number | undefined {
     const parsedAccountID = Number(accountID);
 
@@ -128,7 +132,7 @@ function getLastActorAccountIDForReceiptBackedUnknown(
     iouReport: OnyxEntry<Report>,
     receiptBackedUnknownTransactionCount: number,
 ): number | undefined {
-    if (!hasReceiptBackedUnknownDirection(transaction) || receiptBackedUnknownTransactionCount !== 1) {
+    if (!hasNonPendingReceiptBackedUnknownDirection(transaction) || receiptBackedUnknownTransactionCount !== 1) {
         return undefined;
     }
 
@@ -150,7 +154,7 @@ function shouldBackfillReceiptBackedUnknownTransactions(
     }
 
     const transactionsMissingActor = transactions.filter((transaction, index) => transactionActorAccountIDs.at(index) === undefined);
-    return transactionsMissingActor.length > 0 && transactionsMissingActor.every(hasReceiptBackedUnknownDirection);
+    return transactionsMissingActor.length > 0 && transactionsMissingActor.every(hasNonPendingReceiptBackedUnknownDirection);
 }
 
 function canInferFromTransactionsDuringPartialHydration(
@@ -170,7 +174,7 @@ function canInferFromTransactionsDuringPartialHydration(
         return false;
     }
 
-    if (transactions.some((transaction, index) => transactionActorAccountIDs.at(index) === undefined && !hasReceiptBackedUnknownDirection(transaction))) {
+    if (transactions.some((transaction, index) => transactionActorAccountIDs.at(index) === undefined && !hasNonPendingReceiptBackedUnknownDirection(transaction))) {
         return false;
     }
 
@@ -184,6 +188,10 @@ function shouldPreferFallbackActorForReceiptBackedUnknownTransactions(
     hasCompleteActionCoverage: boolean,
 ): fallbackActorAccountID is number {
     if (!transactions || !directionBasedActorAccountIDs || fallbackActorAccountID === undefined || hasCompleteActionCoverage) {
+        return false;
+    }
+
+    if (transactions.some(hasPendingScanStateAndUnknownDirection)) {
         return false;
     }
 
@@ -268,6 +276,7 @@ function getReportPreviewSenderID({
                 )
                 .filter((identifier): identifier is number | string => !!identifier),
         ) ?? [];
+    const transactionSigns = transactions?.map((transaction) => getTransactionDirectionSign(transaction)) ?? [];
     const hasAttendeeIdentifierForEachTransaction =
         transactions === undefined || (attendeeIdentifierGroups.length === transactions.length && attendeeIdentifierGroups.every((identifiers) => identifiers.length > 0));
     const receiptBackedUnknownTransactionCount = transactions?.filter(hasReceiptBackedUnknownDirection).length ?? 0;
@@ -301,8 +310,13 @@ function getReportPreviewSenderID({
         action?.childRecentReceiptTransactionIDs,
         missingTransactionCount,
     );
+    const hasPendingScanWithUnknownDirection = (transactions ?? []).some(hasPendingScanStateAndUnknownDirection);
 
     if (!hasFinishedInitialReportActionsLoad && missingTransactionCount > 0 && !canInferFromIOUActionsDuringPartialHydration && !canInferFromTransactionDataDuringPartialHydration) {
+        return undefined;
+    }
+
+    if (hasPendingScanWithUnknownDirection && !hasActorAccountIDForEachTransaction) {
         return undefined;
     }
 
@@ -317,7 +331,6 @@ function getReportPreviewSenderID({
         // 1. If actor data is unavailable, fall back to transaction direction.
         // We use amount sign here because there can be cases where actions are not available.
         // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
-        const transactionSigns = transactions?.map((transaction) => getTransactionDirectionSign(transaction)) ?? [];
         const transactionsWithUnknownDirection = (transactions ?? []).filter((transaction, index) => transactionSigns.at(index) === undefined);
         const hasUnknownDirection = transactionSigns.some((sign) => sign === undefined);
         const unknownDirectionComesOnlyFromPendingScans = transactionsWithUnknownDirection.length > 0 && transactionsWithUnknownDirection.every(hasPendingScanStateAndUnknownDirection);
