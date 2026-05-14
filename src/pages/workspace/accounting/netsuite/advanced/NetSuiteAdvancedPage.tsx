@@ -56,6 +56,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
+    const autoSync = !!autoSyncConfig?.autoSync?.enabled;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const {payableList} = policy?.connections?.netsuite?.options?.data ?? {};
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
@@ -122,11 +123,11 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const menuItems: ExtendedMenuItemWithSubscribedSettings[] = [
         {
             type: 'menuitem',
-            title: autoSyncConfig?.autoSync?.enabled ? translate('common.enabled') : translate('common.disabled'),
+            title: autoSync ? translate('common.enabled') : translate('common.disabled'),
             description: translate('workspace.accounting.autoSync'),
             onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path)),
             hintText: (() => {
-                if (!autoSyncConfig?.autoSync?.enabled) {
+                if (!autoSync) {
                     return undefined;
                 }
                 return translate(
@@ -178,6 +179,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.accounting.syncCentralInvoicingSettlements'),
             isActive: !!travelInvoicingContinuousReconciliation,
             switchAccessibilityLabel: translate('workspace.accounting.syncCentralInvoicingSettlements'),
+            disabled: !autoSync,
             onToggle: (isEnabled) => {
                 toggleTravelInvoicingContinuousReconciliation(workspaceAccountID, isEnabled, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, travelInvoicingContinuousReconciliationConnection);
                 if (isEnabled) {
