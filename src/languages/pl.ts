@@ -7696,7 +7696,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         bulkActions: {
             editMultiple: 'Edytuj wiele',
             editMultipleTitle: 'Edytuj wiele wydatków',
-            editMultipleDescription: 'Zmiany zostaną zastosowane do wszystkich wybranych wydatków i zastąpią wcześniej ustawione wartości.',
+            editMultipleDescription: 'Zmiany zostaną ustawione dla wszystkich wybranych wydatków i nadpiszą wszystkie wcześniej ustawione wartości.',
             approve: 'Zatwierdź',
             pay: 'Zapłać',
             delete: 'Usuń',

@@ -2712,14 +2712,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...display.dFlex,
             ...flex.flexColumn,
             ...flex.alignItemsCenter,
-            paddingHorizontal: 20,
-        },
-
-        reportDetailsRoomInfo: {
-            ...flex.flex1,
-            ...display.dFlex,
-            ...flex.flexColumn,
-            ...flex.alignItemsCenter,
         },
 
         reportSettingsVisibilityText: {
@@ -4047,7 +4039,7 @@ const staticStyles = (theme: ThemeColors) =>
         footerRow: {
             paddingVertical: 4,
             marginBottom: 8,
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeMedium,
         },
 
@@ -4173,7 +4165,7 @@ const staticStyles = (theme: ThemeColors) =>
         loginHeroBody: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSignInHeroBody,
-            color: theme.textLight,
+            color: theme.text,
             textAlign: 'center',
         },
 

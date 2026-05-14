@@ -35,7 +35,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     transactionPreviewData,
     exportedReportActions,
     nonPersonalAndWorkspaceCards,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemWideProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -123,7 +123,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isHover={hovered}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         reportActions={exportedReportActions}
-                        policyForMovingExpenses={policyForMovingExpenses}
+                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                     />
                 )}
             </PressableWithFeedback>
