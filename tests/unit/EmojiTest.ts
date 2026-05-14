@@ -749,8 +749,8 @@ describe('EmojiTest', () => {
             ];
             const result = EmojiUtils.processFrequentlyUsedEmojis(input);
             expect(result).toHaveLength(1);
-            expect(result[0].count).toBe(8);
-            expect(result[0].hexcode).toBe('1F44D');
+            expect(result.at(0)?.count).toBe(8);
+            expect(result.at(0)?.hexcode).toBe('1F44D');
         });
 
         it('deduplicates entries with same hexcode but different skin-tone glyph codes', () => {
@@ -760,8 +760,8 @@ describe('EmojiTest', () => {
             ];
             const result = EmojiUtils.processFrequentlyUsedEmojis(input);
             expect(result).toHaveLength(1);
-            expect(result[0].count).toBe(8);
-            expect(result[0].hexcode).toBe('1F44D');
+            expect(result.at(0)?.count).toBe(8);
+            expect(result.at(0)?.hexcode).toBe('1F44D');
         });
 
         it('collapses name-only, code-only, and hexcode-only entries for the same emoji into one', () => {
@@ -772,8 +772,8 @@ describe('EmojiTest', () => {
             ];
             const result = EmojiUtils.processFrequentlyUsedEmojis(input);
             expect(result).toHaveLength(1);
-            expect(result[0].count).toBe(10);
-            expect(result[0].hexcode).toBe('1F44D');
+            expect(result.at(0)?.count).toBe(10);
+            expect(result.at(0)?.hexcode).toBe('1F44D');
         });
 
         it('8-case format matrix: all 7 resolvable combinations collapse to one entry', () => {
@@ -797,8 +797,8 @@ describe('EmojiTest', () => {
             ];
             const result = EmojiUtils.processFrequentlyUsedEmojis(input);
             expect(result).toHaveLength(1);
-            expect(result[0].count).toBe(7);
-            expect(result[0].hexcode).toBe('1F44D');
+            expect(result.at(0)?.count).toBe(7);
+            expect(result.at(0)?.hexcode).toBe('1F44D');
         });
     });
 

@@ -21,8 +21,8 @@ describe('EmojiPickerMenu frequently used dedup', () => {
         const processed = processFrequentlyUsedEmojis(frequentlyUsedEmojis);
 
         expect(processed).toHaveLength(1);
-        expect(processed[0].hexcode).toBe('1F44D');
-        expect(processed[0].count).toBe(9);
+        expect(processed.at(0)?.hexcode).toBe('1F44D');
+        expect(processed.at(0)?.count).toBe(9);
 
         const merged = mergeEmojisWithFrequentlyUsedEmojis(emojis, processed);
         const frequentlyUsedSection = merged.filter((item) => !('header' in item) && !('spacer' in item) && 'count' in item);

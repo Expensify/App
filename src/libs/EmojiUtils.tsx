@@ -109,14 +109,17 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
     const processedFrequentlyUsedEmojis =
         emojiList
             ?.map((item): FrequentlyUsedEmoji | null => {
-                let emoji = item;
-                if (!item.code) {
-                    emoji = {...emoji, ...findEmojiByName(item.name)};
+                let resolvedEmoji: Emoji | undefined;
+                if (item.hexcode) {
+                    resolvedEmoji = Emojis.findEmojiByHexCode(item.hexcode);
                 }
-                if (!item.name) {
-                    emoji = {...emoji, ...findEmojiByCode(item.code)};
+                if (!resolvedEmoji && item.name) {
+                    resolvedEmoji = findEmojiByName(item.name);
                 }
-                const emojiWithSkinTones = Emojis.emojiCodeTableWithSkinTones[emoji.code];
+                if (!resolvedEmoji && item.code) {
+                    resolvedEmoji = findEmojiByCode(item.code);
+                }
+                const emojiWithSkinTones = resolvedEmoji ? Emojis.emojiCodeTableWithSkinTones[resolvedEmoji.code] : undefined;
                 if (!emojiWithSkinTones) {
                     return null;
                 }
@@ -132,17 +135,19 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
     // On AddComment API response, each variant of the same emoji (with different skin tones) is
     // treated as a separate entry due to unique emoji codes for each variant.
     // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
-    const frequentlyUsedEmojiCodesToObjects = new Map<string, FrequentlyUsedEmoji>();
+    // Prefer hexcode as the dedup key so that entries stored with only a hexcode merge correctly.
+    const frequentlyUsedEmojiMap = new Map<string, FrequentlyUsedEmoji>();
     for (const emoji of processedFrequentlyUsedEmojis) {
-        const existingEmoji = frequentlyUsedEmojiCodesToObjects.get(emoji.code);
+        const key = emoji.hexcode ?? emoji.code;
+        const existingEmoji = frequentlyUsedEmojiMap.get(key);
         if (existingEmoji) {
             existingEmoji.count += emoji.count;
             existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
         } else {
-            frequentlyUsedEmojiCodesToObjects.set(emoji.code, emoji);
+            frequentlyUsedEmojiMap.set(key, emoji);
         }
     }
-    return Array.from(frequentlyUsedEmojiCodesToObjects.values()).sort((a, b) => {
+    return Array.from(frequentlyUsedEmojiMap.values()).sort((a, b) => {
         if (a.count !== b.count) {
             return b.count - a.count;
         }
