@@ -73,7 +73,7 @@ function endSpan(spanId: string) {
     const now = performance.now();
     const durationMs = Math.round(now - startTime);
     console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
-    span.setStatus({code: 1});
+    span.setStatus({code: CONST.TELEMETRY.SPAN_STATUS_CODE.OK});
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
     span.end();
     activeSpans.delete(spanId);
@@ -87,7 +87,7 @@ function cancelSpan(spanId: string) {
     entry.span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_CANCELED, true);
     // In Sentry there are only OK or ERROR status codes.
     // We treat canceled spans as OK, so we can properly track spans that are not finished at all (their status would be different)
-    entry.span.setStatus({code: 1});
+    entry.span.setStatus({code: CONST.TELEMETRY.SPAN_STATUS_CODE.OK});
     endSpan(spanId);
 }
 
