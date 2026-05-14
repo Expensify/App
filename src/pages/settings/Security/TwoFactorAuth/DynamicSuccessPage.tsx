@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useDynamicForwardPath from '@hooks/useDynamicForwardPath';
 import useEnvironment from '@hooks/useEnvironment';
@@ -29,11 +29,11 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         quitAndNavigateBack(dynamicBackPath);
-    }, [dynamicBackPath]);
+    };
 
-    const onButtonPress = useCallback(() => {
+    const onButtonPress = () => {
         if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed && !isClassicRedirectBlocked) {
             closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
             return;
@@ -45,7 +45,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
                 openLink(getXeroSetupLink(policyID), environmentURL);
             }
         }
-    }, [isClassicRedirectDismissed, isClassicRedirectBlocked, goBack, dynamicForwardPath, route.params?.policyID, environmentURL]);
+    };
 
     return (
         <SuccessPageBase

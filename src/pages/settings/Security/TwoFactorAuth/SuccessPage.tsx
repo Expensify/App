@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import useOnyx from '@hooks/useOnyx';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 import {closeReactNativeApp} from '@userActions/HybridApp';
@@ -15,17 +15,17 @@ function SuccessPage() {
     const isClassicRedirectBlocked = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
     const isClassicRedirectDismissed = tryNewDot?.classicRedirect?.dismissed;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         quitAndNavigateBack(ROUTES.SETTINGS_SECURITY);
-    }, []);
+    };
 
-    const onButtonPress = useCallback(() => {
+    const onButtonPress = () => {
         if (CONFIG.IS_HYBRID_APP && isClassicRedirectDismissed && !isClassicRedirectBlocked) {
             closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
             return;
         }
         goBack();
-    }, [isClassicRedirectDismissed, isClassicRedirectBlocked, goBack]);
+    };
 
     return (
         <SuccessPageBase

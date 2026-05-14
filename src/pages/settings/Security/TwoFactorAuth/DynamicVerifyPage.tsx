@@ -33,10 +33,7 @@ import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 const TROUBLESHOOTING_LINK = 'https://help.expensify.com/articles/new-expensify/settings/Enable-Two-Factor-Authentication';
 
-type DynamicVerifyPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorParamList, typeof SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY>;
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function DynamicVerifyPage(_props: DynamicVerifyPageProps) {
+function DynamicVerifyPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION);

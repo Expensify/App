@@ -25,9 +25,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const authToken = session?.authToken ?? null;
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const is2FAEnabled = account?.requiresTwoFactorAuth ?? false;
-    const getTwoFactorAuthRoute = useTwoFactorAuthRoute();
+    const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>

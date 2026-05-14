@@ -88,7 +88,7 @@ function SecuritySettingsPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
     const isUserValidated = account?.validated;
-    const getTwoFactorAuthRoute = useTwoFactorAuthRoute();
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);

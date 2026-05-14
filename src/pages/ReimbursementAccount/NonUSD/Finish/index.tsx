@@ -33,7 +33,7 @@ function Finish() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const policyID = reimbursementAccount?.achData?.policyID;
-    const getTwoFactorAuthRoute = useTwoFactorAuthRoute();
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const handleBackButtonPress = () => {
         Navigation.dismissModal();

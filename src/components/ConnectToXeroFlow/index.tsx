@@ -2,22 +2,18 @@ import React, {useEffect, useState} from 'react';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {openLink} from '@userActions/Link';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectToXeroFlowProps} from './types';
 
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const is2FAEnabled = account?.requiresTwoFactorAuth;
-    const getTwoFactorAuthRoute = useTwoFactorAuthRoute();
+    const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 

@@ -22,34 +22,37 @@ describe('useTwoFactorAuthRoute', () => {
         mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: true, validated: true}]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
-        const route = result.current();
+        const route = result.current.getTwoFactorAuthRoute();
 
         expect(route).toBe('settings/security/two-factor-auth/enabled');
+        expect(result.current.is2FAEnabled).toBe(true);
     });
 
     it('returns the dynamic verify-account route when user is not validated', () => {
         mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: false, validated: false}]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
-        const route = result.current();
+        const route = result.current.getTwoFactorAuthRoute();
 
         expect(route).toBe('current-path/two-factor-auth/verify-account');
+        expect(result.current.is2FAEnabled).toBe(false);
     });
 
     it('returns the dynamic setup route when user is validated and 2FA is not enabled', () => {
         mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: false, validated: true}]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
-        const route = result.current();
+        const route = result.current.getTwoFactorAuthRoute();
 
         expect(route).toBe('current-path/two-factor-auth');
+        expect(result.current.is2FAEnabled).toBe(false);
     });
 
     it('ignores backTo and returns enabled route when 2FA is already enabled', () => {
         mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: true, validated: true}]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
-        const route = result.current('settings/wallet' as Route);
+        const route = result.current.getTwoFactorAuthRoute('settings/wallet' as Route);
 
         expect(route).toBe('settings/security/two-factor-auth/enabled');
     });
@@ -58,7 +61,7 @@ describe('useTwoFactorAuthRoute', () => {
         mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: false, validated: false}]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
-        const route = result.current('settings/security' as Route);
+        const route = result.current.getTwoFactorAuthRoute('settings/security' as Route);
 
         expect(route).toBe('settings/security/two-factor-auth/verify-account');
     });
@@ -67,7 +70,7 @@ describe('useTwoFactorAuthRoute', () => {
         mockUseOnyx.mockReturnValue([{requiresTwoFactorAuth: false, validated: true}]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
-        const route = result.current('settings/security' as Route);
+        const route = result.current.getTwoFactorAuthRoute('settings/security' as Route);
 
         expect(route).toBe('settings/security/two-factor-auth');
     });
@@ -76,8 +79,9 @@ describe('useTwoFactorAuthRoute', () => {
         mockUseOnyx.mockReturnValue([undefined]);
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
-        const route = result.current();
+        const route = result.current.getTwoFactorAuthRoute();
 
         expect(route).toBe('current-path/two-factor-auth/verify-account');
+        expect(result.current.is2FAEnabled).toBe(false);
     });
 });

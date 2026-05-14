@@ -5,20 +5,28 @@ import type {Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import useOnyx from './useOnyx';
 
+type TwoFactorAuthRouteResult = {
+    getTwoFactorAuthRoute: (backTo?: Route) => Route;
+    is2FAEnabled: boolean;
+};
+
 /**
- * Returns a getter that resolves the correct 2FA route based on account state:
+ * Returns the 2FA enabled state and a getter that resolves the correct 2FA route based on account state:
  * - 2FA already enabled  → static enabled page
  * - user not validated   → dynamic verify-account page
  * - otherwise            → dynamic setup (copy codes) page
- *
- * @returns A function `(backTo?: Route) => Route` that computes the target route.
+ * @returns An object containing:
+ *  - `getTwoFactorAuthRoute`: a function `(backTo?: Route) => Route` that computes the target route.
+ *  - `is2FAEnabled`: whether the user already has 2FA enabled.
  */
-function useTwoFactorAuthRoute(): (backTo?: Route) => Route {
+function useTwoFactorAuthRoute(): TwoFactorAuthRouteResult {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    return useCallback(
+    const is2FAEnabled = !!account?.requiresTwoFactorAuth;
+
+    const getTwoFactorAuthRoute = useCallback(
         (backTo?: Route): Route => {
-            if (account?.requiresTwoFactorAuth) {
+            if (is2FAEnabled) {
                 return ROUTES.SETTINGS_2FA_ENABLED;
             }
 
@@ -28,8 +36,10 @@ function useTwoFactorAuthRoute(): (backTo?: Route) => Route {
 
             return createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backTo);
         },
-        [account?.requiresTwoFactorAuth, account?.validated],
+        [is2FAEnabled, account?.validated],
     );
+
+    return {getTwoFactorAuthRoute, is2FAEnabled};
 }
 
 export default useTwoFactorAuthRoute;

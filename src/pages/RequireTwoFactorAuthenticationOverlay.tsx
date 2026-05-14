@@ -47,14 +47,14 @@ function RequireTwoFactorAuthenticationOverlay() {
     const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const getTwoFactorAuthRoute = useTwoFactorAuthRoute();
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const requires2FAForXeroSelector = useCallback((workspaces: OnyxCollection<Policy>) => is2FARequiredBecauseOfXeroSelector(email)(workspaces), [email]);
     const [is2FARequiredBecauseOfXero = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: requires2FAForXeroSelector});
 
-    const handleOnPress = useCallback(() => {
+    const handleOnPress = () => {
         Navigation.navigate(getTwoFactorAuthRoute());
-    }, [getTwoFactorAuthRoute]);
+    };
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
         return null;

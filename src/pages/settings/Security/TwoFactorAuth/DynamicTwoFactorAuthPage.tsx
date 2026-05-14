@@ -56,6 +56,7 @@ function DynamicTwoFactorAuthPage() {
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const isUserValidated = account?.validated ?? false;
+    const is2FAEnabled = !!account?.requiresTwoFactorAuth;
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTwoFactorAuthPage', isLoading: !!account?.isLoading};
 
@@ -67,14 +68,14 @@ function DynamicTwoFactorAuthPage() {
             return;
         }
 
-        if (isFocused && account?.requiresTwoFactorAuth) {
+        if (isFocused && is2FAEnabled) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
             });
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
+        if (isLoadingOnyxValue(accountMetadata) || is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
             return;
         }
 
@@ -84,7 +85,7 @@ function DynamicTwoFactorAuthPage() {
 
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused, account?.requiresTwoFactorAuth]);
+    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled]);
 
     return (
         <TwoFactorAuthWrapper

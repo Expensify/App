@@ -22,7 +22,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['Shield']);
-    const getTwoFactorAuthRoute = useTwoFactorAuthRoute();
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     return (
         <Section
