@@ -52,8 +52,6 @@ jobs:
       - name: Setup Claude review toolkit
         id: toolkit
         uses: Expensify/GitHub-Actions/.github/actions/claude-review-toolkit@CLAUDE_REVIEW_TOOLKIT_SHA_PLACEHOLDER
-        with:
-          enforce_allowed_rules: 'true'
 
       - name: Mark review as in progress
         env:
