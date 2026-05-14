@@ -22,7 +22,7 @@ function triggerDuplicates<TKey extends OnyxKey>(request: Request<TKey> | Pagina
     });
 
     for (let i = 0; i < count; i++) {
-        HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline).catch(() => {
+        HttpUtils.xhr(request.command, finalParameters, undefined, request.type, request.shouldUseSecure, request.initiatedOffline).catch(() => {
             // Load-test mock traffic is fire-and-forget; failures should not affect the app.
         });
     }
