@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
-import {getAllReportActions, getReportActionHtml, getReportActionText, getSortedReportActions, hasPendingDEWApprove, isCreatedAction, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
     buildOptimisticChangeApproverReportAction,
@@ -308,21 +308,29 @@ function getIOUReportActionWithBadge(
     const chatReportActions = getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
-    const sortedActions = getSortedReportActions(Object.values(chatReportActions));
-    const reportAction = sortedActions.find((action) => {
+    let earliestAction: ReportAction | undefined;
+    let earliestBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
+
+    for (const action of Object.values(chatReportActions)) {
         if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
-            return false;
+            continue;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
         const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
-        if (badge) {
-            actionBadge = badge;
-            return true;
+        if (!badge) {
+            continue;
         }
-        return false;
-    });
+        if (!earliestAction?.created || (action.created && action.created < earliestAction.created)) {
+            earliestAction = action;
+            earliestBadge = badge;
+        }
+    }
 
-    return {reportAction, actionBadge};
+    if (earliestAction) {
+        actionBadge = earliestBadge;
+    }
+
+    return {reportAction: earliestAction, actionBadge};
 }
 
 /**
