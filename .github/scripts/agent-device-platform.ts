@@ -377,6 +377,7 @@ class IOSPlatform implements Platform {
   }
 
   launch(): void {
+    const dev = this.getDevice();
     execFileSync(
       "agent-device",
       [
@@ -384,8 +385,10 @@ class IOSPlatform implements Platform {
         this.appPackage,
         "--platform",
         "ios",
+        "--device",
+        dev.name,
         "--udid",
-        this.getDeviceUdid(),
+        dev.udid,
         "--session",
         SESSION,
         "--relaunch",
@@ -395,10 +398,11 @@ class IOSPlatform implements Platform {
   }
 
   forceRelaunch(): void {
+    const dev = this.getDevice();
     try {
       execFileSync(
         "xcrun",
-        ["simctl", "terminate", this.getDeviceUdid(), this.appPackage],
+        ["simctl", "terminate", dev.udid, this.appPackage],
         { timeout: 10_000, stdio: "ignore" },
       );
     } catch (e) {
@@ -415,7 +419,9 @@ class IOSPlatform implements Platform {
           "--platform",
           "ios",
           "--device",
-          this.getDeviceUdid(),
+          dev.name,
+          "--udid",
+          dev.udid,
           "--session",
           SESSION,
           "--relaunch",
@@ -563,40 +569,50 @@ class IOSPlatform implements Platform {
     }
   }
 
-  private cachedUdid: string | null = null;
+  private cachedDevice: { name: string; udid: string } | null = null;
 
-  private getDeviceUdid(): string {
-    if (this.cachedUdid) {
-      return this.cachedUdid;
+  private getDevice(): { name: string; udid: string } {
+    if (this.cachedDevice) {
+      return this.cachedDevice;
     }
     /*
-     * Pick the first booted simulator. `xcrun simctl list devices
-     * --json` returns
+     * Discover the booted iOS sim via `xcrun simctl list devices
+     * --json`. Format:
      *
      *   {"devices": {"com.apple.CoreSimulator.SimRuntime.iOS-17-2": [
      *     {"udid":"…","state":"Booted","name":"iPhone 15"}, …
      *   ]}}
      *
-     * The workflow's `xcrun simctl boot` step ensures exactly one
-     * device is booted; if multiple are booted (e.g. local dev),
-     * we use the first one and trust the workflow / skill pre-flight
-     * to have prompted the user.
+     * We capture BOTH the udid and the name. Run 25864724817 showed
+     * that `agent-device open --udid <UDID>` succeeds but subsequent
+     * `agent-device snapshot --session ci` hangs indefinitely on iOS.
+     * The skill-documented idiom is `--device <name>`, so we now pass
+     * both flags to maximise the chance the daemon's session-binding
+     * logic recognises the device correctly. If `--device` alone
+     * suffices, the redundant `--udid` is harmless.
      */
     const raw = execFileSync("xcrun", ["simctl", "list", "devices", "--json"], {
       encoding: "utf8",
     });
     const parsed = JSON.parse(raw) as {
-      devices: Record<string, Array<{ udid: string; state: string }>>;
+      devices: Record<
+        string,
+        Array<{ udid: string; state: string; name: string }>
+      >;
     };
     for (const runtime of Object.values(parsed.devices)) {
       for (const dev of runtime) {
         if (dev.state === "Booted") {
-          this.cachedUdid = dev.udid;
-          return dev.udid;
+          this.cachedDevice = { name: dev.name, udid: dev.udid };
+          return this.cachedDevice;
         }
       }
     }
     throw new Error("no booted iOS simulator found");
+  }
+
+  private getDeviceUdid(): string {
+    return this.getDevice().udid;
   }
 }
 
