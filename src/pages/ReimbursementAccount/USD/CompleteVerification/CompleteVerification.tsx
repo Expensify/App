@@ -39,13 +39,22 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
             {
                 isAuthorizedToUseBankAccount: values.isAuthorizedToUseBankAccount,
                 certifyTrueInformation: values.certifyTrueInformation,
-                acceptTermsAndConditions: values.acceptTermsAndConditions,
+                acceptTermsAndConditions: (values.acceptTermsAndConditions || reimbursementAccount?.achData?.acceptTerms) ?? false,
             },
             policyID,
             policyID ? lastPaymentMethod?.[policyID] : undefined,
         );
         markSubmitting();
-    }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod, markSubmitting]);
+    }, [
+        bankAccountID,
+        values.isAuthorizedToUseBankAccount,
+        values.certifyTrueInformation,
+        values.acceptTermsAndConditions,
+        reimbursementAccount?.achData?.acceptTerms,
+        policyID,
+        lastPaymentMethod,
+        markSubmitting,
+    ]);
 
     return (
         <InteractiveStepWrapper
