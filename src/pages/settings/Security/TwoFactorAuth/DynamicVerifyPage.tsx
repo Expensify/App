@@ -19,15 +19,12 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {TwoFactorAuthNavigatorParamList} from '@libs/Navigation/types';
 import {getContactMethod} from '@libs/UserUtils';
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {clearAccountMessages} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import ToggleTwoFactorAuthForm from './ToggleTwoFactorAuthForm';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
