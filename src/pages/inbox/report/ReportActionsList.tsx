@@ -49,6 +49,7 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
+    getOriginalReportID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -207,6 +208,7 @@ function ReportActionsList({
 
     const isAnonymousUser = useIsAnonymousUser();
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const [reportActionsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -782,6 +784,8 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+            const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsFromOnyx);
+
             // Use the action's actual index in sortedVisibleReportActions rather than the FlashList-provided index,
             // because useFlashListScrollKey may slice the data for deep-link scroll positioning, making the
             // FlashList index offset from the full array and causing wrong displayAsGroup computation.
@@ -807,6 +811,7 @@ function ReportActionsList({
                         isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         personalDetails={personalDetailsList}
+                        originalReportID={originalReportID}
                         isReportArchived={isReportArchived}
                         userBillingFundID={userBillingFundID}
                         isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
@@ -824,27 +829,28 @@ function ReportActionsList({
             );
         },
         [
-            actionIndexMap,
-            firstVisibleReportActionID,
-            hasPreviousMessages,
-            isOffline,
-            isReportArchived,
-            isTryNewDotNVPDismissed,
-            linkedReportActionID,
-            onShowPreviousMessages,
             parentReportAction,
             parentReportActionForTransactionThread,
-            personalDetailsList,
-            renderedVisibleReportActions,
             report,
+            isOffline,
+            transactionThreadReport,
+            linkedReportActionID,
+            actionIndexMap,
+            renderedVisibleReportActions,
+            shouldHideThreadDividerLine,
+            unreadMarkerReportActionID,
+            firstVisibleReportActionID,
+            shouldUseThreadDividerLine,
+            personalDetailsList,
+            userBillingFundID,
+            isTryNewDotNVPDismissed,
+            isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
-            shouldHideThreadDividerLine,
-            shouldUseThreadDividerLine,
+            reportActionsFromOnyx,
             showHiddenHistory,
-            transactionThreadReport,
-            unreadMarkerReportActionID,
-            userBillingFundID,
+            hasPreviousMessages,
+            onShowPreviousMessages,
         ],
     );
 
@@ -1001,5 +1007,3 @@ function ReportActionsList({
 }
 
 export default memo(ReportActionsList);
-
-export type {ReportActionsListProps};

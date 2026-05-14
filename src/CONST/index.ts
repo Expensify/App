@@ -881,7 +881,6 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
-        CUSTOM_RULES: 'customRules',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
@@ -889,6 +888,7 @@ const CONST = {
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         GUSTO: 'gustoNewDot',
+        ZENEFITS: 'zenefitsNewDot',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
         SUBMIT_2026: 'submit2026',
@@ -1842,18 +1842,6 @@ const CONST = {
         MAX_LINES_FULL: -1,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
-        /**
-         * TestIDs for the main report composer vs inline message editor (E2E / integration tests only).
-         * See tests/ui/ReportActionMessageEditLayoutTest.tsx
-         */
-        TEST_ID: {
-            REPORT_ACTION_COMPOSE: 'reportActionCompose',
-            DRAFT_MESSAGE_ACTION_ROW: 'reportActionCompose_draftMessageActionRow',
-            EDITING_MESSAGE_ACTION_ROW: 'reportActionCompose_editingMessageActionRow',
-            REPORT_ACTION_ITEM_MESSAGE_EDIT: 'reportActionItemMessageEdit',
-            MESSAGE_EDIT_CANCEL_MAIN_COMPOSER: 'messageEditCancel_mainComposer',
-            MESSAGE_EDIT_CANCEL_INLINE: 'messageEditCancel_inlineMessageEdit',
-        },
     },
     MODAL: {
         MODAL_TYPE: {
@@ -2799,6 +2787,14 @@ const CONST = {
         },
     },
 
+    ZENEFITS: {
+        APPROVAL_MODE: {
+            BASIC: 'basic',
+            MANAGER: 'manager',
+            CUSTOM: 'custom',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
@@ -3734,6 +3730,7 @@ const CONST = {
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'certinia',
                 GUSTO: 'gusto',
+                ZENEFITS: 'zenefits',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialForce',
@@ -3749,6 +3746,7 @@ const CONST = {
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
                 GUSTO: 'gusto',
+                ZENEFITS: 'zenefits',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3760,7 +3758,7 @@ const CONST = {
                 certinia: 'Certinia',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
-                zenefits: 'Zenefits',
+                zenefits: 'TriNet',
                 sap: 'SAP',
                 oracle: 'Oracle',
                 microsoftDynamics: 'Microsoft Dynamics',
@@ -3770,7 +3768,7 @@ const CONST = {
                 return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
             },
             get HR_CONNECTION_NAMES() {
-                return [this.NAME.GUSTO] as const;
+                return [this.NAME.GUSTO, this.NAME.ZENEFITS] as const;
             },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
                 return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
@@ -3854,6 +3852,9 @@ const CONST = {
                 GUSTO_SYNC_TITLE: 'gustoSyncTitle',
                 GUSTO_SYNC_LOAD_DATA: 'gustoSyncLoadData',
                 GUSTO_SYNC_PROVISIONING: 'gustoSyncProvisioning',
+                ZENEFITS_SYNC_TITLE: 'zenefitsSyncTitle',
+                ZENEFITS_SYNC_LOAD_DATA: 'zenefitsSyncLoadData',
+                ZENEFITS_SYNC_PROVISIONING: 'zenefitsSyncProvisioning',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -8643,9 +8644,24 @@ const CONST = {
 
     ANALYTICS: {
         EVENT: {
-            SIGN_UP: 'sign_up',
-            WORKSPACE_CREATED: 'workspace_created',
-            PAID_ADOPTION: 'paid_adoption',
+            SIGN_UP: {
+                NAME: 'sign_up',
+                META: 'SignUp',
+                REDDIT: 'SignUp',
+                LINKEDIN: 507587661,
+            },
+            WORKSPACE_CREATED: {
+                NAME: 'workspace_created',
+                META: 'WorkspaceCreated',
+                REDDIT: 'Lead',
+                LINKEDIN: 25474804,
+            },
+            PAID_ADOPTION: {
+                NAME: 'paid_adoption',
+                META: 'PaidAdoption',
+                REDDIT: 'Purchase',
+                LINKEDIN: 25474820,
+            },
         },
     },
 
@@ -9002,6 +9018,9 @@ const CONST = {
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
+        },
+        TABLE: {
+            EDITABLE_CELL: 'Table-EditableCell',
         },
         REPORT: {
             FLOATING_MESSAGE_COUNTER: 'Report-FloatingMessageCounter',

@@ -1279,9 +1279,12 @@ const translations = {
         deleteReceipt: 'Delete receipt',
         findExpense: 'Find expense',
         deletedTransaction: (amount: string, merchant: string) => `deleted an expense (${amount} for ${merchant})`,
-        movedFromReport: (reportName: string) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedFromReport: (reportName: string) => `moved an expense from ${reportName}`,
+        movedFromReportNoName: 'moved an expense',
+        movedTransactionTo: (reportUrl: string, reportName: string) => `moved this expense to <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionToAnotherReport: 'moved this expense to another report',
+        movedTransactionFrom: (reportUrl: string, reportName: string) => `moved this expense from <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionFromAnotherReport: 'moved this expense from another report',
         unreportedTransaction: (reportUrl: string) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
@@ -2543,6 +2546,7 @@ const translations = {
             revealDetails: 'Reveal details',
             revealCvv: 'Reveal CVV',
             copyCardNumber: 'Copy card number',
+            copyCvv: 'Copy CVV',
             updateAddress: 'Update address',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Added to ${platform} Wallet`,
@@ -2795,6 +2799,9 @@ const translations = {
         },
         error: {
             genericAdd: 'There was a problem adding this agent',
+            genericUpdate: 'There was a problem updating this agent',
+            updateName: "There was a problem updating this agent's name",
+            updatePrompt: "There was a problem updating this agent's instructions",
         },
     },
     addAgentPage: {
@@ -2806,6 +2813,23 @@ const translations = {
         defaultAgentName: (displayName: string) => `${displayName}'s Agent`,
         defaultPrompt:
             "Reject expenses that are for gambling, movies, or other obvious non-business reasons.\n\nRemind the user to always include a receipt image that makes the tip clear.\n\nApprove the report if it's very similar to previous reports from the same user.\n\nReject reports with more than $500 in travel expenses.",
+    },
+    editAgentPage: {
+        title: 'Edit agent',
+        agentName: 'Agent name',
+        instructions: 'Write custom instructions',
+        deleteAgent: 'Delete agent',
+        deleteAgentTitle: 'Delete agent?',
+        deleteAgentMessage: 'Are you sure you want to delete this agent? This action cannot be undone.',
+    },
+    editAgentNamePage: {
+        title: 'Agent name',
+    },
+    editAgentPromptPage: {
+        title: 'Write custom instructions',
+        error: {
+            emptyPrompt: 'Please enter instructions for your agent.',
+        },
     },
     expenseRulesPage: {
         title: 'Expense rules',
@@ -7762,7 +7786,7 @@ const translations = {
             editMultiple: 'Edit multiple',
             editMultipleTitle: 'Edit multiple expenses',
             // cspell:disable
-            editMultipleDescription: "Changes will be set for all selected expenses and will override any previously set values. Just sayin'.",
+            editMultipleDescription: 'Changes will be set for all selected expenses and will override any previously set values.',
             approve: 'Approve',
             pay: 'Pay',
             delete: 'Delete',
