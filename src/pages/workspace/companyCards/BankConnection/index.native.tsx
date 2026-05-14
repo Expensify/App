@@ -4,7 +4,6 @@ import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -78,10 +77,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const [isConfirmedNewFeed, setIsConfirmedNewFeed] = useState(false);
     const isDuplicateFeed = isNewFeedConnected && !newFeed && isPlaid && !isConfirmedNewFeed;
-    const [showDuplicateFeedModal, setShowDuplicateFeedModal] = useState(false);
-    if (isDuplicateFeed && !showDuplicateFeedModal) {
-        setShowDuplicateFeedModal(true);
-    }
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
@@ -147,13 +142,12 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
 
         // Handle add new card flow
         if (isNewFeedConnected) {
-            // Duplicate feed detected — modal is shown via render, skip navigation
-            if (showDuplicateFeedModal) {
-                return;
-            }
-
             if (newFeed) {
                 updateSelectedFeed(newFeed, policyID);
+            }
+
+            if (isDuplicateFeed) {
+                setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: true}});
             }
 
             Navigation.closeRHPFlow();
@@ -167,7 +161,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         }
     }, [
         isNewFeedConnected,
-        showDuplicateFeedModal,
+        isDuplicateFeed,
         newFeed,
         policyID,
         url,
@@ -230,18 +224,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
                     />
                 )}
             </FullPageOfflineBlockingView>
-            <ConfirmModal
-                isVisible={showDuplicateFeedModal}
-                title={translate('workspace.companyCards.addNewCard.duplicateFeedModal.title')}
-                prompt={translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt')}
-                confirmText={translate('workspace.companyCards.addNewCard.duplicateFeedModal.confirmText')}
-                shouldShowCancelButton={false}
-                onConfirm={() => {
-                    setShowDuplicateFeedModal(false);
-                    Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
-                }}
-                onCancel={() => setShowDuplicateFeedModal(false)}
-            />
         </ScreenWrapper>
     );
 }
