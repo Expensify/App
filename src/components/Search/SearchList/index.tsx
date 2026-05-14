@@ -35,8 +35,7 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {HoldMenuCallback} from '..';
+import type {CardList, Transaction} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
@@ -118,12 +117,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     newTransactions?: Transaction[];
 
-    /** Violations indexed by transaction ID */
-    violations?: Record<string, TransactionViolations | undefined> | undefined;
-
-    /** Callback to fire when hold menu should be opened */
-    onHoldMenuOpen?: HoldMenuCallback;
-
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
@@ -133,7 +126,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
 
-    policyForMovingExpenses?: Policy;
+    /** Precomputed boolean: shouldShowAttendees applied to the user's policy-for-moving-expenses.
+     * Drilled instead of the policy object to avoid ref churn on unrelated policy updates. */
+    isAttendeesEnabledForMovingPolicy?: boolean;
 
     /** Whether the action column should use its wider variant (e.g. when there is at least one deleted transaction) */
     isActionColumnWide?: boolean;
@@ -217,19 +212,17 @@ function SearchList({
     shouldAnimate,
     isMobileSelectionModeEnabled,
     newTransactions = [],
-    violations,
-    onHoldMenuOpen,
     nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     isActionColumnWide,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
-    const {hash, groupBy, type} = queryJSON;
+    const {groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
         if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
@@ -298,8 +291,6 @@ function SearchList({
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
-
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
@@ -445,10 +436,8 @@ function SearchList({
                         onSelectionButtonPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
                         item={itemWithSelection}
-                        queryJSONHash={hash}
                         columns={columns}
-                        policies={policies}
-                        policyForMovingExpenses={policyForMovingExpenses}
+                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
@@ -458,12 +447,9 @@ function SearchList({
                         ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
-                        isOffline={isOffline}
-                        violations={violations}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
-                        onHoldMenuOpen={onHoldMenuOpen}
                         onUndelete={handleUndelete}
                         keyForList={item.keyForList}
                         isFirstItem={index === firstVisibleIndex}
@@ -485,22 +471,17 @@ function SearchList({
             handleLongPressRow,
             onCheckboxPress,
             canSelectMultiple,
-            hash,
             columns,
-            policies,
             personalDetails,
             userBillingFundID,
-            isOffline,
-            violations,
             lastPaymentMethod,
             personalPolicyID,
-            onHoldMenuOpen,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             nonPersonalAndWorkspaceCards,
             selectedTransactions,
             ListFooterComponent,
-            policyForMovingExpenses,
+            isAttendeesEnabledForMovingPolicy,
             handleUndelete,
             firstVisibleIndex,
             lastVisibleIndex,
@@ -570,7 +551,7 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
-                policyForMovingExpenses={policyForMovingExpenses}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                 nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             />
             <Modal
