@@ -303,3 +303,4 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
 
 export default BarChartContent;
 export type {BarChartProps};
+export {BAR_INNER_PADDING};

@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import {type CustomRendererProps, type TBlock, TNode, TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray} from 'victory-native';
 import {Bar, CartesianChart, Line} from 'victory-native';
+import {BAR_INNER_PADDING} from '@components/Charts/BarChart/BarChartContent';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
@@ -90,6 +91,8 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     const isPolarChart = useMemo(() => false, [rawData]);
     const {data, xKey, yKeys} = useMemo(() => prepareDataForCartesianChart(rawData), [rawData, isPolarChart]);
 
+    window.tnode = tnode;
+
     const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<any, any>) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
         const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
@@ -101,6 +104,8 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                         key={key}
                         points={points[yKey]}
                         chartBounds={chartBounds}
+                        innerPadding={BAR_INNER_PADDING}
+                        roundedCorners={parseAttribute(tnode.attributes.cornerradius)}
                     >
                         {tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
                     </Bar>
@@ -120,13 +125,14 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     }, []);
 
     return (
-        <View style={{height: 200, width: 200}}>
+        <View style={{height: 250, width: '100%'}}>
             <CartesianChart
                 data={data}
                 xKey={xKey}
                 yKeys={yKeys}
                 domain={parseAttribute(tnode.attributes.domain)}
-                domainPadding={parseAttribute(tnode.attributes.domainPadding)}
+                domainPadding={parseAttribute(tnode.attributes.domainpadding)}
+                padding={parseAttribute(tnode.attributes.padding)}
             >
                 {(renderArgs) => tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
             </CartesianChart>
