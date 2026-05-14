@@ -21,7 +21,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -58,10 +57,9 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass', 'MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan']);
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
 
@@ -196,17 +194,6 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                             />
                         </CardDetailsActionButtons>
                     </OfflineWithFeedback>
-                    {!cardholder?.validated && (
-                        <MenuItem
-                            icon={expensifyIcons.Hourglass}
-                            iconStyles={styles.mln2}
-                            descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
-                            description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
-                            numberOfLinesDescription={0}
-                            interactive={false}
-                        />
-                    )}
-
                     <OfflineWithFeedback
                         pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                         errorRowStyles={errorRowStyles}
