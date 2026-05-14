@@ -16,8 +16,6 @@ type StartSpanExtraOptions = Partial<{
      *
      */
     minDuration: number;
-    /** Unix epoch ms from Nitro `AppStartTime` — aligns startup benchmark + User Timing with native process start */
-    nativeAppStartTimeEpochMs?: number;
 }>;
 
 function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
