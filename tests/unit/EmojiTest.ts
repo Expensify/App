@@ -3,6 +3,7 @@ import type {Emoji} from '@assets/emojis/types';
 import * as Browser from '@libs/Browser';
 import emojiTrieForLocale, {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
 // Unmock to use real parseExpensiMark for code block detection tests
 jest.unmock('@expensify/react-native-live-markdown');
@@ -693,6 +694,39 @@ describe('EmojiTest', () => {
 
         it('returns undefined for unknown hexcode', () => {
             expect(findEmojiByHexCode('FFFFFF')).toBeUndefined();
+        });
+    });
+
+    describe('reaction key formats', () => {
+        const reaction: ReportActionReaction = {
+            createdAt: '2024-01-01 00:00:00',
+            oldestTimestamp: '2024-01-01 00:00:00',
+            users: {
+                '12345': {
+                    id: '12345',
+                    oldestTimestamp: '2024-01-01 00:00:00',
+                    skinTones: {[-1]: '2024-01-01 00:00:00'},
+                },
+            },
+        };
+
+        it('resolves a hex-keyed reaction to the right emoji', () => {
+            const details = EmojiUtils.getEmojiReactionDetails('1F44D', reaction, 12345);
+            expect(details.emoji?.name).toBe('+1');
+            expect(details.reactionCount).toBe(1);
+            expect(details.hasUserReacted).toBe(true);
+        });
+
+        it('resolves a name-keyed reaction (legacy)', () => {
+            const details = EmojiUtils.getEmojiReactionDetails('+1', reaction, 12345);
+            expect(details.emoji?.name).toBe('+1');
+            expect(details.reactionCount).toBe(1);
+        });
+
+        it('returns undefined emoji for an unknown key', () => {
+            const details = EmojiUtils.getEmojiReactionDetails('madeupemojiname', reaction, 12345);
+            expect(details.emoji).toBeUndefined();
+            expect(details.reactionCount).toBe(1);
         });
     });
 
