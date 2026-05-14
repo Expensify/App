@@ -71,7 +71,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     }, [isMultiLevelTags, policyTagLists]);
 
     const handlePostConfirmTagSwitch = () => {
-        cleanPolicyTags(policyID, !!policy?.requiresTag);
+        cleanPolicyTags(policyID, policy?.requiresTag === true);
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),

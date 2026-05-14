@@ -856,24 +856,15 @@ function enablePolicyTags(policyData: PolicyData, enabled: boolean) {
     }
 }
 
-function cleanPolicyTags(policyID: string, currentRequiresTag = false) {
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> | undefined = currentRequiresTag
+function cleanPolicyTags(policyID: string, shouldDisableRequiresTag = false) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> | undefined = shouldDisableRequiresTag
         ? {
-              optimisticData: [
+              successData: [
                   {
                       onyxMethod: Onyx.METHOD.MERGE,
                       key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                       value: {
                           requiresTag: false,
-                      },
-                  },
-              ],
-              failureData: [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                      value: {
-                          requiresTag: currentRequiresTag,
                       },
                   },
               ],
