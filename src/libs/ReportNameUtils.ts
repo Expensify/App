@@ -55,6 +55,7 @@ import {
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getJoinRequestMessage,
+    getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -811,9 +812,12 @@ function computeChatThreadReportName(
     const isArchivedNonExpense = isArchivedNonExpenseReport(report, isArchived);
 
     if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
-        const linkedTransactionID = getOriginalMessage(parentReportAction)?.IOUTransactionID;
+        const linkedTransactionID = getLinkedTransactionID(parentReportAction);
         const linkedTransaction = linkedTransactionID ? transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID}`] : undefined;
-        const linkedTransactions = transactions ? (linkedTransaction ? [linkedTransaction] : []) : undefined;
+        let linkedTransactions: Transaction[] | undefined;
+        if (transactions) {
+            linkedTransactions = linkedTransaction ? [linkedTransaction] : [];
+        }
         let formattedName = getTransactionReportName({
             translate,
             reportAction: parentReportAction,
