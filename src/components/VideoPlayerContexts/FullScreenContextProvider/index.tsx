@@ -43,6 +43,14 @@ function useFullScreenState() {
     return value;
 }
 
+function useFullScreenActions() {
+    const value = useContext(FullScreenActionsContext);
+    if (!value) {
+        throw new Error('useFullScreenActions must be used within a FullScreenContextProvider');
+    }
+    return value;
+}
+
 export default FullScreenContextProvider;
-export {FullScreenStateContext, FullScreenActionsContext, useFullScreenState};
+export {FullScreenStateContext, FullScreenActionsContext, useFullScreenState, useFullScreenActions};
 export type {ResponsiveLayoutProperties};

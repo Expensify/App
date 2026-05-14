@@ -65,7 +65,7 @@ function AttachmentCarouselView({
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const canUseTouchScreen = canUseTouchScreenUtil();
-    const {isFullScreen, isFullScreenRef} = useFullScreenState();
+    const {isFullScreen} = useFullScreenState();
     const isPagerScrolling = useSharedValue(false);
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
@@ -86,7 +86,7 @@ function AttachmentCarouselView({
     /** Updates the page state when the user navigates between attachments */
     const updatePage = useCallback(
         ({viewableItems}: UpdatePageProps) => {
-            if (isFullScreenRef.current) {
+            if (isFullScreen) {
                 return;
             }
 
@@ -110,7 +110,7 @@ function AttachmentCarouselView({
                 onNavigate(item);
             }
         },
-        [isFullScreenRef, onNavigate, setPage, setActiveAttachmentID],
+        [isFullScreen, onNavigate, setPage, setActiveAttachmentID],
     );
 
     /** Increments or decrements the index to get another selected item */

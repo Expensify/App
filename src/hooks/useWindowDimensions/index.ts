@@ -1,4 +1,4 @@
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import {useContext, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Dimensions, useWindowDimensions} from 'react-native';
@@ -22,7 +22,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
         () => ({
             isFullScreen: false,
             isFullScreenRef: {current: false},
-            lockedWindowDimensionsRef: {current: null} as MutableRefObject<ResponsiveLayoutProperties | null>,
+            lockedWindowDimensionsRef: {current: null} as RefObject<ResponsiveLayoutProperties | null>,
         }),
         [],
     );

@@ -59,7 +59,6 @@ function BaseVideoPlayer({
         usePlaybackActionsContext();
     const {isFullScreen} = useFullScreenState();
     const {setIsFullScreen} = useFullScreenActions();
-    const {isFullScreenRef} = useFullScreenState();
     const report = useReportOrReportDraft(reportID);
 
     const isOffline = useNetwork().isOffline;
