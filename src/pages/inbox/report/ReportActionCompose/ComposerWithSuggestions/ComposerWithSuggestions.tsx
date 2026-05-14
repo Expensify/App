@@ -266,9 +266,9 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
-    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
-    // When SearchReport is stacked above another RHP (wide or super-wide), delay autofocus until after the transition completes to avoid animation jank
-    const shouldDelayAutoFocus = (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const {superWideRHPRouteKeys} = useWideRHPState();
+    // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
+    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
@@ -1016,4 +1016,4 @@ function ComposerWithSuggestions({
 
 export default memo(ComposerWithSuggestions);
 
-export type {ComposerWithSuggestionsProps, ComposerRef};
+export type {ComposerRef};
