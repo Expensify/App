@@ -58,7 +58,8 @@ function DynamicIOURequestStepTaxRatePage({
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
+    const reportIDForReceiptRestart = reportIDFromRoute ?? report?.reportID ?? '';
+    useRestartOnReceiptFailure(transaction, reportIDForReceiptRestart, iouType, action);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;

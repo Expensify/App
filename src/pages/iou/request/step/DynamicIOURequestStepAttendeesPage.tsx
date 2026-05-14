@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useState} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -15,19 +16,20 @@ import {getOriginalAttendees} from '@libs/TransactionUtils';
 import MoneyRequestAttendeeSelector from '@pages/iou/request/MoneyRequestAttendeeSelector';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepAttendeesProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES>;
+type DynamicIOURequestStepAttendeesProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ATTENDEES>;
 
-function IOURequestStepAttendees({
+function DynamicIOURequestStepAttendees({
     route: {
-        params: {transactionID, reportID, iouType, backTo, action},
+        params: {transactionID, reportID, iouType, action},
     },
-}: IOURequestStepAttendeesProps) {
+}: DynamicIOURequestStepAttendeesProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // eslint-disable-next-line rulesdir/no-default-id-values
@@ -48,6 +50,11 @@ function IOURequestStepAttendees({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_ATTENDEES.path);
+
+    const navigateBack = () => {
+        Navigation.goBack(backPath);
+    };
 
     const saveAttendees = useCallback(() => {
         if (attendees.length <= 0) {
@@ -73,11 +80,10 @@ function IOURequestStepAttendees({
             }
         }
 
-        Navigation.goBack(backTo);
+        navigateBack();
     }, [
         attendees,
         previousAttendees,
-        backTo,
         transactionID,
         isEditing,
         report,
@@ -90,11 +96,8 @@ function IOURequestStepAttendees({
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
         parentReportNextStep,
+        backPath,
     ]);
-
-    const navigateBack = () => {
-        Navigation.goBack(backTo);
-    };
 
     return (
         <StepScreenWrapper
@@ -114,4 +117,4 @@ function IOURequestStepAttendees({
     );
 }
 
-export default withWritableReportOrNotFound(IOURequestStepAttendees);
+export default withWritableReportOrNotFound(DynamicIOURequestStepAttendees);
