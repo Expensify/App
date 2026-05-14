@@ -39,6 +39,7 @@ import TableBody from './TableBody';
 import TableContext from './TableContext';
 import TableFilterButtons from './TableFilterButtons';
 import TableHeader from './TableHeader';
+import TableRow from './TableRow';
 import TableSearchBar from './TableSearchBar';
 
 /**
@@ -66,6 +67,9 @@ const Table = Object.assign(TableComponent, {
 
     /** Renders a search input. */
     SearchBar: TableSearchBar,
+
+    /** Renders a row in the table */
+    Row: TableRow,
 });
 
 export default Table;

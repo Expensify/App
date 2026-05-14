@@ -1228,9 +1228,12 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Elimina ricevuta',
         findExpense: 'Trova spesa',
         deletedTransaction: (amount: string, merchant: string) => `ha eliminato una spesa (${amount} per ${merchant})`,
-        movedFromReport: (reportName: string) => `ha spostato una spesa${reportName ? `da ${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `ha spostato questa spesa${reportName ? `a <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `ha spostato questa spesa${reportName ? `da <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedFromReport: (reportName: string) => `ha spostato una spesa da ${reportName}`,
+        movedFromReportNoName: 'ha spostato una spesa',
+        movedTransactionTo: (reportUrl: string, reportName: string) => `ha spostato questa spesa su <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionToAnotherReport: 'ha spostato questa spesa in un altro report',
+        movedTransactionFrom: (reportUrl: string, reportName: string) => `ha spostato questa spesa da <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionFromAnotherReport: 'ha spostato questa nota spese da un altro report',
         unreportedTransaction: (reportUrl: string) => `ha spostato questa spesa nel tuo <a href="${reportUrl}">spazio personale</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
@@ -7730,7 +7733,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         bulkActions: {
             editMultiple: 'Modifica multipli',
             editMultipleTitle: 'Modifica più spese',
-            editMultipleDescription: 'Le modifiche verranno applicate a tutte le spese selezionate e sostituiranno i valori precedentemente impostati.',
+            editMultipleDescription: 'Le modifiche verranno applicate a tutte le spese selezionate e sovrascriveranno qualsiasi valore impostato in precedenza.',
             approve: 'Approva',
             pay: 'Paga',
             delete: 'Elimina',
@@ -9273,7 +9276,6 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             noWorkspacesMessage: 'Non ci sono spazi di lavoro su questo dominio. È necessario uno spazio di lavoro per abilitare questa restrizione.',
             restrictDefaultLoginSelection: 'Limita la selezione di accesso predefinita',
             restrictDefaultLoginSelectionDescription: 'Impedisce ai membri di modificare l’email di accesso al di fuori del dominio aziendale per eludere le restrizioni delle policy.',
-
             expensifyCardPreferredWorkspaceDisabledMessage:
                 'Per abilitare questa impostazione, abilita prima uno spazio di lavoro preferito e configura le Expensify Card per il tuo dominio.',
             findGroup: 'Trova gruppo',
