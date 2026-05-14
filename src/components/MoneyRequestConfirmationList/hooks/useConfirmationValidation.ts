@@ -7,7 +7,7 @@ import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
-import {areRequiredFieldsEmpty, getTag, hasTaxRateWithMatchingValue, isMerchantMissing} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, getTag, hasTaxRateWithMatchingValue, isMerchantMissing, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
 import {isValidInputLength} from '@libs/ValidationUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -71,10 +71,13 @@ type UseConfirmationValidationParams = {
     /** Whether the merchant field is required for this flow */
     isMerchantRequired: boolean | undefined;
 
-    /** Whether the merchant field is currently empty / partial */
+    /** Whether the merchant value passes full validation (length, required, disallowed values) */
+    isMerchantFieldValid: boolean;
+
+    /** Whether the merchant field is empty / partial (from {@link useFormErrorManagement}) */
     isMerchantEmpty: boolean;
 
-    /** Whether per-field errors should be shown */
+    /** When editing a split bill, whether per-field errors should be shown (SmartScan failure paths) */
     shouldDisplayFieldError: boolean;
 
     /** Whether the tax section is enabled for this policy */
@@ -92,11 +95,11 @@ type UseConfirmationValidationParams = {
     /** Whether the transaction is a time-tracking request */
     isTimeRequest: boolean;
 
-    /** Whether the new manual expense flow beta is enabled */
-    isNewManualExpenseFlowEnabled: boolean;
-
     /** Truthy when the route to the confirmation page has a known error */
     routeError: string | null | undefined;
+
+    /** Whether the new manual expense flow is enabled */
+    isNewManualExpenseFlowEnabled: boolean;
 };
 
 /**
@@ -131,6 +134,7 @@ function useConfirmationValidation({
     currentUserPersonalDetails,
     isEditingSplitBill,
     isMerchantRequired,
+    isMerchantFieldValid,
     isMerchantEmpty,
     shouldDisplayFieldError,
     shouldShowTax,
@@ -138,8 +142,8 @@ function useConfirmationValidation({
     isDistanceRequestWithPendingRoute,
     isPerDiemRequest,
     isTimeRequest,
-    isNewManualExpenseFlowEnabled,
     routeError,
+    isNewManualExpenseFlowEnabled,
 }: UseConfirmationValidationParams): {validate: (paymentType?: PaymentMethodType) => ValidationResult | null} {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const selectedParticipantsCount = selectedParticipants.length;
@@ -152,21 +156,30 @@ function useConfirmationValidation({
             return {errorKey: 'iou.error.noParticipantSelected'};
         }
 
-        const amountForValidation = iouAmount;
-        const isAmountMissingForManualFlow = amountForValidation === null || amountForValidation === undefined;
+        const firstParticipant = transaction?.participants?.at(0);
+        const isP2P = !!(firstParticipant?.accountID && !firstParticipant?.isPolicyExpenseChat);
 
-        if (iouType !== CONST.IOU.TYPE.PAY && isNewManualExpenseFlowEnabled && isAmountMissingForManualFlow) {
+        // P2P manual submit: $0 is invalid unless scan/time/distance (same guard as legacy inline confirm).
+        if (iouType !== CONST.IOU.TYPE.PAY && !isScanRequestUtil(transaction) && !isTimeRequest && !isDistanceRequest && iouAmount === 0 && isP2P) {
             return {errorKey: 'common.error.invalidAmount'};
         }
-
+        if (isNewManualExpenseFlowEnabled && !transaction?.isAmountSet) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
         const merchantValue = iouMerchant ?? '';
         const {isValid: isMerchantLengthValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
 
         if (!isMerchantLengthValid) {
             return {errorKey: 'iou.error.invalidMerchant'};
         }
-
-        if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
+        if (isMerchantRequired) {
+            if (!isEditingSplitBill && !isMerchantFieldValid) {
+                return {errorKey: 'iou.error.invalidMerchant'};
+            }
+            if (isEditingSplitBill && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
+                return {errorKey: 'iou.error.invalidMerchant'};
+            }
+        } else if (transaction?.isMerchantSet && !isMerchantFieldValid) {
             return {errorKey: 'iou.error.invalidMerchant'};
         }
 
@@ -252,4 +265,4 @@ function useConfirmationValidation({
 }
 
 export default useConfirmationValidation;
-export type {ValidationResult};
+export type {UseConfirmationValidationParams};

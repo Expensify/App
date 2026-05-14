@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -148,6 +149,12 @@ type ConfirmationFieldListProps = {
     /** Form-level error message */
     formError: string;
 
+    /** Clears specific form errors by key */
+    clearFormErrors: (errors: string[]) => void;
+
+    /** Sets a form error message */
+    setFormError: (error: TranslationPaths | '') => void;
+
     /** ISO currency code for the transaction */
     iouCurrencyCode: string;
 
@@ -189,6 +196,9 @@ type ConfirmationFieldListProps = {
 
     /** Whether the receipt area is using compact mode (drives the show-more split) */
     isCompactMode: boolean;
+
+    /** Triggers submit from inline inputs */
+    onSubmitForm?: () => void;
 };
 
 function ConfirmationFieldList({
@@ -232,6 +242,8 @@ function ConfirmationFieldList({
     isPerDiemRequest,
     shouldDisplayFieldError,
     formError,
+    clearFormErrors,
+    setFormError,
     iouCurrencyCode,
     amount,
     formattedAmount,
@@ -246,6 +258,7 @@ function ConfirmationFieldList({
     onToggleBillable,
     setShowMoreFields,
     isCompactMode,
+    onSubmitForm,
 }: ConfirmationFieldListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -305,6 +318,8 @@ function ConfirmationFieldList({
                 isDescriptionRequired={isDescriptionRequired}
                 shouldDisplayFieldError={shouldDisplayFieldError}
                 formError={formError}
+                clearFormErrors={clearFormErrors}
+                setFormError={setFormError}
                 shouldNavigateToUpgradePath={shouldNavigateToUpgradePath}
                 shouldSelectPolicy={shouldSelectPolicy}
                 iouCurrencyCode={iouCurrencyCode}
@@ -318,6 +333,7 @@ function ConfirmationFieldList({
                 distanceRateCurrency={distanceRateCurrency}
                 isCompactMode={isCompactMode}
                 fieldVisibility={fieldVisibility}
+                onSubmitForm={onSubmitForm}
             />
 
             <ClassificationFields

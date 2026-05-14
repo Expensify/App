@@ -1232,9 +1232,12 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Supprimer le reçu',
         findExpense: 'Trouver une dépense',
         deletedTransaction: (amount: string, merchant: string) => `a supprimé une dépense (${amount} pour ${merchant})`,
-        movedFromReport: (reportName: string) => `a déplacé une dépense${reportName ? `de ${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `a déplacé cette dépense${reportName ? `vers <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `a déplacé cette dépense${reportName ? `depuis <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedFromReport: (reportName: string) => `a déplacé une dépense depuis ${reportName}`,
+        movedFromReportNoName: 'a déplacé une dépense',
+        movedTransactionTo: (reportUrl: string, reportName: string) => `a déplacé cette dépense vers <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionToAnotherReport: 'a déplacé cette dépense vers un autre rapport',
+        movedTransactionFrom: (reportUrl: string, reportName: string) => `a déplacé cette dépense depuis <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionFromAnotherReport: 'a déplacé cette dépense depuis un autre rapport',
         unreportedTransaction: (reportUrl: string) => `a déplacé cette dépense vers votre <a href="${reportUrl}">espace personnel</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
@@ -4572,6 +4575,7 @@ ${amount} pour ${merchant} - ${date}`,
             notConfigured: 'Non configuré',
             bankAccountDescription: 'Choisissez d’où envoyer les chèques.',
             creditCardAccount: 'Compte de carte de crédit',
+            travelInvoicingDescription: 'Les frais de voyage seront exportés comme des débits de carte de crédit vers le compte QuickBooks Online indiqué ci-dessous.',
             companyCardsLocationEnabledDescription:
                 'QuickBooks Online ne prend pas en charge les emplacements pour l’exportation des factures fournisseur. Comme vous avez activé les emplacements sur votre espace de travail, cette option d’exportation n’est pas disponible.',
             outOfPocketTaxEnabledDescription:
@@ -9283,7 +9287,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             permissions: 'Autorisations du groupe',
             createNewGroupButton: 'Nouveau groupe',
             createGroupSubmitButton: 'Créer le groupe',
-            expensifyCardPreferredWorkspace: "Espace de travail préféré pour l'Expensify Card",
+            expensifyCardPreferredWorkspace: 'Espace de travail préféré pour la carte Expensify',
             expensifyCardPreferredWorkspaceDescription:
                 "Toutes les transactions Expensify Card seront créées dans l'espace de travail préféré Expensify Card au lieu de l'espace de travail préféré.",
             strictlyEnforceWorkspaceRules: 'Appliquer strictement les règles de l’espace de travail',
@@ -9305,8 +9309,9 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             restrictDefaultLoginSelection: 'Restreindre la sélection de connexion par défaut',
             restrictDefaultLoginSelectionDescription:
                 'Empêche les membres de modifier leur e-mail de connexion en dehors du domaine de leur entreprise afin d’éviter les restrictions de politique.',
+
             expensifyCardPreferredWorkspaceDisabledMessage:
-                'Pour utiliser ce paramètre, l’espace de travail préféré doit être activé et la Expensify Card doit être configurée pour le domaine.',
+                'Pour activer ce paramètre, veuillez d’abord activer un espace de travail préféré et configurer les cartes Expensify sur votre domaine.',
             findGroup: 'Trouver un groupe',
         },
     },

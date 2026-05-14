@@ -83,4 +83,4 @@ type MultifactorAuthenticationActionsContextType = {
     dispatch: (action: Action) => void;
 };
 
-export type {MultifactorAuthenticationState, InitPayload, Action, MultifactorAuthenticationStateContextType, MultifactorAuthenticationActionsContextType};
+export type {MultifactorAuthenticationState, Action, MultifactorAuthenticationStateContextType, MultifactorAuthenticationActionsContextType};

@@ -131,5 +131,4 @@ function useChartLabelLayout({data, fontMgr, tickSpacing, labelAreaWidth, firstT
     };
 }
 
-export {useChartLabelLayout};
-export type {LabelLayoutConfig};
+export default useChartLabelLayout;

@@ -271,4 +271,3 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 }
 
 export default useExportActions;
-export type {UseExportActionsParams, UseExportActionsReturn};
