@@ -1305,6 +1305,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (!reportIDForPDF) {
                         return;
                     }
+                    // Using await prevent the double-download on the second PDF export
+                    // by clearing Onyx filename before modal is visible
                     await exportReportToPDF({reportID: reportIDForPDF});
                     setPdfReportID(reportIDForPDF);
                     setIsPdfModalVisible(true);
@@ -1644,3 +1646,4 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
 export default useSearchBulkActions;
 export {shouldShowBulkDuplicateOption};
+export type {SearchHeaderOptionValue};
