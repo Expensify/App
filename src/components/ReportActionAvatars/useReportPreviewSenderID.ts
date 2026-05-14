@@ -419,7 +419,7 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         const activeMoneyRequestCount = iouReport?.transactionCount ?? action?.childMoneyRequestCount ?? 0;
         const allReportTransactions = Object.values(reportTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
         // Start with orphan-inclusive filtering so refreshed receipt-backed expenses are not dropped too early,
-        // then fall back to the stricter path only when it does not undercount the active requests.
+        // then fall back to the stricter path only when it does not reduce the active request count too far.
         const nonDeletedTransactionsIncludingOrphans = getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
         const filteredTransactions =
             nonDeletedTransactionsIncludingOrphans.length < allReportTransactions.length
