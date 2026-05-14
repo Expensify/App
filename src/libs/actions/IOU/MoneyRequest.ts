@@ -1148,6 +1148,5 @@ export {
     setMoneyRequestParticipantsFromReport,
     getIOURequestPolicyID,
     updateLastLocationPermissionPrompt,
-    setMultipleMoneyRequestParticipantsFromReport,
 };
 export type {MoneyRequestStepScanParticipantsFlowParams};

@@ -1592,7 +1592,6 @@ export type {
     OriginalMessageExportIntegration,
     IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
-    OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
