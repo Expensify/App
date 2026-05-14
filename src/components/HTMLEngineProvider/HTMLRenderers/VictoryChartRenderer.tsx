@@ -2,8 +2,8 @@ import JSON5 from 'json5';
 import lodashMerge from 'lodash/merge';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
 import {type CustomRendererProps, type TBlock, TNode, TNodeChildrenRenderer} from 'react-native-render-html';
+import type {CartesianChartRenderArg, ChartBounds, PointsArray} from 'victory-native';
 import {Bar, CartesianChart, Line} from 'victory-native';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -17,6 +17,8 @@ import CONST from '@src/CONST';
 
 const X_KEY = 'x';
 const Y_KEY_PREFIX = 'y';
+
+type RawData = Record<string, any>;
 
 /**
  * Get node unique ID based on hierarchy
@@ -34,14 +36,14 @@ function getHierarchyID(tnode: TNode): string {
 /**
  * Traverse node and extract all points from `data` attributes
  */
-function extractData(tnode: TNode): Record<string, Record<string, unknown>> {
-    const rawData = {};
+function extractData(tnode: TNode): Record<string, RawData> {
+    const rawData: Record<string, RawData> = {};
     if (tnode.attributes?.data) {
-        const parsedData = JSON5.parse(tnode.attributes.data);
+        const parsedData = parseAttribute(tnode.attributes.data);
         if (Array.isArray(parsedData)) {
             const xKey = X_KEY;
             const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
-            parsedData.forEach((point) => {
+            (parsedData as RawData[]).forEach((point) => {
                 rawData[point.x] = {
                     [xKey]: point.x,
                     [yKey]: point.y,
@@ -53,9 +55,9 @@ function extractData(tnode: TNode): Record<string, Record<string, unknown>> {
 }
 
 /**
- * Returns required attributes for `<CartesianChart />`
+ * Returns required props for `<CartesianChart />`
  */
-function prepareDataForCartesianChart(rawData: Record<string, Record<string, unknown>>) {
+function prepareDataForCartesianChart(rawData: Record<string, RawData>) {
     const data = Object.values(rawData);
     const xKey = X_KEY;
     const yKeys = data.length > 0 ? Object.keys(data[0]).filter((key) => key !== xKey) : [];
@@ -66,17 +68,32 @@ function prepareDataForCartesianChart(rawData: Record<string, Record<string, unk
     };
 }
 
-function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
-    const rawData = useMemo(() => extractData(tnode), []);
+/**
+ * Parse attribute as JSON or fallback to input as is
+ * Example: "20" -> 20
+ *        : "[ {x: 'Jan', y: 3} ]" -> `[{"x": "Jan", "y": 3}]` (Valid RFC 8259)
+ *        : "Green" -> "Green"
+ */
+function parseAttribute(attribute: string): any {
+    if (!attribute) {
+        return undefined;
+    }
+    try {
+        return JSON5.parse(attribute);
+    } catch {
+        return attribute;
+    }
+}
+
+function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
+    const rawData = useMemo(() => extractData(tnode), [tnode]);
     const isPolarChart = useMemo(() => false, [rawData]);
-    const {data, xKey, yKeys} = useMemo(() => (isPolarChart ? {} : prepareDataForCartesianChart(rawData)), [rawData, isPolarChart]);
+    const {data, xKey, yKeys} = useMemo(() => prepareDataForCartesianChart(rawData), [rawData, isPolarChart]);
 
-    window.tnode = tnode;
-    console.log({data});
-
-    const renderChild = useCallback((tnode, index, points, chartBounds) => {
+    const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<any, any>) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
         const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
+        const {points, chartBounds} = renderArgs;
         switch (tnode.tagName) {
             case 'victorybar':
                 return (
@@ -84,10 +101,8 @@ function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}
                         key={key}
                         points={points[yKey]}
                         chartBounds={chartBounds}
-                        color="red"
-                        roundedCorners={{topLeft: 10, topRight: 10}}
                     >
-                        {tnode.children.map((child, childIndex) => renderChild(child, childIndex, points, chartBounds))}
+                        {tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
                     </Bar>
                 );
             case 'victoryline':
@@ -95,10 +110,8 @@ function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}
                     <Line
                         key={key}
                         points={points[yKey]}
-                        strokeWidth={3}
-                        color="green"
                     >
-                        {tnode.children.map((child, childIndex) => renderChild(child, childIndex, points, chartBounds))}
+                        {tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
                     </Line>
                 );
             default:
@@ -112,8 +125,10 @@ function VictoryChartRenderer({TDefaultRenderer, tnode, ...defaultRendererProps}
                 data={data}
                 xKey={xKey}
                 yKeys={yKeys}
+                domain={parseAttribute(tnode.attributes.domain)}
+                domainPadding={parseAttribute(tnode.attributes.domainPadding)}
             >
-                {({points, chartBounds}) => tnode.children.map((child, childIndex) => renderChild(child, childIndex, points, chartBounds))}
+                {(renderArgs) => tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
             </CartesianChart>
         </View>
     );
