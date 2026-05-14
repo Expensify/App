@@ -12,6 +12,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import openWorkspaceRoomsPage from '@libs/actions/Policy/Room';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ROUTES from '@src/ROUTES';
@@ -26,6 +27,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Hashtag', 'Plus']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const isAdmin = isPolicyAdmin(policy);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
     useFocusEffect(
@@ -49,12 +51,14 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     onBackButtonPress={Navigation.goBack}
                     shouldDisplayHelpButton
                 >
-                    <Button
-                        success
-                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                        icon={icons.Plus}
-                        text={translate('common.create')}
-                    />
+                    {isAdmin && (
+                        <Button
+                            success
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
+                            icon={icons.Plus}
+                            text={translate('common.create')}
+                        />
+                    )}
                 </HeaderWithBackButton>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
