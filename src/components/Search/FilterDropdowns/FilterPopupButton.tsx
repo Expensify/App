@@ -134,7 +134,7 @@ function FilterPopupButton({
                 // This must be false because we dont want the modal to close if we open the RHP for selections
                 // such as date years
                 shouldCloseWhenBrowserNavigationChanged={false}
-                innerContainerStyle={{...containerStyles, ...styles.p0, flex: 1}}
+                innerContainerStyle={{...containerStyles, ...styles.p0}}
                 popoverDimensions={{
                     width: 0,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
