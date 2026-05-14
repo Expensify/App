@@ -29,11 +29,6 @@ type FrozenCardHeaderProps = {
     frozenDate?: string;
 };
 
-type ActionButtonElementProps = {
-    innerStyles?: React.ComponentProps<typeof Button>['innerStyles'];
-    style?: React.ComponentProps<typeof Button>['style'];
-};
-
 function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -49,7 +44,7 @@ function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfree
     const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
     const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');
     const frozenNeedsUnfreezeSuffix = translate('cardPage.frozenByAdminNeedsUnfreezeSuffix');
-    const actionButtons = React.Children.toArray(children).filter((child): child is React.ReactElement<ActionButtonElementProps> => React.isValidElement<ActionButtonElementProps>(child));
+    const actionButtons = React.Children.toArray(children);
     const shouldUseEqualButtonWidths = actionButtons.length > 0;
     const equalButtonWrapperStyles = shouldUseEqualButtonWidths
         ? [styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, {minWidth: variables.cardDetailsActionButtonMinWidth}]
@@ -117,21 +112,17 @@ function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfree
                         style={shouldUseEqualButtonWidths ? styles.w100 : styles.alignSelfStart}
                     />
                 </View>
-                {actionButtons.map((button) =>
-                    shouldUseEqualButtonWidths ? (
-                        <View
-                            key={button.key}
-                            style={equalButtonWrapperStyles}
-                        >
-                            {React.cloneElement(button, {
-                                innerStyles: [equalButtonInnerStyles, button.props.innerStyles],
-                                style: [button.props.style, styles.w100],
-                            })}
-                        </View>
-                    ) : (
-                        button
-                    ),
-                )}
+                {shouldUseEqualButtonWidths
+                    ? actionButtons.map((button, index) => (
+                          <View
+                              // eslint-disable-next-line react/no-array-index-key
+                              key={index}
+                              style={equalButtonWrapperStyles}
+                          >
+                              {button}
+                          </View>
+                      ))
+                    : children}
             </View>
         </View>
     );

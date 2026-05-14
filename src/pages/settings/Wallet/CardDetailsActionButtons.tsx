@@ -1,6 +1,8 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Button from '@components/Button';
+import type {ButtonProps} from '@components/Button';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 
@@ -9,30 +11,58 @@ type CardDetailsActionButtonsProps = {
     style?: StyleProp<ViewStyle>;
 };
 
-type ActionButtonElementProps = {
-    innerStyles?: StyleProp<ViewStyle>;
-    style?: StyleProp<ViewStyle>;
-};
+const CardDetailsActionButtonsContext = React.createContext(false);
 
 function CardDetailsActionButtons({children, style}: CardDetailsActionButtonsProps) {
     const styles = useThemeStyles();
-    const actionButtons = React.Children.toArray(children).filter((child): child is React.ReactElement<ActionButtonElementProps> => React.isValidElement<ActionButtonElementProps>(child));
+    const actionButtons = React.Children.toArray(children);
     const shouldUseEqualButtonWidths = actionButtons.length > 1;
 
     return (
-        <View
-            style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph5, styles.pt2, styles.mb6, styles.gap2, styles.alignSelfStretch, style]}
-        >
-            {actionButtons.map((button) =>
-                shouldUseEqualButtonWidths
-                    ? React.cloneElement(button, {
-                          innerStyles: [styles.ph2, button.props.innerStyles],
-                          style: [button.props.style, styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, {minWidth: variables.cardDetailsActionButtonMinWidth}],
-                      })
-                    : button,
-            )}
-        </View>
+        <CardDetailsActionButtonsContext.Provider value={shouldUseEqualButtonWidths}>
+            <View
+                style={[
+                    styles.flexRow,
+                    styles.flexWrap,
+                    styles.alignItemsCenter,
+                    styles.justifyContentCenter,
+                    styles.ph5,
+                    styles.pt2,
+                    styles.mb6,
+                    styles.gap2,
+                    styles.alignSelfStretch,
+                    style,
+                ]}
+            >
+                {shouldUseEqualButtonWidths
+                    ? actionButtons.map((button, index) => (
+                          <View
+                              // eslint-disable-next-line react/no-array-index-key
+                              key={index}
+                              style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, {minWidth: variables.cardDetailsActionButtonMinWidth}]}
+                          >
+                              {button}
+                          </View>
+                      ))
+                    : children}
+            </View>
+        </CardDetailsActionButtonsContext.Provider>
+    );
+}
+
+function CardDetailsActionButton({innerStyles, style, ...props}: ButtonProps) {
+    const styles = useThemeStyles();
+    const shouldUseEqualButtonWidths = React.useContext(CardDetailsActionButtonsContext);
+
+    return (
+        <Button
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerStyles={[shouldUseEqualButtonWidths && styles.ph2, innerStyles]}
+            style={[shouldUseEqualButtonWidths && styles.w100, style]}
+        />
     );
 }
 
 export default CardDetailsActionButtons;
+export {CardDetailsActionButton};

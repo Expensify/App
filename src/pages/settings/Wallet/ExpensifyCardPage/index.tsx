@@ -53,7 +53,7 @@ import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import CardDetailsActionButtons from '@pages/settings/Wallet/CardDetailsActionButtons';
+import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
 import CardDetails from '@pages/settings/Wallet/WalletPage/CardDetails';
 import variables from '@styles/variables';
@@ -295,13 +295,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                             />
                         }
                     >
-                        <Button
+                        <CardDetailsActionButton
                             medium
                             text={translate('workspace.common.viewTransactions')}
                             icon={expensifyIcons.MoneySearch}
                             iconFill={theme.icon}
                             onPress={navigateToTransactions}
-                            style={[styles.alignSelfStart, styles.flexShrink0]}
+                            innerStyles={styles.ph2}
+                            style={styles.w100}
                         />
                     </FrozenCardHeader>
                 ) : (
@@ -339,7 +340,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         {(!isCardFrozen(currentCard) || !canManageCardFreeze) && (
                             <CardDetailsActionButtons>
                                 {canManageCardFreeze && !isCardFrozen(currentCard) && (
-                                    <Button
+                                    <CardDetailsActionButton
                                         text={translate('cardPage.freezeCard')}
                                         icon={expensifyIcons.FreezeCard}
                                         iconFill={theme.icon}
@@ -348,7 +349,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         style={styles.flexShrink0}
                                     />
                                 )}
-                                <Button
+                                <CardDetailsActionButton
                                     text={translate('workspace.common.viewTransactions')}
                                     icon={expensifyIcons.MoneySearch}
                                     iconFill={theme.icon}

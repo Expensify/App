@@ -6,7 +6,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import cardScarf from '@assets/images/card-scarf.svg';
 import Badge from '@components/Badge';
-import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import FrozenCardHeader from '@components/FrozenCardHeader';
@@ -42,7 +41,7 @@ import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import CardDetailsActionButtons from '@pages/settings/Wallet/CardDetailsActionButtons';
+import CardDetailsActionButtons, {CardDetailsActionButton} from '@pages/settings/Wallet/CardDetailsActionButtons';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
@@ -272,13 +271,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             canUnfreezeCard={canManageCardFreeze}
                             onAskToUnfreezePress={() => {}}
                         >
-                            <Button
+                            <CardDetailsActionButton
                                 medium
                                 text={translate('workspace.common.viewTransactions')}
                                 icon={expensifyIcons.MoneySearch}
                                 iconFill={theme.icon}
                                 onPress={navigateToTransactions}
-                                style={[styles.alignSelfStart, styles.flexShrink0]}
+                                innerStyles={styles.ph2}
+                                style={styles.w100}
                             />
                         </FrozenCardHeader>
                     ) : (
@@ -287,7 +287,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                     {(!isCardFrozen(card) || !canManageCardFreeze) && (
                         <CardDetailsActionButtons>
                             {canManageCardFreeze && !isCardFrozen(card) && (
-                                <Button
+                                <CardDetailsActionButton
                                     text={translate('cardPage.freezeCard')}
                                     icon={expensifyIcons.FreezeCard}
                                     iconFill={theme.icon}
@@ -296,7 +296,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                     style={styles.flexShrink0}
                                 />
                             )}
-                            <Button
+                            <CardDetailsActionButton
                                 text={translate('workspace.common.viewTransactions')}
                                 icon={expensifyIcons.MoneySearch}
                                 iconFill={theme.icon}
