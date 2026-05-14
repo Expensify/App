@@ -1279,9 +1279,12 @@ const translations = {
         deleteReceipt: 'Delete receipt',
         findExpense: 'Find expense',
         deletedTransaction: (amount: string, merchant: string) => `deleted an expense (${amount} for ${merchant})`,
-        movedFromReport: (reportName: string) => `moved an expense${reportName ? ` from ${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `moved this expense${reportName ? ` to <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `moved this expense${reportName ? ` from <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedFromReport: (reportName: string) => `moved an expense from ${reportName}`,
+        movedFromReportNoName: 'moved an expense',
+        movedTransactionTo: (reportUrl: string, reportName: string) => `moved this expense to <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionToAnotherReport: 'moved this expense to another report',
+        movedTransactionFrom: (reportUrl: string, reportName: string) => `moved this expense from <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionFromAnotherReport: 'moved this expense from another report',
         unreportedTransaction: (reportUrl: string) => `moved this expense to your <a href="${reportUrl}">personal space</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {
@@ -4635,6 +4638,7 @@ const translations = {
             notConfigured: 'Not configured',
             bankAccountDescription: 'Choose where to send checks from.',
             creditCardAccount: 'Credit card account',
+            travelInvoicingDescription: 'Travel expenses will export as credit card charges to the QuickBooks Online account specified below.',
             companyCardsLocationEnabledDescription:
                 "QuickBooks Online doesn't support locations on vendor bill exports. As you have locations enabled on your workspace, this export option is unavailable.",
             outOfPocketTaxEnabledDescription:
@@ -9230,6 +9234,8 @@ const translations = {
                 removeMember: 'Unable to remove this user. Please try again.',
                 moveMember: 'Unable to move this member. Please try again.',
                 vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
+                moveMemberNotPolicyAdmin:
+                    'Cannot move member to the domain group. You must be a Policy Admin for the Preferred Policy set on the domain group you are trying to move this user to.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,
 
@@ -9264,7 +9270,7 @@ const translations = {
             permissions: 'Group permissions',
             createNewGroupButton: 'New group',
             createGroupSubmitButton: 'Create group',
-            expensifyCardPreferredWorkspace: 'Expensify Card Preferred Workspace',
+            expensifyCardPreferredWorkspace: 'Expensify Card preferred workspace',
             expensifyCardPreferredWorkspaceDescription:
                 'All Expensify Card transactions will be created on the Expensify Card Preferred Workspace instead of the Preferred Workspace. Enabling this feature will override the Preferred Workspace setting for Expensify Card transactions only.',
             strictlyEnforceWorkspaceRules: 'Strictly enforce workspace rules',
@@ -9283,7 +9289,7 @@ const translations = {
             noWorkspacesMessage: 'There are no workspaces on this domain. A workspace is required to enable this restriction.',
             restrictDefaultLoginSelection: 'Restrict default login selection',
             restrictDefaultLoginSelectionDescription: 'Prevent members from changing their login email away from their company domain to avoid policy restrictions.',
-            expensifyCardPreferredWorkspaceDisabledMessage: 'To use this setting, Preferred Workspace must be enabled and the domain must have Expensify Card set up.',
+            expensifyCardPreferredWorkspaceDisabledMessage: 'To enable this setting, please first enable a preferred workspace and set up Expensify Cards on your domain.',
             findGroup: 'Find group',
         },
     },

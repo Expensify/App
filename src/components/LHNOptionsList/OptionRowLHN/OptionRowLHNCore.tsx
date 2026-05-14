@@ -12,18 +12,19 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
+import Avatar from './OptionRow/Avatar';
 import DescriptiveText from './OptionRow/DescriptiveText';
 import DraftIndicator from './OptionRow/DraftIndicator';
 import ErrorBadge from './OptionRow/ErrorBadge';
 import InfoBadge from './OptionRow/InfoBadge';
+import OfflineWrapper from './OptionRow/OfflineWrapper';
 import OnboardingBadge from './OptionRow/OnboardingBadge';
 import PinIndicator from './OptionRow/PinIndicator';
+import ProductTrainingTooltip from './OptionRow/ProductTrainingTooltip';
 import Status from './OptionRow/Status';
 import Subtitle from './OptionRow/Subtitle';
 import Title from './OptionRow/Title';
-import OptionRowAvatar from './OptionRowAvatar';
 import OptionRowPressable from './OptionRowPressable';
-import OptionRowTooltipLayer from './OptionRowTooltipLayer';
 
 function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionItem, viewMode = 'default', style, onLayout = () => {}, hasDraftComment, testID}: OptionRowLHNProps) {
     const {isProduction} = useEnvironment();
@@ -77,86 +78,86 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
         contextMenuHint,
     });
 
-    const renderPressableRow = () => (
-        <OptionRowPressable
-            optionItem={optionItem}
-            isOptionFocused={isOptionFocused}
-            isScreenFocused={isScreenFocused}
-            popoverAnchor={popoverAnchor}
-            onSelectRow={onSelectRow}
-            onLayout={onLayout}
-            accessibilityLabel={accessibilityLabelWithContextMenuHint}
-            accessibilityHint={accessibilityHint}
-            // reportID may be a number contrary to the type definition
-            testID={typeof optionItem.reportID === 'number' ? String(optionItem.reportID) : optionItem.reportID}
+    return (
+        <OfflineWrapper
+            pendingAction={optionItem.pendingAction}
+            errors={optionItem.allReportErrors}
         >
-            {(hovered) => {
-                let secondaryAvatarBgColor = theme.sidebar;
-                if (isOptionFocused) {
-                    secondaryAvatarBgColor = focusedBackgroundColor;
-                } else if (hovered) {
-                    secondaryAvatarBgColor = hoveredBackgroundColor;
-                }
-                return (
-                    <>
-                        <View style={sidebarInnerRowStyle}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <OptionRowAvatar
-                                    optionItem={optionItem}
-                                    isInFocusMode={isInFocusMode}
-                                    subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
-                                    secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
-                                    singleAvatarContainerStyle={singleAvatarContainerStyle}
-                                />
-                                <View style={contentContainerStyles}>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
-                                        <Title
+            <ProductTrainingTooltip optionItem={optionItem}>
+                <OptionRowPressable
+                    optionItem={optionItem}
+                    isOptionFocused={isOptionFocused}
+                    isScreenFocused={isScreenFocused}
+                    popoverAnchor={popoverAnchor}
+                    onSelectRow={onSelectRow}
+                    onLayout={onLayout}
+                    accessibilityLabel={accessibilityLabelWithContextMenuHint}
+                    accessibilityHint={accessibilityHint}
+                    // reportID may be a number contrary to the type definition
+                    testID={typeof optionItem.reportID === 'number' ? String(optionItem.reportID) : optionItem.reportID}
+                >
+                    {(hovered) => {
+                        let secondaryAvatarBgColor = theme.sidebar;
+                        if (isOptionFocused) {
+                            secondaryAvatarBgColor = focusedBackgroundColor;
+                        } else if (hovered) {
+                            secondaryAvatarBgColor = hoveredBackgroundColor;
+                        }
+                        return (
+                            <>
+                                <View style={sidebarInnerRowStyle}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                        <Avatar
                                             optionItem={optionItem}
-                                            displayNameStyle={displayNameStyle}
-                                            testID={testID}
+                                            isInFocusMode={isInFocusMode}
+                                            subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
+                                            secondaryAvatarBackgroundColor={secondaryAvatarBgColor}
+                                            singleAvatarContainerStyle={singleAvatarContainerStyle}
                                         />
-                                        <OnboardingBadge optionItem={optionItem} />
-                                        <Status optionItem={optionItem} />
+                                        <View style={contentContainerStyles}>
+                                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
+                                                <Title
+                                                    optionItem={optionItem}
+                                                    displayNameStyle={displayNameStyle}
+                                                    testID={testID}
+                                                />
+                                                <OnboardingBadge optionItem={optionItem} />
+                                                <Status optionItem={optionItem} />
+                                            </View>
+                                            <Subtitle
+                                                optionItem={optionItem}
+                                                viewMode={viewMode}
+                                                isOptionFocused={isOptionFocused}
+                                                style={style}
+                                            />
+                                        </View>
+                                        <DescriptiveText optionItem={optionItem} />
+                                        <ErrorBadge
+                                            brickRoadIndicator={brickRoadIndicator}
+                                            actionBadge={optionItem.actionBadge}
+                                        />
                                     </View>
-                                    <Subtitle
-                                        optionItem={optionItem}
-                                        viewMode={viewMode}
-                                        isOptionFocused={isOptionFocused}
-                                        style={style}
+                                </View>
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                    <InfoBadge
+                                        brickRoadIndicator={brickRoadIndicator}
+                                        actionBadge={optionItem.actionBadge}
+                                    />
+                                    <DraftIndicator
+                                        hasDraftComment={hasDraftComment}
+                                        isAllowedToComment={optionItem.isAllowedToComment}
+                                    />
+                                    <PinIndicator
+                                        isPinned={optionItem.isPinned}
+                                        brickRoadIndicator={brickRoadIndicator}
                                     />
                                 </View>
-                                <DescriptiveText optionItem={optionItem} />
-                                <ErrorBadge
-                                    brickRoadIndicator={brickRoadIndicator}
-                                    actionBadge={optionItem.actionBadge}
-                                />
-                            </View>
-                        </View>
-                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            <InfoBadge
-                                brickRoadIndicator={brickRoadIndicator}
-                                actionBadge={optionItem.actionBadge}
-                            />
-                            <DraftIndicator
-                                hasDraftComment={hasDraftComment}
-                                isAllowedToComment={optionItem.isAllowedToComment}
-                            />
-                            <PinIndicator
-                                isPinned={optionItem.isPinned}
-                                brickRoadIndicator={brickRoadIndicator}
-                            />
-                        </View>
-                    </>
-                );
-            }}
-        </OptionRowPressable>
-    );
-
-    return (
-        <OptionRowTooltipLayer
-            optionItem={optionItem}
-            renderChildren={renderPressableRow}
-        />
+                            </>
+                        );
+                    }}
+                </OptionRowPressable>
+            </ProductTrainingTooltip>
+        </OfflineWrapper>
     );
 }
 

@@ -907,4 +907,3 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
-export type {PayInvoiceArgs, PayMoneyRequestData, PayMoneyRequestFunctionParams};

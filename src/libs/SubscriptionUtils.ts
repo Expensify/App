@@ -46,11 +46,6 @@ type SubscriptionPlanInfo = {
     description: string;
 };
 
-type SubscriptionPlanIllustrations = {
-    Mailbox: IconAsset;
-    ShieldYellow: IconAsset;
-};
-
 /**
  * @returns Whether the workspace owner's grace period is overdue.
  */
@@ -657,4 +652,4 @@ export {
     hasInsufficientFundsError,
 };
 
-export type {DiscountInfo, SubscriptionPlanIllustrations};
+export type {DiscountInfo};
