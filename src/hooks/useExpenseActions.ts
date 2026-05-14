@@ -301,7 +301,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (transactions.length !== 1) {
                     return;
                 }
-                initSplitExpense(currentTransaction, policy);
+                initSplitExpense(currentTransaction, policy, accountID);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.MERGE]: {

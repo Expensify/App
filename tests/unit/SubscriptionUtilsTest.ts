@@ -326,7 +326,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it("should return false if the user isn't a workspace's owner or isn't a member of any past due billing workspace", () => {
-            expect(shouldRestrictUserBillableActions(undefined, undefined, undefined, undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(undefined, undefined, undefined, undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', () => {
@@ -344,6 +344,7 @@ describe('SubscriptionUtils', () => {
                             value: getUnixTime(subDays(new Date(), 3)), // past due
                         },
                     },
+                    undefined,
                     undefined,
                 ),
             ).toBeFalsy();
@@ -365,6 +366,7 @@ describe('SubscriptionUtils', () => {
                         },
                     },
                     undefined,
+                    undefined,
                 ),
             ).toBeFalsy();
         });
@@ -384,6 +386,7 @@ describe('SubscriptionUtils', () => {
                             value: getUnixTime(subDays(new Date(), 3)), // past due
                         },
                     },
+                    undefined,
                     undefined,
                 ),
             ).toBeTruthy();
@@ -586,7 +589,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it('should not restrict when policy is passed as undefined', () => {
-            expect(shouldRestrictUserBillableActions(undefined, getUnixTime(subDays(new Date(), 3)), undefined, 500)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(undefined, getUnixTime(subDays(new Date(), 3)), undefined, 500, undefined)).toBeFalsy();
         });
 
         it('should restrict for non-owner when policy is passed directly and billing grace period is overdue', async () => {
@@ -607,6 +610,7 @@ describe('SubscriptionUtils', () => {
                             value: getUnixTime(subDays(new Date(), 3)),
                         },
                     },
+                    undefined,
                     undefined,
                 ),
             ).toBeTruthy();
@@ -630,6 +634,7 @@ describe('SubscriptionUtils', () => {
                             value: getUnixTime(addDays(new Date(), 3)),
                         },
                     },
+                    undefined,
                     undefined,
                 ),
             ).toBeFalsy();

@@ -932,7 +932,7 @@ function MoneyRequestView({
                             }
 
                             if (shouldShowSplitIndicator && isSplitAvailable) {
-                                initSplitExpense(transaction, policy);
+                                initSplitExpense(transaction, policy, currentUserAccountIDParam);
                                 return;
                             }
 

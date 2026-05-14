@@ -67,12 +67,12 @@ Onyx.connectWithoutView({
 /**
  * Create a draft transaction to set up split expense details for the split expense flow
  */
-function initSplitExpense(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>): void {
+function initSplitExpense(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Policy>, currentUserAccountID: number): void {
     if (!transaction) {
         return;
     }
 
-    if (!!policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+    if (!!policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
