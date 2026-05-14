@@ -1,12 +1,18 @@
 const oldRoutes: Record<string, string> = {
     /* eslint-disable @typescript-eslint/naming-convention */
     '/settings/*/category/*/edit': '/settings/$1/category/$2/category-edit',
+    '/workspaces/*/category/*/payroll-code': '/workspaces/$1/categories/category/$2/payroll-code',
+    '/workspaces/*/category/*/gl-code': '/workspaces/$1/categories/category/$2/gl-code',
+    '/workspaces/*/category/*/edit': '/workspaces/$1/categories/category/$2/edit',
+    '/workspaces/*/category/*': '/workspaces/$1/categories/category/$2',
     '/settings/workspaces/*': '/workspaces/$1',
     '/settings/workspaces': '/workspaces',
     '/r/*/settings/name': '/r/$1/details/settings/name',
     '/workspaces/*/overview/address': '/workspaces/$1/overview/workspace-address',
     '/workspaces/*/categories/settings': '/workspaces/$1/categories/categories-settings',
     '/workspaces/*/categories/new': '/workspaces/$1/categories/category-new',
+    '/settings/*/categories/settings': '/settings/$1/categories/manage-settings',
+    '/settings/*/categories/new': '/settings/$1/categories/category-create',
     '/workspaces/*/accounting/*/card-reconciliation/account': '/workspaces/$1/accounting/$2/card-reconciliation/account-reconciliation-settings',
     '/workspaces/*/connections/netsuite/export/invoice-item-preference/invoice-item/select': '/workspaces/$1/connections/netsuite/export/invoice-item-preference/select/invoice-item/select',
     '/workspaces/*/connections/xero/export/preferred-exporter/select': '/workspaces/$1/accounting/xero/export/xero-preferred-exporter/select',
