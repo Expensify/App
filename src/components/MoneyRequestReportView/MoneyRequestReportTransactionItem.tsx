@@ -134,7 +134,7 @@ function MoneyRequestReportTransactionItem({
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
-            style={!shouldUseNarrowLayout && isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden]}
+            style={!shouldUseNarrowLayout && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]}
         >
             <PressableWithFeedback
                 key={transaction.transactionID}
