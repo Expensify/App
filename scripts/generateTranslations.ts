@@ -14,7 +14,7 @@ import GitHubUtils from '@github/libs/GithubUtils';
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import dedent from '@libs/StringUtils/dedent';
 import hashStr from '@libs/StringUtils/hash';
-import {isTranslationTargetLocale, LOCALES, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
+import {isTranslationTargetLocale, TRANSLATION_TARGET_LOCALES} from '@src/CONST/LOCALES';
 import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
@@ -204,7 +204,7 @@ class TranslationGenerator {
             namedArgs: {
                 locales: {
                     description: 'Locales to generate translations for.',
-                    default: Object.values(TRANSLATION_TARGET_LOCALES).filter((locale) => locale !== LOCALES.ES),
+                    default: Object.values(TRANSLATION_TARGET_LOCALES),
                     parse: (val: string): TranslationTargetLocale[] => {
                         const rawLocales = val.split(',');
                         const validatedLocales: TranslationTargetLocale[] = [];

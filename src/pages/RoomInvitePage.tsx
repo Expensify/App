@@ -230,7 +230,7 @@ function RoomInvitePage({
             return translate('messages.errorMessageInvalidEmail');
         }
         if (excludedUsers[parsePhoneNumber(appendCountryCode(searchValue, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(searchValue, countryCode)) : searchValue]) {
-            return translate('messages.userIsAlreadyMember', {login: searchValue, name: reportName});
+            return translate('messages.userIsAlreadyMember', searchValue, reportName);
         }
         return getHeaderMessage(translate, debouncedSearchTerm, countryCode);
     };

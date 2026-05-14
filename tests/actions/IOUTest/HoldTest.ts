@@ -113,7 +113,7 @@ describe('actions/IOU/Hold', () => {
                 participants: [],
                 transactionID: transaction.transactionID,
             });
-            const transactionThread = buildTransactionThread(iouAction, iouReport);
+            const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
             const actions: OnyxInputValue<ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -242,8 +242,8 @@ describe('actions/IOU/Hold', () => {
                 participants: [],
                 transactionID: transaction2.transactionID,
             });
-            const transactionThread1 = buildTransactionThread(iouAction1, iouReport);
-            const transactionThread2 = buildTransactionThread(iouAction2, iouReport);
+            const transactionThread1 = buildTransactionThread(iouAction1, iouReport, RORY_ACCOUNT_ID);
+            const transactionThread2 = buildTransactionThread(iouAction2, iouReport, RORY_ACCOUNT_ID);
 
             const transactionCollectionDataSet: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
@@ -333,8 +333,8 @@ describe('actions/IOU/Hold', () => {
                 participants: [],
                 transactionID: transaction2.transactionID,
             });
-            const transactionThread1 = buildTransactionThread(iouAction1, iouReport);
-            const transactionThread2 = buildTransactionThread(iouAction2, iouReport);
+            const transactionThread1 = buildTransactionThread(iouAction1, iouReport, RORY_ACCOUNT_ID);
+            const transactionThread2 = buildTransactionThread(iouAction2, iouReport, RORY_ACCOUNT_ID);
 
             const transactionCollectionDataSet: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
@@ -387,7 +387,7 @@ describe('actions/IOU/Hold', () => {
                 participants: [],
                 transactionID: transaction.transactionID,
             });
-            const transactionThread = buildTransactionThread(iouAction, iouReport);
+            const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
             const transactionCollectionDataSet: TransactionCollectionDataSet = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -450,7 +450,7 @@ describe('actions/IOU/Hold', () => {
                 participants: [],
                 transactionID: transaction.transactionID,
             });
-            const transactionThread = buildTransactionThread(iouAction, iouReport);
+            const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
             const actions: OnyxInputValue<ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -523,7 +523,7 @@ describe('actions/IOU/Hold', () => {
                 participants: [],
                 transactionID: transaction.transactionID,
             });
-            const transactionThread = buildTransactionThread(iouAction, iouReport);
+            const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
             const actions: OnyxInputValue<ReportActions> = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouAction.reportActionID}`]: iouAction};
             const reportCollectionDataSet: ReportCollectionDataSet = {
