@@ -126,8 +126,8 @@ function mapTransactionItemToSelectedEntry(
     originalItemTransaction: OnyxEntry<Transaction>,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
     archivedReportsIDSet: ArchivedReportsIDSet,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID);
@@ -200,8 +200,8 @@ function prepareTransactionsList(
     selectedTransactions: SelectedTransactions,
     currentUserLogin: string,
     currentUserAccountID: number,
-    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined,
     archivedReportsIDSet: ArchivedReportsIDSet,
+    outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -215,8 +215,8 @@ function prepareTransactionsList(
         originalItemTransaction,
         currentUserLogin,
         currentUserAccountID,
-        outstandingReportsByPolicyID,
         archivedReportsIDSet,
+        outstandingReportsByPolicyID,
         false,
     );
 
@@ -1048,8 +1048,8 @@ function Search({
                     selectedTransactions,
                     email ?? '',
                     accountID,
-                    outstandingReportsByPolicyID,
                     archivedReportsIdSet,
+                    outstandingReportsByPolicyID,
                 );
                 setSelectedTransactions(updatedTransactions, filteredData);
                 updateSelectAllMatchingItemsState(updatedTransactions);
@@ -1121,8 +1121,8 @@ function Search({
                                 originalItemTransaction,
                                 email ?? '',
                                 accountID,
-                                outstandingReportsByPolicyID,
                                 archivedReportsIdSet,
+                                outstandingReportsByPolicyID,
                             );
                         }),
                 ),
@@ -1476,8 +1476,8 @@ function Search({
                             originalItemTransaction,
                             email ?? '',
                             accountID,
-                            outstandingReportsByPolicyID,
                             archivedReportsIdSet,
+                            outstandingReportsByPolicyID,
                         );
                     });
             });
@@ -1496,8 +1496,8 @@ function Search({
                             originalItemTransaction,
                             email ?? '',
                             accountID,
-                            outstandingReportsByPolicyID,
                             archivedReportsIdSet,
+                            outstandingReportsByPolicyID,
                         );
                     }),
             );

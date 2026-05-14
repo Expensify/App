@@ -4887,6 +4887,7 @@ function canEditFieldOfMoneyRequest({
     transaction: OnyxEntry<Transaction>;
     report?: OnyxInputOrEntry<Report>;
     policy?: OnyxEntry<Policy>;
+    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
     archivedReportsIDSet?: ArchivedReportsIDSet;
 }): boolean {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
@@ -11497,7 +11498,13 @@ function hasForwardedAction(reportID: string): boolean {
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
-function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined, archivedReportsIDSet?: ArchivedReportsIDSet, allowSubmitted = true): boolean {
+function isReportOutstanding(
+    iouReport: OnyxInputOrEntry<Report>,
+    policyID: string | undefined,
+    // Temporarily optional while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
+    archivedReportsIDSet?: ArchivedReportsIDSet,
+    allowSubmitted = true,
+): boolean {
     if (
         !iouReport ||
         isEmptyObject(iouReport) ||
@@ -11532,6 +11539,7 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
 function getOutstandingReportsForUser(
     policyID: string | undefined,
     reportOwnerAccountID: number | undefined,
+    // Temporarily supports the old reports argument while archived report checks are migrated in smaller PRs. Remove this fallback as part of https://github.com/Expensify/App/issues/66422.
     archivedReportsIDSetOrReports?: ArchivedReportsIDSet | OnyxCollection<Report>,
     reportsOrReportNameValuePairs?: OnyxCollection<Report> | OnyxCollection<ReportNameValuePairs> | boolean,
     allowSubmitted = true,
@@ -13399,6 +13407,7 @@ export {
     buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
+    buildArchivedReportsIDSet,
     buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
