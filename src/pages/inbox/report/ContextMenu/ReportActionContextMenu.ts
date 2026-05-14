@@ -61,6 +61,7 @@ type ReportActionContextMenu = {
     hideDeleteModal: () => void;
     showHoldEducationalModal: (onConfirm: () => void) => void;
     showRejectEducationalModal: (onConfirm: () => void) => void;
+    handleHoldEducationalModal: (performHold: () => void) => void;
     isActiveReportAction: (accountID: string | number) => boolean;
     instanceIDRef: RefObject<string>;
     runAndResetOnPopoverHide: () => void;
@@ -207,6 +208,14 @@ function showRejectEducationalModal(onConfirm: () => void) {
     contextMenuRef.current.showRejectEducationalModal(onConfirm);
 }
 
+function handleHoldEducationalModal(performHold: () => void) {
+    if (!contextMenuRef.current) {
+        performHold();
+        return;
+    }
+    contextMenuRef.current.handleHoldEducationalModal(performHold);
+}
+
 export {
     contextMenuRef,
     showContextMenu,
@@ -217,6 +226,7 @@ export {
     hideDeleteModal,
     showHoldEducationalModal,
     showRejectEducationalModal,
+    handleHoldEducationalModal,
     registerEnsureContextMenuMounted,
 };
 export type {ContextMenuType, ReportActionContextMenu, ContextMenuAnchor};

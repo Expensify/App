@@ -219,7 +219,7 @@ import type {
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {handleHoldEducationalModal, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -313,7 +313,6 @@ type ContextMenuActionPayload = {
     conciergeReportID: string | undefined;
     originalReportOfUnapprovedTransaction?: OnyxEntry<ReportType>;
     delegateAccountID: number | undefined;
-    handleHoldEducationalModal: (performHold: () => void) => void;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -630,10 +629,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
             return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID).canHoldRequest;
         },
-        onPress: (
-            closePopover,
-            {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails, handleHoldEducationalModal},
-        ) => {
+        onPress: (closePopover, {moneyRequestAction, iouTransaction, isDelegateAccessRestricted, showDelegateNoAccessModal, isOffline, currentUserPersonalDetails}) => {
             if (isDelegateAccessRestricted) {
                 hideContextMenu(false, showDelegateNoAccessModal);
                 return;

@@ -18,6 +18,7 @@ import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -28,7 +29,9 @@ import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfte
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {getOriginalReportID} from '@libs/ReportUtils';
+import {getOriginalReportID, isCurrentUserSubmitter, isDM} from '@libs/ReportUtils';
+import {dismissRejectUseExplanation} from '@userActions/IOU/RejectMoneyRequest';
+import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorDimensions} from '@src/styles';
@@ -65,6 +68,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     reportActionsRef.current = reportActions;
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
+    const {isOffline} = useNetwork();
+    const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
 
     const cursorRelativePosition = useRef({
@@ -482,6 +488,28 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         onConfirm();
     }, []);
 
+    const handleHoldEducationalModal = useCallback(
+        (performHold: () => void) => {
+            const isSubmitter = isCurrentUserSubmitter(chatReport);
+            const isChatDM = isDM(chatReport);
+            const isDismissed = isSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
+            if (isDismissed || isChatDM) {
+                performHold();
+            } else if (isSubmitter) {
+                showHoldEducationalModal(() => {
+                    setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !isOffline);
+                    performHold();
+                });
+            } else {
+                showRejectEducationalModal(() => {
+                    dismissRejectUseExplanation();
+                    performHold();
+                });
+            }
+        },
+        [chatReport, dismissedHoldUseExplanation, dismissedRejectUseExplanation, isOffline],
+    );
+
     useImperativeHandle(ref, () => ({
         showContextMenu,
         hideContextMenu,
@@ -489,6 +517,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         hideDeleteModal,
         showHoldEducationalModal,
         showRejectEducationalModal,
+        handleHoldEducationalModal,
         isActiveReportAction,
         instanceIDRef,
         runAndResetOnPopoverHide,
