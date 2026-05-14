@@ -67,6 +67,11 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/flag/123/456')).toBe('/r/123/flag/123/456');
     });
 
+    it('redirects old travel upgrade path to dynamic route', () => {
+        expect(getMatchingNewRoute('/travel/upgrade')).toBe('/travel/travel-upgrade');
+        expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
+    });
+
     it('does not redirect paths that look similar but do not match migrated patterns', () => {
         expect(getMatchingNewRoute('/r/123/settings/visibility')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/abc/overview/plan')).toBe(undefined);
@@ -82,19 +87,6 @@ describe('getBestMatchingPath', () => {
 
     it('preserves fragment when redirecting', () => {
         expect(getMatchingNewRoute('/home-page?backTo=r/123')).toBe('/home?backTo=r/123');
-    });
-
-    it('redirects legacy workspace tag routes to new settings dynamic routes', () => {
-        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit')).toBe('/settings/p123/tags/settings/tag-list-edit/10');
-        expect(getMatchingNewRoute('/workspaces/p123/tags/new')).toBe('/settings/p123/tags/tag-new');
-        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals')).toBe('/settings/p123/tags/tag-settings/10/Meals');
-        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/edit')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-edit');
-        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals/gl-code')).toBe('/settings/p123/tags/tag-settings/10/Meals/tag-gl-code');
-    });
-
-    it('preserves query params when redirecting legacy workspace tag routes', () => {
-        expect(getMatchingNewRoute('/workspaces/p123/tags/10/edit?backTo=/home')).toBe('/settings/p123/tags/settings/tag-list-edit/10?backTo=/home');
-        expect(getMatchingNewRoute('/workspaces/p123/tag/10/Meals?parentTagsFilter=Food')).toBe('/settings/p123/tags/tag-settings/10/Meals?parentTagsFilter=Food');
     });
 
     it('redirects legacy QuickBooks Online connections autosync paths to dynamic routes', () => {

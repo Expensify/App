@@ -274,7 +274,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     >
                         <PressableWithFeedback
                             onPress={isDeletedOrPendingDelete && !canSelectMultiple ? undefined : () => handleOnPress(transaction)}
-                            disabled={isDeletedOrPendingDelete && !transaction.isSelected}
+                            disabled={isTransactionPendingDelete(transaction) && !transaction.isSelected}
                             onLongPress={() => onLongPress?.(transaction)}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={transaction.text ?? ''}
@@ -311,7 +311,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                     onCheckboxPress={() => onSelectionButtonPress?.(transaction as unknown as TItem)}
                                     columns={currentColumns}
                                     onButtonPress={() => handleButtonPress(transaction)}
-                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.searchTableRowHeight] : styles.p4, styles.flex1]}
+                                    style={[styles.noBorderRadius, isLargeScreenWidth ? [styles.p3, styles.pv2, styles.tableRowHeight] : styles.p4, styles.flex1]}
                                     isReportItemChild
                                     isInSingleTransactionReport={isInSingleTransactionReport}
                                     shouldShowBottomBorder={shouldShowBottomBorder}
