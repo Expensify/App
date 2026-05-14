@@ -58,7 +58,6 @@ jest.mock('@components/Modal/ReanimatedModal/Container', () => {
 
         return (
             <View
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 testID="mock-modal-container"
             >
