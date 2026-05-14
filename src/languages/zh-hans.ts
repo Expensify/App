@@ -6179,7 +6179,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 chooseBankAccount: '选择用于对账 Expensify 卡付款的银行账户。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `请确保此账户与您的<a href="${settlementAccountUrl}">Expensify 卡结算账户</a>（末尾为 ${lastFourPAN}）一致，以便持续对账功能正常运行。`,
+                chooseTravelInvoicingBankAccount: '选择用于核对集中开票收款的银行账户。',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) => `请确保此账户与您的集中开票结算账户（以 ${lastFourPAN} 结尾）一致，以便持续对账功能正常运行。`,
             },
+            syncCentralInvoicingSettlements: '同步集中开票结算',
         },
         export: {
             notReadyHeading: '尚未准备好导出',

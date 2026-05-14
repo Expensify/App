@@ -6365,7 +6365,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 chooseBankAccount: 'Wählen Sie das Bankkonto aus, mit dem Ihre Zahlungen mit der Expensify Karte abgeglichen werden.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Stellen Sie sicher, dass dieses Konto mit Ihrem <a href="${settlementAccountUrl}">Expensify Karte-Abrechnungskonto</a> (endend auf ${lastFourPAN}) übereinstimmt, damit die fortlaufende Abstimmung richtig funktioniert.`,
+                chooseTravelInvoicingBankAccount: 'Wählen Sie das Bankkonto, mit dem Ihre zentralen Rechnungseingangszahlungen abgestimmt werden.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Stellen Sie sicher, dass dieses Konto mit Ihrem zentralen Rechnungsabwicklungskonto (endet auf ${lastFourPAN}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
+            syncCentralInvoicingSettlements: 'Zentrale Rechnungssiedlungen synchronisieren',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',

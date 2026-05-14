@@ -6334,7 +6334,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 chooseBankAccount: 'Escolha a conta bancária na qual os pagamentos do seu Cartão Expensify serão conciliados.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Certifique-se de que esta conta corresponda à sua <a href="${settlementAccountUrl}">conta de liquidação do Cartão Expensify</a> (terminada em ${lastFourPAN}) para que a Reconciliação Contínua funcione corretamente.`,
+                chooseTravelInvoicingBankAccount: 'Escolha a conta bancária na qual os pagamentos da sua cobrança centralizada serão conciliados.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Certifique-se de que esta conta corresponda à sua conta central de liquidação de faturas (terminando em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
             },
+            syncCentralInvoicingSettlements: 'Sincronizar liquidações de faturamento central',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',

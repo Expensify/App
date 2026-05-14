@@ -6284,7 +6284,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 chooseBankAccount: 'Expensify カードの支払いを照合する銀行口座を選択してください。',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `継続消込が正しく機能するように、この口座が、末尾が ${lastFourPAN} の<a href="${settlementAccountUrl}">Expensify カード精算口座</a>と一致していることを確認してください。`,
+                chooseTravelInvoicingBankAccount: '集中請求の支払いを照合する銀行口座を選択してください。',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Continuous Reconciliation が正しく機能するよう、この口座が中央請求書決済口座（末尾 ${lastFourPAN}）と一致していることを確認してください。`,
             },
+            syncCentralInvoicingSettlements: '中央請求の精算を同期',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',

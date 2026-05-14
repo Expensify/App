@@ -6387,7 +6387,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 chooseBankAccount: 'Choisissez le compte bancaire avec lequel les paiements de votre Carte Expensify seront rapprochés.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre <a href="${settlementAccountUrl}">compte de règlement Carte Expensify</a> (se terminant par ${lastFourPAN}) afin que la réconciliation continue fonctionne correctement.`,
+                chooseTravelInvoicingBankAccount: 'Choisissez le compte bancaire avec lequel les paiements de votre facturation centralisée seront rapprochés.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Assurez-vous que ce compte correspond à votre compte central de règlement de facturation (se terminant par ${lastFourPAN}) afin que la Réconciliation Continue fonctionne correctement.`,
             },
+            syncCentralInvoicingSettlements: 'Synchroniser les règlements de facturation centralisée',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',

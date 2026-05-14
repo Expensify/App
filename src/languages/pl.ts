@@ -6326,7 +6326,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 chooseBankAccount: 'Wybierz konto bankowe, do którego będą uzgadniane płatności kartą Karta Expensify.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Upewnij się, że to konto jest takie samo jak twoje <a href="${settlementAccountUrl}">konto rozliczeniowe Karty Expensify</a> (kończące się na ${lastFourPAN}), aby Ciągłe Uzgadnianie działało poprawnie.`,
+                chooseTravelInvoicingBankAccount: 'Wybierz konto bankowe, z którym będą uzgadniane płatności z centralnej fakturowości.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Upewnij się, że to konto jest takie samo jak twoje główne konto rozliczeniowe fakturowania (kończące się na ${lastFourPAN}), żeby Ciągłe Uzgadnianie działało poprawnie.`,
             },
+            syncCentralInvoicingSettlements: 'Synchronizuj rozliczenia centralnego fakturowania',
         },
         export: {
             notReadyHeading: 'Niegotowe do eksportu',
