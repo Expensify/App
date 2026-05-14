@@ -6,6 +6,7 @@ import {type CustomRendererProps, type TBlock, TNode, TNodeChildrenRenderer} fro
 import type {CartesianChartRenderArg, ChartBounds, PointsArray} from 'victory-native';
 import {Bar, CartesianChart, Line} from 'victory-native';
 import {BAR_INNER_PADDING} from '@components/Charts/BarChart/BarChartContent';
+import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
@@ -91,8 +92,6 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     const isPolarChart = useMemo(() => false, [rawData]);
     const {data, xKey, yKeys} = useMemo(() => prepareDataForCartesianChart(rawData), [rawData, isPolarChart]);
 
-    window.tnode = tnode;
-
     const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<any, any>) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
         const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
@@ -104,8 +103,11 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                         key={key}
                         points={points[yKey]}
                         chartBounds={chartBounds}
+                        color={DEFAULT_CHART_COLOR}
                         innerPadding={BAR_INNER_PADDING}
                         roundedCorners={parseAttribute(tnode.attributes.cornerradius)}
+                        barWidth={parseAttribute(tnode.attributes.barwidth)}
+                        labels={parseAttribute(tnode.attributes.labels)}
                     >
                         {tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
                     </Bar>
@@ -115,6 +117,9 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                     <Line
                         key={key}
                         points={points[yKey]}
+                        color={DEFAULT_CHART_COLOR}
+                        strokeWidth={2}
+                        curveType="linear"
                     >
                         {tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
                     </Line>
