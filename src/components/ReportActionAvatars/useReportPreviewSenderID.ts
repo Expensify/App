@@ -129,9 +129,26 @@ function getAccountIDFromTransactionDirection(transaction: Transaction, action: 
 function getLastActorAccountIDForReceiptBackedUnknown(
     transaction: Transaction,
     action: OnyxEntry<ReportAction>,
+    chatReport: OnyxEntry<Report>,
     iouReport: OnyxEntry<Report>,
     receiptBackedUnknownTransactionCount: number,
 ): number | undefined {
+    if (hasPendingScanStateAndUnknownDirection(transaction)) {
+        const previewLastActorAccountID = normalizeAccountID(action?.childLastActorAccountID);
+
+        if (previewLastActorAccountID !== undefined) {
+            return previewLastActorAccountID;
+        }
+
+        const chatLastActorAccountID = normalizeAccountID(chatReport?.lastActorAccountID);
+
+        if (chatLastActorAccountID !== undefined && chatLastActorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
+            return chatLastActorAccountID;
+        }
+
+        return normalizeAccountID(iouReport?.lastActorAccountID);
+    }
+
     if (!hasNonPendingReceiptBackedUnknownDirection(transaction) || receiptBackedUnknownTransactionCount !== 1) {
         return undefined;
     }
@@ -206,17 +223,17 @@ function shouldPreferFallbackActorForReceiptBackedUnknownTransactions(
 function isExplicitlyDeletedIOUAction(iouAction: ReportAction): boolean {
     const originalMessage = getOriginalMessage(iouAction) as OriginalMessageIOU | undefined;
 
-    if (originalMessage?.deleted || isDeletedParentAction(iouAction)) {
+    if (iouAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || originalMessage?.deleted || isDeletedParentAction(iouAction)) {
         return true;
     }
 
     const message = iouAction.message;
 
     if (Array.isArray(message)) {
-        return message.length === 0 || message.some((fragment) => !!fragment?.deleted || fragment?.html === '');
+        return message.length === 0 || message.some((fragment) => !!fragment?.deleted || (fragment?.html === '' && !iouAction.isOptimisticAction));
     }
 
-    return !!message?.deleted || message?.html === '';
+    return !!message?.deleted || (message?.html === '' && !iouAction.isOptimisticAction);
 }
 
 type GetReportPreviewSenderIDParams = {
@@ -296,7 +313,7 @@ function getReportPreviewSenderID({
                     ? receiptBackedUnknownFallbackActorAccountID
                     : getIOUActionForTransactionID(activeIOUActions, transaction.transactionID)?.actorAccountID) ??
                 directionBasedActorAccountIDs.at(index) ??
-                getLastActorAccountIDForReceiptBackedUnknown(transaction, action, iouReport, receiptBackedUnknownTransactionCount),
+                getLastActorAccountIDForReceiptBackedUnknown(transaction, action, chatReport, iouReport, receiptBackedUnknownTransactionCount),
         ) ?? [];
     const transactionActorAccountIDs = shouldBackfillReceiptBackedUnknownTransactions(transactions, initialTransactionActorAccountIDs, receiptBackedUnknownFallbackActorAccountID)
         ? initialTransactionActorAccountIDs.map((accountID) => accountID ?? receiptBackedUnknownFallbackActorAccountID)
@@ -310,13 +327,7 @@ function getReportPreviewSenderID({
         action?.childRecentReceiptTransactionIDs,
         missingTransactionCount,
     );
-    const hasPendingScanWithUnknownDirection = (transactions ?? []).some(hasPendingScanStateAndUnknownDirection);
-
     if (!hasFinishedInitialReportActionsLoad && missingTransactionCount > 0 && !canInferFromIOUActionsDuringPartialHydration && !canInferFromTransactionDataDuringPartialHydration) {
-        return undefined;
-    }
-
-    if (hasPendingScanWithUnknownDirection && !hasActorAccountIDForEachTransaction) {
         return undefined;
     }
 
@@ -393,13 +404,12 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
     const [iouActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldFetchData ? iouReport?.reportID : undefined)}`, {
         selector: getIOUActionsSelector,
     });
-    const [hasOnceLoadedReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(shouldFetchData ? action?.childReportID : undefined)}`, {
-        selector: hasOnceLoadedReportActionsSelector,
-    });
-    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(shouldFetchData ? action?.childReportID : undefined)}`, {
-        selector: isLoadingInitialReportActionsSelector,
-    });
-    const hasFinishedInitialReportActionsLoad = hasOnceLoadedReportActions === true || isLoadingInitialReportActions === false;
+    const [hasFinishedInitialReportActionsLoad] = useOnyx(
+        `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(shouldFetchData ? action?.childReportID : undefined)}`,
+        {
+            selector: (state) => hasOnceLoadedReportActionsSelector(state) === true || isLoadingInitialReportActionsSelector(state) === false,
+        },
+    );
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(shouldFetchData ? action?.childReportID : undefined);
     const transactions = useMemo(() => {
@@ -408,6 +418,8 @@ function useReportPreviewSenderID({iouReport, action, chatReport}: {action: Onyx
         }
         const activeMoneyRequestCount = iouReport?.transactionCount ?? action?.childMoneyRequestCount ?? 0;
         const allReportTransactions = Object.values(reportTransactions ?? {}).filter((transaction): transaction is Transaction => !!transaction);
+        // Start with orphan-inclusive filtering so refreshed receipt-backed expenses are not dropped too early,
+        // then fall back to the stricter path only when it does not undercount the active requests.
         const nonDeletedTransactionsIncludingOrphans = getAllNonDeletedTransactions(reportTransactions, iouActions ?? [], false, true);
         const filteredTransactions =
             nonDeletedTransactionsIncludingOrphans.length < allReportTransactions.length
