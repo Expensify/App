@@ -384,7 +384,7 @@ class IOSPlatform implements Platform {
         this.appPackage,
         "--platform",
         "ios",
-        "--device",
+        "--udid",
         this.getDeviceUdid(),
         "--session",
         SESSION,
