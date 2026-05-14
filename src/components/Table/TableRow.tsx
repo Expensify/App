@@ -65,7 +65,6 @@ export default function TableRow({
         styles.mh5,
         styles.flexRow,
         styles.highlightBG,
-        styles.overflowHidden,
         styles.alignItemsCenter,
         isInteractive && styles.userSelectNone,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
