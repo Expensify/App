@@ -2070,7 +2070,7 @@ function convertBulkTrackedExpensesToIOU({
 }
 
 function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUserAccountID} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUserAccountID, currentUserEmail} = trackedExpenseParams;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
     const {isDraftPolicy} = policyParams;
@@ -2128,7 +2128,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
     // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
     // so let's track that conversion here
     if (isDraftPolicy) {
-        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, currentUserAccountID);
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, currentUserAccountID, currentUserEmail ?? '');
     }
 }
 
@@ -2513,6 +2513,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 currentUserAccountID: currentUserAccountIDParam,
+                currentUserEmail: currentUserEmailParam,
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -2565,6 +2566,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdWorkspaceParams,
                 accountantParams,
                 currentUserAccountID: currentUserAccountIDParam,
+                currentUserEmail: currentUserEmailParam,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;

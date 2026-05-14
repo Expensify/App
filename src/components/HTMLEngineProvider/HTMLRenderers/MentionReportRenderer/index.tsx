@@ -55,7 +55,6 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
 
     return (
         <Text
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
             style={
                 isGroupPolicyReport && (!exactlyMatch || navigationRoute)

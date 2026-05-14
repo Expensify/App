@@ -124,7 +124,6 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
                 }
                 Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID) : undefined);
             }}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...fullPageNotFoundViewProps}
             shouldShowBackButton={fullPageNotFoundViewProps?.shouldShowBackButton ?? (!shouldShowFullScreenFallback ? shouldUseNarrowLayout : undefined)}
         />
