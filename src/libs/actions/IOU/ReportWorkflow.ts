@@ -309,7 +309,6 @@ function getIOUReportActionWithBadge(
 
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
     let earliestAction: ReportAction | undefined;
-    let earliestBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
 
     for (const action of Object.values(chatReportActions)) {
         if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
@@ -322,12 +321,8 @@ function getIOUReportActionWithBadge(
         }
         if (!earliestAction?.created || (action.created && action.created < earliestAction.created)) {
             earliestAction = action;
-            earliestBadge = badge;
+            actionBadge = badge;
         }
-    }
-
-    if (earliestAction) {
-        actionBadge = earliestBadge;
     }
 
     return {reportAction: earliestAction, actionBadge};
