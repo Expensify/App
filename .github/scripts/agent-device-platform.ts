@@ -303,7 +303,7 @@ class IOSPlatform implements Platform {
    */
   readonly appBundleDir =
     process.env.IOS_APP_BUNDLE_DIR ??
-    "ios/build/Build/Products/Debug-iphonesimulator";
+    "ios/build/Build/Products/DebugDevelopment-iphonesimulator";
   readonly appBundleSuffix = ".app";
 
   install(appPath: string): void {

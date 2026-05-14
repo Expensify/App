@@ -106,10 +106,20 @@ jobs:
         # Probe Rock first; fall back to vanilla xcodebuild if Rock
         # doesn't yet support the sim variant. Matches Android's
         # Rock-first pattern.
+        #
+        # The standalone NewDot dev scheme is "New Expensify Dev"
+        # (with spaces) and uses the "DebugDevelopment" build config
+        # — these are project conventions, not generic Xcode defaults.
+        # Find them via: ls ios/NewExpensify.xcodeproj/xcshareddata/xcschemes/
+        #
+        # `set -o pipefail` is critical: without it, `xcodebuild | xcbeautify`
+        # surfaces xcbeautify's exit code (always 0) and silently passes
+        # an xcodebuild failure, leaving downstream steps to wonder why
+        # the .app bundle doesn't exist.
         env:
           STANDALONE_NEW_DOT: "true"
         run: |
-          set -e
+          set -eo pipefail
           if npx rock --help 2>/dev/null | grep -q 'build:ios'; then
             if npx rock build:ios --variant developmentDebug \
                  --sdk iphonesimulator --active-arch-only; then
@@ -120,14 +130,18 @@ jobs:
           fi
           xcodebuild \
             -workspace ios/NewExpensify.xcworkspace \
-            -scheme NewExpensify \
-            -configuration Debug \
+            -scheme "New Expensify Dev" \
+            -configuration DebugDevelopment \
             -sdk iphonesimulator \
             -derivedDataPath ios/build \
             -arch arm64 \
             ONLY_ACTIVE_ARCH=YES \
             CODE_SIGNING_ALLOWED=NO \
             | xcbeautify
+          # Defensive check: refuse to advance if the .app didn't
+          # materialise at the expected path.
+          test -d "ios/build/Build/Products/DebugDevelopment-iphonesimulator/NewExpensify.app" \
+            || { echo "::error::xcodebuild succeeded but .app missing from DerivedData"; exit 1; }
 
       - name: Boot iOS simulator
         # Resolve to an iPhone 15 / latest available runtime. The
