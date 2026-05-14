@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
-import {Platform, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Checkbox from '@components/Checkbox';
@@ -31,6 +31,7 @@ import isInputAutoFilled from '@libs/isInputAutoFilled';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import useTextInputAccessibility from './useTextInputAccessibility';
 
 function BaseTextInput({
     label = '',
@@ -296,9 +297,7 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
-    const accessibilityValue = useMemo(() => (Platform.OS === 'ios' ? {text: value ?? ''} : undefined), [value]);
-    const labelId = useId();
-    const labelNativeID = Platform.OS === 'android' && accessibilityLabel ? `label-${labelId}` : undefined;
+    const {accessibilityValue, accessibilityLabelledBy, hiddenLabel} = useTextInputAccessibility(value, accessibilityLabel);
     const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
@@ -347,15 +346,7 @@ function BaseTextInput({
                                 isMultiline={isMultiline}
                             />
                         ) : null}
-                        {Platform.OS === 'android' && !!accessibilityLabel && (
-                            <Text
-                                nativeID={labelNativeID}
-                                importantForAccessibility="yes"
-                                style={styles.visuallyHidden}
-                            >
-                                {accessibilityLabel}
-                            </Text>
-                        )}
+                        {hiddenLabel}
                         <View style={[styles.textInputAndIconContainer, styles.flex1, isMultiline && hasLabel && styles.textInputMultilineContainer, styles.pointerEventsBoxNone]}>
                             {!!iconLeft && (
                                 <View style={styles.textInputLeftIconContainer}>
@@ -404,7 +395,7 @@ function BaseTextInput({
                                 {...inputProps}
                                 autoFocus={isInLandscapeMode && !shouldAllowFocusInLandscapeMode ? false : inputProps.autoFocus}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
-                                accessibilityLabelledBy={labelNativeID}
+                                accessibilityLabelledBy={accessibilityLabelledBy}
                                 accessibilityValue={accessibilityValue}
                                 accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
