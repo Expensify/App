@@ -27,6 +27,10 @@ const emojiCodeTableWithSkinTones = emojis.reduce<EmojiTable>((prev, cur) => {
     return newValue;
 }, {});
 
+const emojiHexcodeTable: EmojiTable = {};
+
+const findEmojiByHexCode = (hexcode: string): Emoji | undefined => undefined;
+
 const localeEmojis: LocaleEmojis = {
     en: undefined,
     es: undefined,
@@ -44,5 +48,5 @@ const importEmojiLocale = (locale: FullySupportedLocale) => {
 };
 
 export default emojis;
-export {emojiNameTable, emojiCodeTableWithSkinTones, localeEmojis, importEmojiLocale};
+export {emojiNameTable, emojiCodeTableWithSkinTones, emojiHexcodeTable, findEmojiByHexCode, localeEmojis, importEmojiLocale};
 export {skinTones, categoryFrequentlyUsed} from './common';

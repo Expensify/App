@@ -1,4 +1,4 @@
-import Emojis, {importEmojiLocale} from '@assets/emojis';
+import Emojis, {emojiNameTable, findEmojiByHexCode, importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
 import * as Browser from '@libs/Browser';
 import emojiTrieForLocale, {buildEmojisTrie} from '@libs/EmojiTrie';
@@ -671,6 +671,28 @@ describe('EmojiTest', () => {
             const result = EmojiUtils.insertTextVSBetweenDigitAndEmoji(input);
             // Then the keycap should be preserved (not followed by another emoji)
             expect(result).toBe('*\uFE0F\u20E3');
+        });
+    });
+
+    describe('findEmojiByHexCode', () => {
+        it('round-trip: every named emoji in emojiNameTable resolves by hexcode', () => {
+            for (const emoji of Object.values(emojiNameTable)) {
+                if (!emoji.hexcode) {
+                    continue;
+                }
+                expect(findEmojiByHexCode(emoji.hexcode)?.name).toBe(emoji.name);
+            }
+        });
+
+        it('base hex resolves to emoji with skin-tone variants', () => {
+            const thumbsUp = findEmojiByHexCode('1F44D');
+            expect(thumbsUp).toBeDefined();
+            expect(thumbsUp?.name).toBe('+1');
+            expect(thumbsUp?.types?.length).toBeGreaterThan(0);
+        });
+
+        it('returns undefined for unknown hexcode', () => {
+            expect(findEmojiByHexCode('FFFFFF')).toBeUndefined();
         });
     });
 
