@@ -41,6 +41,8 @@ function AdvancedFiltersFullscreen({queryJSON, closeOverlay}: AdvancedFiltersFul
             testID="AdvancedFiltersFullscreen"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
+            // Avoiding keyboard is already handled by the modal
+            shouldEnableKeyboardAvoidingView={false}
             includePaddingTop={false}
             style={[styles.advanceFiltersFullscreenContainer]}
         >
