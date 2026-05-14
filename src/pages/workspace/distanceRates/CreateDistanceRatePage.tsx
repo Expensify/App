@@ -149,14 +149,14 @@ function CreateDistanceRatePage({
                                         label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
                                     />
                                 </View>
-                                <View style={[styles.mh5, styles.mt4]}>
+                                <View style={[styles.mh5, styles.mt2]}>
                                     <InputWrapper
                                         InputComponent={DatePicker}
                                         inputID={INPUT_IDS.START_DATE}
                                         label={translate('workspace.distanceRates.startDate')}
                                     />
                                 </View>
-                                <View style={[styles.mh5, styles.mt4]}>
+                                <View style={[styles.mh5, styles.mt2]}>
                                     <InputWrapper
                                         InputComponent={DatePicker}
                                         inputID={INPUT_IDS.END_DATE}
