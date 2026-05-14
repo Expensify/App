@@ -15,15 +15,7 @@ function sendExportFileFromConcierge(exportID: string) {
         },
     ];
 
-    const failureData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: onyxKey,
-            value: null,
-        },
-    ];
-
-    write(WRITE_COMMANDS.SEND_EXPORT_FILE_FROM_CONCIERGE, {exportID}, {optimisticData, failureData});
+    write(WRITE_COMMANDS.SEND_EXPORT_FILE_FROM_CONCIERGE, {exportID}, {optimisticData});
 }
 
 function clearExportDownload(exportID: string) {
