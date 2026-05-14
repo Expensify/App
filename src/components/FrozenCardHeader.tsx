@@ -51,7 +51,9 @@ function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfree
     const frozenNeedsUnfreezeSuffix = translate('cardPage.frozenByAdminNeedsUnfreezeSuffix');
     const actionButtons = React.Children.toArray(children).filter((child): child is React.ReactElement<ActionButtonElementProps> => React.isValidElement<ActionButtonElementProps>(child));
     const shouldUseEqualButtonWidths = actionButtons.length > 0;
-    const equalButtonStyles = shouldUseEqualButtonWidths ? [styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, {minWidth: variables.cardDetailsActionButtonMinWidth}] : undefined;
+    const equalButtonWrapperStyles = shouldUseEqualButtonWidths
+        ? [styles.flexGrow1, styles.flexShrink1, styles.flexBasis0, {minWidth: variables.cardDetailsActionButtonMinWidth}]
+        : undefined;
     const equalButtonInnerStyles = shouldUseEqualButtonWidths ? styles.ph2 : undefined;
 
     let statusText: React.ReactNode;
@@ -103,23 +105,32 @@ function FrozenCardHeader({cardPreview, children, onUnfreezePress, onAskToUnfree
                 <Text style={[styles.textLabel, styles.colorMuted, styles.ml2]}>{statusText}</Text>
             </View>
             <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2, styles.mt6, styles.alignSelfStretch]}>
-                <Button
-                    medium
-                    text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
-                    icon={icons.FreezeCard}
-                    iconFill={theme.icon}
-                    onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
-                    isDisabled={canUnfreezeCard && isOffline}
-                    innerStyles={equalButtonInnerStyles}
-                    style={[styles.alignSelfStart, styles.flexShrink0, equalButtonStyles]}
-                />
+                <View style={equalButtonWrapperStyles}>
+                    <Button
+                        medium
+                        text={translate(canUnfreezeCard ? 'cardPage.unfreezeCard' : 'cardPage.askToUnfreeze')}
+                        icon={icons.FreezeCard}
+                        iconFill={theme.icon}
+                        onPress={canUnfreezeCard ? onUnfreezePress : onAskToUnfreezePress}
+                        isDisabled={canUnfreezeCard && isOffline}
+                        innerStyles={equalButtonInnerStyles}
+                        style={shouldUseEqualButtonWidths ? styles.w100 : styles.alignSelfStart}
+                    />
+                </View>
                 {actionButtons.map((button) =>
-                    shouldUseEqualButtonWidths
-                        ? React.cloneElement(button, {
-                              innerStyles: [equalButtonInnerStyles, button.props.innerStyles],
-                              style: [button.props.style, equalButtonStyles],
-                          })
-                        : button,
+                    shouldUseEqualButtonWidths ? (
+                        <View
+                            key={button.key}
+                            style={equalButtonWrapperStyles}
+                        >
+                            {React.cloneElement(button, {
+                                innerStyles: [equalButtonInnerStyles, button.props.innerStyles],
+                                style: [button.props.style, styles.w100],
+                            })}
+                        </View>
+                    ) : (
+                        button
+                    ),
                 )}
             </View>
         </View>
