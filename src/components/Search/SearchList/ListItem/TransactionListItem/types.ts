@@ -3,7 +3,7 @@ import type {SearchColumnType} from '@components/Search/types';
 import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import type {CardList, Policy, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, ReportAction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionListItemWideProps<TItem extends ListItem> = {
     item: TItem;
@@ -27,7 +27,7 @@ type TransactionListItemWideProps<TItem extends ListItem> = {
     transactionPreviewData: TransactionPreviewData;
     exportedReportActions: ReportAction[];
     nonPersonalAndWorkspaceCards?: CardList;
-    policyForMovingExpenses?: Policy;
+    isAttendeesEnabledForMovingPolicy?: boolean;
 };
 
 type TransactionListItemNarrowProps<TItem extends ListItem> = TransactionListItemWideProps<TItem> & {

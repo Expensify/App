@@ -42,7 +42,6 @@ function TransactionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     isLoading,
-    violations,
     nonPersonalAndWorkspaceCards,
     lastPaymentMethod,
     personalPolicyID,
@@ -50,7 +49,7 @@ function TransactionListItem<TItem extends ListItem>({
     isFirstItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -84,6 +83,7 @@ function TransactionListItem<TItem extends ListItem>({
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
     const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
+    const [transactionViolationsForRow] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`];
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {selector: parentReportActionSelector}, [
         transactionItem,
@@ -103,7 +103,7 @@ function TransactionListItem<TItem extends ListItem>({
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const reportForViolations = parentReport ?? snapshotReport;
 
-    const onyxViolations = (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
+    const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
             !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, reportForViolations, policyForViolations) &&
             shouldShowViolation(reportForViolations, policyForViolations, violation.name, currentUserDetails.email ?? '', false, transactionItem),
@@ -169,7 +169,7 @@ function TransactionListItem<TItem extends ListItem>({
         transactionPreviewData,
         exportedReportActions,
         nonPersonalAndWorkspaceCards,
-        policyForMovingExpenses,
+        isAttendeesEnabledForMovingPolicy,
     };
 
     if (!isLargeScreenWidth) {

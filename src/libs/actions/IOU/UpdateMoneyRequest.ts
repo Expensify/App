@@ -1724,4 +1724,4 @@ export {
     updateMoneyRequestDistanceRate,
     updateMoneyRequestAmountAndCurrency,
 };
-export type {GetUpdateMoneyRequestParamsType, UpdateMoneyRequestDataKeys};
+export type {UpdateMoneyRequestDataKeys};

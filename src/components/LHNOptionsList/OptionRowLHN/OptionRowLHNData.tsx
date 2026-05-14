@@ -20,13 +20,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions as ReportActionsType} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import OptionRowLHN from './OptionRowLHNCore';
+import OptionRowLHN from './OptionRowLHN';
 
 /*
  * This component gets the data from onyx for the actual
  * OptionRowLHN component.
- * The OptionRowLHN component is memoized, so it will only
- * re-render if the data really changed.
+ * OptionRowLHN is auto-memoized by React Compiler, so it will
+ * only re-render when the inputs derived from this wrapper change.
  */
 function OptionRowLHNData({
     isOptionFocused = false,
