@@ -85,10 +85,12 @@ jest.mock('@libs/Navigation/Navigation', () => {
         goBack: jest.fn(),
         dismissModal: jest.fn(),
         dismissModalWithReport: jest.fn(),
+        getActiveRoute: jest.fn(() => ''),
         getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
         getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
         clearFullscreenPreInsertedFlag: jest.fn(),
         revealRouteBeforeDismissingModal: jest.fn(),
+        isTopmostRouteModalScreen: jest.fn(() => false),
         navigationRef: mockRef,
     };
 });
@@ -150,6 +152,7 @@ function createPolicyWithTimeTracking(): Policy {
 
 const DEFAULT_TIME_TRANSACTION: Transaction = {
     amount: 40000, // $400.00 (8 hours * $50/hr)
+    isAmountSet: true,
     billable: false,
     comment: {
         units: {
