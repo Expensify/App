@@ -732,6 +732,7 @@ const SCREENS = {
         INVOICES_COMPANY_WEBSITE: 'Workspace_Invoices_Company_Website',
         MEMBERS: 'Workspace_Members',
         ROOMS: 'Workspace_Rooms',
+        ROOM_CREATE: 'Workspace_Room_Create',
         MEMBERS_IMPORT: 'Members_Import',
         MEMBERS_IMPORTED: 'Members_Imported',
         MEMBERS_IMPORTED_CONFIRMATION: 'Members_Imported_Confirmation',
