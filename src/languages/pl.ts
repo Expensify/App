@@ -1226,9 +1226,12 @@ const translations: TranslationDeepObject<typeof en> = {
         deleteReceipt: 'Usuń paragon',
         findExpense: 'Znajdź wydatek',
         deletedTransaction: (amount: string, merchant: string) => `usunął(-ę) wydatek (${amount} dla ${merchant})`,
-        movedFromReport: (reportName: string) => `przeniesiono wydatek${reportName ? `z ${reportName}` : ''}`,
-        movedTransactionTo: (reportUrl: string, reportName?: string) => `przeniósł ten wydatek${reportName ? `do <a href="${reportUrl}">${reportName}</a>` : ''}`,
-        movedTransactionFrom: (reportUrl: string, reportName?: string) => `przeniósł(-ę) ten wydatek${reportName ? `z <a href="${reportUrl}">${reportName}</a>` : ''}`,
+        movedFromReport: (reportName: string) => `przeniesiono wydatek z ${reportName}`,
+        movedFromReportNoName: 'przeniesiono wydatek',
+        movedTransactionTo: (reportUrl: string, reportName: string) => `przeniósł ten wydatek do <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionToAnotherReport: 'przeniesiono ten wydatek do innego raportu',
+        movedTransactionFrom: (reportUrl: string, reportName: string) => `przeniósł ten wydatek z <a href="${reportUrl}">${reportName}</a>`,
+        movedTransactionFromAnotherReport: 'przeniesiono ten wydatek z innego raportu',
         unreportedTransaction: (reportUrl: string) => `przeniósł ten wydatek do Twojej <a href="${reportUrl}">przestrzeni osobistej</a>`,
         movedAction: (shouldHideMovedReportUrl: boolean, movedReportUrl: string, newParentReportUrl: string, toPolicyName: string) => {
             if (shouldHideMovedReportUrl) {

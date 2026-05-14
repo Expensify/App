@@ -6883,9 +6883,9 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     const reportName = Parser.htmlToText(getReportName({report, conciergeReportID}) ?? report?.reportName ?? '');
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
-        return translate('iou.movedTransactionTo', reportUrl, reportName);
+        return reportName ? translate('iou.movedTransactionTo', reportUrl, reportName) : translate('iou.movedTransactionToAnotherReport');
     }
-    return translate('iou.movedTransactionFrom', reportUrl, reportName);
+    return reportName ? translate('iou.movedTransactionFrom', reportUrl, reportName) : translate('iou.movedTransactionFromAnotherReport');
 }
 
 function getUnreportedTransactionMessage(
@@ -6909,7 +6909,7 @@ function getUnreportedTransactionMessage(
         return translate('iou.unreportedTransaction', reportUrl);
     }
 
-    return translate('iou.movedTransactionFrom', reportUrl, reportName);
+    return reportName ? translate('iou.movedTransactionFrom', reportUrl, reportName) : translate('iou.movedTransactionFromAnotherReport');
 }
 
 function getMovedActionMessage(translate: LocalizedTranslate, action: ReportAction, report: OnyxEntry<Report>) {

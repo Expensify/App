@@ -13,22 +13,23 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyCategory} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import CategoryForm from './CategoryForm';
 
-type EditCategoryPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_EDIT>
+type DynamicEditCategoryPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_EDIT>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT>;
 
-function EditCategoryPage({route}: EditCategoryPageProps) {
+function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
     const {policyID, categoryName: currentCategoryName} = route.params;
     const policyData = usePolicyData(policyID);
     const {categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT;
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path);
+    const settingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path);
+    const workspaceBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path);
 
     const sanitizeCategoryName = useCallback((name: string) => name.replaceAll(CONST.REGEX.NON_BREAKING_SPACE, ' ').trim(), []);
 
@@ -60,10 +61,10 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
 
             // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, currentCategoryName), {compareParams: false});
+                Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath, {compareParams: false});
             });
         },
-        [currentCategoryName, policyData, isQuickSettingsFlow, backPath, policyID, sanitizeCategoryName],
+        [currentCategoryName, policyData, isQuickSettingsFlow, settingsBackPath, workspaceBackPath, sanitizeCategoryName],
     );
 
     return (
@@ -75,14 +76,12 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="EditCategoryPage"
+                testID="DynamicEditCategoryPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.categories.editCategory')}
-                    onBackButtonPress={() =>
-                        Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(route.params.policyID, route.params.categoryName))
-                    }
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? settingsBackPath : workspaceBackPath)}
                 />
                 <CategoryForm
                     onSubmit={editCategory}
@@ -95,4 +94,4 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
     );
 }
 
-export default EditCategoryPage;
+export default DynamicEditCategoryPage;

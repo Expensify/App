@@ -5,6 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,12 +13,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {removePolicyCategoryItemizedReceiptsRequired, setPolicyCategoryItemizedReceiptsRequired, setPolicyCategoryReceiptsAndItemizedReceiptRequired} from '@userActions/Policy/Category';
+import {removePolicyCategoryReceiptsRequired, setPolicyCategoryReceiptsAndItemizedReceiptRequired, setPolicyCategoryReceiptsRequired} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type EditCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER>;
+type DynamicCategoryRequireReceiptsOverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_RECEIPTS_OVER>;
 
 function getInitiallyFocusedOptionKey(isAlwaysSelected: boolean, isNeverSelected: boolean, isPolicyDisabled: boolean): ValueOf<typeof CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS> {
     if (isAlwaysSelected) {
@@ -31,28 +32,29 @@ function getInitiallyFocusedOptionKey(isAlwaysSelected: boolean, isNeverSelected
     return CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT;
 }
 
-function CategoryRequireItemizedReceiptsOverPage({
+function DynamicCategoryRequireReceiptsOverPage({
     route: {
         params: {policyID, categoryName},
     },
-}: EditCategoryPageProps) {
+}: DynamicCategoryRequireReceiptsOverPageProps) {
     const styles = useThemeStyles();
+    const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path);
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
-    const isAlwaysSelected = policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt === 0;
-    const isNeverSelected = policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
-    const isPolicyItemizedReceiptDisabled = policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined;
+    const isAlwaysSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === 0;
+    const isNeverSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
+    const isPolicyReceiptDisabled = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoReceipt === undefined;
 
-    const requireItemizedReceiptsOverListData = [
-        ...(!isPolicyItemizedReceiptDisabled
+    const requireReceiptsOverListData = [
+        ...(!isPolicyReceiptDisabled
             ? [
                   {
                       value: null,
                       text: translate(
-                          `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
-                          convertToDisplayString(policy.maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+                          `workspace.rules.categoryRules.requireReceiptsOverList.default`,
+                          convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
                       ),
                       keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
                       isSelected: !isAlwaysSelected && !isNeverSelected,
@@ -61,19 +63,19 @@ function CategoryRequireItemizedReceiptsOverPage({
             : []),
         {
             value: CONST.DISABLED_MAX_EXPENSE_VALUE,
-            text: translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`),
+            text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER,
-            isSelected: isPolicyItemizedReceiptDisabled ? !isAlwaysSelected : isNeverSelected,
+            isSelected: isPolicyReceiptDisabled ? !isAlwaysSelected : isNeverSelected,
         },
         {
             value: 0,
-            text: translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.always`),
+            text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.always`),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.ALWAYS,
             isSelected: isAlwaysSelected,
         },
     ];
 
-    const initiallyFocusedOptionKey = getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected, isPolicyItemizedReceiptDisabled);
+    const initiallyFocusedOptionKey = getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected, isPolicyReceiptDisabled);
 
     return (
         <AccessOrNotFoundWrapper
@@ -84,27 +86,27 @@ function CategoryRequireItemizedReceiptsOverPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="CategoryRequireItemizedReceiptsOverPage"
+                testID="DynamicCategoryRequireReceiptsOverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.categoryRules.requireItemizedReceiptsOver')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
+                    title={translate('workspace.rules.categoryRules.requireReceiptsOver')}
+                    onBackButtonPress={() => Navigation.goBack(categorySettingsBackPath)}
                 />
                 <SelectionList
-                    data={requireItemizedReceiptsOverListData}
+                    data={requireReceiptsOverListData}
                     ListItem={SingleSelectListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
-                            if (item.value === 0 && policyCategories?.[categoryName]?.maxAmountNoReceipt !== 0) {
-                                setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, 0, 0);
+                            if (item.value === CONST.DISABLED_MAX_EXPENSE_VALUE && policyCategories?.[categoryName]?.maxAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
+                                setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE);
                             } else {
-                                setPolicyCategoryItemizedReceiptsRequired(policyData, categoryName, item.value);
+                                setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
                             }
                         } else {
-                            removePolicyCategoryItemizedReceiptsRequired(policyData, categoryName);
+                            removePolicyCategoryReceiptsRequired(policyData, categoryName);
                         }
-                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
+                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
                     }}
                     style={{containerStyle: styles.pt3}}
                     shouldSingleExecuteRowSelect
@@ -116,4 +118,4 @@ function CategoryRequireItemizedReceiptsOverPage({
     );
 }
 
-export default CategoryRequireItemizedReceiptsOverPage;
+export default DynamicCategoryRequireReceiptsOverPage;

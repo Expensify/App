@@ -91,7 +91,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden]]}
+                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
             >
                 {({hovered}) => (
                     <TransactionItemRow
@@ -117,7 +117,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         isActionColumnWide={transactionItem.isActionColumnWide}
                         shouldShowCheckbox={!!canSelectMultiple}
                         checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
-                        style={[styles.p3, styles.pv2, isLastItem ? styles.searchTableBottomRadius : styles.noBorderRadius]}
+                        style={[styles.p3, styles.pv2, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
                         violations={transactionViolations}
                         onArrowRightPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
                         isHover={hovered}
