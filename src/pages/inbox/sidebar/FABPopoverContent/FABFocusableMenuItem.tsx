@@ -2,6 +2,7 @@ import React from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
 import CONST from '@src/CONST';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useFABMenuItem from './useFABMenuItem';
 
 type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wrapperStyle' | 'shouldCheckActionAllowedOnPress' | 'role' | 'onPress'> & {
@@ -11,18 +12,22 @@ type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wr
     shouldCallAfterModalHide?: boolean;
 };
 
-function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfterModalHide, ...props}: FABFocusableMenuItemProps) {
+function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfterModalHide, iconStyles, ...props}: FABFocusableMenuItemProps) {
     const {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress} = useFABMenuItem(itemId, isVisible);
+    const styles = useThemeStyles();
 
     if (!isVisible) {
         return null;
     }
+
+    const mergedIconStyles = [styles.mr3, ...(Array.isArray(iconStyles) ? iconStyles : [iconStyles])].filter(Boolean);
 
     return (
         <FocusableMenuItem
             // FABFocusableMenuItemProps is a strict subset of MenuItemProps — spreading forwards all remaining props safely
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(props as MenuItemProps)}
+            iconStyles={mergedIconStyles}
             focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
             wrapperStyle={wrapperStyle}
