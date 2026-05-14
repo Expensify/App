@@ -11,13 +11,6 @@ import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
-type MoneyRequestAmountInputRef = {
-    changeSelection: (newSelection: Selection) => void;
-    changeAmount: (newAmount: string) => void;
-    getAmount: () => string;
-    getSelection: () => Selection;
-};
-
 type MoneyRequestAmountInputProps = {
     /** IOU amount saved in Onyx */
     amount?: number;
@@ -133,11 +126,6 @@ type MoneyRequestAmountInputProps = {
     /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
-
-type Selection = {
-    start: number;
-    end: number;
-};
 
 /**
  * Specialized money amount input with currency and money amount formatting.
@@ -278,4 +266,4 @@ function MoneyRequestAmountInput({
 }
 
 export default MoneyRequestAmountInput;
-export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
+export type {MoneyRequestAmountInputProps};

@@ -77,7 +77,7 @@ function TransactionItemRow({
     reportActions,
     checkboxSentryLabel,
     nonPersonalAndWorkspaceCards = {},
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
 }: TransactionItemRowProps) {
@@ -200,7 +200,7 @@ function TransactionItemRow({
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
     const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
+    const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 
     const attendeesCount = transactionAttendees.length ?? 0;
     const totalAmount = getAmount(transactionItem, isExpenseReport(report));
@@ -225,4 +225,3 @@ function TransactionItemRow({
 }
 
 export default TransactionItemRow;
-export type {TransactionWithOptionalSearchFields, TransactionItemRowProps};

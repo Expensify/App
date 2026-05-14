@@ -124,7 +124,6 @@ function buildOOOCommand({date, time, durationAmount, durationUnit, reason, work
     return command;
 }
 
-export type {ChronosTimerCommandValue};
 export {
     buildOOOCommand,
     getLatestUserChronosTimerCommand,
