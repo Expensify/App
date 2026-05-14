@@ -374,28 +374,30 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             }
                         />
                     </OfflineWithFeedback>
-                    {!isProduction && spendRulesSummary.length > 0 && (
-                        <MenuItemWithTopDescription
-                            description={translate('cardPage.spendRules')}
-                            descriptionTextStyle={[styles.fontSizeLabel]}
-                            titleComponent={spendRulesTitleComponent}
-                            onPress={navigateToSpendRules}
-                            accessibilityLabel={spendRulesSummary.join('. ')}
-                        />
-                    )}
-                    {!isProduction && isAdmin && (
+                    <View style={styles.mt6}>
+                        {!isProduction && spendRulesSummary.length > 0 && (
+                            <MenuItemWithTopDescription
+                                description={translate('cardPage.spendRules')}
+                                descriptionTextStyle={[styles.fontSizeLabel]}
+                                titleComponent={spendRulesTitleComponent}
+                                onPress={navigateToSpendRules}
+                                accessibilityLabel={spendRulesSummary.join('. ')}
+                            />
+                        )}
+                        {!isProduction && isAdmin && (
+                            <MenuItem
+                                icon={expensifyIcons.CreditCardLock}
+                                title={translate('cardPage.editSpendRules')}
+                                onPress={navigateToSpendRules}
+                            />
+                        )}
                         <MenuItem
-                            icon={expensifyIcons.CreditCardLock}
-                            title={translate('cardPage.editSpendRules')}
-                            onPress={navigateToSpendRules}
+                            icon={expensifyIcons.Trashcan}
+                            title={translate('workspace.expensifyCard.deactivate')}
+                            style={styles.mb1}
+                            onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
                         />
-                    )}
-                    <MenuItem
-                        icon={expensifyIcons.Trashcan}
-                        title={translate('workspace.expensifyCard.deactivate')}
-                        style={styles.mb1}
-                        onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
-                    />
+                    </View>
                     <ConfirmModal
                         title={translate('workspace.card.deactivateCardModal.deactivateCard')}
                         isVisible={isDeactivateModalVisible}
