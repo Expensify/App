@@ -25,6 +25,24 @@ jest.mock('@pages/inbox/report/useShouldShowEnableNotificationsBanner', () => ({
     default: () => mockShouldShow,
 }));
 
+jest.mock('@hooks/useIsReportReadyToDisplay', () => ({
+    __esModule: true,
+    default: () => ({isCurrentReportLoadedFromOnyx: true, isEditingDisabled: false}),
+}));
+
+jest.mock('@libs/ReportUtils', () => {
+    const actual = jest.requireActual<Record<string, unknown>>('@libs/ReportUtils');
+    return {
+        ...actual,
+        canUserPerformWriteAction: () => true,
+        canWriteInReport: () => true,
+        isAdminsOnlyPostingRoom: () => false,
+        isArchivedNonExpenseReport: () => false,
+        isPublicRoom: () => false,
+        isSystemChat: () => false,
+    };
+});
+
 jest.mock('@pages/inbox/report/EnableNotificationsBanner', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
