@@ -22,7 +22,7 @@ function getNestedBackToRoute(route: string): Route | undefined {
         return undefined;
     }
 
-    return decodeURIComponent(encodedBackTo) as Route;
+    return encodedBackTo as Route;
 }
 
 function doesRouteTargetCurrentReport(route: string, reportID: string): boolean {

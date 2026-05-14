@@ -22,7 +22,7 @@ describe('shouldUseBackToOnLeaveReport', () => {
             backTo: nestedBackTo,
         });
 
-        expect(getBackToOnLeaveReport(reportID, backTo)).toBe(decodeURIComponent(nestedBackTo));
+        expect(getBackToOnLeaveReport(reportID, backTo)).toBe(nestedBackTo);
     });
 
     it('does not preserve an Inbox route that points back to the current report', () => {
