@@ -308,30 +308,21 @@ function getIOUReportActionWithBadge(
     const chatReportActions = getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
-    const reportAction = Object.values(chatReportActions)
-        .sort((a, b) => {
-            const createdA = a?.created ?? '';
-            const createdB = b?.created ?? '';
-            if (createdA < createdB) {
-                return -1;
-            }
-            if (createdA > createdB) {
-                return 1;
-            }
-            return 0;
-        })
-        .find((action) => {
-            if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
-                return false;
-            }
-            const iouReport = getReportOrDraftReport(action.childReportID);
-            const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
-            if (badge) {
-                actionBadge = badge;
-                return true;
-            }
-            return false;
-        });
+    let reportAction: OnyxEntry<ReportAction>;
+    for (const action of Object.values(chatReportActions)) {
+        if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
+            continue;
+        }
+        const iouReport = getReportOrDraftReport(action.childReportID);
+        const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
+        if (!badge) {
+            continue;
+        }
+        if (!reportAction?.created || (action.created ?? '') < (reportAction.created ?? '')) {
+            reportAction = action;
+            actionBadge = badge;
+        }
+    }
 
     return {reportAction, actionBadge};
 }
