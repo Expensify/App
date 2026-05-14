@@ -10,6 +10,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
@@ -22,6 +23,8 @@ function SelectFeedType() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
+    const {isBetaEnabled} = usePermissions();
+    const isCSVCardImportBetaEnabled = isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
     const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : undefined);
@@ -33,10 +36,20 @@ function SelectFeedType() {
             return;
         }
         const isDirectSelected = typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT;
+        const isFileImportSelected = typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.FILE_IMPORT;
+
+        if (isFileImportSelected) {
+            setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.IMPORT_FROM_FILE,
+                data: {selectedFeedType: typeSelected},
+                isEditing: false,
+            });
+            return;
+        }
 
         if (!isDirectSelected) {
             setAddNewCompanyCardStepAndData({
-                step: isDirectSelected ? CONST.COMPANY_CARDS.STEP.BANK_CONNECTION : CONST.COMPANY_CARDS.STEP.CARD_TYPE,
+                step: CONST.COMPANY_CARDS.STEP.CARD_TYPE,
                 data: {selectedFeedType: typeSelected},
             });
             return;
@@ -52,32 +65,32 @@ function SelectFeedType() {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
     };
 
-    const data = [
-        {
-            value: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
-            text: translate('workspace.companyCards.commercialFeed'),
-            alternateText: translate('workspace.companyCards.addNewCard.commercialFeedPlaidDetails'),
-            keyForList: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
-        },
-        {
-            value: CONST.COMPANY_CARDS.FEED_TYPE.DIRECT,
-            text: translate('workspace.companyCards.directFeed'),
-            alternateText: translate('workspace.companyCards.addNewCard.directFeedDetails'),
-            keyForList: CONST.COMPANY_CARDS.FEED_TYPE.DIRECT,
-            isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT,
-        },
-    ];
-
-    const getFinalData = () => {
-        if (doesCountrySupportPlaid) {
-            return data.reverse();
-        }
-
-        return data.slice(0, 1);
+    const commercialFeedItem = {
+        value: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
+        text: translate('workspace.companyCards.commercialFeed'),
+        alternateText: translate('workspace.companyCards.addNewCard.commercialFeedPlaidDetails'),
+        keyForList: CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
+        isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM,
     };
 
-    const finalData = getFinalData();
+    const directFeedItem = {
+        value: CONST.COMPANY_CARDS.FEED_TYPE.DIRECT,
+        text: translate('workspace.companyCards.directFeed'),
+        alternateText: translate('workspace.companyCards.addNewCard.directFeedDetails'),
+        keyForList: CONST.COMPANY_CARDS.FEED_TYPE.DIRECT,
+        isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.DIRECT,
+    };
+
+    const fileImportItem = {
+        value: CONST.COMPANY_CARDS.FEED_TYPE.FILE_IMPORT,
+        text: translate('workspace.companyCards.addNewCard.fileImport'),
+        alternateText: translate('workspace.companyCards.addNewCard.fileImportDescription'),
+        keyForList: CONST.COMPANY_CARDS.FEED_TYPE.FILE_IMPORT,
+        isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.FILE_IMPORT,
+    };
+
+    const baseItems = doesCountrySupportPlaid ? [directFeedItem, commercialFeedItem] : [commercialFeedItem];
+    const finalData = isCSVCardImportBetaEnabled ? [...baseItems, fileImportItem] : baseItems;
 
     const confirmButtonOptions = useMemo(
         () => ({

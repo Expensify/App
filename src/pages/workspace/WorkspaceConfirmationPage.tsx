@@ -12,10 +12,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createWorkspaceWithPolicyDraftAndNavigateToIt} from '@libs/actions/App';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
+import pushNewlyCreatedWorkspaceUnderActiveModal from '@libs/Navigation/helpers/pushNewlyCreatedWorkspaceUnderActiveModal';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {LastPaymentMethodType} from '@src/types/onyx';
 
 function WorkspaceConfirmationPage() {
@@ -36,7 +38,15 @@ function WorkspaceConfirmationPage() {
 
     const onSubmit = (params: WorkspaceConfirmationSubmitFunctionParams) => {
         const policyID = params.policyID || generatePolicyID();
-        const routeToNavigate = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        const isDifferentOwner = !!params.owner && params.owner !== (currentUserPersonalDetails.email ?? '');
+        const shouldShowSuccessPage = isDifferentOwner && !params.makeMeAdmin;
+        const workspaceRoute = isSmallScreenWidth ? ROUTES.WORKSPACE_INITIAL.getRoute(policyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID);
+        const routeToNavigate = shouldShowSuccessPage ? ROUTES.WORKSPACE_CONFIRMATION_SUCCESS : workspaceRoute;
+        if (!shouldShowSuccessPage) {
+            // Mount the new workspace under this RHP so the dismiss animation reveals it instead of flashing WORKSPACES_LIST.
+            const targetScreen = isSmallScreenWidth ? SCREENS.WORKSPACE.INITIAL : SCREENS.WORKSPACE.PROFILE;
+            pushNewlyCreatedWorkspaceUnderActiveModal(targetScreen, policyID);
+        }
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
             policyOwnerEmail: params.owner,

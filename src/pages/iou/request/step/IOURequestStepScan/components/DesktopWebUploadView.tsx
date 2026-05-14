@@ -131,4 +131,3 @@ function DesktopWebUploadView({PDFValidationComponent, shouldAcceptMultipleFiles
 }
 
 export default DesktopWebUploadView;
-export type {DesktopWebUploadViewProps};

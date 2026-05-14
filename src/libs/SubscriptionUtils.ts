@@ -47,24 +47,12 @@ type SubscriptionPlanInfo = {
     description: string;
 };
 
-type SubscriptionPlanIllustrations = {
-    Mailbox: IconAsset;
-    ShieldYellow: IconAsset;
-};
-
 let deprecatedCurrentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         deprecatedCurrentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
-});
-
-let deprecatedAllPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (value) => (deprecatedAllPolicies = value),
-    waitForCollectionCallback: true,
 });
 
 /**
@@ -489,13 +477,12 @@ function canCancelSubscription(
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
-    policyIDOrPolicy: string | OnyxEntry<Policy>,
+    policy: OnyxEntry<Policy>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number>,
     currentUserAccountID: number = deprecatedCurrentUserAccountID,
 ): boolean {
-    const policy = typeof policyIDOrPolicy === 'string' ? deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDOrPolicy}`] : policyIDOrPolicy;
     const currentDate = new Date();
 
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
@@ -674,4 +661,4 @@ export {
     hasInsufficientFundsError,
 };
 
-export type {DiscountInfo, SubscriptionPlanIllustrations};
+export type {DiscountInfo};

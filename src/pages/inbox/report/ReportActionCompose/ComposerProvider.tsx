@@ -191,4 +191,3 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 }
 
 export default ComposerProvider;
-export type {ComposerProviderProps};
