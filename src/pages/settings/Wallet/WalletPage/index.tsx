@@ -700,7 +700,6 @@ function WalletPage() {
                             titleStyles={styles.accountSettingsSectionTitle}
                             illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                             illustrationBackgroundColor="#411103"
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...walletIllustration}
                         >
                             <PaymentMethodList
