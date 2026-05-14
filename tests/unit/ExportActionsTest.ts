@@ -57,15 +57,18 @@ describe('Export actions', () => {
     });
 
     test('clearStaleExportDownloads calls clearExportDownload for each non-null entry', async () => {
+        const key1 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1` as const;
+        const key2 = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2` as const;
+
         await Onyx.mergeCollection(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, {
-            [`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1`]: {state: 'ready'},
-            [`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2`]: {state: 'failed'},
+            [key1]: {state: 'ready'},
+            [key2]: {state: 'failed'},
         });
         await waitForBatchedUpdates();
 
         Export.clearStaleExportDownloads({
-            [`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1`]: {state: 'ready'},
-            [`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2`]: {state: 'failed'},
+            [key1]: {state: 'ready'},
+            [key2]: {state: 'failed'},
         });
         await waitForBatchedUpdates();
 
