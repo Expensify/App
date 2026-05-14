@@ -140,8 +140,11 @@ jobs:
             | xcbeautify
           # Defensive check: refuse to advance if the .app didn't
           # materialise at the expected path.
-          test -d "ios/build/Build/Products/DebugDevelopment-iphonesimulator/NewExpensify.app" \
-            || { echo "::error::xcodebuild succeeded but .app missing from DerivedData"; exit 1; }
+          # Product name follows the scheme name, not the target name.
+          # The "New Expensify Dev" scheme produces "New Expensify Dev.app"
+          # (with spaces) under DebugDevelopment-iphonesimulator/.
+          test -d "ios/build/Build/Products/DebugDevelopment-iphonesimulator/New Expensify Dev.app" \
+            || { echo "::error::xcodebuild succeeded but New Expensify Dev.app missing from DerivedData"; ls ios/build/Build/Products/DebugDevelopment-iphonesimulator/ 2>/dev/null; exit 1; }
 
       - name: Boot iOS simulator
         # Resolve to an iPhone 15 / latest available runtime. The
