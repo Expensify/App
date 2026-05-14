@@ -24,6 +24,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
@@ -189,7 +190,6 @@ function ReportFieldsListValuesPage({
             });
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedValues({});
         });
@@ -216,6 +216,8 @@ function ReportFieldsListValuesPage({
             />
         );
     };
+
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
@@ -322,7 +324,7 @@ function ReportFieldsListValuesPage({
                     customText={translate('workspace.common.selected', {count: selectedValuesArray.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     isDisabled={!selectedValuesArray.length}
                 />
             );
@@ -331,7 +333,7 @@ function ReportFieldsListValuesPage({
         if (!hasAccountingConnections) {
             return (
                 <Button
-                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                     success
                     icon={icons.Plus}
                     text={translate('workspace.reportFields.addValue')}
@@ -382,9 +384,9 @@ function ReportFieldsListValuesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!isSmallScreenWidth && getHeaderButtons()}
+                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {shouldShowEmptyState && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         {headerContent}
@@ -406,11 +408,11 @@ function ReportFieldsListValuesPage({
                         onSelectAll={filteredListValues.length > 0 ? toggleAllValues : undefined}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        shouldUseDefaultRightHandSideCheckmark={false}
                         customListHeader={getCustomListHeader()}
                         customListHeaderContent={headerContent}
                         canSelectMultiple={canSelectMultiple}
-                        onCheckboxPress={toggleValue}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllValues')}
+                        onSelectionButtonPress={toggleValue}
                         shouldShowListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress

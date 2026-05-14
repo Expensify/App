@@ -20,7 +20,7 @@ function useIsAllowedToIssueCompanyCard({policyID}: {policyID?: string}) {
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${selectedFeedData?.domainID}`);
 
-    if (selectedFeedData?.domainID === policy?.workspaceAccountID) {
+    if (selectedFeedData?.domainID === policy?.workspaceAccountID || (policyID && selectedFeedData?.linkedPolicyIDs?.some((id) => id.toUpperCase() === policyID.toUpperCase()))) {
         return isPolicyAdmin;
     }
 

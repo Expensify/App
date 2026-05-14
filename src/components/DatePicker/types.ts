@@ -37,16 +37,6 @@ type DatePickerBaseProps = ForwardedFSClassProps & {
     formID?: keyof OnyxFormValuesMapping;
 };
 
-type DatePickerModalProps = DatePickerBaseProps & {
-    isVisible: boolean;
-    onClose: () => void;
-    anchorPosition: {
-        horizontal: number;
-        vertical: number;
-    };
-    onSelected?: (value: string) => void;
-};
-
 type DateInputWithPickerProps = DatePickerBaseProps &
     BaseTextInputProps & {
         /**
@@ -105,4 +95,4 @@ type DatePickerProps = {
     shouldPositionFromTop?: boolean;
 } & Omit<BaseTextInputProps & PopoverWithMeasuredContentProps, 'anchorRef' | 'children'>;
 
-export type {DatePickerBaseProps, DatePickerModalProps, DateInputWithPickerProps, DatePickerProps};
+export type {DateInputWithPickerProps, DatePickerProps};

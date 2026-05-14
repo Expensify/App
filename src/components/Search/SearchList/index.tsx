@@ -36,6 +36,7 @@ import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {HoldMenuCallback} from '..';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type ExpenseReportListItem from './ListItem/ExpenseReportListItem';
@@ -91,9 +92,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Styles to apply to SelectionList container */
     containerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether to prevent default focusing of options and focus the text input when selecting an option */
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
 
@@ -122,6 +120,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+
+    /** Callback to fire when hold menu should be opened */
+    onHoldMenuOpen?: HoldMenuCallback;
 
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
@@ -208,7 +209,6 @@ function SearchList({
     onEndReached,
     containerStyle,
     ListFooterComponent,
-    shouldPreventDefaultFocusOnSelectRow,
     shouldPreventLongPressRow,
     queryJSON,
     columns,
@@ -218,6 +218,7 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     violations,
+    onHoldMenuOpen,
     nonPersonalAndWorkspaceCards,
     selectedTransactions,
     hasLoadedAllTransactions,
@@ -228,7 +229,7 @@ function SearchList({
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
-    const {hash, groupBy, type} = queryJSON;
+    const {groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
         if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
@@ -297,8 +298,6 @@ function SearchList({
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
-
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
@@ -441,13 +440,10 @@ function SearchList({
                         isFocused={isItemFocused}
                         onSelectRow={onSelectRow}
                         onLongPressRow={handleLongPressRow}
-                        onCheckboxPress={onCheckboxPress}
+                        onSelectionButtonPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
                         item={itemWithSelection}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                        queryJSONHash={hash}
                         columns={columns}
-                        policies={policies}
                         policyForMovingExpenses={policyForMovingExpenses}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
@@ -463,6 +459,7 @@ function SearchList({
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        onHoldMenuOpen={onHoldMenuOpen}
                         onUndelete={handleUndelete}
                         keyForList={item.keyForList}
                         isFirstItem={index === firstVisibleIndex}
@@ -484,16 +481,14 @@ function SearchList({
             handleLongPressRow,
             onCheckboxPress,
             canSelectMultiple,
-            shouldPreventDefaultFocusOnSelectRow,
-            hash,
             columns,
-            policies,
             personalDetails,
             userBillingFundID,
             isOffline,
             violations,
             lastPaymentMethod,
             personalPolicyID,
+            onHoldMenuOpen,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             nonPersonalAndWorkspaceCards,

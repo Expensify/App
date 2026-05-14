@@ -2,7 +2,7 @@ import React from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -66,7 +66,7 @@ function DynamicExpenseLimitTypeSelectorPage({
                 />
                 <SelectionList
                     data={expenseLimitTypes}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     onSelectRow={onSelectRow}
                     shouldSingleExecuteRowSelect
                     style={{containerStyle: [styles.pt3]}}

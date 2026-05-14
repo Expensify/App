@@ -5,7 +5,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {
     updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestAttendees,
+    updateMoneyRequestBillable,
     updateMoneyRequestCategory,
+    updateMoneyRequestDate,
     updateMoneyRequestDistance,
     updateMoneyRequestTag,
 } from '@libs/actions/IOU/UpdateMoneyRequest';
@@ -725,6 +727,159 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             });
             expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
             expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(newTag);
+        });
+    });
+
+    describe('updateMoneyRequestDate', () => {
+        it('should update the transaction created date', async () => {
+            // Given an expense transaction with an expense report
+            const transactionID = 'txnDate1';
+            const transactionThreadReportID = 'threadDate1';
+            const parentReportID = 'parentDate1';
+            const policyID = '10';
+            const originalDate = '2026-01-01';
+            const newDate = '2026-01-15';
+
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: parentReportID,
+                created: originalDate,
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            // When updating the date
+            updateMoneyRequestDate({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: fakeTransaction},
+                transactionViolations: {},
+                value: newDate,
+                policy: fakePolicy,
+                policyTags: {},
+                policyCategories: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                isOffline: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the modified date on the transaction should be updated
+            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionAfter?.modifiedCreated).toBe(newDate);
+        });
+    });
+
+    describe('updateMoneyRequestBillable', () => {
+        it('should update the transaction billable field', async () => {
+            // Given an expense transaction with billable = false
+            const transactionID = 'txnBillable1';
+            const transactionThreadReportID = 'threadBillable1';
+            const parentReportID = 'parentBillable1';
+            const policyID = '20';
+
+            const parentReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+            };
+            const transactionThreadReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: transactionThreadReportID,
+                parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(3),
+                transactionID,
+                reportID: parentReportID,
+                billable: false,
+            };
+            const fakePolicy: Policy = createRandomPolicy(Number(policyID));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+
+            // When updating billable to true
+            updateMoneyRequestBillable({
+                transactionID,
+                transactionThreadReport,
+                parentReport,
+                value: true,
+                policy: fakePolicy,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                isOffline: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the transaction billable field should be updated
+            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionAfter?.billable).toBe(true);
+        });
+
+        it('should not update anything if transactionID is missing', async () => {
+            // Given a transaction
+            const transactionID = 'txnBillableNoOp';
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                billable: false,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+
+            // When updateMoneyRequestBillable is called with an undefined transactionID
+            updateMoneyRequestBillable({
+                transactionID: undefined,
+                transactionThreadReport: {reportID: '1'},
+                parentReport: undefined,
+                value: true,
+                policy: undefined,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                parentReportNextStep: undefined,
+                isOffline: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the original transaction billable value should be unchanged
+            const transactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionAfter?.billable).toBe(false);
         });
     });
 

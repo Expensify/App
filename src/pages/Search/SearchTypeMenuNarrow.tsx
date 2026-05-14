@@ -20,6 +20,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
+import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -110,6 +111,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     const menuAnchorRef = useRef<View>(null);
     const {showDeleteModal} = useDeleteSavedSearch();
 
+    const {copiedHash, handleShare} = useShareSavedSearch();
+
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Receipt',
         'MoneyBag',
@@ -124,6 +127,8 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         'Bookmark',
         'Pencil',
         'Trashcan',
+        'LinkCopy',
+        'Checkmark',
         'Document',
         'ThumbsUp',
         'CheckCircle',
@@ -144,9 +149,14 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                   const title = item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name;
 
                   queryMap.set(key, {query: item.query ?? '', name: item.name});
-                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, Number(key), item.query, translate, showDeleteModal, true, () =>
-                      setSavedSearchToModifyKey(null),
-                  );
+                  const itemHash = Number(key);
+                  savedSearchesPopoverMenuItems[key] = getOverflowMenu(expensifyIcons, title, itemHash, item.query, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
+                      onShare: () => {
+                          handleShare(itemHash, item.query);
+                          setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                      },
+                      isCopied: copiedHash === itemHash,
+                  });
 
                   if (Number(key) === queryJSON?.hash) {
                       activeKey = key;
@@ -240,9 +250,11 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                 }}
-                onItemSelected={() => {
+                onItemSelected={(item) => {
                     setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
-                    setSavedSearchToModifyKey(null);
+                    if (item?.shouldCloseModalOnSelect !== false) {
+                        setSavedSearchToModifyKey(null);
+                    }
                 }}
                 menuItems={popoverMenuItems}
                 anchorRef={menuAnchorRef}

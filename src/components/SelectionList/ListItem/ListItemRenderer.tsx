@@ -5,9 +5,9 @@ import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
-import type {BaseListItemProps, ExtendedTargetedEvent, ListItem} from './types';
+import type {ExtendedTargetedEvent, ListItem, SelectableListItemProps} from './types';
 
-type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &
+type ListItemRendererProps<TItem extends ListItem> = Omit<SelectableListItemProps<TItem>, 'onSelectRow' | 'keyForList'> &
     Pick<SelectionListProps<TItem>, 'ListItem' | 'shouldIgnoreFocus' | 'shouldSingleExecuteRowSelect'> & {
         index: number;
         normalizedIndex?: number;
@@ -17,7 +17,7 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
         isLastItem?: boolean;
-        shouldHighlightSelectedItem: boolean;
+        shouldHighlightSelectedItem?: boolean;
         shouldPreventEnterKeySubmit?: boolean;
     };
 
@@ -33,13 +33,11 @@ function ListItemRenderer<TItem extends ListItem>({
     onLongPressRow,
     shouldSingleExecuteRowSelect,
     selectRow,
-    onCheckboxPress,
+    onSelectionButtonPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
-    shouldUseDefaultRightHandSideComponent,
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
@@ -49,19 +47,20 @@ function ListItemRenderer<TItem extends ListItem>({
     titleStyles,
     singleExecution,
     titleContainerStyles,
-    shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
+    isFocusVisible,
     shouldDisableHoverStyle,
     shouldShowRightCaret,
+    selectionButtonPosition,
     errorRowStyles,
     isLastItem,
     shouldPreventEnterKeySubmit = true,
 }: ListItemRendererProps<TItem>) {
-    const handleOnCheckboxPress = () => {
+    const handleOnSelectionButtonPress = () => {
         if (isTransactionGroupListItemType(item)) {
-            return onCheckboxPress;
+            return onSelectionButtonPress;
         }
-        return onCheckboxPress ? () => onCheckboxPress(item) : undefined;
+        return onSelectionButtonPress ? () => onSelectionButtonPress(item) : undefined;
     };
 
     return (
@@ -81,13 +80,11 @@ function ListItemRenderer<TItem extends ListItem>({
                         selectRow(item, index);
                     }
                 }}
-                onCheckboxPress={handleOnCheckboxPress()}
+                onSelectionButtonPress={handleOnSelectionButtonPress()}
                 onDismissError={() => onDismissError?.(item)}
-                shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                 shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
-                shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
@@ -107,10 +104,11 @@ function ListItemRenderer<TItem extends ListItem>({
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}
                 errorRowStyles={errorRowStyles}
-                shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                isFocusVisible={isFocusVisible}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                selectionButtonPosition={selectionButtonPosition}
                 isLastItem={isLastItem}
             />
             {item.footerContent && item.footerContent}

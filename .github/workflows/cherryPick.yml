@@ -76,6 +76,17 @@ jobs:
     needs: createNewVersion
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
+      - name: Check for in-progress deploy on target branch
+        id: checkInProgressDeploy
+        run: |
+          # Capture in-progress deploy URL before we push. The actual Slack post is gated on a successful target-branch push.
+          DEPLOY_RUN_URL=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/deploy.yml/runs?branch=${{ inputs.TARGET }}&per_page=5" \
+            --jq '.workflow_runs[] | select(.status != "completed") | .html_url' | head -n 1)
+          echo "DEPLOY_RUN_URL=$DEPLOY_RUN_URL" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
       - name: Extract PR information
         # Note: this step is only skipped when there's no PULL_REQUEST_URL, which is only ever be the case when we're CPing just a version bump.
         if: ${{ inputs.PULL_REQUEST_URL != '' }}
@@ -229,6 +240,22 @@ jobs:
             git push origin ${{ inputs.TARGET }}
           fi
 
+      - name: Warn that previous deploy was superseded
+        if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' && steps.checkInProgressDeploy.outputs.DEPLOY_RUN_URL != '' }}
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'warning',
+                text: `⚠️ ${{ inputs.TARGET == 'production' && 'Production' || 'Staging' }} <${{ steps.checkInProgressDeploy.outputs.DEPLOY_RUN_URL }}|deploy> cancelled by new cherry-pick`
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
       - name: Find deploy workflow run
         # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
         if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
@@ -328,6 +355,9 @@ jobs:
           This last part is important. It will help us keep track of who triggered this CP, and will ensure that version bumps are tracked correctly. Once all that's done, push your changes with \`git push origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}\`, and then open this PR for review.
 
           Note that you **must** test this PR, and both the author and reviewer checklist should be completed, just as if you were merging the PR to main.
+
+          > [!IMPORTANT]
+          > This PR should ideally be merged by a member of the [mobile-deployers](https://github.com/orgs/Expensify/teams/mobile-deployers) team. If it is merged by someone who is not a deployer, the staging deploy triggered by the merge will fail and will need to be manually re-triggered (not just retried) via the [deploy workflow](https://github.com/${{ github.repository }}/actions/workflows/deploy.yml).
 
           _Pro-tip:_ If this PR appears to have conflicts against the _${{ inputs.TARGET }}_ base, it means that the version on ${{ inputs.TARGET }} has been updated. The easiest thing to do if you see this is to close the PR and re-run the CP.
 

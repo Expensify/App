@@ -152,7 +152,6 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             removeFromRoom(report, selectedMembers);
         }
         setSearchValue('');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
@@ -463,7 +462,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         data={data}
                         ListItem={TableListItem}
                         onSelectRow={openRoomMemberDetails}
-                        onCheckboxPress={toggleUser}
+                        onSelectionButtonPress={toggleUser}
                         textInputOptions={textInputOptions}
                         shouldShowTextInput={shouldShowTextInput}
                         shouldShowLoadingPlaceholder={!isPersonalDetailsReady(personalDetails) || !didLoadRoomMembers}
@@ -471,6 +470,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(data)}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                         customListHeader={customListHeader}
                         onDismissError={dismissError}
                         turnOnSelectionModeOnLongPress

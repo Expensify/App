@@ -1,6 +1,6 @@
 import getOSAndName from '@libs/actions/Device/getDeviceInfo/getOSAndName';
 import CONST from '@src/CONST';
-import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileWebKit, IsModernSafari, IsSafari} from './types';
+import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileSafariOnIos26, IsMobileWebKit, IsSafari} from './types';
 
 /**
  * Fetch browser name from UA string
@@ -72,7 +72,7 @@ const isMobileWebKit: IsMobileWebKit = () => {
 
 const isSafari: IsSafari = () => getBrowser() === 'safari' || isMobileSafari();
 
-const isMobileSafariOnIos26: IsModernSafari = (): boolean => {
+const isMobileSafariOnIos26: IsMobileSafariOnIos26 = (): boolean => {
     return isMobileSafari() && getOSAndName().osVersion === '26';
 };
 
