@@ -147,6 +147,8 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
         });
         Navigation.setParams({
             reportID: reportId,
+            reportActionID: undefined,
+            referrer: undefined,
         });
     };
 
