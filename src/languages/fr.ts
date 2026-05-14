@@ -7764,7 +7764,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         bulkActions: {
             editMultiple: 'Modifier plusieurs',
             editMultipleTitle: 'Modifier plusieurs dépenses',
-            editMultipleDescription: 'Les modifications seront appliquées à toutes les dépenses sélectionnées et remplaceront toutes les valeurs précédemment définies.',
+            editMultipleDescription: 'Les modifications seront définies pour toutes les dépenses sélectionnées et remplaceront toutes les valeurs définies précédemment.',
             approve: 'Approuver',
             pay: 'Payer',
             delete: 'Supprimer',
@@ -9309,7 +9309,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             restrictDefaultLoginSelection: 'Restreindre la sélection de connexion par défaut',
             restrictDefaultLoginSelectionDescription:
                 'Empêche les membres de modifier leur e-mail de connexion en dehors du domaine de leur entreprise afin d’éviter les restrictions de politique.',
-
             expensifyCardPreferredWorkspaceDisabledMessage:
                 'Pour activer ce paramètre, veuillez d’abord activer un espace de travail préféré et configurer les cartes Expensify sur votre domaine.',
             findGroup: 'Trouver un groupe',
