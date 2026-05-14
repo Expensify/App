@@ -3,6 +3,7 @@ import {useNavigation} from '@react-navigation/native';
 import {cardByIdSelector} from '@selectors/Card';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import cardScarf from '@assets/images/card-scarf.svg';
 import Badge from '@components/Badge';
@@ -32,6 +33,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {getAllCardsForWorkspace, getCardHintText, getTranslationKeyForLimitType, isCardFrozen, maskCard} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -45,7 +47,7 @@ import variables from '@styles/variables';
 import {deactivateCard as deactivateCardAction, freezeCard as freezeCardAction, openCardDetailsPage, unfreezeCard as unfreezeCardAction} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -66,7 +68,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'FreezeCard', 'Hourglass', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'FreezeCard', 'MoneySearch', 'Trashcan', 'CreditCardLock']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -82,11 +84,10 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const [fundCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const [allFeedsCards, allFeedsCardsResult] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const workspaceCards = getAllCardsForWorkspace(defaultFundID, allFeedsCards, cardFeeds, expensifyCardSettings);
+    const workspaceCards = getAllCardsForWorkspace(defaultFundID, allFeedsCards, cardFeeds, expensifyCardSettings, /* includeDeactivated */ true);
 
-    const isWorkspaceCardRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS;
     const workspaceCard = workspaceCards?.[cardID];
-    const card = workspaceCard ?? (isCardFrozen(cardFromCardList) ? cardFromCardList : undefined);
+    const card = workspaceCard ?? cardFromCardList;
     const currency = useCurrencyForExpensifyCard({policyID});
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isVirtual = !!card?.nameValuePairs?.isVirtual;
@@ -95,6 +96,8 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const displayName = getDisplayNameOrDefault(cardholder);
     const translationForLimitType = getTranslationKeyForLimitType(card?.nameValuePairs?.limitType);
     const isAdmin = isPolicyAdmin(policy, session?.email);
+    const isDeactivated = card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED;
+
     const shouldGoBack = useRef(false);
 
     const fetchCardDetails = useCallback(() => {
@@ -124,7 +127,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const deactivateCard = () => {
         setIsDeactivateModalVisible(false);
         shouldGoBack.current = true;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             deactivateCardAction(defaultFundID, card);
         });
@@ -258,17 +260,6 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         <View style={[styles.walletCard, styles.mb3]}>{workspaceCardImage}</View>
                     )}
 
-                    {!cardholder?.validated && (
-                        <MenuItem
-                            icon={expensifyIcons.Hourglass}
-                            iconStyles={styles.mln2}
-                            descriptionTextStyle={StyleUtils.combineStyles([styles.textLabelSupporting, styles.ml0, StyleUtils.getLineHeightStyle(variables.fontSizeNormal)])}
-                            description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
-                            numberOfLinesDescription={0}
-                            interactive={false}
-                        />
-                    )}
-
                     <MenuItem
                         label={translate('workspace.card.issueNewCard.cardholder')}
                         title={displayName}
@@ -296,13 +287,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('workspace.expensifyCard.cardLimit')}
                             title={formattedLimit}
                             shouldShowRightIcon
-                            onPress={() =>
-                                Navigation.navigate(
-                                    isWorkspaceCardRhp
-                                        ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID, Navigation.getActiveRoute())
-                                        : ROUTES.EXPENSIFY_CARD_LIMIT.getRoute(policyID, cardID, Navigation.getActiveRoute()),
-                                )
-                            }
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path))}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={card?.nameValuePairs?.pendingFields?.limitType}>
@@ -310,13 +295,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('workspace.card.issueNewCard.limitType')}
                             title={translationForLimitType ? translate(translationForLimitType) : ''}
                             shouldShowRightIcon
-                            onPress={() =>
-                                Navigation.navigate(
-                                    isWorkspaceCardRhp
-                                        ? ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID, Navigation.getActiveRoute())
-                                        : ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.getRoute(policyID, cardID, Navigation.getActiveRoute()),
-                                )
-                            }
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path))}
                             hintText={getCardHintText(card?.nameValuePairs?.validFrom, card?.nameValuePairs?.validThru, cardholder?.timezone?.selected, translate)}
                         />
                     </OfflineWithFeedback>
@@ -325,13 +304,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             description={translate('workspace.card.issueNewCard.cardName')}
                             title={card?.nameValuePairs?.cardTitle}
                             shouldShowRightIcon
-                            onPress={() =>
-                                Navigation.navigate(
-                                    isWorkspaceCardRhp
-                                        ? ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.getRoute(policyID, cardID, Navigation.getActiveRoute())
-                                        : ROUTES.EXPENSIFY_CARD_NAME.getRoute(policyID, cardID, Navigation.getActiveRoute()),
-                                )
-                            }
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path))}
                         />
                     </OfflineWithFeedback>
                     {!isProduction && spendRulesSummary.length > 0 && (
@@ -374,12 +347,14 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                             onPress={handleFreezePress}
                         />
                     )}
-                    <MenuItem
-                        icon={expensifyIcons.Trashcan}
-                        title={translate('workspace.expensifyCard.deactivate')}
-                        style={styles.mb1}
-                        onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
-                    />
+                    {!isDeactivated && (
+                        <MenuItem
+                            icon={expensifyIcons.Trashcan}
+                            title={translate('workspace.expensifyCard.deactivate')}
+                            style={styles.mb1}
+                            onPress={() => (isOffline ? setIsOfflineModalVisible(true) : setIsDeactivateModalVisible(true))}
+                        />
+                    )}
                     <ConfirmModal
                         title={translate('workspace.card.deactivateCardModal.deactivateCard')}
                         isVisible={isDeactivateModalVisible}

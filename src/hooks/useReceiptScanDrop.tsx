@@ -7,7 +7,7 @@ import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolic
 import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU';
+import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -116,7 +116,6 @@ function useReceiptScanDrop() {
             return;
         }
         for (const file of files) {
-            // eslint-disable-next-line no-param-reassign -- Attach blob URI to file object for downstream receipt processing
             file.uri = URL.createObjectURL(file);
         }
 

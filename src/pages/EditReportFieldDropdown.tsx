@@ -1,13 +1,9 @@
 import React from 'react';
-import Icon from '@components/Icon';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getReportFieldOptionsSection} from '@libs/ReportFieldOptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,22 +25,8 @@ type EditReportFieldDropdownPageProps = {
 function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const recentlyUsedOptions = recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [];
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
-    const itemRightSideComponent = (item: ListItem) => {
-        if (item.text === fieldValue) {
-            return (
-                <Icon
-                    src={icons.Checkmark}
-                    fill={theme.iconSuccessFill}
-                />
-            );
-        }
-
-        return null;
-    };
 
     const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
@@ -75,12 +57,11 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     return (
         <SelectionListWithSections
             sections={sections ?? []}
-            ListItem={RadioListItem}
+            ListItem={SingleSelectListItem}
             shouldShowTextInput
             textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}
             initiallyFocusedItemKey={selectedOptionKey}
-            rightHandSideComponent={itemRightSideComponent}
         />
     );
 }

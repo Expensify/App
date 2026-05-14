@@ -31,19 +31,18 @@ export default function (pageTitle: TranslationPaths) {
     return <TProps extends WithReportAndPrivateNotesOrNotFoundProps>(
         WrappedComponent: ComponentType<TProps>,
     ): React.ComponentType<Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>> => {
-        // eslint-disable-next-line rulesdir/no-negated-variables
         function WithReportAndPrivateNotesOrNotFound(props: Omit<TProps, keyof WithReportAndPrivateNotesOrNotFoundOnyxProps>) {
             const {translate} = useLocalize();
             const {isOffline} = useNetwork();
             const [session] = useOnyx(ONYXKEYS.SESSION);
-            const {route, report, reportMetadata} = props;
+            const {route, report, reportLoadingState} = props;
             const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
             const accountID = ('accountID' in route.params && route.params.accountID) || '';
-            const isPrivateNotesFetchTriggered = reportMetadata?.isLoadingPrivateNotes !== undefined;
+            const isPrivateNotesFetchTriggered = reportLoadingState?.isLoadingPrivateNotes !== undefined;
             const prevIsOffline = usePrevious(isOffline);
             const isReconnecting = prevIsOffline && !isOffline;
             const isOtherUserNote = !!accountID && Number(session?.accountID) !== Number(accountID);
-            const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !reportMetadata.isLoadingPrivateNotes;
+            const isPrivateNotesFetchFinished = isPrivateNotesFetchTriggered && !reportLoadingState?.isLoadingPrivateNotes;
             const isPrivateNotesUndefined = accountID ? report?.privateNotes?.[Number(accountID)]?.note === undefined : isEmptyObject(report?.privateNotes);
 
             useEffect(() => {
@@ -53,12 +52,10 @@ export default function (pageTitle: TranslationPaths) {
                 }
 
                 getReportPrivateNote(report?.reportID);
-                // eslint-disable-next-line react-hooks/exhaustive-deps -- do not add report.isLoadingPrivateNotes to dependencies
             }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isReconnecting]);
 
             const shouldShowFullScreenLoadingIndicator = !isPrivateNotesFetchFinished;
 
-            // eslint-disable-next-line rulesdir/no-negated-variables
             const shouldShowNotFoundPage = useMemo(() => {
                 // Show not found view if the report is archived, or if the note is not of current user or if report is a self DM.
                 if (isArchivedReport(reportNameValuePairs) || isOtherUserNote || isSelfDM(report)) {

@@ -1,9 +1,11 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-/* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {cancelAnimation, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import ConfirmModal from '@components/ConfirmModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
@@ -77,13 +79,11 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+    // UI-thread timer driving the delayed hide. https://github.com/Expensify/App/issues/89069
+    const hideDelayProgress = useSharedValue(0);
     const [isDeleteCommentConfirmModalVisible, setIsDeleteCommentConfirmModalVisible] = useState(false);
     const [shouldSetModalVisibilityForDeleteConfirmation, setShouldSetModalVisibilityForDeleteConfirmation] = useState(true);
 
-    const [isRoomArchived, setIsRoomArchived] = useState(false);
-    const [isChronosReportEnabled, setIsChronosReportEnabled] = useState(false);
-    const [isChatPinned, setIsChatPinned] = useState(false);
-    const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
     const [shouldSwitchPositionIfOverflow, setShouldSwitchPositionIfOverflow] = useState(false);
@@ -177,12 +177,9 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * @param draftMessage - ReportAction draft message
      * @param [onShow] - Run a callback when Menu is shown
      * @param [onHide] - Run a callback when Menu is hidden
-     * @param isArchivedRoom - Whether the provided report is an archived room
-     * @param isChronosReport - Flag to check if the chat participant is Chronos
-     * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
-     * @param isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
     const showContextMenu: ReportActionContextMenu['showContextMenu'] = (showContextMenuParams) => {
+        cancelAnimation(hideDelayProgress);
         const {
             type,
             event,
@@ -202,7 +199,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             setComposerToRefocusOnClose('edit');
         }
 
-        const {reportID, originalReportID, isArchivedRoom = false, isChronos = false, isPinnedChat = false, isUnreadChat = false} = currentReport;
+        const {reportID, originalReportID} = currentReport;
         const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
@@ -250,10 +247,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             selectionRef.current = selection;
             setIsPopoverVisible(true);
             reportActionDraftMessageRef.current = draftMessage;
-            setIsRoomArchived(isArchivedRoom);
-            setIsChronosReportEnabled(isChronos);
-            setIsChatPinned(isPinnedChat);
-            setHasUnreadMessages(isUnreadChat);
             setIsThreadReportParentAction(isThreadReportParentActionParam);
             setShouldSwitchPositionIfOverflow(isOverflowMenu);
         });
@@ -295,13 +288,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * Hide the ReportActionContextMenu modal popover.
      * @param onHideActionCallback Callback to be called after popover is completely hidden
      */
-    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
-        const {callbacks = {}} = hideContextMenuParams ?? {};
-
-        if (typeof callbacks.onHide === 'function') {
-            onPopoverHideActionCallback.current = callbacks.onHide;
-        }
-
+    const performHide = () => {
         selectionRef.current = '';
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
@@ -313,6 +300,33 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         refocusComposerAfterPreventFirstResponder(composerToRefocusOnClose).then(() => {
             setComposerToRefocusOnClose(undefined);
         });
+    };
+
+    const hideContextMenu: ReportActionContextMenu['hideContextMenu'] = (hideContextMenuParams) => {
+        const {callbacks = {}, hideDelayMs} = hideContextMenuParams ?? {};
+
+        if (typeof callbacks.onHide === 'function') {
+            onPopoverHideActionCallback.current = callbacks.onHide;
+        }
+
+        cancelAnimation(hideDelayProgress);
+
+        if (!hideDelayMs || hideDelayMs <= 0) {
+            performHide();
+            return;
+        }
+
+        // UI-thread delayed hide. https://github.com/Expensify/App/issues/89069
+        hideDelayProgress.set(0);
+        hideDelayProgress.set(
+            withTiming(1, {duration: hideDelayMs}, (finished) => {
+                'worklet';
+
+                if (finished) {
+                    scheduleOnRN(performHide);
+                }
+            }),
+        );
     };
 
     const transactionIDs: string[] = [];
@@ -384,7 +398,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 deleteReportComment(
                     report,
@@ -426,10 +439,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         callbackWhenDeleteModalHide.current = () => (onCancelDeleteModal.current = runAndResetCallback(onCancelDeleteModal.current));
         setIsDeleteCommentConfirmModalVisible(false);
         setShouldSetModalVisibilityForDeleteConfirmation(true);
-        setIsRoomArchived(false);
-        setIsChronosReportEnabled(false);
-        setIsChatPinned(false);
-        setHasUnreadMessages(false);
     };
 
     /** Opens the Confirm delete action modal */
@@ -484,10 +493,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     reportActionID={reportActionIDRef.current}
                     draftMessage={reportActionDraftMessageRef.current}
                     selection={selectionRef.current}
-                    isArchivedRoom={isRoomArchived}
-                    isChronosReport={isChronosReportEnabled}
-                    isPinnedChat={isChatPinned}
-                    isUnreadChat={hasUnreadMessages}
                     isThreadReportParentAction={isThreadReportParentAction}
                     anchor={contextMenuTargetNode}
                     contentRef={contentRef}

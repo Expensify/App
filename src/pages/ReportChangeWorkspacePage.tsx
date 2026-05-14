@@ -9,6 +9,7 @@ import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -73,6 +74,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -85,19 +87,25 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (!policyID || !policy) {
                 return;
             }
-            if (shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed)) {
+            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriods, amountOwed, currentUserPersonalDetails.accountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, filteredReportActions, reportTransactions);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(
+                    report,
+                    policy,
+                    formatPhoneNumber,
+                    filteredReportActions,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    reportTransactions,
+                );
                 if (!invite?.policyExpenseChatReportID) {
                     moveIOUReportToPolicy(report, policy, false, reportTransactions);
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
             } else if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, getLoginByAccountID(report.ownerAccountID))) {
                 const employeeList = policy?.employeeList;
                 changeReportPolicyAndInviteSubmitter({
@@ -113,6 +121,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     formatPhoneNumber,
                     isReportLastVisibleArchived,
                     reportNextStep,
+                    reportActionsList: filteredReportActions,
                 });
             } else {
                 changeReportPolicy(
@@ -148,6 +157,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             isASAPSubmitBetaEnabled,
             reportNextStep,
             isChangePolicyTrainingModalDismissed,
+            currentUserPersonalDetails.accountID,
         ],
     );
 

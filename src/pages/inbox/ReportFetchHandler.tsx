@@ -1,5 +1,6 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
@@ -18,7 +19,15 @@ import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTr
 import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
-import {createTransactionThreadReport, openReport, readNewestAction, subscribeToReportLeavingEvents, unsubscribeFromLeavingRoomReportChannel, updateLastVisitTime} from '@userActions/Report';
+import {
+    clearStaleDMRecoveryTargetByTargetReportID,
+    createTransactionThreadReport,
+    openReport,
+    readNewestAction,
+    subscribeToReportLeavingEvents,
+    unsubscribeFromLeavingRoomReportChannel,
+    updateLastVisitTime,
+} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -29,13 +38,16 @@ type ReportScreenRoute =
     | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
 
 const defaultReportMetadata = {
+    isOptimisticReport: false,
+};
+
+const defaultReportLoadingState = {
     hasOnceLoadedReportActions: false,
     isLoadingInitialReportActions: true,
     isLoadingOlderReportActions: false,
     hasLoadingOlderReportActionsError: false,
     isLoadingNewerReportActions: false,
     hasLoadingNewerReportActionsError: false,
-    isOptimisticReport: false,
 };
 
 /**
@@ -64,6 +76,7 @@ function ReportFetchHandler() {
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
+    const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
@@ -135,7 +148,15 @@ function ReportFetchHandler() {
         );
         const oneTransactionID = currentReportTransactions.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransactions.at(0));
+        createTransactionThreadReport({
+            introSelected,
+            currentUserLogin: currentUserEmail ?? '',
+            currentUserAccountID,
+            betas,
+            iouReport: report,
+            iouReportAction: iouAction,
+            transaction: currentReportTransactions.at(0),
+        });
     });
 
     const onUnmount = useEffectEvent(() => {
@@ -185,12 +206,16 @@ function ReportFetchHandler() {
     }, [isAnonymousUser]);
 
     useEffect(() => {
-        if (transactionThreadReportID !== CONST.FAKE_REPORT_ID || transactionThreadReport?.reportID || (!reportMetadata.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)) {
+        if (
+            transactionThreadReportID !== CONST.FAKE_REPORT_ID ||
+            transactionThreadReport?.reportID ||
+            (!reportLoadingState.hasOnceLoadedReportActions && !reportMetadata?.isOptimisticReport)
+        ) {
             return;
         }
 
         createOneTransactionThread();
-    }, [reportMetadata.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
+    }, [reportLoadingState.hasOnceLoadedReportActions, reportMetadata?.isOptimisticReport, transactionThreadReport?.reportID, transactionThreadReportID]);
 
     useEffect(() => {
         if (isLoadingReportData || !prevIsLoadingReportData || !prevIsAnonymousUser.current || isAnonymousUser) {
@@ -225,7 +250,6 @@ function ReportFetchHandler() {
     }, [reportID, isFocused, isInSidePanel]);
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setShouldShowComposeInput(true);
         });
@@ -260,22 +284,21 @@ function ReportFetchHandler() {
     }, [isFocused, prevIsFocused]);
 
     useEffect(() => {
-        if (!isValidReportIDFromPath(reportIDFromRoute)) {
+        if (!reportIDFromRoute || !isValidReportIDFromPath(reportIDFromRoute)) {
             return;
         }
         // Ensures the optimistic report is created successfully
         if (reportIDFromRoute !== report?.reportID || report?.pendingFields?.createChat) {
             return;
         }
+        clearStaleDMRecoveryTargetByTargetReportID(reportIDFromRoute);
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
         // Check if the optimistic `OpenReport` or `AddWorkspaceRoom` has succeeded by confirming
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !report?.pendingFields || (!report?.pendingFields.addWorkspaceRoom && !report?.pendingFields.createChat);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let interactionTask: ReturnType<typeof InteractionManager.runAfterInteractions> | null = null;
         if (!didSubscribeToReportLeavingEvents.current && didCreateReportSuccessfully) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             interactionTask = InteractionManager.runAfterInteractions(() => {
                 subscribeToReportLeavingEvents(reportIDFromRoute, currentUserAccountID);
                 didSubscribeToReportLeavingEvents.current = true;
@@ -294,8 +317,8 @@ function ReportFetchHandler() {
             return;
         }
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
-        readNewestAction(report?.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [report, reportMetadata?.hasOnceLoadedReportActions]);
+        readNewestAction(report?.reportID, !!reportLoadingState?.hasOnceLoadedReportActions);
+    }, [report, reportLoadingState?.hasOnceLoadedReportActions]);
 
     useEffect(() => {
         hasCreatedLegacyThreadRef.current = false;
@@ -310,7 +333,7 @@ function ReportFetchHandler() {
             route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
             transactionThreadReport ||
             (transactionThreadReportID && transactionThreadReportID !== '0') ||
-            !reportMetadata?.hasOnceLoadedReportActions ||
+            !reportLoadingState?.hasOnceLoadedReportActions ||
             reportActions.length === 0
         ) {
             return;
@@ -335,7 +358,14 @@ function ReportFetchHandler() {
 
         // For legacy transactions, pass undefined as IOU action and the transaction object
         // It will be created optimistically and in the backend when call openReport
-        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, undefined, transaction);
+        createTransactionThreadReport({
+            introSelected,
+            currentUserLogin: currentUserEmail ?? '',
+            currentUserAccountID,
+            betas,
+            iouReport: report,
+            transaction,
+        });
     }, [
         introSelected,
         currentUserEmail,
@@ -347,7 +377,7 @@ function ReportFetchHandler() {
         transactionThreadReportID,
         reportID,
         route.name,
-        reportMetadata?.hasOnceLoadedReportActions,
+        reportLoadingState?.hasOnceLoadedReportActions,
         reportActions.length,
     ]);
 

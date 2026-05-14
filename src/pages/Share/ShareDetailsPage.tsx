@@ -8,16 +8,18 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addAttachmentWithComment, addComment, openReport} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -26,7 +28,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
+import {isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
@@ -54,6 +56,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [validatedFile] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const delegateAccountID = useDelegateAccountID();
 
     const reportAttributesDerived = useReportAttributes();
     const personalDetails = usePersonalDetails();
@@ -64,7 +67,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
-    const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
+    const report: OnyxEntry<ReportType> = useReportOrReportDraft(reportOrAccountID);
     const privateIsArchived = useReportIsArchived(report?.reportID);
     const ancestors = useAncestors(report);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -126,6 +129,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 text: message,
                 timezoneParam: personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE,
                 currentUserAccountID: personalDetail.accountID,
+                delegateAccountID,
             });
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.revealRouteBeforeDismissingModal(routeToNavigate);
@@ -161,6 +165,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                         currentUserAccountID: personalDetail.accountID,
                         text: message,
                         timezone: personalDetail.timezone,
+                        delegateAccountID,
                     });
                 }
 
@@ -209,7 +214,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                             <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
                                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                             </View>
-                            <UserListItem
+                            <BareUserListItem
                                 item={displayReport}
                                 isFocused={false}
                                 showTooltip={false}

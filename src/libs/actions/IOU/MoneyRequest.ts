@@ -1,24 +1,39 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {format} from 'date-fns';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, formatCurrentUserToAttendee, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
+import {
+    generateReportID,
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    isInvoiceRoom,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isSelfDM,
+} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
-import {cancelSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultTaxCode, getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
+import {getRemoveDraftTransactionsByIDsData, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
@@ -26,6 +41,7 @@ import type {
     BillingGraceEndPeriod,
     IntroSelected,
     LastSelectedDistanceRates,
+    OdometerDraft,
     PersonalDetailsList,
     Policy,
     PolicyTagLists,
@@ -37,21 +53,13 @@ import type {
 } from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
-import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
-import type {GpsPoint} from './index';
-import {
-    createDistanceRequest,
-    getMoneyRequestParticipantsFromReport,
-    setCustomUnitRateID,
-    setMoneyRequestDistance,
-    setMoneyRequestMerchant,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestPendingFields,
-    setMultipleMoneyRequestParticipantsFromReport,
-} from './index';
-import {resetSplitShares, startSplitBill} from './Split';
+import type {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {GpsPoint, IOURequestType} from './index';
+import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, setMoneyRequestPendingFields} from './index';
+import {createDistanceRequest, resetSplitShares, startSplitBill} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
 type CreateTransactionParams = {
@@ -67,7 +75,6 @@ type CreateTransactionParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    activePolicyID?: string;
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
@@ -114,7 +121,6 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    activePolicyID?: string;
     files: ReceiptFile[];
     isTestTransaction?: boolean;
     locationPermissionGranted?: boolean;
@@ -159,7 +165,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    activePolicyID?: string;
     privateIsArchived?: boolean;
     draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
@@ -168,6 +173,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     odometerStart?: number;
     odometerEnd?: number;
     odometerDistance?: number;
+    previousOdometerDraft?: OnyxEntry<OdometerDraft>;
     betas: OnyxEntry<Beta[]>;
     recentWaypoints: OnyxEntry<RecentWaypoint[]>;
     unit?: Unit;
@@ -192,7 +198,6 @@ function createTransaction({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    activePolicyID,
     files,
     participant,
     gpsPoint,
@@ -242,7 +247,6 @@ function createTransaction({
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 introSelected,
-                activePolicyID,
                 quickAction,
                 draftTransactionIDs,
                 recentWaypoints,
@@ -334,7 +338,6 @@ function handleMoneyRequestStepScanParticipants({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    activePolicyID,
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
@@ -448,7 +451,6 @@ function handleMoneyRequestStepScanParticipants({
                             quickAction,
                             policyRecentlyUsedCurrencies,
                             introSelected,
-                            activePolicyID,
                             files,
                             participant,
                             gpsPoint,
@@ -478,7 +480,6 @@ function handleMoneyRequestStepScanParticipants({
                             quickAction,
                             policyRecentlyUsedCurrencies,
                             introSelected,
-                            activePolicyID,
                             files,
                             participant,
                             policyParams: {policy},
@@ -506,7 +507,6 @@ function handleMoneyRequestStepScanParticipants({
                 quickAction,
                 policyRecentlyUsedCurrencies,
                 introSelected,
-                activePolicyID,
                 files,
                 participant,
                 policyParams: {policy},
@@ -590,7 +590,6 @@ function handleMoneyRequestStepDistanceNavigation({
     quickAction,
     policyRecentlyUsedCurrencies,
     introSelected,
-    activePolicyID,
     privateIsArchived,
     draftTransactionIDs = [],
     selfDMReport,
@@ -600,6 +599,7 @@ function handleMoneyRequestStepDistanceNavigation({
     odometerStart,
     odometerEnd,
     odometerDistance,
+    previousOdometerDraft,
     betas,
     recentWaypoints,
     unit,
@@ -716,12 +716,12 @@ function handleMoneyRequestStepDistanceNavigation({
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserLogin ?? '',
                     introSelected,
-                    activePolicyID,
                     quickAction,
                     draftTransactionIDs,
                     recentWaypoints,
                     betas,
                     isSelfTourViewed,
+                    previousOdometerDraft,
                 });
                 return;
             }
@@ -760,6 +760,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 personalDetails,
                 recentWaypoints,
                 betas,
+                previousOdometerDraft,
             });
             return;
         }
@@ -814,5 +815,339 @@ function handleMoneyRequestStepDistanceNavigation({
     }
 }
 
-export {createTransaction, handleMoneyRequestStepScanParticipants, handleMoneyRequestStepDistanceNavigation, getMoneyRequestParticipantOptions};
-export type {MoneyRequestStepScanParticipantsFlowParams, MoneyRequestStepDistanceNavigationParams};
+type InitMoneyRequestParams = {
+    reportID: string;
+    policy?: OnyxEntry<Policy>;
+    personalPolicy: Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> | undefined;
+    isFromGlobalCreate?: boolean;
+    isFromFloatingActionButton?: boolean;
+    currentIouRequestType?: IOURequestType | undefined;
+    newIouRequestType: IOURequestType | undefined;
+    report: OnyxEntry<Report>;
+    parentReport: OnyxEntry<Report>;
+    currentDate: string | undefined;
+    lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    isTrackDistanceExpense?: boolean;
+    hasOnlyPersonalPolicies: boolean;
+    draftTransactionIDs?: string[];
+};
+
+/**
+ * Initialize expense info
+ * @param reportID to attach the transaction to
+ * @param policy
+ * @param isFromGlobalCreate
+ * @param iouRequestType one of manual/scan/distance
+ * @param report the report to attach the transaction to
+ * @param parentReport the parent report to attach the transaction to
+ */
+function initMoneyRequest({
+    reportID,
+    policy,
+    personalPolicy,
+    isFromGlobalCreate,
+    isTrackDistanceExpense = false,
+    isFromFloatingActionButton,
+    currentIouRequestType,
+    newIouRequestType,
+    report,
+    parentReport,
+    currentDate,
+    lastSelectedDistanceRates,
+    currentUserPersonalDetails,
+    hasOnlyPersonalPolicies,
+    draftTransactionIDs,
+}: InitMoneyRequestParams) {
+    // Generate a brand new transactionID
+    const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    const created = currentDate ?? format(new Date(), 'yyyy-MM-dd');
+
+    // We remove draft transactions created during multi scanning if there are some
+    removeDraftTransactionsByIDs(draftTransactionIDs, true);
+
+    // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
+    // we should keep most of the existing data by using the ONYX MERGE operation
+    if (currentIouRequestType === newIouRequestType) {
+        // so, we just need to update the reportID, isFromGlobalCreate, created, currency
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
+            reportID,
+            isFromGlobalCreate,
+            isFromFloatingActionButton,
+            created,
+            currency,
+            transactionID: newTransactionID,
+        });
+        return;
+    }
+
+    const comment: Comment = {
+        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
+    };
+    let requestCategory: string | null = null;
+
+    // Set up initial distance expense state
+    if (
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS
+    ) {
+        if (!isFromGlobalCreate) {
+            const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, isTrackDistanceExpense, policy, lastSelectedDistanceRates});
+            comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
+        } else if (hasOnlyPersonalPolicies) {
+            comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
+        }
+        if (comment.customUnit) {
+            comment.customUnit.quantity = null;
+        }
+        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
+            comment.waypoints = undefined;
+        } else {
+            comment.waypoints = {
+                waypoint0: {keyForList: 'start_waypoint'},
+                waypoint1: {keyForList: 'stop_waypoint'},
+            };
+        }
+    }
+
+    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
+        comment.customUnit = {
+            attributes: {
+                dates: {
+                    start: DateUtils.getStartOfToday(),
+                    end: DateUtils.getStartOfToday(),
+                },
+            },
+        };
+        if (!isFromGlobalCreate) {
+            const {customUnitID, category} = getCustomUnitID(report, parentReport, policy);
+            comment.customUnit = {...comment.customUnit, customUnitID};
+            requestCategory = category ?? null;
+        }
+    }
+
+    const defaultMerchant = newIouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.TRANSACTION.DEFAULT_MERCHANT : CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+
+    const newTransaction = {
+        amount: 0,
+        comment,
+        created,
+        currency,
+        category: requestCategory,
+        iouRequestType: newIouRequestType,
+        reportID,
+        transactionID: newTransactionID,
+        isFromGlobalCreate,
+        isFromFloatingActionButton,
+        merchant: defaultMerchant,
+    };
+
+    // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
+    // Use set() here so that there is no way that data will be leaked between objects when it gets reset
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, newTransaction);
+
+    return newTransaction;
+}
+
+function createDraftTransaction(transaction: Transaction) {
+    if (!transaction) {
+        return;
+    }
+
+    const newTransaction = {
+        ...transaction,
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
+}
+
+function clearMoneyRequest(transactionID: string, draftTransactionIDs: string[] | undefined, skipConfirmation = false) {
+    const onyxData: Record<string, null | boolean> = {
+        ...getRemoveDraftTransactionsByIDsData(draftTransactionIDs),
+        [`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`]: skipConfirmation,
+    };
+    Onyx.multiSet(onyxData as Parameters<typeof Onyx.multiSet>[0]);
+}
+
+function startMoneyRequest(
+    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    reportID: string,
+    draftTransactionIDs: string[] | undefined,
+    requestType?: IOURequestType,
+    skipConfirmation = false,
+    backToReport?: string,
+    isFromFloatingActionButton?: boolean,
+) {
+    const sourceRoute = Navigation.getActiveRoute();
+    startSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE, {
+        name: '/money-request-create',
+        op: CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
+            [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+            [CONST.TELEMETRY.ATTRIBUTE_ROUTE_FROM]: sourceRoute || 'unknown',
+        },
+    });
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
+    if (isFromFloatingActionButton) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
+    }
+    switch (requestType) {
+        case CONST.IOU.REQUEST_TYPE.MANUAL:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+            return;
+        case CONST.IOU.REQUEST_TYPE.SCAN:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+            return;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+            return;
+        case CONST.IOU.REQUEST_TYPE.TIME:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_TIME.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+            return;
+        default:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+    }
+}
+
+function startDistanceRequest(
+    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    reportID: string,
+    draftTransactionIDs: string[] | undefined,
+    requestType?: IOURequestType,
+    skipConfirmation = false,
+    backToReport?: string,
+    isFromFloatingActionButton?: boolean,
+) {
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, draftTransactionIDs, skipConfirmation);
+    if (isFromFloatingActionButton) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isFromFloatingActionButton});
+    }
+    switch (requestType) {
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_MAP:
+            Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+            return;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL:
+            Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+            return;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE_GPS:
+            Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+            return;
+        default:
+            Navigation.navigate(ROUTES.DISTANCE_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID, backToReport));
+    }
+}
+
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false) {
+    // We should change the reportID and isFromGlobalCreate of the test transaction since this flow can start inside an existing report
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        participants,
+        isFromGlobalCreate: isTestTransaction ? true : undefined,
+        reportID: isTestTransaction ? participants?.at(0)?.reportID : undefined,
+    });
+}
+
+/**
+ * Finds the participants for an IOU based on the attached report
+ * @param transactionID of the transaction to set the participants of
+ * @param report attached to the transaction
+ */
+function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
+    // If the report is iou or expense report, we should get the chat report to set participant for request money
+    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
+    let participants: Participant[] = [];
+
+    if (isPolicyExpenseChat || isSelfDMChat) {
+        participants = [
+            {
+                accountID: 0,
+                reportID: chatReport?.reportID,
+                isPolicyExpenseChat,
+                selected: true,
+                policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined,
+                isSelfDM: isSelfDMChat,
+            },
+        ];
+    } else if (isInvoiceRoom(chatReport)) {
+        participants = [
+            {reportID: chatReport?.reportID, selected: true},
+            {
+                policyID: chatReport?.policyID,
+                isSender: true,
+                selected: false,
+            },
+        ];
+    } else {
+        const chatReportOtherParticipants = Object.keys(chatReport?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID);
+        participants = chatReportOtherParticipants.map((accountID) => ({accountID, selected: true}));
+    }
+
+    return participants;
+}
+
+/**
+ * Sets the participants for an IOU based on the attached report
+ * @param transactionID of the transaction to set the participants of
+ * @param report attached to the transaction
+ * @param participantsAutoAssigned whether participants were auto assigned
+ */
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<Report>, currentUserAccountID?: number, participantsAutoAssigned = true) {
+    const participants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        participants,
+        participantsAutoAssigned,
+    });
+}
+
+/** Get report policy id of IOU request */
+function getIOURequestPolicyID(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): string | undefined {
+    // Workspace sender will exist for invoices
+    const workspaceSender = transaction?.participants?.find((participant) => participant.isSender);
+    return workspaceSender?.policyID ?? report?.policyID;
+}
+
+function updateLastLocationPermissionPrompt() {
+    Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+}
+
+function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<Report>, currentUserAccountID: number) {
+    const participants = getMoneyRequestParticipantsFromReport(reportValue, currentUserAccountID);
+    const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<Transaction>> = {};
+    for (const transactionID of transactionIDs) {
+        updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
+            participants,
+            participantsAutoAssigned: true,
+        };
+    }
+    return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, updatedTransactions);
+}
+
+export {
+    createTransaction,
+    handleMoneyRequestStepScanParticipants,
+    handleMoneyRequestStepDistanceNavigation,
+    getMoneyRequestParticipantOptions,
+    initMoneyRequest,
+    createDraftTransaction,
+    clearMoneyRequest,
+    startMoneyRequest,
+    startDistanceRequest,
+    setMoneyRequestParticipants,
+    getMoneyRequestParticipantsFromReport,
+    setMoneyRequestParticipantsFromReport,
+    getIOURequestPolicyID,
+    updateLastLocationPermissionPrompt,
+    setMultipleMoneyRequestParticipantsFromReport,
+};
+export type {MoneyRequestStepScanParticipantsFlowParams};

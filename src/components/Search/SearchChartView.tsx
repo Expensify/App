@@ -5,6 +5,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
@@ -15,7 +16,7 @@ import type {ChartView, GroupedItem, SearchChartProps, SearchGroupBy, SearchQuer
 
 type SearchChartViewProps = {
     /** The current search query JSON */
-    queryJSON: SearchQueryJSON;
+    queryJSON: Readonly<SearchQueryJSON>;
 
     /** The view type (bar, etc.) */
     view: ChartView;
@@ -51,16 +52,19 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
 
     const handleItemPress = (filterQuery: string) => {
         const currentQueryString = buildSearchQueryString(queryJSON);
-        const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
+        const parsedQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
 
-        if (!newQueryJSON) {
+        if (!parsedQueryJSON) {
             Log.alert('[SearchChartView] Failed to build search query JSON from filter query');
             return;
         }
-        newQueryJSON.groupBy = undefined;
-        newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
-        newQueryJSON.sortBy = CONST.SEARCH.TABLE_COLUMNS.DATE;
-        newQueryJSON.sortOrder = CONST.SEARCH.SORT_ORDER.DESC;
+        const newQueryJSON: SearchQueryJSON = {
+            ...parsedQueryJSON,
+            groupBy: undefined,
+            view: CONST.SEARCH.VIEW.TABLE,
+            sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        };
 
         const newQueryString = buildSearchQueryString(newQueryJSON);
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
@@ -78,7 +82,7 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     return (
         <ChartComponent
             data={data}
-            getLabel={getLabel}
+            getLabel={(item) => StringUtils.normalize(getLabel(item))}
             getFilterQuery={getFilterQuery}
             onItemPress={handleItemPress}
             isLoading={isLoading}

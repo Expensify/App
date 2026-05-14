@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -13,7 +14,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
 import Text from './Text';
 
 function AutoSubmitModal() {
@@ -39,7 +39,6 @@ function AutoSubmitModal() {
     );
 
     const onClose = useCallback((willShowAgain: boolean) => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (!willShowAgain) {
                 dismissASAPSubmitExplanation(true);

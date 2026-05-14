@@ -4,6 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,21 +20,22 @@ import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
-import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useComposerMeta} from './ComposerContext';
+import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string): (comment: string) => void {
     const {isOffline} = useNetwork();
-    const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const {availableLoginsList} = useShortMentionsList();
     const isInSidePanel = useIsInSidePanel();
+    const sidePanelContext = useSidePanelContext(reportID);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
+    const delegateAccountID = useDelegateAccountID();
 
     const {attachmentFileRef} = useComposerMeta();
     const {scrollOffsetRef} = useContext(ActionListContext);
@@ -59,7 +61,6 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
 
     return (newComment: string) => {
         const newCommentTrimmed = newComment.trim();
-        kickoffWaitingIndicator();
 
         if (attachmentFileRef.current) {
             addAttachmentWithComment({
@@ -72,6 +73,8 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
                 timezone: currentUserPersonalDetails.timezone,
                 shouldPlaySound: true,
                 isInSidePanel,
+                delegateAccountID,
+                sidePanelContext,
             });
             attachmentFileRef.current = null;
             return;
@@ -110,6 +113,8 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
                     assigneeEmail: assignee?.login ?? '',
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     currentUserEmail,
+                    currentUserDisplayName: currentUserPersonalDetails.displayName,
+                    currentUserAvatar: currentUserPersonalDetails.avatar,
                     assigneeAccountID: assignee?.accountID,
                     assigneeChatReport,
                     policyID: report?.policyID,
@@ -142,7 +147,9 @@ function useComposerSubmit(reportID: string): (comment: string) => void {
             currentUserAccountID: currentUserPersonalDetails.accountID,
             shouldPlaySound: true,
             isInSidePanel,
+            sidePanelContext,
             reportActionID: optimisticReportActionID,
+            delegateAccountID,
         });
     };
 }

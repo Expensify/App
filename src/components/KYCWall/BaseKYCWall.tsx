@@ -144,7 +144,14 @@ function KYCWall({
                 if (iouReport && isIOUReport(iouReport)) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`];
                     if (adminPolicy) {
-                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport, adminPolicy, formatPhoneNumber, filteredReportActions, reportTransactions);
+                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(
+                            iouReport,
+                            adminPolicy,
+                            formatPhoneNumber,
+                            filteredReportActions,
+                            currentUserAccountID,
+                            reportTransactions,
+                        );
                         if (inviteResult?.policyExpenseChatReportID) {
                             setNavigationActionToMicrotaskQueue(() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
@@ -285,7 +292,6 @@ function KYCWall({
                     return;
                 }
 
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (paymentMethod || policy) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);
@@ -321,7 +327,6 @@ function KYCWall({
                     return;
                 }
 
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 if (policy || (paymentMethod && (!hasActivatedWallet || paymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT))) {
                     setShouldShowAddPaymentMenu(false);
                     selectPaymentMethod(paymentMethod, policy);

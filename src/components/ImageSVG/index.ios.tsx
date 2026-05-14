@@ -41,6 +41,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     // Handle static image sources (traditional approach)
     return (
         <Image
+            accessibilityIgnoresInvertColors
             onLoadEnd={onLoadEnd}
             cachePolicy="memory-disk"
             contentFit={contentFit}

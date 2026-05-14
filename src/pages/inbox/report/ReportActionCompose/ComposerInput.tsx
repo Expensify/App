@@ -17,14 +17,13 @@ import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FileObject} from '@src/types/utils/Attachment';
 import {useComposerActions, useComposerMeta, useComposerSendActions, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
+import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
 
 type ComposerInputProps = {
     reportID: string;
-    onPasteFile: (files: FileObject | FileObject[]) => void;
 };
 
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
@@ -34,7 +33,7 @@ function getRandomPlaceholder(translate: LocalizedTranslate): string {
     return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
 }
 
-function ComposerInput({reportID, onPasteFile}: ComposerInputProps) {
+function ComposerInput({reportID}: ComposerInputProps) {
     const {translate, preferredLocale} = useLocalize();
     const {isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge} = useComposerSendState();
@@ -43,6 +42,7 @@ function ComposerInput({reportID, onPasteFile}: ComposerInputProps) {
     const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
 
     const submitForm = useComposerSubmit(reportID);
+    const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
@@ -73,31 +73,35 @@ function ComposerInput({reportID, onPasteFile}: ComposerInputProps) {
     const fsClass = report ? FS.getChatFSClass(report) : undefined;
 
     return (
-        <ComposerWithSuggestions
-            ref={setComposerRef}
-            suggestionsRef={suggestionsRef}
-            isNextModalWillOpenRef={isNextModalWillOpenRef}
-            isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
-            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
-            reportID={reportID}
-            policyID={report?.policyID}
-            includeChronos={chatIncludesChronos(report)}
-            isGroupPolicyReport={isGroupPolicyReport}
-            isMenuVisible={isMenuVisible}
-            inputPlaceholder={inputPlaceholder}
-            isComposerFullSize={isComposerFullSize}
-            setIsFullComposerAvailable={setIsFullComposerAvailable}
-            onPasteFile={onPasteFile}
-            onClear={submitForm}
-            disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
-            onEnterKeyPress={handleSendMessage}
-            shouldShowComposeInput={shouldShowComposeInput}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            measureParentContainer={measureContainer}
-            onValueChange={onValueChange}
-            forwardedFSClass={fsClass}
-        />
+        <>
+            <ComposerWithSuggestions
+                ref={setComposerRef}
+                suggestionsRef={suggestionsRef}
+                isNextModalWillOpenRef={isNextModalWillOpenRef}
+                isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
+                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                reportID={reportID}
+                policyID={report?.policyID}
+                includeChronos={chatIncludesChronos(report)}
+                isGroupPolicyReport={isGroupPolicyReport}
+                isMenuVisible={isMenuVisible}
+                inputPlaceholder={inputPlaceholder}
+                isComposerFullSize={isComposerFullSize}
+                setIsFullComposerAvailable={setIsFullComposerAvailable}
+                onPasteFile={(files) => pickAttachments({files})}
+                onClear={submitForm}
+                disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
+                onEnterKeyPress={handleSendMessage}
+                shouldShowComposeInput={shouldShowComposeInput}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                measureParentContainer={measureContainer}
+                onValueChange={onValueChange}
+                forwardedFSClass={fsClass}
+            />
+            {PDFValidationComponent}
+            {ErrorModal}
+        </>
     );
 }
 

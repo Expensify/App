@@ -1,29 +1,21 @@
-import {iouRequestPolicyCollectionSelector} from '@selectors/Policy';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {dismissProductTraining} from '@libs/actions/Welcome';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
-import type Platform from '@libs/getPlatform/types';
-import GoogleTagManager from '@libs/GoogleTagManager';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {
@@ -39,10 +31,12 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining, SelectedTabRequest} from '@src/types/onyx';
+import {iouRequestPolicyCollectionSelector} from '@src/selectors/Policy';
+import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
+import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
 import IOURequestStepDestination from './step/IOURequestStepDestination';
 import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepHours from './step/IOURequestStepHours';
@@ -55,13 +49,8 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
     defaultSelectedTab: SelectedTabRequest;
 };
 
-const platform = getPlatform(true);
-const isWeb = ([CONST.PLATFORM.WEB, CONST.PLATFORM.MOBILE_WEB] as Platform[]).includes(platform);
-
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
-
-const isTestReceiptTooltipDismissedSelector = (nvp: OnyxEntry<DismissedProductTraining>): boolean => !!nvp?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP];
 
 function IOURequestStartPage({
     route,
@@ -89,11 +78,7 @@ function IOURequestStartPage({
         selector: iouRequestPolicyCollectionSelector,
     });
 
-    const {isOffline} = useNetwork();
-    const [hasUserSubmittedExpenseOrScannedReceipt] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isTestReceiptTooltipDismissedSelector});
-
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
-
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
@@ -117,7 +102,6 @@ function IOURequestStartPage({
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const accountID = currentUserPersonalDetails.accountID;
     const policiesWithPerDiemEnabledAndHasRates = useMemo(
         () => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserPersonalDetails.login),
         [allPolicies, currentUserPersonalDetails.login],
@@ -211,25 +195,8 @@ function IOURequestStartPage({
     }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
 
     const {isBetaEnabled} = usePermissions();
-    const setTestReceiptAndNavigateRef = useRef<() => void>(() => {});
-    const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
-        CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        // The test receipt image is served via our server on web so it requires internet connection
-        !hasUserSubmittedExpenseOrScannedReceipt && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
-        {
-            onShown: () => {
-                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, accountID);
-            },
-            onConfirm: () => {
-                setTestReceiptAndNavigateRef?.current?.();
-                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED, accountID);
-            },
-            onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
-                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED, accountID);
-            },
-        },
-    );
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
+
     const onBackButtonPress = () => {
         navigateBack();
         return true;
@@ -248,13 +215,14 @@ function IOURequestStartPage({
             allPolicies={iouType === CONST.IOU.TYPE.INVOICE ? allPolicies : undefined}
         >
             <ScreenWrapper
-                shouldEnableKeyboardAvoidingView={false}
+                shouldEnableKeyboardAvoidingView={isNewManualExpenseFlowEnabled}
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}>
+                {/* If the new manual expense flow is enabled, the confirmation screen is shown on the start page, so we do not want to disable the drag and drop provider in that case */}
+                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN && !(isNewManualExpenseFlowEnabled && selectedTab === CONST.TAB_REQUEST.MANUAL)}>
                     <View style={styles.flex1}>
                         <FocusTrapContainerElement
                             onContainerElementChanged={setHeaderWithBackButtonContainerElement}
@@ -275,20 +243,26 @@ function IOURequestStartPage({
                                 tabBar={TabSelector}
                                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
-                                shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
-                                renderProductTrainingTooltip={renderProductTrainingTooltip}
                                 lazyLoadEnabled
                             >
                                 <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
-                                            <IOURequestStepAmountWithTransactionOnly
-                                                shouldKeepUserInput
-                                                route={route}
-                                                navigation={navigation}
-                                                report={report}
-                                                reportDraft={reportDraft}
-                                            />
+                                            {isNewManualExpenseFlowEnabled ? (
+                                                <IOURequestStepConfirmation
+                                                    route={route}
+                                                    navigation={navigation}
+                                                    shouldHideHeader
+                                                />
+                                            ) : (
+                                                <IOURequestStepAmountWithTransactionOnly
+                                                    shouldKeepUserInput
+                                                    route={route}
+                                                    navigation={navigation}
+                                                    report={report}
+                                                    reportDraft={reportDraft}
+                                                />
+                                            )}
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
                                 </TopTab.Screen>
@@ -299,9 +273,6 @@ function IOURequestStartPage({
                                                 key={transactionRequestType}
                                                 route={route}
                                                 navigation={navigation}
-                                                onLayout={(setTestReceiptAndNavigate) => {
-                                                    setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
-                                                }}
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
