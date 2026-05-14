@@ -923,6 +923,7 @@ describe('actions/Report', () => {
         const EMOJI = {
             code: EMOJI_CODE,
             name: EMOJI_NAME,
+            hexcode: '1F44D',
             types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         };
 
@@ -1061,6 +1062,7 @@ describe('actions/Report', () => {
         const EMOJI = {
             code: EMOJI_CODE,
             name: EMOJI_NAME,
+            hexcode: '1F604',
         };
 
         let reportActions: OnyxTypes.ReportActions = {};
@@ -2049,11 +2051,11 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
         Report.toggleEmojiReaction(
             REPORT_ID,
             newReportAction,
-            {name: 'smile', code: '😄'},
+            {name: 'smile', code: '😄', hexcode: '1F604'},
             {
                 smile: {
                     createdAt: '2024-10-14 14:58:12',
@@ -2164,11 +2166,11 @@ describe('actions/Report', () => {
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
+        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID);
         Report.toggleEmojiReaction(
             REPORT_ID,
             reportAction,
-            {name: 'smile', code: '😄'},
+            {name: 'smile', code: '😄', hexcode: '1F604'},
             {
                 smile: {
                     createdAt: '2024-10-14 14:58:12',

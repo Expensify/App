@@ -79,7 +79,7 @@ function cppEscapedUtf8Key(glyph: string): string {
 
 function cppEscapedAsciiOrUtf8(key: string): string {
     if (/^[\x20-\x7E]+$/.test(key)) {
-        return `"${key.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+        return `"${key.replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`;
     }
     return cppEscapedUtf8Key(key);
 }
@@ -90,15 +90,18 @@ function extractTypesLiterals(typesInner: string | undefined): string[] {
     }
     const out: string[] = [];
     const re = /'((?:[^'\\]|\\.)*)'/g;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(typesInner)) !== null) {
-        out.push(m[1].replace(/\\'/g, "'"));
+    for (;;) {
+        const match = re.exec(typesInner);
+        if (!match) {
+            break;
+        }
+        out.push(match[1].replaceAll("\\'", "'"));
     }
     return out;
 }
 
 function stripEmojiHexcodes(source: string): string {
-    return source.replace(/\r?\n\s*hexcode:\s*'[0-9A-Fa-f-]+',?/g, '');
+    return source.replaceAll(/\r?\n\s*hexcode:\s*'[0-9A-Fa-f-]+',?/g, '');
 }
 
 function main(): void {
@@ -120,15 +123,18 @@ function main(): void {
         typesInner?: string;
     };
     const blocks: MatchInfo[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = pickerBlock.exec(commonSource)) !== null) {
-        const name = m[1];
-        const code = m[2];
-        const insertAfter = m.index + m[0].length;
+    for (;;) {
+        const match = pickerBlock.exec(commonSource);
+        if (!match) {
+            break;
+        }
+        const name = match[1];
+        const code = match[2];
+        const insertAfter = match.index + match[0].length;
         const rest = commonSource.slice(insertAfter);
         const typesMatch = rest.match(/^\s*,\s*\r?\n\s*types:\s*\[([\s\S]*?)\]\s*,?/);
         const typesInner = typesMatch ? typesMatch[1] : undefined;
-        blocks.push({idx: m.index, insertAfter, name, code, typesInner});
+        blocks.push({idx: match.index, insertAfter, name, code, typesInner});
     }
 
     const cppEntries = new Map<string, string>();
@@ -178,7 +184,7 @@ function main(): void {
     addCpp(':global_create:', globalCreateHex);
     addCpp(String.fromCharCode(0xe100), globalCreateHex);
 
-    const insertions: {pos: number; hex: string}[] = [];
+    const insertions: Array<{pos: number; hex: string}> = [];
     for (const block of blocks) {
         const hex = resolveHex(block.name, block.code);
         if (hex) {
@@ -216,7 +222,10 @@ function main(): void {
         return as.localeCompare(bs);
     });
     for (const key of sortedKeys) {
-        const hex = cppEntries.get(key)!;
+        const hex = cppEntries.get(key);
+        if (!hex) {
+            continue;
+        }
         const cppKey = cppEscapedAsciiOrUtf8(key);
         headerLines.push(`    {${cppKey}, "${hex}"},`);
     }

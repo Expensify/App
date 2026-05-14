@@ -299,39 +299,39 @@ describe('EmojiTest', () => {
 
     describe('getEmojiCodeForInsertion', () => {
         it('should return shortcode when inside code block', () => {
-            const emoji = {code: '😄', name: 'smile', types: ['😄', '😄🏻', '😄🏼', '😄🏽', '😄🏾', '😄🏿']};
+            const emoji = {code: '😄', name: 'smile', hexcode: '1F604', types: ['😄', '😄🏻', '😄🏼', '😄🏽', '😄🏾', '😄🏿']};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 0, true)).toBe(':smile:');
         });
 
         it('should return emoji code when not inside code block', () => {
-            const emoji = {code: '😄', name: 'smile'};
+            const emoji = {code: '😄', name: 'smile', hexcode: '1F604'};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 0, false)).toBe('😄');
         });
 
         it('should return skin-toned emoji when preferred skin tone is set and not in code block', () => {
-            const emoji = {code: '👍', name: '+1', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
+            const emoji = {code: '👍', name: '+1', hexcode: '1F44D', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 3, false)).toBe('👍🏽');
         });
 
         it('should return shortcode even with skin tone preference when inside code block', () => {
-            const emoji = {code: '👍', name: '+1', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
+            const emoji = {code: '👍', name: '+1', hexcode: '1F44D', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, 3, true)).toBe(':+1:');
         });
 
         it('should return base emoji code when skin tone is -1', () => {
-            const emoji = {code: '👍', name: '+1', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
+            const emoji = {code: '👍', name: '+1', hexcode: '1F44D', types: ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿']};
             expect(EmojiUtils.getEmojiCodeForInsertion(emoji, -1, false)).toBe('👍');
         });
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
-        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin'}]);
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin', hexcode: '26B0'}]);
     });
 
     it('suggests emojis when typing emojis prefix after colon, preceeded by another emoji ', () => {
         const text = 'Hi :ok: :coffin';
-        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin'}]);
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin', hexcode: '26B0'}]);
     });
 
     it('suggests a limited number of matching emojis', () => {
@@ -345,16 +345,19 @@ describe('EmojiTest', () => {
             {
                 name: 'hand_with_index_finger_and_thumb_crossed',
                 code: '🫰',
+                hexcode: '1FAF0',
                 types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
             {
                 code: '👍',
                 name: '+1',
+                hexcode: '1F44D',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
             },
             {
                 code: '👎',
                 name: '-1',
+                hexcode: '1F44E',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
         ];
@@ -363,16 +366,19 @@ describe('EmojiTest', () => {
             {
                 code: '👍',
                 name: '+1',
+                hexcode: '1F44D',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
             },
             {
                 code: '👎',
                 name: '-1',
+                hexcode: '1F44E',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
             {
                 name: 'mano_con_dedos_cruzados',
                 code: '🫰',
+                hexcode: '1FAF0',
                 types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ];
@@ -385,21 +391,25 @@ describe('EmojiTest', () => {
             {
                 code: '🤙',
                 name: 'mano_llámame',
+                hexcode: '1F919',
                 types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
             },
             {
                 code: '👍',
                 name: '+1',
+                hexcode: '1F44D',
                 types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
             },
             {
                 code: '👎',
                 name: '-1',
+                hexcode: '1F44E',
                 types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
             },
             {
                 name: 'mano_con_dedos_cruzados',
                 code: '🫰',
+                hexcode: '1FAF0',
                 types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
             },
         ]);

@@ -108,7 +108,7 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
     }
     const processedFrequentlyUsedEmojis =
         emojiList
-            ?.map((item) => {
+            ?.map((item): FrequentlyUsedEmoji | null => {
                 let emoji = item;
                 if (!item.code) {
                     emoji = {...emoji, ...findEmojiByName(item.name)};
@@ -120,9 +120,14 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
                 if (!emojiWithSkinTones) {
                     return null;
                 }
-                return {...emojiWithSkinTones, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+                return {
+                    ...emojiWithSkinTones,
+                    count: item.count,
+                    lastUpdatedAt: item.lastUpdatedAt,
+                    ...(item.keywords ? {keywords: item.keywords} : {}),
+                };
             })
-            .filter((emoji): emoji is FrequentlyUsedEmoji => !!emoji) ?? [];
+            .filter((emoji): emoji is FrequentlyUsedEmoji => emoji !== null) ?? [];
 
     // On AddComment API response, each variant of the same emoji (with different skin tones) is
     // treated as a separate entry due to unique emoji codes for each variant.
@@ -306,17 +311,14 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis, frequentlyUse
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((frequentlyUsedEmoji: Emoji): Emoji => {
-        // Frequently used emojis in the old format will have name/types/code stored with them
-        // The back-end may not always have both, so we'll need to fill them in.
-        if (!('code' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
-            return findEmojiByName(frequentlyUsedEmoji.name);
-        }
-        if (!('name' in (frequentlyUsedEmoji as FrequentlyUsedEmoji))) {
-            return findEmojiByCode(frequentlyUsedEmoji.code);
-        }
-
-        return frequentlyUsedEmoji;
+    const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((entry: FrequentlyUsedEmoji): Emoji => {
+        const baseEmoji = !entry.code ? findEmojiByName(entry.name) : !entry.name ? findEmojiByCode(entry.code) : (findEmojiByCode(entry.code) ?? findEmojiByName(entry.name));
+        return {
+            ...baseEmoji,
+            count: entry.count,
+            lastUpdatedAt: entry.lastUpdatedAt,
+            ...(entry.keywords ? {keywords: entry.keywords} : {}),
+        } as Emoji;
     });
 
     const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
@@ -429,11 +431,18 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
             checkEmoji = englishTrie.search(name);
         }
         if (checkEmoji?.metaData?.code && checkEmoji?.metaData?.name) {
-            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData as Emoji, preferredSkinTone);
+            const meta = checkEmoji.metaData;
+            const code = meta.code;
+            const hexcode = meta.hexcode ?? (code ? findEmojiByCode(code)?.hexcode : undefined) ?? findEmojiByName(name)?.hexcode;
+            if (!code || !hexcode) {
+                continue;
+            }
+            const emojiReplacement = getEmojiCodeWithSkinColor({...meta, code, hexcode} as Emoji, preferredSkinTone);
             emojis.push({
                 name,
-                code: checkEmoji.metaData?.code,
-                types: checkEmoji.metaData.types,
+                code,
+                types: meta.types,
+                hexcode,
             });
             replacements.push({
                 position: emojiPosition,
@@ -508,10 +517,14 @@ function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, lim
     const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
     for (const node of nodes) {
         if (node.metaData?.code && !matching.find((obj) => obj.name === node.name)) {
+            const hexcode = node.metaData.hexcode ?? findEmojiByCode(node.metaData.code)?.hexcode ?? findEmojiByName(node.name)?.hexcode;
+            if (!hexcode) {
+                continue;
+            }
             if (matching.length === limit) {
                 return lodashSortBy(matching, (emoji) => sortByName(emoji, emojiData));
             }
-            matching.push({code: node.metaData.code, name: node.name, types: node.metaData.types});
+            matching.push({code: node.metaData.code, name: node.name, types: node.metaData.types, hexcode});
         }
         const suggestions = node.metaData.suggestions;
         if (!suggestions) {
@@ -523,7 +536,11 @@ function suggestEmojis(text: string, locale: Locale = CONST.LOCALES.DEFAULT, lim
             }
 
             if (!matching.find((obj) => obj.name === suggestion.name)) {
-                matching.push({...suggestion});
+                const hexcode = suggestion.hexcode ?? findEmojiByCode(suggestion.code)?.hexcode;
+                if (!hexcode) {
+                    continue;
+                }
+                matching.push({...suggestion, hexcode});
             }
         }
     }
