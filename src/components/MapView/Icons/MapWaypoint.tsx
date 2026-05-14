@@ -24,7 +24,7 @@ function MapWaypoint({width = 40, height = 40}: SvgProps) {
                         dy={4}
                         stdDeviation={6}
                         floodColor="#021204"
-                        floodOpacity={0.8}
+                        floodOpacity={0.06}
                     />
                 </Filter>
             </Defs>
