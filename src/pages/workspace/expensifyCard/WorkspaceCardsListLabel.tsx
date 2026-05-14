@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {addDays, format} from 'date-fns';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -36,6 +36,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+const EXPENSIFY_CARD_TRANSACTIONS_SEARCH_QUERY_FRAGMENTS = {
+    TYPE_EXPENSE: 'type:expense',
+    WITHDRAWN_NEVER: 'withdrawn:never',
+    WITHDRAWAL_STATUS_PENDING: 'withdrawal-status:pending',
+} as const;
 
 type WorkspaceCardsListLabelProps = {
     /** Label type */
@@ -117,12 +123,12 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
     };
 
-    const handleViewTransactionsPress = useCallback(() => {
+    const handleViewTransactionsPress = () => {
         const fundIDForFeedKey = defaultFundID === CONST.DEFAULT_NUMBER_ID ? undefined : String(defaultFundID);
         const feedKey = createCardFeedKey(fundIDForFeedKey, CONST.EXPENSIFY_CARD.BANK, undefined);
-        const query = `type:expense feed:"${feedKey}" withdrawn:never withdrawal-status:pending`;
+        const query = `${EXPENSIFY_CARD_TRANSACTIONS_SEARCH_QUERY_FRAGMENTS.TYPE_EXPENSE} feed:"${feedKey}" ${EXPENSIFY_CARD_TRANSACTIONS_SEARCH_QUERY_FRAGMENTS.WITHDRAWN_NEVER} ${EXPENSIFY_CARD_TRANSACTIONS_SEARCH_QUERY_FRAGMENTS.WITHDRAWAL_STATUS_PENDING}`;
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
-    }, [defaultFundID]);
+    };
 
     return (
         <View style={styles.flex1}>
