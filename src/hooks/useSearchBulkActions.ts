@@ -252,7 +252,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         lastNonEmptySearchResultsRef.current = currentSearchResults;
     }, [currentSearchResults]);
-    // eslint-disable-next-line react-hooks/refs -- Preserve the last loaded search results while the active result set is temporarily unset; this value does not drive UI rendering.
+    // eslint-disable-next-line react-hooks/refs -- Intentional render-time fallback so bulk actions can use the last non-empty search results while currentSearchResults is briefly unset.
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResultsRef.current;
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
