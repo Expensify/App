@@ -594,6 +594,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
                             path: ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.route,
                         },
+                        [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT]: {
+                            path: ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT.route,
+                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ADVANCED]: {
                             path: ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.route,
                         },
@@ -769,6 +772,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]:
                             DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT.path,
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION.path,
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]:
+                            DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_AUTO_SYNC]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_ACCOUNTING_METHOD]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD.path,
@@ -824,15 +830,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.route,
                         },
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_LIMIT]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT.route,
-                        },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path,
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.path,
-                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_NAME]: {
-                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_NAME.route,
-                        },
-                        [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE.path,
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
                         },
@@ -982,9 +981,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 },
                             },
                         },
-                        [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.path,
                         [SCREENS.WORKSPACE.UPGRADE]: {
                             path: ROUTES.WORKSPACE_UPGRADE.route,
                         },
@@ -1021,37 +1018,17 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_CHECK.route,
                         },
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_CREATE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path,
-                        [SCREENS.WORKSPACE.CATEGORY_EDIT]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_EDIT.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORY_PAYROLL_CODE]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORY_GL_CODE]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_GL_CODE.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORY_DEFAULT_TAX_RATE]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_EDIT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_PAYROLL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_GL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DEFAULT_TAX_RATE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path,
                         [SCREENS.WORKSPACE.DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR]: DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path,
-                        [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORY_APPROVER]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_APPROVER.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DESCRIPTION_HINT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_APPROVER]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_RECEIPTS_OVER]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_REQUIRED_FIELDS]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path,
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
@@ -1398,6 +1375,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.SECURITY_GROUPS_PREFERRED_WORKSPACE]: {
                             path: ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.route,
                         },
+                        [SCREENS.DOMAIN.GROUP_CREATE]: {
+                            path: ROUTES.DOMAIN_GROUP_CREATE.route,
+                        },
+                        [SCREENS.DOMAIN.GROUP_CREATE_PREFERRED_WORKSPACE]: {
+                            path: ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {
@@ -1559,15 +1542,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_DETAILS]: {
                             path: ROUTES.EXPENSIFY_CARD_DETAILS.route,
                         },
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_NAME]: {
-                            path: ROUTES.EXPENSIFY_CARD_NAME.route,
-                        },
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT]: {
-                            path: ROUTES.EXPENSIFY_CARD_LIMIT.route,
-                        },
-                        [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_LIMIT_TYPE]: {
-                            path: ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.route,
-                        },
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME]: DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path,
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT.path,
+                        [SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_LIMIT_TYPE]: DYNAMIC_ROUTES.EXPENSIFY_CARD_LIMIT_TYPE.path,
                         [SCREENS.EXPENSIFY_CARD.EXPENSIFY_CARD_EXPIRY_OPTIONS]: {
                             path: ROUTES.EXPENSIFY_CARD_EXPIRY_OPTIONS.route,
                         },

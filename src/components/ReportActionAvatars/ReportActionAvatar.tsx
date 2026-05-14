@@ -173,6 +173,10 @@ function ReportActionAvatarSubscript({
     fallbackDisplayName,
     useProfileNavigationWrapper,
     reportID,
+    subscriptCardFeedIconSize = {
+        width: variables.cardAvatarWidth,
+        height: variables.cardAvatarHeight,
+    },
 }: {
     primaryAvatar: IconType;
     secondaryAvatar: IconType;
@@ -181,6 +185,7 @@ function ReportActionAvatarSubscript({
     noRightMarginOnContainer?: boolean;
     subscriptAvatarBorderColor?: ColorValue;
     subscriptCardFeed?: CardFeed;
+    subscriptCardFeedIconSize?: {width: number; height: number};
     fallbackDisplayName?: string;
     useProfileNavigationWrapper?: boolean;
     reportID?: string;
@@ -274,15 +279,15 @@ function ReportActionAvatarSubscript({
                         // Nullish coalescing thinks that empty strings are truthy, thus I'm using OR operator
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         StyleUtils.getBorderColorStyle(subscriptAvatarBorderColor || theme.sidebar),
-                        StyleUtils.getAvatarSubscriptIconContainerStyle(variables.cardAvatarWidth, variables.cardAvatarHeight),
+                        StyleUtils.getAvatarSubscriptIconContainerStyle(subscriptCardFeedIconSize.width, subscriptCardFeedIconSize.height),
                         styles.dFlex,
                         styles.justifyContentCenter,
                     ]}
                 >
                     <Icon
                         src={getCardFeedIcon(subscriptCardFeed, illustrations, companyCardFeedIcons)}
-                        width={variables.cardAvatarWidth}
-                        height={variables.cardAvatarHeight}
+                        width={subscriptCardFeedIconSize.width}
+                        height={subscriptCardFeedIconSize.height}
                         additionalStyles={styles.alignSelfCenter}
                         testID="ReportActionAvatars-Subscript-CardIcon"
                     />
