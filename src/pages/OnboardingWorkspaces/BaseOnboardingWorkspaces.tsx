@@ -167,7 +167,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         }
 
         if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+            Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute(route.params?.backTo));
             return;
         }
 

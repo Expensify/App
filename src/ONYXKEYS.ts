@@ -475,6 +475,9 @@ const ONYXKEYS = {
     /** Onboarding user reported integration selected by the user during Onboarding flow */
     ONBOARDING_USER_REPORTED_INTEGRATION: 'onboardingUserReportedIntegration',
 
+    /** Onboarding interested features map persisted when navigating from feature selection to accounting step */
+    ONBOARDING_INTERESTED_FEATURES_MAP: 'onboardingInterestedFeaturesMap',
+
     /** Onboarding Purpose selected by the user during Onboarding flow */
     ONBOARDING_ADMINS_CHAT_REPORT_ID: 'onboardingAdminsChatReportID',
 
@@ -1584,6 +1587,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS]: string[];
     [ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES]: OnyxTypes.ExportTemplate[];
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
+    [ONYXKEYS.ONBOARDING_INTERESTED_FEATURES_MAP]: Array<{id: string; enabled: boolean; enabledByDefault?: boolean; requiresUpdate?: boolean}>;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
     [ONYXKEYS.NVP_EXPENSE_RULES]: OnyxTypes.ExpenseRule[];
