@@ -66,10 +66,7 @@ describe('Export actions', () => {
         });
         await waitForBatchedUpdates();
 
-        Export.clearStaleExportDownloads({
-            [key1]: {state: 'ready'},
-            [key2]: {state: 'failed'},
-        });
+        Export.clearStaleExportDownloads();
         await waitForBatchedUpdates();
 
         const value1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1`);

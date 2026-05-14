@@ -63,7 +63,6 @@ function AuthScreensInitHandler() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [exportDownloads] = useOnyx(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -142,7 +141,7 @@ function AuthScreensInitHandler() {
         );
 
         Download.clearDownloads();
-        clearStaleExportDownloads(exportDownloads);
+        clearStaleExportDownloads();
 
         return () => {
             Session.cleanupSession();

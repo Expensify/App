@@ -1,9 +1,7 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type ExportDownload from '@src/types/onyx/ExportDownload';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 function sendExportFileFromConcierge(exportID: string) {
@@ -42,17 +40,26 @@ function clearExportDownload(exportID: string) {
     write(WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD, {exportID}, {optimisticData});
 }
 
-function clearStaleExportDownloads(exportDownloads: OnyxCollection<ExportDownload>) {
-    if (!exportDownloads) {
-        return;
-    }
-    for (const key of Object.keys(exportDownloads)) {
-        if (!exportDownloads[key]) {
-            continue;
-        }
-        const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
-        clearExportDownload(exportID);
-    }
+function clearStaleExportDownloads() {
+    // Uses connectWithoutView instead of useOnyx to avoid subscribing the caller component
+    // to the entire collection, which would cause unnecessary re-renders on every change.
+    const connectionID = Onyx.connectWithoutView({
+        key: ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
+        waitForCollectionCallback: true,
+        callback: (exportDownloads) => {
+            Onyx.disconnect(connectionID);
+            if (!exportDownloads) {
+                return;
+            }
+            for (const key of Object.keys(exportDownloads)) {
+                if (!exportDownloads[key]) {
+                    continue;
+                }
+                const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
+                clearExportDownload(exportID);
+            }
+        },
+    });
 }
 
 export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads};
