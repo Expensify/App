@@ -2,7 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
-import useAnimationTransition from '@components/Modal/ReanimatedModal/useAnimationTransition';
+import useAnimationTransition from '@hooks/useAnimationTransition';
 import {easing, getModalInAnimationStyle, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';

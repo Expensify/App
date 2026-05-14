@@ -37,7 +37,7 @@ let capturedOnOpenCallBack: (() => void) | undefined;
 jest.mock('@components/Modal/ReanimatedModal/Container', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    const {default: useAnimationTransition} = require('@components/Modal/ReanimatedModal/useAnimationTransition') as {
+    const {default: useAnimationTransition} = require('@hooks/useAnimationTransition') as {
         default: () => {onAnimationComplete: () => void};
     };
     function MockContainer({onOpenCallBack, onCloseCallBack: _onCloseCallBack, children, ...rest}: Record<string, unknown>) {

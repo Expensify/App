@@ -4,7 +4,7 @@ import Animated, {Keyframe} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
-import useAnimationTransition from '@components/Modal/ReanimatedModal/useAnimationTransition';
+import useAnimationTransition from '@hooks/useAnimationTransition';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
