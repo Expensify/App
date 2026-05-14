@@ -432,6 +432,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         customUnitID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_UNIT_SELECTOR]: {
+        policyID: string;
+        customUnitID: string;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: {
         policyID: string;
     };

@@ -9,7 +9,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +19,7 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import {clearPolicyDistanceRatesErrorFields, setPolicyDistanceRatesUnit} from '@userActions/Policy/DistanceRate';
+import {clearPolicyDistanceRatesErrorFields} from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,14 +46,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const errorFields = customUnit?.errorFields;
 
     const FullPageBlockingView = !customUnit ? FullPageOfflineBlockingView : View;
-
-    const setNewUnit = (unit: UnitItemType) => {
-        if (!customUnit) {
-            return;
-        }
-        const attributes = {...customUnit?.attributes, unit: unit.value};
-        setPolicyDistanceRatesUnit(policyID, customUnit, {...customUnit, attributes});
-    };
 
     const clearErrorFields = (fieldName: keyof CustomUnit) => {
         if (!customUnit?.customUnitID) {
@@ -91,7 +82,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         addBottomSafeAreaPadding
                     >
                         <View>
-                            {!!defaultUnit && (
+                            {!!defaultUnit && !!customUnit?.customUnitID && (
                                 <OfflineWithFeedback
                                     errors={getLatestErrorField(customUnit ?? {}, 'attributes')}
                                     pendingAction={customUnit?.pendingFields?.attributes}
@@ -102,7 +93,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                         label={translate('workspace.distanceRates.unit')}
                                         defaultValue={defaultUnit}
                                         wrapperStyle={[styles.ph5, styles.mt3]}
-                                        setNewUnit={setNewUnit}
+                                        customUnitID={customUnit.customUnitID}
                                     />
                                 </OfflineWithFeedback>
                             )}

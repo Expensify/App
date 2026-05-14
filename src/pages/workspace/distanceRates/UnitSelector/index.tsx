@@ -1,18 +1,18 @@
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import type {UnitItemType} from '@components/UnitPicker';
 import useLocalize from '@hooks/useLocalize';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Unit} from '@src/types/onyx/Policy';
-import UnitSelectorModal from './UnitSelectorModal';
 
 type UnitSelectorProps = {
-    /** Function to call when the user selects a unit */
-    setNewUnit: (value: UnitItemType) => void;
+    /** Custom unit ID to update when selecting a unit */
+    customUnitID: string;
 
     /** Currently selected unit */
     defaultValue?: Unit;
@@ -24,44 +24,24 @@ type UnitSelectorProps = {
     wrapperStyle: StyleProp<ViewStyle>;
 };
 
-function UnitSelector({defaultValue, wrapperStyle, label, setNewUnit}: UnitSelectorProps) {
+function UnitSelector({defaultValue, wrapperStyle, label, customUnitID}: UnitSelectorProps) {
     const {translate} = useLocalize();
 
-    const [isPickerVisible, setIsPickerVisible] = useState(false);
-
-    const showPickerModal = () => {
-        setIsPickerVisible(true);
-    };
-
-    const hidePickerModal = () => {
-        setIsPickerVisible(false);
-    };
-
-    const updateUnitInput = (unit: UnitItemType) => {
-        setNewUnit(unit);
-        hidePickerModal();
+    const openUnitSelector = () => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.UNIT_SELECTOR.getRoute(customUnitID)));
     };
 
     const title = defaultValue ? Str.recapitalize(translate(getUnitTranslationKey(defaultValue))) : '';
 
     return (
-        <View>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                title={title}
-                description={label}
-                onPress={showPickerModal}
-                wrapperStyle={wrapperStyle}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
-            />
-            <UnitSelectorModal
-                isVisible={isPickerVisible}
-                currentUnit={defaultValue}
-                onClose={hidePickerModal}
-                onUnitSelected={updateUnitInput}
-                label={label}
-            />
-        </View>
+        <MenuItemWithTopDescription
+            shouldShowRightIcon
+            title={title}
+            description={label}
+            onPress={openUnitSelector}
+            wrapperStyle={wrapperStyle}
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
+        />
     );
 }
 
