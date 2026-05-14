@@ -4714,7 +4714,7 @@ function toggleEmojiReaction(
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
     const emoji = EmojiUtils.findEmojiByCode(reactionObject.code);
-    const existingReactionObject = existingReactions?.[emoji.name];
+    const existingReactionObject = existingReactions?.[emoji.name] ?? (emoji.hexcode ? existingReactions?.[emoji.hexcode] : undefined);
 
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;

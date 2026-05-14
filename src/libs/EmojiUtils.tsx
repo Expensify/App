@@ -649,8 +649,8 @@ function hasAccountIDEmojiReacted(accountID: number, usersReactions: UsersReacti
 const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReaction, currentUserAccountID: number) => {
     const {users, oldestTimestamp} = enrichEmojiReactionWithTimestamps(reaction, emojiName);
 
-    const emoji = findEmojiByName(emojiName);
-    const emojiCodes = getUniqueEmojiCodes(emoji, users);
+    const emoji = Emojis.findEmojiByHexCode(emojiName) ?? findEmojiByName(emojiName);
+    const emojiCodes = emoji ? getUniqueEmojiCodes(emoji, users) : [];
     const reactionCount = Object.values(users ?? {})
         .map((user) => Object.values(user?.skinTones ?? {}).length)
         .reduce((sum, curr) => sum + curr, 0);
