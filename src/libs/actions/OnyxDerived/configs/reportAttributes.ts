@@ -1,6 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getIsOffline} from '@libs/NetworkState';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isPolicyAdmin, isPolicyExpenseChat, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
@@ -219,11 +219,7 @@ export default createOnyxDerivedValueConfig({
                                 }
 
                                 const parentReportAction = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
-                                if (!isMoneyRequestAction(parentReportAction)) {
-                                    continue;
-                                }
-
-                                const linkedTransactionID = getOriginalMessage(parentReportAction)?.IOUTransactionID;
+                                const linkedTransactionID = getLinkedTransactionID(parentReportAction);
                                 if (linkedTransactionID && updatedTransactionIDs.has(linkedTransactionID)) {
                                     transactionReportIDs.push(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
                                 }
