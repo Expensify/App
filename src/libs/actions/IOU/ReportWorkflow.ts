@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {arePaymentsEnabled, getSubmitReportManagerAccountID, hasDynamicExternalWorkflow, isPaidGroupPolicy, isPolicyAdmin, isSubmitAndClose} from '@libs/PolicyUtils';
-import {getAllReportActions, getReportActionHtml, getReportActionText, hasPendingDEWApprove, isCreatedAction, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getReportActionHtml, getReportActionText, getSortedReportActions, hasPendingDEWApprove, isCreatedAction, isDeletedAction} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticApprovedReportAction,
     buildOptimisticChangeApproverReportAction,
@@ -308,21 +308,19 @@ function getIOUReportActionWithBadge(
     const chatReportActions = getAllReportActionsFromIOU()?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     let actionBadge: ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined;
-    let reportAction: OnyxEntry<ReportAction>;
-    for (const action of Object.values(chatReportActions)) {
+    const sortedActions = getSortedReportActions(Object.values(chatReportActions));
+    const reportAction = sortedActions.find((action) => {
         if (action?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || isDeletedAction(action)) {
-            continue;
+            return false;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
         const badge = getBadgeFromIOUReport(iouReport, chatReport, policy, reportMetadata, invoiceReceiverPolicy, currentUserLogin, currentUserAccountID);
-        if (!badge) {
-            continue;
-        }
-        if (!reportAction?.created || (action.created ?? '') < (reportAction.created ?? '')) {
-            reportAction = action;
+        if (badge) {
             actionBadge = badge;
+            return true;
         }
-    }
+        return false;
+    });
 
     return {reportAction, actionBadge};
 }
