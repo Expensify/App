@@ -6155,18 +6155,14 @@ ${amount} para ${merchant} - ${date}`,
             cardReconciliation: 'Conciliación de tarjetas',
             reconciliationAccount: 'Cuenta de conciliación',
             continuousReconciliation: 'Conciliación continua',
-            syncCentralInvoicingSettlements: 'Sync central invoicing settlements',
             saveHoursOnReconciliation:
                 'Ahorra horas de conciliación en cada período contable haciendo que Expensify concilie continuamente los extractos y liquidaciones de la Tarjeta Expensify en tu nombre.',
             enableContinuousReconciliation: (accountingAdvancedSettingsLink, connectionName) =>
                 `<muted-text-label>Para activar la Conciliación Continua, activa la <a href="${accountingAdvancedSettingsLink}">auto-sync</a> para ${connectionName}.</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
-                chooseTravelInvoicingBankAccount: 'Choose the bank account that your central invoicing payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl, lastFourPAN) =>
                     `Asegúrate de que esta cuenta coincide con <a href="${settlementAccountUrl}">la cuenta de liquidación de tu Tarjeta Expensify</a> (que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
-                travelInvoicingSettlementAccountReconciliation: (lastFourPAN) =>
-                    `Make sure this account matches your central invoicing settlement account (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
             },
         },
         card: {
