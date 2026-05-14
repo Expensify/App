@@ -68,6 +68,8 @@ jobs:
           working-directory: ./docs
 
       - name: Build Jekyll site
+        env:
+          JEKYLL_ENV: production
         run: bundle exec jekyll build --source ./ --destination ./_site
         working-directory: ./docs
 
