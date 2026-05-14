@@ -1,4 +1,3 @@
-import React from 'react';
 import type {ValueOf} from 'type-fest';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
