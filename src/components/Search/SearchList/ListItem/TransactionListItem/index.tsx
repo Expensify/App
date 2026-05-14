@@ -49,7 +49,7 @@ function TransactionListItem<TItem extends ListItem>({
     isFirstItem,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     onUndelete,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
@@ -169,7 +169,7 @@ function TransactionListItem<TItem extends ListItem>({
         transactionPreviewData,
         exportedReportActions,
         nonPersonalAndWorkspaceCards,
-        policyForMovingExpenses,
+        isAttendeesEnabledForMovingPolicy,
     };
 
     if (!isLargeScreenWidth) {

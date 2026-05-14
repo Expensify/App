@@ -3,24 +3,24 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksDesktopPreferredExporter} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getAdminEmployees, isExpensifyTeam, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type CardListItem = ListItem & {
     value: string;
 };
 
-function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolicyConnectionsProps) {
+function DynamicQuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
@@ -28,10 +28,11 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const currentExporter = qbdConfig?.export?.exporter;
     const policyID = policy?.id;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(policyID ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)) : undefined);
-    }, [policyID]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const data: CardListItem[] = useMemo(
         () =>
@@ -85,7 +86,7 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="QuickbooksDesktopPreferredExporterConfigurationPage"
+            displayName="DynamicQuickbooksDesktopPreferredExporterConfigurationPage"
             data={data}
             headerContent={headerContent}
             onBackButtonPress={goBack}
@@ -107,4 +108,4 @@ function QuickbooksDesktopPreferredExporterConfigurationPage({policy}: WithPolic
     );
 }
 
-export default withPolicyConnections(QuickbooksDesktopPreferredExporterConfigurationPage);
+export default withPolicyConnections(DynamicQuickbooksDesktopPreferredExporterConfigurationPage);
