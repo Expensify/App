@@ -23,6 +23,12 @@ export default function (): void {
         startTime: nativeAppStartTimeMs,
     });
 
+    startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_LAST_NETWORK, {
+        name: CONST.TELEMETRY.SPAN_APP_STARTUP_LAST_NETWORK,
+        op: CONST.TELEMETRY.SPAN_APP_STARTUP_LAST_NETWORK,
+        startTime: nativeAppStartTimeMs,
+    });
+
     requestAnimationFrame(() => {
         // Use typeof guard — bare identifier throws ReferenceError if moduleInitPolyfill didn't run
         const initTimes = typeof __moduleInitTimes !== 'undefined' ? (__moduleInitTimes as Record<string, number>) : undefined;
