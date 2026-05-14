@@ -183,12 +183,14 @@ export function closeSession(): void {
   tryRun(["close", "--session", SESSION]);
 }
 
+/**
+ * @deprecated Prefer `platform.back()` / `platform.dismissKeyboard()`
+ * from `./agent-device-platform`. Kept exported because the skill-
+ * bundled `replay-only.ts` helper (on a separate branch) still
+ * imports it; the upstream-bound driver no longer calls this
+ * directly — keyevent dispatch is now platform-specific.
+ */
 export function adbKey(keyEvent: number): void {
-  /*
-   * Used by the LLM's `back()` and `dismiss_keyboard()` tools. We
-   * shell out to adb directly rather than agent-device because the
-   * CLI doesn't expose a keyevent primitive.
-   */
   execFileSync("adb", ["shell", "input", "keyevent", String(keyEvent)], {
     timeout: CLI_TIMEOUT_MS,
     encoding: "utf8",

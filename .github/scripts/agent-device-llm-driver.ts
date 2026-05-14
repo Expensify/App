@@ -33,7 +33,7 @@
  *     bugs we don't want.
  */
 
-import { execFileSync, spawn } from "child_process";
+import { execFileSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import * as adCli from "./agent-device-cli";
@@ -55,19 +55,25 @@ import type {
   AnthropicTool,
   AnthropicMessage,
 } from "./agent-device-llm-client";
+import {
+  detectPlatform,
+  startMetro,
+  locateBundle,
+  backgroundPids,
+} from "./agent-device-platform";
+import type { Platform } from "./agent-device-platform";
 
 /* ---- config ----------------------------------------------------------- */
 
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 const TOKEN_BUDGET = Number(process.env.LLM_TOKEN_BUDGET ?? 200_000);
-const APP_PACKAGE = process.env.APP_PACKAGE ?? "com.expensify.chat.dev";
 const SESSION = process.env.AGENT_DEVICE_SESSION ?? "ci";
 const ARTIFACTS_DIR = process.env.ARTIFACTS_DIR ?? "artifacts";
 const TEST_CASE_PATH =
   process.argv[2] ?? "tests/smoke/android-signin.testcase.txt";
 const CACHE_PATH =
   process.env.LLM_CACHE_PATH ?? deriveCachePath(TEST_CASE_PATH);
-const APK_GLOB = "android/app/build/outputs/apk/development/debug";
+const platform: Platform = detectPlatform();
 const METRO_READY_TIMEOUT_MS = 120_000;
 /*
  * 600s gives ~2× margin over Phase 0's observed 294s (warm AVD). The
@@ -237,99 +243,32 @@ function parseTestCase(raw: string): Step[] {
 /* ---- boot dance (matches Phase 0's bash) ------------------------------ */
 
 async function bootApp(): Promise<void> {
+  log(`boot: platform=${platform.name}`);
   log("boot: closing stale session");
   adCli.closeSession();
 
-  log("boot: locating APK");
-  const apkDir = APK_GLOB;
-  const files = fs.existsSync(apkDir)
-    ? fs.readdirSync(apkDir).filter((f) => f.endsWith(".apk"))
-    : [];
-  if (!files.length) {
-    fail(`no APK found under ${apkDir} — Rock build step likely failed`);
-  }
-  const apk = path.join(apkDir, files[0]);
-  log(`boot: installing ${apk}`);
-  execFileSync("adb", ["install", "-r", "-d", "-t", apk], { stdio: "inherit" });
-
-  log("boot: adb reverse 8081");
-  execFileSync("adb", ["reverse", "tcp:8081", "tcp:8081"], {
-    stdio: "inherit",
-  });
-
-  /*
-   * Pre-emptive ANR suppression. On the 2-core ubuntu-latest runner
-   * the Pixel Launcher routinely ANRs under the combined load of
-   * Metro + APK launch + agent-device. The system normally shows a
-   * blocking "isn't responding" dialog that hides our app behind it.
-   * Setting hide_error_dialogs=1 makes the OS suppress those dialogs
-   * (the underlying ANR still happens but the foreground app keeps
-   * running uncovered). Best-effort — if the property doesn't exist
-   * on this Android version, fall through and let the in-loop
-   * recovery handle it.
-   */
-  try {
-    execFileSync(
-      "adb",
-      ["shell", "settings", "put", "global", "hide_error_dialogs", "1"],
-      { timeout: 5_000, stdio: "ignore" },
+  log("boot: locating app bundle");
+  const bundle = locateBundle(platform);
+  if (!bundle) {
+    fail(
+      `no app bundle (*${platform.appBundleSuffix}) found under ${platform.appBundleDir} — build step likely failed`,
     );
-  } catch {
-    /* best effort */
   }
+  log(`boot: installing ${bundle}`);
+  platform.install(bundle);
 
-  /*
-   * Disable Android Autofill globally. Without this, the framework
-   * silently populates editable fields (email, password, etc.) when
-   * they gain focus and a credential is cached on the AVD. That
-   * makes the LLM appear to "succeed" with just a press call —
-   * recorded cache misses the actual fill action, and replay on a
-   * different AVD snapshot (where autofill state has rotated)
-   * breaks because press alone no longer suffices. Forcing the LLM
-   * to explicitly fill makes both record and replay deterministic.
-   */
-  try {
-    execFileSync(
-      "adb",
-      ["shell", "settings", "put", "secure", "autofill_service", "null"],
-      { timeout: 5_000, stdio: "ignore" },
-    );
-  } catch {
-    /* best effort */
-  }
+  log("boot: setupNetworking");
+  platform.setupNetworking();
+
+  platform.preBootHardening();
 
   log("boot: starting Metro");
-  const metroLog = fs.openSync(path.join(ARTIFACTS_DIR, "metro.log"), "a");
-  const metro = spawn("npm", ["start"], {
-    stdio: ["ignore", metroLog, metroLog],
-    detached: true,
-  });
-  metro.unref();
-  backgroundPids.push(metro.pid!);
+  startMetro(path.join(ARTIFACTS_DIR, "metro.log"));
 
   await waitForMetro();
 
   log("boot: agent-device open --relaunch");
-  const serial = execFileSync("adb", ["get-serialno"], {
-    encoding: "utf8",
-  }).trim();
-  execFileSync(
-    "agent-device",
-    [
-      "open",
-      APP_PACKAGE,
-      "--platform",
-      "android",
-      "--serial",
-      serial,
-      "--session",
-      SESSION,
-      "--relaunch",
-    ],
-    {
-      stdio: "inherit",
-    },
-  );
+  platform.launch();
 
   /*
    * Bounded wait for the SignIn UI to hydrate. The LLM can technically
@@ -369,58 +308,15 @@ async function bootApp(): Promise<void> {
       return;
     }
     /*
-     * ANR-recovery: when the runner is memory-pressured the system
-     * shows a "Pixel Launcher isn't responding" dialog over our app.
-     * Press "Wait" to dismiss, then force-stop + relaunch via
-     * agent-device. Plain `am start` was insufficient: if the ANR
-     * hit during JS bundle delivery, MainActivity was in a half-
-     * initialised state and `am start` just brought that broken
-     * activity to the foreground (run 25560886459 stuck on splash
-     * for 600s after recovering from an ANR via am start). Force-
-     * stop guarantees a clean process spawn for the next launch.
+     * Blocking-dialog recovery. Platform-specific detection +
+     * dismissal hides behind `tryDismissBlockingDialog`. Android:
+     * Pixel Launcher ANR dialog (Close app / Wait). iOS (PR B):
+     * system permission alerts. Either way, dismissed → force-
+     * relaunch the app so we don't poll against a half-initialised
+     * activity stuck behind the dismissed dialog.
      */
-    if (isAnrDialog(snap)) {
-      log("boot: ANR dialog detected — dismissing and force-relaunching app");
-      try {
-        const waitBtn = snap.nodes.find(
-          (n) => n.kind === "button" && n.text?.toLowerCase() === "wait",
-        );
-        if (waitBtn) {
-          adCli.press(waitBtn.ref);
-        }
-      } catch (e) {
-        log(`boot: dismiss press failed: ${(e as Error).message.slice(0, 80)}`);
-      }
-      try {
-        execFileSync("adb", ["shell", "am", "force-stop", APP_PACKAGE], {
-          timeout: 5_000,
-          stdio: "ignore",
-        });
-      } catch (e) {
-        log(`boot: force-stop failed: ${(e as Error).message.slice(0, 80)}`);
-      }
-      try {
-        const serial = execFileSync("adb", ["get-serialno"], {
-          encoding: "utf8",
-        }).trim();
-        execFileSync(
-          "agent-device",
-          [
-            "open",
-            APP_PACKAGE,
-            "--platform",
-            "android",
-            "--serial",
-            serial,
-            "--session",
-            SESSION,
-            "--relaunch",
-          ],
-          { timeout: 30_000, stdio: "ignore" },
-        );
-      } catch (e) {
-        log(`boot: relaunch failed: ${(e as Error).message.slice(0, 80)}`);
-      }
+    if (platform.tryDismissBlockingDialog(snap)) {
+      log("boot: blocking dialog dismissed + app force-relaunched");
       /* Give the process a moment to come back up before re-snapshotting. */
       await sleep(3_000);
       continue;
@@ -459,23 +355,6 @@ async function bootApp(): Promise<void> {
     log(`boot: timeout-diagnostics capture failed: ${(e as Error).message}`);
   }
   fail(`SignIn UI not ready within ${SIGNIN_LOAD_TIMEOUT_MS / 1000}s`);
-}
-
-/**
- * Detects the Android system "isn't responding" dialog. The exact
- * label varies (Pixel Launcher / com.android.systemui / etc.) so we
- * match on the structural fingerprint: exactly two button nodes
- * labelled "Close app" and "Wait".
- */
-function isAnrDialog(snap: {
-  nodes: Array<{ kind: string; text?: string }>;
-}): boolean {
-  const buttons = snap.nodes.filter((n) => n.kind === "button");
-  if (buttons.length !== 2) {
-    return false;
-  }
-  const labels = buttons.map((b) => b.text?.toLowerCase() ?? "").sort();
-  return labels[0] === "close app" && labels[1] === "wait";
 }
 
 async function waitForMetro(): Promise<void> {
@@ -697,11 +576,11 @@ async function dispatchCachedAction(
     return await runWaitFor(action.predicate, action.timeoutMs);
   }
   if (action.tool === "back") {
-    adCli.adbKey(4);
+    platform.back();
     return { ok: true };
   }
   if (action.tool === "dismiss_keyboard") {
-    adCli.adbKey(111);
+    platform.dismissKeyboard();
     return { ok: true };
   }
   const snap = adCli.snapshot();
@@ -1299,12 +1178,12 @@ async function dispatchTool(
       };
     }
     case "back":
-      adCli.adbKey(4);
+      platform.back();
       ctx.executed.push({ tool: "back" });
       ctx.onSnap(adCli.snapshot());
       return { content: "back pressed" };
     case "dismiss_keyboard":
-      adCli.adbKey(111);
+      platform.dismissKeyboard();
       ctx.executed.push({ tool: "dismiss_keyboard" });
       ctx.onSnap(adCli.snapshot());
       return { content: "keyboard dismissed" };
@@ -1439,7 +1318,6 @@ async function runBashFallback(
 
 /* ---- cleanup ---------------------------------------------------------- */
 
-const backgroundPids: number[] = [];
 let cleanedUp = false;
 
 function registerCleanup(): void {
@@ -1448,29 +1326,7 @@ function registerCleanup(): void {
       return;
     }
     cleanedUp = true;
-    try {
-      execFileSync(
-        "adb",
-        [
-          "logcat",
-          "-d",
-          "-v",
-          "time",
-          "*:W",
-          "ReactNativeJS:V",
-          "ReactNative:V",
-        ],
-        {
-          stdio: [
-            "ignore",
-            fs.openSync(path.join(ARTIFACTS_DIR, "logcat.txt"), "w"),
-            "ignore",
-          ],
-        },
-      );
-    } catch {
-      /* best effort */
-    }
+    platform.dumpLogsToFile(path.join(ARTIFACTS_DIR, "logcat.txt"));
     adCli.closeSession();
     for (const pid of backgroundPids) {
       try {
