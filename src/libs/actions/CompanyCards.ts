@@ -43,6 +43,7 @@ import type {
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
+import {getImportFailedFinalModal} from './ImportSpreadsheet';
 
 type AddNewCompanyCardFlowData = {
     /** Step to be set in Onyx */
@@ -1161,11 +1162,6 @@ function importCSVCompanyCards({
         pendingMessageKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
     };
 
-    const importFailedFinalModal: ImportFinalModal = {
-        titleKey: 'spreadsheet.importFailedTitle',
-        promptKey: 'spreadsheet.importFailedDescription',
-    };
-
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.LAST_SELECTED_FEED>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1213,12 +1209,9 @@ function importCSVCompanyCards({
         });
     }
 
-    return (
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, failureData})
-            .then((response) => (response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : importFailedFinalModal))
-            .catch(() => importFailedFinalModal)
-    );
+    return API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, failureData})
+        .then(() => importFinalModal)
+        .catch(() => getImportFailedFinalModal());
 }
 
 /**

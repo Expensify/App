@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
+import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
     EnablePolicyCategoriesParams,
@@ -316,13 +317,6 @@ function getImportCategoriesFinalModal({added, updated}: {added: number; updated
             added,
             updated,
         },
-    };
-}
-
-function getImportFailedFinalModal(): ImportFinalModal {
-    return {
-        titleKey: 'spreadsheet.importFailedTitle',
-        promptKey: 'spreadsheet.importFailedDescription',
     };
 }
 
@@ -949,6 +943,8 @@ async function importPolicyCategories(policyID: string, categories: PolicyCatego
     };
 
     try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters);
         return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();

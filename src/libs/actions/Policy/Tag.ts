@@ -3,6 +3,7 @@ import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
+import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
     EnablePolicyTagsParams,
@@ -108,13 +109,6 @@ function getImportMultiLevelTagsFinalModal(): ImportFinalModal {
     return {
         titleKey: 'spreadsheet.importSuccessfulTitle',
         promptKey: 'spreadsheet.importMultiLevelTagsSuccessfulDescription',
-    };
-}
-
-function getImportFailedFinalModal(): ImportFinalModal {
-    return {
-        titleKey: 'spreadsheet.importFailedTitle',
-        promptKey: 'spreadsheet.importFailedDescription',
     };
 }
 
@@ -244,6 +238,8 @@ async function importPolicyTags(policyID: string, tags: PolicyTag[]): Promise<Im
     };
 
     try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_TAGS_SPREADSHEET, parameters);
         return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
@@ -910,10 +906,9 @@ function importMultiLevelTags(policyID: string, spreadsheet: ImportedSpreadsheet
                     file,
                 };
 
-                // eslint-disable-next-line rulesdir/no-api-side-effects-method
-                API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData)
-                    .then((response) => {
-                        resolve(response?.jsonCode === CONST.JSON_CODE.SUCCESS ? getImportMultiLevelTagsFinalModal() : getImportFailedFinalModal());
+                API.write(WRITE_COMMANDS.IMPORT_MULTI_LEVEL_TAGS, parameters, onyxData)
+                    .then(() => {
+                        resolve(getImportMultiLevelTagsFinalModal());
                     })
                     .catch(() => {
                         resolve(getImportFailedFinalModal());

@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
+import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 
 function setSpreadsheetData(
@@ -70,6 +70,13 @@ function closeImportPage(): Promise<void> {
         // Clear the import settings so the next import starts fresh
         importTransactionSettings: null,
     });
+}
+
+function getImportFailedFinalModal(): ImportFinalModal {
+    return {
+        titleKey: 'spreadsheet.importFailedTitle',
+        promptKey: 'spreadsheet.importFailedDescription',
+    };
 }
 
 function setImportTransactionCardName(cardDisplayName: string): Promise<void> {
@@ -148,4 +155,5 @@ export {
     setImportTransactionCurrency,
     setImportTransactionSettings,
     applySavedColumnMappings,
+    getImportFailedFinalModal,
 };

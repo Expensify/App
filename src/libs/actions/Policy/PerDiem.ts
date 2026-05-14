@@ -2,6 +2,7 @@ import lodashDeepClone from 'lodash/cloneDeep';
 import type {NullishDeep} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -136,13 +137,6 @@ function getImportPerDiemRatesFinalModal(ratesLength: number): ImportFinalModal 
     };
 }
 
-function getImportFailedFinalModal(): ImportFinalModal {
-    return {
-        titleKey: 'spreadsheet.importFailedTitle',
-        promptKey: 'spreadsheet.importFailedDescription',
-    };
-}
-
 async function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[], rowsLength: number): Promise<ImportFinalModal> {
     const importFinalModal = getImportPerDiemRatesFinalModal(rowsLength);
 
@@ -153,6 +147,8 @@ async function importPerDiemRates(policyID: string, customUnitID: string, rates:
     };
 
     try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_PER_DIEM_RATES, parameters);
         return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();

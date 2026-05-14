@@ -2,6 +2,7 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} fr
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
@@ -152,13 +153,6 @@ function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLe
             added: addedMembersLength,
             updated: updatedMembersLength,
         },
-    };
-}
-
-function getImportFailedFinalModal(): ImportFinalModal {
-    return {
-        titleKey: 'spreadsheet.importFailedTitle',
-        promptKey: 'spreadsheet.importFailedDescription',
     };
 }
 
@@ -1030,6 +1024,8 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
     };
 
     try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters);
         return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();

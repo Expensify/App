@@ -3,7 +3,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {ImportCSVTransactionsParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {generateCardID} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -14,6 +14,7 @@ import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 import type Transaction from '@src/types/onyx/Transaction';
+import {getImportFailedFinalModal} from './ImportSpreadsheet';
 
 type TransactionFromCSV = {
     transactionID: string;
@@ -421,20 +422,14 @@ async function importTransactionsFromCSV(spreadsheet: ImportedSpreadsheet, exist
         promptKey: 'spreadsheet.importTransactionsSuccessfulDescription',
         promptKeyParams: {transactions: transactionList.length},
     };
-    const importFailedFinalModal: ImportFinalModal = {
-        titleKey: 'spreadsheet.importFailedTitle',
-        promptKey: 'spreadsheet.importFailedDescription',
-    };
-
     try {
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CSV_TRANSACTIONS, params, {
+        await API.write(WRITE_COMMANDS.IMPORT_CSV_TRANSACTIONS, params, {
             optimisticData,
             failureData,
         });
-        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : importFailedFinalModal;
+        return importFinalModal;
     } catch {
-        return importFailedFinalModal;
+        return getImportFailedFinalModal();
     }
 }
 
