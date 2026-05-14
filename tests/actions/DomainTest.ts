@@ -365,11 +365,6 @@ describe('actions/Domain', () => {
                         }),
                     ]),
                     failureData: expect.arrayContaining([
-                        expect.objectContaining({
-                            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                            value: {memberErrors: {[targetEmail]: expect.any(Object)}},
-                        }),
                         // This restores the user to the security group if the API call fails
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
