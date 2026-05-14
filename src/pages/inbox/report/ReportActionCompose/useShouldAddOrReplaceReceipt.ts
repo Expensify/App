@@ -9,6 +9,7 @@ import {canEditFieldOfMoneyRequest, canUserPerformWriteAction as canUserPerformW
 import {getTransactionID} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 
 function useShouldAddOrReplaceReceipt(reportID: string) {
     const {isOffline} = useNetwork();
@@ -23,8 +24,7 @@ function useShouldAddOrReplaceReceipt(reportID: string) {
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
     const isExpensesReport = reportTransactions && reportTransactions.length > 1;
 
-    const reportActionValues = rawReportActions ? Object.values(rawReportActions) : [];
-    const iouAction = reportActionValues.find((action) => isMoneyRequestAction(action));
+    const iouAction = rawReportActions ? (Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) as ReportAction | undefined) : undefined;
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
     const transactionID = getTransactionID(report) ?? linkedTransactionID;
 

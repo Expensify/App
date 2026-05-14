@@ -875,4 +875,3 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 }
 
 export default useExpenseSubmission;
-export type {UseExpenseSubmissionParams};

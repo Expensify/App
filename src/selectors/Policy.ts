@@ -4,6 +4,7 @@ import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/acti
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -214,6 +215,16 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+function isAdminForPolicyByIDSelector(policyID?: string) {
+    return (policies: OnyxCollection<Policy> | null): boolean => {
+        if (!policyID) {
+            return true;
+        }
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        return !!policy && policy.role === CONST.POLICY.ROLE.ADMIN;
+    };
+}
+
 const createAdminPoliciesSelector =
     (currentPolicyID: string | undefined = undefined) =>
     (policies: OnyxCollection<Policy>) => {
@@ -243,8 +254,6 @@ export {
     groupPaidPoliciesWithExpenseChatEnabledSelector,
     iouRequestPolicyCollectionSelector,
     policyMapper,
-    adminPoliciesConnectedToSageIntacctSelector,
-    adminPoliciesConnectedToNetSuiteSelector,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
     hasPoliciesConnectedToQBDSelector,
@@ -253,5 +262,6 @@ export {
     hasOnlyPersonalPoliciesSelector,
     policyNameSelector,
     createAdminPoliciesSelector,
+    isAdminForPolicyByIDSelector,
 };
 export type {ReusablePolicyConnectionName};

@@ -117,8 +117,8 @@ function resetDomainValidationError(accountID: number) {
  * Fetches the latest domain data from the server,
  * when accessing the domain initial page
  */
-function openDomainInitialPage(domainName: string) {
-    API.read(READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE, {domainName});
+function openDomainPage(domainAccountID: number) {
+    API.read(READ_COMMANDS.OPEN_DOMAIN_PAGE, {domainAccountID});
 }
 
 /**
@@ -2083,6 +2083,7 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, previ
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            // backend API uses snake_case for domain_defaultSecurityGroupID
             // eslint-disable-next-line @typescript-eslint/naming-convention
             value: {domain_defaultSecurityGroupID: groupID},
         },
@@ -2110,6 +2111,7 @@ function setDefaultSecurityGroup(domainAccountID: number, groupID: string, previ
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            // backend API uses snake_case for domain_defaultSecurityGroupID
             // eslint-disable-next-line @typescript-eslint/naming-convention
             value: {domain_defaultSecurityGroupID: previousGroupID},
         },
@@ -2297,7 +2299,7 @@ export {
     getDomainValidationCode,
     validateDomain,
     resetDomainValidationError,
-    openDomainInitialPage,
+    openDomainPage,
     getSamlSettings,
     setSamlEnabled,
     resetSamlEnabledError,

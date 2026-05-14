@@ -145,11 +145,9 @@ Onyx.connect({
 });
 
 let deprecatedUserAccountID = -1;
-let deprecatedCurrentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        deprecatedCurrentUserEmail = value?.email ?? '';
         deprecatedUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
@@ -207,10 +205,6 @@ function getAllReportNameValuePairs(): OnyxCollection<OnyxTypes.ReportNameValueP
 
 function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
     return allTransactionDrafts;
-}
-
-function getCurrentUserEmail(): string {
-    return deprecatedCurrentUserEmail;
 }
 
 function getUserAccountID(): number {
@@ -292,8 +286,23 @@ function setMoneyRequestReceiptState(transactionID: string, isDraft: boolean, sh
 }
 
 function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false, shouldStopSmartscan = false) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
+    // Mark that the user has explicitly set the amount. This is used by the new manual expense flow to distinguish
+    // a default amount of 0 (field empty) from a user-entered 0 (valid $0 expense).
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount, isAmountSet: true});
     setMoneyRequestReceiptState(transactionID, true, shouldStopSmartscan);
+}
+
+/**
+ * Clears the amount field back to an empty/unset state in the new manual expense flow.
+ * Called when the user deletes all characters from the amount input so that the field
+ * shows as empty and submission is blocked until a value is entered again.
+ */
+function clearMoneyRequestAmount(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount: 0, isAmountSet: false});
+}
+
+function clearMoneyRequestMerchant(transactionID: string, isDraft = true) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant: '', isMerchantSet: false});
 }
 
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {
@@ -311,15 +320,16 @@ function setMoneyRequestCurrency(transactionID: string, currency: string, isEdit
 }
 
 function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean, shouldStopSmartscan = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
+    // Trim only when persisting to the real transaction (not a draft) to avoid
+    // stripping trailing spaces/newlines while the user is still typing.
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: isDraft ? comment : comment.trim()}});
     setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
 function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean, shouldStopSmartscan = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant, isMerchantSet: true});
     setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
-
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {attendees}});
 }
@@ -615,6 +625,8 @@ export {
     setGPSTransactionDraftData,
     setCustomUnitID,
     setMoneyRequestAmount,
+    clearMoneyRequestAmount,
+    clearMoneyRequestMerchant,
     setMoneyRequestAttendees,
     setMoneyRequestAccountant,
     setMoneyRequestBillable,
@@ -646,7 +658,6 @@ export {
     getAllReportActionsFromIOU,
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
-    getCurrentUserEmail,
     getUserAccountID,
     getCurrentUserPersonalDetails,
     getRecentAttendees,

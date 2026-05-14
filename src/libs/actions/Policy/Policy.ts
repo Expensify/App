@@ -7409,4 +7409,4 @@ export {
     setPolicyRequireCompanyCardsEnabled,
     setPolicyTimeTrackingDefaultRate,
 };
-export type {BuildPolicyDataKeys, CurrentUser, WorkspaceMembersChats};
+export type {BuildPolicyDataKeys, CurrentUser};
