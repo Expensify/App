@@ -1,8 +1,9 @@
 import React from 'react';
-import Animated, {Keyframe} from 'react-native-reanimated';
+import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import useAnimationTransition from '@hooks/useAnimationTransition';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -18,19 +19,14 @@ function Backdrop({
 }: BackdropProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {onAnimationComplete} = useAnimationTransition();
 
-    const Entering = new Keyframe(getModalInAnimation('fadeIn')).duration(animationInTiming);
-    const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming);
-
-    const BackdropOverlay = (
-        <Animated.View
-            entering={Entering}
-            exiting={Exiting}
-            style={[styles.modalBackdrop, {opacity: backdropOpacity}, style]}
-        >
-            {!!customBackdrop && customBackdrop}
-        </Animated.View>
-    );
+    const Entering = new Keyframe(getModalInAnimation('fadeIn'))
+        .duration(animationInTiming)
+        // ReduceMotion.Never ensures the callback fires even when system motion is reduced
+        .reduceMotion(ReduceMotion.Never)
+        .withCallback(onAnimationComplete);
+    const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming).reduceMotion(ReduceMotion.Never).withCallback(onAnimationComplete);
 
     if (!customBackdrop) {
         return (
@@ -40,12 +36,24 @@ function Backdrop({
                 onPressIn={onBackdropPress}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
-                {BackdropOverlay}
+                <Animated.View
+                    entering={Entering}
+                    exiting={Exiting}
+                    style={[styles.modalBackdrop, {opacity: backdropOpacity}, style]}
+                />
             </PressableWithoutFeedback>
         );
     }
 
-    return BackdropOverlay;
+    return (
+        <Animated.View
+            entering={Entering}
+            exiting={Exiting}
+            style={[styles.modalBackdrop, {opacity: backdropOpacity}, style]}
+        >
+            {customBackdrop}
+        </Animated.View>
+    );
 }
 
 export default Backdrop;

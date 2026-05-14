@@ -20,7 +20,7 @@ type GestureHandlerProps = {
     onSwipeComplete?: () => void;
 
     /** Threshold for swipe gesture. */
-    swipeThreshold: number;
+    swipeThreshold?: number;
 
     /** Threshold for swipe gesture. */
     swipeDirection?: SwipeDirection | SwipeDirection[];
@@ -33,7 +33,7 @@ type ReanimatedModalProps = ViewProps &
     GestureProps &
     GestureHandlerProps & {
         /** Content inside the modal */
-        children: ReactNode;
+        children?: ReactNode;
 
         /** Style applied to the modal container */
         style?: StyleProp<ViewStyle>;
@@ -162,9 +162,6 @@ type BackdropProps = {
     /** Callback fired when pressing the backdrop */
     onBackdropPress?: () => void;
 
-    /** Delay set to animation on enter */
-    animationInDelay?: number;
-
     /** Timing of animation on enter */
     animationInTiming?: number;
 
@@ -178,7 +175,7 @@ type BackdropProps = {
     isBackdropVisible: boolean;
 };
 
-type ContainerProps = {
+type ContainerProps = ViewProps & {
     /** This function is called by open animation callback */
     onOpenCallBack: () => void;
 
@@ -193,6 +190,27 @@ type ContainerProps = {
 
     /** Animation played when modal disappears */
     animationOut: AnimationOut;
+
+    /** Duration of the animation when modal appears */
+    animationInTiming?: number;
+
+    /** Duration of the animation when modal disappears */
+    animationOutTiming?: number;
+
+    /** Style applied to the modal container */
+    style?: StyleProp<ViewStyle>;
+
+    /** Modal type */
+    type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+
+    /** Callback to be fired on swipe gesture */
+    onSwipeComplete?: () => void;
+
+    /** Direction of swipe gesture */
+    swipeDirection?: SwipeDirection | SwipeDirection[];
+
+    /** Threshold for swipe gesture */
+    swipeThreshold?: number;
 };
 
 export default ReanimatedModalProps;

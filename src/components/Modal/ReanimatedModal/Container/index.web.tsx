@@ -1,8 +1,9 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect} from 'react';
 import Animated, {Keyframe, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import {easing, getModalInAnimationStyle, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
+import useAnimationTransition from '@hooks/useAnimationTransition';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -18,13 +19,9 @@ function Container({
     ...props
 }: ReanimatedModalProps & ContainerProps) {
     const styles = useThemeStyles();
-    const onCloseCallbackRef = useRef(onCloseCallBack);
+    const {onAnimationComplete} = useAnimationTransition();
     const initProgress = useSharedValue(0);
     const isInitiated = useSharedValue(false);
-
-    useEffect(() => {
-        onCloseCallbackRef.current = onCloseCallBack;
-    }, [onCloseCallBack]);
 
     useEffect(() => {
         if (isInitiated.get()) {
@@ -41,24 +38,26 @@ function Container({
                     // we enable the animations to make sure they are called
                     reduceMotion: ReduceMotion.Never,
                 },
-                onOpenCallBack,
+                () => {
+                    onOpenCallBack();
+                    onAnimationComplete();
+                },
             ),
         );
-    }, [animationInTiming, onOpenCallBack, initProgress, isInitiated]);
+    }, [animationInTiming, onOpenCallBack, onAnimationComplete, initProgress, isInitiated]);
 
     // instead of an entering transition since keyframe animations break keyboard on mWeb Chrome (#62799)
-    const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [initProgress]);
+    const animatedStyles = useAnimatedStyle(() => getModalInAnimationStyle(animationIn)(initProgress.get()), [animationIn, initProgress]);
 
-    const Exiting = useMemo(
-        () =>
-            new Keyframe(getModalOutAnimation(animationOut))
-                .duration(animationOutTiming)
-                .withCallback(() => onCloseCallbackRef.current())
-                // on web the callbacks are not called when animations are disabled with the reduced motion setting on
-                // we enable the animations to make sure they are called
-                .reduceMotion(ReduceMotion.Never),
-        [animationOutTiming, animationOut],
-    );
+    const Exiting = new Keyframe(getModalOutAnimation(animationOut))
+        .duration(animationOutTiming)
+        .withCallback(() => {
+            onCloseCallBack();
+            onAnimationComplete();
+        })
+        // on web the callbacks are not called when animations are disabled with the reduced motion setting on
+        // we enable the animations to make sure they are called
+        .reduceMotion(ReduceMotion.Never);
 
     return (
         <Animated.View
