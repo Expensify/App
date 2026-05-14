@@ -39,6 +39,9 @@ type SingleSelectPopupProps<T> = {
     /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
 
+    /** Custom height for each item in the list. Overrides the default row height and adjusts the popover size accordingly. */
+    itemHeight?: number;
+
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
 };
@@ -55,6 +58,7 @@ function SingleSelectPopup<T extends string>({
     defaultValue,
     style,
     selectionListStyle,
+    itemHeight,
     shouldShowList = true,
 }: SingleSelectPopupProps<T>) {
     const [selectedItem, setSelectedItem] = useState(value);
@@ -90,11 +94,11 @@ function SingleSelectPopup<T extends string>({
                     searchPlaceholder={searchPlaceholder}
                     selectionListStyle={selectionListStyle}
                     shouldShowList={shouldShowList}
+                    itemHeight={itemHeight}
                 />
             </ListFilterHeightContextProvider>
         </BasePopup>
     );
 }
 
-export type {SingleSelectPopupProps};
 export default SingleSelectPopup;

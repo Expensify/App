@@ -1297,4 +1297,4 @@ function bulkDuplicateReports({
 }
 
 export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport, bulkDuplicateReports};
-export type {DuplicateExpenseTransactionParams, BulkDuplicateExpensesParams, DuplicateReportParams, BulkDuplicateReportsParams};
+export type {DuplicateReportParams, BulkDuplicateReportsParams};
