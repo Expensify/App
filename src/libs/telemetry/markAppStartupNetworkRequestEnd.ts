@@ -8,7 +8,7 @@ function markAppStartupNetworkRequestEnd(command: string | undefined): void {
         return;
     }
 
-    endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_LAST_NETWORK, {
+    endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST, {
         [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,
     });
 }

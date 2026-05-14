@@ -23,9 +23,9 @@ export default function (): void {
         startTime: nativeAppStartTimeMs,
     });
 
-    startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_LAST_NETWORK, {
-        name: CONST.TELEMETRY.SPAN_APP_STARTUP_LAST_NETWORK,
-        op: CONST.TELEMETRY.SPAN_APP_STARTUP_LAST_NETWORK,
+    startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST, {
+        name: CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST,
+        op: CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST,
         startTime: nativeAppStartTimeMs,
     });
 
