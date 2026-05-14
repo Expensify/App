@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -52,104 +53,106 @@ function PreferencesPage() {
     useDocumentTitle(translate('common.preferences'));
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnablePickerAvoiding={false}
-            shouldShowOfflineIndicatorInWideScreen
-            testID="PreferencesPage"
-        >
-            <HeaderWithBackButton
-                title={translate('common.preferences')}
-                icon={illustrations.Gears}
-                shouldUseHeadlineHeader
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-            />
-            <ScrollView contentContainerStyle={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <Section
-                        title={translate('preferencesPage.appSection.title')}
-                        titleStyles={styles.accountSettingsSectionTitle}
-                        isCentralPane
-                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
-                        illustrationBackgroundColor={colors.blue500}
-                        {...preferencesIllustration}
-                    >
-                        <View style={[styles.flex1, styles.mt5]}>
-                            <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
-                                <View style={styles.flex4}>
-                                    <Text
-                                        accessible={false}
-                                        aria-hidden
-                                    >
-                                        {translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                                    </Text>
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicatorInWideScreen
+                testID="PreferencesPage"
+            >
+                <HeaderWithBackButton
+                    title={translate('common.preferences')}
+                    icon={illustrations.Gears}
+                    shouldUseHeadlineHeader
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    onBackButtonPress={Navigation.goBack}
+                />
+                <ScrollView contentContainerStyle={styles.pt3}>
+                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        <Section
+                            title={translate('preferencesPage.appSection.title')}
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            isCentralPane
+                            illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                            illustrationBackgroundColor={colors.blue500}
+                            {...preferencesIllustration}
+                        >
+                            <View style={[styles.flex1, styles.mt5]}>
+                                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
+                                    <View style={styles.flex4}>
+                                        <Text
+                                            accessible={false}
+                                            aria-hidden
+                                        >
+                                            {translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                        </Text>
+                                    </View>
+                                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                        <Switch
+                                            accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                            isOn={account?.isSubscribedToNewsletter ?? true}
+                                            onToggle={updateNewsletterSubscription}
+                                        />
+                                    </View>
                                 </View>
-                                <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                    <Switch
-                                        accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                                        isOn={account?.isSubscribedToNewsletter ?? true}
-                                        onToggle={updateNewsletterSubscription}
-                                    />
+                                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween]}>
+                                    <View style={styles.flex4}>
+                                        <Text
+                                            accessible={false}
+                                            aria-hidden
+                                        >
+                                            {translate('preferencesPage.muteAllSounds')}
+                                        </Text>
+                                    </View>
+                                    <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                        <Switch
+                                            accessibilityLabel={translate('preferencesPage.muteAllSounds')}
+                                            isOn={isPlatformMuted ?? false}
+                                            onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
+                                        />
+                                    </View>
                                 </View>
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={translate(`priorityModePage.priorityModes.${priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}.label`)}
+                                    description={translate('priorityModePage.priorityMode')}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
+                                />
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
+                                    description={translate('languagePage.language')}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
+                                />
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}
+                                    description={translate('billingCurrency.paymentCurrency')}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
+                                />
+                                <MenuItemWithTopDescription
+                                    shouldShowRightIcon
+                                    title={translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}
+                                    description={translate('themePage.theme')}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
+                                    wrapperStyle={styles.sectionMenuItemTopDescription}
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
+                                />
                             </View>
-                            <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween]}>
-                                <View style={styles.flex4}>
-                                    <Text
-                                        accessible={false}
-                                        aria-hidden
-                                    >
-                                        {translate('preferencesPage.muteAllSounds')}
-                                    </Text>
-                                </View>
-                                <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                    <Switch
-                                        accessibilityLabel={translate('preferencesPage.muteAllSounds')}
-                                        isOn={isPlatformMuted ?? false}
-                                        onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
-                                    />
-                                </View>
-                            </View>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`priorityModePage.priorityModes.${priorityMode ?? CONST.PRIORITY_MODE.DEFAULT}.label`)}
-                                description={translate('priorityModePage.priorityMode')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
-                                description={translate('languagePage.language')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
-                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={`${paymentCurrency} - ${getCurrencySymbol(paymentCurrency)}`}
-                                description={translate('billingCurrency.paymentCurrency')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}
-                                description={translate('themePage.theme')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
-                            />
-                        </View>
-                    </Section>
-                </View>
-            </ScrollView>
-        </ScreenWrapper>
+                        </Section>
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 
