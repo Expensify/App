@@ -1,4 +1,4 @@
-import {useCallback, useLayoutEffect, useRef} from 'react';
+import {useLayoutEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -23,7 +23,7 @@ function useAnimationTransition() {
     const handleRef = useRef<TransitionHandle | null>(null);
     const interactionHandleRef = useRef<number | undefined>(undefined);
 
-    const endTransition = useCallback(() => {
+    const endTransition = () => {
         if (handleRef.current) {
             TransitionTracker.endTransition(handleRef.current);
             handleRef.current = null;
@@ -33,14 +33,14 @@ function useAnimationTransition() {
             InteractionManager.clearInteractionHandle(interactionHandleRef.current);
             interactionHandleRef.current = undefined;
         }
-    }, []);
+    };
 
-    const startTransition = useCallback(() => {
+    const startTransition = () => {
         endTransition();
         handleRef.current = TransitionTracker.startTransition();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         interactionHandleRef.current = InteractionManager.createInteractionHandle();
-    }, [endTransition]);
+    };
 
     useLayoutEffect(() => {
         startTransition(); // entering animation starts on mount
