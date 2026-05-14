@@ -1,8 +1,10 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
+/** Possible states of an export download */
 type ExportDownloadState = ValueOf<typeof CONST.EXPORT_DOWNLOAD.STATE>;
 
+/** Model of an export download entry */
 type ExportDownload = {
     /** Current state of the export download */
     state: ExportDownloadState;

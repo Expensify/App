@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
 import * as Export from '@userActions/Export';
+import ONYXKEYS from '@src/ONYXKEYS';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -63,7 +63,10 @@ describe('Export actions', () => {
         });
         await waitForBatchedUpdates();
 
-        Export.clearStaleExportDownloads();
+        Export.clearStaleExportDownloads({
+            [`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1`]: {state: 'ready'},
+            [`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-2`]: {state: 'failed'},
+        });
         await waitForBatchedUpdates();
 
         const value1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-1`);

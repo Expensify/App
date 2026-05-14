@@ -20,7 +20,7 @@ import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {getSearchParamFromUrl} from '@libs/Url';
 import * as App from '@userActions/App';
 import * as Download from '@userActions/Download';
-import * as Export from '@userActions/Export';
+import {clearStaleExportDownloads} from '@userActions/Export';
 import * as Report from '@userActions/Report';
 import * as Session from '@userActions/Session';
 import * as User from '@userActions/User';
@@ -63,6 +63,7 @@ function AuthScreensInitHandler() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [exportDownloads] = useOnyx(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const activePolicy = useActivePolicy();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -141,7 +142,7 @@ function AuthScreensInitHandler() {
         );
 
         Download.clearDownloads();
-        Export.clearStaleExportDownloads();
+        clearStaleExportDownloads(exportDownloads);
 
         return () => {
             Session.cleanupSession();
