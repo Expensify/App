@@ -3276,6 +3276,7 @@ function buildOptimisticDuplicatePolicy(
             : undefined;
 
     const codingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.rules?.codingRules);
+    const willCopyRulesDocument = isOverviewFeatureSelected && !!sourcePolicy?.rulesDocumentURL;
     const employeeListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.employeeList);
     const fieldListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.fieldList);
     const connectionsWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.connections);
@@ -3322,11 +3323,16 @@ function buildOptimisticDuplicatePolicy(
             description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            ...(willCopyRulesDocument ? {rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {}),
         },
         avatarURL: duplicatedPolicyFile?.uri,
         originalFileName: duplicatedPolicyFile?.name,
         outputCurrency: duplicatedOutputCurrency,
         address: isOverviewFeatureSelected ? sourcePolicy?.address : undefined,
+        customRules: isOverviewFeatureSelected ? sourcePolicy?.customRules : undefined,
+        // The PDF URL is owned by the backend: it must re-key the S3 object to the new policy ID
+        // before any GetPolicyRulesDocument call against the duplicate can succeed. As placeholder, we use the source policy's rules document URL so UI doesn't show "Choose file" while the BE round-trip is in flight.
+        rulesDocumentURL: isOverviewFeatureSelected ? sourcePolicy?.rulesDocumentURL : undefined,
     };
 }
 
@@ -3479,6 +3485,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                     description: null,
                     type: null,
                     areReportFieldsEnabled: null,
+                    rulesDocumentURL: null,
                 },
             },
         },
