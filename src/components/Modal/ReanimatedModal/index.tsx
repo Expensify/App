@@ -5,6 +5,7 @@ import {BackHandler, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
+import useOnValueChange from '@hooks/useOnValueChange';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
@@ -53,7 +54,6 @@ function ReanimatedModal({
     ...props
 }: ReanimatedModalProps) {
     const [modalState, setModalState] = useState<ModalState>('closed');
-    const [prevIsVisible, setPrevIsVisible] = useState(isVisible);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
 
@@ -62,15 +62,13 @@ function ReanimatedModal({
     // When isVisible changes, advance the state machine from stable states only.
     // Mid-animation changes are ignored — the animation runs to completion and the
     // final isVisible value is honored when the callback fires.
-    // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-    if (prevIsVisible !== isVisible) {
-        setPrevIsVisible(isVisible);
-        if (isVisible && modalState === 'closed') {
+    useOnValueChange(isVisible, (_, nextIsVisible) => {
+        if (nextIsVisible && modalState === 'closed') {
             setModalState('opening');
-        } else if (!isVisible && modalState === 'open') {
+        } else if (!nextIsVisible && modalState === 'open') {
             setModalState('closing');
         }
-    }
+    });
 
     const isTransitioning = modalState === 'opening' || modalState === 'closing';
     const backdropStyle: ViewStyle = {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
