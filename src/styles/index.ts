@@ -1839,7 +1839,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         popoverMenuIcon: {
-            width: variables.componentSizeNormal,
+            width: 28,
             justifyContent: 'center',
             alignItems: 'center',
         },
@@ -5635,11 +5635,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         todoBadge: {
             alignItems: 'center',
+            width: 28,
             justifyContent: 'center',
         },
 
         searchSectionBadge: {
             alignItems: 'center',
+            width: 28,
             justifyContent: 'center',
             height: 16,
         },
@@ -6415,6 +6417,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingHorizontal: 16,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
+            paddingRight: 12,
             alignItems: 'center',
         }),
 
