@@ -21,22 +21,19 @@ function releaseUri(uri: string) {
 }
 
 /**
- * Pre-populate the thumbnail cache so the confirm screen can use it
+ * Pre-populate the receipt-image cache so the confirm screen can use it
  * synchronously on first render, avoiding any source swap / flash.
  */
 function pregenerateThumbnail(sourceUri: string): Promise<string | undefined> {
     if (thumbnailCache.has(sourceUri)) {
         return Promise.resolve(thumbnailCache.get(sourceUri));
     }
-    return generateThumbnail(sourceUri).then((uri) => {
-        if (uri) {
-            thumbnailCache.set(sourceUri, uri);
-            // Pre-decode the thumbnail in the native image pipeline so the
-            // confirmation screen can display it instantly without decode latency.
-            Image.prefetch(uri);
-        }
-        return uri;
-    });
+    thumbnailCache.set(sourceUri, sourceUri);
+    // Pre-decode the image in the native image pipeline so the
+    // confirmation screen can display it instantly without decode latency.
+    return Image.prefetch(sourceUri)
+        .then(() => sourceUri)
+        .catch(() => sourceUri);
 }
 
 /**
