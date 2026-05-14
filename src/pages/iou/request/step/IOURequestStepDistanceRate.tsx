@@ -157,7 +157,7 @@ function IOURequestStepDistanceRate({
             const taxableAmount = DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, getDistanceInMeters(currentTransaction, currentUnit));
             taxValue = taxRateExternalID ? getTaxValue(policy, currentTransaction, taxRateExternalID) : undefined;
             taxAmount = convertToBackendAmount(calculateTaxAmount(taxValue, taxableAmount, getCurrencyDecimals(rates[customUnitRateID].currency)));
-            if (!isEditing) {
+            if (!isEditing || !taxRateExternalID) {
                 setMoneyRequestTaxAmount(transactionID, taxAmount, shouldUseTransactionDraft(action));
                 setMoneyRequestTaxRate(transactionID, taxRateExternalID ?? null, shouldUseTransactionDraft(action));
                 setMoneyRequestTaxValue(transactionID, taxValue ?? null, shouldUseTransactionDraft(action));
