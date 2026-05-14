@@ -4,6 +4,7 @@ import Animated, {Keyframe} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
+import useAnimationTransition from '@components/Modal/ReanimatedModal/useAnimationTransition';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -24,6 +25,7 @@ function Container({
     ...props
 }: Partial<ReanimatedModalProps> & ContainerProps) {
     const styles = useThemeStyles();
+    const {onAnimationComplete} = useAnimationTransition();
 
     const Entering = useMemo(() => {
         const AnimationIn = new Keyframe(getModalInAnimation(animationIn));
@@ -32,8 +34,9 @@ function Container({
             'worklet';
 
             scheduleOnRN(onOpenCallBack);
+            scheduleOnRN(onAnimationComplete);
         });
-    }, [animationIn, animationInTiming, onOpenCallBack]);
+    }, [animationIn, animationInTiming, onOpenCallBack, onAnimationComplete]);
 
     const Exiting = useMemo(() => {
         const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
@@ -42,8 +45,9 @@ function Container({
             'worklet';
 
             scheduleOnRN(onCloseCallBack);
+            scheduleOnRN(onAnimationComplete);
         });
-    }, [animationOutTiming, onCloseCallBack, animationOut]);
+    }, [animationOutTiming, onCloseCallBack, animationOut, onAnimationComplete]);
 
     return (
         <View

@@ -1,8 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
+import {BackHandler, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -10,10 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
-// eslint-disable-next-line no-restricted-imports
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
-// eslint-disable-next-line no-restricted-imports
-import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
@@ -57,18 +52,13 @@ function ReanimatedModal({
     shouldReturnFocus,
     ...props
 }: ReanimatedModalProps) {
-    // --- Hooks ---
     const [modalState, setModalState] = useState<ModalState>('closed');
     const [prevIsVisible, setPrevIsVisible] = useState(isVisible);
     const {windowWidth, windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
 
-    // --- Refs ---
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
-    const handleRef = useRef<number | undefined>(undefined);
-    const transitionHandleRef = useRef<TransitionHandle | null>(null);
 
-    // --- Render-time state adjustment ---
     // When isVisible changes, advance the state machine from stable states only.
     // Mid-animation changes are ignored — the animation runs to completion and the
     // final isVisible value is honored when the callback fires.
@@ -82,13 +72,11 @@ function ReanimatedModal({
         }
     }
 
-    // --- Derived values ---
     const isTransitioning = modalState === 'opening' || modalState === 'closing';
     const backdropStyle: ViewStyle = {width: windowWidth, height: windowHeight, backgroundColor: backdropColor};
     const modalStyle = {zIndex: StyleSheet.flatten(style)?.zIndex};
 
-    // --- Callbacks ---
-    const onBackButtonPressHandler = useEffectEvent(() => {
+    const onBackButtonPressHandler = () => {
         if (shouldIgnoreBackHandlerDuringTransition && isTransitioning) {
             return false;
         }
@@ -97,36 +85,24 @@ function ReanimatedModal({
             return true;
         }
         return false;
-    });
+    };
+
+    const onBackButtonPressEffectEvent = useEffectEvent(() => onBackButtonPressHandler());
 
     const handleEscape = useEffectEvent((e: KeyboardEvent) => {
-        if (e.key !== 'Escape' || onBackButtonPressHandler() !== true) {
+        if (e.key !== 'Escape' || onBackButtonPressEffectEvent() !== true) {
             return;
         }
         e.stopImmediatePropagation();
     });
 
-    const clearTransitionHandles = () => {
-        if (handleRef.current) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.clearInteractionHandle(handleRef.current);
-            handleRef.current = undefined;
-        }
-        if (transitionHandleRef.current) {
-            TransitionTracker.endTransition(transitionHandleRef.current);
-            transitionHandleRef.current = null;
-        }
-    };
-
     const onOpenCallBack = () => {
         setModalState('open');
-        clearTransitionHandles();
         onModalShow();
     };
 
     const onCloseCallBack = () => {
         setModalState('closed');
-        clearTransitionHandles();
 
         // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
         // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
@@ -136,12 +112,11 @@ function ReanimatedModal({
         }
     };
 
-    // --- Effects ---
     useEffect(() => {
         if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
-            backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
+            backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressEffectEvent);
         }
 
         return () => {
@@ -152,18 +127,6 @@ function ReanimatedModal({
             }
         };
     }, []);
-
-    useEffect(() => {
-        if (modalState === 'opening' || modalState === 'closing') {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            handleRef.current = InteractionManager.createInteractionHandle();
-            transitionHandleRef.current = TransitionTracker.startTransition();
-        }
-
-        return () => {
-            clearTransitionHandles();
-        };
-    }, [modalState]);
 
     const fireTransitionCallbacks = useEffectEvent(() => {
         if (modalState === 'opening') {
@@ -178,16 +141,6 @@ function ReanimatedModal({
         fireTransitionCallbacks();
     }, [modalState]);
 
-    // Safety net: release handles if the component unmounts mid-transition
-    // (e.g. navigation removes the modal before its exit animation completes).
-    useEffect(
-        () => () => {
-            clearTransitionHandles();
-        },
-        [],
-    );
-
-    // --- JSX ---
     const containerView = (
         <Container
             pointerEvents="box-none"
@@ -243,7 +196,6 @@ function ReanimatedModal({
                 transparent
                 animationType="none"
                 visible={modalVisibility}
-                // eslint-disable-next-line react-hooks/rules-of-hooks
                 onRequestClose={onBackButtonPressHandler}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}

@@ -12,8 +12,9 @@
  *   - https://github.com/Expensify/App/issues/90463  (Modal not displayed on Android)
  *   - https://github.com/Expensify/App/issues/90510  (Web flickering on close)
  */
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager} from 'react-native';
 import ReanimatedModal from '@components/Modal/ReanimatedModal';
 // eslint-disable-next-line no-restricted-imports
@@ -24,17 +25,31 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 //
 // Reanimated's Keyframe.withCallback() is a no-op in the test environment,
 // so onOpenCallBack / onCloseCallBack are never called by animations.
-// This mock captures the latest callbacks so tests can trigger them manually
+// This mock captures the latest callback so tests can trigger it manually
 // to simulate animation completion.
+//
+// The mock also uses useAnimationTransition to mirror real Container behavior:
+// handles are created/ended in the same lifecycle as the real component, so
+// tests can spy on TransitionTracker and InteractionManager at this level.
 // ---------------------------------------------------------------------------
 let capturedOnOpenCallBack: (() => void) | undefined;
-let capturedOnCloseCallBack: (() => void) | undefined;
 
 jest.mock('@components/Modal/ReanimatedModal/Container', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return function MockContainer({onOpenCallBack, onCloseCallBack, children, ...rest}: Record<string, unknown>) {
-        capturedOnOpenCallBack = onOpenCallBack as () => void;
-        capturedOnCloseCallBack = onCloseCallBack as () => void;
+    const {default: useAnimationTransition} = require('@components/Modal/ReanimatedModal/useAnimationTransition') as {
+        default: () => {onAnimationComplete: () => void};
+    };
+    function MockContainer({onOpenCallBack, onCloseCallBack: _onCloseCallBack, children, ...rest}: Record<string, unknown>) {
+        const {onAnimationComplete} = useAnimationTransition();
+
+        // Wire the captured callback to also fire onAnimationComplete, matching
+        // real Container behavior where both callbacks fire at animation end.
+        capturedOnOpenCallBack = () => {
+            (onOpenCallBack as () => void)();
+            onAnimationComplete();
+        };
+
         return (
             <View
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -44,21 +59,26 @@ jest.mock('@components/Modal/ReanimatedModal/Container', () => {
                 {children as React.ReactNode}
             </View>
         );
-    };
+    }
+    return MockContainer;
 });
 
 jest.mock('@components/Modal/ReanimatedModal/Backdrop', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return function MockBackdrop({children}: {children?: React.ReactNode}) {
+    function MockBackdrop({children}: {children?: React.ReactNode}) {
         return <View testID="mock-backdrop">{children}</View>;
-    };
+    }
+    return MockBackdrop;
 });
 
 jest.mock('@components/FocusTrap/FocusTrapForModal', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return function MockFocusTrap({children}: {children?: React.ReactNode}) {
+    function MockFocusTrap({children}: {children?: React.ReactNode}) {
         return <View>{children}</View>;
-    };
+    }
+    return MockFocusTrap;
 });
 
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
@@ -73,15 +93,12 @@ jest.mock('@libs/getPlatform', () => jest.fn(() => 'ios'));
 
 describe('ReanimatedModal', () => {
     let startTransitionSpy: jest.SpyInstance;
-    let endTransitionSpy: jest.SpyInstance;
     let createHandleSpy: jest.SpyInstance;
     let clearHandleSpy: jest.SpyInstance;
 
     beforeEach(() => {
         capturedOnOpenCallBack = undefined;
-        capturedOnCloseCallBack = undefined;
         startTransitionSpy = jest.spyOn(TransitionTracker, 'startTransition');
-        endTransitionSpy = jest.spyOn(TransitionTracker, 'endTransition');
         createHandleSpy = jest.spyOn(InteractionManager, 'createInteractionHandle');
         clearHandleSpy = jest.spyOn(InteractionManager, 'clearInteractionHandle');
     });
@@ -104,13 +121,6 @@ describe('ReanimatedModal', () => {
         });
     }
 
-    /** Simulates the closing animation completing. */
-    function completeCloseAnimation() {
-        act(() => {
-            capturedOnCloseCallBack?.();
-        });
-    }
-
     // -----------------------------------------------------------------------
     // Oscillation tests — guard for https://github.com/Expensify/App/issues/90438
     // -----------------------------------------------------------------------
@@ -130,25 +140,19 @@ describe('ReanimatedModal', () => {
             const {rerender, unmount} = render(<ReanimatedModal isVisible={false} />);
 
             // 1. Open the modal and complete the entering animation.
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={true} />);
-            });
+            rerender(<ReanimatedModal isVisible />);
             expect(startTransitionSpy).toHaveBeenCalledTimes(1);
             completeOpenAnimation();
             // modalState is now 'open'; transition handles cleared.
 
             // 2. Begin closing.
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={false} />);
-            });
+            rerender(<ReanimatedModal isVisible={false} />);
             expect(startTransitionSpy).toHaveBeenCalledTimes(2);
             // Closing animation is in progress — onCloseCallBack has NOT fired yet.
 
             // 3. isVisible oscillates back to true before the exit animation finishes.
             //    This simulates a prop change mid-animation, e.g. from rapid RHP navigation.
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={true} />);
-            });
+            rerender(<ReanimatedModal isVisible />);
             // modalState is still 'closing' (derived-value bug would compute isTransitioning=false here).
             // With the bug: isTransitioning = true !== true = false → the handles effect cleanup
             // fires → endTransition called prematurely.
@@ -181,23 +185,17 @@ describe('ReanimatedModal', () => {
             const {rerender, unmount} = render(<ReanimatedModal isVisible={false} />);
 
             // 1. Open and complete the entering animation.
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={true} />);
-            });
+            rerender(<ReanimatedModal isVisible />);
             completeOpenAnimation();
             // Opening-phase handle cleared by onOpenCallBack.
             const clearCountAfterOpen = clearHandleSpy.mock.calls.length;
 
             // 2. Begin closing.
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={false} />);
-            });
+            rerender(<ReanimatedModal isVisible={false} />);
             // Closing animation is in progress — a new interaction handle is now active.
 
             // 3. isVisible oscillates back before the exit animation finishes.
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={true} />);
-            });
+            rerender(<ReanimatedModal isVisible />);
             // ASSERTION: clearInteractionHandle must NOT have been called again.
             // The closing-phase handle should still be active.
             // With the bug: isTransitioning would derive to false → effect cleanup fires
@@ -227,32 +225,26 @@ describe('ReanimatedModal', () => {
          * false throughout, so the Container stays unmounted until onCloseCallBack fires.
          */
         it('does not re-mount the Container when isVisible oscillates during a closing animation', async () => {
-            const {rerender, getByTestId, queryByTestId, unmount} = render(<ReanimatedModal isVisible={false} />);
+            const {rerender, unmount} = render(<ReanimatedModal isVisible={false} />);
 
             // 1. Open the modal and complete the entering animation.
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={true} />);
-            });
+            rerender(<ReanimatedModal isVisible />);
             completeOpenAnimation();
             // modalState is now 'open'. Container is mounted.
-            expect(getByTestId('mock-modal-container')).toBeOnTheScreen();
+            expect(screen.getByTestId('mock-modal-container')).toBeOnTheScreen();
 
             // 2. Begin closing — Container unmounts to trigger its Exiting animation.
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={false} />);
-            });
+            rerender(<ReanimatedModal isVisible={false} />);
             // modalState transitions to 'closing'. Container unmounts (condition becomes false).
             // Reanimated ghost node keeps it visually alive for the animation.
-            expect(queryByTestId('mock-modal-container')).toBeNull();
+            expect(screen.queryByTestId('mock-modal-container')).toBeNull();
 
             // 3. isVisible oscillates back to true.
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={true} />);
-            });
+            rerender(<ReanimatedModal isVisible />);
             // ASSERTION: Container must NOT re-mount — modalState stays 'closing'.
             // With the bug (derived isTransitioning or {isVisible && containerView}),
             // the Container would re-mount here, clashing with the ghost-node animation.
-            expect(queryByTestId('mock-modal-container')).toBeNull();
+            expect(screen.queryByTestId('mock-modal-container')).toBeNull();
 
             unmount();
         });
@@ -269,9 +261,7 @@ describe('ReanimatedModal', () => {
         it('clears the interaction handle exactly when the opening animation callback fires', async () => {
             const {rerender, unmount} = render(<ReanimatedModal isVisible={false} />);
 
-            await act(async () => {
-                rerender(<ReanimatedModal isVisible={true} />);
-            });
+            rerender(<ReanimatedModal isVisible />);
 
             // One handle should have been created for the opening animation.
             expect(createHandleSpy).toHaveBeenCalledTimes(1);

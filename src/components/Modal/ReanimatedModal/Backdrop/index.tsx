@@ -1,6 +1,7 @@
 import React from 'react';
-import Animated, {Keyframe} from 'react-native-reanimated';
+import Animated, {Keyframe, ReduceMotion} from 'react-native-reanimated';
 import type {BackdropProps} from '@components/Modal/ReanimatedModal/types';
+import useAnimationTransition from '@components/Modal/ReanimatedModal/useAnimationTransition';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import useLocalize from '@hooks/useLocalize';
@@ -18,9 +19,14 @@ function Backdrop({
 }: BackdropProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {onAnimationComplete} = useAnimationTransition();
 
-    const Entering = new Keyframe(getModalInAnimation('fadeIn')).duration(animationInTiming);
-    const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming);
+    const Entering = new Keyframe(getModalInAnimation('fadeIn'))
+        .duration(animationInTiming)
+        // ReduceMotion.Never ensures the callback fires even when system motion is reduced
+        .reduceMotion(ReduceMotion.Never)
+        .withCallback(onAnimationComplete);
+    const Exiting = new Keyframe(getModalOutAnimation('fadeOut')).duration(animationOutTiming).reduceMotion(ReduceMotion.Never).withCallback(onAnimationComplete);
 
     const BackdropOverlay = (
         <Animated.View
