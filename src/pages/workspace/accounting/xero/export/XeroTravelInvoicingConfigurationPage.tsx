@@ -1,5 +1,4 @@
 import React from 'react';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -13,16 +12,6 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-
-type XeroSectionType = {
-    title?: string;
-    description?: string;
-    onPress: () => void;
-    subscribedSettings: string[];
-    pendingAction?: PendingAction;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-};
 
 const payableAccountSetting = [CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT];
 
@@ -38,22 +27,6 @@ function XeroTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsPro
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
     const travelPayableAccount = bankAccounts?.find((account) => account.id === config?.export?.travelInvoicingPayableAccountID);
 
-    const sections: XeroSectionType[] = [
-        {
-            title: travelPayableAccount?.name,
-            description: translate('workspace.common.travelInvoicingPayableAccount'),
-            onPress: () => {
-                if (!policyID) {
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.path, travelInvoicingPath));
-            },
-            subscribedSettings: payableAccountSetting,
-            pendingAction: settingsPendingAction(payableAccountSetting, config?.pendingFields),
-            brickRoadIndicator: areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
-    ];
-
     return (
         <ConnectionLayout
             displayName="XeroTravelInvoicingConfigurationPage"
@@ -66,21 +39,23 @@ function XeroTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsPro
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
             onBackButtonPress={() => Navigation.goBack(backPath)}
         >
-            {sections.map((section) => (
-                <OfflineWithFeedback
-                    pendingAction={section.pendingAction}
-                    key={section.subscribedSettings.at(0)}
-                    errorRowStyles={[styles.ph5]}
-                >
-                    <MenuItemWithTopDescription
-                        title={section.title}
-                        description={section.description}
-                        onPress={section.onPress}
-                        shouldShowRightIcon
-                        brickRoadIndicator={section.brickRoadIndicator}
-                    />
-                </OfflineWithFeedback>
-            ))}
+            <OfflineWithFeedback
+                pendingAction={settingsPendingAction(payableAccountSetting, config?.pendingFields)}
+                errorRowStyles={[styles.ph5]}
+            >
+                <MenuItemWithTopDescription
+                    title={travelPayableAccount?.name}
+                    description={translate('workspace.common.travelInvoicingPayableAccount')}
+                    onPress={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT.path, travelInvoicingPath));
+                    }}
+                    shouldShowRightIcon
+                    brickRoadIndicator={areSettingsInErrorFields(payableAccountSetting, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                />
+            </OfflineWithFeedback>
         </ConnectionLayout>
     );
 }
