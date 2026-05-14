@@ -5142,7 +5142,6 @@ ${amount} para ${merchant} - ${date}`,
                 duplicateFeedModal: {
                     title: 'Fuente de tarjetas ya conectada',
                     prompt: 'No puedes añadir la misma fuente de tarjetas al mismo espacio de trabajo dos veces.',
-                    confirmText: 'Entendido',
                 },
                 csvColumns: {
                     cardNumber: 'Número de la tarjeta',

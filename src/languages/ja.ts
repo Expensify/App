@@ -5232,7 +5232,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     confirmText: '問題を報告',
                     cancelText: 'スキップ',
                 },
-                duplicateFeedModal: {title: 'カードフィードは既に接続されています', prompt: '同じカードフィードを同じワークスペースに2回追加することはできません。', confirmText: 'Got it'},
+                duplicateFeedModal: {title: 'カードフィードは既に接続されています', prompt: '同じカードフィードを同じワークスペースに2回追加することはできません。'},
                 csvColumns: {
                     cardNumber: 'カード番号',
                     postedDate: '日付',

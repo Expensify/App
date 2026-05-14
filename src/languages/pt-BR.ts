@@ -5266,7 +5266,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     confirmText: 'Informar problema',
                     cancelText: 'Pular',
                 },
-                duplicateFeedModal: {title: 'Feed do cartão já conectado', prompt: 'Você não pode adicionar o mesmo feed de cartão ao mesmo workspace duas vezes.', confirmText: 'Got it'},
+                duplicateFeedModal: {title: 'Feed do cartão já conectado', prompt: 'Você não pode adicionar o mesmo feed de cartão ao mesmo workspace duas vezes.'},
                 csvColumns: {
                     cardNumber: 'Número do cartão',
                     postedDate: 'Data',

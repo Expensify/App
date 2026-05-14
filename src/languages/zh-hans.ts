@@ -5148,7 +5148,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     confirmText: '报告问题',
                     cancelText: '跳过',
                 },
-                duplicateFeedModal: {title: '卡片数据源已连接', prompt: '您不能将同一张卡的流水两次添加到同一个工作区。', confirmText: 'Got it'},
+                duplicateFeedModal: {title: '卡片数据源已连接', prompt: '您不能将同一张卡的流水两次添加到同一个工作区。'},
                 csvColumns: {
                     cardNumber: '卡号',
                     postedDate: '日期',

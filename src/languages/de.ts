@@ -5303,7 +5303,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 duplicateFeedModal: {
                     title: 'Kartenfeed bereits verbunden',
                     prompt: 'Du kannst denselben Kartenfeed nicht zweimal zu demselben Workspace hinzufügen.',
-                    confirmText: 'Got it',
                 },
                 csvColumns: {
                     cardNumber: 'Kartennummer',

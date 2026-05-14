@@ -5286,7 +5286,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 duplicateFeedModal: {
                     title: 'Feed carta già connesso',
                     prompt: 'Non puoi aggiungere due volte lo stesso flusso di carta allo stesso spazio di lavoro.',
-                    confirmText: 'Got it',
                 },
                 csvColumns: {
                     cardNumber: 'Numero di carta',

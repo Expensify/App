@@ -5312,7 +5312,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 duplicateFeedModal: {
                     title: 'Flux de carte déjà connecté',
                     prompt: 'Vous ne pouvez pas ajouter deux fois le même flux de carte au même espace de travail.',
-                    confirmText: 'Got it',
                 },
                 csvColumns: {
                     cardNumber: 'Numéro de carte',

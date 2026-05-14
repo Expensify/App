@@ -102,7 +102,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         showConfirmModal({
             title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
             prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
-            confirmText: translate('workspace.companyCards.addNewCard.duplicateFeedModal.confirmText'),
+            confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
     }, [isDuplicateFeedDetected, showConfirmModal, translate]);
