@@ -55,6 +55,10 @@ function useWideModalStackScreenOptions() {
                 web: {
                     cardStyle: styles.navigationScreenCardStyle,
                     cardStyleInterpolator,
+                    transitionSpec: {
+                        open: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_WEB}},
+                        close: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_WEB}},
+                    },
                 },
             };
         },
