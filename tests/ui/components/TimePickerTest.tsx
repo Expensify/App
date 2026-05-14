@@ -63,7 +63,6 @@ describe('TimePicker Component', () => {
             <NavigationContainer>
                 <TimePicker
                     onSubmit={() => {}}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                 />
             </NavigationContainer>,

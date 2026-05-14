@@ -68,7 +68,6 @@ function BaseTextInputWithSymbol({
                 onKeyPress={onKeyPress}
                 style={[styles.pr1, style]}
                 rightHandSideComponent={rightHandSideComponent}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
             {!hideSymbol && symbolPosition === CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX && (

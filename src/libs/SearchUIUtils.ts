@@ -5159,6 +5159,7 @@ function getColumnsToShow({
     shouldShowCommentsColumn = false,
     reportCurrency,
     shouldUseStrictDefaultExpenseColumns = false,
+    isPolicyTaxEnabled = false,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -5172,7 +5173,7 @@ function getColumnsToShow({
     shouldShowCommentsColumn?: boolean;
     reportCurrency?: string;
     shouldUseStrictDefaultExpenseColumns?: boolean;
-    policy?: OnyxTypes.Policy;
+    isPolicyTaxEnabled?: boolean;
 }): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -5416,7 +5417,10 @@ function getColumnsToShow({
             // Use truthy checks so default/no-tax values (0, null, '', undefined) don't trigger
             // false positives — buildOptimisticTransaction seeds taxAmount: 0 on every new draft,
             // which would otherwise flash tax columns on for offline-pending transactions.
-            const hasTaxInfo = !!transaction.taxCode || !!transaction.taxAmount || !!transaction.taxValue;
+            // When the user explicitly selected the tax columns (customResult) and the workspace
+            // has taxes enabled, keep them regardless of per-transaction values — older expenses
+            // created before taxes were turned on still have null taxCode/taxAmount/taxValue.
+            const hasTaxInfo = (!!customResult && isPolicyTaxEnabled) || !!transaction.taxCode || !!transaction.taxAmount || !!transaction.taxValue;
             if (hasTaxInfo) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
@@ -5953,15 +5957,4 @@ export {
     isTransactionSearchType,
     SKIPPED_SEARCH_FILTERS,
 };
-export type {
-    SavedSearchMenuItem,
-    SearchTypeMenuSection,
-    SearchTypeMenuItem,
-    SearchDateModifier,
-    SearchDateModifierLower,
-    SearchKey,
-    ArchivedReportsIDSet,
-    GroupBySection,
-    SearchFilter,
-    GetSectionsResult,
-};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet, GroupBySection, SearchFilter};

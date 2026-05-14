@@ -1665,4 +1665,3 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
 export default useSearchBulkActions;
 export {shouldShowBulkDuplicateOption};
-export type {ShouldShowBulkDuplicateParams};
