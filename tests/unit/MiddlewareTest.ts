@@ -144,6 +144,12 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
+            // Wait for the first request to complete and for Onyx to process the preexistingReportID
+            // update before the second request is dispatched. A single waitForNetworkPromises() call
+            // is not enough because the middleware re-queues the second request after the Onyx update
+            // resolves, which happens in a subsequent microtask/batch cycle.
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
             await waitForNetworkPromises();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
@@ -338,7 +344,11 @@ describe('Middleware', () => {
                 }));
 
             SequentialQueue.unpause();
+            // Both requests are sequential; we need to wait for all network activity to settle,
+            // including the second fetch triggered after Onyx processes preexistingReportID.
+            await waitForNetworkPromises();
             await waitForBatchedUpdates();
+            await waitForNetworkPromises();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
 
