@@ -266,7 +266,8 @@ import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
-// These icons are used on mobile and are React components because they have drop shadow that is handled by @svgr/babel-plugin-transform-react-native-svg
+// These icons are used on mobile and are React components because they have
+// drop shadow that is NOT handled by babel-plugin-transform-react-native-svg
 import RNMapCurrentLocation from '@components/MapView/Icons/RNMapCurrentLocation';
 import RNMapStartWaypoint from '@components/MapView/Icons/RNMapStartWaypoint';
 import RNMapStopWaypoint from '@components/MapView/Icons/RNMapStopWaypoint';
