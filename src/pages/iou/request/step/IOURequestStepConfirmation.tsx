@@ -282,7 +282,14 @@ function IOURequestStepConfirmation({
 
         const isGlobalCreateFlow = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? iouType === CONST.IOU.TYPE.CREATE;
         if (!defaultParticipantsOptions.length && isGlobalCreateFlow) {
-            const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, currentUserPersonalDetails.accountID);
+            const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(
+                iouType,
+                defaultExpensePolicy,
+                amountOwed,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                currentUserPersonalDetails.accountID,
+            );
 
             if (canUseDefaultPolicy) {
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;

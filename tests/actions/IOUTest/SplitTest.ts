@@ -4966,7 +4966,7 @@ describe('initSplitExpense', () => {
             reportID: '456',
         };
 
-        initSplitExpense(transaction, policy, policy.ownerAccountID);
+        initSplitExpense(transaction, policy, policy.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
         await waitForBatchedUpdates();
 
         const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
