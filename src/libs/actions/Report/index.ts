@@ -2358,6 +2358,7 @@ function navigateToAndOpenReportWithAccountIDs(
     const createAndOpenNewOptimisticChat = (sourceCachedReportID?: string) => {
         const fallbackChat = buildOptimisticChatReport({
             participantList: [...participantAccountIDs, currentUserAccountID],
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
             currentUserAccountID,
         });
         if (sourceCachedReportID) {

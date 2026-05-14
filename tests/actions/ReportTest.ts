@@ -65,10 +65,15 @@ jest.mock('@libs/ReportUtils', () => {
         buildOptimisticChatReport: jest.fn().mockImplementation((params: Record<string, unknown>) => {
             const optimisticReportID = typeof params.optimisticReportID === 'string' ? params.optimisticReportID : undefined;
             const mockReportID = optimisticReportID ?? mockGenerateReportID();
+            const participantList = Array.isArray(params.participantList) ? (params.participantList as number[]) : [];
+            const notificationPreference = typeof params.notificationPreference === 'string' ? params.notificationPreference : 'always';
             return {
                 reportID: mockReportID,
                 type: 'chat',
-                participants: {},
+                participants: participantList.reduce<OnyxTypes.Report['participants']>((participants, accountID) => {
+                    participants[accountID] = {notificationPreference};
+                    return participants;
+                }, {}),
             };
         }),
         getPolicyExpenseChat: jest.fn().mockImplementation(() => ({reportID: MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID, hasOutstandingChildRequest: false})),
@@ -7138,6 +7143,9 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}9876`);
+            expect(optimisticReport?.participants?.[PARTICIPANT_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+            expect(optimisticReport?.participants?.[TEST_USER_ACCOUNT_ID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
             expect(Navigation.navigate).toHaveBeenCalled();
         });
 
