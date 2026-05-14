@@ -423,6 +423,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             value: {
                 unheldTotal: (iouReport.unheldTotal ?? 0) + transactionAmount,
                 unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldNonReimbursableTotal,
+                unheldReimbursableTotal: transaction?.reimbursable ? (iouReport.unheldReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldReimbursableTotal,
             },
         });
     }
