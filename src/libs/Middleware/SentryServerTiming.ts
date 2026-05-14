@@ -1,6 +1,6 @@
 import type {SpanAttributes} from '@sentry/core';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpanWithAttributes, startSpan} from '@libs/telemetry/activeSpans';
 import CONST from '@src/CONST';
 import type Middleware from './types';
 
@@ -71,7 +71,7 @@ const SentryServerTiming: Middleware = (response, request) => {
             const attributes: SpanAttributes = {
                 [CONST.TELEMETRY.ATTRIBUTE_JSON_CODE]: data?.jsonCode,
             };
-            endSpan(spanId, attributes);
+            endSpanWithAttributes(spanId, attributes);
             return data;
         })
         .catch((error) => {

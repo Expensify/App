@@ -2,7 +2,7 @@ import type {SpanAttributes} from '@sentry/core';
 import {isOneTransactionReport, isReportTransactionThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import {endSpan} from './activeSpans';
+import {endSpanWithAttributes} from './activeSpans';
 
 type MarkOpenReportEndOptions = {
     warm?: boolean;
@@ -30,7 +30,7 @@ function markOpenReportEnd(report: OnyxTypes.Report, options: MarkOpenReportEndO
         attributes[CONST.TELEMETRY.ATTRIBUTE_IS_WARM] = options.warm;
     }
 
-    endSpan(spanId, attributes);
+    endSpanWithAttributes(spanId, attributes);
 }
 
 export default markOpenReportEnd;

@@ -1,6 +1,6 @@
 import APP_STARTUP_NETWORK_REQUEST from '@libs/AppStartupNetworkRequest';
 import CONST from '@src/CONST';
-import {endSpan} from './activeSpans';
+import {endSpanWithAttributes} from './activeSpans';
 
 /** End the span for the app startup network request. */
 function markAppStartupNetworkRequestEnd(command: string | undefined): void {
@@ -8,7 +8,7 @@ function markAppStartupNetworkRequestEnd(command: string | undefined): void {
         return;
     }
 
-    endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST, {
+    endSpanWithAttributes(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST, {
         [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,
     });
 }

@@ -1,4 +1,4 @@
-import type {SpanAttributes, SpanAttributeValue, StartSpanOptions} from '@sentry/core';
+import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 import CONST from '@src/CONST';
@@ -48,7 +48,7 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     return span;
 }
 
-function endSpan(spanId: string, attributes?: SpanAttributes) {
+function endSpan(spanId: string) {
     const entry = activeSpans.get(spanId);
 
     if (!entry) {
@@ -61,9 +61,6 @@ function endSpan(spanId: string, attributes?: SpanAttributes) {
     span.setStatus({code: CONST.TELEMETRY.SPAN_STATUS_CODE.OK});
 
     span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_FINISHED_MANUALLY, true);
-    if (attributes) {
-        span.setAttributes(attributes);
-    }
     span.end();
     activeSpans.delete(spanId);
 }
@@ -98,8 +95,10 @@ function getSpan(spanId: string) {
     return activeSpans.get(spanId)?.span;
 }
 
-function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue>) {
-    endSpan(spanId, attributes);
+function endSpanWithAttributes(spanId: string, attributes: Record<string, SpanAttributeValue | undefined>) {
+    const span = getSpan(spanId);
+    span?.setAttributes(attributes);
+    endSpan(spanId);
 }
 
 export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};
