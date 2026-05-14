@@ -22,18 +22,13 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const webViewRef = useRef<WebView>(null);
     const authToken = session?.authToken ?? null;
 
-    const renderLoading = useCallback(
-        () => (
-            <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
-                <View style={styles.w100}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'WalletStatementModal'}}
-                    />
-                </View>
-            </View>
-        ),
-        [styles.fullScreenLoading, styles.w100],
+    const renderLoading = () => (
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                reasonAttributes={{context: 'WalletStatementModal'}}
+            />
+        </View>
     );
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

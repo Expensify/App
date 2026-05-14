@@ -38,34 +38,32 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     }, [navigate]);
 
     return (
-        <>
+        <View style={styles.flex1}>
             {isLoading && (
-                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
+                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         reasonAttributes={{context: 'WalletStatementModal'}}
                     />
                 </View>
             )}
-            <View style={[styles.flex1]}>
-                <iframe
-                    src={`${statementPageURL}&authToken=${authToken}`}
-                    title="Statements"
-                    height="100%"
-                    width="100%"
-                    seamless
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    frameBorder="0"
-                    onLoad={() => {
-                        setIsLoading(false);
+            <iframe
+                src={`${statementPageURL}&authToken=${authToken}`}
+                title="Statements"
+                height="100%"
+                width="100%"
+                seamless
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                frameBorder="0"
+                onLoad={() => {
+                    setIsLoading(false);
 
-                        // We listen to a message sent from the iframe to the parent component when a link is clicked.
-                        // This lets us handle navigation in the app, outside of the iframe.
-                        window.onmessage = (event: MessageEvent<WalletStatementMessage>) => navigateRef.current?.(event);
-                    }}
-                />
-            </View>
-        </>
+                    // We listen to a message sent from the iframe to the parent component when a link is clicked.
+                    // This lets us handle navigation in the app, outside of the iframe.
+                    window.onmessage = (event: MessageEvent<WalletStatementMessage>) => navigateRef.current?.(event);
+                }}
+            />
+        </View>
     );
 }
 
