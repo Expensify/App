@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,11 +27,9 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
-    useFocusEffect(
-        useCallback(() => {
-            openWorkspaceRoomsPage(policyID);
-        }, [policyID]),
-    );
+    useFocusEffect(() => {
+        openWorkspaceRoomsPage(policyID);
+    });
 
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
@@ -39,6 +37,8 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 testID={WorkspaceRoomsPage.displayName}
                 style={[styles.defaultModalContainer]}
                 shouldEnableMaxHeight
+                shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.rooms')}
