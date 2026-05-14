@@ -53,7 +53,9 @@ function ReanimatedModal({
     shouldReturnFocus,
     ...props
 }: ReanimatedModalProps) {
-    const [modalState, setModalState] = useState<ModalState>('closed');
+    // Initialize to 'open' when mounted with isVisible=true so the modal shows immediately.
+    // The 'opening' animation still plays from the Container's entering keyframe.
+    const [modalState, setModalState] = useState<ModalState>(() => (isVisible ? 'open' : 'closed'));
     const {windowWidth, windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
 
