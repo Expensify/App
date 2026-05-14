@@ -98,7 +98,7 @@ function useParticipantSubmission({
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(activePolicy) &&
         activePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed);
+        !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed);
 
     const dataRef = useRef({
         allPolicies,
@@ -320,12 +320,13 @@ function useParticipantSubmission({
         if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
             const email = userDetails.email ?? '';
             const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, email);
-            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(
-                intro,
-                generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
-                userDetails.accountID,
-                email,
-            );
+            const {expenseChatReportID, policyID, policyName} = createDraftWorkspace({
+                introSelected: intro,
+                workspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                currentUserAccountID: userDetails.accountID,
+                currentUserEmail: email,
+                currency: userDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            });
             for (const transaction of drafts) {
                 setMoneyRequestParticipants(transaction.transactionID, [
                     {

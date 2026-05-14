@@ -25,10 +25,6 @@ type ShowContextMenuParams = {
     report?: {
         reportID?: string;
         originalReportID?: string;
-        isArchivedRoom?: boolean;
-        isChronos?: boolean;
-        isPinnedChat?: boolean;
-        isUnreadChat?: boolean;
     };
     reportAction?: {
         reportActionID?: string;
@@ -52,6 +48,9 @@ type HideContextMenuParams = {
     callbacks?: {
         onHide?: () => void;
     };
+    /** Delay before hiding (ms). Run on the UI thread via Reanimated.
+     *  https://github.com/Expensify/App/issues/89069 */
+    hideDelayMs?: number;
 };
 type HideContextMenu = (params?: HideContextMenuParams) => void;
 
@@ -85,9 +84,11 @@ function registerEnsureContextMenuMounted(handler: (() => void) | null) {
     ensureContextMenuMounted = handler;
 }
 
+// How long the success icon (Checkmark / "Copied!") stays visible before the menu hides.
+const SUCCESS_STATE_HIDE_DELAY_MS = 800;
+
 /**
  * Hide the ReportActionContextMenu modal popover.
- * Hides the popover menu with an optional delay
  * @param [shouldDelay] - whether the menu should close after a delay
  * @param [onHideCallback] - Callback to be called after Context Menu is completely hidden
  */
@@ -96,30 +97,14 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
         return;
     }
 
-    const paramsWithCallback = {
+    contextMenuRef.current.hideContextMenu({
+        ...params,
         callbacks: {
             ...params?.callbacks,
             onHide: onHideCallback,
         },
-        ...params,
-    };
-
-    if (!shouldDelay) {
-        contextMenuRef.current.hideContextMenu(paramsWithCallback);
-        return;
-    }
-
-    // Save the active instanceID for which hide action was called.
-    // If menu is being closed with a delay, check that whether the same instance exists or a new was created.
-    // If instance is not same, cancel the hide action
-    const instanceID = contextMenuRef.current.instanceIDRef.current;
-    setTimeout(() => {
-        if (contextMenuRef.current?.instanceIDRef.current !== instanceID) {
-            return;
-        }
-
-        contextMenuRef.current.hideContextMenu(paramsWithCallback);
-    }, 800);
+        ...(shouldDelay ? {hideDelayMs: SUCCESS_STATE_HIDE_DELAY_MS} : {}),
+    });
 }
 
 /**
@@ -135,10 +120,6 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}, param
  * @param draftMessage - ReportAction draft message
  * @param [onShow=() => {}] - Run a callback when Menu is shown
  * @param [onHide=() => {}] - Run a callback when Menu is hidden
- * @param isArchivedRoom - Whether the provided report is an archived room
- * @param isChronosReport - Flag to check if the chat participant is Chronos
- * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
- * @param isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
  */
 function showContextMenu(showContextMenuParams: ShowContextMenuParams) {
     if (!contextMenuRef.current) {

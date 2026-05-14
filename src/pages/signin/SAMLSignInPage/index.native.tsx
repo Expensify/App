@@ -26,9 +26,9 @@ function SAMLSignInPage() {
     const hasOpenedAuthSession = useRef(false);
 
     const handleExitSAMLFlow = useCallback(() => {
-        clearSignInData();
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
+            clearSignInData();
         });
     }, []);
 

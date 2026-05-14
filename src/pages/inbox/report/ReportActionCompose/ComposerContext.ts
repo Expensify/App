@@ -149,4 +149,4 @@ export {
     useComposerSendActions,
     useComposerMeta,
 };
-export type {SuggestionsRef, ComposerText, ComposerState, ComposerSendState, ComposerActions, ComposerSendActions, ComposerMeta};
+export type {SuggestionsRef};

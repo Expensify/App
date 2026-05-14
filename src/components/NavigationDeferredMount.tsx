@@ -1,5 +1,6 @@
 import {startTransition, useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 type NavigationDeferredMountProps = {
@@ -48,4 +49,3 @@ function NavigationDeferredMount({placeholder = null, children, waitForUpcomingT
 }
 
 export default NavigationDeferredMount;
-export type {NavigationDeferredMountProps};

@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
@@ -171,7 +172,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report, accountIDsToRemove);
         setSearchValue('');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedMembers([]);
             clearUserSearchPhrase();
@@ -311,7 +311,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             ? translate('common.members')
             : translate('common.details');
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const memberNotFoundMessage = isGroupChat
         ? `${translate('roomMembersPage.memberNotFound')} ${translate('roomMembersPage.useInviteButton')}`
         : translate('roomMembersPage.memberNotFound');
@@ -337,7 +336,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
                         }
                     }}
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
@@ -382,11 +380,12 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                             ref: textInputRef,
                         }}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                         turnOnSelectionModeOnLongPress={isCurrentUserGroupChatAdmin}
                         shouldSingleExecuteRowSelect={!isCurrentUserGroupChatAdmin}
                         onTurnOnSelectionMode={(item) => item && toggleUser(item)}
                         onSelectAll={() => toggleAllUsers(participants)}
-                        onCheckboxPress={toggleUser}
+                        onSelectionButtonPress={toggleUser}
                         shouldShowTextInput={shouldShowTextInput}
                         customListHeader={customListHeader}
                         showScrollIndicator

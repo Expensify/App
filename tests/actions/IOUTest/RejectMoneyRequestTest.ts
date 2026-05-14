@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import {markRejectViolationAsResolved, rejectExpenseReport, rejectMoneyRequest} from '@libs/actions/IOU/RejectMoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getParsedComment} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
@@ -40,7 +40,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const originalModule = jest.requireActual('@src/libs/actions/Report');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
@@ -186,7 +185,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
 
         it('should the createdIOUReportActionID parameter not be undefined when rejecting an expense to an open report', async () => {
             // Mock API.write for this test
-            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
 
             const openingReport = {
@@ -286,7 +285,26 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 expect.objectContaining({
                     reportID: expenseReport.reportID,
                     targetAccountID: SUBMITTER_ACCOUNT_ID,
-                    comment,
+                    comment: getParsedComment(comment),
+                }),
+                expect.anything(),
+            );
+            writeSpy.mockRestore();
+        });
+
+        it('queues getParsedComment output for REJECT_EXPENSE_REPORT when reject reason contains markdown', async () => {
+            const markdownComment = 'Rejected because **important**';
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            rejectExpenseReport(expenseReport, SUBMITTER_ACCOUNT_ID, markdownComment, TEST_USER_ACCOUNT_ID, CURRENT_USER_DISPLAY_NAME, CURRENT_USER_AVATAR);
+            await waitForBatchedUpdates();
+
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.REJECT_EXPENSE_REPORT,
+                expect.objectContaining({
+                    comment: getParsedComment(markdownComment),
                 }),
                 expect.anything(),
             );
@@ -421,7 +439,6 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         });
 
         it('should call notifyNewAction after resolving the violation', async () => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const {notifyNewAction} = require('@src/libs/actions/Report');
 
             if (!transaction?.transactionID || !iouReport?.reportID) {
@@ -439,7 +456,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
         it('should not make API call or notify when reportID is undefined', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
             const {notifyNewAction} = require('@src/libs/actions/Report');
 
             if (!transaction?.transactionID) {

@@ -2,6 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import type {RefObject} from 'react';
 import React, {memo, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, View as ViewType} from 'react-native';
@@ -23,19 +24,29 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
+import {
+    getLinkedTransactionID,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportAction,
+    isActionOfType,
+    isDeletedAction,
+    withDEWRoutedActionsObject,
+} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getHarvestOriginalReportID,
     getSourceIDFromReportAction,
     isArchivedNonExpenseReport,
     isHarvestCreatedExpenseReport,
+    isUnread,
     isInvoiceReport as ReportUtilsIsInvoiceReport,
     isMoneyRequest as ReportUtilsIsMoneyRequest,
     isMoneyRequestReport as ReportUtilsIsMoneyRequestReport,
@@ -82,18 +93,6 @@ type BaseReportActionContextMenuProps = {
     /** Target node which is the target of ContentMenu */
     anchor?: RefObject<ContextMenuAnchor>;
 
-    /** Flag to check if the chat participant is Chronos */
-    isChronosReport?: boolean;
-
-    /** Whether the provided report is an archived room */
-    isArchivedRoom?: boolean;
-
-    /** Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action */
-    isPinnedChat?: boolean;
-
-    /** Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action */
-    isUnreadChat?: boolean;
-
     /**
      * Is the action a thread's parent reportAction viewed from within the thread report?
      * It will be false if we're viewing the same parent report action from the report it belongs to rather than the thread.
@@ -117,12 +116,8 @@ function BaseReportActionContextMenu({
     type = CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
     anchor,
     contentRef,
-    isChronosReport = false,
-    isArchivedRoom = false,
     isMini = false,
     isVisible = false,
-    isPinnedChat = false,
-    isUnreadChat = false,
     isThreadReportParentAction = false,
     selection = '',
     draftMessage = '',
@@ -181,7 +176,16 @@ function BaseReportActionContextMenu({
     const transactionID = getLinkedTransactionID(reportAction);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const unapprovedOriginalID = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)
+        ? getOriginalMessage(reportAction)?.originalID
+        : undefined;
+    const originalReportOfUnapprovedTransaction = useReportOrReportDraft(unapprovedOriginalID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    // Needed to compute the one-transaction thread for the context menu's report so isUnreadChat is correct
+    // for expense/IOU reports shown directly in the LHN (where unread state is based on the thread's lastVisibleActionCreated).
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const lhnOneTransactionThreadReportID = getOneTransactionThreadReportID(report, reportChatReport, reportActions);
+    const [lhnOneTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(lhnOneTransactionThreadReportID)}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
     const [harvestReport] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(getHarvestOriginalReportID(reportNameValuePairs?.origin, reportNameValuePairs?.originalID))}`,
@@ -260,6 +264,10 @@ function BaseReportActionContextMenu({
         isMoneyRequestOrReport &&
         !isArchivedNonExpenseReport(transactionThreadReportID ? childReport : parentReport, transactionThreadReportID ? isChildReportArchived : isParentReportArchived);
 
+    const isArchivedRoom = isArchivedNonExpenseReport(originalReport, isOriginalReportArchived);
+    const isChronosReport = chatIncludesChronosWithID(originalReportID);
+    const isPinnedChat = !!report?.isPinned;
+    const isUnreadChat = isUnread(report, lhnOneTransactionThreadReport, isOriginalReportArchived);
     const shouldEnableArrowNavigation = !isMini && (isVisible || shouldKeepOpen);
     const isHarvestReport = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
 
@@ -325,7 +333,6 @@ function BaseReportActionContextMenu({
         if (isAnonymousUser() && !isAnonymousAction) {
             hideContextMenu(false);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 signOutAndRedirectToSignIn();
             });
@@ -345,8 +352,6 @@ function BaseReportActionContextMenu({
             report: {
                 reportID,
                 originalReportID,
-                isArchivedRoom: isArchivedNonExpenseReport(originalReport, isOriginalReportArchived),
-                isChronos: chatIncludesChronosWithID(originalReportID),
             },
             reportAction: {
                 reportActionID: reportAction?.reportActionID,
@@ -420,6 +425,7 @@ function BaseReportActionContextMenu({
                                 isOffline,
                                 conciergeReportID,
                                 delegateAccountID,
+                                originalReportOfUnapprovedTransaction,
                             };
 
                             if ('renderContent' in contextAction) {
@@ -468,7 +474,6 @@ function BaseReportActionContextMenu({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-deep-equal-in-memo
 export default memo(BaseReportActionContextMenu, deepEqual);
 
 export type {BaseReportActionContextMenuProps};

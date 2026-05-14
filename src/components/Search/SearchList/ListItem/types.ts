@@ -48,16 +48,8 @@ type SearchListActionProps = {
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    queryJSONHash?: number;
-
     /** The report data */
     report?: Report;
-
-    /** The user wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -440,7 +432,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     SearchListActionProps & {
         groupBy?: SearchGroupBy;
         searchType?: SearchDataTypes;
-        policies?: OnyxCollection<Policy>;
         accountID?: number;
         columns?: SearchColumnType[];
         newTransactionID?: string;
@@ -456,7 +447,7 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
     | 'showTooltip'
     | 'canSelectMultiple'
-    | 'onCheckboxPress'
+    | 'onSelectionButtonPress'
     | 'columns'
     | 'groupBy'
     | 'accountID'

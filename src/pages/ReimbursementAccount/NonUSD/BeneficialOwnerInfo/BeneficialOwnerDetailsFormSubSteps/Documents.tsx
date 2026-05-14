@@ -1,8 +1,8 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
 import useLocalize from '@hooks/useLocalize';
@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getNeededDocumentsStatusForBeneficialOwner from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForBeneficialOwner';
-import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
+import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -44,6 +44,8 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
         [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? (reimbursementAccountDraft?.[addressProofInputID] ?? []) : [],
         [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? (reimbursementAccountDraft?.[codiceFiscaleInputID] ?? []) : [],
     };
+
+    const formRef = useRef<FormRef | null>(null);
 
     const [uploadedProofOfOwnership, setUploadedProofOfOwnership] = useState<FileObject[]>(defaultValues[proofOfOwnershipInputID]);
     const [uploadedCopyOfID, setUploadedCopyOfID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);
@@ -78,6 +80,8 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
             return;
         }
 
+        formRef.current?.resetFormFieldError(inputID);
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
     };
 
@@ -97,6 +101,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
 
     return (
         <FormProvider
+            ref={formRef}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             validate={validate}
@@ -124,8 +129,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, proofOfOwnershipInputID);
                         }}
-                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={defaultValues[proofOfOwnershipInputID]}
                         inputID={proofOfOwnershipInputID}
                     />
@@ -152,8 +158,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, copyOfIDInputID);
                         }}
-                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={defaultValues[copyOfIDInputID]}
                         inputID={copyOfIDInputID}
                     />
@@ -178,8 +185,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, addressProofInputID);
                         }}
-                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={defaultValues[addressProofInputID]}
                         inputID={addressProofInputID}
                     />
@@ -204,8 +212,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         setError={(error) => {
                             setUploadError(error, codiceFiscaleInputID);
                         }}
-                        fileLimit={CONST.NON_USD_BANK_ACCOUNT.FILE_LIMIT}
-                        acceptedFileTypes={[...CONST.NON_USD_BANK_ACCOUNT.ALLOWED_FILE_TYPES]}
+                        fileLimit={CONST.CORPAY_DOCUMENT.FILE_LIMIT}
+                        maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                        acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
                         value={defaultValues[codiceFiscaleInputID]}
                         inputID={codiceFiscaleInputID}
                     />

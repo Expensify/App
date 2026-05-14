@@ -236,10 +236,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, [receiptPath]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+
     const isTrackExpenseReportValue = isTrackExpenseReport(report);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
         isTrackExpenseReportValue || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || readonly ? !transaction : moneyRequestReportID !== transaction?.reportID;
 
@@ -303,12 +302,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         source: durableUri,
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
+                        transactionPolicyTagList: policyTagList,
                         ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                     });
                 }
             });
         },
-        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy],
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList],
     );
 
     const rotateReceipt = useCallback(() => {

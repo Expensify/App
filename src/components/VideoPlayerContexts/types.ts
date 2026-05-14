@@ -3,7 +3,6 @@ import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
-import type {FullScreenActionsContextType, FullScreenStateContextType} from './FullScreenContextProvider';
 
 type VolumeStateContextType = {
     /**
@@ -30,8 +29,6 @@ type VolumeActionsContextType = {
      */
     toggleMute: () => void;
 };
-
-type VolumeContext = VolumeStateContextType & VolumeActionsContextType;
 
 type VideoPopoverMenuStateContextType = {
     /**
@@ -60,8 +57,6 @@ type VideoPopoverMenuActionsContextType = {
     updateSource: (source: string) => void;
 };
 
-type FullScreenContext = FullScreenStateContextType & FullScreenActionsContextType;
-
 type PlaybackSpeed = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;
 
-export type {VolumeContext, VolumeStateContextType, VolumeActionsContextType, VideoPopoverMenuStateContextType, VideoPopoverMenuActionsContextType, FullScreenContext, PlaybackSpeed};
+export type {VolumeStateContextType, VolumeActionsContextType, VideoPopoverMenuStateContextType, VideoPopoverMenuActionsContextType, PlaybackSpeed};

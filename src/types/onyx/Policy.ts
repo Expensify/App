@@ -188,12 +188,21 @@ type UberReceiptPartner = {
     errorFields?: OnyxCommon.ErrorFields;
 };
 
+/** Receipt partner data keyed by partner name */
+type ReceiptPartnerDataByName = {
+    /** uber partner */
+    [CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER]: UberReceiptPartner;
+};
+
 /** Policy Receipt partners */
 type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
         /** Whether receipt partners are enabled */
         enabled?: boolean;
-    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+    } & {
+        /** Per receipt partner integration data */
+        [K in keyof ReceiptPartnerDataByName]?: OnyxCommon.OnyxValueWithOfflineFeedback<ReceiptPartnerDataByName[K]>;
+    }
 >;
 
 /** Policy disabled fields */
@@ -1077,6 +1086,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
 
+        /** Whether Travel Invoicing JEs post as individual entries per expense or a single grouped entry */
+        travelInvoicingJournalPostingPreference?: NetSuiteJournalPostingPreferences;
+
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
         provincialTaxPostingAccount?: string;
 
@@ -1286,6 +1298,9 @@ type SageIntacctExportConfig = {
 
     /** Accounting method for Sage Intacct */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** The payable account to use for Expensify Travel expenses when exporting to Sage Intacct */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /**
@@ -1570,6 +1585,12 @@ type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the policy prohibits adult entertainment expenses */
     adultEntertainment?: boolean;
+
+    /** Whether the policy prohibits gift card purchases */
+    giftCard?: boolean;
+
+    /** Whether the policy prohibits handwritten receipt expenses */
+    handwrittenReceipt?: boolean;
 }>;
 
 /** Day of the month to schedule submission  */
@@ -2190,7 +2211,6 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
-    ReceiptPartners,
     UberReceiptPartner,
     AllConnectionName,
     Tenant,
@@ -2208,9 +2228,6 @@ export type {
     NetSuiteCustomSegment,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
-    NetSuiteVendor,
-    InvoiceItem,
-    NetSuiteTaxAccount,
     NetSuiteCustomFormID,
     SageIntacctMappingValue,
     SageIntacctMappingType,

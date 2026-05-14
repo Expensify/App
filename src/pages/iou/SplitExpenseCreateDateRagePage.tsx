@@ -14,14 +14,14 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetSplitExpensesByDateRange} from '@libs/actions/IOU/Split';
+import {resetSplitExpensesByDateRange} from '@libs/actions/IOU/SplitExpenseItems';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -43,7 +43,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
 
-    const report = getReportOrDraftReport(reportID);
+    const report = useReportOrReportDraft(reportID);
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
     const policy = usePolicy(currentReport?.policyID);
@@ -110,7 +110,6 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
                             inputID={INPUT_IDS.START_DATE}
                             label={translate('iou.startDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                             defaultValue={draftTransaction?.comment?.splitsStartDate}
                             autoFocus
                         />
@@ -119,7 +118,6 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
                             inputID={INPUT_IDS.END_DATE}
                             label={translate('iou.endDate')}
                             maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                             defaultValue={draftTransaction?.comment?.splitsEndDate}
                         />
                     </FormProvider>

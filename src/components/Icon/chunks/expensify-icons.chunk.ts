@@ -19,6 +19,7 @@ import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-a
 import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
+import BankLock from '@assets/images/bank-lock.svg';
 import Bank from '@assets/images/bank.svg';
 import Basket from '@assets/images/basket.svg';
 import BedCircleSlash from '@assets/images/bed-circle-slash.svg';
@@ -29,6 +30,7 @@ import Binoculars from '@assets/images/binoculars.svg';
 import boltSlash from '@assets/images/bolt-slash.svg';
 import Bolt from '@assets/images/bolt.svg';
 import Bookmark from '@assets/images/bookmark.svg';
+import Bot from '@assets/images/bot.svg';
 import Box from '@assets/images/box.svg';
 import Bug from '@assets/images/bug.svg';
 import Building from '@assets/images/building.svg';
@@ -67,6 +69,8 @@ import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCardLock from '@assets/images/credit-card-lock.svg';
+import CreditCardWithPlaneHourglass from '@assets/images/credit-card-with-plane-hourglass.svg';
+import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
@@ -225,6 +229,7 @@ import Star from '@assets/images/Star.svg';
 import Stopwatch from '@assets/images/stopwatch.svg';
 import Suitcase from '@assets/images/suitcase.svg';
 import Sync from '@assets/images/sync.svg';
+import TablePencil from '@assets/images/table-pencil.svg';
 import Table from '@assets/images/table.svg';
 import Tag from '@assets/images/tag.svg';
 import Task from '@assets/images/task.svg';
@@ -276,6 +281,7 @@ const Expensicons = {
     AttachmentNotFound,
     BackArrow,
     Bank,
+    BankLock,
     Basket,
     CircularArrowBackwards,
     Bill,
@@ -283,6 +289,7 @@ const Expensicons = {
     Bell,
     Binoculars,
     Bolt,
+    Bot,
     Box,
     Bug,
     Building,
@@ -314,6 +321,8 @@ const Expensicons = {
     CreditCardHourglass,
     CreditCardExclamation,
     CreditCardLock,
+    CreditCardWithPlane,
+    CreditCardWithPlaneHourglass,
     CircleSlash,
     Document,
     DocumentMerge,
@@ -493,6 +502,7 @@ const Expensicons = {
     UserPlus,
     Feed,
     Table,
+    TablePencil,
     SpreadsheetComputer,
     Bookmark,
     Sparkles,

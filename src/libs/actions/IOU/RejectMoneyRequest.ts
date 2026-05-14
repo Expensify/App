@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
@@ -373,6 +372,7 @@ function prepareRejectMoneyRequestData(
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID: currentUserAccountIDParam,
             });
             createdIOUReportActionID = iouAction.reportActionID;
 
@@ -464,6 +464,7 @@ function prepareRejectMoneyRequestData(
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                currentUserAccountID: currentUserAccountIDParam,
             });
 
             reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
@@ -980,8 +981,9 @@ function rejectExpenseReport(
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
     const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
+    const parsedComment = getParsedComment(comment);
     const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
-        comment,
+        parsedComment,
         currentUserAccountID,
         currentUserDisplayName,
         currentUserAvatarSource,
@@ -1039,14 +1041,12 @@ function rejectExpenseReport(
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
         value: isRejectToSubmitter
             ? // buildOptimisticNextStep is used in parallel
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
                   isRejectedReport: true,
               })
             : // buildOptimisticNextStep is used in parallel
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
@@ -1148,7 +1148,7 @@ function rejectExpenseReport(
     const parameters: RejectExpenseReportParams = {
         reportID,
         targetAccountID,
-        comment,
+        comment: parsedComment,
         rejectedActionReportActionID: optimisticRejectAction.reportActionID,
         rejectedCommentReportActionID: optimisticCommentAction.reportActionID,
     };

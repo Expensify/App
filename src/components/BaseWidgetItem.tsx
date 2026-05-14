@@ -82,4 +82,3 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
 }
 
 export default BaseWidgetItem;
-export type {BaseWidgetItemProps};

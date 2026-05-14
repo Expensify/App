@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import IOURequestStepTimeRate from '@pages/iou/request/step/IOURequestStepTimeRate';
@@ -90,21 +91,23 @@ describe('IOURequestStepTimeRate', () => {
         return render(
             <OnyxListItemProvider>
                 <LocaleContextProvider>
-                    <IOURequestStepTimeRate
-                        route={{
-                            key: 'IOURequestStepTimeRate',
-                            params: {
-                                iouType: CONST.IOU.TYPE.SUBMIT,
-                                reportID: REPORT_ID,
-                                transactionID: TRANSACTION_ID,
-                                action,
-                                reportActionID: '1',
-                            },
-                            name: SCREENS.MONEY_REQUEST.STEP_TIME_RATE,
-                        }}
-                        // @ts-expect-error we don't need navigation param here
-                        navigation={undefined}
-                    />
+                    <CurrencyListContextProvider>
+                        <IOURequestStepTimeRate
+                            route={{
+                                key: 'IOURequestStepTimeRate',
+                                params: {
+                                    iouType: CONST.IOU.TYPE.SUBMIT,
+                                    reportID: REPORT_ID,
+                                    transactionID: TRANSACTION_ID,
+                                    action,
+                                    reportActionID: '1',
+                                },
+                                name: SCREENS.MONEY_REQUEST.STEP_TIME_RATE,
+                            }}
+                            // @ts-expect-error we don't need navigation param here
+                            navigation={undefined}
+                        />
+                    </CurrencyListContextProvider>
                 </LocaleContextProvider>
             </OnyxListItemProvider>,
         );

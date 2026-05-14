@@ -1,6 +1,7 @@
 import type {ImageContentFit} from 'expo-image';
 import type {SourceLoadEventPayload} from 'expo-video';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Image, InteractionManager, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ImageResizeMode, ImageSourcePropType, LayoutChangeEvent, ScrollView as RNScrollView, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -233,7 +234,6 @@ function FeatureTrainingModal({
     const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (!isModalDisabled) {
                 setIsModalVisible(false);
@@ -266,7 +266,7 @@ function FeatureTrainingModal({
         setIllustrationAspectRatio(track.size.width / track.size.height);
     };
 
-    const renderIllustration = useCallback(() => {
+    const renderIllustration = () => {
         const aspectRatio = illustrationAspectRatio || VIDEO_ASPECT_RATIO;
 
         return (
@@ -332,34 +332,11 @@ function FeatureTrainingModal({
                 )}
             </View>
         );
-    }, [
-        illustrationAspectRatio,
-        styles.w100,
-        styles.featureTrainingModalImage,
-        styles.onboardingVideoPlayer,
-        styles.flex1,
-        styles.alignItemsCenter,
-        styles.justifyContentCenter,
-        styles.h100,
-        illustrationInnerContainerStyle,
-        videoURL,
-        image,
-        shouldRenderSVG,
-        contentFitImage,
-        imageWidth,
-        imageHeight,
-        videoStatus,
-        animationStyle,
-        animation,
-        shouldUseNarrowLayout,
-        isInLandscapeMode,
-        isReduceMotionEnabled,
-        illustrations.Hands,
-    ]);
+    };
 
-    const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);
+    const toggleWillShowAgain = () => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain);
 
-    const closeModal = useCallback(() => {
+    const closeModal = () => {
         Log.hmmm(`[FeatureTrainingModal] closeModal called - willShowAgain: ${willShowAgain}, shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 
         if (!willShowAgain) {
@@ -370,7 +347,6 @@ function FeatureTrainingModal({
         Log.hmmm('[FeatureTrainingModal] Setting modal invisible');
         setIsModalVisible(false);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Log.hmmm(`[FeatureTrainingModal] Running after interactions - shouldGoBack: ${shouldGoBack}, hasOnClose: ${!!onClose}`);
 
@@ -386,9 +362,9 @@ function FeatureTrainingModal({
                 Log.hmmm('[FeatureTrainingModal] No onClose callback provided');
             }
         });
-    }, [onClose, shouldGoBack, willShowAgain]);
+    };
 
-    const closeAndConfirmModal = useCallback(() => {
+    const closeAndConfirmModal = () => {
         Log.hmmm(`[FeatureTrainingModal] Button pressed - shouldCloseOnConfirm: ${shouldCloseOnConfirm}, hasOnConfirm: ${!!onConfirm}, willShowAgain: ${willShowAgain}`);
 
         if (shouldCloseOnConfirm) {
@@ -402,7 +378,7 @@ function FeatureTrainingModal({
         } else {
             Log.hmmm('[FeatureTrainingModal] No onConfirm callback provided');
         }
-    }, [shouldCloseOnConfirm, onConfirm, closeModal, willShowAgain]);
+    };
 
     // Scrolls modal to the bottom when keyboard appears so the action buttons are visible.
     useEffect(() => {
@@ -414,10 +390,7 @@ function FeatureTrainingModal({
 
     const Wrapper = shouldUseScrollView ? ScrollView : View;
 
-    const wrapperStyles = useMemo(
-        () => (shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive) : {}),
-        [shouldUseScrollView, StyleUtils, insets, isKeyboardActive],
-    );
+    const wrapperStyles = shouldUseScrollView ? StyleUtils.getScrollableFeatureTrainingModalStyles(insets, isKeyboardActive) : {};
 
     return (
         <Modal

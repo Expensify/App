@@ -1,5 +1,6 @@
 import {Keyboard} from 'react-native';
 import {isMobile, isMobileSafari} from '@libs/Browser';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import type {DismissKeyboardOptions} from './types';

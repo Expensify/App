@@ -1,11 +1,11 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
-import {convertToDisplayString} from './CurrencyUtils';
 
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
@@ -27,7 +27,12 @@ function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], ta
     return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
 }
 
-function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxAmountNoReceipt?: number | null) {
+function formatRequireReceiptsOverText(
+    translate: LocaleContextProps['translate'],
+    policy: Policy,
+    categoryMaxAmountNoReceipt: number | null | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+) {
     const isAlwaysSelected = categoryMaxAmountNoReceipt === 0;
     const isNeverSelected = categoryMaxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
 
@@ -46,7 +51,12 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
     return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD));
 }
 
-function formatRequireItemizedReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxAmountNoItemizedReceipt?: number | null) {
+function formatRequireItemizedReceiptsOverText(
+    translate: LocaleContextProps['translate'],
+    policy: Policy,
+    categoryMaxAmountNoItemizedReceipt: number | null | undefined,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+) {
     const isAlwaysSelected = categoryMaxAmountNoItemizedReceipt === 0;
     const isNeverSelected = categoryMaxAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
 
