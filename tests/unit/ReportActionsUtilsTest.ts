@@ -1701,6 +1701,22 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
+        it('should return false for card issued actions with empty message array', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                reportActionID: 'virtual-card-action-123',
+                actorAccountID: 123,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 456,
+                    cardID: 789,
+                },
+            };
+
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
         it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
@@ -1971,6 +1987,23 @@ describe('ReportActionsUtils', () => {
             };
 
             // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for card issued actions with empty message array', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                reportActionID: 'virtual-card-action-123',
+                actorAccountID: 123,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 456,
+                    cardID: 789,
+                },
+            };
+
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
