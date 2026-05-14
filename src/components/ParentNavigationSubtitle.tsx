@@ -66,6 +66,9 @@ type ParentNavigationSubtitleProps = {
 
     /** Display name of the human agent; falls back to a generic label when missing */
     humanAgentName?: string;
+
+    /** Whether to show the "from" prefix */
+    shouldShowFromPrefix?: boolean;
 };
 
 function ParentNavigationSubtitle({
@@ -83,6 +86,7 @@ function ParentNavigationSubtitle({
     subtitleNumberOfLines = 1,
     humanAgentAccountID,
     humanAgentName,
+    shouldShowFromPrefix = true,
 }: ParentNavigationSubtitleProps) {
     const currentRoute = useRoute();
     const styles = useThemeStyles();
@@ -235,7 +239,7 @@ function ParentNavigationSubtitle({
             >
                 {!!reportName && (
                     <>
-                        <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
+                        {shouldShowFromPrefix && <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>}
                         {hasAccessToParentReport ? (
                             <TextLink
                                 testID="parent-navigation-subtitle-link"
@@ -247,8 +251,8 @@ function ParentNavigationSubtitle({
                                     pressableStyles,
                                     styles.optionAlternateText,
                                     styles.textLabelSupporting,
-                                    hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link,
                                     textStyles,
+                                    hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link,
                                 ]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >

@@ -1292,7 +1292,7 @@ const READ_COMMANDS = {
     GET_GUIDE_CALL_AVAILABILITY_SCHEDULE: 'GetGuideCallAvailabilitySchedule',
     GET_TRANSACTIONS_FOR_MERGING: 'GetTransactionsForMerging',
     GET_DOMAIN_VALIDATE_CODE: 'GetDomainValidateCode',
-    OPEN_DOMAIN_INITIAL_PAGE: 'OpenDomainInitialPage',
+    OPEN_DOMAIN_PAGE: 'OpenDomainPage',
     GET_SAML_SETTINGS: 'GetSAMLSettings',
     GET_DUPLICATE_TRANSACTION_DETAILS: 'GetDuplicateTransactionDetails',
     GET_TRANSACTIONS_MATCHING_CODING_RULE: 'GetTransactionsMatchingCodingRule',
@@ -1390,7 +1390,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING]: Parameters.GetTransactionsForMergingParams;
     [READ_COMMANDS.GET_SAML_SETTINGS]: Parameters.DomainParams;
     [READ_COMMANDS.GET_DOMAIN_VALIDATE_CODE]: Parameters.DomainParams;
-    [READ_COMMANDS.OPEN_DOMAIN_INITIAL_PAGE]: Parameters.DomainParams;
+    [READ_COMMANDS.OPEN_DOMAIN_PAGE]: Parameters.OpenDomainPageParams;
     [READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS]: Parameters.GetDuplicateTransactionDetailsParams;
     [READ_COMMANDS.GET_TRANSACTIONS_MATCHING_CODING_RULE]: Parameters.GetTransactionsMatchingCodingRuleParams;
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: null;
