@@ -166,8 +166,8 @@ if (addedTotal > 0) {
             const sepIdx = id.indexOf('::');
             const file = sepIdx > 0 ? id.slice(0, sepIdx) : '';
             const name = sepIdx > 0 ? id.slice(sepIdx + 2) : id;
-            const attrs = file ? `file=${file},title=Knip: new ${cat}` : `title=Knip: new ${cat}`;
-            console.log(`::error ${attrs}::${name}`);
+            const attrs = file ? `file=${file},title=Knip` : 'title=Knip';
+            console.log(`::error ${attrs}::[${cat}] ${name}`);
         }
     }
     console.log(`\n::error::PR introduces ${addedTotal} new knip finding(s) (resolved ${resolvedTotal}, delta ${delta >= 0 ? '+' : ''}${delta}).`);
