@@ -331,7 +331,9 @@ function ReportActionsList({
         // already exists in the full list but was excluded by the filter. This
         // prevents a completed trickle from re-appearing after a session reset.
         // If the real action doesn't exist yet (trickle in progress), allow it.
-        if (showHiddenHistory) {
+        // Scoped to Concierge via hasPreviousMessages to avoid affecting AgentZero
+        // admin chats that also use the trickle draft mechanism.
+        if (showHiddenHistory && hasPreviousMessages) {
             const realActionExists = sortedReportActions.some((a) => a.reportActionID === draftReportAction.reportActionID);
             if (realActionExists) {
                 return sortedVisibleReportActions;
@@ -353,7 +355,7 @@ function ReportActionsList({
         const visibleReportActionsWithDraft = [...sortedVisibleReportActions];
         visibleReportActionsWithDraft.push(draftReportAction);
         return visibleReportActionsWithDraft;
-    }, [draftReportAction, sortedVisibleReportActions, showHiddenHistory, sortedReportActions]);
+    }, [draftReportAction, sortedVisibleReportActions, showHiddenHistory, hasPreviousMessages, sortedReportActions]);
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;
     const draftAutoScrollKey = isSyntheticDraftVisible ? `${draftReportAction.reportActionID}:${draftMessageHTML ?? ''}` : '';
