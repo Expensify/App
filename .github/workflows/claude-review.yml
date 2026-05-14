@@ -93,7 +93,7 @@ jobs:
               PATH_ARG=$(echo "$v" | jq -r '.path')
               BODY_ARG=$(echo "$v" | jq -r '.body')
               LINE_ARG=$(echo "$v" | jq -r '.line')
-              createInlineComment.sh "$PATH_ARG" "$BODY_ARG" "$LINE_ARG" || true
+              createInlineComment.sh "$PR_NUMBER" "$PATH_ARG" "$BODY_ARG" "$LINE_ARG" || true
             done
           fi
 
