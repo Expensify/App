@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import type {Pages} from '@src/types/onyx';
-import PaginationUtils from '../../src/libs/PaginationUtils';
+import {getContinuousChain, mergeAndSortContinuousPages, mergePagesByIDOverlap, prunePagesToNewestWindow, selectNewestPageWithIndex} from '../../src/libs/PaginationUtils';
 
 type Item = {
     id: string;
@@ -58,7 +58,7 @@ describe('PaginationUtils', () => {
                 ['7', '6', '5', '4', '3', '2', '1'],
             ];
             for (const targetID of targetIDs) {
-                const result = PaginationUtils.getContinuousChain(input, pages, getID, targetID);
+                const result = getContinuousChain(input, pages, getID, targetID);
                 expect(result.data).toStrictEqual(expectedOutput);
                 expect(result.hasPreviousPage).toBe(true);
                 expect(result.hasNextPage).toBe(true);
@@ -96,7 +96,7 @@ describe('PaginationUtils', () => {
 
             // Expect these sortedItems
             const expectedResult: Item[] = [];
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '8');
+            const result = getContinuousChain(input, pages, getID, '8');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(false);
             expect(result.hasNextPage).toBe(false);
@@ -135,7 +135,7 @@ describe('PaginationUtils', () => {
                 // Expect these sortedItems
                 '8',
             ]);
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '8');
+            const result = getContinuousChain(input, pages, getID, '8');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(false);
             expect(result.hasNextPage).toBe(false);
@@ -157,7 +157,7 @@ describe('PaginationUtils', () => {
 
             // Expect these sortedItems
             const expectedResult = [...input];
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
+            const result = getContinuousChain(input, pages, getID, '');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(false);
             expect(result.hasNextPage).toBe(false);
@@ -179,7 +179,7 @@ describe('PaginationUtils', () => {
 
             // Expect these sortedItems
             const expectedResult = [...input];
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '4');
+            const result = getContinuousChain(input, pages, getID, '4');
             // Expect the result to be the same
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(false);
@@ -202,7 +202,7 @@ describe('PaginationUtils', () => {
 
             // Expect these sortedItems
             const expectedResult: Item[] = [];
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '8');
+            const result = getContinuousChain(input, pages, getID, '8');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(false);
             expect(result.hasNextPage).toBe(false);
@@ -244,7 +244,7 @@ describe('PaginationUtils', () => {
                 '10',
                 '9',
             ]);
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '10');
+            const result = getContinuousChain(input, pages, getID, '10');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(true);
             expect(result.hasNextPage).toBe(true);
@@ -271,7 +271,7 @@ describe('PaginationUtils', () => {
                 '15',
                 '14',
             ]);
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
+            const result = getContinuousChain(input, pages, getID, '');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(false);
             expect(result.hasNextPage).toBe(true);
@@ -298,7 +298,7 @@ describe('PaginationUtils', () => {
                 '15',
                 '14',
             ]);
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
+            const result = getContinuousChain(input, pages, getID, '');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(true);
             expect(result.hasNextPage).toBe(false);
@@ -324,7 +324,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['5', '4', '3', '2', '1'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -346,7 +346,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['4', '3', '2', '1'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -368,7 +368,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['5', '4', '3', '2', '1'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -391,7 +391,7 @@ describe('PaginationUtils', () => {
                 ['5', '4'],
                 ['2', '1'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -421,7 +421,7 @@ describe('PaginationUtils', () => {
                 ['6', '5'],
                 ['3', '2', '1'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -439,7 +439,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['4', '3'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -456,7 +456,7 @@ describe('PaginationUtils', () => {
 
             // Expect these pages
             const expectedResult: Pages = [];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -477,7 +477,7 @@ describe('PaginationUtils', () => {
                 ['4'],
                 ['2'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -500,7 +500,7 @@ describe('PaginationUtils', () => {
                 ['2', '1', '3'],
                 ['4'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -522,7 +522,7 @@ describe('PaginationUtils', () => {
                 ['1', '2'],
                 ['4', '5'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -541,7 +541,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 [CONST.PAGINATION_START_ID, '1', '2'],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -560,7 +560,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 ['1', '2', CONST.PAGINATION_END_ID],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -580,7 +580,7 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 [CONST.PAGINATION_START_ID, '1', '2', '3', CONST.PAGINATION_END_ID],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
         });
 
@@ -600,8 +600,146 @@ describe('PaginationUtils', () => {
                 // Expect these pages
                 [CONST.PAGINATION_START_ID, '1', '2', '3', CONST.PAGINATION_END_ID],
             ];
-            const result = PaginationUtils.mergeAndSortContinuousPages(sortedItems, pages, getID);
+            const result = mergeAndSortContinuousPages(sortedItems, pages, getID);
             expect(result).toStrictEqual(expectedResult);
+        });
+    });
+
+    describe('mergePagesByIDOverlap', () => {
+        it('merges pages that share a non-marker id (overlap) without requiring index adjacency in the same way as mergeAndSort', () => {
+            const sortedItems = createItems(['5', '4', '3', '2', '1']);
+            const pages: Pages = [
+                ['4', '3', '2'],
+                ['3', '2', '1'],
+            ];
+            const result = mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([['4', '3', '2', '1']]);
+        });
+
+        it('merges when the first id of a page matches the last id of the previous page (chain)', () => {
+            const sortedItems = createItems(['5', '4', '3', '2', '1']);
+            const pages: Pages = [
+                ['5', '4', '3'],
+                ['3', '2', '1'],
+            ];
+            const result = mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([['5', '4', '3', '2', '1']]);
+        });
+
+        it('does not merge disjoint windows with no shared ids (middle-of-chat / sparse local set)', () => {
+            const sortedItems = createItems(['5', '4', '2', '1']);
+            const pages: Pages = [
+                ['5', '4'],
+                ['2', '1'],
+            ];
+            const result = mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([
+                ['5', '4'],
+                ['2', '1'],
+            ]);
+        });
+
+        it('returns an empty array when input pages is empty', () => {
+            expect(mergePagesByIDOverlap(createItems(['1']), [], getID)).toStrictEqual([]);
+        });
+
+        it('strips ids not present in sortedItems from stored pages', () => {
+            const sortedItems = createItems(['4', '3']);
+            const pages: Pages = [['6', '5', '4', '3', '2', '1']];
+            const result = mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([['4', '3']]);
+        });
+
+        it('applies start/end markers when merging', () => {
+            const sortedItems = createItems(['1', '2', '3']);
+            const pages: Pages = [
+                [CONST.PAGINATION_START_ID, '1', '2', '3'],
+                ['2', '3', CONST.PAGINATION_END_ID],
+            ];
+            const result = mergePagesByIDOverlap(sortedItems, pages, getID);
+            expect(result).toStrictEqual([[CONST.PAGINATION_START_ID, '1', '2', '3', CONST.PAGINATION_END_ID]]);
+        });
+    });
+
+    describe('selectNewestPageWithIndex', () => {
+        it('returns undefined for an empty list', () => {
+            expect(selectNewestPageWithIndex([])).toBeUndefined();
+        });
+
+        it('returns the only page when there is a single page', () => {
+            const only = {
+                ids: ['3', '2', '1'],
+                firstID: '3',
+                firstIndex: 0,
+                lastID: '1',
+                lastIndex: 2,
+            };
+            expect(selectNewestPageWithIndex([only])).toBe(only);
+        });
+
+        it('prefers the page whose firstID is the pagination start marker', () => {
+            const withStart = {
+                ids: [CONST.PAGINATION_START_ID, '2', '1'],
+                firstID: CONST.PAGINATION_START_ID,
+                firstIndex: 2,
+                lastID: '1',
+                lastIndex: 4,
+            };
+            const newerByIndex = {
+                ids: ['5', '4'],
+                firstID: '5',
+                firstIndex: 0,
+                lastID: '4',
+                lastIndex: 1,
+            };
+            expect(selectNewestPageWithIndex([newerByIndex, withStart])).toBe(withStart);
+            expect(selectNewestPageWithIndex([withStart, newerByIndex])).toBe(withStart);
+        });
+
+        it('when no start marker, picks the page with the smallest firstIndex (chronologically newest in descending-sorted data)', () => {
+            const olderWindow = {
+                ids: ['2', '1'],
+                firstID: '2',
+                firstIndex: 3,
+                lastID: '1',
+                lastIndex: 4,
+            };
+            const newerWindow = {
+                ids: ['5', '4'],
+                firstID: '5',
+                firstIndex: 0,
+                lastID: '4',
+                lastIndex: 1,
+            };
+            expect(selectNewestPageWithIndex([olderWindow, newerWindow])).toBe(newerWindow);
+        });
+    });
+
+    describe('prunePagesToNewestWindow', () => {
+        it('returns pages unchanged when there is at most one page', () => {
+            const sortedItems = createItems(['1', '2', '3']);
+            expect(prunePagesToNewestWindow(sortedItems, [], getID)).toStrictEqual([]);
+            expect(prunePagesToNewestWindow(sortedItems, [['1', '2']], getID)).toStrictEqual([['1', '2']]);
+        });
+
+        it('collapses to the newest window by firstIndex when no start marker is present', () => {
+            const sortedItems = createItems(['5', '4', '3', '2', '1']);
+            const pages: Pages = [
+                ['2', '1'],
+                ['5', '4'],
+            ];
+            const result = prunePagesToNewestWindow(sortedItems, pages, getID);
+            expect(result).toStrictEqual([['5', '4']]);
+        });
+
+        it('keeps the page that includes the start marker (ids are expanded the same way as in getPagesWithIndexes)', () => {
+            const sortedItems = createItems(['3', '2', '1']);
+            const pages: Pages = [
+                ['3', '2'],
+                [CONST.PAGINATION_START_ID, '1'],
+            ];
+            const result = prunePagesToNewestWindow(sortedItems, pages, getID);
+            expect(result).toStrictEqual([[CONST.PAGINATION_START_ID, '3', '2', '1']]);
         });
     });
 });

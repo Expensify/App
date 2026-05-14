@@ -487,6 +487,7 @@ export type {default as EnableGlobalReimbursementsForUSDBankAccountParams} from 
 export type {default as SendReminderForCorpaySignerInformationParams} from './SendReminderForCorpaySignerInformationParams';
 export type {default as SendScheduleCallNudgeParams} from './SendScheduleCallNudge';
 export type {default as DomainParams} from './DomainParams';
+export type {default as OpenDomainPageParams} from './OpenDomainPageParams';
 export type {default as GetScimTokenParams} from './GetScimTokenParams';
 export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
 export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';
@@ -526,3 +527,4 @@ export type {default as UpdateDomainSecurityGroupParams} from './UpdateDomainSec
 export type {default as SetDefaultDomainSecurityGroupParams} from './SetDefaultDomainSecurityGroupParams';
 export type {default as DeleteDomainSecurityGroupParams} from './DeleteDomainSecurityGroupParams';
 export type {default as CreateAgentParams} from './CreateAgentParams';
+export type {default as CreateDomainSecurityGroupParams} from './CreateDomainSecurityGroupParams';

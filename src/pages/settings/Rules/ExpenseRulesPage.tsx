@@ -297,6 +297,7 @@ function ExpenseRulesPage() {
                 <SelectionListWithModal
                     addBottomSafeAreaPadding
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllRules')}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
                     data={filteredRuleList}
