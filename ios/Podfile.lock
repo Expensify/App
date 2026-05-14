@@ -405,7 +405,7 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
-  - NitroFetch (1.2.1):
+  - NitroFetch (1.3.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -4867,7 +4867,7 @@ SPEC CHECKSUMS:
   MapboxMaps: f87023cf0d72b180b40ea0b6fb4b2d7db6b73b71
   MapboxMobileEvents: d044b9edbe0ec7df60f6c2c9634fe9a7f449266b
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroFetch: 5d41bbbd99660804fc4d4d3ff41e7cfa0b1ff609
+  NitroFetch: 4fbf0acfde29501148b2e22a87cde665c830174f
   NitroModules: 94747555fc3e858fadf3ff73b2ae77c95bea5acc
   NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
