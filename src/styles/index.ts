@@ -1849,6 +1849,12 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        lhnMenuIcon: {
+            width: 28,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
         popoverIconCircle: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,
@@ -5644,12 +5650,14 @@ const staticStyles = (theme: ThemeColors) =>
         todoBadge: {
             alignItems: 'center',
             justifyContent: 'center',
+            width: 28,
         },
 
         searchSectionBadge: {
             alignItems: 'center',
             justifyContent: 'center',
             height: 16,
+            width: 28,
         },
 
         stickToBottom: {
@@ -6420,7 +6428,8 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,
-            paddingHorizontal: 16,
+            paddingLeft: 16,
+            paddingRight: 12,
             paddingVertical: shouldUseNarrowLayout ? 8 : 4,
             height: shouldUseNarrowLayout ? variables.sectionMenuItemHeight : variables.sectionMenuItemHeightCompact,
             alignItems: 'center',
