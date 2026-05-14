@@ -312,7 +312,14 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis, frequentlyUse
     }
 
     const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((entry: FrequentlyUsedEmoji): Emoji => {
-        const baseEmoji = !entry.code ? findEmojiByName(entry.name) : !entry.name ? findEmojiByCode(entry.code) : (findEmojiByCode(entry.code) ?? findEmojiByName(entry.name));
+        let baseEmoji: Emoji;
+        if (!entry.code) {
+            baseEmoji = findEmojiByName(entry.name);
+        } else if (!entry.name) {
+            baseEmoji = findEmojiByCode(entry.code);
+        } else {
+            baseEmoji = findEmojiByCode(entry.code) ?? findEmojiByName(entry.name);
+        }
         return {
             ...baseEmoji,
             count: entry.count,

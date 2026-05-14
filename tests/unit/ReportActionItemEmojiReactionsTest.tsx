@@ -11,25 +11,19 @@ import {getEmojiReactionDetails} from '@libs/EmojiUtils';
 import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
 const USER_ACCOUNT_ID = 12345;
+const USER_ID_KEY = String(USER_ACCOUNT_ID);
 
-const makeReaction = (extraUsers: Record<string, typeof defaultUser> = {}): ReportActionReaction => ({
+const makeReaction = (): ReportActionReaction => ({
     createdAt: '2024-01-01 00:00:00',
     oldestTimestamp: '2024-01-01 00:00:00',
     users: {
-        [USER_ACCOUNT_ID]: {
-            id: String(USER_ACCOUNT_ID),
+        [USER_ID_KEY]: {
+            id: USER_ID_KEY,
             oldestTimestamp: '2024-01-01 00:00:00',
             skinTones: {[-1]: '2024-01-01 00:00:00'},
         },
-        ...extraUsers,
     },
 });
-
-const defaultUser = {
-    id: String(USER_ACCOUNT_ID),
-    oldestTimestamp: '2024-01-01 00:00:00',
-    skinTones: {[-1]: '2024-01-01 00:00:00'},
-};
 
 function renderBubble(emojiKey: string) {
     const reaction = makeReaction();
@@ -55,14 +49,14 @@ describe('ReportActionItemEmojiReactions — dual-format reaction keys', () => {
         const {emojiCodes, reactionCount} = renderBubble('1F44D');
         expect(reactionCount).toBe(1);
         expect(emojiCodes.length).toBeGreaterThan(0);
-        expect(emojiCodes[0]).toBe('👍');
+        expect(emojiCodes.at(0)).toBe('👍');
         expect(screen.getByLabelText('👍')).toBeTruthy();
     });
 
     it('name-keyed reaction (legacy) renders the correct glyph and count', () => {
         const {emojiCodes, reactionCount} = renderBubble('+1');
         expect(reactionCount).toBe(1);
-        expect(emojiCodes[0]).toBe('👍');
+        expect(emojiCodes.at(0)).toBe('👍');
         expect(screen.getByLabelText('👍')).toBeTruthy();
     });
 

@@ -698,12 +698,13 @@ describe('EmojiTest', () => {
     });
 
     describe('reaction key formats', () => {
+        const REACTION_USER_ID = '12345';
         const reaction: ReportActionReaction = {
             createdAt: '2024-01-01 00:00:00',
             oldestTimestamp: '2024-01-01 00:00:00',
             users: {
-                '12345': {
-                    id: '12345',
+                [REACTION_USER_ID]: {
+                    id: REACTION_USER_ID,
                     oldestTimestamp: '2024-01-01 00:00:00',
                     skinTones: {[-1]: '2024-01-01 00:00:00'},
                 },
