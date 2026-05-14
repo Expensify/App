@@ -35,7 +35,7 @@ function useAutoCreateSubmitWorkspace() {
         hasActiveAdminPolicies,
         onboardingMessages,
         lastWorkspaceNumber,
-        isSmallScreenWidth,
+        shouldUseNarrowLayout,
     } = useOnboardingWorkspaceCreationState();
 
     const groupPolicySelector = useMemo(
@@ -86,7 +86,7 @@ function useAutoCreateSubmitWorkspace() {
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
 
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(newPolicyID, isSmallScreenWidth);
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(newPolicyID, shouldUseNarrowLayout);
         },
         [
             currentUserEmail,
@@ -105,7 +105,7 @@ function useAutoCreateSubmitWorkspace() {
             onboardingMessages,
             betas,
             hasActiveAdminPolicies,
-            isSmallScreenWidth,
+            shouldUseNarrowLayout,
         ],
     );
 

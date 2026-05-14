@@ -1,11 +1,19 @@
 import React from 'react';
 import {View} from 'react-native';
-import ReportActionAvatars from '@components/ReportActionAvatars';
-import Text from '@components/Text';
-import useStyleUtils from '@hooks/useStyleUtils';
+import Button from '@components/Button';
+import Icon from '@components/Icon';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
+import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
+import AgentInfoRow from './AgentInfoRow';
 
 type AgentsListRowProps = {
     /** Account ID of the agent */
@@ -16,36 +24,83 @@ type AgentsListRowProps = {
 
     /** Login email of the agent */
     login: string;
+
+    /** Pending action for offline feedback */
+    pendingAction?: PendingAction | null;
+
+    /** Errors to display on the row */
+    errors?: Errors | null;
+
+    /** Called when the user dismisses the error */
+    onErrorClose?: () => void;
+
+    /** Whether to show the red error dot indicator */
+    brickRoadIndicator?: typeof CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR | null;
 };
 
-function AgentsListRow({accountID, displayName, login}: AgentsListRowProps) {
+function AgentsListRow({accountID, displayName, login, pendingAction, errors, onErrorClose, brickRoadIndicator}: AgentsListRowProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+
+    const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const navigateToEdit = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
 
     return (
-        <View style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap3]}>
-            <ReportActionAvatars
-                accountIDs={[accountID]}
-                size={CONST.AVATAR_SIZE.LARGE_NORMAL}
-                shouldShowTooltip={false}
-                singleAvatarContainerStyle={[StyleUtils.getWidthAndHeightStyle(variables.avatarSizeLargeNormal)]}
-            />
-            <View style={[styles.flex1, styles.gap1]}>
-                <Text
-                    numberOfLines={1}
-                    style={styles.textStrong}
+        <OfflineWithFeedback
+            pendingAction={pendingAction}
+            errors={errors}
+            onClose={onErrorClose}
+            errorRowStyles={[styles.ph5, styles.pb5]}
+            shouldHideOnDelete={false}
+        >
+            {shouldUseNarrowLayout ? (
+                <PressableWithFeedback
+                    style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap3]}
+                    onPress={navigateToEdit}
+                    accessibilityLabel={displayName}
+                    role={CONST.ROLE.BUTTON}
+                    sentryLabel="AgentsListRow-Edit"
+                    disabled={isPendingDeletion}
                 >
-                    {displayName}
-                </Text>
-                <Text
-                    numberOfLines={1}
-                    style={styles.mutedNormalTextLabel}
-                >
-                    {login}
-                </Text>
-            </View>
-            {/* Action buttons are deferred to R1.3 per phased rollout plan */}
-        </View>
+                    <AgentInfoRow
+                        accountID={accountID}
+                        displayName={displayName}
+                        login={login}
+                        isPendingDeletion={isPendingDeletion}
+                    />
+                    {!!brickRoadIndicator && (
+                        <Icon
+                            src={icons.DotIndicator}
+                            fill={theme.danger}
+                        />
+                    )}
+                </PressableWithFeedback>
+            ) : (
+                <View style={[styles.selectionListPressableItemWrapper, styles.mb2, styles.gap3]}>
+                    <AgentInfoRow
+                        accountID={accountID}
+                        displayName={displayName}
+                        login={login}
+                        isPendingDeletion={isPendingDeletion}
+                    />
+                    {!!brickRoadIndicator && (
+                        <Icon
+                            src={icons.DotIndicator}
+                            fill={theme.danger}
+                        />
+                    )}
+                    <Button
+                        small
+                        text={translate('common.edit')}
+                        onPress={navigateToEdit}
+                        isDisabled={isPendingDeletion}
+                    />
+                </View>
+            )}
+        </OfflineWithFeedback>
     );
 }
 

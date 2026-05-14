@@ -27,7 +27,6 @@ function Template(props: AddressSearchProps) {
         <AddressSearch
             value={value as string}
             onInputChange={(inputValue) => setValue(inputValue)}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
