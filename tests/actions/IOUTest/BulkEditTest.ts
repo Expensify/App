@@ -68,9 +68,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -141,9 +138,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -203,9 +197,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -274,9 +265,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -349,9 +337,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -415,9 +400,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -479,9 +461,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -550,9 +529,6 @@ describe('actions/IOU/BulkEdit', () => {
                     },
                 },
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -606,9 +582,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -665,9 +638,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -731,9 +701,6 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -798,9 +765,6 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: transactionPolicy,
                 },
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -876,9 +840,6 @@ describe('actions/IOU/BulkEdit', () => {
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: txPolicy,
                 },
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -942,9 +903,6 @@ describe('actions/IOU/BulkEdit', () => {
                 },
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -1020,9 +978,6 @@ describe('actions/IOU/BulkEdit', () => {
                     [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagsForPolicy,
                 },
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
@@ -1079,9 +1034,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -1145,9 +1097,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: 'test@example.com',
                 currentUserAccountID: 1,
             });
 
@@ -1235,9 +1184,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyTags: {},
                 hash: undefined,
                 allPolicies,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -1327,9 +1273,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyTags: {},
                 hash: undefined,
                 allPolicies,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -1397,9 +1340,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -1466,9 +1406,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
@@ -1531,9 +1468,6 @@ describe('actions/IOU/BulkEdit', () => {
                 policyCategories: undefined,
                 policyTags: {},
                 hash: undefined,
-                introSelected: undefined,
-                betas: undefined,
-                currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
             });
 
