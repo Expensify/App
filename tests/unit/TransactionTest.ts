@@ -1817,7 +1817,7 @@ describe('Transaction', () => {
                             owner: 123,
                         },
                     },
-                    hold: null,
+                    hold: undefined,
                 },
             } as Transaction;
 
