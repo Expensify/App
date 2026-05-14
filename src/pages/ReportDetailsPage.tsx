@@ -839,8 +839,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                                       return;
                                   }
 
-                                  console.log('****** 4 ******', 4);
-
                                   Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
                               }
                             : undefined

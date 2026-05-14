@@ -237,7 +237,6 @@ function AvatarWithDisplayName({
         if (!report?.policyID) {
             return;
         }
-        console.log('****** 1 ******', 1);
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EDIT_REPORT_FIELD.getRoute(report.policyID, CONST.REPORT_FIELD_TITLE_FIELD_ID)));
     };
