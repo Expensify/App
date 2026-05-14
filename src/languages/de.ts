@@ -7742,7 +7742,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         bulkActions: {
             editMultiple: 'Mehrere bearbeiten',
             editMultipleTitle: 'Mehrere Ausgaben bearbeiten',
-            editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben festgelegt und überschreiben alle zuvor festgelegten Werte.',
+            editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben übernommen und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
             pay: 'Bezahlen',
             delete: 'Löschen',

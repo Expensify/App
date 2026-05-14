@@ -405,11 +405,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const navigateToCategoriesSettings = useCallback(() => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
-    }, [isQuickSettingsFlow, policyId, backTo]);
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
+    }, [isQuickSettingsFlow]);
 
     const navigateToCreateCategoryPage = () => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
+        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
     };
 
     const dismissError = (item: ListItem) => {
