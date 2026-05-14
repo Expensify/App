@@ -42,24 +42,39 @@ type Report = {
 
 function parseReport(filepath: string): Report {
     if (!fs.existsSync(filepath)) {
-        return {issues: []};
+        throw new Error(`Knip report not found: ${filepath}`);
     }
-    let raw = fs.readFileSync(filepath, 'utf8');
-    // knip writes JSON to stdout, but babel.config.js debug logs can prepend noise.
-    // Trim everything before the first `{"issues"` token.
-    const i = raw.indexOf('{"issues"');
-    if (i > 0) {
-        raw = raw.slice(i);
-    }
+    const raw = fs.readFileSync(filepath, 'utf8');
     if (!raw.trim()) {
-        return {issues: []};
+        throw new Error(`Knip report is empty: ${filepath}`);
     }
-    try {
-        return JSON.parse(raw) as Report;
-    } catch (e) {
-        console.error(`Failed to parse ${filepath}: ${(e as Error).message}`);
-        return {issues: []};
+
+    // knip writes a single top-level JSON object to stdout, but tooling around it
+    // can prepend noise (npm-run script header, babel.config.js debug logs,
+    // webpack-plugin warnings, etc.). The object can also be pretty-printed, so
+    // we can't rely on a fixed token like `{"issues"`. Locate every `{` and try
+    // to parse from there; accept the first slice that parses AND has an
+    // `issues` array. Anything else is a hard failure — the CI should not
+    // silently treat an unparseable report as "no findings".
+    let searchFrom = 0;
+    let lastParseError: Error | undefined;
+    while (true) {
+        const braceIdx = raw.indexOf('{', searchFrom);
+        if (braceIdx < 0) {
+            break;
+        }
+        try {
+            const parsed = JSON.parse(raw.slice(braceIdx)) as unknown;
+            if (parsed && typeof parsed === 'object' && Array.isArray((parsed as Report).issues)) {
+                return parsed as Report;
+            }
+        } catch (e) {
+            lastParseError = e as Error;
+        }
+        searchFrom = braceIdx + 1;
     }
+    const detail = lastParseError ? `: ${lastParseError.message}` : '';
+    throw new Error(`Failed to parse knip JSON report at ${filepath}${detail}`);
 }
 
 function flatten(report: Report): Map<Category, Set<string>> {
@@ -139,8 +154,15 @@ if (!mainPath || !prPath) {
     process.exit(2);
 }
 
-const mainFlat = flatten(parseReport(mainPath));
-const prFlat = flatten(parseReport(prPath));
+let mainFlat: Map<Category, Set<string>>;
+let prFlat: Map<Category, Set<string>>;
+try {
+    mainFlat = flatten(parseReport(mainPath));
+    prFlat = flatten(parseReport(prPath));
+} catch (e) {
+    console.log(`::error::Knip comparator could not read a report: ${(e as Error).message}`);
+    process.exit(2);
+}
 
 const mainTotal = totalCount(mainFlat);
 const prTotal = totalCount(prFlat);
