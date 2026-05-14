@@ -5,22 +5,21 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
-import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMapMarkers from '@hooks/useMapMarkers';
+import type {MapMarkerType} from '@hooks/useMapMarkers';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getMapMarkerSize} from '@libs/getMapMarkerSize';
 import {getDistanceInMeters, getWaypointIndex, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
-import type IconAsset from '@src/types/utils/IconAsset';
 
 const MAX_WAYPOINTS = 25;
 
@@ -44,7 +43,8 @@ type DistanceRequestFooterProps = {
 function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle}: DistanceRequestFooterProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'MapStartWaypoint', 'MapStopWaypoint', 'MapWaypoint']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const getMapMarkerIconComponent = useMapMarkers();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
@@ -59,14 +59,6 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
     const {unit} = mileageRate ?? {};
 
-    const getMarkerComponent = (icon: IconAsset, width: number, height: number): ReactNode => (
-        <ImageSVG
-            src={icon}
-            width={width}
-            height={height}
-        />
-    );
-
     const waypointMarkers: WayPoint[] = [];
     for (const [key, waypoint] of Object.entries(waypoints ?? {})) {
         if (!waypoint?.lat || !waypoint?.lng) {
@@ -74,23 +66,17 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
         }
 
         const index = getWaypointIndex(key);
-        let MarkerComponent: IconAsset;
-        let markerSize: {width: number; height: number};
+        let markerType: MapMarkerType = 'WAYPOINT';
         if (index === 0) {
-            MarkerComponent = expensifyIcons.MapStartWaypoint;
-            markerSize = getMapMarkerSize('START_WAYPOINT');
+            markerType = 'START_WAYPOINT';
         } else if (index === lastWaypointIndex) {
-            MarkerComponent = expensifyIcons.MapStopWaypoint;
-            markerSize = getMapMarkerSize('STOP_WAYPOINT');
-        } else {
-            MarkerComponent = expensifyIcons.MapWaypoint;
-            markerSize = getMapMarkerSize('WAYPOINT');
+            markerType = 'STOP_WAYPOINT';
         }
 
         waypointMarkers.push({
             id: `${waypoint.lng},${waypoint.lat},${index}`,
             coordinate: [waypoint.lng, waypoint.lat] as const,
-            markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent, markerSize.width, markerSize.height),
+            markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
         });
     }
 

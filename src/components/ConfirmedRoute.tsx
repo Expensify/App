@@ -1,21 +1,19 @@
 import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useMapMarkers from '@hooks/useMapMarkers';
+import type {MapMarkerType} from '@hooks/useMapMarkers';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getArrayDepth from '@libs/getArrayDepth';
-import {getMapMarkerSize} from '@libs/getMapMarkerSize';
 import {getWaypointIndex} from '@libs/TransactionUtils';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
-import ImageSVG from './ImageSVG';
 import type {WayPoint} from './MapView/MapViewTypes';
 import PendingMapView from './MapView/PendingMapView';
 
@@ -44,17 +42,9 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
     const coordinates = route?.geometry?.coordinates ?? [];
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MapStartWaypoint', 'MapStopWaypoint', 'MapWaypoint']);
+    const getMapMarkerIconComponent = useMapMarkers();
 
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
-
-    const getMarkerComponent = (icon: IconAsset, width: number, height: number): ReactNode => (
-        <ImageSVG
-            src={icon}
-            width={width}
-            height={height}
-        />
-    );
 
     const lastWaypointIndex = Object.keys(waypoints).length - 1;
     const waypointMarkers: WayPoint[] = [];
@@ -64,23 +54,17 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
         }
 
         const index = getWaypointIndex(key);
-        let MarkerComponent: IconAsset;
-        let markerSize: {width: number; height: number};
+        let markerType: MapMarkerType = 'WAYPOINT';
         if (index === 0) {
-            MarkerComponent = expensifyIcons.MapStartWaypoint;
-            markerSize = getMapMarkerSize('START_WAYPOINT');
+            markerType = 'START_WAYPOINT';
         } else if (index === lastWaypointIndex) {
-            MarkerComponent = expensifyIcons.MapStopWaypoint;
-            markerSize = getMapMarkerSize('STOP_WAYPOINT');
-        } else {
-            MarkerComponent = expensifyIcons.MapWaypoint;
-            markerSize = getMapMarkerSize('WAYPOINT');
+            markerType = 'STOP_WAYPOINT';
         }
 
         waypointMarkers.push({
             id: `${waypoint.lng},${waypoint.lat},${index}`,
             coordinate: [waypoint.lng, waypoint.lat] as const,
-            markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent, markerSize.width, markerSize.height),
+            markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
         });
     }
 
