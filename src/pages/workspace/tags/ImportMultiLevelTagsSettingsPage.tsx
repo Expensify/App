@@ -1,15 +1,14 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -48,8 +47,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const [isImportingTags, setIsImportingTags] = useState(false);
     const {setIsClosing} = useCloseImportPage();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
-
-    const isFocused = useIsFocused();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
     useEffect(() => {
         setImportedSpreadsheetIsFirstLineHeader(true);
@@ -57,19 +55,22 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         setImportedSpreadsheetIsGLAdjacent(false);
     }, []);
 
-    if (hasAccountingConnections) {
-        return <NotFoundPage />;
-    }
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
-    }
-
-    const closeImportPageAndModal = () => {
+    const closeImportPageAndModal = useCallback(() => {
         setIsClosing(true);
         setIsImportingTags(false);
         Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    };
+    }, [policyID, setIsClosing]);
+
+    const importTags = useCallback(async () => {
+        setIsImportingTags(true);
+        const importFinalModal = await importMultiLevelTags(policyID, spreadsheet);
+        await showImportSpreadsheetConfirmModal(importFinalModal);
+        closeImportPageAndModal();
+    }, [spreadsheet, policyID, showImportSpreadsheetConfirmModal, closeImportPageAndModal]);
+
+    if (hasAccountingConnections) {
+        return <NotFoundPage />;
+    }
 
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
@@ -155,8 +156,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                                 if (spreadsheet?.isImportingIndependentMultiLevelTags) {
                                     Navigation.navigate(ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.getRoute(policyID));
                                 } else {
-                                    setIsImportingTags(true);
-                                    importMultiLevelTags(policyID, spreadsheet);
+                                    importTags();
                                 }
                             }}
                             isLoading={isImportingTags}
@@ -164,10 +164,6 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                             large
                         />
                     </FixedFooter>
-                    <ImportSpreadsheetConfirmModal
-                        isVisible={isFocused && (spreadsheet?.shouldFinalModalBeOpened ?? false)}
-                        closeImportPageAndModal={closeImportPageAndModal}
-                    />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

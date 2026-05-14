@@ -14,7 +14,10 @@ type ImportFinalModal<TPath extends SpreadsheetTranslationPaths> = {
     promptKey: TPath;
 
     /** Parameters for the translation */
-    promptKeyParams: TranslationParameters<TPath>[0];
+    promptKeyParams?: TranslationParameters<TPath>[0];
+
+    /** Optional message appended after the prompt */
+    pendingMessageKey?: SpreadsheetTranslationPaths;
 };
 
 /**
@@ -48,15 +51,6 @@ type ImportedSpreadsheet = {
     /** Columns' names */
     columns: Record<number, string>;
 
-    /** Whether final modal should be opened */
-    shouldFinalModalBeOpened: boolean;
-
-    /** Whether to show a pending message in the final modal informing that cards and transactions may take time to appear */
-    shouldShowPendingMessage?: boolean;
-
-    /** Texts to display depending on request success/failure */
-    importFinalModal: ImportFinalModalUnion;
-
     /** Whether the first row of the spreadsheet contains headers */
     containsHeader: boolean;
 
@@ -83,4 +77,4 @@ type ImportedSpreadsheet = {
 };
 
 export default ImportedSpreadsheet;
-export type {ImportTransactionSettings};
+export type {ImportFinalModalUnion as ImportFinalModal, ImportTransactionSettings};

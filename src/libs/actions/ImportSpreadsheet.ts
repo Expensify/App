@@ -49,9 +49,6 @@ function setSpreadsheetData(
         isImportingMultiLevelTags,
         // Preserve transaction import settings that were configured before file upload
         importTransactionSettings,
-        // Reset modal state for new import
-        shouldFinalModalBeOpened: false,
-        importFinalModal: undefined,
         containsHeader: true,
         isImportingIndependentMultiLevelTags: false,
         isGLAdjacent: false,
@@ -70,8 +67,6 @@ function closeImportPage(): Promise<void> {
     return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {
         data: null,
         columns: null,
-        shouldFinalModalBeOpened: false,
-        importFinalModal: null,
         // Clear the import settings so the next import starts fresh
         importTransactionSettings: null,
     });

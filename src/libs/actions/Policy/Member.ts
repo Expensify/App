@@ -11,7 +11,7 @@ import type {
     RequestWorkspaceOwnerChangeParams,
     UpdateWorkspaceMembersRoleParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -29,6 +29,7 @@ import * as FormActions from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
@@ -143,42 +144,22 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> {
-    const onyxData: OnyxData<typeof ONYXKEYS.IMPORTED_SPREADSHEET> = {
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importSuccessfulTitle',
-                        promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-                        promptKeyParams: {
-                            added: addedMembersLength,
-                            updated: updatedMembersLength,
-                        },
-                    },
-                },
-            },
-        ],
-
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IMPORTED_SPREADSHEET,
-                value: {
-                    shouldFinalModalBeOpened: true,
-                    importFinalModal: {
-                        titleKey: 'spreadsheet.importFailedTitle',
-                        promptKey: 'spreadsheet.importFailedDescription',
-                    },
-                },
-            },
-        ],
+function getImportMembersFinalModal(addedMembersLength: number, updatedMembersLength: number): ImportFinalModal {
+    return {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importMembersSuccessfulDescription',
+        promptKeyParams: {
+            added: addedMembersLength,
+            updated: updatedMembersLength,
+        },
     };
+}
 
-    return onyxData;
+function getImportFailedFinalModal(): ImportFinalModal {
+    return {
+        titleKey: 'spreadsheet.importFailedTitle',
+        promptKey: 'spreadsheet.importFailedDescription',
+    };
 }
 
 /**
@@ -1001,10 +982,10 @@ type PolicyMember = {
     overLimitForwardsTo?: string;
 };
 
-function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]) {
+async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[]): Promise<ImportFinalModal> {
     if (!policy?.id) {
         Log.warn('importPolicyMembers called without a valid policy');
-        return;
+        return getImportFailedFinalModal();
     }
     const {added, updated} = members.reduce(
         (acc, curr) => {
@@ -1030,7 +1011,7 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
         },
         {added: 0, updated: 0},
     );
-    const onyxData = updateImportSpreadsheetData(added, updated);
+    const importFinalModal = getImportMembersFinalModal(added, updated);
 
     const parameters = {
         policyID: policy.id,
@@ -1048,7 +1029,13 @@ function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[])
         ),
     };
 
-    API.write(WRITE_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, onyxData);
+    try {
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters);
+        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
+    } catch {
+        return getImportFailedFinalModal();
+    }
 }
 
 /**

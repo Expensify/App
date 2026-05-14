@@ -28,7 +28,7 @@ type ImportSpreadsheetColumnsProps = {
     columnRoles?: ColumnRole[];
 
     // A function to perform the import operation.
-    importFunction: () => void;
+    importFunction: () => void | Promise<void>;
 
     // An optional Errors object containing any errors that may have occurred.
     errors?: Errors | null;
@@ -65,6 +65,9 @@ function ImportSpreadsheetColumns({
     const {isOffline} = useNetwork();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const {containsHeader = true} = spreadsheet ?? {};
+    const handleImport = () => {
+        importFunction();
+    };
 
     return (
         <>
@@ -117,7 +120,7 @@ function ImportSpreadsheetColumns({
                 >
                     <Button
                         text={translate('common.import')}
-                        onPress={importFunction}
+                        onPress={handleImport}
                         isLoading={isButtonLoading}
                         isDisabled={isOffline}
                         pressOnEnter
