@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
-    startTime: number;
+    startTimeForLog: number;
 };
 
 const activeSpans = new Map<string, ActiveSpanEntry>();
@@ -38,14 +38,14 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
         span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
     }
 
-    let startTime: number;
+    let startTimeForLog: number;
     if (typeof options.startTime === 'number') {
-        startTime = options.startTime;
+        startTimeForLog = options.startTime;
     } else {
-        startTime = performance.now();
+        startTimeForLog = performance.now();
     }
 
-    activeSpans.set(spanId, {span, startTime});
+    activeSpans.set(spanId, {span, startTimeForLog});
 
     return span;
 }
@@ -56,9 +56,9 @@ function endSpan(spanId: string, attributes?: SpanAttributes) {
     if (!entry) {
         return;
     }
-    const {span, startTime} = entry;
+    const {span, startTimeForLog} = entry;
     const now = performance.now();
-    const durationMs = Math.round(now - startTime);
+    const durationMs = Math.round(now - startTimeForLog);
     console.debug(`[Sentry][${spanId}] Ending span (${durationMs}ms)`, {spanId, durationMs, timestamp: now, attributes: Sentry.spanToJSON(span).data});
     span.setStatus({code: CONST.TELEMETRY.SPAN_STATUS_CODE.OK});
 
