@@ -407,4 +407,3 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
 }
 
 export default useAgentZeroStatusIndicator;
-export type {AgentZeroStatusState};

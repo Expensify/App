@@ -88,7 +88,6 @@ function TableHeader<T, ColumnKey extends string = string>({style, shouldHideHea
                 !shouldUseNarrowTableLayout && {gridTemplateColumns: gridTemplateColumns.join(' ')},
                 style,
             ]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {shouldUseNarrowTableLayout && (

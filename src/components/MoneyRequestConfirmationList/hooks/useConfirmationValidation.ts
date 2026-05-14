@@ -265,4 +265,4 @@ function useConfirmationValidation({
 }
 
 export default useConfirmationValidation;
-export type {ValidationResult, UseConfirmationValidationParams};
+export type {UseConfirmationValidationParams};

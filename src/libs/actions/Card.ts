@@ -1958,4 +1958,4 @@ export {
     deleteExpensifyCardRule,
     setExpensifyCardRule,
 };
-export type {ExportExpensifyCardListToCSVParams, ReplacementReason};
+export type {ReplacementReason};
