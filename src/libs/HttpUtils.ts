@@ -13,6 +13,7 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import Log from './Log';
+import {setLoadTestParameters} from './Network/LoadTestState';
 import {PREFETCH_HEADER_KEY} from './PrefetchQueries';
 import prepareRequestPayload from './prepareRequestPayload';
 
@@ -93,6 +94,10 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     return fetch(url, fetchParams)
         .then((response) => {
+            if (response.headers) {
+                setLoadTestParameters(response.headers.get('X-Load-Test'));
+            }
+
             // We are calculating the skew to minimize the delay when posting the messages
             const match = url.match(APICommandRegex)?.[1];
             if (match && addSkewList.has(match) && response.headers) {

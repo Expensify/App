@@ -130,4 +130,3 @@ function ChartXAxisLabels({
 }
 
 export default ChartXAxisLabels;
-export type {ChartXAxisLabelsProps};
