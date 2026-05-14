@@ -2,6 +2,7 @@ import type {SpanAttributeValue, StartSpanOptions} from '@sentry/core';
 import * as Sentry from '@sentry/react-native';
 import {AppState} from 'react-native';
 import CONST from '@src/CONST';
+import {markStartAppStartupNetworkRequestSpan} from './appStartupNetworkRequestSpan';
 
 type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
@@ -16,7 +17,22 @@ type StartSpanExtraOptions = Partial<{
      *
      */
     minDuration: number;
+    /** Unix epoch ms from Nitro `AppStartTime` — aligns startup benchmark + User Timing with native process start */
+    nativeAppStartTimeEpochMs?: number;
 }>;
+
+function calculateNativeAppStartupTimestamp(nativeAppStartTimeEpochMs: number | undefined, jsStartupTimestampMs: number): number {
+    if (nativeAppStartTimeEpochMs !== undefined && nativeAppStartTimeEpochMs > 0) {
+        const timeOrigin = globalThis.performance?.timeOrigin;
+        if (timeOrigin !== undefined && timeOrigin > 0) {
+            const fromNativeWallClock = nativeAppStartTimeEpochMs - timeOrigin;
+            if (fromNativeWallClock >= 0) {
+                return fromNativeWallClock;
+            }
+        }
+    }
+    return jsStartupTimestampMs;
+}
 
 function startSpan(spanId: string, options: StartSpanOptions, extraOptions: StartSpanExtraOptions = {}) {
     if ((AppState.currentState ?? CONST.APP_STATE.ACTIVE) !== CONST.APP_STATE.ACTIVE) {
@@ -35,7 +51,14 @@ function startSpan(spanId: string, options: StartSpanOptions, extraOptions: Star
     if (extraOptions.minDuration) {
         span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_MIN_DURATION, extraOptions.minDuration);
     }
-    activeSpans.set(spanId, {span, startTime: performance.now()});
+
+    const startTime = performance.now();
+    activeSpans.set(spanId, {span, startTime});
+
+    if (spanId === CONST.TELEMETRY.SPAN_APP_STARTUP) {
+        const nativeAppStartupTimestampMs = calculateNativeAppStartupTimestamp(extraOptions.nativeAppStartTimeEpochMs, startTime);
+        markStartAppStartupNetworkRequestSpan(nativeAppStartupTimestampMs);
+    }
 
     return span;
 }

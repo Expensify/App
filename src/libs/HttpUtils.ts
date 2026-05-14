@@ -13,6 +13,7 @@ import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import prepareRequestPayload from './prepareRequestPayload';
+import {markEndAppStartupNetworkRequestSpan} from './telemetry/appStartupNetworkRequestSpan';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -64,6 +65,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
     abortSignal: AbortSignal | undefined = undefined,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
+
+    const command = url.match(APICommandRegex)?.[1];
+
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
@@ -81,8 +85,8 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
 
             // We are calculating the skew to minimize the delay when posting the messages
-            const match = url.match(APICommandRegex)?.[1];
-            if (match && addSkewList.has(match) && response.headers) {
+
+            if (command && addSkewList.has(command) && response.headers) {
                 const dateHeaderValue = response.headers.get('Date');
                 const serverTime = dateHeaderValue ? new Date(dateHeaderValue).valueOf() : new Date().valueOf();
                 const endTime = new Date().valueOf();
@@ -162,6 +166,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alertUser();
             }
             return response;
+        })
+        .finally(() => {
+            markEndAppStartupNetworkRequestSpan(url, command);
         });
 }
 
