@@ -13,6 +13,7 @@ import type {
     ChangePolicyUberBillingAccountPageParams,
     CreateWorkspaceFromIOUPaymentParams,
     CreateWorkspaceParams,
+    DeletePolicyRulesDocumentParams,
     DeleteWorkspaceAvatarParams,
     DeleteWorkspaceParams,
     DisablePolicyApprovalsParams,
@@ -66,6 +67,7 @@ import type {
     UpdateInvoiceCompanyNameParams,
     UpdateInvoiceCompanyWebsiteParams,
     UpdatePolicyAddressParams,
+    UpdatePolicyRulesDocumentParams,
     UpdateWorkspaceAvatarParams,
     UpdateWorkspaceClientIDParams,
     UpdateWorkspaceDescriptionParams,
@@ -79,13 +81,14 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import {createFile} from '@libs/fileDownload/FileUtils';
+import {createFile, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {buildNextStepNew} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
+import isTrackOnboardingChoice from '@libs/OnboardingUtils';
 import Permissions from '@libs/Permissions';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
@@ -214,7 +217,7 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
-    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
+    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     betas: OnyxEntry<Beta[]>;
@@ -1834,6 +1837,103 @@ function deleteWorkspaceAvatar(policyID: string, currentAvatarURL: string, curre
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_AVATAR, params, {optimisticData, finallyData, failureData});
 }
 
+function updatePolicyRulesDocument(policyID: string, file: File, currentDocumentURL: string | undefined) {
+    const isPDF = file.type === 'application/pdf' || splitExtensionFromFileName(file.name ?? '').fileExtension.toLowerCase() === 'pdf';
+    if (!isPDF) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+            errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('attachmentPicker.notAllowedExtension')},
+        });
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rulesDocumentURL: file.uri,
+                errorFields: {
+                    rulesDocumentURL: null,
+                },
+                pendingFields: {
+                    rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    rulesDocumentURL: null,
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rulesDocumentURL: currentDocumentURL ?? '',
+                errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const params: UpdatePolicyRulesDocumentParams = {
+        policyID,
+        file,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
+}
+
+function deletePolicyRulesDocument(policyID: string, currentDocumentURL: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rulesDocumentURL: '',
+                errorFields: {
+                    rulesDocumentURL: null,
+                },
+                pendingFields: {
+                    rulesDocumentURL: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        },
+    ];
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {
+                    rulesDocumentURL: null,
+                },
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                rulesDocumentURL: currentDocumentURL,
+                errorFields: {rulesDocumentURL: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const params: DeletePolicyRulesDocumentParams = {policyID};
+
+    API.write(WRITE_COMMANDS.DELETE_POLICY_RULES_DOCUMENT, params, {optimisticData, finallyData, failureData});
+}
+
 /**
  * Clear error and pending fields for the workspace avatar
  */
@@ -2288,7 +2388,7 @@ function createDraftInitialWorkspace(
     makeMeAdmin = false,
     currency = '',
     file?: File,
-    type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE = CONST.POLICY.TYPE.TEAM,
+    type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT = CONST.POLICY.TYPE.TEAM,
     isAnnualSubscription = false,
 ) {
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -2365,6 +2465,38 @@ type BuildPolicyDataKeys =
     | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST;
 
+function getRoleForNewWorkspaceMember(isSubmitWorkspace: boolean, makeMeAdmin: boolean): ValueOf<typeof CONST.POLICY.ROLE> {
+    if (isSubmitWorkspace) {
+        return CONST.POLICY.ROLE.EDITOR;
+    }
+    return makeMeAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER;
+}
+
+function getRoleForCallerOnNewPolicy(isSubmitWorkspace: boolean, makeMeAdmin: boolean, policyOwnerEmail: string, currentUserEmail: string): ValueOf<typeof CONST.POLICY.ROLE> | undefined {
+    if (isSubmitWorkspace) {
+        return CONST.POLICY.ROLE.EDITOR;
+    }
+    // Caller is not on the workspace when creating it for a different owner without keeping admin.
+    if (policyOwnerEmail && policyOwnerEmail !== currentUserEmail && !makeMeAdmin) {
+        return undefined;
+    }
+    return CONST.POLICY.ROLE.ADMIN;
+}
+
+function getApprovalModeForNewWorkspace(
+    isSubmitWorkspace: boolean,
+    shouldEnableWorkflowsByDefault: boolean,
+    engagementChoice?: OnboardingPurpose,
+): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+    if (isSubmitWorkspace) {
+        return CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    }
+    if (shouldEnableWorkflowsByDefault && engagementChoice !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+        return CONST.POLICY.APPROVAL_MODE.BASIC;
+    }
+    return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+}
+
 /**
  * Generates onyx data for creating a new workspace
  *
@@ -2431,12 +2563,13 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
+    const isSubmitWorkspace = type === CONST.POLICY.TYPE.SUBMIT;
     const shouldEnableWorkflowsByDefault =
+        isSubmitWorkspace ||
         !engagementChoice ||
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
+        isTrackOnboardingChoice(engagementChoice);
     const shouldSetCreatedPolicyAsActive = !activePolicy?.id || activePolicy?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
@@ -2445,7 +2578,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
 
     const workspaceType = type ?? (isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy || isAnnualSubscription ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM);
 
-    const areDistanceRatesEnabled = !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
+    const areDistanceRatesEnabled = isSubmitWorkspace || !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: Array<
@@ -2471,7 +2604,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 id: policyID,
                 type: workspaceType,
                 name: policyName,
-                role: CONST.POLICY.ROLE.ADMIN,
+                role: getRoleForCallerOnNewPolicy(isSubmitWorkspace, makeMeAdmin, policyOwnerEmail, currentUserEmailParam),
                 owner: policyOwnerEmail || currentUserEmailParam,
                 ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
                 isPolicyExpenseChatEnabled: true,
@@ -2480,20 +2613,16 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 autoReporting: true,
                 approver: currentUserEmailParam,
                 autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode:
-                    shouldEnableWorkflowsByDefault && engagementChoice !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approvalMode: getApprovalModeForNewWorkspace(isSubmitWorkspace, shouldEnableWorkflowsByDefault, engagementChoice),
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
                 },
-                reimbursementChoice:
-                    engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND
-                        ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO
-                        : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                reimbursementChoice: isTrackOnboardingChoice(engagementChoice) ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 created: DateUtils.getDBTime(),
                 customUnits,
                 areCategoriesEnabled: true,
-                areCompanyCardsEnabled: true,
-                areTagsEnabled: false,
+                areCompanyCardsEnabled: !isSubmitWorkspace,
+                areTagsEnabled: isSubmitWorkspace,
                 areDistanceRatesEnabled,
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
@@ -2505,7 +2634,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               [policyOwnerEmail]: {
                                   submitsTo: policyOwnerEmail,
                                   email: policyOwnerEmail,
-                                  role: CONST.POLICY.ROLE.ADMIN,
+                                  role: isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.ADMIN,
                                   errors: {},
                               },
                           }
@@ -2515,7 +2644,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               [currentUserEmailParam]: {
                                   submitsTo: currentUserEmailParam,
                                   email: currentUserEmailParam,
-                                  role: CONST.POLICY.ROLE.ADMIN,
+                                  role: isSubmitWorkspace ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.ADMIN,
                                   errors: {},
                               },
                           }
@@ -2525,7 +2654,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               [currentUserEmailParam]: {
                                   submitsTo: policyOwnerEmail,
                                   email: currentUserEmailParam,
-                                  role: makeMeAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
+                                  role: getRoleForNewWorkspaceMember(isSubmitWorkspace, makeMeAdmin),
                                   errors: {},
                               },
                           }
@@ -7151,6 +7280,8 @@ export {
     updateGeneralSettings,
     deleteWorkspaceAvatar,
     updateWorkspaceAvatar,
+    updatePolicyRulesDocument,
+    deletePolicyRulesDocument,
     clearAvatarErrors,
     generatePolicyID,
     createWorkspace,
@@ -7262,4 +7393,4 @@ export {
     setPolicyRequireCompanyCardsEnabled,
     setPolicyTimeTrackingDefaultRate,
 };
-export type {BuildPolicyDataKeys, WorkspaceMembersChats};
+export type {BuildPolicyDataKeys};
