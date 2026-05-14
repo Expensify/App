@@ -147,15 +147,13 @@ describe('popReportsSplitNavigatorToReport', () => {
         expect(mockedDispatch).toHaveBeenCalledWith({...StackActions.pop(1), target: SPLIT_NAV_KEY});
     });
 
-    it('finds the deepest matching route when the target reportID appears more than once in the split navigator', () => {
+    it('pops to the most recent matching route when the target reportID appears more than once in the split navigator', () => {
         // Defensive: if the same reportID appears multiple times (params mismatch in real usage),
         // pop only screens stacked above the latest instance.
         mockedGetRootState.mockReturnValue(
             buildRootStateWithSplitNavRoutes([null, {reportID: SELF_DM_REPORT_ID}, {reportID: OTHER_REPORT_ID}, {reportID: SELF_DM_REPORT_ID}, {reportID: 'thread'}]),
         );
         popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
-        // Note: helper uses findIndex (first match) — pop count is therefore based on the first occurrence.
-        // Adjust this expectation if/when the helper switches to findLastIndex.
-        expect(mockedDispatch).toHaveBeenCalledWith({...StackActions.pop(3), target: SPLIT_NAV_KEY});
+        expect(mockedDispatch).toHaveBeenCalledWith({...StackActions.pop(1), target: SPLIT_NAV_KEY});
     });
 });

@@ -15,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 import type {BillingGraceEndPeriod, Policy, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
-import {getDistanceMerchantFromDistance, initSplitExpenseItemData, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
+import {getDistanceMerchantFromDistance, initSplitExpenseItemData, resolveSplitItemReportID, updateSplitExpenseDistanceFromAmount} from './IOU/SplitExpenseItems';
 
 // We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
 // this avoids unnecessary re-rendering for components when any transaction changes. This data should ONLY
@@ -124,25 +124,12 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => {
             const currentTransactionReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`];
-            let itemReportID: string | undefined;
-            if (isSelfDMReport) {
-                // If this split was moved to a workspace report, use the workspace report ID
-                // so that SplitExpenseEditPage shows the correct workspace report name.
-                const actualReport =
-                    currentTransaction?.reportID && currentTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                        ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction.reportID}`]
-                        : undefined;
-                if (actualReport && !isSelfDM(actualReport)) {
-                    itemReportID = currentTransaction?.reportID;
-                } else {
-                    itemReportID = reportID;
-                }
-            } else if (currentTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-                // For unreported (selfDM) transactions viewed from a workspace context,
-                // use the selfDM report ID from Onyx so that SplitExpenseEditPage can
-                // resolve the correct report and show the edit screen.
-                itemReportID = selfDMReportID;
-            }
+            const itemReportID = resolveSplitItemReportID({
+                childTransaction: currentTransaction,
+                allReports,
+                selfDMContextReportID: isSelfDMReport ? reportID : undefined,
+                selfDMReportIDFallback: selfDMReportID,
+            });
             return initSplitExpenseItemData(currentTransaction, currentTransactionReport, {isManuallyEdited: true, reportID: itemReportID});
         });
         const draftTransaction = buildOptimisticTransaction({

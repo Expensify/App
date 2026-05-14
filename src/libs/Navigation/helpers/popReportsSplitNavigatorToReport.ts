@@ -33,7 +33,7 @@ function popReportsSplitNavigatorToReport(targetReportID: string | undefined): v
     if (!splitRoutes || !splitNavKey) {
         return;
     }
-    const targetIndex = splitRoutes.findIndex(
+    const targetIndex = splitRoutes.findLastIndex(
         (route) =>
             route.name === SCREENS.REPORT &&
             typeof route.params === 'object' &&

@@ -1,5 +1,5 @@
 import {eachDayOfInterval, format, parse} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -7,7 +7,7 @@ import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translate} from '@libs/Localize';
 import {rand64} from '@libs/NumberUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getAmount, getCurrency, isDistanceRequest as isDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -72,6 +72,42 @@ function updateSplitExpenseDistanceFromAmount(
     const merchant = getDistanceMerchantFromDistance(distanceInUnits, unit, rate, transactionCurrency ?? mileageRate?.currency ?? CONST.CURRENCY.USD);
 
     return {customUnit, merchant};
+}
+
+/**
+ * Resolve the `reportID` to assign to a split item, matching the logic used when the split flow is initialized.
+ * For selfDM-rooted splits, unreported children (or children that themselves point at a selfDM report) collapse
+ * to the selfDM context report; children moved to a workspace report keep their workspace `reportID`. For
+ * workspace-rooted splits with an unreported child, fall back to the user's selfDM report.
+ *
+ * Keep this in sync between split init and any recomputation used for deep-equal checks against the draft —
+ * drift here made the equality check always-false for selfDM splits and re-triggered the save API.
+ */
+function resolveSplitItemReportID({
+    childTransaction,
+    allReports,
+    selfDMContextReportID,
+    selfDMReportIDFallback,
+}: {
+    childTransaction: OnyxEntry<OnyxTypes.Transaction>;
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined;
+    selfDMContextReportID: string | undefined;
+    selfDMReportIDFallback: string | undefined;
+}): string | undefined {
+    if (selfDMContextReportID) {
+        const childReport =
+            childTransaction?.reportID && childTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID
+                ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childTransaction.reportID}`]
+                : undefined;
+        if (childReport && !isSelfDM(childReport)) {
+            return childTransaction?.reportID;
+        }
+        return selfDMContextReportID;
+    }
+    if (childTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        return selfDMReportIDFallback;
+    }
+    return undefined;
 }
 
 function initSplitExpenseItemData(
@@ -610,6 +646,7 @@ function clearSplitTransactionDraftErrors(transactionID: string | undefined) {
 export {
     updateSplitExpenseDistanceFromAmount,
     initSplitExpenseItemData,
+    resolveSplitItemReportID,
     initDraftSplitExpenseDataForEdit,
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
