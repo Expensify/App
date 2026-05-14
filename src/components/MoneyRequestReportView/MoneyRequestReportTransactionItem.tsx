@@ -127,7 +127,7 @@ function MoneyRequestReportTransactionItem({
         borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
         shouldHighlight: shouldBeHighlighted,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: theme.cardBG,
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });
 

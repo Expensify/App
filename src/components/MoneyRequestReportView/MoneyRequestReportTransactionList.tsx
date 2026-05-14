@@ -648,11 +648,11 @@ function MoneyRequestReportTransactionList({
           })
         : resolvedTransactions.map((transaction) => renderTransactionItem(transaction));
 
-    const narrowListWrapper = shouldUseNarrowLayout ? [styles.highlightBG, styles.tableTopRadius, styles.tableBottomRadius, styles.overflowHidden] : undefined;
+    const narrowListWrapper = shouldUseNarrowLayout ? [{backgroundColor: theme.cardBG}, styles.tableTopRadius, styles.tableBottomRadius, styles.overflowHidden] : undefined;
 
     const transactionListContent = (
         <View
-            style={[listHorizontalPadding, shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}
+            style={[shouldUseNarrowLayout && listHorizontalPadding, shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}
             onLayout={onLayout}
         >
             {narrowListWrapper ? <View style={narrowListWrapper}>{transactionItems}</View> : transactionItems}
@@ -678,7 +678,7 @@ function MoneyRequestReportTransactionList({
                     !isDesktopTableLayout && styles.pl5,
                     isDesktopTableLayout ? styles.pr11 : styles.pr16,
                     styles.alignItemsCenter,
-                    isDesktopTableLayout && [styles.highlightBG, styles.tableTopRadius, styles.mh5],
+                    isDesktopTableLayout && [{backgroundColor: theme.cardBG}, styles.tableTopRadius],
                     StyleUtils.getSelectedBorderBottomStyle(selectedTransactionIDs.length > 0),
                 ]}
             >
@@ -775,7 +775,12 @@ function MoneyRequestReportTransactionList({
                     />
                 )}
             </View>
-            {!shouldUseNarrowLayout && !shouldScrollHorizontally && tableHeaderContent}
+            {isDesktopTableLayout && !shouldScrollHorizontally && (
+                <View style={styles.searchTableWrapper}>
+                    {tableHeaderContent}
+                    {transactionListContent}
+                </View>
+            )}
             {shouldScrollHorizontally ? (
                 <ScrollView
                     ref={horizontalScrollViewRef}
@@ -787,13 +792,13 @@ function MoneyRequestReportTransactionList({
                     scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                     onLayout={onLayout}
                 >
-                    <View style={[styles.flex1]}>
+                    <View style={[styles.flexShrink1, styles.searchTableWrapper]}>
                         {tableHeaderContent}
                         {transactionListContent}
                     </View>
                 </ScrollView>
             ) : (
-                transactionListContent
+                !isDesktopTableLayout && transactionListContent
             )}
             <View
                 style={[

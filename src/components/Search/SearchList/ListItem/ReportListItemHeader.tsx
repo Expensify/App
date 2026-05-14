@@ -226,7 +226,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
+        theme.cardBG;
 
     const handleOnButtonPress = () => {
         handleActionButtonPress({

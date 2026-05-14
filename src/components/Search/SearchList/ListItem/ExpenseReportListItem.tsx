@@ -235,7 +235,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         borderRadius: 0,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: item.isSelected ? theme.activeComponentBG : theme.cardBG,
         shouldApplyOtherStyles: !isLargeScreenWidth,
     });
 
@@ -313,7 +313,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
-                styles.mh5,
+                !isLargeScreenWidth && styles.mh5,
                 animatedHighlightStyle,
                 isPendingDelete && styles.cursorDisabled,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],

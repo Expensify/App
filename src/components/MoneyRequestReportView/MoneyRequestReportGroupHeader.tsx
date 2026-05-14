@@ -85,7 +85,7 @@ function MoneyRequestReportGroupHeader({
         ? [
               {minHeight: variables.tableGroupRowHeight},
               styles.justifyContentCenter,
-              styles.highlightBG,
+              {backgroundColor: theme.cardBG},
               styles.pv2,
               styles.ph3,
               styles.borderBottom,

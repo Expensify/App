@@ -70,7 +70,7 @@ function CardListItemHeader<TItem extends ListItem>({
     const {translate, formatPhoneNumber} = useLocalize();
     const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(cardItem));
     const backgroundColor =
-        StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
+        StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.cardBG;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (

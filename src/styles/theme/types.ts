@@ -15,6 +15,7 @@ type ThemeColors = {
     highlightBG: Color;
     messageHighlightBG: Color;
     border: Color;
+    borderLight: Color;
     borderLighter: Color;
     borderFocus: Color;
     icon: Color;
@@ -52,6 +53,7 @@ type ThemeColors = {
     overlay: Color;
     inverse: Color;
     shadow: Color;
+    shadowLight: Color;
     componentBG: Color;
     hoverComponentBG: Color;
     activeComponentBG: Color;

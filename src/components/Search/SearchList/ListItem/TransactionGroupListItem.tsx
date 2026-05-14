@@ -204,7 +204,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
+        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.cardBG,
         shouldApplyOtherStyles: false,
     });
 
@@ -538,7 +538,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 ]}
                 onFocus={onFocus}
                 wrapperStyle={[
-                    styles.mh5,
+                    !isLargeScreenWidth && styles.mh5,
                     animatedHighlightStyle,
                     styles.userSelectNone,
                     isLargeScreenWidth

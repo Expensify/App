@@ -37,7 +37,7 @@ function ChatListItem<TItem extends ListItem>({
         borderRadius: variables.componentBorderRadius,
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: theme.cardBG,
     });
     const pressableStyle = [
         styles.selectionListPressableItemWrapper,

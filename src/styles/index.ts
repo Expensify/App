@@ -717,7 +717,7 @@ const staticStyles = (theme: ThemeColors) =>
          * Do not apply for the active/selected state, those already have their own styling.
          */
         navigationTabBarItemHovered: {
-            backgroundColor: theme.sidebarHover,
+            backgroundColor: theme.hoverComponentBG,
         },
 
         leftNavigationTabBarContainer: {
@@ -1900,7 +1900,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarLinkHover: {
-            backgroundColor: theme.sidebarHover,
+            backgroundColor: theme.hoverComponentBG,
         },
 
         sidebarLinkActive: {
@@ -2533,6 +2533,15 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadius,
         },
 
+        searchTableWrapper: {
+            marginHorizontal: 20,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
+            borderRadius: variables.componentBorderRadius,
+            boxShadow: theme.shadowLight,
+            overflow: 'hidden',
+        },
+
         tableRowHeightCompact: {
             minHeight: variables.tableRowHeightCompact,
         },
@@ -2880,8 +2889,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         borderedContentCardLarge: {
             borderWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
             borderRadius: variables.componentBorderRadiusLarge,
+            boxShadow: theme.shadowLight,
         },
 
         sectionMenuItemTopDescription: {
@@ -3507,11 +3517,9 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         searchListHeaderTableStyle: {
-            backgroundColor: theme.highlightBG,
-            borderTopLeftRadius: variables.componentBorderRadius,
-            borderTopRightRadius: variables.componentBorderRadius,
+            backgroundColor: theme.cardBG,
             borderBottomWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.borderLight,
             minHeight: 36,
             paddingBottom: 8,
         },
@@ -3744,6 +3752,9 @@ const staticStyles = (theme: ThemeColors) =>
         cardSectionContainer: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
+            boxShadow: theme.shadowLight,
             width: 'auto',
             textAlign: 'left',
             overflow: 'hidden',
@@ -3754,6 +3765,9 @@ const staticStyles = (theme: ThemeColors) =>
         widgetContainer: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
+            boxShadow: theme.shadowLight,
             overflow: 'hidden',
         },
 
@@ -3820,6 +3834,7 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 0,
             paddingHorizontal: 20,
             paddingBottom: 20,
+            alignItems: 'center',
         },
 
         cardSectionIllustration: {
@@ -5048,6 +5063,9 @@ const staticStyles = (theme: ThemeColors) =>
         workspaceSectionMoreFeaturesItem: {
             backgroundColor: theme.cardBG,
             borderRadius: variables.componentBorderRadiusNormal,
+            borderWidth: 1,
+            borderColor: theme.borderLight,
+            boxShadow: theme.shadowLight,
             paddingHorizontal: 16,
             paddingVertical: 20,
             minWidth: 350,
@@ -6589,6 +6607,7 @@ const plainStyles = (theme: ThemeColors) =>
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
                 gap: 20,
                 width: '100%',
+                maxWidth: variables.homePageLeftColumnMaxWidth + variables.homePageRightColumnMaxWidth + 20,
             }) satisfies ViewStyle,
 
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,

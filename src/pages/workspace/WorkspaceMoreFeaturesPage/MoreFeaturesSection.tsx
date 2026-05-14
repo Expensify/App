@@ -27,7 +27,7 @@ function MoreFeaturesSection({title, children}: MoreFeaturesSectionProps) {
     return (
         <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : {}]}>
             <Section
-                containerStyles={[styles.ph1, styles.pv0, styles.bgTransparent, styles.noBorderRadius]}
+                containerStyles={[styles.ph1, styles.pv0, styles.bgTransparent, styles.noBorderRadius, styles.borderNone, styles.boxShadowNone]}
                 childrenStyles={[styles.flexRow, styles.flexWrap, styles.columnGap3]}
                 renderTitle={() => (
                     <Text

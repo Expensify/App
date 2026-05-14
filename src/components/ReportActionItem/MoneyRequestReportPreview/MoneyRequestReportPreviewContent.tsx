@@ -106,7 +106,7 @@ function MoneyRequestReportPreviewContent({
     currentWidth,
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
-    shouldShowBorder = false,
+    shouldShowBorder = true,
     onPress,
     forwardedFSClass,
     originalReportID,
