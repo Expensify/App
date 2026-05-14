@@ -520,6 +520,21 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
+    MONEY_REQUEST_STEP_TAX_RATE: {
+        path: 'tax-rate/:action/:iouType/:transactionID/:reportID?',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID?: string) => {
+            const baseRoute = `tax-rate/${action as string}/${iouType as string}/${transactionID}` as const;
+            return reportID ? `${baseRoute}/${reportID}` : baseRoute;
+        },
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -1475,17 +1490,6 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${reportActionID ? `${reportActionID}/` : ''}${pageIndex}`, backTo);
-        },
-    },
-    MONEY_REQUEST_STEP_TAX_RATE: {
-        route: ':action/:iouType/taxRate/:transactionID/:reportID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_TAX_RATE route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/taxRate/${transactionID}/${reportID}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_TAX_AMOUNT: {

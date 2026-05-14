@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import TaxPicker from '@components/TaxPicker';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -20,6 +21,7 @@ import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestTaxRate} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -28,7 +30,7 @@ import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-type IOURequestStepTaxRatePageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE> & {
+type DynamicIOURequestStepTaxRatePageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE> & {
     transaction: OnyxEntry<Transaction>;
 };
 
@@ -39,13 +41,13 @@ function getTaxAmount(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transact
     }
 }
 
-function IOURequestStepTaxRatePage({
+function DynamicIOURequestStepTaxRatePage({
     route: {
-        params: {action, backTo, iouType, transactionID, reportID: reportIDFromRoute},
+        params: {action, iouType, transactionID, reportID: reportIDFromRoute},
     },
     transaction,
     report,
-}: IOURequestStepTaxRatePageProps) {
+}: DynamicIOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
@@ -68,9 +70,10 @@ function IOURequestStepTaxRatePage({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const taxRateTitle = getTaxRateTitle(policy, currentTransaction, isMovingTransactionFromTrackExpense(action), policyForMovingExpenses);
@@ -140,7 +143,7 @@ function IOURequestStepTaxRatePage({
             headerTitle={translate('iou.taxRate')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="IOURequestStepTaxRatePage"
+            testID="DynamicIOURequestStepTaxRatePage"
         >
             <TaxPicker
                 selectedTaxRate={taxRateTitle}
@@ -155,8 +158,8 @@ function IOURequestStepTaxRatePage({
     );
 }
 
-const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);
+const DynamicIOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepTaxRatePage);
 
-const IOURequestStepTaxRatePageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTaxRatePageWithWritableReportOrNotFound);
+const DynamicIOURequestStepTaxRatePageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepTaxRatePageWithWritableReportOrNotFound);
 
-export default IOURequestStepTaxRatePageWithFullTransactionOrNotFound;
+export default DynamicIOURequestStepTaxRatePageWithFullTransactionOrNotFound;
