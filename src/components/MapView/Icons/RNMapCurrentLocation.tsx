@@ -2,7 +2,7 @@ import React from 'react';
 import {Defs, FeDropShadow, Filter, G, Path, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
 
-function MapCurrentLocation({width = 48, height = 48}: SvgProps) {
+function RNMapCurrentLocation({width = 48, height = 48}: SvgProps) {
     return (
         <Svg
             width={width}
@@ -44,4 +44,4 @@ function MapCurrentLocation({width = 48, height = 48}: SvgProps) {
     );
 }
 
-export default MapCurrentLocation;
+export default RNMapCurrentLocation;

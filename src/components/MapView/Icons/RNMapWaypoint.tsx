@@ -2,7 +2,7 @@ import React from 'react';
 import {Circle, Defs, FeDropShadow, Filter, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
 
-function MapWaypoint({width = 40, height = 40}: SvgProps) {
+function RNMapWaypoint({width = 40, height = 40}: SvgProps) {
     return (
         <Svg
             width={width}
@@ -39,4 +39,4 @@ function MapWaypoint({width = 40, height = 40}: SvgProps) {
     );
 }
 
-export default MapWaypoint;
+export default RNMapWaypoint;

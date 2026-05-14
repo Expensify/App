@@ -2,7 +2,7 @@ import React from 'react';
 import {Defs, FeDropShadow, Filter, G, Path, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
 
-function MapStopWaypoint({width = 48, height = 53}: SvgProps) {
+function RNMapStopWaypoint({width = 48, height = 53}: SvgProps) {
     return (
         <Svg
             width={width}
@@ -48,4 +48,4 @@ function MapStopWaypoint({width = 48, height = 53}: SvgProps) {
     );
 }
 
-export default MapStopWaypoint;
+export default RNMapStopWaypoint;

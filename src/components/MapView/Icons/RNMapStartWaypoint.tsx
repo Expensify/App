@@ -2,7 +2,7 @@ import React from 'react';
 import {Defs, FeDropShadow, Filter, G, Path, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
 
-function MapStartWaypoint({width = 48, height = 48}: SvgProps) {
+function RNMapStartWaypoint({width = 48, height = 48}: SvgProps) {
     return (
         <Svg
             width={width}
@@ -44,4 +44,4 @@ function MapStartWaypoint({width = 48, height = 48}: SvgProps) {
     );
 }
 
-export default MapStartWaypoint;
+export default RNMapStartWaypoint;

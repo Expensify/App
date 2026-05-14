@@ -50,7 +50,7 @@ function MapView({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'RNMapCurrentLocation']);
     const cameraRef = useRef<Mapbox.Camera>(null);
     const [isIdle, setIsIdle] = useState(false);
     const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
@@ -285,7 +285,7 @@ function MapView({
                         allowOverlap
                     >
                         <ImageSVG
-                            src={expensifyIcons.MapCurrentLocation}
+                            src={expensifyIcons.RNMapCurrentLocation}
                             width={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.width}
                             height={CONST.MAP_MARKER_SIZES.CURRENT_LOCATION.height}
                         />
