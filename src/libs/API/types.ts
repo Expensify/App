@@ -596,6 +596,8 @@ const WRITE_COMMANDS = {
     UPDATE_AGENT_NAME: 'UpdateAgentName',
     UPDATE_AGENT_PROMPT: 'UpdateAgentPrompt',
     DELETE_AGENT: 'DeleteAgent',
+    SEND_EXPORT_FILE_FROM_CONCIERGE: 'SendExportFileFromConcierge',
+    CLEAR_EXPORT_DOWNLOAD: 'ClearExportDownload',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1209,6 +1211,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_AGENT_NAME]: Parameters.UpdateAgentNameParams;
     [WRITE_COMMANDS.UPDATE_AGENT_PROMPT]: Parameters.UpdateAgentPromptParams;
     [WRITE_COMMANDS.DELETE_AGENT]: Parameters.DeleteAgentParams;
+    [WRITE_COMMANDS.SEND_EXPORT_FILE_FROM_CONCIERGE]: Parameters.SendExportFileFromConciergeParams;
+    [WRITE_COMMANDS.CLEAR_EXPORT_DOWNLOAD]: Parameters.ClearExportDownloadParams;
 };
 
 const READ_COMMANDS = {

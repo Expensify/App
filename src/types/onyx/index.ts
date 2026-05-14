@@ -65,6 +65,7 @@ import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './D
 import type DomainErrors from './DomainErrors';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
+import type ExportDownload from './ExportDownload';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -221,6 +222,7 @@ export type {
     DismissedReferralBanners,
     Domain,
     Download,
+    ExportDownload,
     DuplicateWorkspace,
     CopyPolicySettings,
     WorkspaceCardsList,

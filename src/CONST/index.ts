@@ -445,6 +445,14 @@ const CONST = {
         MAX_LENGTH: 83,
     },
 
+    EXPORT_DOWNLOAD: {
+        STATE: {
+            PREPARING: 'preparing',
+            READY: 'ready',
+            FAILED: 'failed',
+        },
+    },
+
     EXPORT_LABELS: {
         NETSUITE: 'NetSuite',
         QBO: 'QuickBooks Online',
