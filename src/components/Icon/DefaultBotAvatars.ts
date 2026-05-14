@@ -19,5 +19,5 @@ const botAvatarIDs = new Map<BotAvatar, string>([
     [BotAvatarYellow, 'bot-avatar--yellow'],
 ]);
 
-export {BotAvatarBlue, BotAvatarGreen, BotAvatarIce, BotAvatarPink, BotAvatarTangerine, BotAvatarYellow, botAvatars, botAvatarIDs};
+export {botAvatars, botAvatarIDs};
 export type {BotAvatar};

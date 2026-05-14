@@ -149,4 +149,3 @@ function useAccountingActions(): AccountingActionsContextType {
 }
 
 export {AccountingContextProvider, useAccountingState, useAccountingActions};
-export type {AccountingActionsContextType, AccountingStateContextType, ActiveIntegration} from './types';

@@ -2121,4 +2121,4 @@ export {
     resetSplitShares,
 };
 
-export type {CreateDistanceRequestInformation, SplitBillActionsParams};
+export type {CreateDistanceRequestInformation};

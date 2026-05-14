@@ -132,4 +132,3 @@ function UserListItemContent<TItem extends ListItem>({
 }
 
 export default UserListItemContent;
-export type {UserListItemContentProps};
