@@ -13,7 +13,7 @@ import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import prepareRequestPayload from './prepareRequestPayload';
-import {markEndAppStartupNetworkRequestSpan} from './telemetry/appStartupNetworkRequestSpan';
+import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -167,9 +167,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
             return response;
         })
-        .finally(() => {
-            markEndAppStartupNetworkRequestSpan(command);
-        });
+        .finally(() => markAppStartupNetworkRequestEnd(command));
 }
 
 /**
