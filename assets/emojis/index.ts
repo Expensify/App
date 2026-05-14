@@ -27,9 +27,15 @@ const emojiCodeTableWithSkinTones = emojis.reduce<EmojiTable>((prev, cur) => {
     return newValue;
 }, {});
 
-const emojiHexcodeTable: EmojiTable = {};
+const emojiHexcodeTable: EmojiTable = emojis.reduce<EmojiTable>((prev, cur) => {
+    const newValue = prev;
+    if (!('header' in cur) && cur.hexcode) {
+        newValue[cur.hexcode] = cur;
+    }
+    return newValue;
+}, {});
 
-const findEmojiByHexCode = (hexcode: string): Emoji | undefined => undefined;
+const findEmojiByHexCode = (hexcode: string): Emoji | undefined => emojiHexcodeTable[hexcode];
 
 const localeEmojis: LocaleEmojis = {
     en: undefined,
