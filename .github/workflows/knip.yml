@@ -39,7 +39,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Run knip on PR
-        run: npm run knip:json > /tmp/knip-pr.json
+        run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-pr.json
         env:
           CI: true
 
@@ -52,7 +52,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: Run knip on main
-        run: npm run knip:json > /tmp/knip-main.json
+        run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-main.json
         env:
           CI: true
 
