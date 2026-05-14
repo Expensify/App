@@ -1958,6 +1958,10 @@ const CONST = {
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
+        /** Wall-clock benchmark until OpenApp/ReconnectApp fetch settles — not nested under ManualAppStartup (can outlive it) */
+        SPAN_APP_STARTUP_LAST_NETWORK: 'ManualAppStartupLastNetwork',
+        /** Relative wall-clock ms from ManualAppStartup start to OpenApp/ReconnectApp fetch completion */
+        ATTRIBUTE_MANUAL_APP_STARTUP_LAST_NETWORK_WALL_MS: 'manual_startup_last_network_wall_ms',
         /** React Native User Timing (native-backed `global.performance`) — last HTTP during startup */
         PERFORMANCE_MARK_MANUAL_APP_STARTUP_LAST_NETWORK_START: 'ManualAppStartupLastNetwork.start',
         PERFORMANCE_MARK_MANUAL_APP_STARTUP_LAST_NETWORK_END: 'ManualAppStartupLastNetwork.end',

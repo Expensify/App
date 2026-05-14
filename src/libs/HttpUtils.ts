@@ -13,26 +13,12 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import prepareRequestPayload from './prepareRequestPayload';
-import {getAppStartupBenchmarkPerformanceStart} from './telemetry/activeSpans';
-import {measureManualAppStartupLastNetworkComplete} from './telemetry/startupNetworkPerformance';
-
-let hasLoggedOpenOrReconnectAppStartupBenchmark = false;
-
-function logOpenOrReconnectAppStartupBenchmarkIfNeeded(url: string) {
-    if (hasLoggedOpenOrReconnectAppStartupBenchmark) {
-        return;
-    }
-    const benchmarkStart = getAppStartupBenchmarkPerformanceStart();
-    if (benchmarkStart === undefined) {
-        return;
-    }
-    const now = performance.now();
-    const durationMs = Math.round(now - benchmarkStart);
-    // eslint-disable-next-line no-console -- manual NitroFetch / startup benchmarking (Log would omit from release logcat filters)
-    console.warn('[NitroFetchBenchmarks][ManualAppStartup] OpenApp/ReconnectApp request completed', {durationMs, timestamp: now, url});
-    measureManualAppStartupLastNetworkComplete();
-    hasLoggedOpenOrReconnectAppStartupBenchmark = true;
-}
+import {
+    extractApiCommandSegmentFromApiUrl,
+    logFetchDurationForBench,
+    logPrefetchSchedulingForBench,
+    notifyStartupCriticalHttpCompletedIfApplicable,
+} from './telemetry/startupNetworkInstrumentation';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -69,13 +55,6 @@ abortControllerMap.set(ABORT_COMMANDS.SearchForUsers, new AbortController());
 const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP]);
 
 /**
- * Regex to get API command from the command
- */
-const APICommandRegex = /\/api\/([^&?]+)\??.*/;
-
-const OPEN_OR_RECONNECT_APP_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]);
-
-/**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  */
@@ -86,10 +65,9 @@ function processHTTPRequest<TKey extends OnyxKey>(
     headers: Record<string, string> = {},
     abortSignal: AbortSignal | undefined = undefined,
 ): Promise<Response<TKey>> {
-    const startTime = new Date().valueOf();
+    const startTimeEpochMs = Date.now();
 
     const init: Parameters<typeof fetch>[1] = {
-        // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
         body,
@@ -101,31 +79,33 @@ function processHTTPRequest<TKey extends OnyxKey>(
         credentials: 'omit',
     };
 
+    const apiCommandSegmentFromUrlOnce = extractApiCommandSegmentFromApiUrl(url);
+
     const shouldPrefetch = !!headers.prefetchKey;
     if (shouldPrefetch) {
-        // eslint-disable-next-line no-console -- manual NitroFetch / startup benchmarking
-        console.warn('[NitroFetchBenchmarks][HttpUtils] Prefetching request', {url, method, body, headers});
+        logPrefetchSchedulingForBench({url, method, body, headers});
+        // react-native-nitro-fetch typings are unresolved in ESLint analysis — prefetch only runs when we originated the request payload here.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
         prefetchOnAppStart(url, init);
     }
 
-    const commandFromUrl = url.match(APICommandRegex)?.[1];
-    const isOpenOrReconnectAppRequest = commandFromUrl ? OPEN_OR_RECONNECT_APP_COMMANDS.has(commandFromUrl) : false;
+    const beforePerformanceNowMs = performance.now();
 
-    const before = performance.now();
-    const fetchPromise = fetch(url, init)
+    return fetch(url, init)
         .then((response) => {
-            const after = performance.now();
-            // eslint-disable-next-line no-console -- manual NitroFetch / startup benchmarking
-            console.warn(`[NitroFetchBenchmarks] fetch took ${after - before}ms (${url})`);
+            const fetchCompletedAtPerformanceNowMs = performance.now();
+
+            logFetchDurationForBench(url, fetchCompletedAtPerformanceNowMs - beforePerformanceNowMs);
+
+            const commandForSkew = apiCommandSegmentFromUrlOnce;
 
             // We are calculating the skew to minimize the delay when posting the messages
-            const match = url.match(APICommandRegex)?.[1];
-            if (match && addSkewList.has(match) && response.headers) {
+            if (commandForSkew && addSkewList.has(commandForSkew) && response.headers) {
                 const dateHeaderValue = response.headers.get('Date');
-                const serverTime = dateHeaderValue ? new Date(dateHeaderValue).valueOf() : new Date().valueOf();
-                const endTime = new Date().valueOf();
-                const latency = (endTime - startTime) / 2;
-                const skew = serverTime - startTime + latency;
+                const serverTime = dateHeaderValue ? new Date(dateHeaderValue).getTime() : Date.now();
+                const endTimeEpochMs = Date.now();
+                const latencyMs = (endTimeEpochMs - startTimeEpochMs) / 2;
+                const skew = serverTime - startTimeEpochMs + latencyMs;
                 setTimeSkew(dateHeaderValue ? skew : 0);
             }
             return response;
@@ -200,14 +180,10 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alertUser();
             }
             return response;
+        })
+        .finally(() => {
+            notifyStartupCriticalHttpCompletedIfApplicable({apiCommandSegment: apiCommandSegmentFromUrlOnce, url});
         });
-
-    return fetchPromise.finally(() => {
-        if (!isOpenOrReconnectAppRequest) {
-            return;
-        }
-        logOpenOrReconnectAppStartupBenchmarkIfNeeded(url);
-    });
 }
 
 /**
@@ -226,10 +202,10 @@ function xhr<TKey extends OnyxKey>(
     initiatedOffline = false,
 ): Promise<Response<TKey>> {
     return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
-        const url = getCommandURL({shouldUseSecure, command});
+        const urlWithCommandSegment = getCommandURL({shouldUseSecure, command});
         const abortSignalController = data.canCancel ? (abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All)) : undefined;
 
-        return processHTTPRequest(url, type, formData, headers, abortSignalController?.signal);
+        return processHTTPRequest(urlWithCommandSegment, type, formData, headers, abortSignalController?.signal);
     });
 }
 
