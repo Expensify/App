@@ -7,6 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {SelectionListHandle} from '@components/SelectionList/types';
@@ -378,29 +379,33 @@ function Search({
         selector: savedSearchSelector,
     });
 
+    const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
+
     const handleHoldMenuOpen = useCallback(
         (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => {
             const chatReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const moneyRequestReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            const liveReportTransactions = Object.values(allReportsTransactionsAndViolations?.[item.reportID]?.transactions ?? {});
+            const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : item.transactions;
             const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(
                 moneyRequestReport,
                 item.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false,
-                item.transactions,
+                transactionsForHoldMenu,
             );
             setHoldMenuParams({
                 chatReport,
                 moneyRequestReport,
-                transactionCount: item.transactionCount ?? 0,
+                transactionCount: transactionsForHoldMenu.length > 0 ? transactionsForHoldMenu.length : (item.transactionCount ?? 0),
                 fullAmount,
                 requestType,
                 paymentType,
                 nonHeldAmount,
                 hasValidNonHeldAmount,
-                hasNoneHeldExpenses: item.transactions.some((t) => !isOnHold(t)),
+                hasNoneHeldExpenses: transactionsForHoldMenu.some((t) => !isOnHold(t)),
             });
             setIsHoldMenuVisible(true);
         },
-        [searchResults?.data],
+        [allReportsTransactionsAndViolations, searchResults?.data],
     );
     const {convertToDisplayString} = useCurrencyListActions();
 
