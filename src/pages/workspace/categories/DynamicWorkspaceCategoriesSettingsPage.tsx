@@ -7,6 +7,7 @@ import SelectionList from '@components/SelectionList';
 import SpendCategorySelectorListItem from '@components/SelectionList/ListItem/SpendCategorySelectorListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,24 +24,24 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-type WorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
+type DynamicWorkspaceCategoriesSettingsPageProps = WithPolicyConnectionsProps &
     (
         | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS>
-        | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS>
+        | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS>
     );
 
-function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSettingsPageProps) {
+function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspaceCategoriesSettingsPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS;
-    const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path);
     const toggleSubtitle = isConnectedToAccounting && currentConnectionName ? translate('workspace.categories.needCategoryForExportToIntegration', currentConnectionName) : undefined;
 
     const updateWorkspaceRequiresCategory = useCallback(
@@ -98,11 +99,11 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID="WorkspaceCategoriesSettingsPage"
+                testID="DynamicWorkspaceCategoriesSettingsPage"
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined)}
+                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <ToggleSettingOptionRow
@@ -136,4 +137,4 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     );
 }
 
-export default withPolicyConnections(WorkspaceCategoriesSettingsPage);
+export default withPolicyConnections(DynamicWorkspaceCategoriesSettingsPage);

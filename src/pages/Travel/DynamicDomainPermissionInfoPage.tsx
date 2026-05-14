@@ -6,24 +6,30 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type DomainPermissionInfoPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO>;
+type DomainPermissionInfoPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO>;
 
-function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
+function DynamicDomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.path);
 
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID="DomainPermissionInfoPage"
+            testID="DynamicDomainPermissionInfoPage"
         >
-            <HeaderWithBackButton title={translate('travel.domainPermissionInfo.title')} />
+            <HeaderWithBackButton
+                title={translate('travel.domainPermissionInfo.title')}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
+            />
             <View style={[styles.flex1]}>
                 <View style={[styles.renderHTML, styles.flexRow, styles.mt3, styles.mr5, styles.ml5]}>
                     <RenderHTML html={translate('travel.domainPermissionInfo.restriction', route.params.domain)} />
@@ -45,4 +51,4 @@ function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
     );
 }
 
-export default DomainPermissionInfoPage;
+export default DynamicDomainPermissionInfoPage;

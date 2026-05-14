@@ -76,6 +76,11 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/referral/shareCode')).toBe('/home/referral/shareCode');
     });
 
+    it('redirects old travel upgrade path to dynamic route', () => {
+        expect(getMatchingNewRoute('/travel/upgrade')).toBe('/travel/travel-upgrade');
+        expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
+    });
+
     it('does not redirect paths that look similar but do not match migrated patterns', () => {
         expect(getMatchingNewRoute('/r/123/settings/visibility')).toBe(undefined);
         expect(getMatchingNewRoute('/workspaces/abc/overview/plan')).toBe(undefined);

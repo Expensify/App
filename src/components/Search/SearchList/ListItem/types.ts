@@ -420,7 +420,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** Whether the item's action is loading */
         isLoading?: boolean;
         columns?: SearchColumnType[];
-        violations?: Record<string, TransactionViolations | undefined> | undefined;
         policyForMovingExpenses?: Policy;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
@@ -435,7 +434,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         accountID?: number;
         columns?: SearchColumnType[];
         newTransactionID?: string;
-        violations?: Record<string, TransactionViolations | undefined> | undefined;
         policyForMovingExpenses?: Policy;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
@@ -452,12 +450,12 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     | 'groupBy'
     | 'accountID'
     | 'isOffline'
-    | 'violations'
     | 'onSelectRow'
     | 'nonPersonalAndWorkspaceCards'
     | 'onUndelete'
     | 'policyForMovingExpenses'
 > & {
+    violations?: Record<string, TransactionViolations | undefined> | undefined;
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
     setTransactionsVisibleLimit: React.Dispatch<React.SetStateAction<number>>;
