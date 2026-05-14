@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import AmountPicker from '@components/AmountPicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -25,6 +24,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 import type {TaxRate} from '@src/types/onyx';
+import TaxValuePicker from './TaxValuePicker';
 
 type WorkspaceCreateTaxPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE>;
 
@@ -118,10 +118,9 @@ function WorkspaceCreateTaxPage({
                                     shouldUseStrictHtmlTagValidation
                                 />
                                 <InputWrapper
-                                    InputComponent={AmountPicker}
+                                    InputComponent={TaxValuePicker}
                                     inputID={INPUT_IDS.VALUE}
-                                    title={(v) => (v ? getTaxValueWithPercentage(v) : '')}
-                                    description={translate('workspace.taxes.value')}
+                                    policyID={policyID}
                                     rightLabel={translate('common.required')}
                                 />
                             </View>

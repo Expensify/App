@@ -1,4 +1,4 @@
-import {useFocusEffect, useNavigationState, useRoute} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -7,54 +7,40 @@ import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 // eslint-disable-next-line no-restricted-imports -- The input ref doesn't exist at the navigate() call site, so we can't use Navigation's afterTransition callback
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 
-type FormConfig = {
-    formID: OnyxFormKey;
-    inputID: string;
-};
+type WorkspaceCreateTaxValuePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CREATE_VALUE>;
 
-const FORM_CONFIGS = {
-    [SCREENS.WORKSPACE.TAX_CREATE]: {
-        formID: ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM,
-        inputID: INPUT_IDS.VALUE,
+function WorkspaceCreateTaxValuePage({
+    route: {
+        params: {policyID},
     },
-} as const satisfies Record<string, FormConfig>;
-
-const DEFAULT_CONFIG = FORM_CONFIGS[SCREENS.WORKSPACE.TAX_CREATE];
-
-function WorkspaceCreateTaxAmountSelectorPage() {
+}: WorkspaceCreateTaxValuePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const currentRoute = useRoute();
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AMOUNT_SELECTOR.path);
 
-    const entryScreenName = useNavigationState((state) => {
-        const idx = state.routes.findIndex((r) => r.key === currentRoute.key);
-        return idx > 0 ? state.routes.at(idx - 1)?.name : undefined;
-    });
-    const config = (entryScreenName ? (FORM_CONFIGS as Record<string, FormConfig>)[entryScreenName] : undefined) ?? DEFAULT_CONFIG;
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM_DRAFT);
+    const [currentValue, setCurrentValue] = useState(formDraft?.[INPUT_IDS.VALUE]);
 
-    const [formDraft] = useOnyx(`${config.formID}Draft`);
-    const [currentValue, setCurrentValue] = useState((formDraft as Record<string, string> | undefined)?.[config.inputID]);
+    const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_TAX_CREATE.getRoute(policyID));
 
     const save = () => {
-        setDraftValues(config.formID, {[config.inputID]: currentValue});
-        Navigation.goBack(backPath);
+        setDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM, {[INPUT_IDS.VALUE]: currentValue});
+        goBack();
     };
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
@@ -70,12 +56,12 @@ function WorkspaceCreateTaxAmountSelectorPage() {
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             includePaddingTop={false}
-            testID="WorkspaceCreateTaxAmountSelectorPage"
+            testID="WorkspaceCreateTaxValuePage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('workspace.taxes.value')}
-                onBackButtonPress={() => Navigation.goBack(backPath)}
+                onBackButtonPress={goBack}
             />
             <ScrollView
                 contentContainerStyle={[styles.flexGrow1, styles.mb5]}
@@ -111,4 +97,4 @@ function WorkspaceCreateTaxAmountSelectorPage() {
     );
 }
 
-export default WorkspaceCreateTaxAmountSelectorPage;
+export default WorkspaceCreateTaxValuePage;
