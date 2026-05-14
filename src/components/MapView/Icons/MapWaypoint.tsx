@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useId} from 'react';
 import {Circle, Defs, FeDropShadow, Filter, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
 
-function RNMapWaypoint({width = 40, height = 40}: SvgProps) {
+function MapWaypoint({width = 40, height = 40}: SvgProps) {
+    const filterId = useId();
     return (
         <Svg
             width={width}
@@ -12,7 +13,7 @@ function RNMapWaypoint({width = 40, height = 40}: SvgProps) {
         >
             <Defs>
                 <Filter
-                    id="mapWaypointShadow"
+                    id={filterId}
                     x="0"
                     y="0"
                     width="40"
@@ -33,10 +34,10 @@ function RNMapWaypoint({width = 40, height = 40}: SvgProps) {
                 cy="16"
                 r="8"
                 fill="#008c59"
-                filter="url(#mapWaypointShadow)"
+                filter={`url(#${filterId})`}
             />
         </Svg>
     );
 }
 
-export default RNMapWaypoint;
+export default MapWaypoint;

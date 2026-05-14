@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useId} from 'react';
 import {Defs, FeDropShadow, Filter, G, Path, Svg} from 'react-native-svg';
 import type {SvgProps} from 'react-native-svg';
 
-function RNMapStartWaypoint({width = 48, height = 48}: SvgProps) {
+function MapStartWaypoint({width = 48, height = 48}: SvgProps) {
+    const filterId = useId();
     return (
         <Svg
             width={width}
@@ -12,7 +13,7 @@ function RNMapStartWaypoint({width = 48, height = 48}: SvgProps) {
         >
             <Defs>
                 <Filter
-                    id="mapStartWaypointShadow"
+                    id={filterId}
                     x="0"
                     y="0"
                     width="48"
@@ -28,7 +29,7 @@ function RNMapStartWaypoint({width = 48, height = 48}: SvgProps) {
                     />
                 </Filter>
             </Defs>
-            <G filter="url(#mapStartWaypointShadow)">
+            <G filter={`url(#${filterId})`}>
                 <Path
                     fill="#085239"
                     d="M36 20c0 6.627-5.373 12-12 12s-12-5.373-12-12S17.373 8 24 8s12 5.373 12 12"
@@ -44,4 +45,4 @@ function RNMapStartWaypoint({width = 48, height = 48}: SvgProps) {
     );
 }
 
-export default RNMapStartWaypoint;
+export default MapStartWaypoint;
