@@ -1430,9 +1430,6 @@ type QBDExportConfig = {
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
 
-    /** Default vendor ID for travel expenses */
-    travelInvoicingVendorID?: string;
-
     /** Account ID that receives the exported travel payable */
     travelInvoicingPayableAccountID?: string;
 

@@ -25,7 +25,6 @@ type QBDSection = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-const vendor = [CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_VENDOR];
 const payableAccount = [CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT];
 
 function QuickbooksDesktopTravelInvoicingConfigurationPage({policy}: WithPolicyConnectionsProps) {
@@ -34,21 +33,12 @@ function QuickbooksDesktopTravelInvoicingConfigurationPage({policy}: WithPolicyC
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
-    const {vendors, payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
-    const travelVendor = vendors?.find((item) => item.id === qbdConfig?.export?.travelInvoicingVendorID);
+    const {payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const travelPayableAccount = payableAccounts?.find((item) => item.id === qbdConfig?.export?.travelInvoicingPayableAccountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION.path);
     const travelInvoicingPath = `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION.path}`;
 
     const sections: QBDSection[] = [
-        {
-            title: travelVendor?.name,
-            description: translate('workspace.common.travelInvoicingVendor'),
-            onPress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_VENDOR_SELECT.path, travelInvoicingPath)),
-            subscribedSettings: vendor,
-            pendingAction: settingsPendingAction(vendor, qbdConfig?.pendingFields),
-            brickRoadIndicator: areSettingsInErrorFields(vendor, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        },
         {
             title: travelPayableAccount?.name,
             description: translate('workspace.common.travelInvoicingPayableAccount'),

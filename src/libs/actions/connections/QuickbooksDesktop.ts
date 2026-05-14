@@ -520,9 +520,7 @@ function updateQuickbooksDesktopNonReimbursableBillDefaultVendor<TSettingValue e
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, parameters, onyxData);
 }
 
-function updateQuickbooksDesktopTravelInvoicingConfig<
-    TSettingName extends typeof CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_VENDOR | typeof CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
->(
+function updateQuickbooksDesktopTravelInvoicingConfig<TSettingName extends typeof CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT>(
     policyID: string,
     settingName: TSettingName,
     settingValue: Partial<Connections['quickbooksDesktop']['config']['export'][TSettingName]>,
@@ -538,14 +536,6 @@ function updateQuickbooksDesktopTravelInvoicingConfig<
     };
 
     API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, onyxData);
-}
-
-function updateQuickbooksDesktopTravelInvoicingVendor<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['travelInvoicingVendorID']>(
-    policyID: string,
-    settingValue: TSettingValue,
-    oldSettingValue?: TSettingValue,
-) {
-    updateQuickbooksDesktopTravelInvoicingConfig(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_VENDOR, settingValue, oldSettingValue);
 }
 
 function updateQuickbooksDesktopTravelInvoicingPayableAccount<TSettingValue extends Connections['quickbooksDesktop']['config']['export']['travelInvoicingPayableAccountID']>(
@@ -602,7 +592,6 @@ export {
     updateQuickbooksDesktopPreferredExporter,
     updateQuickbooksDesktopMarkChecksToBePrinted,
     updateQuickbooksDesktopNonReimbursableBillDefaultVendor,
-    updateQuickbooksDesktopTravelInvoicingVendor,
     updateQuickbooksDesktopTravelInvoicingPayableAccount,
     updateQuickbooksDesktopShouldAutoCreateVendor,
     updateQuickbooksDesktopNonReimbursableExpensesAccount,

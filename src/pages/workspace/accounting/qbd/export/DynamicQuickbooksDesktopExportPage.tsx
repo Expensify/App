@@ -35,8 +35,7 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qbdConfig?.export?.nonReimbursable],
     );
-    const {vendors, payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
-    const travelVendor = vendors?.find((vendor) => vendor.id === qbdConfig?.export?.travelInvoicingVendorID);
+    const {payableAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const travelPayableAccount = payableAccounts?.find((account) => account.id === qbdConfig?.export?.travelInvoicingPayableAccountID);
     const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path}` : undefined;
 
@@ -106,8 +105,8 @@ function DynamicQuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps
                       onPress: !exportPath
                           ? undefined
                           : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION.path, exportPath)),
-                      title: travelPayableAccount?.name ?? travelVendor?.name,
-                      subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+                      title: travelPayableAccount?.name,
+                      subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
                   },
               ]
             : []),
