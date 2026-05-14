@@ -22,6 +22,7 @@ import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestAction from '@components/ReportActionItem/MoneyRequestAction';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MovedTransactionAction from '@components/ReportActionItem/MovedTransactionAction';
+import RenamedAction from '@components/ReportActionItem/RenamedAction';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
@@ -57,7 +58,6 @@ import {
     getIOUReportIDFromReportActionPreview,
     getOriginalMessage,
     getPlaidBalanceFailureMessage,
-    getRenamedAction,
     getReportActionHtml,
     getReportActionMessage,
     getReportActionText,
@@ -803,8 +803,12 @@ function PureReportActionItem({
                 />
             );
         } else if (isRenamedAction(action)) {
-            const message = getRenamedAction(translate, action, isExpenseReport(report));
-            children = <ReportActionItemBasicMessage message={message} />;
+            children = (
+                <RenamedAction
+                    action={action}
+                    isExpenseReport={isExpenseReport(report)}
+                />
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             children = (
                 <ReportActionItemBasicMessage message="">

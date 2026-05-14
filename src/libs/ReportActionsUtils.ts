@@ -3854,6 +3854,32 @@ function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry
     return translate('newRoomPage.renamedRoomAction', originalMessage?.oldName ?? '', originalMessage?.newName ?? '', isExpenseReport, actorName);
 }
 
+function getRenamedActionHTML(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>,
+    isExpenseReport: boolean,
+    actorName?: string,
+) {
+    const originalMessage = getOriginalMessage(reportAction);
+    const oldName = originalMessage?.oldName ?? '';
+    const newName = originalMessage?.newName ?? '';
+    const reportURL = getReportURLForCurrentContext(reportAction?.reportID);
+
+    if (!newName || !reportURL) {
+        return Str.htmlEncode(getRenamedAction(translate, reportAction, isExpenseReport, actorName));
+    }
+
+    const linkStartMarker = '__renamed_report_link_start__';
+    const linkEndMarker = '__renamed_report_link_end__';
+    const linkedReportName = `${linkStartMarker}${newName}${linkEndMarker}`;
+    const renamedActionMessage = translate('newRoomPage.renamedRoomAction', oldName, linkedReportName, isExpenseReport, actorName);
+
+    return Str.htmlEncode(renamedActionMessage).replace(
+        Str.htmlEncode(linkedReportName),
+        `<a href="${Str.htmlEncode(reportURL)}">${Str.htmlEncode(newName)}</a>`,
+    );
+}
+
 function getAddedApprovalRuleMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
     const {name, approverAccountID, approverEmail, field, approverName} =
         getOriginalMessage(reportAction as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE>) ?? {};
@@ -4563,6 +4589,7 @@ export {
     getMarkedReimbursedMessage,
     getReimbursedMessage,
     getMemberChangeMessageFragment,
+    getRenamedActionHTML,
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,
     getMessageOfOldDotReportAction,
