@@ -61,6 +61,9 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
                     </PressableWithFeedback>
                 )}
                 smallScreenModalType={fullscreen ? CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT : undefined}
+                // The default outerModalStyle in FilterPopupButton apply a max height to avoid keyboard. We don't want
+                // that in fullscreen because the keyboard avoiding logic will be handled by the ScreenWrapperContainer in AdvancedFiltersFullscreen.
+                outerModalStyle={fullscreen ? {} : undefined}
             />
         );
     }

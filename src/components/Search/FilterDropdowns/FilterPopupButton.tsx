@@ -35,6 +35,7 @@ type FilterPopupButtonProps = {
     /** Wrapper style for the outer view */
     wrapperStyle?: StyleProp<ViewStyle>;
 
+    outerModalStyle?: ViewStyle;
     popoverWidth?: number;
     popoverAnchorAlignment?: AnchorAlignment;
     smallScreenModalType?: PopoverWithMeasuredContentProps['smallScreenModalType'];
@@ -55,6 +56,7 @@ function FilterPopupButton({
     viewportOffsetTop,
     popoverWidth,
     wrapperStyle,
+    outerModalStyle,
     smallScreenModalType,
     popoverAnchorAlignment: popoverAnchorAlignmentProp,
     PopoverComponent,
@@ -130,7 +132,7 @@ function FilterPopupButton({
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
                 shouldMeasureAnchorPositionFromTop={false}
-                outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
+                outerStyle={{...(outerModalStyle ?? StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop)), ...containerStyles}}
                 // This must be false because we dont want the modal to close if we open the RHP for selections
                 // such as date years
                 shouldCloseWhenBrowserNavigationChanged={false}
