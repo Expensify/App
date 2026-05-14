@@ -7,6 +7,36 @@ import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBa
 
 const REPORT_ACTION_ID = 'action1';
 
+const THUMBSUP_NAME = '+1';
+const THUMBSUP_COLON = ':+1:';
+const THUMBSUP_HEX = '1F44D';
+const JOY_HEX = '1F602';
+const UNKNOWN_NAME = 'made_up';
+const USER_ID_A = '12345';
+const USER_ID_B = '67890';
+const USER_ID_C = '123';
+const USER_ID_D = '456';
+
+const TIMESTAMP_JAN = '2024-01-01T00:00:00.000Z';
+const TIMESTAMP_FEB = '2024-02-01T00:00:00.000Z';
+const TIMESTAMP_MAR = '2024-03-01T00:00:00.000Z';
+
+function makeUserReaction(id: string, timestamp: string) {
+    return {
+        id,
+        skinTones: {[-1]: timestamp},
+        oldestTimestamp: timestamp,
+    };
+}
+
+function makeReaction(timestamp: string, userID: string) {
+    return {
+        createdAt: timestamp,
+        oldestTimestamp: timestamp,
+        users: {[userID]: makeUserReaction(userID, timestamp)},
+    };
+}
+
 function getReactionsFromOnyx(reportActionID: string): Promise<ReportActionReactions | undefined> {
     return new Promise((resolve) => {
         const connection = Onyx.connect({
@@ -35,17 +65,7 @@ describe('EmojiReactionKeysToHexcode', () => {
 
     it('renames a name-keyed reaction to its hexcode', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ACTION_ID}`, {
-            '+1': {
-                createdAt: '2024-01-01T00:00:00.000Z',
-                oldestTimestamp: '2024-01-01T00:00:00.000Z',
-                users: {
-                    '12345': {
-                        id: '12345',
-                        skinTones: {[-1]: '2024-01-01T00:00:00.000Z'},
-                        oldestTimestamp: '2024-01-01T00:00:00.000Z',
-                    },
-                },
-            },
+            [THUMBSUP_NAME]: makeReaction(TIMESTAMP_JAN, USER_ID_A),
         });
 
         await EmojiReactionKeysToHexcode();
@@ -53,75 +73,55 @@ describe('EmojiReactionKeysToHexcode', () => {
 
         const result = await getReactionsFromOnyx(REPORT_ACTION_ID);
         expect(result).toBeDefined();
-        expect(result?.['1F44D']).toBeDefined();
-        expect(result?.['+1']).toBeUndefined();
-        expect(result?.['1F44D']?.createdAt).toBe('2024-01-01T00:00:00.000Z');
-        expect(result?.['1F44D']?.users?.['12345']).toBeDefined();
+        expect(result?.[THUMBSUP_HEX]).toBeDefined();
+        expect(result?.[THUMBSUP_NAME]).toBeUndefined();
+        expect(result?.[THUMBSUP_HEX]?.createdAt).toBe(TIMESTAMP_JAN);
+        expect(result?.[THUMBSUP_HEX]?.users?.[USER_ID_A]).toBeDefined();
     });
 
     it('leaves hex-keyed reactions unchanged while renaming name-keyed ones', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ACTION_ID}`, {
-            '+1': {
-                createdAt: '2024-01-01T00:00:00.000Z',
-                oldestTimestamp: '2024-01-01T00:00:00.000Z',
-                users: {'12345': {id: '12345', skinTones: {[-1]: '2024-01-01T00:00:00.000Z'}, oldestTimestamp: '2024-01-01T00:00:00.000Z'}},
-            },
-            '1F602': {
-                createdAt: '2024-01-02T00:00:00.000Z',
-                oldestTimestamp: '2024-01-02T00:00:00.000Z',
-                users: {'67890': {id: '67890', skinTones: {[-1]: '2024-01-02T00:00:00.000Z'}, oldestTimestamp: '2024-01-02T00:00:00.000Z'}},
-            },
+            [THUMBSUP_NAME]: makeReaction(TIMESTAMP_JAN, USER_ID_A),
+            [JOY_HEX]: makeReaction(TIMESTAMP_MAR, USER_ID_B),
         });
 
         await EmojiReactionKeysToHexcode();
         await waitForBatchedUpdates();
 
         const result = await getReactionsFromOnyx(REPORT_ACTION_ID);
-        expect(result?.['1F44D']).toBeDefined();
-        expect(result?.['+1']).toBeUndefined();
-        expect(result?.['1F602']).toBeDefined();
+        expect(result?.[THUMBSUP_HEX]).toBeDefined();
+        expect(result?.[THUMBSUP_NAME]).toBeUndefined();
+        expect(result?.[JOY_HEX]).toBeDefined();
     });
 
     it('merges colliding renames keeping the earliest createdAt and union of users', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ACTION_ID}`, {
-            '+1': {
-                createdAt: '2024-01-01T00:00:00.000Z',
-                oldestTimestamp: '2024-01-01T00:00:00.000Z',
-                users: {'123': {id: '123', skinTones: {[-1]: '2024-01-01T00:00:00.000Z'}, oldestTimestamp: '2024-01-01T00:00:00.000Z'}},
-            },
-            ':+1:': {
-                createdAt: '2024-02-01T00:00:00.000Z',
-                oldestTimestamp: '2024-02-01T00:00:00.000Z',
-                users: {'456': {id: '456', skinTones: {[-1]: '2024-02-01T00:00:00.000Z'}, oldestTimestamp: '2024-02-01T00:00:00.000Z'}},
-            },
+            [THUMBSUP_NAME]: makeReaction(TIMESTAMP_JAN, USER_ID_C),
+            [THUMBSUP_COLON]: makeReaction(TIMESTAMP_FEB, USER_ID_D),
         });
 
         await EmojiReactionKeysToHexcode();
         await waitForBatchedUpdates();
 
         const result = await getReactionsFromOnyx(REPORT_ACTION_ID);
-        expect(result?.['1F44D']).toBeDefined();
-        expect(result?.['+1']).toBeUndefined();
-        expect(result?.[':+1:']).toBeUndefined();
-        expect(result?.['1F44D']?.createdAt).toBe('2024-01-01T00:00:00.000Z');
-        expect(result?.['1F44D']?.users?.['123']).toBeDefined();
-        expect(result?.['1F44D']?.users?.['456']).toBeDefined();
+        expect(result?.[THUMBSUP_HEX]).toBeDefined();
+        expect(result?.[THUMBSUP_NAME]).toBeUndefined();
+        expect(result?.[THUMBSUP_COLON]).toBeUndefined();
+        expect(result?.[THUMBSUP_HEX]?.createdAt).toBe(TIMESTAMP_JAN);
+        expect(result?.[THUMBSUP_HEX]?.users?.[USER_ID_C]).toBeDefined();
+        expect(result?.[THUMBSUP_HEX]?.users?.[USER_ID_D]).toBeDefined();
     });
 
     it('preserves unknown emoji names unchanged', async () => {
-        const unknownReaction = {
-            createdAt: '2024-01-01T00:00:00.000Z',
-            oldestTimestamp: '2024-01-01T00:00:00.000Z',
-            users: {'12345': {id: '12345', skinTones: {[-1]: '2024-01-01T00:00:00.000Z'}, oldestTimestamp: '2024-01-01T00:00:00.000Z'}},
-        };
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ACTION_ID}`, {made_up: unknownReaction});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ACTION_ID}`, {
+            [UNKNOWN_NAME]: makeReaction(TIMESTAMP_JAN, USER_ID_A),
+        });
 
         await EmojiReactionKeysToHexcode();
         await waitForBatchedUpdates();
 
         const result = await getReactionsFromOnyx(REPORT_ACTION_ID);
-        expect(result?.['made_up']).toBeDefined();
+        expect(result?.[UNKNOWN_NAME]).toBeDefined();
     });
 
     it('is a no-op when no reaction data exists', async () => {
@@ -134,17 +134,13 @@ describe('EmojiReactionKeysToHexcode', () => {
 
     it('is a no-op when all reactions are already hex-keyed', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ACTION_ID}`, {
-            '1F44D': {
-                createdAt: '2024-01-01T00:00:00.000Z',
-                oldestTimestamp: '2024-01-01T00:00:00.000Z',
-                users: {'12345': {id: '12345', skinTones: {[-1]: '2024-01-01T00:00:00.000Z'}, oldestTimestamp: '2024-01-01T00:00:00.000Z'}},
-            },
+            [THUMBSUP_HEX]: makeReaction(TIMESTAMP_JAN, USER_ID_A),
         });
 
         await EmojiReactionKeysToHexcode();
         await waitForBatchedUpdates();
 
         const result = await getReactionsFromOnyx(REPORT_ACTION_ID);
-        expect(result?.['1F44D']).toBeDefined();
+        expect(result?.[THUMBSUP_HEX]).toBeDefined();
     });
 });
