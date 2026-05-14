@@ -38,7 +38,7 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU';
+import {startDistanceRequest, startMoneyRequest} from '@userActions/IOU/MoneyRequest';
 import {close} from '@userActions/Modal';
 import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
@@ -185,7 +185,7 @@ function AttachmentPickerWithMenuItems({
                 shouldRestrictAction &&
                 policy &&
                 policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
+                shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)
             ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
@@ -193,7 +193,7 @@ function AttachmentPickerWithMenuItems({
 
             onSelected();
         },
-        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed],
+        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, accountID],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

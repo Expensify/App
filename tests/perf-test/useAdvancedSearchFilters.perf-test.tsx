@@ -1,7 +1,6 @@
 import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
 import Onyx from 'react-native-onyx';
 import {measureFunction, measureRenders} from 'reassure';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -35,7 +34,6 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],

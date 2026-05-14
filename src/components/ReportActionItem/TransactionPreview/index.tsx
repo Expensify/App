@@ -80,7 +80,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, false, originalReportID);
+        showContextMenuForReport(event, contextMenuAnchor, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {
@@ -100,7 +100,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const iouAction = action;
 
     // See description of `transactionRawAmount` prop for more context
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const transactionRawAmount = (Number(transaction?.modifiedAmount) || transaction?.amount) ?? 0;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);

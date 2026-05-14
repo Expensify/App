@@ -1,6 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
 import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
@@ -9,7 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+// eslint-disable-next-line no-restricted-imports
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -114,7 +117,7 @@ function ReanimatedModal({
             setIsVisibleState(false);
             setIsContainerOpen(false);
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
         [],
     );
 
@@ -125,10 +128,10 @@ function ReanimatedModal({
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillShow();
 
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillHide();
@@ -162,7 +165,6 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (handleRef.current) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
         if (transitionHandleRef.current) {
@@ -232,7 +234,6 @@ function ReanimatedModal({
             <Modal
                 transparent
                 animationType="none"
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 visible={modalVisibility}
                 onRequestClose={onBackButtonPressHandler}
                 statusBarTranslucent={statusBarTranslucent}

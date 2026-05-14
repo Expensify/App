@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -13,7 +13,8 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, setMoneyRequestTaxValue} from '@libs/actions/IOU';
+import {setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, setMoneyRequestTaxValue} from '@libs/actions/IOU';
+import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestDistanceRate} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
@@ -60,8 +61,6 @@ function IOURequestStepDistanceRate({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -120,7 +119,7 @@ function IOURequestStepDistanceRate({
             isSelected,
         };
     });
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
     const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
@@ -217,7 +216,7 @@ function IOURequestStepDistanceRate({
 
             <SelectionList
                 data={options}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={initiallyFocusedOption}
@@ -226,9 +225,8 @@ function IOURequestStepDistanceRate({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceRateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceRate);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepDistanceRateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceRateWithWritableReportOrNotFound);
 
 export default IOURequestStepDistanceRateWithFullTransactionOrNotFound;

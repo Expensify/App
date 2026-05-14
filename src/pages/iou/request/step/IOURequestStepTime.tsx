@@ -18,7 +18,8 @@ import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getIOURequestPolicyID, setMoneyRequestDateAttribute} from '@userActions/IOU';
+import {setMoneyRequestDateAttribute} from '@userActions/IOU';
+import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -67,7 +68,7 @@ function IOURequestStepTime({
     const currentStartDate = currentDateAttributes?.start ? DateUtils.extractDate(currentDateAttributes.start) : undefined;
     const currentEndDate = currentDateAttributes?.end ? DateUtils.extractDate(currentDateAttributes.end) : undefined;
     const isEditPage = name === SCREENS.MONEY_REQUEST.STEP_TIME_EDIT;
-    // eslint-disable-next-line rulesdir/no-negated-variables
+
     const shouldShowNotFound = !isValidMoneyRequestType(iouType) || isEmptyObject(policy) || (isEditPage && isEmptyObject(transaction?.comment?.customUnit));
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
@@ -174,7 +175,6 @@ function IOURequestStepTime({
                     label={translate('iou.startDate')}
                     defaultValue={currentStartDate}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
                 <View style={[styles.mt2, styles.mhn5]}>
                     <InputWrapper
@@ -190,7 +190,6 @@ function IOURequestStepTime({
                     label={translate('iou.endDate')}
                     defaultValue={currentEndDate}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                    minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 />
                 <View style={[styles.mt2, styles.mhn5]}>
                     <InputWrapper
@@ -205,9 +204,8 @@ function IOURequestStepTime({
     );
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTimeWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepTime);
-// eslint-disable-next-line rulesdir/no-negated-variables
+
 const IOURequestStepTimeWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTimeWithFullTransactionOrNotFound);
 
 export default IOURequestStepTimeWithWritableReportOrNotFound;

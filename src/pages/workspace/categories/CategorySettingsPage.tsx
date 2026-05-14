@@ -46,16 +46,12 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 type CategorySettingsPageProps =
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS>
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS>;
 
-function CategorySettingsPage({
-    route: {
-        params: {backTo, policyID, categoryName},
-        name,
-    },
-    navigation,
-}: CategorySettingsPageProps) {
+function CategorySettingsPage({route: {params, name}, navigation}: CategorySettingsPageProps) {
+    const {policyID, categoryName} = params;
+    const backTo = 'backTo' in params ? params.backTo : undefined;
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -142,16 +138,15 @@ function CategorySettingsPage({
         if (!policy) {
             return '';
         }
-        return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
+        return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt, convertToDisplayString);
+    }, [policy, policyCategory?.maxAmountNoReceipt, translate, convertToDisplayString]);
 
     const requireItemizedReceiptsOverText = useMemo(() => {
         if (!policy) {
             return '';
         }
-        return formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt);
-    }, [policy, policyCategory?.maxAmountNoItemizedReceipt, translate]);
+        return formatRequireItemizedReceiptsOverText(translate, policy, policyCategory?.maxAmountNoItemizedReceipt, convertToDisplayString);
+    }, [policy, policyCategory?.maxAmountNoItemizedReceipt, translate, convertToDisplayString]);
 
     const requiredFieldsTitle = useMemo(() => {
         if (!policyCategory) {
@@ -223,7 +218,7 @@ function CategorySettingsPage({
     );
 
     const navigateToEditCategory = () => {
-        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name));
+        Navigation.navigate(isQuickSettingsFlow ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path) : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path));
     };
 
     const deleteCategory = () => {
@@ -311,7 +306,7 @@ function CategorySettingsPage({
                                             CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
                                             isQuickSettingsFlow
                                                 ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                                : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
                                         ),
                                     );
                                     return;
@@ -319,7 +314,7 @@ function CategorySettingsPage({
                                 Navigation.navigate(
                                     isQuickSettingsFlow
                                         ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                        : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
+                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path),
                                 );
                             }}
                             shouldShowRightIcon
@@ -335,7 +330,7 @@ function CategorySettingsPage({
                                         ROUTES.WORKSPACE_UPGRADE.getRoute(
                                             policyID,
                                             CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                            ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
+                                            createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
                                         ),
                                     );
                                     return;
@@ -343,7 +338,7 @@ function CategorySettingsPage({
                                 Navigation.navigate(
                                     isQuickSettingsFlow
                                         ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                        : ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
+                                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
                                 );
                             }}
                             shouldShowRightIcon
@@ -381,7 +376,7 @@ function CategorySettingsPage({
                                 title={approverText}
                                 description={translate('workspace.rules.categoryRules.approver')}
                                 onPress={() => {
-                                    Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path));
                                 }}
                                 shouldShowRightIcon
                                 disabled={approverDisabled}
@@ -397,7 +392,7 @@ function CategorySettingsPage({
                                     title={defaultTaxRateText}
                                     description={translate('workspace.rules.categoryRules.defaultTaxRate')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -408,7 +403,7 @@ function CategorySettingsPage({
                                     title={flagAmountsOverText}
                                     description={translate('workspace.rules.categoryRules.flagAmountsOver')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -418,7 +413,7 @@ function CategorySettingsPage({
                                     title={requireReceiptsOverText}
                                     description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -428,7 +423,7 @@ function CategorySettingsPage({
                                     title={requireItemizedReceiptsOverText}
                                     description={translate(`workspace.rules.categoryRules.requireItemizedReceiptsOver`)}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -438,7 +433,7 @@ function CategorySettingsPage({
                                     title={requiredFieldsTitle}
                                     description={translate('workspace.rules.categoryRules.requireFields')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.path));
                                     }}
                                     shouldShowRightIcon
                                 />
@@ -448,9 +443,10 @@ function CategorySettingsPage({
                                     title={policyCategory?.commentHint}
                                     description={translate('workspace.rules.categoryRules.descriptionHint')}
                                     onPress={() => {
-                                        Navigation.navigate(ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path));
                                     }}
                                     shouldShowRightIcon
+                                    shouldRenderAsHTML
                                 />
                             </OfflineWithFeedback>
                         </>

@@ -39,7 +39,7 @@ type ReportActionItemParentActionProps = {
     index: number;
 
     /** The id of the report */
-    // eslint-disable-next-line react/no-unused-prop-types
+
     reportID: string;
 
     /** The current report is displayed */
@@ -59,12 +59,6 @@ type ReportActionItemParentActionProps = {
 
     /** If the thread divider line will be used */
     shouldUseThreadDividerLine?: boolean;
-
-    /** User wallet tierName */
-    userWalletTierName: string | undefined;
-
-    /** Whether the user is validated */
-    isUserValidated: boolean | undefined;
 
     /** Personal details list */
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -89,8 +83,6 @@ function ReportActionItemParentAction({
     shouldDisplayReplyDivider,
     isFirstVisibleReportAction = false,
     shouldUseThreadDividerLine = false,
-    userWalletTierName,
-    isUserValidated,
     personalDetails,
     userBillingFundID,
     isTryNewDotNVPDismissed = false,
@@ -234,8 +226,6 @@ function ReportActionItemParentAction({
                                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                                 isThreadReportParentAction
-                                userWalletTierName={userWalletTierName}
-                                isUserValidated={isUserValidated}
                                 personalDetails={personalDetails}
                                 draftMessage={matchingDraftMessageString}
                                 linkedTransactionRouteError={linkedTransactionRouteError}

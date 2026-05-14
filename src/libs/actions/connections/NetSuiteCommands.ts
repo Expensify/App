@@ -85,11 +85,10 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     settingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
     oldSettingValue: Partial<Connections['netsuite']['options']['config'][TSettingName]>,
 ) {
-    const exporterOptimisticData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: settingValue} : {};
-    const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER ? {exporter: oldSettingValue} : {};
+    const exporterOptimisticData = settingName === CONST.NETSUITE_CONFIG.EXPORTER && typeof settingValue === 'string' ? {exporter: settingValue} : {};
+    const exporterErrorData = settingName === CONST.NETSUITE_CONFIG.EXPORTER && typeof oldSettingValue === 'string' ? {exporter: oldSettingValue} : {};
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -111,7 +110,6 @@ function updateNetSuiteOnyxData<TSettingName extends keyof Connections['netsuite
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -1073,6 +1071,21 @@ function updateNetSuiteTravelInvoicingPayableAccount(policyID: string, accountID
     API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, onyxData);
 }
 
+function updateNetSuiteTravelInvoicingJournalPostingPreference(
+    policyID: string,
+    postingPreference: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
+    oldPostingPreference?: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
+) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE, postingPreference, oldPostingPreference);
+    const parameters: UpdateManyPolicyConnectionConfigurationsParams = {
+        policyID,
+        connectionName: CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
+        configUpdate: JSON.stringify({[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE]: postingPreference}),
+        idempotencyKey: CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS, parameters, onyxData);
+}
+
 export {
     connectPolicyToNetSuite,
     updateNetSuiteTokens,
@@ -1113,4 +1126,5 @@ export {
     updateNetSuiteCustomersJobsMapping,
     updateNetSuiteAccountingMethod,
     updateNetSuiteTravelInvoicingPayableAccount,
+    updateNetSuiteTravelInvoicingJournalPostingPreference,
 };

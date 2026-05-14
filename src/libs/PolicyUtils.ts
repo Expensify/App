@@ -1,6 +1,5 @@
 import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -28,13 +27,10 @@ import type {
     ConnectionName,
     Connections,
     CustomUnit,
-    InvoiceItem,
     NetSuiteAccount,
     NetSuiteConnection,
     NetSuiteCustomList,
     NetSuiteCustomSegment,
-    NetSuiteTaxAccount,
-    NetSuiteVendor,
     PolicyConnectionSyncProgress,
     PolicyFeatureName,
     Rate,
@@ -45,6 +41,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
+import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
+import {getApiRoot} from './ApiUtils';
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
@@ -53,7 +51,7 @@ import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
-import {isPublicDomain} from './ValidationUtils';
+import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -71,14 +69,6 @@ type ConnectionWithLastSyncData = {
     /** State of the last synchronization */
     lastSync?: ConnectionLastSync;
 };
-
-let allPolicies: OnyxCollection<Policy>;
-
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
 
 /**
  * Returns true if the policy has no fieldList or its fieldList is empty.
@@ -307,6 +297,50 @@ function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> |
     return false;
 }
 
+/**
+ * Pick the rate that the expense flow will treat as default for a distance custom unit's rates
+ * dictionary: filter enabled rates, sort by `index` (treating missing index as CONST.DEFAULT_NUMBER_ID),
+ * and take the first. Mirrors `getDefaultMileageRate`'s selection so optimistic state stays aligned
+ * with the rate the expense flow later picks.
+ */
+function getDefaultDistanceRate(rates: Record<string, Rate> | undefined): Rate | undefined {
+    if (!rates) {
+        return undefined;
+    }
+    return Object.values(rates)
+        .filter((rate) => rate.enabled !== false)
+        .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+        .at(0);
+}
+
+function cloneCustomUnitWithNewIDs(unit: CustomUnit, newCustomUnitID: string, newDefaultRateID?: string): CustomUnit {
+    if (newDefaultRateID) {
+        // Mirror DUPLICATE_POLICY: rebind the source default to newDefaultRateID, keep other rates
+        // under their source IDs (the server preserves them). Preserve source iteration order so
+        // getDefaultMileageRate's stable sort still picks the original default when rates tie on
+        // index (e.g. a rate with no index falls back to CONST.DEFAULT_NUMBER_ID).
+        const defaultRate = getDefaultDistanceRate(unit.rates);
+        const rates: Record<string, Rate> = {};
+        for (const rate of Object.values(unit.rates)) {
+            if (rate.customUnitRateID === defaultRate?.customUnitRateID) {
+                rates[newDefaultRateID] = {...rate, customUnitRateID: newDefaultRateID};
+            } else {
+                rates[rate.customUnitRateID] = rate;
+            }
+        }
+        return {
+            ...unit,
+            customUnitID: newCustomUnitID,
+            rates,
+        };
+    }
+
+    return {
+        ...unit,
+        customUnitID: newCustomUnitID,
+    };
+}
+
 function getCustomUnitsForDuplication(
     policy: Policy,
     isDistanceRatesOptionSelected: boolean,
@@ -314,39 +348,58 @@ function getCustomUnitsForDuplication(
     customUnitIDs: {
         distanceCustomUnitID: string;
         perDiemCustomUnitID: string;
+        customUnitRateID?: string;
     },
 ): Record<string, CustomUnit> | undefined {
     const customUnits = policy?.customUnits;
-    const {distanceCustomUnitID, perDiemCustomUnitID} = customUnitIDs ?? {};
+    const {distanceCustomUnitID, perDiemCustomUnitID, customUnitRateID} = customUnitIDs ?? {};
 
     if ((!isDistanceRatesOptionSelected && !isPerDiemOptionSelected) || !customUnits || Object.keys(customUnits).length === 0) {
         return undefined;
     }
 
-    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
+    const getUnitWithoutPendingDeleteRates = (customUnit: CustomUnit | undefined, customUnitID: string) => {
+        if (!customUnit) {
+            return undefined;
+        }
+        return {
+            ...customUnit,
+            customUnitID,
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+        };
+    };
 
+    const distanceCustomUnit = getUnitWithoutPendingDeleteRates(
+        Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE),
+        distanceCustomUnitID,
+    );
+    const perDiemUnit = getUnitWithoutPendingDeleteRates(
+        Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL),
+        perDiemCustomUnitID,
+    );
+
+    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
         if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
             return undefined;
         }
 
-        return {[distanceCustomUnitID]: distanceCustomUnit, [perDiemCustomUnitID]: perDiemUnit};
+        return {
+            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID),
+            [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID),
+        };
     }
 
     if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
-        const distanceCustomUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return undefined;
         }
-        return {[distanceCustomUnitID]: distanceCustomUnit};
+        return {[distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, customUnitRateID)};
     }
 
-    const perDiemUnit = Object.values(customUnits).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL);
     if (!perDiemUnit || !perDiemCustomUnitID) {
         return undefined;
     }
-    return {[perDiemCustomUnitID]: perDiemUnit};
+    return {[perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID)};
 }
 
 /**
@@ -403,10 +456,6 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
     }
 
     return policy?.employeeList?.[currentUserLogin]?.role;
-}
-
-function getPolicyNameByID(policyID: string): string {
-    return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? '';
 }
 
 /**
@@ -879,6 +928,32 @@ function isPaidGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM || policy?.type === CONST.POLICY.TYPE.CORPORATE;
 }
 
+function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return policy?.type === CONST.POLICY.TYPE.SUBMIT;
+}
+
+function isPolicyEditor(policy: OnyxEntry<Policy>): boolean {
+    return policy?.role === CONST.POLICY.ROLE.EDITOR;
+}
+
+/**
+ * Returns true if the user can edit workspace settings — admins on any workspace, or editors on Submit workspaces.
+ */
+function canEditWorkspaceSettings(policy: OnyxEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) || isPolicyEditor(policy);
+}
+
+/**
+ * Returns true for any group workspace: paid (Team/Corporate) or Submit.
+ *
+ * Note: not to be confused with `ReportUtils.isGroupPolicy(policyType: string)`,
+ * which excludes Submit. Use this helper when Submit workspaces should be treated
+ * like paid workspaces (e.g. access gating for shared workspace pages).
+ */
+function isGroupPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPaidGroupPolicy(policy) || isSubmitPolicy(policy);
+}
+
 function getOwnedPaidPolicies(policies: OnyxCollection<Policy> | null, currentUserAccountID: number | undefined): Policy[] {
     return Object.values(policies ?? {}).filter((policy): policy is Policy => isPolicyOwner(policy, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) && isPaidGroupPolicy(policy));
 }
@@ -1242,6 +1317,31 @@ function getSubmitToAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntr
     return getManagerAccountID(policy, expenseReport);
 }
 
+function getSubmitReportManagerAccountID(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): number | undefined {
+    const ownerAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const existingManagerID = expenseReport?.managerID;
+    const approvalRules = policy?.rules?.approvalRules;
+    const ruleApprover = !isSubmitAndClose(policy) && approvalRules?.length ? getFirstRuleApprover(approvalRules, expenseReport) : '';
+    const submitToAccountID = ruleApprover ? (getAccountIDsByLogins([ruleApprover]).at(0) ?? -1) : getManagerAccountID(policy, expenseReport);
+    const isValidSubmitToAccountID = isValidAccountRoute(submitToAccountID);
+    const isValidExistingManagerID = isValidAccountRoute(existingManagerID ?? CONST.DEFAULT_NUMBER_ID) && existingManagerID !== ownerAccountID;
+    const employeeLogin = getLoginByAccountID(ownerAccountID) ?? '';
+    const hasReliablePolicyRoute =
+        ([CONST.POLICY.APPROVAL_MODE.OPTIONAL, CONST.POLICY.APPROVAL_MODE.BASIC] as Array<ValueOf<typeof CONST.POLICY.APPROVAL_MODE>>).includes(getApprovalWorkflow(policy)) ||
+        !!ruleApprover ||
+        !!policy?.employeeList?.[employeeLogin];
+
+    if (hasReliablePolicyRoute && isValidSubmitToAccountID) {
+        return submitToAccountID;
+    }
+
+    if (!hasReliablePolicyRoute && isValidExistingManagerID) {
+        return existingManagerID;
+    }
+
+    return isValidSubmitToAccountID ? submitToAccountID : existingManagerID;
+}
+
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string {
     const managerAccountID = getManagerAccountID(policy, expenseReport);
     return getLoginsByAccountIDs([managerAccountID]).at(0) ?? '';
@@ -1276,11 +1376,6 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
-/** @deprecated Please use ONYXKEYS.PERSONAL_POLICY_ID to find the personal policyID */
-function getPersonalPolicy() {
-    return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
-}
-
 function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     if (!policy?.employeeList) {
         return [];
@@ -1306,7 +1401,7 @@ function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, cu
  * Checks whether the current user has a policy with admin access
  */
 function hasActiveAdminWorkspaces(currentUserLogin: string | undefined, policies?: OnyxCollection<Policy>) {
-    return getActiveAdminWorkspaces(policies ?? allPolicies, currentUserLogin).length > 0;
+    return getActiveAdminWorkspaces(policies, currentUserLogin).length > 0;
 }
 
 /**
@@ -1392,75 +1487,47 @@ function settingsPendingAction(settings?: string[], pendingFields?: PendingField
     return pendingFields[key];
 }
 
-function findSelectedVendorWithDefaultSelect(vendors: NetSuiteVendor[] | undefined, selectedVendorId: string | undefined) {
-    const selectedVendor = (vendors ?? []).find(({id}) => id === selectedVendorId);
-    return selectedVendor ?? vendors?.[0] ?? undefined;
-}
-
-function findSelectedBankAccountWithDefaultSelect(accounts: NetSuiteAccount[] | undefined, selectedBankAccountId: string | undefined) {
-    const selectedBankAccount = (accounts ?? []).find(({id}) => id === selectedBankAccountId);
-    return selectedBankAccount ?? accounts?.[0] ?? undefined;
-}
-
-function findSelectedInvoiceItemWithDefaultSelect(invoiceItems: InvoiceItem[] | undefined, selectedItemId: string | undefined) {
-    const selectedInvoiceItem = (invoiceItems ?? []).find(({id}) => id === selectedItemId);
-    return selectedInvoiceItem ?? invoiceItems?.[0] ?? undefined;
-}
-
-function findSelectedTaxAccountWithDefaultSelect(taxAccounts: NetSuiteTaxAccount[] | undefined, selectedAccountId: string | undefined) {
-    const selectedTaxAccount = (taxAccounts ?? []).find(({externalID}) => externalID === selectedAccountId);
-    return selectedTaxAccount ?? taxAccounts?.[0] ?? undefined;
-}
-
 function getNetSuiteVendorOptions(policy: Policy | undefined, selectedVendorId: string | undefined): SelectorType[] {
     const vendors = policy?.connections?.netsuite?.options.data.vendors;
-
-    const selectedVendor = findSelectedVendorWithDefaultSelect(vendors, selectedVendorId);
 
     return (vendors ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedVendor?.id === id,
+        isSelected: id === selectedVendorId,
     }));
 }
 
 function getNetSuitePayableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
 
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(payableAccounts, selectedBankAccountId);
-
     return (payableAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedPayableAccount?.id === id,
+        isSelected: id === selectedBankAccountId,
     }));
 }
 
 function getNetSuiteReceivableAccountOptions(policy: Policy | undefined, selectedBankAccountId: string | undefined): SelectorType[] {
     const receivableAccounts = policy?.connections?.netsuite?.options.data.receivableList;
 
-    const selectedReceivableAccount = findSelectedBankAccountWithDefaultSelect(receivableAccounts, selectedBankAccountId);
-
     return (receivableAccounts ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedReceivableAccount?.id === id,
+        isSelected: id === selectedBankAccountId,
     }));
 }
 
 function getNetSuiteInvoiceItemOptions(policy: Policy | undefined, selectedItemId: string | undefined): SelectorType[] {
     const invoiceItems = policy?.connections?.netsuite?.options.data.items;
 
-    const selectedInvoiceItem = findSelectedInvoiceItemWithDefaultSelect(invoiceItems, selectedItemId);
-
     return (invoiceItems ?? []).map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedInvoiceItem?.id === id,
+        isSelected: id === selectedItemId,
     }));
 }
 
@@ -1468,13 +1535,11 @@ function getNetSuiteTaxAccountOptions(policy: Policy | undefined, subsidiaryCoun
     const taxAccounts = policy?.connections?.netsuite?.options.data.taxAccountsList;
     const accountOptions = (taxAccounts ?? []).filter(({country}) => country === subsidiaryCountry);
 
-    const selectedTaxAccount = findSelectedTaxAccountWithDefaultSelect(accountOptions, selectedAccountId);
-
     return accountOptions.map(({externalID, name}) => ({
         value: externalID,
         text: name,
         keyForList: externalID,
-        isSelected: selectedTaxAccount?.externalID === externalID,
+        isSelected: externalID === selectedAccountId,
     }));
 }
 
@@ -1494,13 +1559,11 @@ function getNetSuiteReimbursableAccountOptions(policy: Policy | undefined, selec
     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
 
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
-
     return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedPayableAccount?.id === id,
+        isSelected: id === selectedBankAccountId,
     }));
 }
 
@@ -1512,13 +1575,11 @@ function getNetSuiteCollectionAccountOptions(policy: Policy | undefined, selecte
     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
     const accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
 
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
-
     return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedPayableAccount?.id === id,
+        isSelected: id === selectedBankAccountId,
     }));
 }
 
@@ -1535,13 +1596,14 @@ function getNetSuiteApprovalAccountOptions(policy: Policy | undefined, selectedB
     };
     const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts ?? []));
 
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
+    // When nothing is explicitly set, the synthesized default approval account is the effective selection in NetSuite.
+    const effectiveSelectionId = selectedBankAccountId ?? CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT;
 
     return accountOptions.map(({id, name}) => ({
         value: id,
         text: name,
         keyForList: id,
-        isSelected: selectedPayableAccount?.id === id,
+        isSelected: id === effectiveSelectionId,
     }));
 }
 
@@ -1859,31 +1921,6 @@ function isPolicyAccessible(policy: OnyxEntry<Policy>, currentUserLogin: string)
     );
 }
 
-function areAllGroupPoliciesExpenseChatDisabled(policies: OnyxCollection<Policy> | null) {
-    let foundGroupPolicy = false;
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            continue;
-        }
-
-        if (policy.isJoinRequestPending || !shouldShowPolicy(policy, false, undefined)) {
-            continue;
-        }
-
-        foundGroupPolicy = true;
-
-        if (policy.isPolicyExpenseChatEnabled) {
-            return false;
-        }
-    }
-
-    if (!foundGroupPolicy) {
-        return false;
-    }
-
-    return true;
-}
-
 function getGroupPaidPoliciesWithExpenseChatEnabled(policies: OnyxCollection<Policy> | null) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
@@ -2054,13 +2091,6 @@ function isPreferredExporter(policy: Policy, currentUserLogin: string) {
 }
 
 /**
- * Checks if the current user is a member of any policyExpenseChatEnabled policy
- */
-function isCurrentUserMemberOfAnyPolicy(): boolean {
-    return Object.values(allPolicies ?? {}).some((policy) => policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE);
-}
-
-/**
  * Determines which travel step should be shown based on policy state
  */
 function getTravelStep(
@@ -2126,6 +2156,32 @@ function sortPoliciesByName(policies: Policy[], localeCompare: (a: string, b: st
     return policies.sort((a, b) => localeCompare(a.name || '', b.name || ''));
 }
 
+/**
+ * Builds a source URL for rendering a policy document PDF.
+ * Local blob/file URIs (from optimistic uploads) are returned directly.
+ * Remote URLs are routed through the authenticated GetPolicyRulesDocument streaming endpoint.
+ * The stored URL (which contains a unique timestamp per upload) is appended as a version
+ * parameter so the browser treats each replacement as a distinct resource.
+ */
+function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyID: string | undefined, encryptedAuthToken: string): string {
+    if (!rulesDocumentURL || !policyID) {
+        return '';
+    }
+
+    const isLocalFile = rulesDocumentURL.startsWith('blob:') || rulesDocumentURL.startsWith('file:');
+    if (isLocalFile) {
+        return rulesDocumentURL;
+    }
+
+    return addEncryptedAuthTokenToURL(
+        // Each PDF upload gets a unique S3 key, so rulesDocumentURL changes on every replacement.
+        // Encoding it as cacheBuster ensures the full streaming URL is also unique, preventing stale browser/pdfjs cache.
+        `${getApiRoot({shouldUseSecure: false})}api/GetPolicyRulesDocument?policyID=${policyID}&cacheBuster=${encodeURIComponent(rulesDocumentURL)}`,
+        encryptedAuthToken,
+        true,
+    );
+}
+
 export {
     canEditTaxRate,
     canPolicyAccessFeature,
@@ -2145,9 +2201,6 @@ export {
     getSoftExclusionsForGuideAndAccountManager,
     filterGuideAndAccountManager,
     isMultiLevelTags,
-    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getPersonalPolicy,
     getPolicyBrickRoadIndicatorStatus,
     getSortedTagKeys,
     getTagList,
@@ -2177,6 +2230,8 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
+    canEditWorkspaceSettings,
+    isGroupPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
     isPolicyUser,
@@ -2204,10 +2259,6 @@ export {
     findCurrentXeroOrganization,
     getCurrentXeroOrganizationName,
     getXeroBankAccounts,
-    findSelectedVendorWithDefaultSelect,
-    findSelectedBankAccountWithDefaultSelect,
-    findSelectedInvoiceItemWithDefaultSelect,
-    findSelectedTaxAccountWithDefaultSelect,
     hasPolicyWithXeroConnection,
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
@@ -2257,6 +2308,7 @@ export {
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
+    getSubmitReportManagerAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getTagNamesFromTagsLists,
@@ -2273,16 +2325,13 @@ export {
     getRuleApprovers,
     canModifyPlan,
     getAdminsPrivateEmailDomains,
-    getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
     getManagerAccountID,
     isPreferredExporter,
     getCustomUnitsForDuplication,
-    areAllGroupPoliciesExpenseChatDisabled,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
-    isCurrentUserMemberOfAnyPolicy,
     getPolicyRole,
     hasIndependentTags,
     getLengthOfTag,
@@ -2299,6 +2348,7 @@ export {
     isPolicyTaxEnabled,
     sortPoliciesByName,
     isPolicyApprover,
+    getRulesDocumentSourceURL,
     getHRConnectionNames,
     isGustoConnected,
 };

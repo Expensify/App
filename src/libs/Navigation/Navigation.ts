@@ -13,7 +13,9 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
+import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -43,6 +45,7 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
+// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from './TransitionTracker';
 import type {
     NavigationPartialRoute,
@@ -59,6 +62,10 @@ type FocusedScreen = {
     name: string;
     params?: Record<string, unknown>;
 };
+
+// Installs the modality flag (keydown/mousedown) and focus-return listeners (focusin/click); NavigationRoot.onReady attaches the state listener once live.
+setupHadTabNavigation();
+setupNavigationFocusReturn();
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([
@@ -483,6 +490,13 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
         return;
     }
 
+    // For TAB_NAVIGATOR targets, POP_TO restores nested state from the payload (#89006). Skip when
+    // there's nothing to pop — POP_TO would otherwise pop to an older matching route (#89209).
+    if (distanceToPop > 0 && (minimalAction.payload as {name?: string} | undefined)?.name === NAVIGATORS.TAB_NAVIGATOR) {
+        navigationRef.current.dispatch({...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.POP_TO, target: targetState.key});
+        return;
+    }
+
     navigationRef.current.dispatch({...StackActions.pop(distanceToPop), target: targetState.key});
 }
 
@@ -601,7 +615,7 @@ function goBackToHome() {
     const isNarrowLayout = getIsNarrowLayout();
 
     // This set the right split navigator.
-    goBack(ROUTES.INBOX);
+    goBack(ROUTES.HOME);
 
     // We want to keep the report screen in the split navigator on wide layout.
     if (!isNarrowLayout) {
@@ -609,7 +623,7 @@ function goBackToHome() {
     }
 
     // This set the right route in this split navigator.
-    goBack(ROUTES.INBOX);
+    goBack(ROUTES.HOME);
 }
 
 /**
@@ -966,12 +980,6 @@ function navigateBackToLastSuperWideRHPScreen(options: {afterTransition?: () => 
 }
 
 function dismissToSuperWideRHP(options: {afterTransition?: () => void} = {}) {
-    // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
-    if (getIsNarrowLayout()) {
-        dismissModal(options);
-        return;
-    }
-    // On wide layouts, dismiss back to the Super Wide RHP modal stack
     navigateBackToLastSuperWideRHPScreen(options);
 }
 

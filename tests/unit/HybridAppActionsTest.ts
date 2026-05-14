@@ -197,6 +197,31 @@ describe('HybridApp actions', () => {
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
     });
 
+    it('allows shouldSetNVP exits when NVP_TRY_NEW_DOT arrives before SESSION on initial app start', async () => {
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        await waitForBatchedUpdatesWithAct();
+
+        // Simulate mobile ordering: NVP fires before SESSION
+        await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
+            classicRedirect: {
+                dismissed: false,
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // SESSION fires after NVP — this is the initial undefined → accountID transition
+        await Onyx.set(ONYXKEYS.SESSION, {
+            accountID: 1,
+            authToken: 'auth-token',
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // closeReactNativeApp should still work because the initial session load
+        // must not blank the already-populated currentTryNewDot
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
+    });
+
     it('preserves shouldSetNVP exits when the auth token rotates for the same session', async () => {
         await Onyx.multiSet({
             [ONYXKEYS.IS_LOADING_APP]: false,

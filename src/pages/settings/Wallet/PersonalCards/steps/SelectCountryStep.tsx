@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -97,15 +98,17 @@ function SelectCountryStep({disableAutoFocus}: {disableAutoFocus?: boolean}) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('personalCard.addPersonalCard')}
-                onBackButtonPress={handleBackButtonPress}
-            />
+            <CollapsibleHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    title={translate('personalCard.addPersonalCard')}
+                    onBackButtonPress={handleBackButtonPress}
+                />
 
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whereIsYourBankLocated')}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whereIsYourBankLocated')}</Text>
+            </CollapsibleHeaderOnKeyboard>
             <SelectionList
                 data={searchResults}
-                ListItem={RadioListItem}
+                ListItem={SingleSelectListItem}
                 onSelectRow={onSelectionChange}
                 textInputOptions={{
                     headerMessage,
