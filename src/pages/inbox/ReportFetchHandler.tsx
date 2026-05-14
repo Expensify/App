@@ -16,7 +16,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
-import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isPublicRoom, isReportTransactionThread, isTaskReport, isThread, isValidReportIDFromPath} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
@@ -24,6 +24,7 @@ import {
     createTransactionThreadReport,
     openReport,
     readNewestAction,
+    setViewingPublicRoomReportID,
     subscribeToReportLeavingEvents,
     unsubscribeFromLeavingRoomReportChannel,
     updateLastVisitTime,
@@ -83,6 +84,7 @@ function ReportFetchHandler() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
+    const [viewingPublicRoomReportID] = useOnyx(ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID);
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
@@ -174,6 +176,14 @@ function ReportFetchHandler() {
         openReport({reportID, introSelected, betas});
     });
 
+    const joinPublicRoomIfNeeded = useEffectEvent(() => {
+        // Return early if the viewing public room is the current report since we will fetch the current report in another function
+        if (!viewingPublicRoomReportID || viewingPublicRoomReportID === reportIDFromRoute) {
+            return;
+        }
+        openReport({reportID: viewingPublicRoomReportID, introSelected, betas});
+    });
+
     // Effect order below matches the original declaration order in ReportScreen.tsx.
 
     // When a delegate splits an expense the server sends a temporary Onyx SET that wipes the
@@ -223,6 +233,7 @@ function ReportFetchHandler() {
         }
         // Re-fetch public report data after user signs in and OpenApp API is called to
         // avoid reportActions data being empty for public rooms.
+        joinPublicRoomIfNeeded();
         fetchReport();
     }, [isLoadingReportData, prevIsLoadingReportData, prevIsAnonymousUser, isAnonymousUser]);
 
@@ -248,6 +259,14 @@ function ReportFetchHandler() {
         }
         updateLastVisitTime(reportID);
     }, [reportID, isFocused, isInSidePanel]);
+
+    useEffect(() => {
+        if (!isFocused || !reportID || !isPublicRoom(report) || !isAnonymousUser) {
+            return;
+        };
+
+        setViewingPublicRoomReportID(isThread(report) ? report.parentReportID : reportID);
+    }, [reportID, report, isAnonymousUser]);
 
     useEffect(() => {
         const interactionTask = InteractionManager.runAfterInteractions(() => {
