@@ -1,5 +1,3 @@
 const STITCHED_ODOMETER_FILENAME_PREFIX = 'stitched_odometer';
-const SINGLE_ODOMETER_FILENAME = 'odometer.jpg';
 
-export {SINGLE_ODOMETER_FILENAME};
 export default STITCHED_ODOMETER_FILENAME_PREFIX;
