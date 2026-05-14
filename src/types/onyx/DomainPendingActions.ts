@@ -126,5 +126,5 @@ type DomainPendingAction = {
     pendingAction?: OnyxCommon.PendingAction;
 } & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupPendingActions>;
 
-export type {GeneralDomainMemberPendingAction, DomainSecurityGroupPendingActions};
+export type {DomainSecurityGroupPendingActions};
 export default DomainPendingAction;

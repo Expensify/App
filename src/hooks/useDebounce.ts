@@ -1,7 +1,7 @@
 // eslint-disable-next-line lodash/import-scope
 import type {DebouncedFunc, DebounceSettings} from 'lodash';
 import lodashDebounce from 'lodash/debounce';
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type GenericFunction = (...args: any[]) => void;
@@ -34,13 +34,13 @@ export default function useDebounce<T extends GenericFunction>(func: T, wait: nu
         };
     }, [func, wait, leading, maxWait, trailing]);
 
-    const debounceCallback = (...args: Parameters<T>) => {
+    const debounceCallback = useCallback((...args: Parameters<T>) => {
         const debouncedFn = debouncedFnRef.current;
 
         if (debouncedFn) {
             debouncedFn(...args);
         }
-    };
+    }, []);
 
     return debounceCallback as T;
 }

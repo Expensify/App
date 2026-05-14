@@ -1440,5 +1440,3 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 }
 
 export {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
-
-export type {UpdateSplitTransactionsParams};

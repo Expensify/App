@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
@@ -17,13 +16,14 @@ type ComposerActionMenuProps = {
 
 function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isMenuVisible, isFullComposerAvailable, draftComment} = useComposerState();
+    const {isMenuVisible, isFullComposerAvailable} = useComposerState();
     const {exceededMaxLength} = useComposerSendState();
-    const {setMenuVisibility, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker} = useComposerActions();
-    const {actionButtonRef, composerRef} = useComposerMeta();
+    const {setMenuVisibility, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker} = useComposerActions();
+    const {actionButtonRef} = useComposerMeta();
     const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
 
     const {raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
@@ -40,7 +40,6 @@ function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
     return (
         <>
             <AttachmentPickerWithMenuItems
-                testID={CONST.COMPOSER.TEST_ID.DRAFT_MESSAGE_ACTION_ROW}
                 onAttachmentPicked={(files) => pickAttachments({files})}
                 reportID={reportID}
                 report={report}
@@ -59,7 +58,7 @@ function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
                     if (!shouldFocusComposerOnScreenFocus) {
                         return;
                     }
-                    composerRef.current?.focus(true);
+                    focus();
                 }}
                 actionButtonRef={actionButtonRef}
                 shouldDisableAttachmentItem={!!exceededMaxLength}
