@@ -35,7 +35,7 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {CardList, Policy, Transaction} from '@src/types/onyx';
 import type {HoldMenuCallback} from '..';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
@@ -117,9 +117,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     isMobileSelectionModeEnabled: boolean;
 
     newTransactions?: Transaction[];
-
-    /** Violations indexed by transaction ID */
-    violations?: Record<string, TransactionViolations | undefined> | undefined;
 
     /** Callback to fire when hold menu should be opened */
     onHoldMenuOpen?: HoldMenuCallback;
@@ -217,7 +214,6 @@ function SearchList({
     shouldAnimate,
     isMobileSelectionModeEnabled,
     newTransactions = [],
-    violations,
     onHoldMenuOpen,
     nonPersonalAndWorkspaceCards,
     selectedTransactions,
@@ -229,7 +225,7 @@ function SearchList({
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
-    const {hash, groupBy, type} = queryJSON;
+    const {groupBy, type} = queryJSON;
     const flattenedItems = useMemo(() => {
         if (groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
             if (!isTransactionGroupListItemArray(data)) {
@@ -298,8 +294,6 @@ function SearchList({
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
-
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
@@ -445,9 +439,7 @@ function SearchList({
                         onSelectionButtonPress={onCheckboxPress}
                         canSelectMultiple={canSelectMultiple}
                         item={itemWithSelection}
-                        queryJSONHash={hash}
                         columns={columns}
-                        policies={policies}
                         policyForMovingExpenses={policyForMovingExpenses}
                         isDisabled={isDisabled}
                         groupBy={groupBy}
@@ -458,8 +450,6 @@ function SearchList({
                         ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
                         personalDetails={personalDetails}
                         userBillingFundID={userBillingFundID}
-                        isOffline={isOffline}
-                        violations={violations}
                         nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
@@ -485,13 +475,9 @@ function SearchList({
             handleLongPressRow,
             onCheckboxPress,
             canSelectMultiple,
-            hash,
             columns,
-            policies,
             personalDetails,
             userBillingFundID,
-            isOffline,
-            violations,
             lastPaymentMethod,
             personalPolicyID,
             onHoldMenuOpen,
