@@ -7,8 +7,8 @@ const slideFromRight: PlatformSpecificNavigationOptions = {
     animation: InternalPlatformAnimations.SLIDE_FROM_RIGHT,
     gestureDirection: 'horizontal',
     transitionSpec: {
-        open: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_OPEN_WEB}},
-        close: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_CLOSE_WEB}},
+        open: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_WEB}},
+        close: {animation: 'timing', config: {duration: CONST.MODAL.ANIMATION_TIMING.RHP_DURATION_WEB}},
     },
 } satisfies StackNavigationOptions;
 
