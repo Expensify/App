@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -28,6 +27,16 @@ jest.mock('@pages/inbox/report/useShouldShowEnableNotificationsBanner', () => ({
 jest.mock('@hooks/useIsReportReadyToDisplay', () => ({
     __esModule: true,
     default: () => ({isCurrentReportLoadedFromOnyx: true, isEditingDisabled: false}),
+}));
+
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: (key: string) => {
+        if (key === 'report_1') {
+            return [{reportID: '1'}, {status: 'loaded'}];
+        }
+        return [undefined, {status: 'loaded'}];
+    },
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -86,12 +95,6 @@ describe('ReportFooter banner gating', () => {
     beforeEach(async () => {
         mockShouldShow = false;
         await Onyx.clear();
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}`, {
-            reportID: CONCIERGE_REPORT_ID,
-            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            ownerAccountID: CONST.ACCOUNT_ID.CONCIERGE,
-            participants: {[CONST.ACCOUNT_ID.CONCIERGE]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
-        });
     });
 
     it('renders EnableNotificationsBanner when the hook says it should show', async () => {
