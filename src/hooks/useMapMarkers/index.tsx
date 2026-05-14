@@ -1,8 +1,7 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import ImageSVG from '@components/ImageSVG';
-// eslint-disable-next-line import/extensions
-import getMapMarkerSize from './getMapMarkerSize.ts';
+import getMapMarkerSize from './getMapMarkerSize';
 import type {MapMarkerType} from './types';
 import useMapMarkerIconAsset from './useMapMarkerIconAsset';
 

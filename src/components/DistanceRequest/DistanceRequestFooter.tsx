@@ -9,7 +9,7 @@ import type {WayPoint} from '@components/MapView/MapViewTypes';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMapMarkers from '@hooks/useMapMarkers';
-import type {MapMarkerType} from '@hooks/useMapMarkers';
+import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';

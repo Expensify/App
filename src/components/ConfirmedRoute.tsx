@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useMapMarkers from '@hooks/useMapMarkers';
-import type {MapMarkerType} from '@hooks/useMapMarkers';
+import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
