@@ -1,7 +1,5 @@
-import {personalDetailsLoginSelector, personalDetailsSelector, personalDetailsWithCustomNameSelector} from '@selectors/PersonalDetails';
-import {newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {personalDetailsLoginSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
 import type {PersonalDetailsList} from '@src/types/onyx';
-import {translateLocal} from '../utils/TestHelper';
 
 describe('PersonalDetailsSelector', () => {
     const accountID = 123;
@@ -44,40 +42,6 @@ describe('PersonalDetailsSelector', () => {
         it('should return undefined if the personalDetailsList is undefined', () => {
             const result = personalDetailsLoginSelector(accountID)(undefined);
             expect(result).toBeUndefined();
-        });
-    });
-
-    describe('personalDetailsWithCustomNameSelector', () => {
-        it('should match the result from newGetPersonalDetailsByIDs when shouldChangeUserDisplayName is false', () => {
-            const accountIDs = [accountID];
-            const result = personalDetailsWithCustomNameSelector({accountIDs})(personalDetailsList);
-
-            const expected = newGetPersonalDetailsByIDs({
-                accountIDs,
-                personalDetails: personalDetailsList,
-            });
-
-            expect(result).toEqual(expected);
-        });
-
-        it('should match the result from newGetPersonalDetailsByIDs when shouldChangeUserDisplayName is true', () => {
-            const accountIDs = [accountID];
-            const result = personalDetailsWithCustomNameSelector({
-                accountIDs,
-                currentUserAccountID: accountID,
-                shouldChangeUserDisplayName: true,
-                translate: translateLocal,
-            })(personalDetailsList);
-
-            const expected = newGetPersonalDetailsByIDs({
-                accountIDs,
-                personalDetails: personalDetailsList,
-                shouldChangeUserDisplayName: true,
-                currentUserAccountID: accountID,
-                translate: translateLocal,
-            });
-
-            expect(result).toEqual(expected);
         });
     });
 });

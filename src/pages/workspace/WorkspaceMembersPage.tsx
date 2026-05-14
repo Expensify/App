@@ -213,7 +213,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
         return translate('workspace.people.removeMembersPrompt', {
             count: selectedEmployees.length,
-            memberName: formatPhoneNumber(newGetPersonalDetailsByIDs({accountIDs: [firstSelectedEmployeeAccountID], personalDetails}).at(0)?.displayName ?? ''),
+            memberName: formatPhoneNumber(newGetPersonalDetailsByIDs([firstSelectedEmployeeAccountID], personalDetails).at(0)?.displayName ?? ''),
         });
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, personalDetails]);
     /**

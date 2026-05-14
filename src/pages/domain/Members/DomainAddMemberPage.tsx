@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {defaultSecurityGroupIDSelector, domainNameSelector, memberAccountIDsSelector} from '@src/selectors/Domain';
-import {personalDetailsWithCustomNameSelector} from '@src/selectors/PersonalDetails';
+import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/AddDomainMemberForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -53,7 +53,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const [memberIDs = getEmptyArray<number>()] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: memberAccountIDsSelector,
     });
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsWithCustomNameSelector({accountIDs: memberIDs})}, [memberIDs]);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: multiPersonalDetailsSelector(memberIDs)}, [memberIDs]);
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
 

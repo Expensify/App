@@ -2,12 +2,11 @@ import React, {useEffect} from 'react';
 import type {RefObject} from 'react';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getEmojiReactionDetails} from '@libs/EmojiUtils';
 import type {ReactionListAnchor} from '@pages/inbox/ReportScreenContext';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsWithCustomNameSelector} from '@src/selectors/PersonalDetails';
+import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import BaseReactionList from './BaseReactionList';
@@ -22,7 +21,6 @@ type PopoverReactionListProps = {
 };
 
 function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPosition, anchorRef, onClose}: PopoverReactionListProps) {
-    const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
 
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
@@ -34,9 +32,9 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
     const [users = getEmptyArray<PersonalDetails>()] = useOnyx(
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         {
-            selector: isReady ? personalDetailsWithCustomNameSelector({accountIDs: userAccountIDs, currentUserAccountID: accountID, shouldChangeUserDisplayName: true, translate}) : () => [],
+            selector: multiPersonalDetailsSelector(isReady ? userAccountIDs : []),
         },
-        [userAccountIDs, accountID, translate],
+        [isReady, userAccountIDs],
     );
 
     // Hide the list when all reactions are removed

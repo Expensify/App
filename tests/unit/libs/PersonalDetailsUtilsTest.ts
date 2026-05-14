@@ -721,37 +721,22 @@ describe('PersonalDetailsUtils', () => {
         };
 
         it('should return an empty array if accountIDs is empty', () => {
-            const result = newGetPersonalDetailsByIDs({
-                accountIDs: [],
-                personalDetails,
-            });
+            const result = newGetPersonalDetailsByIDs([], personalDetails);
             expect(result).toEqual([]);
         });
 
         it('should return personal details for the given accountIDs', () => {
-            const result = newGetPersonalDetailsByIDs({
-                accountIDs: [accountID1, accountID2],
-                personalDetails,
-            });
+            const result = newGetPersonalDetailsByIDs([accountID1, accountID2], personalDetails);
             expect(result).toEqual([personalDetails[accountID1], personalDetails[accountID2]]);
         });
 
         it('should filter out accountIDs that do not have corresponding personal details', () => {
-            const result = newGetPersonalDetailsByIDs({
-                accountIDs: [accountID1, 999],
-                personalDetails,
-            });
+            const result = newGetPersonalDetailsByIDs([accountID1, 999], personalDetails);
             expect(result).toEqual([personalDetails[accountID1]]);
         });
 
         it("should replace the current user's displayName with 'You' if shouldChangeUserDisplayName is true", () => {
-            const result = newGetPersonalDetailsByIDs({
-                accountIDs: [accountID1, accountID2],
-                personalDetails,
-                shouldChangeUserDisplayName: true,
-                currentUserAccountID: accountID1,
-                translate: translateLocal,
-            });
+            const result = newGetPersonalDetailsByIDs([accountID1, accountID2], personalDetails);
             expect(result).toEqual([
                 {
                     ...personalDetails[accountID1],

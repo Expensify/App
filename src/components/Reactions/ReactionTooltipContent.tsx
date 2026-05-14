@@ -5,8 +5,10 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLocalizedEmojiName} from '@libs/EmojiUtils';
+import {getDisplayNameOrYou} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsWithCustomNameSelector} from '@src/selectors/PersonalDetails';
+import {multiPersonalDetailsSelector} from '@src/selectors/PersonalDetails';
+import type {PersonalDetails} from '@src/types/onyx';
 
 type ReactionTooltipContentProps = {
     /**
@@ -36,15 +38,15 @@ function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserA
     const [users] = useOnyx(
         ONYXKEYS.PERSONAL_DETAILS_LIST,
         {
-            selector: personalDetailsWithCustomNameSelector({accountIDs, shouldChangeUserDisplayName: true, currentUserAccountID, translate}),
+            selector: multiPersonalDetailsSelector(accountIDs),
         },
-        [accountIDs, currentUserAccountID, translate],
+        [accountIDs],
     );
     const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     const namesString =
         users
-            ?.map((user) => user?.displayName)
+            ?.map((user) => getDisplayNameOrYou(user.displayName ?? '', user.accountID, currentUserAccountID, translate))
             .filter((name) => name)
             .join(', ') ?? '';
 

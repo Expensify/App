@@ -136,27 +136,7 @@ function getPersonalDetailsByIDs({
     return result;
 }
 
-function newGetPersonalDetailsByIDs(params: {
-    accountIDs: number[];
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    shouldChangeUserDisplayName: true;
-    currentUserAccountID: number | undefined;
-    translate: LocalizedTranslate;
-}): PersonalDetails[];
-function newGetPersonalDetailsByIDs(params: {accountIDs: number[]; personalDetails: OnyxEntry<PersonalDetailsList>; shouldChangeUserDisplayName?: false}): PersonalDetails[];
-function newGetPersonalDetailsByIDs({
-    accountIDs,
-    personalDetails,
-    currentUserAccountID,
-    shouldChangeUserDisplayName = false,
-    translate,
-}: {
-    accountIDs: number[];
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    currentUserAccountID?: number;
-    shouldChangeUserDisplayName?: boolean;
-    translate?: LocalizedTranslate;
-}): PersonalDetails[] {
+function newGetPersonalDetailsByIDs(accountIDs: number[], personalDetails: OnyxEntry<PersonalDetailsList>): PersonalDetails[] {
     const result: PersonalDetails[] = [];
     for (const accountID of accountIDs) {
         const detail = personalDetails?.[accountID];
@@ -164,13 +144,16 @@ function newGetPersonalDetailsByIDs({
             continue;
         }
 
-        if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID && translate) {
-            result.push({...detail, displayName: translate('common.you')});
-        } else {
-            result.push(detail);
-        }
+        result.push(detail);
     }
     return result;
+}
+
+function getDisplayNameOrYou(displayName: string, accountID: number, currentUserAccountID: number, translate: LocalizedTranslate) {
+    if (accountID === currentUserAccountID) {
+        return translate('common.you');
+    }
+    return displayName;
 }
 
 function getPersonalDetailByEmail(email: string | undefined): PersonalDetails | undefined {
@@ -496,6 +479,7 @@ export {
     getDisplayNameOrDefault,
     getPersonalDetailsByIDs,
     newGetPersonalDetailsByIDs,
+    getDisplayNameOrYou,
     getPersonalDetailByEmail,
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
