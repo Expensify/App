@@ -3,6 +3,7 @@ import type {Emoji} from '@assets/emojis/types';
 import * as Browser from '@libs/Browser';
 import emojiTrieForLocale, {buildEmojisTrie} from '@libs/EmojiTrie';
 import * as EmojiUtils from '@libs/EmojiUtils';
+import type FrequentlyUsedEmoji from '@src/types/onyx/FrequentlyUsedEmoji';
 import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
 // Unmock to use real parseExpensiMark for code block detection tests
@@ -728,6 +729,76 @@ describe('EmojiTest', () => {
             const details = EmojiUtils.getEmojiReactionDetails('madeupemojiname', reaction, 12345);
             expect(details.emoji).toBeUndefined();
             expect(details.reactionCount).toBe(1);
+        });
+    });
+
+    describe('processFrequentlyUsedEmojis hex dedup', () => {
+        it('returns empty array for empty input', () => {
+            expect(EmojiUtils.processFrequentlyUsedEmojis([])).toHaveLength(0);
+        });
+
+        it('filters out entries with no resolvable emoji', () => {
+            const input = [{name: 'made_up_emoji', code: '', count: 1, lastUpdatedAt: 100}] as FrequentlyUsedEmoji[];
+            expect(EmojiUtils.processFrequentlyUsedEmojis(input)).toHaveLength(0);
+        });
+
+        it('deduplicates name-only and code-only entries for the same emoji', () => {
+            const input: FrequentlyUsedEmoji[] = [
+                {name: '+1', code: '', count: 5, lastUpdatedAt: 100},
+                {name: '', code: '👍', count: 3, lastUpdatedAt: 200},
+            ];
+            const result = EmojiUtils.processFrequentlyUsedEmojis(input);
+            expect(result).toHaveLength(1);
+            expect(result[0].count).toBe(8);
+            expect(result[0].hexcode).toBe('1F44D');
+        });
+
+        it('deduplicates entries with same hexcode but different skin-tone glyph codes', () => {
+            const input: FrequentlyUsedEmoji[] = [
+                {name: '+1', code: '👍🏽', hexcode: '1F44D', count: 5, lastUpdatedAt: 100},
+                {name: '+1', code: '👍🏾', hexcode: '1F44D', count: 3, lastUpdatedAt: 200},
+            ];
+            const result = EmojiUtils.processFrequentlyUsedEmojis(input);
+            expect(result).toHaveLength(1);
+            expect(result[0].count).toBe(8);
+            expect(result[0].hexcode).toBe('1F44D');
+        });
+
+        it('collapses name-only, code-only, and hexcode-only entries for the same emoji into one', () => {
+            const input: FrequentlyUsedEmoji[] = [
+                {name: '+1', code: '', count: 5, lastUpdatedAt: 100},
+                {name: '', code: '👍', count: 3, lastUpdatedAt: 200},
+                {name: '', code: '', hexcode: '1F44D', count: 2, lastUpdatedAt: 300},
+            ];
+            const result = EmojiUtils.processFrequentlyUsedEmojis(input);
+            expect(result).toHaveLength(1);
+            expect(result[0].count).toBe(10);
+            expect(result[0].hexcode).toBe('1F44D');
+        });
+
+        it('8-case format matrix: all 7 resolvable combinations collapse to one entry', () => {
+            const input: FrequentlyUsedEmoji[] = [
+                // 1. name + code + hexcode
+                {name: '+1', code: '👍', hexcode: '1F44D', count: 1, lastUpdatedAt: 100},
+                // 2. name + code (no hexcode)
+                {name: '+1', code: '👍', count: 1, lastUpdatedAt: 101},
+                // 3. name + hexcode (no code)
+                {name: '+1', code: '', hexcode: '1F44D', count: 1, lastUpdatedAt: 102},
+                // 4. name only
+                {name: '+1', code: '', count: 1, lastUpdatedAt: 103},
+                // 5. code + hexcode (no name)
+                {name: '', code: '👍', hexcode: '1F44D', count: 1, lastUpdatedAt: 104},
+                // 6. code only
+                {name: '', code: '👍', count: 1, lastUpdatedAt: 105},
+                // 7. hexcode only — filtered by current impl, passes after commit 12
+                {name: '', code: '', hexcode: '1F44D', count: 1, lastUpdatedAt: 106},
+                // 8. nothing at all — always filtered
+                {name: '', code: '', count: 0, lastUpdatedAt: 107},
+            ];
+            const result = EmojiUtils.processFrequentlyUsedEmojis(input);
+            expect(result).toHaveLength(1);
+            expect(result[0].count).toBe(7);
+            expect(result[0].hexcode).toBe('1F44D');
         });
     });
 
