@@ -4,8 +4,9 @@ import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsCon
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasHeldExpenses as hasHeldExpensesReportUtils, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {hasHeldExpensesFromTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,7 +30,8 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesFromTransactions(Object.values(reportTransactions));
 
     const confirmApproval = () => {
         if (isDelegateAccessRestricted) {
