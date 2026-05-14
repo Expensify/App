@@ -88,7 +88,7 @@ function ReanimatedModal({
     const onBackButtonPressEffectEvent = useEffectEvent(() => onBackButtonPressHandler());
 
     const handleEscape = useEffectEvent((e: KeyboardEvent) => {
-        if (e.key !== 'Escape' || onBackButtonPressEffectEvent() !== true) {
+        if (e.key !== 'Escape' || onBackButtonPressHandler() !== true) {
             return;
         }
         e.stopImmediatePropagation();
