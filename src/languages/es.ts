@@ -2372,7 +2372,6 @@ const translations: TranslationDeepObject<typeof en> = {
             revealDetails: 'Revelar detalles',
             revealCvv: 'Revelar CVV',
             copyCardNumber: 'Copiar número de la tarjeta',
-            copyCvv: 'Copiar CVV',
             updateAddress: 'Actualizar dirección',
         },
         cardAddedToWallet: ({platform}) => `Añadida a ${platform} Wallet`,
@@ -2628,9 +2627,6 @@ ${amount} para ${merchant} - ${date}`,
         },
         error: {
             genericAdd: 'Hubo un problema al agregar este agente',
-            genericUpdate: 'Hubo un problema al actualizar este agente',
-            updateName: 'Hubo un problema al actualizar el nombre de este agente',
-            updatePrompt: 'Hubo un problema al actualizar las instrucciones de este agente',
         },
     },
     addAgentPage: {
@@ -2642,23 +2638,6 @@ ${amount} para ${merchant} - ${date}`,
         defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
         defaultPrompt:
             'Rechazar gastos por juegos de azar, películas u otras razones claramente no comerciales.\n\nRecordar al usuario que siempre incluya una imagen del recibo que muestre claramente la propina.\n\nAprobar el informe si es muy similar a informes anteriores del mismo usuario.\n\nRechazar informes con más de $500 en gastos de viaje.',
-    },
-    editAgentPage: {
-        title: 'Editar agente',
-        agentName: 'Nombre del agente',
-        instructions: 'Escribe instrucciones personalizadas',
-        deleteAgent: 'Eliminar agente',
-        deleteAgentTitle: '¿Eliminar agente?',
-        deleteAgentMessage: '¿Estás seguro de que quieres eliminar este agente? Esta acción no se puede deshacer.',
-    },
-    editAgentNamePage: {
-        title: 'Nombre del agente',
-    },
-    editAgentPromptPage: {
-        title: 'Escribe instrucciones personalizadas',
-        error: {
-            emptyPrompt: 'Por favor, introduce instrucciones para tu agente.',
-        },
     },
     expenseRulesPage: {
         title: 'Reglas de gastos',
@@ -6369,15 +6348,9 @@ ${amount} para ${merchant} - ${date}`,
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',
                 other: '¿Estás seguro de que quieres eliminar estas tasas?',
             }),
-            amountPerUnit: (unit: string) => `Monto por ${unit}`,
-            startDate: 'Fecha de inicio',
-            endDate: 'Fecha de fin',
             errors: {
                 rateNameRequired: 'El nombre de la tasa es obligatorio',
                 existingRateName: 'Ya existe una tasa de distancia con este nombre',
-                nameRequired: 'El nombre es obligatorio.',
-                nameAlreadyExists: 'Ya existe una tasa de distancia con este nombre.',
-                startDateMustBeBeforeEndDate: 'La fecha de inicio debe ser anterior a la fecha de fin.',
             },
         },
         editor: {
