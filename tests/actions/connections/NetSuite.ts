@@ -221,5 +221,20 @@ describe('actions/connections/NetSuite', () => {
                 CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
             );
         });
+
+        it('reverts travelInvoicingJournalPostingPreference to the old value on failure', () => {
+            updateNetSuiteTravelInvoicingJournalPostingPreference(
+                MOCK_POLICY_ID,
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_INDIVIDUAL_LINE,
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
+            );
+
+            const {onyxData} = getFirstWriteCall();
+            const failureUpdate = onyxData?.failureData?.at(0);
+            const value = failureUpdate?.value as {connections: {netsuite: {options: {config: Record<string, unknown>}}}};
+            expect(value.connections.netsuite.options.config[CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE]).toBe(
+                CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE.JOURNALS_POSTING_TOTAL_LINE,
+            );
+        });
     });
 });
