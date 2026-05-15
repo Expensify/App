@@ -2363,6 +2363,7 @@ const translations: TranslationDeepObject<typeof en> = {
             revealDetails: 'Revelar detalles',
             revealCvv: 'Revelar CVV',
             copyCardNumber: 'Copiar número de la tarjeta',
+            copyCvv: 'Copiar CVV',
             updateAddress: 'Actualizar dirección',
         },
         cardAddedToWallet: ({platform}) => `Añadida a ${platform} Wallet`,
