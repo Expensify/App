@@ -1,4 +1,3 @@
-import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
@@ -62,9 +61,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
-    const [travelInvoicingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`, {
-        selector: isExpensifyCardContinuousReconciliationEnabledSelector,
-    });
+    const [travelInvoicingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
     const [travelInvoicingContinuousReconciliationPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${workspaceAccountID}`);
     const [travelInvoicingContinuousReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
     const [travelInvoicingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
@@ -191,7 +188,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'menuitem',
-            description: translate('workspace.expensifyCard.settlementAccount'),
+            description: translate('workspace.accounting.reconciliationAccount'),
             onPress: navigateToTravelInvoicingReconciliationAccountSettings,
             title: travelInvoicingReconciliationBankAccount?.name,
             shouldHide: !isTravelInvoicingEnabled || !travelInvoicingContinuousReconciliation,
