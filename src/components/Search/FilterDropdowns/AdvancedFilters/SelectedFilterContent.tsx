@@ -91,14 +91,16 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
                 }
                 onChange({[filterKey]: newValue} as Partial<SearchAdvancedFiltersForm>);
             }}
-            footer={fullscreen ? (
-                <Button
-                    success
-                    large
-                    text={translate('common.confirm')}
-                    onPress={() => onChange({[filterKey]: value} as Partial<SearchAdvancedFiltersForm>)}
-                />
-            ) : undefined}
+            footer={
+                fullscreen ? (
+                    <Button
+                        success
+                        large
+                        text={translate('common.confirm')}
+                        onPress={() => onChange({[filterKey]: value} as Partial<SearchAdvancedFiltersForm>)}
+                    />
+                ) : undefined
+            }
         />
     );
 }
