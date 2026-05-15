@@ -21,6 +21,18 @@ const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener
                 }
             }
         }
+
+        // Prevent duplicate navigation when tapping the "Scan receipt" shortcut
+        if (url.includes(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route)) {
+            const state = navigationRef.current?.getRootState();
+            if (state) {
+                const currentRoute = findFocusedRoute(state);
+                if (currentRoute?.name === ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route) {
+                    return;
+                }
+            }
+        }
+
         // The native Plaid SDK on iOS handles the OAuth callback itself. Forwarding this URL to
         // React Navigation would resolve to NotFound (or reset navigation away from the Plaid step)
         // and break the flow — keep the current screen mounted so the SDK can finish.
