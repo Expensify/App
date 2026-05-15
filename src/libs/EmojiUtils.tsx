@@ -161,11 +161,15 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
 const getLocalizedEmojiName = (name: string, locale: OnyxEntry<Locale>): string => {
     const normalizedLocale = locale && isFullySupportedLocale(locale) ? locale : CONST.LOCALES.EN;
 
+    // Hex-keyed reactions (e.g. '1F44D') must be resolved to their shortcode name before
+    // locale lookup, since emojiNameTable is indexed by name, not hexcode.
+    const shortcodeName = Emojis.findEmojiByHexCode(name)?.name ?? name;
+
     if (normalizedLocale === CONST.LOCALES.DEFAULT) {
-        return name;
+        return shortcodeName;
     }
 
-    const emojiCode = Emojis.emojiNameTable[name]?.code ?? '';
+    const emojiCode = Emojis.emojiNameTable[shortcodeName]?.code ?? '';
     return Emojis.localeEmojis[normalizedLocale]?.[emojiCode]?.name ?? '';
 };
 
