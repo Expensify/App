@@ -103,9 +103,6 @@ type ActionContentRouterProps = {
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
 
-    /** Whether the original report is archived */
-    isReportArchived: boolean;
-
     /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
@@ -151,7 +148,6 @@ function ActionContentRouter({
     isHidden,
     updateHiddenState,
     isArchivedRoom,
-    isReportArchived,
     isClosedExpenseReportWithNoExpenses,
     isHarvestCreatedExpenseReport,
     reportNameValuePairsOriginalID,
@@ -397,7 +393,6 @@ function ActionContentRouter({
                 reportID={reportID}
                 report={report}
                 originalReport={originalReport}
-                isReportArchived={isReportArchived}
             />
         );
     }

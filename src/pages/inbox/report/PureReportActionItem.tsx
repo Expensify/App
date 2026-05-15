@@ -16,12 +16,12 @@ import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionIt
 import RenderHTML from '@components/RenderHTML';
 import ChronosOOOListActions from '@components/ReportActionItem/ChronosOOOListActions';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
+import type {ShowContextMenuActionsContextType, ShowContextMenuStateContextType} from '@components/ShowContextMenuContext';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -230,7 +230,6 @@ function PureReportActionItem({
     const downloadedPreviews = useRef<string[]>([]);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
-    const isReportArchived = useReportIsArchived(reportID);
 
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
@@ -429,10 +428,9 @@ function PureReportActionItem({
         });
     };
 
-    const contextMenuStateValue = {
+    const contextMenuStateValue: ShowContextMenuStateContextType = {
         anchor: popoverAnchorRef,
         report,
-        isReportArchived,
         action,
         transactionThreadReport,
         isDisabled: false,
@@ -440,7 +438,7 @@ function PureReportActionItem({
         originalReportID,
     };
 
-    const contextMenuActionsValue = {
+    const contextMenuActionsValue: ShowContextMenuActionsContextType = {
         checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
         onShowContextMenu: handleShowContextMenu,
     };
@@ -622,7 +620,6 @@ function PureReportActionItem({
                                                             isHidden={isHidden}
                                                             updateHiddenState={updateHiddenState}
                                                             isArchivedRoom={isArchivedRoom}
-                                                            isReportArchived={isReportArchived}
                                                             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses}
                                                             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
                                                             reportNameValuePairsOriginalID={reportNameValuePairsOriginalID}
