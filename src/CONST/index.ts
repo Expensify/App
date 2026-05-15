@@ -308,8 +308,8 @@ const CONST = {
     },
 
     RECEIPT_CAMERA: {
-        PHOTO_WIDTH: 4032,
-        PHOTO_HEIGHT: 3024,
+        PHOTO_WIDTH: 2016,
+        PHOTO_HEIGHT: 1512,
         PHOTO_ASPECT_RATIO: 4 / 3,
     },
 
