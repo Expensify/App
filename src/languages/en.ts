@@ -6544,7 +6544,6 @@ const translations = {
                 nameRequired: 'Name is required.',
                 nameAlreadyExists: 'A distance rate with this name already exists.',
                 startDateMustBeBeforeEndDate: 'Start date must be before end date.',
-                endDateMustBeAfterStartDate: 'End date must be after start date.',
             },
         },
         editor: {

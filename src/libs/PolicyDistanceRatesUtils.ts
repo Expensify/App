@@ -83,7 +83,6 @@ function validateCreateDistanceRateForm(
 
     if (values.startDate && values.endDate && values.startDate > values.endDate) {
         errors.startDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
-        errors.endDate = translate('workspace.distanceRates.errors.endDateMustBeAfterStartDate');
     }
 
     return errors;
