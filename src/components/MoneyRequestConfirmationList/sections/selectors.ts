@@ -23,20 +23,30 @@ type Transaction = OnyxTypes.Transaction;
 
 type DateState = {iouCreated: string; isMissing: boolean};
 
-const dateStateSelector = (t: OnyxEntry<Transaction>): DateState => ({
-    iouCreated: getCreated(t),
-    isMissing: isCreatedMissing(t),
-});
+const dateStateSelector = (t: OnyxEntry<Transaction>): DateState | undefined => {
+    if (!t) {
+        return undefined;
+    }
+    return {
+        iouCreated: getCreated(t),
+        isMissing: isCreatedMissing(t),
+    };
+};
 
 // --- TimeFields ---
 
 type TimeState = {count: number | undefined; rate: number | undefined; currency: string};
 
-const timeStateSelector = (t: OnyxEntry<Transaction>): TimeState => ({
-    count: t?.comment?.units?.count,
-    rate: t?.comment?.units?.rate,
-    currency: getCurrency(t),
-});
+const timeStateSelector = (t: OnyxEntry<Transaction>): TimeState | undefined => {
+    if (!t) {
+        return undefined;
+    }
+    return {
+        count: t.comment?.units?.count,
+        rate: t.comment?.units?.rate,
+        currency: getCurrency(t),
+    };
+};
 
 // --- AttendeeField ---
 
@@ -61,42 +71,67 @@ const attendeeSliceSelector = (t: OnyxEntry<Transaction>): AttendeeSlice | undef
 
 type ToggleState = {billable: boolean; reimbursable: boolean};
 
-const toggleStateSelector = (t: OnyxEntry<Transaction>): ToggleState => ({
-    billable: t?.billable ?? false,
-    reimbursable: t?.reimbursable ?? true,
-});
+const toggleStateSelector = (t: OnyxEntry<Transaction>): ToggleState | undefined => {
+    if (!t) {
+        return undefined;
+    }
+    return {
+        billable: t.billable ?? false,
+        reimbursable: t.reimbursable ?? true,
+    };
+};
 
 // --- TagFields (factory — selector closes over tagIndex) ---
 
-const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction>) => getTagForDisplay({tag: t?.tag} as OnyxEntry<Transaction>, tagIndex);
+const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction>) => {
+    if (!t) {
+        return undefined;
+    }
+    return getTagForDisplay({tag: t.tag} as OnyxEntry<Transaction>, tagIndex);
+};
 
 // --- CategoryField ---
 
 type CategoryState = {category: string; willAutoFill: boolean};
 
-const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState => ({
-    category: getCategory(t),
-    willAutoFill: willFieldBeAutomaticallyFilled(t, 'category'),
-});
+const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undefined => {
+    if (!t) {
+        return undefined;
+    }
+    return {
+        category: getCategory(t),
+        willAutoFill: willFieldBeAutomaticallyFilled(t, 'category'),
+    };
+};
 
 // --- MerchantField ---
 
 type MerchantState = {merchant: string; isMissing: boolean; hasReceipt: boolean};
 
-const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState => ({
-    merchant: getMerchant(t),
-    isMissing: isMerchantMissing(t),
-    hasReceipt: hasReceipt(t),
-});
+const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState | undefined => {
+    if (!t) {
+        return undefined;
+    }
+    return {
+        merchant: getMerchant(t),
+        isMissing: isMerchantMissing(t),
+        hasReceipt: hasReceipt(t),
+    };
+};
 
 // --- DescriptionField ---
 
 type DescriptionState = {description: string; hasReceipt: boolean};
 
-const descriptionStateSelector = (t: OnyxEntry<Transaction>): DescriptionState => ({
-    description: t?.comment?.comment?.toString() ?? '',
-    hasReceipt: hasReceipt(t),
-});
+const descriptionStateSelector = (t: OnyxEntry<Transaction>): DescriptionState | undefined => {
+    if (!t) {
+        return undefined;
+    }
+    return {
+        description: t.comment?.comment?.toString() ?? '',
+        hasReceipt: hasReceipt(t),
+    };
+};
 
 // --- AmountField ---
 
@@ -160,10 +195,15 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 type ReportFieldTransactionState = {reportID: Transaction['reportID']; isFromGlobalCreate: boolean};
 
-const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState => ({
-    reportID: t?.reportID,
-    isFromGlobalCreate: !!t?.isFromGlobalCreate,
-});
+const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
+    if (!t) {
+        return undefined;
+    }
+    return {
+        reportID: t.reportID,
+        isFromGlobalCreate: !!t.isFromGlobalCreate,
+    };
+};
 
 const createOutstandingReportsForPolicySelector = (policyID: string | undefined) => (derived: OnyxEntry<OnyxTypes.OutstandingReportsByPolicyIDDerivedValue>) =>
     derived?.[policyID ?? CONST.DEFAULT_NUMBER_ID];
