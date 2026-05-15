@@ -1041,14 +1041,12 @@ function rejectExpenseReport(
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
         value: isRejectToSubmitter
             ? // buildOptimisticNextStep is used in parallel
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
                   isRejectedReport: true,
               })
             : // buildOptimisticNextStep is used in parallel
-              // eslint-disable-next-line @typescript-eslint/no-deprecated
               buildNextStepNew({
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
