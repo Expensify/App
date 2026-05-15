@@ -412,6 +412,19 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
 
         const linkedPage = pagesWithIndexes.find((pageIndex) => index >= pageIndex.firstIndex && index <= pageIndex.lastIndex);
 
+        const newestPage = selectNewestPageWithIndex(pagesWithIndexes);
+
+        // If the linked action is newer than the newest page boundary, show the newest chain
+        // instead of collapsing to a single-item result.
+        if (!linkedPage && newestPage && index < newestPage.firstIndex) {
+            return {
+                data: sortedItems.slice(0, newestPage.lastIndex + 1),
+                hasNextPage: newestPage.lastID !== CONST.PAGINATION_END_ID,
+                hasPreviousPage: newestPage.firstID !== CONST.PAGINATION_START_ID,
+                resourceItem,
+            };
+        }
+
         // If we are linked to an action in a gap return it by itself
         if (!linkedPage && resourceItem) {
             return {data: [resourceItem.item], hasNextPage: false, hasPreviousPage: false, resourceItem};
