@@ -140,7 +140,7 @@ function PrivatePersonalDetailsPage() {
         }
 
         const zipValue = values[INPUT_IDS.ZIP_POST_CODE] ?? '';
-        const countryRegexDetails = effectiveCountry ? (CONST.COUNTRY_ZIP_REGEX_DATA?.[effectiveCountry] as {regex?: RegExp; samples?: string}) : undefined;
+        const countryRegexDetails = effectiveCountry ? (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[effectiveCountry] as {regex?: RegExp; samples?: string}) : undefined;
         const countrySpecificZipRegex = countryRegexDetails?.regex;
         if (countrySpecificZipRegex) {
             if (!countrySpecificZipRegex.test(zipValue.trim().toUpperCase())) {
@@ -150,7 +150,7 @@ function PrivatePersonalDetailsPage() {
                     errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
                 }
             }
-        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(zipValue.trim().toUpperCase())) {
+        } else if (!COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(zipValue.trim().toUpperCase())) {
             errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat');
         }
 
