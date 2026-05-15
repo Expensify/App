@@ -282,7 +282,7 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
-    it('should append "Non-reimbursable" to the Amount description when the transaction is non-reimbursable', async () => {
+    it('should append "Non-reimbursable" to the Amount description when the transaction is non-reimbursable in a single-expense report', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
             parentReportID: expenseReportID,
@@ -300,6 +300,38 @@ describe('MoneyRequestView edit fields', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).toBeOnTheScreen();
+        });
+    });
+
+    it('should NOT append "Non-reimbursable" to the Amount description when the parent report has multiple expenses', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reimbursable: false});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}_sibling`, {
+                transactionID: `${transactionID}_sibling`,
+                reportID: expenseReportID,
+                amount: 2500,
+                currency: CONST.CURRENCY.USD,
+                created: '2025-06-02',
+                merchant: 'Sibling',
+                comment: {},
+                reimbursable: true,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport);
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+            expect(screen.queryByTestId(/^menu-item-iou\.amount.*iou\.nonReimbursable/i)).not.toBeOnTheScreen();
         });
     });
 });
