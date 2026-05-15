@@ -306,4 +306,4 @@ function ScreenWrapper({
 }
 
 export default withNavigationFallback(ScreenWrapper);
-export type {ScreenWrapperProps, ScreenWrapperChildrenProps};
+export type {ScreenWrapperChildrenProps};

@@ -352,7 +352,7 @@ describe('PolicyUtils', () => {
             ).toBeUndefined();
         });
 
-        it('clones the source default rate (lowest enabled index) under the API-known customUnitRateID', () => {
+        it('rebinds the default rate to the API-known customUnitRateID and keeps non-default rates with their source IDs', () => {
             const distanceUnitWithMultipleRates = {
                 customUnitID: 'srcDist',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
@@ -377,13 +377,14 @@ describe('PolicyUtils', () => {
                     ...distanceUnitWithMultipleRates,
                     customUnitID: 'newDist',
                     rates: {
+                        rateB: {customUnitRateID: 'rateB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
                         newRate: {customUnitRateID: 'newRate', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
                     },
                 },
             });
         });
 
-        it('drops all rates when no enabled rate exists', () => {
+        it('keeps source rates with their source IDs when no enabled rate exists', () => {
             const distanceUnitAllDisabled = {
                 customUnitID: 'srcDist',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
@@ -402,7 +403,9 @@ describe('PolicyUtils', () => {
                 perDiemCustomUnitID: 'newPerDiem',
                 customUnitRateID: 'newRate',
             });
-            expect(result?.newDist.rates).toEqual({});
+            expect(result?.newDist.rates).toEqual({
+                rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
+            });
         });
 
         it('treats missing index as 0 when picking the default rate', () => {
@@ -426,8 +429,54 @@ describe('PolicyUtils', () => {
                 customUnitRateID: 'newRate',
             });
             expect(result?.newDist.rates).toEqual({
+                rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
                 newRate: {customUnitRateID: 'newRate', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
             });
+        });
+
+        it('preserves source iteration order so getDefaultMileageRate still picks the original default when a non-default rate has a missing index', () => {
+            // Source has 3 rates: Default (index 0), Indexed (index 1), and No-Index (no index field).
+            // No-Index ties with Default at the index-0 sort key after `?? CONST.DEFAULT_NUMBER_ID`.
+            // The optimistic clone must keep the source's iteration order so JavaScript's stable
+            // sort still places Default before No-Index — otherwise getDefaultMileageRate would
+            // pick whichever tied rate appeared first in iteration order, swapping the default.
+            const sourceUnit = {
+                customUnitID: 'srcDist',
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                enabled: true,
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                rates: {
+                    rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 72.5, currency: 'USD', enabled: true, index: 0},
+                    rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                    rateC: {customUnitRateID: 'rateC', name: 'No-Index Rate', rate: 200, currency: 'USD', enabled: true},
+                },
+            };
+            const policyWithTiedIndex: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {[sourceUnit.customUnitID]: sourceUnit},
+            };
+            const result = getCustomUnitsForDuplication(policyWithTiedIndex, true, false, {
+                distanceCustomUnitID: 'newDist',
+                perDiemCustomUnitID: 'newPerDiem',
+                customUnitRateID: 'newRate',
+            });
+
+            const cloned = result?.newDist;
+            if (!cloned) {
+                throw new Error('Expected cloned distance unit');
+            }
+            // Iteration order: the rebound default should still be first, before the No-Index rate.
+            const orderedKeys = Object.keys(cloned.rates);
+            expect(orderedKeys).toEqual(['newRate', 'rateB', 'rateC']);
+
+            // Sanity-check that getDefaultMileageRate's selection (enabled, sorted by index ?? 0,
+            // first) lands on the rebound default and not on No-Index Rate.
+            const pickedDefault = Object.values(cloned.rates)
+                .filter((rate) => rate.enabled !== false)
+                .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+                .at(0);
+            expect(pickedDefault?.customUnitRateID).toBe('newRate');
+            expect(pickedDefault?.name).toBe('Default Rate');
         });
     });
     describe('getRateDisplayValue', () => {

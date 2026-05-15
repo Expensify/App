@@ -3,10 +3,12 @@
  */
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {findFocusedRoute, useNavigation, useNavigationState} from '@react-navigation/native';
+import type {NavigationAction, NavigationState, Router, TabNavigationState} from '@react-navigation/native';
+import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
+import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -42,6 +44,11 @@ function TabNavigator() {
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const route = useRoute();
+    // The Tab.Navigator's own state lives at `parentState.routes[i].state`. We can't read it via
+    // `useNavigationState((s) => s)` here because TabNavigator's body runs before <Tab.Navigator>
+    // mounts, so the nearest navigation listener context is still the parent stack's.
+    const tabState = useNavigationState((parentState) => parentState.routes.find((r) => r.key === route.key)?.state as NavigationState | undefined);
 
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
@@ -50,6 +57,27 @@ function TabNavigator() {
         const isRootScreen = TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(focusedRouteName ?? '');
         parentNavigation.setOptions({gestureEnabled: !isRootScreen});
     }, [focusedRouteName, shouldUseNarrowLayout, parentNavigation]);
+
+    useEffect(() => {
+        // stale === false distinguishes a fully realized NavigationState from a PartialState.
+        if (!tabState || tabState.stale !== false) {
+            return;
+        }
+        setPreservedNavigatorState(route.key, tabState);
+    }, [tabState, route.key]);
+
+    // The slicing optimization in useCustomRootStackNavigatorState can unmount and later remount
+    // this TAB_NAVIGATOR. Without restoration it would default to index 0. We restore the saved
+    // state by overriding the bottom-tab router's getInitialState — the same pattern SplitRouter
+    // uses for its split navigators.
+    const tabRouterOverride = <Action extends NavigationAction>(
+        originalRouter: Router<TabNavigationState<TabNavigatorParamList>, Action>,
+    ): Partial<Router<TabNavigationState<TabNavigatorParamList>, Action>> => ({
+        getInitialState: (configOptions) => {
+            const preserved = getPreservedNavigatorState<TabNavigationState<TabNavigatorParamList>>(route.key);
+            return preserved ? originalRouter.getRehydratedState(preserved, configOptions) : originalRouter.getInitialState(configOptions);
+        },
+    });
 
     const screenOptions = {
         ...TAB_SCREEN_OPTIONS_BASE,
@@ -61,6 +89,7 @@ function TabNavigator() {
             backBehavior="fullHistory"
             tabBar={renderTabBar}
             screenOptions={screenOptions}
+            UNSTABLE_router={tabRouterOverride}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
