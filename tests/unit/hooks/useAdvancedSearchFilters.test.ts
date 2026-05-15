@@ -379,10 +379,11 @@ describe('useAdvancedSearchFilters', () => {
         });
 
         it('shows bank account filter for expense type when at least one bank account exists', async () => {
+            const bankAccountID = 42;
             await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                42: {
+                [bankAccountID]: {
                     accountData: {
-                        bankAccountID: 42,
+                        bankAccountID,
                         accountNumber: '123456789012',
                         additionalData: {bankName: CONST.BANK_NAMES.CHASE},
                     },
@@ -398,10 +399,11 @@ describe('useAdvancedSearchFilters', () => {
         });
 
         it('does not include bank account filter for non-expense types even when bank accounts exist', async () => {
+            const bankAccountID = 42;
             await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
-                42: {
+                [bankAccountID]: {
                     accountData: {
-                        bankAccountID: 42,
+                        bankAccountID,
                         accountNumber: '123456789012',
                         additionalData: {bankName: CONST.BANK_NAMES.CHASE},
                     },
