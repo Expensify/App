@@ -1,5 +1,6 @@
 import {getReportChatType} from '@selectors/Report';
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import {getReportChannelName} from '@libs/actions/Report';
 import Log from '@libs/Log';
@@ -8,8 +9,13 @@ import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+import type Report from '@src/types/onyx/Report';
 import type {ConciergeDraft} from './conciergeDraftState';
 import {applyConciergeDraftEvent, getCachedDraft, setCachedDraft} from './conciergeDraftState';
+
+const CUSTOM_AGENT_EMAIL_REGEX = /^agent_(\d+)@expensify\.ai$/;
+
+const getReportParticipantAccountIDs = (report: OnyxEntry<Report>): number[] => (report?.participants ? Object.keys(report.participants).map(Number) : []);
 
 type ConciergeDraftState = {
     draftReportAction: ReportAction | null;
@@ -41,10 +47,28 @@ const ConciergeDraftActionsContext = createContext<ConciergeDraftActions>(defaul
 
 function ConciergeDraftProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
+    const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
+    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-    const isAgentZeroChat = isConciergeChat || isAdmin;
+    // See AgentZeroStatusContext for the rationale: SHARED_NVP_AGENT_PROMPT covers agents the
+    // user owns (and only after Agents has loaded); the email pattern covers cold-start cases.
+    const isCustomAgentChat = useMemo(() => {
+        if (!participantAccountIDs?.length) {
+            return false;
+        }
+        return participantAccountIDs.some((accountID) => {
+            if (agentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`]) {
+                return true;
+            }
+            const login = personalDetails?.[accountID]?.login;
+            return typeof login === 'string' && CUSTOM_AGENT_EMAIL_REGEX.test(login);
+        });
+    }, [participantAccountIDs, agentPrompts, personalDetails]);
+    const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
     if (!reportID || !isAgentZeroChat) {
         return children;
