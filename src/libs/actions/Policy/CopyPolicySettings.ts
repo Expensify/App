@@ -20,7 +20,9 @@ const PARTS_TO_POLICY_FIELDS = {
     categories: ['areCategoriesEnabled'],
     tags: ['areTagsEnabled'],
     taxes: ['tax', 'taxRates'],
-    workflows: ['areWorkflowsEnabled', 'autoReportingFrequency', 'autoReporting', 'approvalMode', 'reimbursementChoice', 'achAccount'],
+    // achAccount is intentionally excluded — the backend remaps bankAccountID per-caller
+    // (see Auth PR #21638). We rely on the server push for that field.
+    workflows: ['areWorkflowsEnabled', 'autoReportingFrequency', 'autoReporting', 'autoReportingOffset', 'harvesting', 'approvalMode', 'autoApproval', 'reimbursementChoice'],
     rules: [
         'areRulesEnabled',
         'maxExpenseAmount',
@@ -136,19 +138,6 @@ function buildClearedPendingFields(parts: Part[]): Partial<Record<PolicyFieldsFo
     return cleared;
 }
 
-function snapshotTargetFields(targetPolicy: Policy, parts: Part[]): Partial<Policy> {
-    const snapshot: Partial<Policy> = {};
-    for (const part of parts) {
-        for (const field of PARTS_TO_POLICY_FIELDS[part]) {
-            if (field === 'customUnits') {
-                continue;
-            }
-            (snapshot as Record<string, unknown>)[field] = targetPolicy[field as keyof Policy];
-        }
-    }
-    return snapshot;
-}
-
 type CopyPolicySettingsOnyxKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
@@ -187,36 +176,37 @@ function buildCopyPolicySettingsData(
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
         const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
-        const snapshot = snapshotTargetFields(targetPolicy, parts);
 
-        // Step 1+2: optimistic merge of patched fields + pending markers
+        // Step 1+2: SET the full policy with patched fields overlaid.
+        // We use SET (not MERGE) because Onyx.merge deep-merges nested objects — source
+        // values would be merged into target's, leaving stale nested keys behind.
         optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: policyKey,
             value: {
+                ...targetPolicy,
                 ...policyFieldPatch,
-                ...customUnitsPatch,
-                pendingFields,
+                ...(customUnitsPatch ? {customUnits: {...targetPolicy.customUnits, ...customUnitsPatch.customUnits}} : {}),
+                pendingFields: {...targetPolicy.pendingFields, ...pendingFields},
             },
         });
 
-        // Success: clear the pending markers
+        // Success: clear pending markers and any leftover errors from a prior failure
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
                 pendingFields: clearedPendingFields,
+                errors: null,
             },
         });
 
-        // Failure: restore snapshot, clear pending markers, surface RBR
+        // Failure: restore the original target policy in full, surface RBR
         failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: policyKey,
             value: {
-                ...snapshot,
-                ...(customUnitsPatch ? {customUnits: targetPolicy.customUnits} : {}),
-                pendingFields: clearedPendingFields,
+                ...targetPolicy,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
             },
         });
@@ -259,6 +249,15 @@ function buildCopyPolicySettingsData(
         key: `${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}` as const,
         value: {
             errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
+        },
+    });
+
+    // Clear source policy errors on success (in case this is a retry after failure)
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.POLICY}${sourcePolicy.id}` as const,
+        value: {
+            errors: null,
         },
     });
 
