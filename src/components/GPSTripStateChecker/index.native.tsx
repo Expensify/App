@@ -5,7 +5,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, getTotalGpsTripPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
@@ -32,18 +32,27 @@ function GPSTripStateChecker() {
 
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
-            await checkAndCleanGpsNotification();
-            const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+            try {
+                await checkAndCleanGpsNotification();
+                const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-            if (!gpsTrip?.isTracking) {
-                return;
+                if (!gpsTrip?.isTracking) {
+                    return;
+                }
+
+                if (getTotalGpsTripPoints(gpsTrip) === 0) {
+                    console.warn('[GPS distance request] Invalid GPS trip state on restart (no points), resetting');
+                    await stopGpsTrip(isOffline, getGpsPoints(gpsTrip), true);
+                    return;
+                }
+
+                setShowContinueTripModal(true);
+            } catch (error) {
+                console.error('[GPS distance request] Failed to handle GPS trip on app restart', error);
             }
-
-            setShowContinueTripModal(true);
         }
 
         handleGpsTripInProgressOnAppRestart();
-        checkAndCleanGpsNotification();
 
         return () => {
             hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
@@ -63,6 +72,12 @@ function GPSTripStateChecker() {
     const continueGpsTrip = async () => {
         const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
 
+        if (getTotalGpsTripPoints(gpsDraftDetails) === 0) {
+            console.warn('[GPS distance request] Cannot continue trip with no GPS points');
+            await stopGpsTrip(isOffline, getGpsPoints(gpsDraftDetails), true);
+            return;
+        }
+
         const unit = gpsDraftDetails?.unit;
 
         if (isBackgroundTaskRunning) {
@@ -76,6 +91,7 @@ function GPSTripStateChecker() {
             await startLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME, BACKGROUND_LOCATION_TASK_OPTIONS);
         } catch (error) {
             console.error('[GPS distance request] Failed to restart location tracking', error);
+            await stopGpsTrip(isOffline, getGpsPoints(gpsDraftDetails), true);
             return;
         }
 
