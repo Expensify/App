@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
 import {
+    checkIfNewFeedConnected,
     doesCardFeedExist,
     feedHasCards,
     filterAllInactiveCards,
@@ -3126,6 +3127,70 @@ describe('CardUtils', () => {
         it('should handle plaid feed with domain ID', () => {
             const result = splitCardFeedWithDomainID('plaid.ins_129663#12345' as CardFeedWithDomainID);
             expect(result).toEqual({feedName: 'plaid.ins_129663', domainID: 12345});
+        });
+    });
+
+    describe('checkIfNewFeedConnected', () => {
+        const existingFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#12345` as CompanyCardFeedWithDomainID;
+        const plaidFeed = 'plaid.ins_129663#12345' as CompanyCardFeedWithDomainID;
+
+        it('identifies a newly connected Plaid feed', () => {
+            const result = checkIfNewFeedConnected(
+                {[existingFeed]: {}} as unknown as CombinedCardFeeds,
+                {[existingFeed]: {}, [plaidFeed]: {}} as unknown as CombinedCardFeeds,
+                'ins_129663',
+            );
+
+            expect(result).toEqual({
+                isNewFeedConnected: true,
+                newFeed: plaidFeed,
+                isDuplicatePlaidFeed: false,
+            });
+        });
+
+        it('identifies an already connected Plaid feed as a duplicate', () => {
+            const feeds = {[existingFeed]: {}, [plaidFeed]: {}} as unknown as CombinedCardFeeds;
+            const result = checkIfNewFeedConnected(feeds, feeds, 'ins_129663');
+
+            expect(result).toEqual({
+                isNewFeedConnected: true,
+                newFeed: undefined,
+                isDuplicatePlaidFeed: true,
+            });
+        });
+
+        it('identifies a duplicate Plaid feed from raw feed data when the feed is filtered out', () => {
+            const feeds = {[existingFeed]: {}} as unknown as CombinedCardFeeds;
+            const result = checkIfNewFeedConnected(
+                feeds,
+                feeds,
+                'ins_129663',
+                ['plaid.ins_129663'],
+                ['plaid.ins_129663'],
+            );
+
+            expect(result).toEqual({
+                isNewFeedConnected: true,
+                newFeed: undefined,
+                isDuplicatePlaidFeed: true,
+            });
+        });
+
+        it('does not treat a newly added raw Plaid feed as a duplicate', () => {
+            const feeds = {[existingFeed]: {}} as unknown as CombinedCardFeeds;
+            const result = checkIfNewFeedConnected(
+                feeds,
+                feeds,
+                'ins_129663',
+                [],
+                ['plaid.ins_129663'],
+            );
+
+            expect(result).toEqual({
+                isNewFeedConnected: true,
+                newFeed: undefined,
+                isDuplicatePlaidFeed: false,
+            });
         });
     });
 

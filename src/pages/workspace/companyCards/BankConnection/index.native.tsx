@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
@@ -7,6 +7,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
@@ -60,13 +61,30 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const isPlaid = !!plaidToken;
     const url = getCompanyCardBankConnection(policyID, bankName);
-    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardFeeds, , rawCardFeeds] = useCardFeeds(policyID);
+    const {showConfirmModal} = useConfirmModal();
     const [isConnectionCompleted, setConnectionCompleted] = useState(false);
     const prevFeedsData = usePrevious(cardFeeds);
+    const prevRawCardFeeds = usePrevious(rawCardFeeds);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
-    const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
+    const rawFeedNames = useMemo(
+        () => Object.keys(rawCardFeeds?.settings?.companyCards ?? {}),
+        [rawCardFeeds?.settings?.companyCards],
+    );
+    const prevRawFeedNames = useMemo(
+        () => Object.keys(prevRawCardFeeds?.settings?.companyCards ?? {}),
+        [prevRawCardFeeds?.settings?.companyCards],
+    );
+    const {isNewFeedConnected, newFeed, isDuplicatePlaidFeed} = useMemo(
+        () =>
+            checkIfNewFeedConnected(
+                prevFeedsData ?? {},
+                cardFeeds ?? {},
+                addNewCard?.data?.plaidConnectedFeed,
+                prevRawFeedNames,
+                rawFeedNames,
+            ),
+        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData, prevRawFeedNames, rawFeedNames],
     );
     const headerTitleAddCards = !backTo ? translate('workspace.companyCards.addCards') : undefined;
     const headerTitle = feed ? translate('workspace.companyCards.assignCard') : headerTitleAddCards;
@@ -74,6 +92,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
+
+    const showDuplicateFeedModal = useCallback(() => {
+        void showConfirmModal({
+            title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
+            prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
 
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
@@ -144,7 +171,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             }
 
             Navigation.closeRHPFlow();
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {
+                forceReplace: true,
+                afterTransition: isDuplicatePlaidFeed ? showDuplicateFeedModal : undefined,
+            });
             return;
         }
         if (isPlaid) {
@@ -163,6 +193,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        isDuplicatePlaidFeed,
+        showDuplicateFeedModal,
     ]);
 
     const checkIfConnectionCompleted = (navState: WebViewNavigation) => {

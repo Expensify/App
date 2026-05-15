@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -56,15 +57,32 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const {feed: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
-    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardFeeds, , rawCardFeeds] = useCardFeeds(policyID);
     const prevFeedsData = usePrevious(cardFeeds);
+    const prevRawCardFeeds = usePrevious(rawCardFeeds);
+    const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
-    const {isNewFeedConnected, newFeed} = useMemo(
-        () => checkIfNewFeedConnected(prevFeedsData ?? {}, cardFeeds ?? {}, addNewCard?.data?.plaidConnectedFeed),
-        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
+    const rawFeedNames = useMemo(
+        () => Object.keys(rawCardFeeds?.settings?.companyCards ?? {}),
+        [rawCardFeeds?.settings?.companyCards],
+    );
+    const prevRawFeedNames = useMemo(
+        () => Object.keys(prevRawCardFeeds?.settings?.companyCards ?? {}),
+        [prevRawCardFeeds?.settings?.companyCards],
+    );
+    const {isNewFeedConnected, newFeed, isDuplicatePlaidFeed} = useMemo(
+        () =>
+            checkIfNewFeedConnected(
+                prevFeedsData ?? {},
+                cardFeeds ?? {},
+                addNewCard?.data?.plaidConnectedFeed,
+                prevRawFeedNames,
+                rawFeedNames,
+            ),
+        [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData, prevRawFeedNames, rawFeedNames],
     );
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
@@ -85,6 +103,15 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         }
         customWindow = openBankConnection(url);
     }, [url]);
+
+    const showDuplicateFeedModal = useCallback(() => {
+        void showConfirmModal({
+            title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
+            prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
 
     useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds || feed) {
@@ -157,7 +184,10 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             }
 
             Navigation.closeRHPFlow();
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {
+                forceReplace: true,
+                afterTransition: isDuplicatePlaidFeed ? showDuplicateFeedModal : undefined,
+            });
             return;
         }
         if (!shouldBlockWindowOpen) {
@@ -186,6 +216,8 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
+        isDuplicatePlaidFeed,
+        showDuplicateFeedModal,
     ]);
 
     const getContent = () => {

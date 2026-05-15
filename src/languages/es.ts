@@ -5116,6 +5116,10 @@ ${amount} para ${merchant} - ${date}`,
                 commercialFeedDetails: 'Requiere configuración con tu banco. Esto suele ser utilizado por empresas más grandes y a menudo es la mejor opción si calificas.',
                 commercialFeedPlaidDetails: 'Requiere configurarlo con tu banco, pero te guiaremos. Esto suele estar limitado a empresas más grandes.',
                 directFeedDetails: 'El enfoque más simple. Conéctate de inmediato usando tus credenciales maestras. Este método es el más común.',
+                duplicateFeedModal: {
+                    title: 'Fuente de tarjetas ya conectada',
+                    prompt: 'No puedes añadir la misma fuente de tarjetas al mismo espacio de trabajo dos veces.',
+                },
                 enableFeed: {
                     title: (provider) => `Habilita tu feed ${provider}`,
                     heading:

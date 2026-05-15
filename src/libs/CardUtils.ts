@@ -1031,19 +1031,39 @@ function getCardAssignmentStartDate(isEditing: boolean | undefined, existingStar
     return isEditing ? (existingStartDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)) : format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsData: CombinedCardFeeds, plaidBank?: string) {
+function checkIfNewFeedConnected(
+    prevFeedsData: CombinedCardFeeds,
+    currentFeedsData: CombinedCardFeeds,
+    plaidBank?: string,
+    prevRawFeedNames: string[] = [],
+    currentRawFeedNames: string[] = [],
+) {
     const prevFeeds = Object.keys(prevFeedsData);
     const currentFeeds = Object.keys(currentFeedsData);
+    const plaidFeedName = plaidBank ? `${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}` : undefined;
+    const doesFeedMatchPlaidBank = (feed: string) => {
+        if (!plaidFeedName) {
+            return false;
+        }
+
+        return (splitCardFeedWithDomainID(feed as CompanyCardFeedWithDomainID)?.feedName ?? feed) === plaidFeedName;
+    };
 
     const plaidBankFound =
         plaidBank &&
         currentFeeds.find((feed) => {
-            return splitCardFeedWithDomainID(feed as CompanyCardFeedWithDomainID)?.feedName === `${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`;
+            return doesFeedMatchPlaidBank(feed);
         });
+    const newFeed = currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeedWithDomainID | undefined;
+    const rawPlaidBankFound = currentRawFeedNames.find(doesFeedMatchPlaidBank);
+    const didPlaidFeedAlreadyExist =
+        prevRawFeedNames.some(doesFeedMatchPlaidBank) ||
+        (!!plaidBankFound && prevFeeds.includes(plaidBankFound));
 
     return {
-        isNewFeedConnected: currentFeeds.length > prevFeeds.length || plaidBankFound,
-        newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeedWithDomainID | undefined,
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length || !!plaidBankFound || !!rawPlaidBankFound,
+        newFeed,
+        isDuplicatePlaidFeed: (!!rawPlaidBankFound || !!plaidBankFound) && didPlaidFeedAlreadyExist && !newFeed,
     };
 }
 

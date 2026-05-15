@@ -5283,6 +5283,10 @@ const translations = {
                 commercialFeedDetails: 'Requires setup with your bank. This is typically used by larger companies and is often the best option if you qualify.',
                 commercialFeedPlaidDetails: `Requires setup with your bank, but we'll guide you. This is typically limited to larger companies.`,
                 directFeedDetails: 'The simplest approach. Connect right away using your master credentials. This method is most common.',
+                duplicateFeedModal: {
+                    title: 'Card feed already connected',
+                    prompt: "You can't add the same card feed to the same workspace twice.",
+                },
                 enableFeed: {
                     title: (provider: string) => `Enable your ${provider} feed`,
                     heading: 'We have a direct integration with your card issuer and can import your transaction data into Expensify quickly and accurately.\n\nTo get started, simply:',
