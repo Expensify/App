@@ -267,7 +267,6 @@ function MapView({
                 compassEnabled
                 compassPosition={{...styles.l2, ...styles.t5}}
                 logoPosition={{...styles.l2, ...styles.b2}}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...responder.panHandlers}
             >
                 <Mapbox.Camera

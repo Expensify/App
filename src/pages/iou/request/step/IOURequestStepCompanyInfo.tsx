@@ -17,7 +17,7 @@ import {startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {extractUrlDomain} from '@libs/Url';
 import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
-import {getIOURequestPolicyID} from '@userActions/IOU';
+import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {sendInvoice} from '@userActions/IOU/SendInvoice';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

@@ -231,13 +231,29 @@ const DYNAMIC_ROUTES = {
         path: 'qbd-company-card-expense-account-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT],
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_CARD_SELECT: {
+        path: 'qbd-card-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ACCOUNT_SELECT: {
         path: 'qbd-account-select',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ENTITY_SELECT: {
         path: 'qbd-entity-select',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES],
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: {
+        path: 'qbd-out-of-pocket-expense',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER: {
+        path: 'qbd-preferred-exporter',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
+        path: 'qbd-date-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
         path: 'invoice-account-select',
@@ -309,6 +325,10 @@ const DYNAMIC_ROUTES = {
         path: 'quickbooks-online-accounting-method',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_AUTO_SYNC, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
     },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
+        path: 'quickbooks-desktop/advanced',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT],
+    },
     WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
         path: 'account-reconciliation-settings',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT],
@@ -317,6 +337,7 @@ const DYNAMIC_ROUTES = {
         path: 'country',
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.ADDRESS,
+            SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
@@ -329,6 +350,14 @@ const DYNAMIC_ROUTES = {
     SETTINGS_CATEGORY_EDIT: {
         path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
+    SETTINGS_CATEGORIES_SETTINGS: {
+        path: 'manage-settings',
+        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
+    },
+    SETTINGS_CATEGORY_CREATE: {
+        path: 'category-create',
+        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
     },
     WORKSPACE_CATEGORY_SETTINGS: {
         path: 'category/:categoryName',
@@ -411,7 +440,7 @@ const DYNAMIC_ROUTES = {
     },
     SPEND_CATEGORY_SELECTOR: {
         path: 'spend-category-selector/:groupID',
-        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS, SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS],
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS],
         getRoute: (groupID: string) => `spend-category-selector/${groupID}` as const,
     },
     DEFAULT_CATEGORY_SELECTOR: {
@@ -510,6 +539,38 @@ const DYNAMIC_ROUTES = {
     EXIT_SURVEY_CONFIRM: {
         path: 'exit-survey/confirm',
         entryScreens: ['*'],
+    },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: {
+        path: 'public-domain-error',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+        getRoute: (policyID?: string) => getUrlWithParams('public-domain-error', {policyID}),
+        queryParams: ['policyID'],
+    },
+    TRAVEL_TCS: {
+        path: 'terms/:domain/accept/:policyID?',
+        entryScreens: [
+            SCREENS.TRAVEL.MY_TRIPS,
+            SCREENS.WORKSPACE.TRAVEL,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
+            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.VERIFY_ACCOUNT,
+        ],
+        getRoute: (domain: string, policyID?: string) => `terms/${domain}/accept${policyID ? `/${policyID}` : ''}`,
+    },
+    TRAVEL_DOMAIN_PERMISSION_INFO: {
+        path: 'domain-permission-info',
+        entryScreens: [SCREENS.TRAVEL.DYNAMIC_TCS],
+    },
+    TRAVEL_DOMAIN_SELECTOR: {
+        path: 'domain-selector',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+        getRoute: (policyID?: string) => getUrlWithParams('domain-selector', {policyID}),
+        queryParams: ['policyID'],
+    },
+    TRAVEL_UPGRADE: {
+        path: 'travel-upgrade',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
     },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
@@ -1001,6 +1062,18 @@ const ROUTES = {
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',
     SETTINGS_AGENTS_ADD: 'settings/agents/new',
+    SETTINGS_AGENTS_EDIT: {
+        route: 'settings/agents/:accountID/edit',
+        getRoute: (accountID: number) => `settings/agents/${accountID}/edit` as const,
+    },
+    SETTINGS_AGENTS_EDIT_NAME: {
+        route: 'settings/agents/:accountID/edit/name',
+        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/name` as const,
+    },
+    SETTINGS_AGENTS_EDIT_PROMPT: {
+        route: 'settings/agents/:accountID/edit/prompt',
+        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/prompt` as const,
+    },
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
@@ -1018,6 +1091,11 @@ const ROUTES = {
     SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
     SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
     SETTINGS_ADDRESS: 'settings/profile/address',
+    SETTINGS_PRIVATE_PERSONAL_DETAILS: {
+        route: 'settings/profile/private-personal-details',
+        getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,
+    },
+    SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE: 'settings/profile/private-personal-details/confirm',
     SETTINGS_ADDRESS_STATE: {
         route: 'settings/profile/address/state',
 
@@ -1712,18 +1790,6 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}`, backTo),
     },
-    SETTINGS_CATEGORIES_SETTINGS: {
-        route: 'settings/:policyID/categories/settings',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/settings`, backTo),
-    },
-    SETTINGS_CATEGORY_CREATE: {
-        route: 'settings/:policyID/categories/new',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/new`, backTo),
-    },
     SETTINGS_CATEGORIES_IMPORT: {
         route: 'settings/:policyID/categories/import',
 
@@ -2095,17 +2161,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing/journal-posting-preference',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-invoicing/journal-posting-preference` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/card-select',
-        getRoute: (policyID?: string, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/card-select` as const, backTo);
-        },
-    },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select',
         getRoute: (policyID?: string) => {
@@ -2113,17 +2168,6 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT route');
             }
             return `workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select` as const;
-        },
-    },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
-        route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced',
-        getRoute: (policyID?: string, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC: {
@@ -2164,39 +2208,6 @@ const ROUTES = {
             }
 
             return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync/accounting-method` as const;
-        },
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
-        getRoute: (policyID?: string, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/export/date-select` as const, backTo);
-        },
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER: {
-        route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/preferred-exporter',
-        getRoute: (policyID?: string, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/export/preferred-exporter` as const, backTo);
-        },
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: {
-        route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense',
-        getRoute: (policyID?: string, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS: {
@@ -2501,6 +2512,24 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_HR_GUSTO_FINAL_APPROVER route');
             }
             return `workspaces/${policyID}/hr/gusto/final-approver` as const;
+        },
+    },
+    WORKSPACE_HR_ZENEFITS_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/hr/zenefits/approval-mode',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_ZENEFITS_APPROVAL_MODE route');
+            }
+            return `workspaces/${policyID}/hr/zenefits/approval-mode` as const;
+        },
+    },
+    WORKSPACE_HR_ZENEFITS_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/hr/zenefits/final-approver',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_ZENEFITS_FINAL_APPROVER route');
+            }
+            return `workspaces/${policyID}/hr/zenefits/final-approver` as const;
         },
     },
     WORKSPACE_TAGS: {
@@ -3245,18 +3274,6 @@ const ROUTES = {
             return `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}${redirectURL}` as const;
         },
     },
-    TRAVEL_TCS: {
-        route: 'travel/terms/:domain/accept',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept?${policyID ? `policyID=${policyID}` : ''}`, backTo),
-    },
-    TRAVEL_UPGRADE: {
-        route: 'travel/upgrade',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('travel/upgrade', backTo),
-    },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
         route: 'r/:reportID/trip/:transactionID',
@@ -3279,24 +3296,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`r/${reportID}/trip/${transactionID}/${pnr}/${sequenceIndex}`, backTo);
         },
-    },
-    TRAVEL_DOMAIN_SELECTOR: {
-        route: 'travel/domain-selector',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-selector?${policyID ? `policyID=${policyID}` : ''}`, backTo),
-    },
-    TRAVEL_DOMAIN_PERMISSION_INFO: {
-        route: 'travel/domain-permission/:domain/info',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
-    },
-    TRAVEL_PUBLIC_DOMAIN_ERROR: {
-        route: 'travel/public-domain-error',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_WORKSPACE_CONFIRMATION: {
         route: 'travel/upgrade/workspace/confirmation',
@@ -3905,6 +3904,96 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT route');
             }
             return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_PREREQUISITES: {
+        route: 'workspaces/:policyID/accounting/certinia/prerequisites/:subPage?/:isSandbox?',
+        getRoute: (policyID: string, subPage?: string, isSandbox?: boolean) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_PREREQUISITES route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/prerequisites${subPage ? `/${subPage}` : ''}${isSandbox !== undefined ? `/${isSandbox ? 'true' : 'false'}` : ''}` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/certinia/existing-connections',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/existing-connections` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_IMPORT: {
+        route: 'workspaces/:policyID/accounting/certinia/import',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_IMPORT route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/import` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_DIMENSION_MAPPING: {
+        route: 'workspaces/:policyID/accounting/certinia/import/dimension/:dimension',
+        getRoute: (policyID: string | undefined, dimension: 'dimension1' | 'dimension2' | 'dimension3' | 'dimension4') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_DIMENSION_MAPPING route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/import/dimension/${dimension}` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT: {
+        route: 'workspaces/:policyID/accounting/certinia/export',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_EXPORT route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/certinia/export/preferred-exporter',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/preferred-exporter` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS: {
+        route: 'workspaces/:policyID/accounting/certinia/export/status',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/status` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE: {
+        route: 'workspaces/:policyID/accounting/certinia/export/date',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/date` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR: {
+        route: 'workspaces/:policyID/accounting/certinia/export/default-vendor',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/default-vendor` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/certinia/advanced',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_ADVANCED route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/advanced` as const;
         },
     },
     ADD_EXISTING_EXPENSE: {

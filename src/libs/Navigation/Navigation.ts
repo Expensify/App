@@ -13,7 +13,9 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import clearSelectedTextIfComposerBlurred from '@libs/clearSelectedTextIfComposerBlurred/clearSelectedTextIfComposerBlurred';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
+import {setupNavigationFocusReturn} from '@libs/NavigationFocusReturn';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
@@ -43,7 +45,6 @@ import setNavigationActionToMicrotaskQueue from './helpers/setNavigationActionTo
 import {linkingConfig} from './linkingConfig';
 import {SPLIT_TO_SIDEBAR} from './linkingConfig/RELATIONS';
 import navigationRef from './navigationRef';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from './TransitionTracker';
 import type {
     NavigationPartialRoute,
@@ -60,6 +61,10 @@ type FocusedScreen = {
     name: string;
     params?: Record<string, unknown>;
 };
+
+// Installs the modality flag (keydown/mousedown) and focus-return listeners (focusin/click); NavigationRoot.onReady attaches the state listener once live.
+setupHadTabNavigation();
+setupNavigationFocusReturn();
 
 // Screens which are part of the 2FA setup flow - used to determine when to hide the RequireTwoFactorAuthOverlay
 const SET_UP_2FA_SCREENS = new Set<string>([

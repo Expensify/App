@@ -17,6 +17,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
@@ -54,14 +55,16 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         setCurrentPlan(policy?.type);
     }, [policy?.type]);
 
+    const isCurrentPolicySubmit = isSubmitPolicy(policy);
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
         .filter((type) => {
             if (type === CONST.POLICY.TYPE.PERSONAL) {
                 return false;
             }
-            // Guard: don't leak the SUBMIT plan type into the plan-type list for paid workspaces.
-            // Submit-specific plan-type UX (exposing SUBMIT for Submit policies) ships in #87263.
-            if (type === CONST.POLICY.TYPE.SUBMIT) {
+            // Per the design: the Submit row only appears when the current workspace is already
+            // Submit. This hides Submit from Collect/Control workspaces (no downgrade path) while
+            // still surfacing Collect/Control as upgrade options for Submit workspaces.
+            if (type === CONST.POLICY.TYPE.SUBMIT && !isCurrentPolicySubmit) {
                 return false;
             }
             return true;
