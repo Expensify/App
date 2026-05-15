@@ -215,7 +215,6 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     confirmButtonOptions={confirmButtonOptions}
                     textInputOptions={textInputOptions}
                     shouldShowListEmptyContent={false}
-                    shouldUseDefaultRightHandSideCheckmark
                     disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
                     canSelectMultiple

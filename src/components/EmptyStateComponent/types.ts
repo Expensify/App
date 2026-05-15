@@ -24,6 +24,7 @@ type EmptyStateComponentProps = {
     title: string;
     titleStyles?: StyleProp<TextStyle>;
     subtitle?: string;
+    subtitleStyles?: StyleProp<TextStyle>;
     children?: React.ReactNode;
     buttons?: EmptyStateButton[];
     containerStyles?: StyleProp<ViewStyle>;

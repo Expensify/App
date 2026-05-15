@@ -41,7 +41,6 @@ jest.mock('@libs/Navigation/navigationRef', () => {
         index: 0,
     };
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: {
             getRootState: jest.fn(() => mockState),
@@ -124,12 +123,13 @@ const FUND_LIST: FundList = {
 
 describe('GoogleTagManagerTest', () => {
     const accountID = 123456;
+    const email = 'test@test.com';
 
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
             initialKeyStates: {
-                session: {accountID},
+                session: {accountID, email},
             },
         });
     });
@@ -159,7 +159,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish the sign_up event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.SIGN_UP, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.SIGN_UP.NAME, accountID, email);
     });
 
     test('workspace_created', async () => {
@@ -168,7 +168,7 @@ describe('GoogleTagManagerTest', () => {
             policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             isSelfTourViewed: false,
             betas: undefined,
@@ -178,7 +178,7 @@ describe('GoogleTagManagerTest', () => {
         createWorkspace({
             policyName: '',
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
@@ -189,7 +189,7 @@ describe('GoogleTagManagerTest', () => {
         createWorkspace({
             policyName: '',
             currentUserAccountIDParam: 123456,
-            activePolicyID: undefined,
+            activePolicy: undefined,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
@@ -200,10 +200,14 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, 123456);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, 123456, email);
     });
 
     test('workspace_created - categorizeTrackedExpense', async () => {
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID, email});
+        });
+
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         trackExpense({
@@ -232,7 +236,6 @@ describe('GoogleTagManagerTest', () => {
             currentUserAccountIDParam: accountID,
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
-            activePolicyID: undefined,
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
@@ -244,7 +247,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith('workspace_created', accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, accountID, email);
     });
 
     test('paid_adoption - addPaymentCard', async () => {
@@ -261,7 +264,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a paid_adoption event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, email);
     });
 
     test('paid_adoption - addSubscriptionPaymentCard', async () => {
@@ -284,7 +287,7 @@ describe('GoogleTagManagerTest', () => {
 
         // Then we publish a paid_adoption event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.PAID_ADOPTION.NAME, accountID, email);
     });
 
     it('addSubscriptionPaymentCard when changing payment card, will not publish event paid_adoption', async () => {

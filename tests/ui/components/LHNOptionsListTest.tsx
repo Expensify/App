@@ -25,7 +25,6 @@ jest.mock('@src/languages/IntlStore', () => {
     const cache = new Map<string, Record<string, unknown>>([['en', flattenObject(en)]]);
 
     return {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         __esModule: true,
         default: {
             getCurrentLocale: () => 'en',

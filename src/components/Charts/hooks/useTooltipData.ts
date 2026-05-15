@@ -28,5 +28,4 @@ function useTooltipData(activeDataIndex: number, data: ChartDataPoint[], formatA
     };
 }
 
-export {useTooltipData};
-export type {TooltipData};
+export default useTooltipData;

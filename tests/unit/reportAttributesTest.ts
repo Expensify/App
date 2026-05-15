@@ -23,7 +23,6 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/SidebarUtils', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- Required because Jest mock objects use __esModule which violates the naming convention rule
     __esModule: true,
     default: {
         getReasonAndReportActionThatHasRedBrickRoad: jest.fn(() => undefined),

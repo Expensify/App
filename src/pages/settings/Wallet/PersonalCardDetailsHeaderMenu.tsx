@@ -23,7 +23,6 @@ type PersonalCardDetailsHeaderMenuProps = {
     card: Card;
     cardID: string;
     cardholder: PersonalDetails | null | undefined;
-    displayName: string;
     customCardNames: Record<string, string> | undefined;
     expensifyIcons: Record<string, IconAsset>;
     isCSVImportedPersonalCard: boolean;
@@ -40,7 +39,6 @@ function PersonalCardDetailsHeaderMenu({
     card,
     cardID,
     cardholder,
-    displayName,
     customCardNames,
     expensifyIcons,
     isCSVImportedPersonalCard,
@@ -54,21 +52,11 @@ function PersonalCardDetailsHeaderMenu({
 }: PersonalCardDetailsHeaderMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isLoadingLastUpdatedReasonAttributes: SkeletonSpanReasonAttributes = {context: 'PersonalCardDetailsHeaderMenu', isLoadingLastUpdated: !!card?.isLoadingLastUpdated};
 
     return (
         <>
-            {!cardholder?.validated && (
-                <MenuItem
-                    icon={icons.Hourglass}
-                    iconStyles={styles.mln2}
-                    description={translate('workspace.expensifyCard.cardPending', {name: displayName})}
-                    numberOfLinesDescription={0}
-                    interactive={false}
-                />
-            )}
-
             <OfflineWithFeedback
                 pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                 errorRowStyles={[styles.ph5, styles.mb3]}

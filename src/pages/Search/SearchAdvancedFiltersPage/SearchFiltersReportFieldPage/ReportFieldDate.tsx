@@ -2,6 +2,7 @@ import React from 'react';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {ReportFieldDateKey} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import {getDateFilterKeys} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
@@ -16,6 +17,7 @@ type ReportFieldDateProps = {
 };
 
 function ReportFieldDate({field, close}: ReportFieldDateProps) {
+    const styles = useThemeStyles();
     const formKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${field.name.toLowerCase().replaceAll(' ', '-')}` as const;
 
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
@@ -62,6 +64,7 @@ function ReportFieldDate({field, close}: ReportFieldDateProps) {
 
     return (
         <DateFilterBase
+            style={styles.flex1}
             title={field.name}
             defaultDateValues={defaultDateValues}
             presets={presets}
