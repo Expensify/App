@@ -24,6 +24,7 @@ import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryW
  *     to:SomeoneElse: 98765,
  * }
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function buildSubstitutionsMap(
     query: string,
     personalDetails: PersonalDetailsList | undefined,
