@@ -46,7 +46,7 @@ Two-Factor Authentication (2FA) is enabled on your account, but you no longer ha
 
 **What you can try**
 - Search your phone for any authenticator apps (e.g., Google Authenticator, Authy).
-- Search your device for backup or recovery codes, saved in a file called `two-factor-auth-codes`.
+- Search your device for backup or recovery codes, saved in a file called `DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt`.
 
 **What won’t help**
 - Signing in again
@@ -139,7 +139,7 @@ column.
 [Add a secondary contact method](https://help.expensify.com/articles/new-expensify/settings/Update-Email-Address) (like a personal email) so you can still log in if you lose access to your work email.
 
 ## Why is Expensify asking for a Two-Factor Authentication (2FA) code I don’t remember setting up?  
-Your Domain Admin may have required it. Try searching your phone for an authenticator app or recovery codes with the file name `two-factor-auth-codes`. 
+Your Domain Admin may have required it. Try searching your phone for an authenticator app or recovery codes with the file name `DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt`. 
 
 ## Can Expensify reset Two-Factor Authentication (2FA) if I use a personal email?  
 No. If you’re not part of a company domain and didn’t save your recovery codes, your 2FA can’t be reset.
