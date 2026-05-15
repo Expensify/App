@@ -21,12 +21,12 @@ import {
     useLabelHitTesting,
     useYAxisLabelWidth,
 } from '@components/Charts/hooks';
-import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
 import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getChartColor} from '@components/Charts/utils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
+import type {CartesianChartProps, ChartDataPoint} from '..';
 
 /** Inner padding between bars (0.3 = 30% of bar width) */
 const BAR_INNER_PADDING = 0.3;

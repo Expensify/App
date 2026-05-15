@@ -932,15 +932,17 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
-function isPolicyEditor(policy: OnyxEntry<Policy>): boolean {
-    return policy?.role === CONST.POLICY.ROLE.EDITOR;
-}
+const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
 
 /**
- * Returns true if the user can edit workspace settings — admins on any workspace, or editors on Submit workspaces.
+ * Returns true if the current user can edit workspace settings — admins on any workspace,
+ * or editors on Submit workspaces (Submit has no admin role, so editors manage it).
+ *
+ * `login` enables the per-employee role fallback in `getPolicyRole`, so partially-loaded/summary
+ * policies (where `policy.role` isn't populated yet) don't incorrectly route admins/editors away.
  */
-function canEditWorkspaceSettings(policy: OnyxEntry<Policy>): boolean {
-    return isPolicyAdmin(policy) || isPolicyEditor(policy);
+function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
+    return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
 }
 
 /**
@@ -1906,6 +1908,8 @@ function getUserFriendlyWorkspaceType(workspaceType: ValueOf<typeof CONST.POLICY
             return translate('workspace.type.control');
         case CONST.POLICY.TYPE.TEAM:
             return translate('workspace.type.collect');
+        case CONST.POLICY.TYPE.SUBMIT:
+            return translate('workspace.type.submit');
         default:
             return translate('workspace.type.free');
     }
@@ -2230,8 +2234,6 @@ export {
     isDelayedSubmissionEnabled,
     getCorrectedAutoReportingFrequency,
     isPaidGroupPolicy,
-    isSubmitPolicy,
-    isPolicyEditor,
     canEditWorkspaceSettings,
     isGroupPolicy,
     isPendingDeletePolicy,
@@ -2332,7 +2334,6 @@ export {
     getManagerAccountID,
     isPreferredExporter,
     getCustomUnitsForDuplication,
-    getDefaultDistanceRate,
     getCountOfRequiredTagLists,
     getActiveEmployeeWorkspaces,
     getPolicyRole,
@@ -2354,6 +2355,8 @@ export {
     getRulesDocumentSourceURL,
     getHRConnectionNames,
     isGustoConnected,
+    isSubmitPolicy,
+    isPolicyEditor,
 };
 
 export type {MemberEmailsToAccountIDs};

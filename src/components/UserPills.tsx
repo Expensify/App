@@ -66,4 +66,3 @@ function UserPills({users, maxVisible = DEFAULT_MAX_VISIBLE}: UserPillsProps) {
 UserPills.displayName = 'UserPills';
 
 export default UserPills;
-export type {UserPillData, UserPillsProps};
