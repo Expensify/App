@@ -1,14 +1,15 @@
-import {Color, topLeft} from '@shopify/react-native-skia';
+import {type Color, listFontFamilies, matchFont, type SkFont, Skia, SkTypeface, type SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import JSON5 from 'json5';
 import lodashIsObject from 'lodash/isObject';
 import lodashMerge from 'lodash/merge';
 import React, {ComponentProps, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {ColorValue, ViewStyle} from 'react-native';
+import type {ColorValue, TextStyle, ViewStyle} from 'react-native';
 import {type CustomRendererProps, type TBlock, TNode, TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, RoundedCorners} from 'victory-native';
 import {Bar, CartesianChart, Line} from 'victory-native';
 import {BAR_INNER_PADDING} from '@components/Charts/BarChart/BarChartContent';
+import {useChartDefaultTypeface} from '@components/Charts/hooks';
 import {DEFAULT_CHART_COLOR} from '@components/Charts/utils';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -41,7 +42,7 @@ function getHierarchyID(tnode: TNode): string {
 /**
  * Traverse all nodes to extract points from `data` attributes and other config e.g. axis configuration
  */
-function extractData(tnode: TNode) {
+function processNode(tnode: TNode, typeface: SkTypeface | null) {
     const data: Record<string, RawData> = {};
     const xKey: string = X_KEY;
     const yKeys: string[] = [];
@@ -70,21 +71,24 @@ function extractData(tnode: TNode) {
         let lineWidth: number | undefined;
         let labelColor: string | undefined;
         let labelOffset: number | undefined;
+        let fontSize: number | undefined;
         if (lodashIsObject(style)) {
             // VC uses separate colors for axis and grid but VN uses a unifed one.
             if ('grid' in style && lodashIsObject(style.grid)) {
                 lineColor ??= 'stroke' in style.grid ? (style.grid.stroke as Color) : undefined;
-                lineWidth ??= 'strokeWidth' in style.grid ? (style.grid.strokeWidth as number) : undefined;
+                lineWidth ??= 'strokeWidth' in style.grid ? Number(style.grid.strokeWidth) : undefined;
             }
             if ('axis' in style && lodashIsObject(style.axis)) {
                 lineColor ??= 'stroke' in style.axis ? (style.axis.stroke as Color) : undefined;
-                lineWidth ??= 'strokeWidth' in style.axis ? (style.axis.strokeWidth as number) : undefined;
+                lineWidth ??= 'strokeWidth' in style.axis ? Number(style.axis.strokeWidth) : undefined;
             }
             if ('tickLabels' in style && lodashIsObject(style.tickLabels)) {
-                labelColor ??= 'fill' in style.tickLabels ? (style.tickLabels.fill as string) : undefined;
-                labelOffset ??= 'padding' in style.tickLabels ? (style.tickLabels.padding as number) : undefined;
+                labelColor ??= 'fill' in style.tickLabels ? String(style.tickLabels.fill) : undefined;
+                labelOffset ??= 'padding' in style.tickLabels ? Number(style.tickLabels.padding) : undefined;
+                fontSize ??= 'fontSize' in style.tickLabels ? Number(style.tickLabels.fontSize) : undefined;
             }
         }
+        const font = typeface ? Skia.Font(typeface, fontSize) : null;
         if (isDependentAxis) {
             yAxis = [
                 {
@@ -95,6 +99,7 @@ function extractData(tnode: TNode) {
                     lineWidth,
                     labelColor,
                     labelOffset,
+                    font,
                 },
             ];
         } else {
@@ -106,12 +111,13 @@ function extractData(tnode: TNode) {
                 lineWidth,
                 labelColor,
                 labelOffset,
+                font,
             };
         }
     }
 
     tnode.children.forEach((child) => {
-        const childData = extractData(child);
+        const childData = processNode(child, typeface);
         yKeys.push(...childData.yKeys);
         if (childData.xAxis) {
             // It's safe to replace because there should be at most one xAxis
@@ -167,10 +173,10 @@ function parseCornerRadius(attribute: string): RoundedCorners | undefined {
     }
     if (lodashIsObject(cornerRadius)) {
         return {
-            topLeft: 'topLeft' in cornerRadius ? (cornerRadius.topLeft as number) : 'top' in cornerRadius ? (cornerRadius.top as number) : undefined,
-            topRight: 'topRight' in cornerRadius ? (cornerRadius.topRight as number) : 'top' in cornerRadius ? (cornerRadius.top as number) : undefined,
-            bottomLeft: 'bottomLeft' in cornerRadius ? (cornerRadius.bottomLeft as number) : 'bottom' in cornerRadius ? (cornerRadius.bottom as number) : undefined,
-            bottomRight: 'bottomRight' in cornerRadius ? (cornerRadius.bottomRight as number) : 'bottom' in cornerRadius ? (cornerRadius.bottom as number) : undefined,
+            topLeft: 'topLeft' in cornerRadius ? Number(cornerRadius.topLeft) : 'top' in cornerRadius ? Number(cornerRadius.top) : undefined,
+            topRight: 'topRight' in cornerRadius ? Number(cornerRadius.topRight) : 'top' in cornerRadius ? Number(cornerRadius.top) : undefined,
+            bottomLeft: 'bottomLeft' in cornerRadius ? Number(cornerRadius.bottomLeft) : 'bottom' in cornerRadius ? Number(cornerRadius.bottom) : undefined,
+            bottomRight: 'bottomRight' in cornerRadius ? Number(cornerRadius.bottomRight) : 'bottom' in cornerRadius ? Number(cornerRadius.bottom) : undefined,
         };
     }
     return undefined;
@@ -207,10 +213,9 @@ function parseStyles(tnode: TNode) {
 
 function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
-    const {data, xKey, yKeys, xAxis, yAxis} = useMemo(() => extractData(tnode), [tnode]);
+    const typeface = useChartDefaultTypeface();
+    const {data, xKey, yKeys, xAxis, yAxis} = useMemo(() => processNode(tnode, typeface), [tnode, typeface]);
     const {nodeStyles, parentNodeStyles} = useMemo(() => parseStyles(tnode), [tnode]);
-
-    window.tnode = tnode;
 
     const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<RawData, string>) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
@@ -259,6 +264,7 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                     xAxis={xAxis}
                     yAxis={yAxis}
                     domain={parseAttribute(tnode.attributes.domain)}
+                    // s77rt TOOD fix compatibility
                     domainPadding={parseAttribute(tnode.attributes.domainpadding)}
                     padding={parseAttribute(tnode.attributes.padding)}
                 >
