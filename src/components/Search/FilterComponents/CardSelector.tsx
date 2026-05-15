@@ -30,7 +30,7 @@ type CardSelectorProps = SearchFilterSelectionListProps & {
     onChange: (cards: string[]) => void;
 };
 
-function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: CardSelectorProps) {
+function CardSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CardSelectorProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -161,6 +161,7 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
                     shouldStopPropagation
                     canSelectMultiple
                     style={selectionListStyle}
+                    footerContent={footer}
                 />
             )}
         </ListFilterView>

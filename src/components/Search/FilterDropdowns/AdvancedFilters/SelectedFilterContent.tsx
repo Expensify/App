@@ -74,7 +74,7 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
 
     const fullscreen = useFullscreenAdvancedFilters();
 
-    const content = (
+    return (
         <FilterComponents
             value={fullscreen ? value : initialValue}
             filterKey={filterKey}
@@ -90,24 +90,16 @@ function CommonContent({filterKey, value: initialValue, policyIDQuery, onChange}
                 }
                 onChange({[filterKey]: newValue} as Partial<SearchAdvancedFiltersForm>);
             }}
-        />
-    );
-
-    if (fullscreen) {
-        return (
-            <View style={[styles.flex1, styles.justifyContentBetween]}>
-                {content}
+            footer={fullscreen ? (
                 <Button
-                    style={[styles.ph5, styles.pb3]}
                     success
                     large
                     text={translate('common.confirm')}
                     onPress={() => onChange({[filterKey]: value} as Partial<SearchAdvancedFiltersForm>)}
                 />
-            </View>
-        );
-    }
-    return content;
+            ) : undefined}
+        />
+    );
 }
 
 function SelectedFilterContent({filterKey, values, policyIDQuery, onChange}: SelectedFilterContentProps) {

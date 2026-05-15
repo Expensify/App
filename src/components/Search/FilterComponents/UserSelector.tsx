@@ -25,7 +25,7 @@ type UserSelectorProps = SearchFilterSelectionListProps & {
     onChange: (options: string[]) => void;
 };
 
-function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, scrollViewOffset, autoFocus = true, onChange}: UserSelectorProps) {
+function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, scrollViewOffset, autoFocus = true, footer, onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -171,6 +171,7 @@ function UserSelector({value = [], selectionListTextInputStyle, selectionListSty
                 shouldShowLoadingPlaceholder={!areOptionsInitialized}
                 onEndReached={onListEndReached}
                 style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                footerContent={footer}
             />
         </ListFilterWrapper>
     );

@@ -18,7 +18,7 @@ type TagSelectorProps = SearchFilterSelectionListProps & {
     onChange: (tags: string[]) => void;
 };
 
-function TagSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: TagSelectorProps) {
+function TagSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TagSelectorProps) {
     const {translate} = useLocalize();
     const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [allPolicyTagLists = getEmptyObject<NonNullable<OnyxCollection<PolicyTagLists>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
@@ -57,6 +57,7 @@ function TagSelector({value = [], selectionListTextInputStyle, selectionListStyl
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(tags) => onChange(tags.map((tag) => tag.value))}
         />
     );

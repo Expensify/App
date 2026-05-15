@@ -17,7 +17,7 @@ type CategorySelectorProps = SearchFilterSelectionListProps & {
     onChange: (categories: string[]) => void;
 };
 
-function CategorySelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: CategorySelectorProps) {
+function CategorySelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CategorySelectorProps) {
     const {translate} = useLocalize();
     const [policyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -82,6 +82,7 @@ function CategorySelector({value = [], selectionListTextInputStyle, selectionLis
             searchPlaceholder={translate('common.category')}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(categories) => onChange(categories.map((category) => category.value))}
         />
     );

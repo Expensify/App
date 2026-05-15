@@ -13,7 +13,7 @@ type TaxRateSelectorProps = SearchFilterSelectionListProps & {
     onChange: (taxRates: string[]) => void;
 };
 
-function TaxRateSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: TaxRateSelectorProps) {
+function TaxRateSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: TaxRateSelectorProps) {
     const [policyIDs] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterPolicyIDSelector});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -41,6 +41,7 @@ function TaxRateSelector({value = [], selectionListTextInputStyle, selectionList
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(taxRates) => onChange(taxRates.map((taxRate) => taxRate.value))}
         />
     );

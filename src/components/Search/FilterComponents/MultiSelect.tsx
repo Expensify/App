@@ -55,6 +55,7 @@ function MultiSelect<T extends string>({
     selectionListTextInputStyle,
     selectionListStyle,
     autoFocus = true,
+    footer,
     onChange,
 }: MultiSelectProps<T>) {
     const theme = useTheme();
@@ -126,6 +127,7 @@ function MultiSelect<T extends string>({
                     onSelectRow={updateSelectedItems}
                     textInputOptions={textInputOptions}
                     style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                    footerContent={footer}
                 />
             )}
         </ListFilterView>

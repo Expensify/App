@@ -44,7 +44,7 @@ function typeOptionsPoliciesSelector(policies: OnyxCollection<Policy>): OnyxColl
     return result;
 }
 
-function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, onChange}: TypeSelectorProps) {
+function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: TypeSelectorProps) {
     const {translate} = useLocalize();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: typeOptionsPoliciesSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
@@ -57,6 +57,7 @@ function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListSty
             value={{value, text: ''}}
             items={types}
             selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(item) => onChange(item.value)}
         />
     );

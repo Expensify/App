@@ -81,7 +81,7 @@ function TextInputFilterComponents({filterKey, value, onChange}: TextInputFilter
     );
 }
 
-function SingleSelectFilterComponents({filterKey, value, selectionListTextInputStyle, selectionListStyle, onChange}: SingleSelectFilterComponentsProps) {
+function SingleSelectFilterComponents({filterKey, value, selectionListTextInputStyle, selectionListStyle, footer, onChange}: SingleSelectFilterComponentsProps) {
     const {translate} = useLocalize();
     const items = getSingleSelectFilterOptions(filterKey, translate);
 
@@ -91,12 +91,13 @@ function SingleSelectFilterComponents({filterKey, value, selectionListTextInputS
             value={items.find((option) => option.value === value)}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(item) => onChange(item.value)}
         />
     );
 }
 
-function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle, onChange}: MultiSelectFilterComponentsProps) {
+function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle, footer, onChange}: MultiSelectFilterComponentsProps) {
     const {translate} = useLocalize();
     const typeSelector = (searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) => {
         return searchAdvancedFiltersForm?.type;
@@ -113,6 +114,7 @@ function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle,
             items={items}
             value={multiSelectValues}
             selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(selectedItems) => {
                 if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
                     onChange(selectedItems.length > 0 ? selectedItems.map((item) => item.value) : CONST.SEARCH.STATUS.EXPENSE.ALL);
@@ -124,7 +126,7 @@ function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle,
     );
 }
 
-function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInputStyle, selectionListStyle, scrollViewOffset, autoFocus, onChange}: FilterComponentsProps) {
+function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInputStyle, selectionListStyle, scrollViewOffset, autoFocus, footer, onChange}: FilterComponentsProps) {
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -148,6 +150,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
+                    footer={footer}
                     onChange={onChange}
                 />
             );
@@ -157,6 +160,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                 <TypeSelector
                     value={value as string | undefined}
                     selectionListStyle={selectionListStyle}
+                    footer={footer}
                     onChange={onChange}
                 />
             );
@@ -185,6 +189,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
+                    footer={footer}
                     onChange={onChange}
                 />
             );
@@ -199,6 +204,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     value={value as SingleSelectFilterComponentsProps['value'] | undefined}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
+                    footer={footer}
                     onChange={onChange}
                 />
             );
@@ -215,6 +221,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     value={value}
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
+                    footer={footer}
                     onChange={onChange}
                 />
             );
@@ -231,6 +238,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     selectionListStyle={selectionListStyle}
                     scrollViewOffset={scrollViewOffset}
                     autoFocus={autoFocus}
+                    footer={footer}
                     onChange={onChange}
                 />
             );
@@ -242,6 +250,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     selectionListTextInputStyle={selectionListTextInputStyle}
                     selectionListStyle={selectionListStyle}
                     autoFocus={autoFocus}
+                    footer={footer}
                     onChange={onChange}
                 />
             );

@@ -12,7 +12,7 @@ type WorkspaceSelectorProps = SearchFilterSelectionListProps & {
     onChange: (item: string[]) => void;
 };
 
-function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: WorkspaceSelectorProps) {
+function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: WorkspaceSelectorProps) {
     const {workspaces, shouldShowWorkspaceSearchInput} = useAdvancedSearchFilters();
     const workspaceOptions: Array<MultiSelectItem<string>> = workspaces
         .flatMap((section) => section.data)
@@ -35,6 +35,7 @@ function WorkspaceSelector({policyIDQuery, value, selectionListTextInputStyle, s
             isSearchable={shouldShowWorkspaceSearchInput}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
+            footer={footer}
         />
     );
 }

@@ -50,8 +50,9 @@ function SingleSelect<T extends string>({
     shouldShowList = true,
     hasTitle,
     hasHeader,
-    onChange,
     itemHeight,
+    footer,
+    onChange,
 }: SingleSelectProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -132,6 +133,7 @@ function SingleSelect<T extends string>({
                     shouldUpdateFocusedIndex={isSearchable}
                     initiallyFocusedItemKey={isSearchable ? value?.value : undefined}
                     shouldShowLoadingPlaceholder={!noResultsFound}
+                    footerContent={footer}
                 />
             </Activity>
         </ListFilterWrapper>

@@ -31,7 +31,7 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
 };
 
-function ExportedToSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: ExportedToSelectorProps) {
+function ExportedToSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -140,6 +140,7 @@ function ExportedToSelector({value = [], selectionListTextInputStyle, selectionL
             autoFocus={autoFocus}
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(exportedTo) => onChange(exportedTo.map((e) => e.value))}
         />
     );

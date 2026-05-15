@@ -9,7 +9,7 @@ type CurrencySelectorProps = SearchFilterSelectionListProps & {
     onChange: (item: string[]) => void;
 };
 
-function CurrencySelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: CurrencySelectorProps) {
+function CurrencySelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CurrencySelectorProps) {
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
     const currencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
@@ -23,6 +23,7 @@ function CurrencySelector({value = [], selectionListTextInputStyle, selectionLis
             isSearchable
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(currencies) => onChange(currencies.map((currency) => currency.value))}
         />
     );

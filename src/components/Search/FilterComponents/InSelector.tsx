@@ -41,7 +41,7 @@ function getSelectedOptionData(option: Option & Pick<OptionData, 'reportID'>): O
     return {...option, isSelected: true, keyForList: option.keyForList ?? option.reportID};
 }
 
-function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, onChange}: InSelectorProps) {
+function InSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: InSelectorProps) {
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {options, areOptionsInitialized} = useOptionsList();
@@ -183,6 +183,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
                 shouldShowTextInput
                 style={selectionListStyle}
+                footerContent={footer}
             />
         </ListFilterView>
     );

@@ -10,7 +10,7 @@ type FeedSelectorProps = SearchFilterSelectionListProps & {
     onChange: (item: string[]) => void;
 };
 
-function FeedSelector({value, selectionListStyle, onChange}: FeedSelectorProps) {
+function FeedSelector({value, selectionListStyle, footer, onChange}: FeedSelectorProps) {
     const {isOffline} = useNetwork();
     const {feedOptions, feedValue} = useFilterFeedData(value);
 
@@ -26,6 +26,7 @@ function FeedSelector({value, selectionListStyle, onChange}: FeedSelectorProps) 
             value={feedValue}
             items={feedOptions}
             selectionListStyle={selectionListStyle}
+            footer={footer}
             onChange={(feeds) => onChange(feeds.map((feed) => feed.value))}
         />
     );
