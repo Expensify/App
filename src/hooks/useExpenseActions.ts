@@ -569,7 +569,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -588,4 +588,3 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 }
 
 export default useExpenseActions;
-export type {UseExpenseActionsParams, UseExpenseActionsReturn};
