@@ -48,7 +48,6 @@ function ListFilterWrapper({children, ...props}: ListFilterWrapperProps) {
         return children;
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading -- ListFilterWrapper is a wrapper that forwards all props to the underlying ListFilterView
     return <ListFilterView {...props}>{children}</ListFilterView>;
 }
 
