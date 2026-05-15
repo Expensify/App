@@ -260,6 +260,7 @@ type SearchDateFilterKeys =
 type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}` | ReportFieldDateKey;
 
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
+type SearchAmountValues = Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
 
 type SearchCurrencyFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY
@@ -400,6 +401,7 @@ export type {
     SearchDateFilterKeys,
     SearchDateKey,
     SearchAmountFilterKeys,
+    SearchAmountValues,
     SearchStatus,
     SearchQueryJSON,
     SearchQueryString,
