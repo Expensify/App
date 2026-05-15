@@ -21,8 +21,10 @@
  * `setPendingSubmitFollowUpAction`) to ensure consistent span instrumentation.
  */
 import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SubmitExpenseContext} from '@libs/telemetry/submitFollowUpAction';
@@ -84,8 +86,19 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
     }
 
     if (destinationReportID) {
-        startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         const isDestinationLoaded = !!getReportOrDraftReport(destinationReportID)?.reportID;
+        const currentReportID = !getIsNarrowLayout() ? getTopmostReportParams(navigationRef.getRootState())?.reportID : undefined;
+        const isAlreadyOnDestination = currentReportID === destinationReportID;
+
+        if (isAlreadyOnDestination) {
+            startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, destinationReportID);
+            Navigation.dismissModal({
+                afterTransition: () => executeWrite({shouldHandleNavigation: false, shouldDeferForSearch: false}),
+            });
+            return;
+        }
+
+        startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         if (!isDestinationLoaded) {
             executeWrite({shouldHandleNavigation: false, shouldDeferForSearch: false});
             Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID));
