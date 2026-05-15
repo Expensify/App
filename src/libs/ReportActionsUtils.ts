@@ -2712,6 +2712,11 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
             url = nonReimbursableUrl.startsWith('https://') ? nonReimbursableUrl : '';
         } else {
             switch (label) {
+                case CONST.EXPORT_LABELS.INTACCT:
+                case CONST.EXPORT_LABELS.SAGE_INTACCT:
+                case CONST.EXPORT_LABELS.QBD:
+                    // These integrations store IDs, not URLs.
+                    break;
                 case CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero:
                     url = XERO_NON_REIMBURSABLE_EXPENSES_URL;
                     break;
