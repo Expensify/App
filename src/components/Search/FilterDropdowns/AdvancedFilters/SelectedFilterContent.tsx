@@ -53,6 +53,7 @@ function TextInputFilterContent({filterKey, value: initialValue, onChange}: Text
                 value={value}
                 filterKey={filterKey}
                 policyIDQuery={undefined}
+                autoFocus={fullscreen}
                 onChange={(v) => setValue(v as string)}
             />
             <Button

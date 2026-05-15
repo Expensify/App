@@ -42,6 +42,7 @@ type TextInputFilterComponentsProps = {
         | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE
         | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID;
     value: string | undefined;
+    autoFocus?: boolean;
     onChange: (value: string) => void;
 };
 
@@ -64,7 +65,7 @@ type MultiSelectFilterComponentsProps = SearchFilterSelectionListProps & {
     onChange: (values: SearchAdvancedFiltersForm[MultiSelectFilterKeys]) => void;
 };
 
-function TextInputFilterComponents({filterKey, value, onChange}: TextInputFilterComponentsProps) {
+function TextInputFilterComponents({filterKey, value, autoFocus, onChange}: TextInputFilterComponentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -77,6 +78,7 @@ function TextInputFilterComponents({filterKey, value, onChange}: TextInputFilter
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
             containerStyles={[styles.ph5]}
+            autoFocus={autoFocus}
         />
     );
 }
@@ -127,6 +129,7 @@ function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle,
 }
 
 function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInputStyle, selectionListStyle, scrollViewOffset, autoFocus, footer, onChange}: FilterComponentsProps) {
+    console.log('auto focus?', autoFocus)
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
@@ -176,6 +179,7 @@ function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInp
                     key={filterKey}
                     filterKey={filterKey}
                     value={value as string | undefined}
+                    autoFocus={autoFocus}
                     onChange={onChange}
                 />
             );
