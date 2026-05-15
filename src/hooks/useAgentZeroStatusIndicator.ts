@@ -75,12 +75,17 @@ function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): Newe
  * Hook to manage AgentZero status indicator for chats where AgentZero responds.
  *
  * Callers must gate this hook at the mount level (only mount for AgentZero-enabled chats:
- * Concierge DMs or policy #admins rooms). The outer `AgentZeroStatusProvider` already
- * enforces this, so the hook assumes it's always running for an AgentZero chat.
+ * Concierge DMs, policy #admins rooms, or custom-agent chats). The outer
+ * `AgentZeroStatusProvider` already enforces this, so the hook assumes it's always running
+ * for an AgentZero chat.
  *
  * @param reportID - The report ID to monitor
+ * @param personaAccountID - The persona handling this chat (Concierge for Concierge/admin chats;
+ *   the agent's accountID for custom-agent chats). Used to decide when a final reply has
+ *   actually landed: the indicator only clears once the newest reportAction's actorAccountID
+ *   matches this persona AND the server NVP signals done.
  */
-function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
+function useAgentZeroStatusIndicator(reportID: string, personaAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): AgentZeroStatusState {
     // Server-driven processing label from report name-value pairs (e.g. "Looking up categories...")
     // Uses selector to only re-render when the specific field changes, not on any NVP change.
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: agentZeroProcessingIndicatorSelector});
@@ -377,7 +382,7 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
     const newestActorAccountID = newestReportAction?.actorAccountID;
     const newestActionID = newestReportAction?.reportActionID;
     useEffect(() => {
-        if (newestActorAccountID !== CONST.ACCOUNT_ID.CONCIERGE) {
+        if (newestActorAccountID !== personaAccountID) {
             return;
         }
         if (pendingOptimisticRequests === 0 && !serverLabel) {
@@ -386,7 +391,7 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
         if (!newestActionID || newestActionID === indicatorBaselineActionIDRef.current) {
             return;
         }
-        // Server hasn't signaled done yet — this is an intermediate Concierge action, not
+        // Server hasn't signaled done yet — this is an intermediate persona action, not
         // the final reply. Wait for the NVP to clear before tearing everything down.
         if (serverLabel) {
             return;
@@ -394,7 +399,7 @@ function useAgentZeroStatusIndicator(reportID: string): AgentZeroStatusState {
         clearAgentZeroProcessingIndicator(reportID);
         clearSafetyTimer();
         AgentZeroOptimisticStore.clear(reportID);
-    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer]);
+    }, [newestActorAccountID, newestActionID, serverLabel, pendingOptimisticRequests, reportID, clearSafetyTimer, personaAccountID]);
 
     const isProcessing = !isOffline && isIndicatorActive;
 
