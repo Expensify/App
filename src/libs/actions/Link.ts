@@ -13,7 +13,7 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
-import willRHPNavigateAcrossBackgroundTabs from '@libs/Navigation/helpers/willRHPNavigateAcrossBackgroundTabs';
+import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -181,11 +181,15 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen) {
-        // Close the current RHP when the target is not an RHP at all, or when the target IS an RHP
-        // but maps to a different background tab — otherwise the new RHP would open over the
-        // previous tab and leave the user with the wrong page underneath
         const targetWillNavigateToRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
-        shouldCloseRHP = !targetWillNavigateToRHP || willRHPNavigateAcrossBackgroundTabs(currentState, internalNewExpensifyPath as Route);
+        if (!targetWillNavigateToRHP) {
+            shouldCloseRHP = true;
+        } else {
+            // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
+            // user sees only the RHP content update + the underlying tab animate, no close+reopen
+            // flicker (issue: https://github.com/Expensify/App/issues/89710).
+            swapBackgroundTabForRHPTarget(currentState, internalNewExpensifyPath as Route);
+        }
     }
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
