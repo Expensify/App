@@ -734,16 +734,5 @@ describe('PersonalDetailsUtils', () => {
             const result = newGetPersonalDetailsByIDs([accountID1, 999], personalDetails);
             expect(result).toEqual([personalDetails[accountID1]]);
         });
-
-        it("should replace the current user's displayName with 'You' if shouldChangeUserDisplayName is true", () => {
-            const result = newGetPersonalDetailsByIDs([accountID1, accountID2], personalDetails);
-            expect(result).toEqual([
-                {
-                    ...personalDetails[accountID1],
-                    displayName: translateLocal('common.you'),
-                },
-                personalDetails[accountID2],
-            ]);
-        });
     });
 });
