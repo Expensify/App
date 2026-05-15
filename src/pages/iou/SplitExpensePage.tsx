@@ -29,8 +29,8 @@ import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID} from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
+import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import {
     addSplitExpenseField,
     clearSplitTransactionDraftErrors,
