@@ -1,7 +1,6 @@
 import {useRef} from 'react';
 import type {View} from 'react-native';
 import useAssertedContext from '@hooks/useAssertedContext';
-import Log from '@libs/Log';
 import {RootActionsContext} from './RootContext';
 import type {AnchorRect, AnchorRef} from './RootContext';
 
@@ -22,9 +21,6 @@ function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
         }
         const node = ownRef.current;
         if (!node) {
-            if (__DEV__) {
-                Log.warn(`[${callerName}] press fired but the slotted child did not attach the anchor ref — did the child component forward \`ref\`?`);
-            }
             return;
         }
         const {x, y, width, height} = node.getBoundingClientRect();

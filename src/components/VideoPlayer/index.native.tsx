@@ -13,7 +13,6 @@ function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, 
     return (
         <PopoverMenuRoot>
             <BaseVideoPlayer
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 isVideoHovered
                 shouldUseSharedVideoElement={false}

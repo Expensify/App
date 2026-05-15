@@ -11,8 +11,8 @@ const defaultAnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-/** Some callers use `as`-casts to pass non-`View` refs; the runtime `measureInWindow` check guards that. */
-type MeasurableRef = RefObject<View | null>;
+/** Web callers may hold an `HTMLDivElement` ref; the runtime `measureInWindow` check guards the cross-platform shape. */
+type MeasurableRef = RefObject<View | HTMLDivElement | null>;
 
 type Rect = {x: number; y: number} & Dimensions;
 
@@ -58,7 +58,7 @@ function usePopoverPosition() {
 
     const calculatePopoverPosition = (anchorRef: MeasurableRef, anchorAlignment: AnchorAlignment = defaultAnchorAlignment) => {
         const element = anchorRef.current;
-        if (isSmallScreenWidth || element === null || typeof element.measureInWindow !== 'function') {
+        if (isSmallScreenWidth || element === null || !('measureInWindow' in element) || typeof element.measureInWindow !== 'function') {
             return Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0});
         }
         return new Promise<AnchorPosition & Dimensions>((resolve) => {

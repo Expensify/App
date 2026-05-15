@@ -43,7 +43,6 @@ function SubTrigger({text, disabled = false, rightIcon, testID, iconWidth, iconH
 
     return (
         <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union via spread, matching <Item>/<CheckmarkItem>/<Label>
             {...rest}
             ref={ref}
             title={text}

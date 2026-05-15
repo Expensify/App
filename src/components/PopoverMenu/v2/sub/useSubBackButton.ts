@@ -15,7 +15,6 @@ type UseSubBackButtonResult = {
     isAtActiveLevel: boolean;
 };
 
-/** Sub-level back-button hook; pops one sub on press. `<Sub.BackButton>` is the opinionated `MenuItem` shape. */
 function useSubBackButton(): UseSubBackButtonResult {
     const subContext = useAssertedContext(SubContext, HOOK_NAME, '<PopoverMenu.Sub>');
     const navigation = useAssertedContext(ContentNavigationContext, HOOK_NAME, '<PopoverMenu.Content>');

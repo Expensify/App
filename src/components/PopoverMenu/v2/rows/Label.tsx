@@ -3,6 +3,7 @@ import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {LabelMenuItemForwardProps} from './types';
 
 type LabelOwnProps = {
@@ -23,7 +24,6 @@ function Label({text, titleStyle, wrapperStyle, iconWidth, iconHeight, ...rest}:
 
     return (
         <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union via spread
             {...rest}
             title={text}
             titleStyle={titleStyle}
@@ -31,6 +31,7 @@ function Label({text, titleStyle, wrapperStyle, iconWidth, iconHeight, ...rest}:
             iconWidth={iconWidth ?? variables.iconSizeNormal}
             iconHeight={iconHeight ?? variables.iconSizeNormal}
             interactive={false}
+            role={CONST.ROLE.NONE}
         />
     );
 }

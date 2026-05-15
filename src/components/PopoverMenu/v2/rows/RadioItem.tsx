@@ -4,6 +4,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -12,7 +13,7 @@ import type {MenuItemForwardProps} from './types';
 import useSelectableRow from './useSelectableRow';
 import type {ItemSelectEvent} from './useSelectableRow';
 
-type CheckmarkItemOwnProps = {
+type RadioItemOwnProps = {
     text: string;
     isSelected?: boolean;
     /** Call `event.preventDefault()` to keep the menu open after select. */
@@ -24,24 +25,14 @@ type CheckmarkItemOwnProps = {
     rightIcon?: IconAsset;
 };
 
-type CheckmarkItemProps = CheckmarkItemOwnProps & MenuItemForwardProps;
+type RadioItemProps = RadioItemOwnProps & MenuItemForwardProps;
 
-/** Selectable row with a radio indicator; pass `rightIcon` to replace the indicator. */
-function CheckmarkItem({
-    text,
-    isSelected = false,
-    onSelect,
-    disabled = false,
-    pendingAction,
-    testID,
-    rightIcon,
-    iconWidth,
-    iconHeight,
-    ...rest
-}: CheckmarkItemProps): React.ReactElement | null {
+/** Single-select row with a radio indicator; pass `rightIcon` to replace the indicator. */
+function RadioItem({text, isSelected = false, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: RadioItemProps): React.ReactElement | null {
     const theme = useTheme();
+    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    useContentClose(CheckmarkItem.displayName);
+    useContentClose(RadioItem.displayName);
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled, text});
 
     if (!isAtActiveLevel) {
@@ -51,7 +42,6 @@ function CheckmarkItem({
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <MenuItem
-                // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union via spread
                 {...rest}
                 ref={ref}
                 title={text}
@@ -65,19 +55,20 @@ function CheckmarkItem({
                 isSelected={isSelected}
                 // Skip the row tint when the radio indicator is the visual cue.
                 wrapperStyle={StyleUtils.getItemBackgroundColorStyle(!!rightIcon && isSelected, focused, disabled, theme.activeComponentBG, theme.hoverComponentBG)}
+                titleStyle={styles.flex1}
                 shouldRemoveHoverBackground={isSelected}
                 onPress={onPress}
                 onFocus={onFocus}
                 focused={focused}
                 shouldCheckActionAllowedOnPress={false}
                 role={CONST.ROLE.MENUITEM}
-                pressableTestID={testID ?? `PopoverMenu.CheckmarkItem-${text}`}
+                pressableTestID={testID ?? `PopoverMenu.RadioItem-${text}`}
             />
         </OfflineWithFeedback>
     );
 }
 
-CheckmarkItem.displayName = 'PopoverMenu.CheckmarkItem';
+RadioItem.displayName = 'PopoverMenu.RadioItem';
 
-export default CheckmarkItem;
-export type {CheckmarkItemProps};
+export default RadioItem;
+export type {RadioItemProps};

@@ -16,8 +16,9 @@ type UseSubNavigationResult = {
 };
 
 function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubNavigationResult {
-    // Stack of sub IDs from outermost to active level. Empty = top level.
+    // Outermost → active level; empty = top.
     const [pathStack, setPathStack] = useState<string[]>([]);
+    // Mounted-membership of <Sub> components; resetToRoot does not clear it (statically-mounted Subs survive open/close cycles).
     const mountedSubs = useRef<Set<string>>(new Set());
 
     const currentSubID = pathStack.length > 0 ? (pathStack.at(-1) ?? null) : null;
@@ -48,11 +49,10 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
         unregisterSub: (subID) => {
             mountedSubs.current.delete(subID);
             setPathStack((prev) => {
-                // Only act if the unmounted sub was the active level.
                 if (prev.at(-1) !== subID) {
                     return prev;
                 }
-                // Pop unmounted entries from the top.
+                // Cascade past any further unmounted ancestors to the nearest still-mounted one.
                 let next = prev.slice(0, -1);
                 while (next.length > 0) {
                     const top = next.at(-1);

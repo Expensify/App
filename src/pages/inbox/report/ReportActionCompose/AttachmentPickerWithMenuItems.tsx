@@ -382,7 +382,7 @@ function AttachmentPickerWithMenuItems({
             return;
         }
 
-        calculatePopoverPosition(actionButtonRef as React.RefObject<View>, {
+        calculatePopoverPosition(actionButtonRef, {
             horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
             vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
         }).then((position) => {

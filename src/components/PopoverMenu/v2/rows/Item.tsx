@@ -2,6 +2,9 @@ import React from 'react';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -24,6 +27,9 @@ type ItemProps = ItemOwnProps & MenuItemForwardProps;
 
 function Item({text, onSelect, disabled = false, pendingAction, testID, rightIcon, iconWidth, iconHeight, ...rest}: ItemProps): React.ReactElement | null {
     useContentClose(Item.displayName);
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSelectableRow({onSelect, disabled, text});
 
     if (!isAtActiveLevel) {
@@ -33,7 +39,6 @@ function Item({text, onSelect, disabled = false, pendingAction, testID, rightIco
     return (
         <OfflineWithFeedback pendingAction={pendingAction}>
             <MenuItem
-                // eslint-disable-next-line react/jsx-props-no-spreading -- forwards MenuItemProps' discriminated union via spread
                 {...rest}
                 ref={ref}
                 title={text}
@@ -47,6 +52,8 @@ function Item({text, onSelect, disabled = false, pendingAction, testID, rightIco
                 onFocus={onFocus}
                 focused={focused}
                 shouldCheckActionAllowedOnPress={false}
+                wrapperStyle={StyleUtils.getItemBackgroundColorStyle(false, focused, disabled, theme.activeComponentBG, theme.hoverComponentBG)}
+                titleStyle={styles.flex1}
                 role={CONST.ROLE.MENUITEM}
                 pressableTestID={testID ?? `PopoverMenu.Item-${text}`}
             />

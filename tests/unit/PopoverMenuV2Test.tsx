@@ -95,6 +95,23 @@ jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
 }));
 
+// Captures registered shortcuts so tests can fire them imperatively. Re-registration overwrites — mirrors real RN-keycommand replacement.
+type ShortcutEntry = {callback: (event?: unknown) => void; isActive: boolean};
+const registeredShortcuts: Record<string, ShortcutEntry> = {};
+jest.mock('@hooks/useKeyboardShortcut', () => {
+    return (shortcut: {shortcutKey: string}, callback: (event?: unknown) => void, config?: {isActive?: boolean}) => {
+        registeredShortcuts[shortcut.shortcutKey] = {callback, isActive: config?.isActive ?? true};
+    };
+});
+
+function pressShortcut(shortcutKey: string): void {
+    const entry = registeredShortcuts[shortcutKey];
+    if (!entry?.isActive) {
+        return;
+    }
+    act(() => entry.callback());
+}
+
 const mockNavigationState: {blurListeners: Set<() => void>} = {
     blurListeners: new Set(),
 };
@@ -144,8 +161,37 @@ beforeEach(() => {
     mockNavigationState.blurListeners.clear();
     mockModalState.value = undefined;
     mockModalState.listeners.clear();
+    for (const key of Object.keys(registeredShortcuts)) {
+        delete registeredShortcuts[key];
+    }
     jest.clearAllMocks();
 });
+
+// RN's View ref in jest exposes `measureInWindow` but not `getBoundingClientRect` (production paths have it); install the stub for tests that exercise the press → anchor-measurement path.
+function stubViewGetBoundingClientRect(): {restore: () => void} {
+    const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
+    const original = proto.getBoundingClientRect as ((this: unknown) => DOMRect) | undefined;
+    proto.getBoundingClientRect = () => ({
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        toJSON: () => ({}),
+    });
+    return {
+        restore: () => {
+            if (original) {
+                proto.getBoundingClientRect = original;
+            } else {
+                delete proto.getBoundingClientRect;
+            }
+        },
+    };
+}
 
 function findItemByTitle(title: string): MenuItemMockProps | undefined {
     return menuItemPropsCapture.current.findLast((p) => p.title === title);
@@ -350,30 +396,12 @@ describe('PopoverMenu V2', () => {
     });
 
     describe('Trigger', () => {
-        // RN's View ref in jest exposes `measureInWindow` but not `getBoundingClientRect` (production paths have it); stub for the press path.
-        let originalGetBoundingClientRect: ((this: unknown) => DOMRect) | undefined;
+        let getBoundingClientRectStub: {restore: () => void} | undefined;
         beforeAll(() => {
-            const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
-            originalGetBoundingClientRect = proto.getBoundingClientRect as typeof originalGetBoundingClientRect;
-            proto.getBoundingClientRect = () => ({
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0,
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                toJSON: () => ({}),
-            });
+            getBoundingClientRectStub = stubViewGetBoundingClientRect();
         });
         afterAll(() => {
-            const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
-            if (originalGetBoundingClientRect) {
-                proto.getBoundingClientRect = originalGetBoundingClientRect;
-            } else {
-                delete proto.getBoundingClientRect;
-            }
+            getBoundingClientRectStub?.restore();
         });
 
         it('opens the popover when the slotted child is pressed', () => {
@@ -629,29 +657,12 @@ describe('PopoverMenu V2', () => {
     });
 
     describe('SecondaryInteractionTrigger', () => {
-        let originalGetBoundingClientRect: ((this: unknown) => DOMRect) | undefined;
+        let getBoundingClientRectStub: {restore: () => void} | undefined;
         beforeAll(() => {
-            const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
-            originalGetBoundingClientRect = proto.getBoundingClientRect as typeof originalGetBoundingClientRect;
-            proto.getBoundingClientRect = () => ({
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0,
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                toJSON: () => ({}),
-            });
+            getBoundingClientRectStub = stubViewGetBoundingClientRect();
         });
         afterAll(() => {
-            const proto = (View as unknown as {prototype: Record<string, unknown>}).prototype;
-            if (originalGetBoundingClientRect) {
-                proto.getBoundingClientRect = originalGetBoundingClientRect;
-            } else {
-                delete proto.getBoundingClientRect;
-            }
+            getBoundingClientRectStub?.restore();
         });
 
         it('opens the popover when the slotted child receives a long-press', () => {
@@ -746,46 +757,6 @@ describe('PopoverMenu V2', () => {
             expect(consumerOnSecondary).toHaveBeenCalledTimes(1);
             expect(longPressEvent.defaultPrevented).toBe(true);
             expect(onOpenChange).toHaveBeenCalledWith(true);
-        });
-
-        it('warns when descendant pressable does not match the published gesture kind', () => {
-            const warnSpy = jest.spyOn(Log, 'warn');
-            render(
-                <NavigationContext.Provider value={mockNavigation}>
-                    <PopoverMenu.Root>
-                        <PopoverMenu.SecondaryInteractionTrigger>
-                            <PressableWithFeedback
-                                accessibilityLabel="Wrong pressable"
-                                sentryLabel="X"
-                                testID="wrong-pressable"
-                            >
-                                <View />
-                            </PressableWithFeedback>
-                        </PopoverMenu.SecondaryInteractionTrigger>
-                    </PopoverMenu.Root>
-                </NavigationContext.Provider>,
-            );
-            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('secondary'));
-            warnSpy.mockRestore();
-        });
-
-        it('warns when a descendant pressable consumes props but never calls useResponderRef', () => {
-            const warnSpy = jest.spyOn(Log, 'warn');
-            function BrokenPressable() {
-                usePressResponderPropsImport({});
-                return <View testID="broken" />;
-            }
-            render(
-                <NavigationContext.Provider value={mockNavigation}>
-                    <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
-                            <BrokenPressable />
-                        </PopoverMenu.Trigger>
-                    </PopoverMenu.Root>
-                </NavigationContext.Provider>,
-            );
-            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('useResponderRef'));
-            warnSpy.mockRestore();
         });
     });
 
@@ -1183,12 +1154,12 @@ describe('PopoverMenu V2', () => {
         });
     });
 
-    describe('CheckmarkItem', () => {
+    describe('RadioItem', () => {
         it('renders the radio indicator with isSelected=true when selected', () => {
             render(
                 <Harness initialOpen>
                     <PopoverMenu.Content>
-                        <PopoverMenu.CheckmarkItem
+                        <PopoverMenu.RadioItem
                             text="Wallet"
                             isSelected
                             onSelect={() => {}}
@@ -1206,7 +1177,7 @@ describe('PopoverMenu V2', () => {
             render(
                 <Harness initialOpen>
                     <PopoverMenu.Content>
-                        <PopoverMenu.CheckmarkItem
+                        <PopoverMenu.RadioItem
                             text="Wallet"
                             onSelect={() => {}}
                         />
@@ -1228,7 +1199,7 @@ describe('PopoverMenu V2', () => {
                     onOpenChange={onOpenChange}
                 >
                     <PopoverMenu.Content>
-                        <PopoverMenu.CheckmarkItem
+                        <PopoverMenu.RadioItem
                             text="Pick"
                             onSelect={onSelect}
                         />
@@ -1246,7 +1217,7 @@ describe('PopoverMenu V2', () => {
             render(
                 <Harness initialOpen>
                     <PopoverMenu.Content>
-                        <PopoverMenu.CheckmarkItem
+                        <PopoverMenu.RadioItem
                             text="Override"
                             isSelected
                             rightIcon={customRightIcon}
@@ -1266,7 +1237,7 @@ describe('PopoverMenu V2', () => {
             render(
                 <Harness initialOpen>
                     <PopoverMenu.Content>
-                        <PopoverMenu.CheckmarkItem
+                        <PopoverMenu.RadioItem
                             text="Plain"
                             rightIcon={customRightIcon}
                             onSelect={() => {}}
@@ -1285,7 +1256,7 @@ describe('PopoverMenu V2', () => {
             render(
                 <Harness initialOpen>
                     <PopoverMenu.Content>
-                        <PopoverMenu.CheckmarkItem
+                        <PopoverMenu.RadioItem
                             text="Disabled"
                             disabled
                             isSelected
@@ -2180,7 +2151,7 @@ describe('PopoverMenu V2', () => {
                         </PressableWithFeedback>
                     </PopoverMenu.Trigger>,
                 ),
-            ).toThrow(/PopoverMenu\.Trigger\(\) must be called inside <PopoverMenu\.Root>/);
+            ).toThrow(/<PopoverMenu\.Trigger> must be rendered inside <PopoverMenu\.Root>/);
         });
 
         it('throws when SecondaryInteractionTrigger is rendered outside Root', () => {
@@ -2195,7 +2166,7 @@ describe('PopoverMenu V2', () => {
                         </PressableWithSecondaryInteraction>
                     </PopoverMenu.SecondaryInteractionTrigger>,
                 ),
-            ).toThrow(/PopoverMenu\.SecondaryInteractionTrigger\(\) must be called inside <PopoverMenu\.Root>/);
+            ).toThrow(/<PopoverMenu\.SecondaryInteractionTrigger> must be rendered inside <PopoverMenu\.Root>/);
         });
 
         it('throws when useIsPopoverVisible is called outside Root', () => {
@@ -2365,17 +2336,17 @@ describe('PopoverMenu V2', () => {
             ).toThrow(/<PopoverMenu\.Label> must be rendered inside <PopoverMenu\.Content>/);
         });
 
-        it('throws when CheckmarkItem is rendered outside Content', () => {
+        it('throws when RadioItem is rendered outside Content', () => {
             expect(() =>
                 render(
                     <Harness initialOpen>
-                        <PopoverMenu.CheckmarkItem
+                        <PopoverMenu.RadioItem
                             text="X"
                             onSelect={() => {}}
                         />
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.CheckmarkItem> must be rendered inside <PopoverMenu\.Content>/);
+            ).toThrow(/<PopoverMenu\.RadioItem> must be rendered inside <PopoverMenu\.Content>/);
         });
 
         it('throws when Separator is rendered outside Content', () => {
@@ -2411,6 +2382,124 @@ describe('PopoverMenu V2', () => {
                     </PopoverMenu.ScrollableContent>,
                 ),
             ).toThrow(/<PopoverMenu\.ScrollableContent> must be rendered inside <PopoverMenu\.Root>/);
+        });
+    });
+
+    describe('Arrow-key navigation', () => {
+        // capture accumulates across re-renders — read the LATEST render of a title to assert post-arrow state.
+        function findItemFocusedFlag(title: string): boolean {
+            return !!menuItemPropsCapture.current.findLast((p) => p.title === title)?.focused;
+        }
+
+        it('ArrowDown focuses rows in registration (DOM) order; ArrowUp walks back', () => {
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="Alpha"
+                            onSelect={() => {}}
+                        />
+                        <PopoverMenu.Item
+                            text="Beta"
+                            onSelect={() => {}}
+                        />
+                        <PopoverMenu.Item
+                            text="Gamma"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+
+            pressShortcut('ArrowDown');
+            expect(findItemFocusedFlag('Alpha')).toBe(true);
+            pressShortcut('ArrowDown');
+            expect(findItemFocusedFlag('Beta')).toBe(true);
+            pressShortcut('ArrowDown');
+            expect(findItemFocusedFlag('Gamma')).toBe(true);
+
+            pressShortcut('ArrowUp');
+            expect(findItemFocusedFlag('Beta')).toBe(true);
+            pressShortcut('ArrowUp');
+            expect(findItemFocusedFlag('Alpha')).toBe(true);
+        });
+
+        it('ArrowDown skips disabled rows', () => {
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="A"
+                            onSelect={() => {}}
+                        />
+                        <PopoverMenu.Item
+                            text="B-disabled"
+                            disabled
+                            onSelect={() => {}}
+                        />
+                        <PopoverMenu.Item
+                            text="C"
+                            onSelect={() => {}}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+
+            pressShortcut('ArrowDown');
+            expect(findItemFocusedFlag('A')).toBe(true);
+            pressShortcut('ArrowDown');
+            expect(findItemFocusedFlag('B-disabled')).toBe(false);
+            expect(findItemFocusedFlag('C')).toBe(true);
+        });
+
+        it('Enter activates the focused row and closes the menu', () => {
+            const onSelectAlpha = jest.fn();
+            const onSelectBeta = jest.fn();
+            const onOpenChange = jest.fn();
+            render(
+                <Harness
+                    initialOpen
+                    onOpenChange={onOpenChange}
+                >
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="Alpha"
+                            onSelect={onSelectAlpha}
+                        />
+                        <PopoverMenu.Item
+                            text="Beta"
+                            onSelect={onSelectBeta}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+
+            pressShortcut('ArrowDown');
+            pressShortcut('ArrowDown');
+            pressShortcut('Enter');
+            expect(onSelectBeta).toHaveBeenCalledTimes(1);
+            expect(onSelectAlpha).not.toHaveBeenCalled();
+            expect(onOpenChange).toHaveBeenLastCalledWith(false);
+        });
+
+        it('Enter on a disabled focused row is a no-op (focus skip prevents reaching it)', () => {
+            const onSelectDisabled = jest.fn();
+            render(
+                <Harness initialOpen>
+                    <PopoverMenu.Content>
+                        <PopoverMenu.Item
+                            text="Disabled"
+                            disabled
+                            onSelect={onSelectDisabled}
+                        />
+                    </PopoverMenu.Content>
+                </Harness>,
+            );
+
+            pressShortcut('ArrowDown');
+            expect(findItemFocusedFlag('Disabled')).toBe(false);
+            pressShortcut('Enter');
+            expect(onSelectDisabled).not.toHaveBeenCalled();
         });
     });
 });

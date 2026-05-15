@@ -1,17 +1,17 @@
 import type {View} from 'react-native';
 import type {FocusableItem} from './ContentContext';
 
-// W3C DOM `compareDocumentPosition` bit flags.
+// W3C `compareDocumentPosition` bit flags.
 const DOCUMENT_POSITION_PRECEDING = 0x02;
 const DOCUMENT_POSITION_FOLLOWING = 0x04;
 
-/** Keyboard navigation follows visual order regardless of registration order. */
+/** Keyboard navigation follows visual order, not registration order. */
 function useOrderedIDs(registry: Map<string, FocusableItem>): string[] {
     return [...registry.entries()].sort(([, a], [, b]) => compareNodes(a.ref.current, b.ref.current)).map(([id]) => id);
 }
 
 function compareNodes(a: View | null, b: View | null): number {
-    // Refs may not have attached on the first commit after registration; preserve insertion order via stable sort.
+    // Stable-sort fallback: refs may not have attached on the first commit after registration.
     if (a === null || b === null) {
         return 0;
     }

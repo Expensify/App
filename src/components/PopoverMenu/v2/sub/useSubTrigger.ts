@@ -15,7 +15,6 @@ type UseSubTriggerResult = {
     isAtActiveLevel: boolean;
 };
 
-/** Sub-level trigger hook; opens the enclosing `<Sub>`. `<Sub.Trigger>` is the opinionated `MenuItem` shape. */
 function useSubTrigger({disabled = false, text}: {disabled?: boolean; text?: string} = {}): UseSubTriggerResult {
     const subContext = useAssertedContext(SubContext, HOOK_NAME, '<PopoverMenu.Sub>');
     const navigation = useAssertedContext(ContentNavigationContext, HOOK_NAME, '<PopoverMenu.Content>');

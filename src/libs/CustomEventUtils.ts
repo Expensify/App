@@ -13,7 +13,9 @@ function createCustomEvent<T extends Record<string, unknown>>(data: T): CustomEv
     let defaultPrevented = false;
     let propagationStopped = false;
 
-    const methods: CustomEventMethods = {
+    // Methods are own-properties so `{...event}` spreads preserve them.
+    return {
+        ...data,
         preventDefault() {
             defaultPrevented = true;
         },
@@ -27,8 +29,6 @@ function createCustomEvent<T extends Record<string, unknown>>(data: T): CustomEv
             return propagationStopped;
         },
     };
-
-    return Object.assign(Object.create(methods), data) as CustomEvent<T>;
 }
 
 /** Variadic handler composition; later handlers stop running after one calls `event.stopPropagation()`. */

@@ -20,7 +20,14 @@ function PressableWithSecondaryInteraction({
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
-    const {onSecondaryInteraction} = usePressResponderProps({onSecondaryInteraction: rawOnSecondaryInteraction}, 'secondary');
+    // Forward the a11y slot so it reaches the underlying pressable even when the descendant isn't `<PressableWithFeedback>`.
+    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls} = usePressResponderProps({
+        onSecondaryInteraction: rawOnSecondaryInteraction,
+        accessibilityState: rest.accessibilityState,
+        accessibilityHasPopup: rest.accessibilityHasPopup,
+        nativeID: rest.nativeID,
+        accessibilityControls: rest.accessibilityControls,
+    });
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         event.preventDefault();
@@ -31,8 +38,6 @@ function PressableWithSecondaryInteraction({
     if (inline) {
         return (
             <Text
-                // ESLint is disabled here to propagate all the props, enhancing PressableWithSecondaryInteraction's versatility across different use cases.
-
                 {...(rest as TextProps)}
                 suppressHighlighting={suppressHighlighting}
                 onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
@@ -44,9 +49,11 @@ function PressableWithSecondaryInteraction({
 
     return (
         <PressableWithFeedback
-            // ESLint is disabled here to propagate all the props, enhancing PressableWithSecondaryInteraction's versatility across different use cases.
-
             {...rest}
+            accessibilityState={accessibilityState}
+            accessibilityHasPopup={accessibilityHasPopup}
+            nativeID={nativeID}
+            accessibilityControls={accessibilityControls}
             ref={ref}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}

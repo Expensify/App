@@ -1,5 +1,6 @@
 import {createContext, use} from 'react';
 import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
+import useAssertedContext from '@hooks/useAssertedContext';
 
 type SubContextValue = {
     subID: string;
@@ -10,20 +11,12 @@ type SubContextValue = {
 const SubContext = createContext<SubContextValue | null>(null);
 SubContext.displayName = 'PopoverMenuSubContext';
 
-function useSubContext(componentName: string): SubContextValue {
-    const value = use(SubContext);
-    if (!value) {
-        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Sub>.`);
-    }
-    return value;
-}
+const useSubContext = (consumerName: string) => useAssertedContext(SubContext, consumerName, '<PopoverMenu.Sub>');
 
-function useSubContextOptional(): SubContextValue | null {
-    return use(SubContext);
-}
+const useSubContextOptional = (): SubContextValue | null => use(SubContext);
 
-function useIsAtActiveLevel(componentName = 'useIsAtActiveLevel'): boolean {
-    const {currentSubID} = useContentNavigation(componentName);
+function useIsAtActiveLevel(consumerName = 'useIsAtActiveLevel'): boolean {
+    const {currentSubID} = useContentNavigation(consumerName);
     const subContext = useSubContextOptional();
     return currentSubID === (subContext?.subID ?? null);
 }

@@ -26,7 +26,14 @@ function PressableWithSecondaryInteraction({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<HTMLDivElement | null>(null);
-    const {onSecondaryInteraction} = usePressResponderProps({onSecondaryInteraction: rawOnSecondaryInteraction}, 'secondary');
+    // Forward the a11y slot so it reaches the underlying pressable even when the descendant isn't `<PressableWithFeedback>`.
+    const {onSecondaryInteraction, accessibilityState, accessibilityHasPopup, nativeID, accessibilityControls} = usePressResponderProps({
+        onSecondaryInteraction: rawOnSecondaryInteraction,
+        accessibilityState: rest.accessibilityState,
+        accessibilityHasPopup: rest.accessibilityHasPopup,
+        nativeID: rest.nativeID,
+        accessibilityControls: rest.accessibilityControls,
+    });
 
     const executeSecondaryInteraction = (event: GestureResponderEvent) => {
         if (hasHoverSupport() && !enableLongPressWithHover) {
@@ -94,9 +101,11 @@ function PressableWithSecondaryInteraction({
     // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
         <PressableWithFeedback
-            // ESLint is disabled here to propagate all the props, enhancing PressableWithSecondaryInteraction's versatility across different use cases.
-
             {...rest}
+            accessibilityState={accessibilityState}
+            accessibilityHasPopup={accessibilityHasPopup}
+            nativeID={nativeID}
+            accessibilityControls={accessibilityControls}
             wrapperStyle={[StyleUtils.combineStyles(canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle), wrapperStyle]}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}

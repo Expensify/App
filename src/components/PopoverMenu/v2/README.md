@@ -66,7 +66,7 @@ Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder —
 All rows except `<Group>` auto-hide outside the active sub-level.
 
 - **`<Item text onSelect? disabled?>`** — selectable row. Closes the menu after `onSelect`; consumer's `event.preventDefault()` synchronously inside `onSelect` keeps it open. `onSelect` receives an `ItemSelectEvent` (custom event exposing `preventDefault()` / `isDefaultPrevented()` / `stopPropagation()` / `isPropagationStopped()` — synchronous-only).
-- **`<CheckmarkItem text isSelected? onSelect? disabled? rightIcon?>`** — selectable row with a radio indicator. Pass `rightIcon` to replace the indicator.
+- **`<RadioItem text isSelected? onSelect? disabled? rightIcon?>`** — single-select row with a radio indicator. Pass `rightIcon` to replace the indicator.
 - **`<Header>children</Header>`** — heading-role title (`accessibilityRole="heading"`, level 3). To title a sub, render inside `<Sub.Content>`.
 - **`<Label text>`** — non-interactive labelled row.
 - **`<Separator />`** — horizontal divider.
@@ -86,7 +86,7 @@ Subs nest arbitrarily — render a `<Sub>` inside another `<Sub.Content>` to dec
 
 ### Row composition — `useSelectableRow({onSelect?, disabled?, text?})`
 
-Returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for composing any pressable as a selectable row inside `<Content>`. The menu closes after `onSelect` fires; call `event.preventDefault()` synchronously inside `onSelect` to keep it open. `text` is stored on the registered focusable item (for the focus registry's label). `<Item>` and `<CheckmarkItem>` ship the canonical `MenuItem` shapes.
+Returns `{ref, onPress, onFocus, focused, isAtActiveLevel}` for composing any pressable as a selectable row inside `<Content>`. The menu closes after `onSelect` fires; call `event.preventDefault()` synchronously inside `onSelect` to keep it open. `text` is stored on the registered focusable item (for the focus registry's label). `<Item>` and `<RadioItem>` ship the canonical `MenuItem` shapes.
 
 ### Custom non-row content — `useIsAtActiveLevel()`
 
@@ -128,7 +128,7 @@ Grouped by feature. Each subfolder re-exports its public surface through a barre
 
 - **`root/`** — `<Root>`, the trigger wrappers (`<Trigger>`, `<SecondaryInteractionTrigger>`), `useIsPopoverVisible`, and `useAnchorOpener` (internal).
 - **`content/`** — `<Content>`, `<ScrollableContent>`, `useClosePopover`, `<BaseContent>` (internal), `useContentController` (internal), and the close-lifecycle hooks (internal).
-- **`rows/`** — leaf rows (`<Item>`, `<CheckmarkItem>`, `<Label>`, `<Header>`, `<Separator>`, `<Group>`), `useSelectableRow`, and `useFocusableRow` (internal).
+- **`rows/`** — leaf rows (`<Item>`, `<RadioItem>`, `<Label>`, `<Header>`, `<Separator>`, `<Group>`), `useSelectableRow`, and `useFocusableRow` (internal).
 - **`sub/`** — `<Sub>` and its compound members `<Sub.Trigger>` / `<Sub.Content>` / `<Sub.BackButton>`, plus `useSubTrigger` / `useSubBackButton` and `useIsAtActiveLevel`.
 
 Each file carries a header comment describing its role — treat that as the source of truth, not this README.
@@ -139,7 +139,7 @@ Each file carries a header comment describing its role — treat that as the sou
 |---|---|
 | `Trigger`, `SecondaryInteractionTrigger`, `useIsPopoverVisible` | `Root` |
 | `Content`, `ScrollableContent` | `Root` |
-| `Item`, `CheckmarkItem`, `Label`, `Header`, `Separator`, `Group`, `Sub`, `useSelectableRow`, `useClosePopover`, `useIsAtActiveLevel` | `Content` (anywhere inside it, including within `<Sub.Content>`) |
+| `Item`, `RadioItem`, `Label`, `Header`, `Separator`, `Group`, `Sub`, `useSelectableRow`, `useClosePopover`, `useIsAtActiveLevel` | `Content` (anywhere inside it, including within `<Sub.Content>`) |
 | `Sub.Trigger`, `Sub.Content`, `Sub.BackButton`, `useSubTrigger`, `useSubBackButton` | `Sub` (which itself must be inside `Content`) |
 
 Violations throw synchronously during render — not `__DEV__`-gated.

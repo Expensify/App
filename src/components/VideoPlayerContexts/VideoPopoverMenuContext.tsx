@@ -1,5 +1,5 @@
 import type {VideoPlayer} from 'expo-video';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {use, useEffect, useRef, useState} from 'react';
 import {useSession} from '@components/OnyxListItemProvider';
 import useLocalize from '@hooks/useLocalize';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
@@ -71,7 +71,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
 }
 
 function useVideoPopoverMenuState() {
-    const context = useContext(VideoPopoverMenuStateContext);
+    const context = use(VideoPopoverMenuStateContext);
     if (!context) {
         throw new Error('useVideoPopoverMenuState must be used within a VideoPopoverMenuContextProvider');
     }
@@ -79,7 +79,7 @@ function useVideoPopoverMenuState() {
 }
 
 function useVideoPopoverMenuActions() {
-    const context = useContext(VideoPopoverMenuActionsContext);
+    const context = use(VideoPopoverMenuActionsContext);
     if (!context) {
         throw new Error('useVideoPopoverMenuActions must be used within a VideoPopoverMenuContextProvider');
     }

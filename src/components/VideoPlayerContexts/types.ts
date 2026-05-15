@@ -30,10 +30,10 @@ type VolumeActionsContextType = {
 };
 
 type VideoPopoverMenuStateContextType = {
-    /** Currently-selected playback speed (drives the checkmark in the speeds submenu). */
+    /** Currently-selected playback speed (drives the radio indicator in the speeds submenu). */
     currentPlaybackSpeed: PlaybackSpeed;
 
-    /** True when the video source is a local URI (download item is hidden). */
+    /** True when the source is a local URI; the download row is hidden. */
     isLocalFile: boolean;
 };
 

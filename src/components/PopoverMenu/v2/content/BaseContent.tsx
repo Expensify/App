@@ -51,7 +51,6 @@ function BaseContent(props: BaseContentProps): React.ReactElement | null {
     }
     return (
         <BaseContentInner
-            // eslint-disable-next-line react/jsx-props-no-spreading -- forwarding caller props past the anchor guard
             {...props}
             activeAnchor={activeAnchor}
         />
@@ -111,12 +110,7 @@ function BaseContentInner({
                                             nativeID={contentID}
                                             accessibilityLabelledBy={triggerID}
                                             onLayout={onLayout}
-                                            style={[
-                                                isSmallScreenWidth ? undefined : {width: variables.compactPopoverMenuWidth},
-                                                isSmallScreenWidth ? styles.pv4 : styles.pv2,
-                                                maxHeightStyle,
-                                                containerStyles,
-                                            ]}
+                                            style={[isSmallScreenWidth ? undefined : {width: variables.compactPopoverMenuWidth}, maxHeightStyle, containerStyles]}
                                         >
                                             <DismissButton onPress={close} />
                                             {children}

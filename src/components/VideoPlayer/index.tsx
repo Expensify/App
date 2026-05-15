@@ -12,7 +12,6 @@ function VideoPlayer(props: VideoPlayerProps) {
     return (
         <PopoverMenuRoot>
             <BaseVideoPlayer
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 reportID={reportID ?? fakeReportID}
             />

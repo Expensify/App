@@ -4,9 +4,7 @@ import type PressableProps from '@components/Pressable/GenericPressable/types';
 
 type SecondaryInteractionHandler = (event: GestureResponderEvent | MouseEvent) => void;
 
-type RegisterKind = 'press' | 'secondary';
-
-// Matches react-native-web's accessibilityHasPopup shape; ignored on native.
+// `| false` matches `PressableProps['accessibilityHasPopup']`.
 type AccessibilityHasPopup = 'dialog' | 'grid' | 'listbox' | 'menu' | 'tree' | false;
 
 type PressResponderContextValue = {
@@ -16,13 +14,11 @@ type PressResponderContextValue = {
     accessibilityHasPopup?: AccessibilityHasPopup;
     nativeID?: string;
     accessibilityControls?: string | string[];
-    ref: PressableProps['ref'];
-    register: (kind: RegisterKind) => void;
-    registerRef: () => void;
+    ref?: PressableProps['ref'];
 };
 
 const PressResponderContext = createContext<PressResponderContextValue | null>(null);
 PressResponderContext.displayName = 'PressResponderContext';
 
 export default PressResponderContext;
-export type {AccessibilityHasPopup, PressResponderContextValue, SecondaryInteractionHandler, RegisterKind};
+export type {AccessibilityHasPopup, PressResponderContextValue, SecondaryInteractionHandler};

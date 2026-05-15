@@ -15,7 +15,7 @@ function Separator(): React.ReactElement | null {
 
     return (
         <View
-            accessibilityRole={CONST.ROLE.NONE}
+            role={CONST.ROLE.NONE}
             style={[styles.mv2, styles.ph5, styles.borderTop]}
         />
     );

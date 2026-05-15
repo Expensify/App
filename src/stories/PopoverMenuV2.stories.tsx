@@ -4,6 +4,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import Icon from '@components/Icon';
 import * as PopoverMenu from '@components/PopoverMenu/v2';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import variables from '@styles/variables';
@@ -151,7 +152,7 @@ function WithSubmenu() {
     );
 }
 
-function WithCheckmarkItems() {
+function WithRadioItems() {
     const [selected, setSelected] = React.useState('1x');
     const icons = useMemoizedLazyExpensifyIcons(['Meter']);
     const speeds = ['0.5x', '1x', '1.5x', '2x'];
@@ -166,7 +167,7 @@ function WithCheckmarkItems() {
                 <PopoverMenu.Content>
                     <PopoverMenu.Header>Playback speed</PopoverMenu.Header>
                     {speeds.map((speed) => (
-                        <PopoverMenu.CheckmarkItem
+                        <PopoverMenu.RadioItem
                             key={speed}
                             text={speed}
                             isSelected={selected === speed}
@@ -275,5 +276,42 @@ function DisabledRow() {
     );
 }
 
+function WithSecondaryInteraction() {
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan', 'Copy']);
+    return (
+        <SafeAreaProvider>
+            <PopoverMenu.Root>
+                <PopoverMenu.SecondaryInteractionTrigger>
+                    <PressableWithSecondaryInteraction
+                        onPress={() => {}}
+                        onSecondaryInteraction={() => {}}
+                        style={triggerStyle}
+                        accessibilityLabel="Right-click or long-press to open menu"
+                    >
+                        <Icon
+                            src={icons.Plus}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                        />
+                        <Text>Right-click / long-press me</Text>
+                    </PressableWithSecondaryInteraction>
+                </PopoverMenu.SecondaryInteractionTrigger>
+                <PopoverMenu.Content>
+                    <PopoverMenu.Item
+                        text="Copy"
+                        icon={icons.Copy}
+                        onSelect={() => {}}
+                    />
+                    <PopoverMenu.Item
+                        text="Delete"
+                        icon={icons.Trashcan}
+                        onSelect={() => {}}
+                    />
+                </PopoverMenu.Content>
+            </PopoverMenu.Root>
+        </SafeAreaProvider>
+    );
+}
+
 export default story;
-export {Default, WithHeader, WithSubmenu, WithCheckmarkItems, ScrollableVariant, GroupedWithSeparator, DisabledRow};
+export {Default, WithHeader, WithSubmenu, WithRadioItems, ScrollableVariant, GroupedWithSeparator, DisabledRow, WithSecondaryInteraction};

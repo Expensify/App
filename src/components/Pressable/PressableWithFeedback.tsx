@@ -82,7 +82,6 @@ function PressableWithFeedback({
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
         >
             <GenericPressable
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
                 ref={mergedRef}
                 onPress={slot.onPress}

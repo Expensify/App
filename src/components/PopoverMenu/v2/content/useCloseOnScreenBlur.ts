@@ -1,7 +1,7 @@
 import {NavigationContext} from '@react-navigation/core';
 import {use, useEffect} from 'react';
 
-/** Soft-reads `NavigationContext` so isolated renders (tests / Storybook) don't crash. */
+/** Soft-reads `NavigationContext`; no-ops when rendered outside a `<NavigationContainer>`. */
 function useCloseOnScreenBlur(close: () => void): void {
     const navigation = use(NavigationContext);
     useEffect(() => {

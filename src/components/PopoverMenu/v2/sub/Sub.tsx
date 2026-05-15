@@ -9,7 +9,7 @@ type SubProps = {
     id: string;
 };
 
-/** One nested submenu level; pairs with `<Sub.Trigger>` + `<Sub.Content>`. */
+/** Drill-down (one panel + back), not cascading — ancestor `<Sub.Content>` stays mounted while a descendant level is active. */
 function Sub({children, id: subID}: SubProps): React.ReactElement {
     const outerSub = useSubContextOptional();
     const parentSubID = outerSub?.subID ?? null;
@@ -17,7 +17,7 @@ function Sub({children, id: subID}: SubProps): React.ReactElement {
 
     const {registerSub, unregisterSub} = useContentSubActions(Sub.displayName);
 
-    // Layout effect: post-paint cleanup would render a ghost frame pointing at the unmounted Sub.
+    // Layout effect: deferring cleanup would briefly anchor the popover at an unmounted Sub.
     useLayoutEffect(() => {
         registerSub(subID);
         return () => unregisterSub(subID);

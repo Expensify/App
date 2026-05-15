@@ -1,5 +1,5 @@
 import React from 'react';
-import {CheckmarkItem, Item, ScrollableContent, Sub} from '@components/PopoverMenu/v2';
+import {Item, RadioItem, ScrollableContent, Sub} from '@components/PopoverMenu/v2';
 import {useVideoPopoverMenuActions, useVideoPopoverMenuState} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -34,7 +34,7 @@ function VideoPopoverMenu() {
                 <Sub.Content>
                     <Sub.BackButton text={playbackSpeedLabel} />
                     {CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS.map((speed) => (
-                        <CheckmarkItem
+                        <RadioItem
                             key={speed}
                             text={speed === 1 ? normalSpeedLabel : speed.toString()}
                             isSelected={currentPlaybackSpeed === speed}

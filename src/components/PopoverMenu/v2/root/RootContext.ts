@@ -1,12 +1,12 @@
-import {createContext, use} from 'react';
+import {createContext} from 'react';
 import type {Dispatch, RefObject, SetStateAction} from 'react';
 import type {View} from 'react-native';
+import useAssertedContext from '@hooks/useAssertedContext';
 
 type AnchorRef = RefObject<View | null>;
 
 type AnchorRect = {x: number; y: number; width: number; height: number};
 
-// Ref + rect captured together so the popover never sees a half-updated anchor.
 type ActiveAnchor = {
     ref: AnchorRef;
     rect: AnchorRect;
@@ -24,9 +24,11 @@ type RootMeta = {
 
 type RootActions = {
     setIsVisible: Dispatch<SetStateAction<boolean>>;
-    /** Narrowed to never-null: only `useAnchorOpener` writes; reset happens via `setIsVisible(false)` and the next press overwrites. */
+    /** Never-null: reset happens via `setIsVisible(false)` and the next press overwrites. */
     setActiveAnchor: (anchor: ActiveAnchor) => void;
 };
+
+const PARENT = '<PopoverMenu.Root>';
 
 const RootVisibilityContext = createContext<RootVisibility | null>(null);
 RootVisibilityContext.displayName = 'PopoverMenuRootVisibilityContext';
@@ -37,29 +39,9 @@ RootMetaContext.displayName = 'PopoverMenuRootMetaContext';
 const RootActionsContext = createContext<RootActions | null>(null);
 RootActionsContext.displayName = 'PopoverMenuRootActionsContext';
 
-function useRootVisibility(componentName: string): RootVisibility {
-    const value = use(RootVisibilityContext);
-    if (!value) {
-        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Root>.`);
-    }
-    return value;
-}
-
-function useRootMeta(componentName: string): RootMeta {
-    const value = use(RootMetaContext);
-    if (!value) {
-        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Root>.`);
-    }
-    return value;
-}
-
-function useRootActions(componentName: string): RootActions {
-    const value = use(RootActionsContext);
-    if (!value) {
-        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Root>.`);
-    }
-    return value;
-}
+const useRootVisibility = (consumerName: string) => useAssertedContext(RootVisibilityContext, consumerName, PARENT);
+const useRootMeta = (consumerName: string) => useAssertedContext(RootMetaContext, consumerName, PARENT);
+const useRootActions = (consumerName: string) => useAssertedContext(RootActionsContext, consumerName, PARENT);
 
 export {RootVisibilityContext, RootMetaContext, RootActionsContext, useRootVisibility, useRootMeta, useRootActions};
 export type {ActiveAnchor, AnchorRect, AnchorRef, RootVisibility, RootMeta, RootActions};

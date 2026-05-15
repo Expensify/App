@@ -2,6 +2,8 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
 import ScrollView from '@components/ScrollView';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
@@ -18,6 +20,9 @@ const VIRTUALIZATION_RECOMMENDED_THRESHOLD = 50;
 
 /** Popover surface for bounded-but-tall menus; wraps children in a `<ScrollView>` capped at window height. */
 function ScrollableContent({contentContainerStyle, children, ...rest}: ScrollableContentProps): React.ReactElement | null {
+    const styles = useThemeStyles();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- popovers float even in RHP on desktop, so true device width drives sizing
+    const {isSmallScreenWidth} = useResponsiveLayout();
     useRootVisibility(ScrollableContent.displayName);
     if (__DEV__) {
         const childCount = React.Children.count(children);
@@ -35,13 +40,12 @@ function ScrollableContent({contentContainerStyle, children, ...rest}: Scrollabl
 
     return (
         <BaseContent
-            // eslint-disable-next-line react/jsx-props-no-spreading -- forwarding the variant's caller props
             {...rest}
             componentName={ScrollableContent.displayName}
             maxHeightStyle={maxHeightStyle}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
-            <ScrollView contentContainerStyle={contentContainerStyle}>{children}</ScrollView>
+            <ScrollView contentContainerStyle={[isSmallScreenWidth ? styles.pv4 : styles.pv2, contentContainerStyle]}>{children}</ScrollView>
         </BaseContent>
     );
 }

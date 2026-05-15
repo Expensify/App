@@ -1,4 +1,4 @@
-import {useLayoutEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
@@ -22,19 +22,18 @@ function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRe
     const orderedIDs = useOrderedIDs(registry);
     const disabledIndexes = orderedIDs.flatMap((id, index) => (registry.get(id)?.isDisabled ? [index] : []));
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({maxIndex: orderedIDs.length - 1, isActive: isVisible, initialFocusedIndex: -1, disabledIndexes});
-    // `.at(-1)` would return the last item, not "nothing focused".
+    // Guard `-1` (nothing focused); `.at(-1)` would return the last item.
     const focusedID = focusedIndex >= 0 ? (orderedIDs.at(focusedIndex) ?? null) : null;
 
-    // Mirror so setFocusedID reads the latest order, not a stale closure.
+    // Mirror so setFocusedID reads the latest order — setFocusedID fires from user interaction, post-commit.
     const orderedIDsRef = useRef(orderedIDs);
-    useLayoutEffect(() => {
+    useEffect(() => {
         orderedIDsRef.current = orderedIDs;
     });
 
     const actions: FocusableRegistryActions = {
         registerItem: (id, item) =>
             setRegistry((prev) => {
-                // Rebuild via `new Map(prev)` — state must be replaced, not mutated: https://react.dev/reference/rules/components-and-hooks-must-be-pure#state
                 const next = new Map(prev);
                 next.set(id, item);
                 return next;

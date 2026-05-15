@@ -16,7 +16,7 @@ function useContentController(componentName: string): {
     const {setIsVisible} = useRootActions(componentName);
 
     const focus = useFocusableRegistry({isVisible});
-    // Order matters: useFocusableRegistry first so its `resetFocus` exists for `onLevelChange`.
+    // Order matters: `focus` must exist before `subNav` so `resetFocus` is in scope for `onLevelChange`.
     const subNav = useSubNavigation({onLevelChange: focus.resetFocus});
 
     const close: ContentClose = () => {

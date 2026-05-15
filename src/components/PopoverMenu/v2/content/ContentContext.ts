@@ -1,6 +1,7 @@
-import {createContext, use} from 'react';
+import {createContext} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
+import useAssertedContext from '@hooks/useAssertedContext';
 
 type FocusableItem = {
     ref: RefObject<View | null>;
@@ -34,8 +35,10 @@ type ContentItemActions = {
     setFocusedID: (id: string | null) => void;
 };
 
-/** Use instead of `setIsVisible(false)` so the next open lands at root. */
+/** Closes and resets sub-navigation + focus state. */
 type ContentClose = () => void;
+
+const PARENT = '<PopoverMenu.Content>';
 
 const ContentNavigationContext = createContext<ContentNavigation | null>(null);
 ContentNavigationContext.displayName = 'PopoverMenuContentNavigationContext';
@@ -52,45 +55,11 @@ ContentItemActionsContext.displayName = 'PopoverMenuContentItemActionsContext';
 const ContentCloseContext = createContext<ContentClose | null>(null);
 ContentCloseContext.displayName = 'PopoverMenuContentCloseContext';
 
-function useContentNavigation(componentName: string): ContentNavigation {
-    const value = use(ContentNavigationContext);
-    if (!value) {
-        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
-    }
-    return value;
-}
-
-function useContentFocus(componentName: string): ContentFocus {
-    const value = use(ContentFocusContext);
-    if (!value) {
-        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
-    }
-    return value;
-}
-
-function useContentSubActions(componentName: string): ContentSubActions {
-    const value = use(ContentSubActionsContext);
-    if (!value) {
-        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
-    }
-    return value;
-}
-
-function useContentItemActions(componentName: string): ContentItemActions {
-    const value = use(ContentItemActionsContext);
-    if (!value) {
-        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
-    }
-    return value;
-}
-
-function useContentClose(componentName: string): ContentClose {
-    const value = use(ContentCloseContext);
-    if (!value) {
-        throw new Error(`<${componentName}> must be rendered inside <PopoverMenu.Content>.`);
-    }
-    return value;
-}
+const useContentNavigation = (consumerName: string) => useAssertedContext(ContentNavigationContext, consumerName, PARENT);
+const useContentFocus = (consumerName: string) => useAssertedContext(ContentFocusContext, consumerName, PARENT);
+const useContentSubActions = (consumerName: string) => useAssertedContext(ContentSubActionsContext, consumerName, PARENT);
+const useContentItemActions = (consumerName: string) => useAssertedContext(ContentItemActionsContext, consumerName, PARENT);
+const useContentClose = (consumerName: string) => useAssertedContext(ContentCloseContext, consumerName, PARENT);
 
 export {
     ContentNavigationContext,

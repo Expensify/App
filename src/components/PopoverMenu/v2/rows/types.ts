@@ -23,7 +23,21 @@ type MenuItemForwardProps = DistributiveOmit<
 
 type LabelMenuItemForwardProps = DistributiveOmit<
     MenuItemProps,
-    'title' | 'onPress' | 'interactive' | 'role' | 'pressableTestID' | 'focused' | 'onFocus' | 'shouldCheckActionAllowedOnPress' | 'ref'
+    // Same exclusions as `MenuItemForwardProps` plus a few that only make sense on interactive rows.
+    | 'title'
+    | 'onPress'
+    | 'interactive'
+    | 'role'
+    | 'pressableTestID'
+    | 'focused'
+    | 'onFocus'
+    | 'shouldCheckActionAllowedOnPress'
+    | 'ref'
+    | 'iconRight'
+    | 'shouldShowRightIcon'
+    | 'isSelected'
+    | 'disabled'
+    | 'pendingAction'
 >;
 
 export type {DistributiveOmit, MenuItemForwardProps, LabelMenuItemForwardProps};

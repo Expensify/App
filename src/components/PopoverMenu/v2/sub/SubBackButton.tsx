@@ -1,25 +1,31 @@
 import React from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import {useSubContext} from './SubContext';
 import useSubBackButton from './useSubBackButton';
 
 type SubBackButtonProps = {
     /** Defaults to a localized "Go back". */
     text?: string;
+    testID?: string;
+    /** Call `event.preventDefault()` to gate exiting the sub. */
+    onPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
 };
 
 /** For non-`MenuItem` shapes, call `useSubBackButton()` directly. */
-function SubBackButton({text}: SubBackButtonProps): React.ReactElement | null {
+function SubBackButton({text, testID, onPress: consumerOnPress}: SubBackButtonProps): React.ReactElement | null {
     useSubContext(SubBackButton.displayName);
 
     const {translate} = useLocalize();
+    const hasCustomText = text !== undefined;
     const labelText = text ?? translate('common.goBack');
-    const {ref, focused, onPress, onFocus, isAtActiveLevel} = useSubBackButton();
+    const {ref, focused, onPress: exitSub, onFocus, isAtActiveLevel} = useSubBackButton();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -28,6 +34,14 @@ function SubBackButton({text}: SubBackButtonProps): React.ReactElement | null {
         return null;
     }
 
+    const handlePress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
+        consumerOnPress?.(event);
+        if (event?.defaultPrevented) {
+            return;
+        }
+        exitSub();
+    };
+
     return (
         <MenuItem
             ref={ref}
@@ -35,14 +49,19 @@ function SubBackButton({text}: SubBackButtonProps): React.ReactElement | null {
             iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
             additionalIconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}, styles.opacitySemiTransparent, styles.mr1]}
             iconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}]}
+            style={hasCustomText ? styles.pv0 : undefined}
             wrapperStyle={[styles.ph5, styles.pv3]}
             innerContainerStyle={styles.alignItemsCenter}
             title={labelText}
+            titleStyle={hasCustomText ? styles.createMenuHeaderText : undefined}
+            shouldShowBasicTitle={hasCustomText}
             accessibilityLabel={`${translate('common.goBack')}, ${labelText}`}
             shouldCheckActionAllowedOnPress={false}
-            onPress={onPress}
+            onPress={handlePress}
             onFocus={onFocus}
             focused={focused}
+            role={CONST.ROLE.MENUITEM}
+            pressableTestID={testID ?? 'PopoverMenu.Sub.BackButton'}
         />
     );
 }
