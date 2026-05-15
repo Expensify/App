@@ -385,8 +385,6 @@ class IOSPlatform implements Platform {
         this.appPackage,
         "--platform",
         "ios",
-        "--device",
-        dev.name,
         "--udid",
         dev.udid,
         "--session",
@@ -395,6 +393,34 @@ class IOSPlatform implements Platform {
       ],
       { stdio: "inherit" },
     );
+    this.wakeAccessibilityServices();
+  }
+
+  /*
+   * iOS Simulator's accessibility services don't start until something
+   * interacts with the screen after a cold boot. Without this, the
+   * first `agent-device snapshot` call hangs indefinitely waiting for
+   * the accessibility tree (observed on every run from 25861525119 +
+   * 25864724817 + 25868449643 — snapshot timed out at 30s, 60s, and
+   * the dual-flag attempt all alike).
+   *
+   * A throwaway tap at a known-empty area of the screen kicks the AX
+   * subsystem into life without altering the UI we care about. The
+   * coordinates (200, 400) are roughly center-upper on a 1290×2796
+   * iPhone 15 frame — should hit no interactive elements on the
+   * Expensify SignIn screen (which has its inputs lower down).
+   */
+  private wakeAccessibilityServices(): void {
+    try {
+      execFileSync("xcrun", ["simctl", "io", "booted", "tap", "200", "400"], {
+        timeout: 10_000,
+        stdio: "ignore",
+      });
+    } catch (e) {
+      process.stdout.write(
+        `platform.ios: AX wake tap failed: ${(e as Error).message.slice(0, 80)}\n`,
+      );
+    }
   }
 
   forceRelaunch(): void {
@@ -418,8 +444,6 @@ class IOSPlatform implements Platform {
           this.appPackage,
           "--platform",
           "ios",
-          "--device",
-          dev.name,
           "--udid",
           dev.udid,
           "--session",
@@ -428,6 +452,7 @@ class IOSPlatform implements Platform {
         ],
         { timeout: 30_000, stdio: "ignore" },
       );
+      this.wakeAccessibilityServices();
     } catch (e) {
       process.stdout.write(
         `platform.ios: relaunch failed: ${(e as Error).message.slice(0, 80)}\n`,
