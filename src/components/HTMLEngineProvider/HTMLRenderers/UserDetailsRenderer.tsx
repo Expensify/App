@@ -27,7 +27,6 @@ function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRender
         <UserDetailsTooltip accountID={accountID}>
             {isOptimistic ? (
                 <Text
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     style={[styles.textStrong]}
                 >
@@ -35,7 +34,6 @@ function UserDetailsRenderer({tnode, ...defaultRendererProps}: UserDetailsRender
                 </Text>
             ) : (
                 <Text
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
                     style={[styles.textStrong]}
                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)))}

@@ -47,7 +47,6 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
         function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
             return (
                 <Component
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...(props as TProps)}
                     currentUserPersonalDetails={{
                         accountID: 1,

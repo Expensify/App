@@ -17,6 +17,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -75,7 +76,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     columns,
     groupBy,
     searchType,
-    isOffline,
     newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
@@ -96,6 +96,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
     const {convertToDisplayString} = useCurrencyListActions();
+    const {isOffline} = useNetwork();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
