@@ -92,4 +92,3 @@ function MultiScanProvider({children}: MultiScanProviderProps) {
 }
 
 export {MultiScanProvider, useMultiScanState, useMultiScanActions};
-export type {MultiScanState, MultiScanActions};

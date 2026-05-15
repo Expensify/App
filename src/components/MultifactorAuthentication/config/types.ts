@@ -155,8 +155,6 @@ type MultifactorAuthenticationScenarioParams<T extends MultifactorAuthentication
 /**
  * All required authentication factors with scenario-specific parameters.
  */
-type MultifactorAuthenticationProcessScenarioParameters<T extends MultifactorAuthenticationScenario> = AllMultifactorAuthenticationBaseParameters &
-    MultifactorAuthenticationScenarioAdditionalParams<T>;
 
 type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATION_PROMPT_UI;
 
@@ -202,7 +200,6 @@ type MultifactorAuthenticationAPIParams<T extends MultifactorAuthenticationScena
 
 export type {
     MultifactorAuthenticationPrompt,
-    MultifactorAuthenticationModal,
     MultifactorAuthenticationScenarioResponse,
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParameters,
@@ -210,12 +207,9 @@ export type {
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationPromptType,
     MultifactorAuthenticationScenarioConfig,
-    MultifactorAuthenticationOutcomeScreens,
     MultifactorAuthenticationScenarioConfigRecord,
-    MultifactorAuthenticationProcessScenarioParameters,
     MultifactorAuthenticationDefaultUIConfig,
     MultifactorAuthenticationCancelConfirm,
     MultifactorAuthenticationScenarioCustomConfig,
     MultifactorAuthenticationAPIParams,
-    FailureScreenOverrides,
 };

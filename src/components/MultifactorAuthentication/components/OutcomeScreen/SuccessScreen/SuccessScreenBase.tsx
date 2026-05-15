@@ -39,4 +39,3 @@ function SuccessScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
 SuccessScreenBase.displayName = 'SuccessScreenBase';
 
 export default SuccessScreenBase;
-export type {SuccessScreenBaseProps};

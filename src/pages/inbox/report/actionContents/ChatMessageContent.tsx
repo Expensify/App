@@ -8,7 +8,6 @@ import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
@@ -78,8 +77,6 @@ function ChatMessageContent({
     const styles = useThemeStyles();
 
     const blockedFromConcierge = useBlockedFromConcierge();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isEditingInline = !shouldUseNarrowLayout && draftMessage !== undefined;
 
     const mentionReportContextValue = {currentReportID: report?.reportID, exactlyMatch: true};
 
@@ -100,19 +97,7 @@ function ChatMessageContent({
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <AttachmentContext.Provider value={attachmentContextValue}>
-                        {isEditingInline ? (
-                            <ReportActionItemMessageEdit
-                                action={action}
-                                reportID={reportID}
-                                originalReportID={originalReportID}
-                                policyID={report?.policyID}
-                                index={index}
-                                shouldDisableEmojiPicker={
-                                    (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
-                                }
-                                isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
-                            />
-                        ) : (
+                        {draftMessage === undefined ? (
                             <View style={displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
                                 <ReportActionItemMessage
                                     reportID={reportID}
@@ -146,6 +131,19 @@ function ChatMessageContent({
                                     />
                                 )}
                             </View>
+                        ) : (
+                            <ReportActionItemMessageEdit
+                                action={action}
+                                draftMessage={draftMessage}
+                                reportID={reportID}
+                                originalReportID={originalReportID}
+                                policyID={report?.policyID}
+                                index={index}
+                                shouldDisableEmojiPicker={
+                                    (chatIncludesConcierge(report) && isBlockedFromConcierge(blockedFromConcierge)) || isArchivedNonExpenseReport(report, isArchivedRoom)
+                                }
+                                isGroupPolicyReport={!!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE}
+                            />
                         )}
                     </AttachmentContext.Provider>
                 </ShowContextMenuActionsContext.Provider>

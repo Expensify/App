@@ -1,4 +1,4 @@
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
@@ -6,13 +6,6 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import Log from '@libs/Log';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import {
-    getReportOrDraftReport,
-    isInvoiceRoom,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    isSelfDM,
-} from '@libs/ReportUtils';
 import {getCategoryTaxDetails, getDistanceInMeters, isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +15,6 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type BaseTransactionParams from './types/BaseTransactionParams';
 import type RequestMoneyParticipantParams from './types/RequestMoneyParticipantParams';
 import type {GPSPoint} from './types/TrackExpenseTransactionParams';
@@ -145,11 +137,9 @@ Onyx.connect({
 });
 
 let deprecatedUserAccountID = -1;
-let deprecatedCurrentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        deprecatedCurrentUserEmail = value?.email ?? '';
         deprecatedUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
@@ -207,10 +197,6 @@ function getAllReportNameValuePairs(): OnyxCollection<OnyxTypes.ReportNameValueP
 
 function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
     return allTransactionDrafts;
-}
-
-function getCurrentUserEmail(): string {
-    return deprecatedCurrentUserEmail;
 }
 
 function getUserAccountID(): number {
@@ -292,8 +278,23 @@ function setMoneyRequestReceiptState(transactionID: string, isDraft: boolean, sh
 }
 
 function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false, shouldStopSmartscan = false) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
+    // Mark that the user has explicitly set the amount. This is used by the new manual expense flow to distinguish
+    // a default amount of 0 (field empty) from a user-entered 0 (valid $0 expense).
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount, isAmountSet: true});
     setMoneyRequestReceiptState(transactionID, true, shouldStopSmartscan);
+}
+
+/**
+ * Clears the amount field back to an empty/unset state in the new manual expense flow.
+ * Called when the user deletes all characters from the amount input so that the field
+ * shows as empty and submission is blocked until a value is entered again.
+ */
+function clearMoneyRequestAmount(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount: 0, isAmountSet: false});
+}
+
+function clearMoneyRequestMerchant(transactionID: string, isDraft = true) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant: '', isMerchantSet: false});
 }
 
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {
@@ -311,15 +312,16 @@ function setMoneyRequestCurrency(transactionID: string, currency: string, isEdit
 }
 
 function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean, shouldStopSmartscan = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: comment.trim()}});
+    // Trim only when persisting to the real transaction (not a draft) to avoid
+    // stripping trailing spaces/newlines while the user is still typing.
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: isDraft ? comment : comment.trim()}});
     setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
 
 function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean, shouldStopSmartscan = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant, isMerchantSet: true});
     setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
 }
-
 function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {attendees}});
 }
@@ -373,15 +375,6 @@ function setMoneyRequestBillable(transactionID: string, billable: boolean) {
 
 function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reimbursable});
-}
-
-function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false) {
-    // We should change the reportID and isFromGlobalCreate of the test transaction since this flow can start inside an existing report
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        participants,
-        isFromGlobalCreate: isTestTransaction ? true : undefined,
-        reportID: isTestTransaction ? participants?.at(0)?.reportID : undefined,
-    });
 }
 
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
@@ -507,62 +500,6 @@ function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<OnyxTypes.Tra
     });
 }
 
-/**
- * Finds the participants for an IOU based on the attached report
- * @param transactionID of the transaction to set the participants of
- * @param report attached to the transaction
- */
-function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Report>, currentUserAccountID?: number): Participant[] {
-    // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
-    const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
-    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
-    let participants: Participant[] = [];
-
-    if (isPolicyExpenseChat || isSelfDMChat) {
-        participants = [
-            {
-                accountID: 0,
-                reportID: chatReport?.reportID,
-                isPolicyExpenseChat,
-                selected: true,
-                policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined,
-                isSelfDM: isSelfDMChat,
-            },
-        ];
-    } else if (isInvoiceRoom(chatReport)) {
-        participants = [
-            {reportID: chatReport?.reportID, selected: true},
-            {
-                policyID: chatReport?.policyID,
-                isSender: true,
-                selected: false,
-            },
-        ];
-    } else {
-        const chatReportOtherParticipants = Object.keys(chatReport?.participants ?? {})
-            .map(Number)
-            .filter((accountID) => accountID !== currentUserAccountID);
-        participants = chatReportOtherParticipants.map((accountID) => ({accountID, selected: true}));
-    }
-
-    return participants;
-}
-
-/**
- * Sets the participants for an IOU based on the attached report
- * @param transactionID of the transaction to set the participants of
- * @param report attached to the transaction
- * @param participantsAutoAssigned whether participants were auto assigned
- */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>, currentUserAccountID?: number, participantsAutoAssigned = true) {
-    const participants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        participants,
-        participantsAutoAssigned,
-    });
-}
-
 function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null, isDraft = true) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxCode});
 }
@@ -585,36 +522,14 @@ function setMoneyRequestTaxRateValues(transactionID: string, taxRateValues: TaxR
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...taxRateValues});
 }
 
-/** Get report policy id of IOU request */
-function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, report: OnyxEntry<OnyxTypes.Report>): string | undefined {
-    // Workspace sender will exist for invoices
-    const workspaceSender = transaction?.participants?.find((participant) => participant.isSender);
-    return workspaceSender?.policyID ?? report?.policyID;
-}
-
-function updateLastLocationPermissionPrompt() {
-    Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
-}
-
-function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<OnyxTypes.Report>, currentUserAccountID: number) {
-    const participants = getMoneyRequestParticipantsFromReport(reportValue, currentUserAccountID);
-    const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<OnyxTypes.Transaction>> = {};
-    for (const transactionID of transactionIDs) {
-        updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
-            participants,
-            participantsAutoAssigned: true,
-        };
-    }
-    return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, updatedTransactions);
-}
-
 export {
-    getIOURequestPolicyID,
     resetDraftTransactionsCustomUnit,
     setCustomUnitRateID,
     setGPSTransactionDraftData,
     setCustomUnitID,
     setMoneyRequestAmount,
+    clearMoneyRequestAmount,
+    clearMoneyRequestMerchant,
     setMoneyRequestAttendees,
     setMoneyRequestAccountant,
     setMoneyRequestBillable,
@@ -626,18 +541,13 @@ export {
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    getMoneyRequestParticipantsFromReport,
     setMoneyRequestReportID,
     setMoneyRequestPendingFields,
-    setMultipleMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
     setMoneyRequestTaxValue,
     setMoneyRequestTaxRateValues,
-    updateLastLocationPermissionPrompt,
     setMoneyRequestReimbursable,
     getAllPersonalDetails,
     getAllTransactions,
@@ -646,7 +556,6 @@ export {
     getAllReportActionsFromIOU,
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
-    getCurrentUserEmail,
     getUserAccountID,
     getCurrentUserPersonalDetails,
     getRecentAttendees,

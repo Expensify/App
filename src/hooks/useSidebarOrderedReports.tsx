@@ -445,7 +445,7 @@ function useSidebarOrderedReportsPerformance(componentName?: string) {
 }
 
 export {SidebarOrderedReportsContextProvider, useSidebarOrderedReports, useSidebarOrderedReportsState, useSidebarOrderedReportsActions};
-export type {PartialPolicyForSidebar, ReportsToDisplayInLHN};
+export type {ReportsToDisplayInLHN};
 
 function getChangedKeys<T extends Record<string, unknown>>(deps: T, prevDeps: T) {
     const depsKeys = Object.keys(deps);

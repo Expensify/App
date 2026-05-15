@@ -1,4 +1,11 @@
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import type {Report, Transaction} from '@src/types/onyx';
+import {isIOUReport} from './ReportUtils';
+import StringUtils from './StringUtils';
+import {isExpenseUnreported} from './TransactionUtils';
+import {isInvalidMerchantValue} from './ValidationUtils';
 
 /**
  * Strip comma from the amount
@@ -119,6 +126,72 @@ function handleNegativeAmountFlipping(amount: string, allowFlippingAmount: boole
     return amount;
 }
 
+const nonZeroMoneyRequestTypes = new Set<ValueOf<typeof CONST.IOU.TYPE>>([CONST.IOU.TYPE.PAY, CONST.IOU.TYPE.INVOICE, CONST.IOU.TYPE.SPLIT]);
+
+/**
+ * Validates a money request amount according to business rules.
+ *
+ * @param amount - Amount in backend format (cents as integer)
+ * @param iouType - Type of IOU (PAY, INVOICE, SPLIT, REQUEST, SUBMIT, etc.)
+ * @param allowNegative - Whether negative amounts are allowed
+ * @param isIOUReport - Whether this is an IOU report (zero amounts not allowed)
+ * @param isP2P - Whether this is a peer-to-peer transaction
+ */
+function isValidMoneyRequestAmount(amount: number | undefined, iouType: ValueOf<typeof CONST.IOU.TYPE>, allowNegative = true, isP2P = false): boolean {
+    if (amount === undefined || amount === null || Number.isNaN(amount)) {
+        return false;
+    }
+
+    if (amount < 0 && !allowNegative) {
+        return false;
+    }
+
+    const absoluteAmount = Math.abs(amount);
+
+    if ((iouType === CONST.IOU.TYPE.REQUEST || iouType === CONST.IOU.TYPE.SUBMIT) && isP2P) {
+        return absoluteAmount >= 1;
+    }
+
+    if (nonZeroMoneyRequestTypes.has(iouType)) {
+        return absoluteAmount >= 1;
+    }
+
+    return true;
+}
+
+/**
+ * Validates a merchant value according to business rules.
+ *
+ * @param merchant - The merchant name to validate
+ * @param transaction - The transaction to validate merchant for (used to determine if clearing is allowed)
+ * @param report - The parent report for the transaction (used to determine if IOU clearing is allowed)
+ * @returns Whether the merchant value is valid
+ */
+function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<Transaction>, report?: OnyxEntry<Report>): boolean {
+    const trimmedMerchant = merchant?.trim() ?? '';
+    const isEmpty = !trimmedMerchant;
+
+    // Unreported expenses and IOU requests can have empty merchants (allows clearing)
+    const isUnreported = transaction ? isExpenseUnreported(transaction) : false;
+    const isIOU = !!report && isIOUReport(report);
+    if (isEmpty && (isUnreported || isIOU)) {
+        return true;
+    }
+
+    // Reported transactions or non-empty merchants must pass validation
+    if (isEmpty) {
+        return false;
+    }
+
+    // Check if it's an invalid merchant value (PARTIAL or DEFAULT constants)
+    if (isInvalidMerchantValue(trimmedMerchant)) {
+        return false;
+    }
+
+    const valueByteLength = StringUtils.getUTF8ByteLength(trimmedMerchant);
+    return valueByteLength <= CONST.MERCHANT_NAME_MAX_BYTES;
+}
+
 export {
     addLeadingZero,
     replaceAllDigits,
@@ -129,4 +202,6 @@ export {
     validateAmount,
     validatePercentage,
     handleNegativeAmountFlipping,
+    isValidMoneyRequestAmount,
+    isValidMerchant,
 };

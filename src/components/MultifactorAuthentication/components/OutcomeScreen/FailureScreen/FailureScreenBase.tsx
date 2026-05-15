@@ -48,4 +48,3 @@ function FailureScreenBase({
 FailureScreenBase.displayName = 'FailureScreenBase';
 
 export default FailureScreenBase;
-export type {FailureScreenBaseProps};
