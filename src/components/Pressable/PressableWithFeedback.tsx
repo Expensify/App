@@ -6,8 +6,6 @@ import type {Color} from '@styles/theme/types';
 import variables from '@styles/variables';
 import GenericPressable from './GenericPressable';
 import type PressableProps from './GenericPressable/types';
-import usePressResponderProps from './PressResponder/usePressResponderProps';
-import useResponderRef from './PressResponder/useResponderRef';
 
 type PressableWithFeedbackProps = PressableProps & {
     /** Style for the wrapper view */
@@ -63,14 +61,6 @@ function PressableWithFeedback({
 }: PressableWithFeedbackProps) {
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-    const mergedRef = useResponderRef(ref);
-    const slot = usePressResponderProps({
-        onPress: rest.onPress,
-        accessibilityState: rest.accessibilityState,
-        accessibilityHasPopup: rest.accessibilityHasPopup,
-        nativeID: rest.nativeID,
-        accessibilityControls: rest.accessibilityControls,
-    });
 
     return (
         <OpacityView
@@ -82,13 +72,8 @@ function PressableWithFeedback({
             needsOffscreenAlphaCompositing={needsOffscreenAlphaCompositing}
         >
             <GenericPressable
+                ref={ref}
                 {...rest}
-                ref={mergedRef}
-                onPress={slot.onPress}
-                accessibilityState={slot.accessibilityState}
-                accessibilityHasPopup={slot.accessibilityHasPopup}
-                nativeID={slot.nativeID}
-                accessibilityControls={slot.accessibilityControls}
                 disabled={rest.disabled}
                 onHoverIn={(event) => {
                     setIsHovered(true);

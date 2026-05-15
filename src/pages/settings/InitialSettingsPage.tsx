@@ -118,6 +118,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Exit',
         'Lightbulb',
         'Lock',
+        'Users',
         'Emoji',
         'CreditCard',
         'Wallet',
@@ -282,6 +283,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PREFERENCES,
             action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
+        },
+        {
+            translationKey: 'delegate.copilot',
+            icon: icons.Users,
+            screenName: SCREENS.SETTINGS.COPILOT,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.COPILOT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_COPILOT),
         },
         {
             translationKey: 'initialSettingsPage.security',

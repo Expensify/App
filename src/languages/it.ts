@@ -8887,12 +8887,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     delegate: {
         switchAccount: 'Cambia account:',
+        switch: 'Cambia',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Accesso delegato',
         copilotDelegatedAccessDescription: 'Consenti agli altri membri di accedere al tuo account.',
         learnMoreAboutDelegatedAccess: "Scopri di più sull'accesso delegato",
         addCopilot: 'Aggiungi copilota',
         membersCanAccessYourAccount: 'Questi membri possono accedere al tuo account:',
-        youCanAccessTheseAccounts: 'Puoi accedere a questi account tramite il selettore di account:',
+        youCanAccessTheseAccounts: 'Puoi accedere a questi account:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

@@ -8897,12 +8897,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     },
     delegate: {
         switchAccount: 'Konten wechseln:',
+        switch: 'Wechseln',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Delegierter Zugriff',
         copilotDelegatedAccessDescription: 'Anderen Mitgliedern erlauben, auf dein Konto zuzugreifen.',
         learnMoreAboutDelegatedAccess: 'Mehr über delegierten Zugriff erfahren',
         addCopilot: 'Copilot hinzufügen',
         membersCanAccessYourAccount: 'Diese Mitglieder haben Zugriff auf Ihr Konto:',
-        youCanAccessTheseAccounts: 'Du kannst auf diese Konten über den Kontowechsel zugreifen:',
+        youCanAccessTheseAccounts: 'Du kannst auf diese Konten zugreifen:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

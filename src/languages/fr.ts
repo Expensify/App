@@ -8922,8 +8922,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         copilotDelegatedAccessDescription: 'Autoriser les autres membres à accéder à votre compte.',
         learnMoreAboutDelegatedAccess: "En savoir plus sur l'accès délégué",
         addCopilot: 'Ajouter un copilote',
+        switch: 'Changer',
+        copilot: 'Copilot',
         membersCanAccessYourAccount: 'Ces membres peuvent accéder à votre compte :',
-        youCanAccessTheseAccounts: 'Vous pouvez accéder à ces comptes via le sélecteur de compte :',
+        youCanAccessTheseAccounts: 'Vous pouvez accéder à ces comptes :',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

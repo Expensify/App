@@ -18,7 +18,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
-import {setShouldShowComposeInput} from '@userActions/Composer';
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
@@ -250,11 +249,7 @@ function ReportFetchHandler() {
     }, [reportID, isFocused, isInSidePanel]);
 
     useEffect(() => {
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setShouldShowComposeInput(true);
-        });
         return () => {
-            interactionTask.cancel();
             onUnmount();
         };
     }, []);

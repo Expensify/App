@@ -8775,12 +8775,14 @@ ${reportName}
     },
     delegate: {
         switchAccount: 'アカウントを切り替え:',
+        switch: '切り替え',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：代理アクセス',
         copilotDelegatedAccessDescription: '他のメンバーがあなたのアカウントにアクセスできるようにする',
         learnMoreAboutDelegatedAccess: '代理アクセスの詳細',
         addCopilot: 'コパイロットを追加',
         membersCanAccessYourAccount: '次のメンバーがあなたのアカウントにアクセスできます:',
-        youCanAccessTheseAccounts: 'これらのアカウントには、アカウント切り替え機能からアクセスできます。',
+        youCanAccessTheseAccounts: 'これらのアカウントにアクセスできます:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

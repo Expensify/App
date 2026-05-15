@@ -8856,12 +8856,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     delegate: {
         switchAccount: 'Van account wisselen:',
+        switch: 'Wisselen',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Gedelegeerde toegang',
         copilotDelegatedAccessDescription: 'Sta andere leden toe toegang te krijgen tot je account.',
         learnMoreAboutDelegatedAccess: 'Meer informatie over gedelegeerde toegang',
         addCopilot: 'Copiloot toevoegen',
         membersCanAccessYourAccount: 'Deze leden hebben toegang tot je account:',
-        youCanAccessTheseAccounts: 'Je hebt toegang tot deze accounts via de accountwisselaar:',
+        youCanAccessTheseAccounts: 'Je hebt toegang tot deze accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
