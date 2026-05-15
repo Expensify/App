@@ -6,11 +6,10 @@ import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 import Hoverable from '@components/Hoverable';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import WorkspaceInitialPage from '@pages/workspace/WorkspaceInitialPage';
 import variables from '@styles/variables';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import {collapseProgress, endPeek, peekProgress, startPeek} from './SidebarCollapseStore';
 
 const SIDEBAR_WIDTH = variables.sideBarWithLHBWidth;
@@ -86,9 +85,10 @@ function WorkspaceSidebar({route}: WorkspaceSidebarProps) {
                     ]}
                 >
                     <View style={{width: SIDEBAR_WIDTH, height: '100%'}}>
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- navigation prop is required by the screen Props type but unused by the page */}
                         <WorkspaceInitialPage
                             route={route}
-                            navigation={navigation as unknown as PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>['navigation']}
+                            navigation={navigation as any}
                         />
                     </View>
                 </Animated.View>

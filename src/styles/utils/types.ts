@@ -29,7 +29,6 @@ type AvatarSizeValue = ValueOf<
         | 'avatarSizeMentionIcon'
         | 'avatarSizeSmallNormal'
         | 'avatarSizeLargeNormal'
-        | 'avatarSizeLHNRow'
     >
 >;
 

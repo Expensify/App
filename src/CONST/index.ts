@@ -3948,7 +3948,6 @@ const CONST = {
         MENTION_ICON: 'mention-icon',
         SMALL_NORMAL: 'small-normal',
         LARGE_NORMAL: 'large-normal',
-        LHN_ROW: 'lhn-row',
     },
 
     COMPANY_CARD: {
