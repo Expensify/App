@@ -1,99 +1,89 @@
 ---
-title: Playroll Integration
+title: Playroll
 description: Learn how to connect Expensify with Playroll to automatically sync approved expenses for HR and EOR processing.
 keywords: [Expensify Classic, Playroll, HR, EOR, expense sync, integration, payroll]
-internalScope: Audience is Workspace Admins and Workspace Owners. Covers connecting Expensify Classic to Playroll for one-way expense syncing. Does not cover Playroll configuration beyond the Expensify integration.
+internalScope: Audience is Workspace Admins and Workspace Owners. Covers connecting to Playroll for one-way expense syncing. Does not cover Playroll configuration beyond the Expensify integration.
 ---
 
+# Playroll 
 
 The Expensify-Playroll integration allows approved expenses in Expensify to automatically sync into Playroll for processing. This is a one-way integration (Expensify to Playroll only) — changes made after syncing will not sync back.
 
 **Important:** Only approved expenses will sync, and expenses without receipts will not sync to Playroll.
 
 ---
+
 ## Who can connect Expensify to Playroll
-# Prerequisites
 
-Before setting up the integration, ensure the following:
+You can connect Expensify to Playroll if:
 
-- You are a **Workspace Admin** or **Workspace Owner** in Expensify
-- You have Playroll integration permissions
-- You are logged into the same Expensify account that owns or administers the workspace
-- You can access Expensify Classic
+- You are a Workspace Admin or Workspace Owner
+- You have permission to configure integrations in Playroll
+- You are signed into the Expensify account that owns or administers the workspace
+
+This feature is not available on mobile.
 
 ---
 
 ## How to connect Expensify to Playroll
 
-## Step 1: Switch to Expensify Classic
+Before connecting Playroll, configure the required workspace settings in Expensify.
 
-1. Log into Expensify.
-2. Click your account logo.
-3. Select **Troubleshoot**.
-4. Click **Switch to Expensify Classic**.
-
-## Step 2: Enable Public Receipt Visibility
-
-1. Go to **Settings > Workspaces**.
-2. Select the workspace you want to connect.
+1. In the navigation tabs on the left, go to **Settings > Workspaces**.
+2. Select your workspace.
 3. Go to **Rules**.
 4. Enable **Public Receipt Visibility**.
+5. Set **Receipt Required Amount** to **$0**.
+6. Save your changes.
 
-{% include info.html %}
-If Public Receipt Visibility is not enabled, expenses will not sync to Playroll.
-{% include end-info.html %}
+Then connect the integration in Playroll.
 
-## Step 3: Set Receipt Required Amount to $0
+1. In Playroll, go to **Dashboard > Tools > Integrations**.
+2. Select **Expensify**.
+3. Open the **Configuration** tab.
+4. Click **Connect**.
+5. In Expensify, click **Find our Partner ID**.
+6. Copy the **Partner User ID** and **Partner User Secret**.
+7. Paste the credentials into Playroll.
+8. Click **Submit**.
 
-1. In the **Rules** section, locate **Receipt Required Amount**.
-2. Set the value to **$0**.
-3. Save your changes.
+After the integration connects successfully, Playroll displays the status as **Active / Connected**.
 
-{% include info.html %}
-Expenses without receipts do not sync to Playroll. Setting this to $0 ensures all expenses have receipts attached.
-{% include end-info.html %}
-
-## Step 4: Confirm Workspace Permissions
-
-Verify that the user configuring the integration is a **Workspace Admin** or **Workspace Owner**.
-
-## Step 5: Connect Expensify to Playroll
-
-1. In Playroll, go to **Dashboard**.
-2. Click **Tools > Integrations**.
-3. Select **Expensify**.
-4. Open the **Configuration** tab.
-5. Click **Connect**.
-6. You will need your **Partner User ID** and **Partner User Secret**. To get these credentials:
-   - While logged into Expensify, click **Find our Partner ID**.
-   - Copy your **Partner User ID** and **Partner User Secret**.
-   - Paste them into Playroll.
-   - Click **Submit**.
-
-A successful setup will display **Active / Connected**.
-
-## Step 6: Map Expense Categories
-
-1. Open the Expensify integration page in Playroll.
-2. Go to **Expense Categories**.
-3. Click **Map Categories**.
-4. Match your Expensify categories to the corresponding Playroll categories.
-5. Save your mappings.
-
-For example:
-- Expensify "Car" → Playroll "Car Rental"
-- Expensify "Equipment" → Playroll "Equipment"
-
-{% include info.html %}
-Employee email addresses in Expensify must match Personal Emails in Playroll for expenses to sync correctly.
-## How to verify the Playroll integration is set up correctly
+Employee email addresses in Expensify must match the Personal Email addresses in Playroll.
 
 ---
 
-# Completion Checklist
+## What happens after you connect Expensify to Playroll
 
-- [ ] Public Receipt Visibility enabled
-- [ ] Receipt Required Amount set to $0
-- [ ] Correct workspace permissions confirmed
-- [ ] Expensify connected to Playroll (showing "Active / Connected")
-- [ ] Expense categories mapped and saved
+After the integration is connected:
+
+- Approved expenses automatically sync from Expensify to Playroll
+- Expenses without attached receipts do not sync
+- Changes made after syncing do not sync back into Expensify
+- Expense category mappings in Playroll determine how synced expenses appear in Playroll
+
+---
+
+# FAQ
+
+## Why are expenses not syncing to Playroll?
+
+Expenses may not sync if:
+
+- The expense is not approved
+- The expense does not include a receipt
+- **Public Receipt Visibility** is disabled
+- Employee email addresses do not match between Expensify and Playroll
+- Expense categories are not mapped in Playroll
+
+## Can members connect Expensify to Playroll?
+
+No. Only Workspace Admins and Workspace Owners can configure the integration.
+
+## Does the Playroll integration sync changes back into Expensify?
+
+No. The integration only syncs expenses from Expensify to Playroll.
+
+## Can I connect Expensify to Playroll on mobile?
+
+No. This feature is not available on mobile.
