@@ -77,9 +77,21 @@ function TransactionItemRow({
     reportActions,
     checkboxSentryLabel,
     nonPersonalAndWorkspaceCards = {},
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     isActionColumnWide: isActionColumnWideProp,
     shouldRemoveTotalColumnFlex,
+    onEditDate,
+    onEditMerchant,
+    onEditDescription,
+    onEditCategory,
+    onEditAmount,
+    onEditTag,
+    canEditDate,
+    canEditMerchant,
+    canEditDescription,
+    canEditCategory,
+    canEditAmount,
+    canEditTag,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,7 +133,7 @@ function TransactionItemRow({
         const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
         const shouldRenderChatBubbleCell = columns?.includes(CONST.SEARCH.TABLE_COLUMNS.COMMENTS) ?? false;
 
-        // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes
+        // TransactionItemRowNarrow intentionally omits column sizing, hover, action button, and related table-only props that only the wide layout consumes.
         const narrowForwardedProps = {
             transactionItem,
             report,
@@ -144,7 +156,6 @@ function TransactionItemRow({
 
         return (
             <TransactionItemRowNarrow
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...narrowForwardedProps}
                 bgActiveStyles={bgActiveStyles}
                 merchant={merchant}
@@ -193,6 +204,18 @@ function TransactionItemRow({
         nonPersonalAndWorkspaceCards,
         isActionColumnWide: isActionColumnWideProp,
         shouldRemoveTotalColumnFlex,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
     };
 
     const description = getDescription(transactionItem);
@@ -200,14 +223,13 @@ function TransactionItemRow({
     const cardName = getCompanyCardDescription(translate, transactionItem?.cardName, transactionItem?.cardID, nonPersonalAndWorkspaceCards);
     const transactionAttendees = getAttendees(transactionItem, currentUserPersonalDetails);
     const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, isUnreported ? policyForMovingExpenses : policy) && transactionAttendees.length > 0;
+    const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 
     const attendeesCount = transactionAttendees.length ?? 0;
     const totalAmount = getAmount(transactionItem, isExpenseReport(report));
 
     return (
         <TransactionItemRowWide
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...wideForwardedProps}
             bgActiveStyles={bgActiveStyles}
             merchant={merchant}
