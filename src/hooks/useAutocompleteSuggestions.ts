@@ -416,20 +416,20 @@ function useAutocompleteSuggestions({
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT: {
             const bankAccounts = Object.values(bankAccountList ?? {});
-            const filteredBankAccounts = bankAccounts
-                .map((bankAccount) => {
-                    const bankAccountID = bankAccount?.accountData?.bankAccountID;
-                    if (!bankAccountID) {
-                        return null;
-                    }
-                    const bankName = bankAccount?.accountData?.additionalData?.bankName ?? '';
-                    const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
-                    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
-                    const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
-                    const label = maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
-                    return {id: bankAccountID.toString(), label, accountNumber};
-                })
-                .filter((item): item is {id: string; label: string; accountNumber: string} => item !== null)
+            const bankAccountSuggestions: Array<{id: string; label: string; accountNumber: string}> = [];
+            for (const bankAccount of bankAccounts) {
+                const bankAccountID = bankAccount?.accountData?.bankAccountID;
+                if (!bankAccountID) {
+                    continue;
+                }
+                const bankName = bankAccount?.accountData?.additionalData?.bankName;
+                const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+                const formattedBankName = (bankName && CONST.BANK_NAMES_USER_FRIENDLY[bankName]) || CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+                const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
+                const label = maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
+                bankAccountSuggestions.push({id: bankAccountID.toString(), label, accountNumber});
+            }
+            const filteredBankAccounts = bankAccountSuggestions
                 .filter(
                     (item) =>
                         (item.label.toLowerCase().includes(autocompleteValue.toLowerCase()) || item.accountNumber.includes(autocompleteValue)) &&
