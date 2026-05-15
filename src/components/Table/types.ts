@@ -3,6 +3,7 @@ import type {PropsWithChildren} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './middlewares/filtering';
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
+import {SelectionMethods} from './middlewares/selection';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
 type TableData = {
@@ -46,9 +47,6 @@ type TableColumn<ColumnKey extends string = string> = {
 };
 
 type TableRow<DataType extends TableData> = DataType & {
-    /** The key for the row */
-    rowKey: string;
-
     /** Whether or not the row is selected or not */
     selected: boolean;
 };
@@ -60,7 +58,7 @@ type TableRow<DataType extends TableData> = DataType & {
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = SortingMethods<ColumnKey> & FilteringMethods<FilterKey> & SearchingMethods;
+type TableMethods<ColumnKey extends string = string, FilterKey extends string = string> = SortingMethods<ColumnKey> & FilteringMethods<FilterKey> & SearchingMethods & SelectionMethods;
 
 /**
  * The ref handle type for the Table component.

@@ -57,10 +57,6 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
 
-    handleShiftRowSelection: (rowKey: string) => void;
-
-    handleRowSelection: (rowKey: string) => void;
-
     /** Whether to use a narrow layout (e.g. on mobile screens). */
     shouldUseNarrowTableLayout: boolean;
 };

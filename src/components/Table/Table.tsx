@@ -3,6 +3,7 @@ import React, {useImperativeHandle, useRef, useState} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useFiltering from './middlewares/filtering';
 import useSearching from './middlewares/searching';
+import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
 import type {TableContextValue} from './TableContext';
@@ -143,30 +144,21 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     selectionEnabled,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
-    const lastSelectedRowBooleanRef = useRef<boolean>(false);
-    const lastSelectedRowKeyRef = useRef<string | null>(null);
-
-    const [tableData, setTableData] = useState<TableRowData<DataType>[]>(() => {
-        return data.map((item, index) => ({
-            ...item,
-            selected: false,
-            rowKey: index.toString(),
-        }));
-    });
-
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<TableRowData<DataType>, FilterKey>({filters, isItemInFilter});
+    const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<DataType, FilterKey>({filters, isItemInFilter});
 
-    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<TableRowData<DataType>>({isItemInSearch});
+    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<DataType>({isItemInSearch});
 
-    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<TableRowData<DataType>, ColumnKey>({compareItems, initialSortColumn});
+    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<DataType, ColumnKey>({compareItems, initialSortColumn});
 
-    const processedData = [filterMiddleware, searchMiddleware, sortMiddleware].reduce((acc, middleware) => middleware(acc), tableData);
+    const {middleware: selectionMiddleware, methods: selectionMethods} = useSelection<DataType>({data});
+
+    const processedData = [filterMiddleware, searchMiddleware, sortMiddleware, selectionMiddleware].reduce((acc, middleware) => middleware(acc), data);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
 
@@ -174,6 +166,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         ...filterMethods,
         ...sortMethods,
         ...searchMethods,
+        ...selectionMethods,
     };
 
     /**
@@ -192,7 +185,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         }) as TableHandle<DataType, ColumnKey, FilterKey>;
     });
 
-    const originalDataLength = tableData?.length ?? 0;
+    const originalDataLength = data?.length ?? 0;
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     // Check if filters are applied (not default values)
@@ -206,62 +199,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const hasSearchString = activeSearchString.trim().length > 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasSearchString || hasActiveFilters);
-
-    const handleShiftRowSelection = (rowKey: string) => {
-        const rowKeyExists = processedData.some((item) => item.rowKey === rowKey);
-
-        if (!rowKeyExists) {
-            return;
-        }
-
-        const lastSelectedKey = lastSelectedRowKeyRef.current;
-
-        if (!lastSelectedKey) {
-            handleRowSelection(rowKey);
-            return;
-        }
-
-        const rowKeys = processedData.map((item) => item.rowKey);
-        const lastIndex = rowKeys.indexOf(lastSelectedKey);
-        const currentIndex = rowKeys.indexOf(rowKey);
-
-        if (lastIndex === -1 || currentIndex === -1) {
-            handleRowSelection(rowKey);
-            return;
-        }
-
-        const [start, end] = currentIndex > lastIndex ? [lastIndex, currentIndex] : [currentIndex, lastIndex];
-        const newSelectedState = lastSelectedRowBooleanRef.current;
-
-        setTableData((prevData) => {
-            return prevData.map((item) => {
-                if (rowKeys.indexOf(item.rowKey) >= start && rowKeys.indexOf(item.rowKey) <= end) {
-                    return {...item, selected: newSelectedState};
-                }
-
-                return item;
-            });
-        });
-    };
-
-    /**
-     *
-     */
-    // JACK_TODO: going to clean this up
-    const handleRowSelection = (rowKey: string) => {
-        setTableData((prevData) => {
-            return prevData.map((item) => {
-                if (item.rowKey === rowKey) {
-                    const selected = !item.selected;
-                    lastSelectedRowKeyRef.current = rowKey;
-                    lastSelectedRowBooleanRef.current = selected;
-                    return {...item, selected};
-                }
-
-                return item;
-            });
-        });
-    };
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
@@ -279,8 +216,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         tableMethods,
         hasActiveFilters,
         hasSearchString,
-        handleShiftRowSelection,
-        handleRowSelection,
         isEmptyResult,
         shouldUseNarrowTableLayout,
     };
