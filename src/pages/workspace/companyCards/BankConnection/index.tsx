@@ -2,12 +2,12 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useImportPlaidAccounts from '@hooks/useImportPlaidAccounts';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -71,7 +71,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const {isOffline} = useNetwork();
     const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
-    const {showConfirmModal} = useConfirmModal();
     const isPlaid = !!plaidToken;
 
     const url = getCompanyCardBankConnection(policyID, bankName);
@@ -159,15 +158,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
             customWindow?.close();
 
             if (isDuplicateFeed) {
-                showConfirmModal({
-                    title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
-                    prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                }).then(() => {
-                    Navigation.closeRHPFlow();
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-                });
                 return;
             }
 
@@ -207,11 +197,27 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isFeedConnectionBroken,
         updateBrokenConnection,
         isNewFeedHasError,
-        showConfirmModal,
-        translate,
     ]);
 
+    const handleDuplicateFeedSubmit = () => {
+        setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: true}});
+        Navigation.closeRHPFlow();
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+    };
+
     const getContent = () => {
+        if (isDuplicateFeed) {
+            return (
+                <ConfirmationPage
+                    heading={translate('workspace.companyCards.addNewCard.duplicateFeedModal.title')}
+                    description={translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt')}
+                    shouldShowButton
+                    onButtonPress={handleDuplicateFeedSubmit}
+                    buttonText={translate('common.buttonConfirm')}
+                    containerStyle={styles.h100}
+                />
+            );
+        }
         if (isNewFeedHasError) {
             return (
                 <WorkspaceCompanyCardsErrorConfirmation

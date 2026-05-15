@@ -306,6 +306,9 @@ type AddNewCardFeedData = {
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
+
+    /** Whether a duplicate Plaid feed was detected during bank connection */
+    isDuplicateFeedDetected?: boolean;
 };
 
 /** Issue new card flow steps */
