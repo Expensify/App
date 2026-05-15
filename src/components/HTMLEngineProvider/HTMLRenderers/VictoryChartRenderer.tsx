@@ -1,8 +1,8 @@
-import {topLeft} from '@shopify/react-native-skia';
+import {Color, topLeft} from '@shopify/react-native-skia';
 import JSON5 from 'json5';
 import lodashIsObject from 'lodash/isObject';
 import lodashMerge from 'lodash/merge';
-import React, {useCallback, useMemo} from 'react';
+import React, {ComponentProps, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ColorValue, ViewStyle} from 'react-native';
 import {type CustomRendererProps, type TBlock, TNode, TNodeChildrenRenderer} from 'react-native-render-html';
@@ -39,14 +39,16 @@ function getHierarchyID(tnode: TNode): string {
 }
 
 /**
- * Traverse node and extract all points from `data` attributes
+ * Traverse all nodes to extract points from `data` attributes and other config e.g. axis configuration
  */
 function extractData(tnode: TNode) {
     const data: Record<string, RawData> = {};
     const xKey: string = X_KEY;
     const yKeys: string[] = [];
+    let xAxis: ComponentProps<typeof CartesianChart<RawData, string, string>>['xAxis'];
+    let yAxis: ComponentProps<typeof CartesianChart<RawData, string, string>>['yAxis'];
 
-    if (tnode.attributes?.data) {
+    if (tnode.tagName === 'victorybar' || tnode.tagName === 'victorychart') {
         const parsedData = parseAttribute(tnode.attributes.data);
         if (Array.isArray(parsedData)) {
             const yKey = Y_KEY_PREFIX + getHierarchyID(tnode);
@@ -58,18 +60,78 @@ function extractData(tnode: TNode) {
                 };
             });
         }
+    } else if (tnode.tagName === 'victoryaxis') {
+        const isDependentAxis = 'dependentaxis' in tnode.attributes && tnode.attributes.dependentaxis !== 'false';
+        const tickCount = parseAttribute(tnode.attributes.tickcount);
+        const tickValues = parseAttribute(tnode.attributes.tickvalues);
+        const orientation = parseAttribute(tnode.attributes.orientation);
+        const style = parseAttribute(tnode.attributes.style);
+        let lineColor: Color | undefined;
+        let lineWidth: number | undefined;
+        let labelColor: string | undefined;
+        let labelOffset: number | undefined;
+        if (lodashIsObject(style)) {
+            // VC uses separate colors for axis and grid but VN uses a unifed one.
+            if ('grid' in style && lodashIsObject(style.grid)) {
+                lineColor ??= 'stroke' in style.grid ? (style.grid.stroke as Color) : undefined;
+                lineWidth ??= 'strokeWidth' in style.grid ? (style.grid.strokeWidth as number) : undefined;
+            }
+            if ('axis' in style && lodashIsObject(style.axis)) {
+                lineColor ??= 'stroke' in style.axis ? (style.axis.stroke as Color) : undefined;
+                lineWidth ??= 'strokeWidth' in style.axis ? (style.axis.strokeWidth as number) : undefined;
+            }
+            if ('tickLabels' in style && lodashIsObject(style.tickLabels)) {
+                labelColor ??= 'fill' in style.tickLabels ? (style.tickLabels.fill as string) : undefined;
+                labelOffset ??= 'padding' in style.tickLabels ? (style.tickLabels.padding as number) : undefined;
+            }
+        }
+        if (isDependentAxis) {
+            yAxis = [
+                {
+                    tickCount,
+                    tickValues,
+                    axisSide: orientation === 'right' ? 'right' : 'left',
+                    lineColor,
+                    lineWidth,
+                    labelColor,
+                    labelOffset,
+                },
+            ];
+        } else {
+            xAxis = {
+                tickCount,
+                tickValues,
+                axisSide: orientation === 'top' ? 'top' : 'bottom',
+                lineColor,
+                lineWidth,
+                labelColor,
+                labelOffset,
+            };
+        }
     }
 
     tnode.children.forEach((child) => {
-        const {data: childData, yKeys: childYkeys} = extractData(child);
-        lodashMerge(data, childData);
-        yKeys.push(...childYkeys);
+        const childData = extractData(child);
+        yKeys.push(...childData.yKeys);
+        if (childData.xAxis) {
+            // It's safe to replace because there should be at most one xAxis
+            xAxis = childData.xAxis;
+        }
+        if (childData.yAxis) {
+            if (!yAxis) {
+                yAxis = [];
+            }
+            yAxis.push(...childData.yAxis);
+        }
+        lodashMerge(data, childData.data);
     });
 
     return {
         data,
         xKey,
         yKeys,
+        xAxis,
+        yAxis,
     };
 }
 
@@ -145,8 +207,10 @@ function parseStyles(tnode: TNode) {
 
 function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
     const styles = useThemeStyles();
-    const {data, xKey, yKeys} = useMemo(() => extractData(tnode), [tnode]);
+    const {data, xKey, yKeys, xAxis, yAxis} = useMemo(() => extractData(tnode), [tnode]);
     const {nodeStyles, parentNodeStyles} = useMemo(() => parseStyles(tnode), [tnode]);
+
+    window.tnode = tnode;
 
     const renderCartesianChartChild = useCallback((tnode: TNode, index: Number, renderArgs: CartesianChartRenderArg<RawData, string>) => {
         const key = `${tnode.tagName ?? 'node'}-${index}`;
@@ -192,6 +256,8 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                     data={Object.values(data)}
                     xKey={xKey}
                     yKeys={yKeys}
+                    xAxis={xAxis}
+                    yAxis={yAxis}
                     domain={parseAttribute(tnode.attributes.domain)}
                     domainPadding={parseAttribute(tnode.attributes.domainpadding)}
                     padding={parseAttribute(tnode.attributes.padding)}
