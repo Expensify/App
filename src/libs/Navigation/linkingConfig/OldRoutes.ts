@@ -24,8 +24,10 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/accounting/quickbooks-desktop/export/company-card-expense-account-select': '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-company-card-expense-account-select',
     '/workspaces/*/accounting/quickbooks-desktop/export/company-card-expense-account/account-select':
         '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-company-card-expense-account-select',
-    '/workspaces/*/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select': '/workspaces/$1/accounting/quickbooks-desktop/export/out-of-pocket-expense/qbd-account-select',
-    '/workspaces/*/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select': '/workspaces/$1/accounting/quickbooks-desktop/export/out-of-pocket-expense/qbd-entity-select',
+    '/workspaces/*/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select':
+        '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-out-of-pocket-expense/qbd-account-select',
+    '/workspaces/*/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select':
+        '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-out-of-pocket-expense/qbd-entity-select',
     '/flag/*/*': '/r/$1/flag/$1/$2',
     '/home-page': '/home',
     /* eslint-enable @typescript-eslint/naming-convention */

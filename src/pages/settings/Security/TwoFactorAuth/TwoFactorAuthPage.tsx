@@ -16,7 +16,6 @@ function TwoFactorAuthPage(props: TwoFactorAuthPageProps) {
         return <EnabledPage />;
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <CopyCodesPage {...props} />;
 }
 
