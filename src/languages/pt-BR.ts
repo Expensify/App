@@ -1959,11 +1959,11 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Esses detalhes são usados para viagens e pagamentos. Eles nunca são exibidos no seu perfil público.',
         },
         aiPromptSection: {
-            title: 'AI prompt',
-            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
+            title: 'Prompt de IA',
+            subtitle: 'Esses detalhes são exibidos no seu perfil público. Qualquer pessoa pode vê-los.',
             prompt: 'Prompt',
-            editPrompt: 'Edit prompt',
-            promptCannotBeEmpty: 'Prompt cannot be empty',
+            editPrompt: 'Editar prompt',
+            promptCannotBeEmpty: 'O prompt não pode ficar vazio',
         },
     },
     securityPage: {

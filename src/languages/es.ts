@@ -1855,11 +1855,11 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         },
         aiPromptSection: {
-            title: 'AI prompt',
-            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
-            prompt: 'Prompt',
-            editPrompt: 'Edit prompt',
-            promptCannotBeEmpty: 'Prompt cannot be empty',
+            title: 'Indicaciones de IA',
+            subtitle: 'Estos datos se muestran en tu perfil público. Cualquiera puede verlos.',
+            prompt: 'Indicador',
+            editPrompt: 'Editar mensaje',
+            promptCannotBeEmpty: 'El campo de indicaciones no puede estar vacío',
         },
     },
     securityPage: {

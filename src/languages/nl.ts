@@ -1961,11 +1961,11 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Deze gegevens worden gebruikt voor reizen en betalingen. Ze worden nooit getoond op je openbare profiel.',
         },
         aiPromptSection: {
-            title: 'AI prompt',
-            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
+            title: 'AI-prompt',
+            subtitle: 'Deze gegevens worden weergegeven op je openbare profiel. Iedereen kan ze zien.',
             prompt: 'Prompt',
-            editPrompt: 'Edit prompt',
-            promptCannotBeEmpty: 'Prompt cannot be empty',
+            editPrompt: 'Prompt bewerken',
+            promptCannotBeEmpty: 'Prompt mag niet leeg zijn',
         },
     },
     securityPage: {

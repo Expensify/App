@@ -1974,11 +1974,11 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Ces informations sont utilisées pour les déplacements et les paiements. Elles n’apparaissent jamais sur votre profil public.',
         },
         aiPromptSection: {
-            title: 'AI prompt',
-            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
-            prompt: 'Prompt',
-            editPrompt: 'Edit prompt',
-            promptCannotBeEmpty: 'Prompt cannot be empty',
+            title: 'Invite IA',
+            subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
+            prompt: 'Invite',
+            editPrompt: 'Modifier l'invite',
+            promptCannotBeEmpty: 'L'invite ne peut pas être vide',
         },
     },
     securityPage: {

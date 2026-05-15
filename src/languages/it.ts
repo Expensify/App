@@ -1966,11 +1966,11 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Questi dettagli vengono utilizzati per i viaggi e i pagamenti. Non vengono mai mostrati sul tuo profilo pubblico.',
         },
         aiPromptSection: {
-            title: 'AI prompt',
-            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
+            title: 'Prompt IA',
+            subtitle: 'Questi dati sono visualizzati sul tuo profilo pubblico. Chiunque può vederli.',
             prompt: 'Prompt',
-            editPrompt: 'Edit prompt',
-            promptCannotBeEmpty: 'Prompt cannot be empty',
+            editPrompt: 'Modifica prompt',
+            promptCannotBeEmpty: 'Il prompt non può essere vuoto',
         },
     },
     securityPage: {

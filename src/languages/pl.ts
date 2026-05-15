@@ -1962,11 +1962,11 @@ const translations: TranslationDeepObject<typeof en> = {
             subtitle: 'Te dane są używane do podróży i płatności. Nigdy nie są wyświetlane w Twoim publicznym profilu.',
         },
         aiPromptSection: {
-            title: 'AI prompt',
-            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
-            prompt: 'Prompt',
-            editPrompt: 'Edit prompt',
-            promptCannotBeEmpty: 'Prompt cannot be empty',
+            title: 'Prompt AI',
+            subtitle: 'Te dane są wyświetlane w twoim publicznym profilu. Każdy może je zobaczyć.',
+            prompt: 'Zachęta',
+            editPrompt: 'Edytuj podpowiedź',
+            promptCannotBeEmpty: 'Pole nie może być puste',
         },
     },
     securityPage: {

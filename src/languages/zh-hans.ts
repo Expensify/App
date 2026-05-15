@@ -1906,13 +1906,7 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '私人',
             subtitle: '这些详细信息用于旅行和付款。它们绝不会显示在你的公开资料中。',
         },
-        aiPromptSection: {
-            title: 'AI prompt',
-            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
-            prompt: 'Prompt',
-            editPrompt: 'Edit prompt',
-            promptCannotBeEmpty: 'Prompt cannot be empty',
-        },
+        aiPromptSection: {title: 'AI 提示', subtitle: '这些详细信息会显示在你的公开资料中，任何人都可以看到。', prompt: '提示', editPrompt: '编辑提示', promptCannotBeEmpty: '提示不能为空'},
     },
     securityPage: {
         title: '安全选项',
