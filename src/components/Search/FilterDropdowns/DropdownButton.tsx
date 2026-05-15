@@ -67,7 +67,6 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
                         onPress={onPress}
                         sentryLabel={sentryLabel}
                         shouldRemoveRightBorderRadius={shouldShowCloseButton}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(medium ? {medium: true} : {small: true})}
                     >
                         <CaretWrapper
