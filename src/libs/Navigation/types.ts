@@ -244,6 +244,15 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.AGENTS.ADD]: undefined;
+    [SCREENS.SETTINGS.AGENTS.EDIT]: {
+        accountID: number;
+    };
+    [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
+        accountID: number;
+    };
+    [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
+        accountID: number;
+    };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_RENAME_MERCHANT]: undefined;
@@ -1384,6 +1393,12 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.HR_ZENEFITS_APPROVAL_MODE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT]: {

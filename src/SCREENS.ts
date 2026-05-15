@@ -177,6 +177,9 @@ const SCREENS = {
         AGENTS: {
             ROOT: 'Settings_Agents',
             ADD: 'Settings_Agents_Add',
+            EDIT: 'Settings_Agents_Edit',
+            EDIT_NAME: 'Settings_Agents_Edit_Name',
+            EDIT_PROMPT: 'Settings_Agents_Edit_Prompt',
         },
 
         RULES: {
@@ -687,6 +690,8 @@ const SCREENS = {
         HR: 'Workspace_HR',
         HR_GUSTO_APPROVAL_MODE: 'Workspace_HR_Gusto_Approval_Mode',
         HR_GUSTO_FINAL_APPROVER: 'Workspace_HR_Gusto_Final_Approver',
+        HR_ZENEFITS_APPROVAL_MODE: 'Workspace_HR_Zenefits_Approval_Mode',
+        HR_ZENEFITS_FINAL_APPROVER: 'Workspace_HR_Zenefits_Final_Approver',
         COMPANY_CARDS: 'Workspace_CompanyCards',
         COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_BrokenCardFeedConnection',
         COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: 'Workspace_CompanyCards_RefreshCardFeedConnection',

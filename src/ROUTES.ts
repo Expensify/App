@@ -1061,6 +1061,18 @@ const ROUTES = {
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',
     SETTINGS_AGENTS_ADD: 'settings/agents/new',
+    SETTINGS_AGENTS_EDIT: {
+        route: 'settings/agents/:accountID/edit',
+        getRoute: (accountID: number) => `settings/agents/${accountID}/edit` as const,
+    },
+    SETTINGS_AGENTS_EDIT_NAME: {
+        route: 'settings/agents/:accountID/edit/name',
+        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/name` as const,
+    },
+    SETTINGS_AGENTS_EDIT_PROMPT: {
+        route: 'settings/agents/:accountID/edit/prompt',
+        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/prompt` as const,
+    },
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
@@ -2494,6 +2506,24 @@ const ROUTES = {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_HR_GUSTO_FINAL_APPROVER route');
             }
             return `workspaces/${policyID}/hr/gusto/final-approver` as const;
+        },
+    },
+    WORKSPACE_HR_ZENEFITS_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/hr/zenefits/approval-mode',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_ZENEFITS_APPROVAL_MODE route');
+            }
+            return `workspaces/${policyID}/hr/zenefits/approval-mode` as const;
+        },
+    },
+    WORKSPACE_HR_ZENEFITS_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/hr/zenefits/final-approver',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_ZENEFITS_FINAL_APPROVER route');
+            }
+            return `workspaces/${policyID}/hr/zenefits/final-approver` as const;
         },
     },
     WORKSPACE_TAGS: {
