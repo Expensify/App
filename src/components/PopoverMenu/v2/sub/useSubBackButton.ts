@@ -1,9 +1,8 @@
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import {ContentNavigationContext, ContentSubActionsContext} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContentNavigation, useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
-import useAssertedContext from '@hooks/useAssertedContext';
-import {SubContext} from './SubContext';
+import {useSubContext} from './SubContext';
 
 const HOOK_NAME = 'useSubBackButton';
 
@@ -16,9 +15,9 @@ type UseSubBackButtonResult = {
 };
 
 function useSubBackButton(): UseSubBackButtonResult {
-    const subContext = useAssertedContext(SubContext, HOOK_NAME, '<PopoverMenu.Sub>');
-    const navigation = useAssertedContext(ContentNavigationContext, HOOK_NAME, '<PopoverMenu.Content>');
-    const subActions = useAssertedContext(ContentSubActionsContext, HOOK_NAME, '<PopoverMenu.Content>');
+    const subContext = useSubContext(HOOK_NAME);
+    const navigation = useContentNavigation(HOOK_NAME);
+    const subActions = useContentSubActions(HOOK_NAME);
 
     const isAtActiveLevel = navigation.currentSubID === subContext.subID;
 

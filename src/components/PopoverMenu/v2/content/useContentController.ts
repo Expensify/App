@@ -21,8 +21,7 @@ function useContentController(componentName: string): {
 
     const close: ContentClose = () => {
         setIsVisible(false);
-        subNav.resetToRoot();
-        focus.resetFocus();
+        subNav.actions.exitSub(null);
     };
 
     useCloseOnModalCover(isVisible, close);

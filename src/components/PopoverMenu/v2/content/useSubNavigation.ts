@@ -12,13 +12,11 @@ type UseSubNavigationResult = {
     currentSubID: string | null;
     isAncestorOfCurrent: (subID: string) => boolean;
     actions: SubNavigationActions;
-    resetToRoot: () => void;
 };
 
 function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubNavigationResult {
     // Outermost → active level; empty = top.
     const [pathStack, setPathStack] = useState<string[]>([]);
-    // Mounted-membership of <Sub> components; resetToRoot does not clear it (statically-mounted Subs survive open/close cycles).
     const mountedSubs = useRef<Set<string>>(new Set());
 
     const currentSubID = pathStack.length > 0 ? (pathStack.at(-1) ?? null) : null;
@@ -71,7 +69,6 @@ function useSubNavigation({onLevelChange}: {onLevelChange: () => void}): UseSubN
         currentSubID,
         isAncestorOfCurrent,
         actions,
-        resetToRoot: () => setPathStack([]),
     };
 }
 

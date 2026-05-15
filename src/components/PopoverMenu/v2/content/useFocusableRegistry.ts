@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import CONST from '@src/CONST';
@@ -25,12 +25,6 @@ function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRe
     // Guard `-1` (nothing focused); `.at(-1)` would return the last item.
     const focusedID = focusedIndex >= 0 ? (orderedIDs.at(focusedIndex) ?? null) : null;
 
-    // Mirror so setFocusedID reads the latest order — setFocusedID fires from user interaction, post-commit.
-    const orderedIDsRef = useRef(orderedIDs);
-    useEffect(() => {
-        orderedIDsRef.current = orderedIDs;
-    });
-
     const actions: FocusableRegistryActions = {
         registerItem: (id, item) =>
             setRegistry((prev) => {
@@ -48,7 +42,7 @@ function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRe
                 return next;
             }),
         setFocusedID: (id) => {
-            setFocusedIndex(id === null ? -1 : orderedIDsRef.current.indexOf(id));
+            setFocusedIndex(id === null ? -1 : orderedIDs.indexOf(id));
         },
     };
 

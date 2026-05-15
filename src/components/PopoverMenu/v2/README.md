@@ -59,13 +59,13 @@ Owns visibility state. `defaultOpen` seeds the initial open state; there is no `
 | `<PressableWithFeedback>` | `onPress`, `ref`, `accessibilityState`, `accessibilityHasPopup`, `nativeID`, `accessibilityControls` |
 | `<PressableWithSecondaryInteraction>` | `onSecondaryInteraction` (its inner `<PressableWithFeedback>` independently consumes the remaining props from the same context) |
 
-Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder — wrap them in one of the above or call the hooks directly. `<Trigger>` and `<SecondaryInteractionTrigger>` dev-warn (via `<PressResponder>`) when a published handler has no descendant consumer.
+Raw RN `<Pressable>` / `<TouchableOpacity>` do **not** consume the responder — wrap them in one of the above or call `usePressResponderProps` / `useResponderRef` directly in a custom pressable. Without a consumer, the trigger renders but pressing does nothing (the published `onPress` reaches no descendant).
 
 ### Rows
 
 All rows except `<Group>` auto-hide outside the active sub-level.
 
-- **`<Item text onSelect? disabled?>`** — selectable row. Closes the menu after `onSelect`; consumer's `event.preventDefault()` synchronously inside `onSelect` keeps it open. `onSelect` receives an `ItemSelectEvent` (custom event exposing `preventDefault()` / `isDefaultPrevented()` / `stopPropagation()` / `isPropagationStopped()` — synchronous-only).
+- **`<Item text onSelect? disabled?>`** — selectable row. Closes the menu after `onSelect`; consumer's `event.preventDefault()` synchronously inside `onSelect` keeps it open. `onSelect` receives an `ItemSelectEvent` (custom event exposing `preventDefault()` / `isDefaultPrevented()` — synchronous-only).
 - **`<RadioItem text isSelected? onSelect? disabled? rightIcon?>`** — single-select row with a radio indicator. Pass `rightIcon` to replace the indicator.
 - **`<Header>children</Header>`** — heading-role title (`accessibilityRole="heading"`, level 3). To title a sub, render inside `<Sub.Content>`.
 - **`<Label text>`** — non-interactive labelled row.

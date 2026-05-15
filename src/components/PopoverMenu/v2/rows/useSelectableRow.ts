@@ -3,7 +3,7 @@ import type {View} from 'react-native';
 import {ContentCloseContext} from '@components/PopoverMenu/v2/content/ContentContext';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
 import useAssertedContext from '@hooks/useAssertedContext';
-import {composeHandlers, createCustomEvent} from '@libs/CustomEventUtils';
+import {createCustomEvent} from '@libs/CustomEventUtils';
 import type {CustomEvent} from '@libs/CustomEventUtils';
 import useFocusableRow from './useFocusableRow';
 
@@ -33,14 +33,11 @@ function useSelectableRow({onSelect, disabled = false, text}: {onSelect?: (event
             if (disabled) {
                 return;
             }
-            const event = createCustomEvent({});
-            const closeUnlessPrevented = (e: ItemSelectEvent) => {
-                if (e.isDefaultPrevented()) {
-                    return;
-                }
+            const event = createCustomEvent();
+            onSelect?.(event);
+            if (!event.isDefaultPrevented()) {
                 close();
-            };
-            composeHandlers(onSelect, closeUnlessPrevented)(event);
+            }
         },
     });
 
