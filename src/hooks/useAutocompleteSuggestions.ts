@@ -28,6 +28,7 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {useCurrencyListState} from './useCurrencyList';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import useSortedActions from './useSortedActions';
 
@@ -54,7 +55,6 @@ type UseAutocompleteSuggestionsParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     translate: LocaleContextProps['translate'];
-    localeCompare: LocaleContextProps['localeCompare'];
     /** Map of display values to IDs for filters (e.g. workspace name → policy ID); used to exclude by ID when names duplicate */
     autocompleteSubstitutions?: SubstitutionMap;
 };
@@ -103,9 +103,9 @@ function useAutocompleteSuggestions({
     personalDetails,
     feedKeysWithCards,
     translate,
-    localeCompare,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
+    const {localeCompare} = useLocalize();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
