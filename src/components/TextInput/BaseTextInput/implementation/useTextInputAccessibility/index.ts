@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import type TextInputAccessibilityResult from './types';
+import type TextInputAccessibilityResult from './type';
 
 /**
  * Default (iOS) implementation: sets accessibilityValue so VoiceOver announces the entered value on re-focus.
