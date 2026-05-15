@@ -1056,4 +1056,4 @@ export {
     startMoneyRequest,
     startDistanceRequest,
 };
-export type {MoneyRequestStepScanParticipantsFlowParams, MoneyRequestStepDistanceNavigationParams};
+export type {MoneyRequestStepScanParticipantsFlowParams};

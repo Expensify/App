@@ -88,7 +88,7 @@ import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import capturePageHTML from '@libs/PageHTMLCapture';
-import PaginationUtils from '@libs/PaginationUtils';
+import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -1857,7 +1857,7 @@ function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sort
         return;
     }
 
-    const pruned = PaginationUtils.prunePagesToNewestWindow(sortedReportActions, pages, (action) => action.reportActionID);
+    const pruned = prunePagesToNewestWindow(sortedReportActions, pages, (action) => action.reportActionID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`, pruned);
 }
 
@@ -3305,24 +3305,16 @@ function editReportComment(
     );
 }
 
-/** Clears drafts for all comment report action across all reports */
-function clearAllReportActionDrafts() {
-    Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {});
+/** Deletes the draft for a comment report action. */
+function deleteReportActionDraft(reportID: string | undefined, reportAction: ReportAction) {
+    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
 }
 
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
-function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null, draftMessage: string) {
-    if (!reportAction) {
-        return;
-    }
-
+function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction, draftMessage: string) {
     const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
-
-    Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {
-        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`]: {
-            [reportAction.reportActionID]: {message: draftMessage},
-        },
-    });
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
 }
 
 function updateNotificationPreference(
@@ -7856,7 +7848,7 @@ function clearConciergeThinkingKickoff() {
     Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, null);
 }
 
-export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams, ParticipantInfo, CreateTransactionThreadReportParams};
+export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams};
 
 export {
     addAttachmentWithComment,
@@ -7879,7 +7871,7 @@ export {
     extractRHPVariantFromResponse,
     createNewReport,
     deleteReport,
-    clearAllReportActionDrafts,
+    deleteReportActionDraft,
     deleteReportComment,
     deleteReportField,
     dismissTrackExpenseActionableWhisper,

@@ -121,7 +121,6 @@ export type {
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
     PingPongEvent,
-    ConciergeReasoningEvent,
     ConciergeDraftEvent,
     EventData,
     EventCallbackError,
