@@ -6086,10 +6086,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 setCardRules: 'Definir regras do cartão',
                 addSpendRule: 'Adicionar regra de gasto',
                 addExpirationDate: 'Adicionar data de validade',
-                addExpirationDateDescription: 'Se nenhuma data específica for definida, o cartão expirará com base na data de validade atual do cartão',
+                addExpirationDateDescription: 'Se nenhuma data específica for definida, o cartão vai expirar com base na data de validade atual do cartão',
                 amount: 'Valor',
                 copyExisting: 'Copiar existente',
                 createNew: 'Criar novo',
+                spendRulesEmptyStateTitle: 'Nenhuma regra para escolher',
+                spendRulesEmptyStateSubtitle: 'Você ainda não criou nenhuma regra. Você pode criar uma na tela anterior.',
             },
             deactivateCardModal: {
                 deactivate: 'Desativar',

@@ -6111,6 +6111,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 amount: 'Importo',
                 copyExisting: 'Copia esistente',
                 createNew: 'Crea nuovo',
+                spendRulesEmptyStateTitle: 'Nessuna regola tra cui scegliere',
+                spendRulesEmptyStateSubtitle: 'Non hai ancora creato nessuna regola. Puoi crearne una dalla schermata precedente.',
             },
             deactivateCardModal: {
                 deactivate: 'Disattiva',
