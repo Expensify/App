@@ -63,7 +63,6 @@ type WorkspaceViewTagsProps =
 
 function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const {policyID, orderWeight: orderWeightParam} = route.params;
-    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
     const orderWeight = Number(orderWeightParam);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for the small screen selection mode
