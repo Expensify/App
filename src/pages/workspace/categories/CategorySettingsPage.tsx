@@ -330,9 +330,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     );
                                     return;
                                 }
-                                Navigation.navigate(
-                                    createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path),
-                                );
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path));
                             }}
                             shouldShowRightIcon
                         />
