@@ -9317,7 +9317,7 @@ describe('ReportUtils', () => {
             // requires !isSettled, making this path currently unreachable. This test documents the
             // current behavior and will catch regressions if the conditions are corrected.
             const olderChildReport: Report = {
-                ...createRandomReport(Number(olderChildReportID)),
+                ...createRandomReport(Number(olderChildReportID), undefined),
                 reportID: olderChildReportID,
                 type: CONST.REPORT.TYPE.INVOICE,
                 policyID,
@@ -9326,7 +9326,7 @@ describe('ReportUtils', () => {
             };
 
             const newerChildReport: Report = {
-                ...createRandomReport(Number(newerChildReportID)),
+                ...createRandomReport(Number(newerChildReportID), undefined),
                 reportID: newerChildReportID,
                 type: CONST.REPORT.TYPE.INVOICE,
                 policyID,
