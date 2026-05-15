@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import type {OnyxKey} from 'react-native-onyx';
 import type {SearchListItem, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import {getOptimisticWatchKey} from '@libs/deferredLayoutWrite';
+import {getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -86,7 +86,11 @@ function useStableOptimisticSortedData(sortedData: SearchListItem[], searchResul
         }
 
         if (!tracking.optimisticWatchKey) {
-            return resolveWatchKey(tracking, setOptimisticWatchKey);
+            const cleanup = resolveWatchKey(tracking, setOptimisticWatchKey);
+            if (!cleanup && !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+                clearOptimisticTracking();
+            }
+            return cleanup;
         }
 
         const watchKey = tracking.optimisticWatchKey;

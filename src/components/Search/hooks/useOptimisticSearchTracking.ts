@@ -99,7 +99,11 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
 
         // Step 1: resolve watch key if not yet available.
         if (!optimisticWatchKey) {
-            return resolveWatchKey(tracking, setOptimisticWatchKey);
+            const cleanup = resolveWatchKey(tracking, setOptimisticWatchKey);
+            if (!cleanup && !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+                clearOptimisticTracking();
+            }
+            return cleanup;
         }
 
         // Step 2: if the watched transaction is a split parent, swap to child.
