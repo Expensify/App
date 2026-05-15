@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -52,67 +53,69 @@ function EditAgentPage({route}: EditAgentPageProps) {
     };
 
     return (
-        <ScreenWrapper
-            testID={EditAgentPage.displayName}
-            includeSafeAreaPaddingBottom
-            offlineIndicatorStyle={styles.mtAuto}
-        >
-            <HeaderWithBackButton
-                title={translate('editAgentPage.title')}
-                onBackButtonPress={handleBackPress}
-            />
-            <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <OfflineWithFeedback
-                    errors={agent?.avatarErrors}
-                    errorRowStyles={[styles.mh5, styles.mb2]}
-                    onClose={() => clearAgentAvatarUpdateError(accountID)}
-                >
-                    <View style={[styles.alignItemsCenter, styles.pv5]}>
-                        <AvatarButtonWithIcon
-                            text={translate('editAgentAvatarPage.title')}
-                            source={personalDetails?.avatar ?? ''}
-                            avatarID={accountID}
-                            onPress={handleEditAvatarPress}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
-                            avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
-                            pendingAction={personalDetails?.pendingFields?.avatar}
-                            sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
-                            editIconStyle={styles.profilePageAvatar}
-                        />
-                    </View>
-                </OfflineWithFeedback>
-                <OfflineWithFeedback
-                    errors={agent?.nameErrors}
-                    errorRowStyles={[styles.mh5, styles.mb2]}
-                    onClose={() => clearAgentNameUpdateError(accountID)}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('editAgentPage.agentName')}
-                        title={personalDetails?.displayName ?? ''}
-                        shouldShowRightIcon
-                        onPress={handleEditNamePress}
-                    />
-                </OfflineWithFeedback>
-                <OfflineWithFeedback
-                    errors={agent?.promptErrors}
-                    errorRowStyles={[styles.mh5, styles.mb2]}
-                    onClose={() => clearAgentPromptUpdateError(accountID)}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('editAgentPage.instructions')}
-                        title={agent?.prompt?.trim() ?? ''}
-                        shouldShowRightIcon
-                        onPress={handleEditPromptPress}
-                        numberOfLinesTitle={10}
-                    />
-                </OfflineWithFeedback>
-                <MenuItem
-                    title={translate('editAgentPage.deleteAgent')}
-                    icon={icons.Trashcan}
-                    onPress={handleDeletePress}
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper
+                testID={EditAgentPage.displayName}
+                includeSafeAreaPaddingBottom
+                offlineIndicatorStyle={styles.mtAuto}
+            >
+                <HeaderWithBackButton
+                    title={translate('editAgentPage.title')}
+                    onBackButtonPress={handleBackPress}
                 />
-            </ScrollView>
-        </ScreenWrapper>
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <OfflineWithFeedback
+                        errors={agent?.avatarErrors}
+                        errorRowStyles={[styles.mh5, styles.mb2]}
+                        onClose={() => clearAgentAvatarUpdateError(accountID)}
+                    >
+                        <View style={[styles.alignItemsCenter, styles.pv5]}>
+                            <AvatarButtonWithIcon
+                                text={translate('editAgentAvatarPage.title')}
+                                source={personalDetails?.avatar ?? ''}
+                                avatarID={accountID}
+                                onPress={handleEditAvatarPress}
+                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                avatarStyle={[styles.avatarXLarge, styles.alignSelfCenter]}
+                                pendingAction={personalDetails?.pendingFields?.avatar}
+                                sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.AVATAR}
+                                editIconStyle={styles.profilePageAvatar}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errors={agent?.nameErrors}
+                        errorRowStyles={[styles.mh5, styles.mb2]}
+                        onClose={() => clearAgentNameUpdateError(accountID)}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('editAgentPage.agentName')}
+                            title={personalDetails?.displayName ?? ''}
+                            shouldShowRightIcon
+                            onPress={handleEditNamePress}
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errors={agent?.promptErrors}
+                        errorRowStyles={[styles.mh5, styles.mb2]}
+                        onClose={() => clearAgentPromptUpdateError(accountID)}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('editAgentPage.instructions')}
+                            title={agent?.prompt?.trim() ?? ''}
+                            shouldShowRightIcon
+                            onPress={handleEditPromptPress}
+                            numberOfLinesTitle={10}
+                        />
+                    </OfflineWithFeedback>
+                    <MenuItem
+                        title={translate('editAgentPage.deleteAgent')}
+                        icon={icons.Trashcan}
+                        onPress={handleDeletePress}
+                    />
+                </ScrollView>
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 

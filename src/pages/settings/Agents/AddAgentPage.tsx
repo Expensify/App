@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -92,68 +93,70 @@ function AddAgentPage() {
     };
 
     return (
-        <ScreenWrapper
-            testID={AddAgentPage.displayName}
-            includeSafeAreaPaddingBottom
-            offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={shouldUseScrollableLayout}
-        >
-            <HeaderWithBackButton
-                title={translate('addAgentPage.title')}
-                onBackButtonPress={() => Navigation.goBack()}
-            />
-            <FormProvider
-                formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
-                onSubmit={handleSubmit}
-                validate={validate}
-                submitButtonText={translate('addAgentPage.createAgent')}
-                style={[styles.flex1, styles.ph5]}
-                shouldUseScrollView={shouldUseScrollableLayout}
-                submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
-                shouldHideFixErrorsAlert
-                enabledWhenOffline
+        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
+            <ScreenWrapper
+                testID={AddAgentPage.displayName}
+                includeSafeAreaPaddingBottom
+                offlineIndicatorStyle={styles.mtAuto}
+                shouldEnableMaxHeight={shouldUseScrollableLayout}
             >
-                <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
-                    <View style={[styles.alignItemsCenter]}>
-                        <AvatarButtonWithIcon
-                            text={translate('addAgentPage.editAvatar')}
-                            source={avatarSource}
-                            onPress={handleAvatarPress}
-                            size={CONST.AVATAR_SIZE.X_LARGE}
-                            avatarStyle={avatarStyle}
-                            editIcon={expensifyIcons.Pencil}
-                            editIconStyle={styles.profilePageAvatar}
-                            sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
-                        />
-                    </View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.FIRST_NAME}
-                        label={translate('addAgentPage.agentName')}
-                        accessibilityLabel={translate('addAgentPage.agentName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        autoCapitalize="words"
-                        spellCheck={false}
-                        defaultValue={defaultAgentName}
-                    />
-                    <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                <HeaderWithBackButton
+                    title={translate('addAgentPage.title')}
+                    onBackButtonPress={() => Navigation.goBack()}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.ADD_AGENT_FORM}
+                    onSubmit={handleSubmit}
+                    validate={validate}
+                    submitButtonText={translate('addAgentPage.createAgent')}
+                    style={[styles.flex1, styles.ph5]}
+                    shouldUseScrollView={shouldUseScrollableLayout}
+                    submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
+                    shouldHideFixErrorsAlert
+                    enabledWhenOffline
+                >
+                    <View style={[styles.flex1, styles.flexColumn, styles.gap5]}>
+                        <View style={[styles.alignItemsCenter]}>
+                            <AvatarButtonWithIcon
+                                text={translate('addAgentPage.editAvatar')}
+                                source={avatarSource}
+                                onPress={handleAvatarPress}
+                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                avatarStyle={avatarStyle}
+                                editIcon={expensifyIcons.Pencil}
+                                editIconStyle={styles.profilePageAvatar}
+                                sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
+                            />
+                        </View>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            label={translate('addAgentPage.instructions')}
-                            accessibilityLabel={translate('addAgentPage.instructions')}
+                            inputID={INPUT_IDS.FIRST_NAME}
+                            label={translate('addAgentPage.agentName')}
+                            accessibilityLabel={translate('addAgentPage.agentName')}
                             role={CONST.ROLE.PRESENTATION}
-                            defaultValue={defaultPrompt}
-                            multiline
-                            containerStyles={[styles.flex1]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            autoCapitalize="words"
+                            spellCheck={false}
+                            defaultValue={defaultAgentName}
                         />
+                        <View style={[styles.flex1, shouldUseScrollableLayout && styles.minHeight42]}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PROMPT}
+                                label={translate('addAgentPage.instructions')}
+                                accessibilityLabel={translate('addAgentPage.instructions')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={defaultPrompt}
+                                multiline
+                                containerStyles={[styles.flex1]}
+                                touchableInputWrapperStyle={[styles.flex1]}
+                                textInputContainerStyles={[styles.flex1]}
+                                inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                            />
+                        </View>
                     </View>
-                </View>
-            </FormProvider>
-        </ScreenWrapper>
+                </FormProvider>
+            </ScreenWrapper>
+        </DelegateNoAccessWrapper>
     );
 }
 
