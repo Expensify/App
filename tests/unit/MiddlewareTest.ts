@@ -145,6 +145,9 @@ describe('Middleware', () => {
 
             SequentialQueue.unpause();
             await waitForNetworkPromises();
+            // The middleware rewrites the second request after processing the first response,
+            // which requires an additional flush to ensure the requeued fetch has completed.
+            await waitForNetworkPromises();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
@@ -339,6 +342,9 @@ describe('Middleware', () => {
 
             SequentialQueue.unpause();
             await waitForBatchedUpdates();
+            // The middleware rewrites the second request after processing the first response.
+            // Wait for network promises to ensure the re-queued fetch has resolved.
+            await waitForNetworkPromises();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
 
