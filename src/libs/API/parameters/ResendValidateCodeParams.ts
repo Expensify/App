@@ -11,6 +11,11 @@ type ResendValidateCodeForRevealCardDetailsParams = {
     reasonCardID: number;
 };
 
-type ResendValidateCodeParams = ResendValidateCodeBaseParams | ResendValidateCodeForRevealCardDetailsParams;
+// Will be removed eventually
+type ResendValidateCodeNotYetImplementedParams = {
+    reasonCode: null;
+}
+
+type ResendValidateCodeParams = ResendValidateCodeBaseParams | ResendValidateCodeNotYetImplementedParams | ResendValidateCodeForRevealCardDetailsParams;
 
 export default ResendValidateCodeParams;
