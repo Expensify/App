@@ -16,7 +16,6 @@ const story: Meta<typeof HeaderWithBackButton> = {
 };
 
 function Template(props: HeaderWithBackButtonProps) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <HeaderWithBackButton {...props} />;
 }
 

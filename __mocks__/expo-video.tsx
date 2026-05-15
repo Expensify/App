@@ -101,7 +101,6 @@ const VideoView = forwardRef((props: VideoViewProps, ref: ForwardedRef<View>) =>
     <View
         ref={ref}
         accessibilityLabel="MockVideoView"
-        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
     />
 ));
