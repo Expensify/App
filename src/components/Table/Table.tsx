@@ -1,12 +1,12 @@
 import type {FlashListRef} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useFiltering from './middlewares/filtering';
 import useSearching from './middlewares/searching';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
 import type {TableContextValue} from './TableContext';
-import type {TableHandle, TableMethods, TableProps} from './types';
+import type {TableHandle, TableMethods, TableProps, TableRowData} from './types';
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.
@@ -129,7 +129,7 @@ import type {TableHandle, TableMethods, TableProps} from './types';
  * </Table>
  * ```
  */
-function Table<T, ColumnKey extends string = string, FilterKey extends string = string>({
+function Table<T extends object, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     title,
     data = [],
@@ -143,6 +143,10 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     selectionEnabled,
     ...listProps
 }: TableProps<T, ColumnKey, FilterKey>) {
+    const [tableData, setTableData] = useState<TableRowData<T>[]>(() => {
+        return data.map((item, index) => ({...item, checked: false}));
+    });
+
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
@@ -155,7 +159,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
 
     const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<T, ColumnKey>({compareItems, initialSortColumn});
 
-    const processedData = [filterMiddleware, searchMiddleware, sortMiddleware].reduce((acc, middleware) => middleware(acc), data);
+    const processedData = [filterMiddleware, searchMiddleware, sortMiddleware].reduce((acc, middleware) => middleware(acc), tableData);
 
     const listRef = useRef<FlashListRef<T>>(null);
 
@@ -181,7 +185,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         }) as TableHandle<T, ColumnKey, FilterKey>;
     });
 
-    const originalDataLength = data?.length ?? 0;
+    const originalDataLength = tableData?.length ?? 0;
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     // Check if filters are applied (not default values)

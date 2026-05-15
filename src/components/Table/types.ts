@@ -41,6 +41,10 @@ type TableColumn<ColumnKey extends string = string> = {
     styling?: TableColumnStyling;
 };
 
+type TableRowData<T extends object> = T & {
+    selected?: boolean;
+};
+
 /**
  * Methods exposed by the Table component for programmatic control.
  * Combines sorting, filtering, and searching capabilities.
@@ -144,4 +148,16 @@ type TableProps<T, ColumnKey extends string = string, FilterKey extends string =
         ref?: React.Ref<TableHandle<T, ColumnKey, FilterKey>>;
     }>;
 
-export type {TableColumn, TableMethods, TableHandle, TableProps, SharedListProps, CompareItemsCallback, IsItemInFilterCallback, IsItemInSearchCallback, FilterConfig, ActiveSorting};
+export type {
+    TableColumn,
+    TableMethods,
+    TableRowData,
+    TableHandle,
+    TableProps,
+    SharedListProps,
+    CompareItemsCallback,
+    IsItemInFilterCallback,
+    IsItemInSearchCallback,
+    FilterConfig,
+    ActiveSorting,
+};
