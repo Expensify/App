@@ -37,7 +37,6 @@ import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
-import CameraFlip from '@assets/images/camera-flip.svg';
 import Camera from '@assets/images/camera.svg';
 import CarCircleSlash from '@assets/images/car-circle-slash.svg';
 import CarPlus from '@assets/images/car-plus.svg';
@@ -70,6 +69,8 @@ import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
 import CreditCardLock from '@assets/images/credit-card-lock.svg';
+import CreditCardWithPlaneHourglass from '@assets/images/credit-card-with-plane-hourglass.svg';
+import CreditCardWithPlane from '@assets/images/credit-card-with-plane.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
@@ -142,6 +143,7 @@ import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
 import QBOSquare from '@assets/images/integrationicons/qbo-icon-square.svg';
 import SageIntacctSquare from '@assets/images/integrationicons/sage-intacct-icon-square.svg';
 import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
+import TriNetSquare from '@assets/images/integrationicons/trinet-icon-square.svg';
 import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
@@ -295,7 +297,6 @@ const Expensicons = {
     Buildings,
     Calendar,
     Camera,
-    CameraFlip,
     Car,
     CarPlus,
     Cash,
@@ -321,6 +322,8 @@ const Expensicons = {
     CreditCardHourglass,
     CreditCardExclamation,
     CreditCardLock,
+    CreditCardWithPlane,
+    CreditCardWithPlaneHourglass,
     CircleSlash,
     Document,
     DocumentMerge,
@@ -447,6 +450,7 @@ const Expensicons = {
     ThreeDots,
     Transfer,
     Trashcan,
+    TriNetSquare,
     ZenefitsSquare,
     Uber,
     Unlock,

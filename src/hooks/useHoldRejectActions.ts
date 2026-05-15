@@ -122,4 +122,3 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 }
 
 export default useHoldRejectActions;
-export type {UseHoldRejectActionsParams, UseHoldRejectActionsReturn};

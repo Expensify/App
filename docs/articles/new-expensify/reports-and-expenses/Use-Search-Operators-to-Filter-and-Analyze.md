@@ -79,8 +79,7 @@ You can use the following operators to filter reports:
 - `title:` – report title
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
-- `withdrawal-type:` – reimbursement or expensify-card
-- `withdrawal-status:` – pending, cleared, or failed
+- `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
 - `action:` – blocking report action, e.g. `action:approve`
 
 **Example query:**
