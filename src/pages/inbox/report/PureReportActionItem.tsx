@@ -32,7 +32,6 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -44,7 +43,6 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
-import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -75,7 +73,6 @@ import {
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
-    isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
     isIOURequestReportAction,
     isMessageDeleted,
@@ -210,9 +207,6 @@ type PureReportActionItemProps = {
     /** Original report from which the given reportAction is first created */
     originalReport?: OnyxTypes.Report;
 
-    /** Function to deletes the draft for a comment report action. */
-    deleteReportActionDraft?: (reportID: string | undefined, action: OnyxTypes.ReportAction) => void;
-
     /** Whether the room is archived */
     isArchivedRoom?: boolean;
 
@@ -269,7 +263,6 @@ function PureReportActionItem({
     personalDetails,
     originalReportID = '-1',
     originalReport,
-    deleteReportActionDraft = () => {},
     isArchivedRoom,
     isChronosReport,
     isClosedExpenseReportWithNoExpenses,
@@ -298,10 +291,8 @@ function PureReportActionItem({
     const [isHidden, setIsHidden] = useState(false);
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
-    const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
-    const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isReportArchived = useReportIsArchived(reportID);
@@ -406,14 +397,6 @@ function PureReportActionItem({
     }, [isDeletedParentAction, action.reportActionID]);
 
     useEffect(() => {
-        if (prevDraftMessage !== undefined || draftMessage === undefined) {
-            return;
-        }
-
-        focusComposerWithDelay(composerTextInputRef.current)(true);
-    }, [prevDraftMessage, draftMessage]);
-
-    useEffect(() => {
         if (!Permissions.canUseLinkPreviews()) {
             return;
         }
@@ -426,13 +409,6 @@ function PureReportActionItem({
         downloadedPreviews.current = urls;
         expandURLPreview(reportID, action.reportActionID);
     }, [action, reportID]);
-
-    useEffect(() => {
-        if (draftMessage === undefined || !isDeletedAction(action)) {
-            return;
-        }
-        deleteReportActionDraft(reportID, action);
-    }, [draftMessage, action, reportID, deleteReportActionDraft]);
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
@@ -891,7 +867,6 @@ function PureReportActionItem({
                     isHidden={isHidden}
                     updateHiddenState={updateHiddenState}
                     isArchivedRoom={isArchivedRoom}
-                    composerTextInputRef={composerTextInputRef}
                     isOnSearch={isOnSearch}
                     contextMenuStateValue={contextMenuStateValue}
                     contextMenuActionsValue={contextMenuActionsValue}
@@ -1089,7 +1064,7 @@ function PureReportActionItem({
                     {(hovered) => (
                         <View style={highlightedBackgroundColorIfNeeded}>
                             {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                            {shouldDisplayContextMenuValue && (
+                            {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && draftMessage === undefined && !hasErrors && (
                                 <MiniReportActionContextMenu
                                     reportID={reportID}
                                     reportActionID={action.reportActionID}
@@ -1098,7 +1073,7 @@ function PureReportActionItem({
                                     isArchivedRoom={isArchivedRoom}
                                     displayAsGroup={displayAsGroup}
                                     disabledActions={disabledActions}
-                                    isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                    isVisible={hovered}
                                     isThreadReportParentAction={isThreadReportParentAction}
                                     draftMessage={draftMessage}
                                     isChronosReport={isChronosReport}

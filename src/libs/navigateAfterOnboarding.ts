@@ -93,9 +93,6 @@ function navigateAfterOnboarding(
     );
     if (reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    } else {
-        // Navigate to home to trigger guard evaluation
-        Navigation.navigate(ROUTES.HOME);
     }
 }
 

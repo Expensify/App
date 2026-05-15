@@ -68,13 +68,16 @@ function useAutoCreateTrackWorkspace() {
             const shouldCreateWorkspace = !isRestrictedPolicyCreation && !onboardingPolicyID && !hasPaidGroupAdminPolicy;
             const displayName = createDisplayName(session?.email ?? '', {firstName, lastName}, formatPhoneNumber);
 
+            const engagementChoice =
+                onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL ? CONST.ONBOARDING_CHOICES.TRACK_PERSONAL : CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE;
+
             const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
                 ? createWorkspace({
                       policyOwnerEmail: undefined,
                       makeMeAdmin: true,
                       policyName: generateDefaultWorkspaceName(session?.email ?? '', lastWorkspaceNumber, translate, displayName),
                       policyID: generatePolicyID(),
-                      engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                      engagementChoice,
                       currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                       file: undefined,
                       shouldAddOnboardingTasks: false,
@@ -95,8 +98,8 @@ function useAutoCreateTrackWorkspace() {
             let rhpVariant: OnboardingRHPVariant | undefined = isSidePanelReportSupported ? undefined : CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
             try {
                 const response = await completeOnboarding({
-                    engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
-                    onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE],
+                    engagementChoice,
+                    onboardingMessage: onboardingMessages[engagementChoice],
                     firstName,
                     lastName,
                     adminsChatReportID: newAdminsChatReportID,
@@ -109,6 +112,12 @@ function useAutoCreateTrackWorkspace() {
 
                 if (isSidePanelReportSupported) {
                     rhpVariant = extractRHPVariantFromResponse(response);
+                    // TRACK_PERSONAL should also navigate to concierge in RHP, same as TRACK_BUSINESS.
+                    // The backend only returns trackExpensesWithConcierge for TRACK_WORKSPACE (TRACK_BUSINESS),
+                    // so we fall back to it for TRACK_PERSONAL when the backend doesn't set it.
+                    if (!rhpVariant && onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                        rhpVariant = CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
+                    }
                 }
             } catch (error) {
                 Log.warn('[useAutoCreateTrackWorkspace] Error completing onboarding', {error});

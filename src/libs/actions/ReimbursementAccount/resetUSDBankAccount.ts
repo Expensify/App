@@ -82,7 +82,13 @@ function resetUSDBankAccount(
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
+                value: {
+                    ...CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA,
+                    achData: {
+                        ...CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA.achData,
+                        policyID,
+                    },
+                },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,

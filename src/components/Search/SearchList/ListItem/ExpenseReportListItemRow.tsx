@@ -74,7 +74,25 @@ function ExpenseReportListItemRow({
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
 
+    // Calculate the correct border color for avatars based on hover and focus states
+    const finalAvatarBorderColor =
+        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
+        theme.highlightBG;
+
     const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>
+                <SearchReportAvatar
+                    primaryAvatar={item.primaryAvatar}
+                    secondaryAvatar={item.secondaryAvatar}
+                    avatarType={item.avatarType}
+                    shouldShowTooltip={showTooltip}
+                    subscriptAvatarBorderColor={finalAvatarBorderColor}
+                    reportID={item.reportID}
+                    isLargeScreenWidth={isLargeScreenWidth}
+                />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear})]}>
                 <DateCell
@@ -231,11 +249,6 @@ function ExpenseReportListItemRow({
         ),
     };
 
-    // Calculate the correct border color for avatars based on hover and focus states
-    const finalAvatarBorderColor =
-        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, !!isFocused || !!isHovered, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
-        theme.highlightBG;
-
     if (!isLargeScreenWidth) {
         const filteredTransactions = item.transactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const expenseCount = (filteredTransactions?.length ? filteredTransactions.length : undefined) ?? item.transactionCount ?? 0;
@@ -304,18 +317,6 @@ function ExpenseReportListItemRow({
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
                     />
                 )}
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR), styles.alignItemsStretch]}>
-                    <SearchReportAvatar
-                        primaryAvatar={item.primaryAvatar}
-                        secondaryAvatar={item.secondaryAvatar}
-                        avatarType={item.avatarType}
-                        shouldShowTooltip={showTooltip}
-                        subscriptAvatarBorderColor={finalAvatarBorderColor}
-                        reportID={item.reportID}
-                        isLargeScreenWidth={isLargeScreenWidth}
-                    />
-                </View>
-
                 {columns.map((column) => {
                     const CellComponent = columnComponents[column as keyof typeof columnComponents];
                     return <Fragment key={column}>{CellComponent}</Fragment>;

@@ -3,6 +3,7 @@ import React, {useEffect, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {useReanimatedKeyboardAnimation} from 'react-native-keyboard-controller';
 import Reanimated, {Easing, useAnimatedReaction, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import type {CollapsibleHeaderOnKeyboardProps} from './types';
@@ -29,6 +30,7 @@ function isKeyboardOpeningAtGivenProgress(keyboardProgress: number, prevKeyboard
  */
 function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: CollapsibleHeaderOnKeyboardProps) {
     const isFocused = useIsFocused();
+    const prevIsFocused = usePrevious(isFocused);
     // JS ref guards against re-measurement when the Reanimated.View fires onLayout with height=0
     const naturalHeightRef = useRef(-1);
     // Worklet-accessible mirror of naturalHeightRef. -1 signals "not yet measured".
@@ -80,6 +82,20 @@ function CollapsibleHeaderOnKeyboard({children, collapsibleHeaderOffset = 0}: Co
             animatedHeight.set(withTiming(naturalHeightValue, {duration: RESTORE_DURATION}));
         }
     }, [isInLandscapeMode, isFocused, animatedHeight]);
+
+    // Restores the header when the screen loses focus
+    useEffect(() => {
+        if (!prevIsFocused || isFocused) {
+            return;
+        }
+
+        const naturalHeightValue = naturalHeightRef.current;
+        if (naturalHeightValue === -1) {
+            return;
+        }
+        animatedHeight.set(withTiming(naturalHeightValue, {duration: RESTORE_DURATION}));
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want to run this effect when the screen loses focus
+    }, [isFocused]);
 
     // Runs on the UI thread whenever keyboard state changes.
     // Fires at two key moments:

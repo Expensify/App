@@ -52,7 +52,7 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
     const defaultValues = {
         isAuthorizedToUseBankAccount: confirmAgreementsValues.isAuthorizedToUseBankAccount ?? false,
         certifyTrueInformation: confirmAgreementsValues.certifyTrueInformation ?? false,
-        acceptTermsAndConditions: confirmAgreementsValues.acceptTermsAndConditions ?? false,
+        acceptTermsAndConditions: (confirmAgreementsValues.acceptTermsAndConditions || reimbursementAccount?.achData?.acceptTerms) ?? false,
     };
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {

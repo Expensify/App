@@ -33,10 +33,6 @@ function ComposerInner({reportID}: ReportActionComposeProps) {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
-    if (!report) {
-        return null;
-    }
-
     return (
         <View style={[isComposerFullSize && styles.chatItemFullComposeRow]}>
             <Composer.LocalTime reportID={reportID} />

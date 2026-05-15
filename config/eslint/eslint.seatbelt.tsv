@@ -277,7 +277,6 @@
 "../../src/libs/Navigation/AppNavigator/Navigators/RightModalNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/SearchFullscreenNavigator.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/AppNavigator/Navigators/TestToolsModalNavigator.tsx"	"no-restricted-syntax"	1
-"../../src/libs/Navigation/AppNavigator/UserStatusHandler.tsx"	"no-restricted-syntax"	1
 "../../src/libs/Navigation/helpers/createNormalizedConfigs.ts"	"@typescript-eslint/no-deprecated/escape"	1
 "../../src/libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/Navigation/navigateAfterInteraction/index.ios.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
@@ -316,7 +315,7 @@
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	17
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/getReportName"	1
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-deprecated/getSearchReportName"	1
-"../../src/libs/SubscriptionUtils.ts"	"rulesdir/no-onyx-connect"	2
+"../../src/libs/SubscriptionUtils.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/translateLocal"	5
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/Violations/ViolationsUtils.ts"	"no-restricted-syntax"	2
@@ -344,7 +343,6 @@
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/libs/actions/IOU/PerDiem.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	1
 "../../src/libs/actions/IOU/PerDiem.ts"	"no-restricted-syntax"	2
-"../../src/libs/actions/IOU/Receipt.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/Receipt.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"@typescript-eslint/no-deprecated/buildNextStepNew"	2
 "../../src/libs/actions/IOU/RejectMoneyRequest.ts"	"no-restricted-syntax"	1
@@ -356,7 +354,6 @@
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/Localize.translateLocal"	2
 "../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
-"../../src/libs/actions/IOU/Split.ts"	"@typescript-eslint/no-deprecated/getPolicyTagsData"	1
 "../../src/libs/actions/IOU/Split.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/IOU/SplitTransactionUpdate.ts"	"@typescript-eslint/no-deprecated/getMoneyRequestPolicyTags"	1
@@ -428,7 +425,6 @@
 "../../src/libs/actions/TwoFactorAuthActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/actions/UnreportedExpenses.tsx"	"no-restricted-syntax"	1
 "../../src/libs/actions/User.ts"	"no-restricted-syntax"	8
-"../../src/libs/actions/User.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/VacationDelegate.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/Wallet.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Welcome/index.ts"	"no-restricted-syntax"	1
@@ -475,7 +471,12 @@
 "../../src/pages/ReimbursementAccount/EnterSignerInfo/index.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/refs"	3
 "../../src/pages/ReimbursementAccount/ReimbursementAccountPage.tsx"	"react-hooks/set-state-in-effect"	4
+"../../src/pages/ReimbursementAccount/USD/BankInfo/BankInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
+"../../src/pages/ReimbursementAccount/USD/BeneficialOwnerInfo/BeneficialOwnersStep.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
+"../../src/pages/ReimbursementAccount/USD/BusinessInfo/BusinessInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReimbursementAccount/USD/BusinessInfo/subSteps/IndustryCode/IndustryCodeSelector.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/pages/ReimbursementAccount/USD/CompleteVerification/CompleteVerification.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
+"../../src/pages/ReimbursementAccount/USD/Requestor/PersonalInfo/PersonalInfo.tsx"	"@typescript-eslint/no-deprecated/useSubStep"	1
 "../../src/pages/ReportDescriptionPage.tsx"	"no-restricted-syntax"	1
 "../../src/pages/ReportDetailsPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/ReportDetailsPage.tsx"	"react-hooks/preserve-manual-memoization"	4
@@ -489,7 +490,6 @@
 "../../src/pages/ScheduleCall/ScheduleCallPage.tsx"	"react-hooks/preserve-manual-memoization"	1
 "../../src/pages/Search/SearchAdvancedFiltersPage/SearchFiltersCardPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchMoneyRequestReportPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/Search/SearchPage.tsx"	"react-hooks/refs"	31
 "../../src/pages/Search/SearchPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/Search/SearchTransactionsChangeReport.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/Share/ShareRootPage.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
@@ -513,9 +513,9 @@
 "../../src/pages/inbox/report/PureReportActionItem.tsx"	"react-hooks/refs"	2
 "../../src/pages/inbox/report/PureReportActionItem.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReactionList/HeaderReactionList.tsx"	"no-restricted-syntax"	1
-"../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions/ComposerWithSuggestions.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
-"../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions/ComposerWithSuggestions.tsx"	"react-hooks/preserve-manual-memoization"	2
-"../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions/ComposerWithSuggestions.tsx"	"react-hooks/refs"	8
+"../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
+"../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"react-hooks/preserve-manual-memoization"	2
+"../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"react-hooks/refs"	8
 "../../src/pages/inbox/report/ReportActionCompose/SuggestionEmoji.tsx"	"react-hooks/refs"	1
 "../../src/pages/inbox/report/ReportActionCompose/SuggestionMention.tsx"	"react-hooks/refs"	3
 "../../src/pages/inbox/report/ReportActionItemMessage.tsx"	"@typescript-eslint/no-deprecated/getReportName"	1
@@ -532,6 +532,7 @@
 "../../src/pages/inbox/report/TripSummary.tsx"	"rulesdir/no-default-id-values"	1
 "../../src/pages/inbox/report/UserTypingEventListener.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	4
 "../../src/pages/inbox/report/shouldUseEmojiPickerSelection/index.website.ts"	"no-restricted-syntax"	1
+"../../src/pages/inbox/report/useReportActionsNewActionLiveTail.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/inbox/report/withReportOrNotFound.tsx"	"react-hooks/refs"	3
 "../../src/pages/inbox/sidebar/SidebarLinksData.tsx"	"react-hooks/refs"	1
 "../../src/pages/iou/MoneyRequestAmountForm.tsx"	"react-hooks/set-state-in-effect"	3
@@ -548,12 +549,11 @@
 "../../src/pages/iou/request/step/IOURequestStepDistance.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow/index.android.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow/index.ios.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	2
-"../../src/pages/iou/request/step/IOURequestStepDistanceGPS/GPSButtons/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	5
+"../../src/pages/iou/request/step/IOURequestStepDistanceGPS/GPSButtons/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepDistanceOdometer.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/iou/request/step/IOURequestStepDistanceOdometer.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepMerchant.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/pages/iou/request/step/IOURequestStepReport.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
+"../../src/pages/iou/request/step/IOURequestStepReport/hooks/useReportSelectionActions.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	2
 "../../src/pages/iou/request/step/IOURequestStepScan/ReceiptView/index.tsx"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/ReceiptView/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/MobileWebCameraView.tsx"	"react-hooks/immutability"	1

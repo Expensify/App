@@ -99,9 +99,9 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         const user = userEvent.setup();
-        const chatSplitLabel = translatePurpose(CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
-        const chatSplitOption = screen.getByLabelText(chatSplitLabel);
-        await user.press(chatSplitOption);
+        const employerLabel = translatePurpose(CONST.ONBOARDING_CHOICES.EMPLOYER);
+        const employerOption = screen.getByLabelText(employerLabel);
+        await user.press(employerOption);
 
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
@@ -138,11 +138,65 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate to personal details page when user selects TRACK_BUSINESS and is from public domain', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+                hasAccessibleDomainPolicies: false,
+            });
+        });
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const user = userEvent.setup();
+        const trackBusinessLabel = translatePurpose(CONST.ONBOARDING_CHOICES.TRACK_BUSINESS);
+        const trackBusinessOption = screen.getByLabelText(trackBusinessLabel);
+        await user.press(trackBusinessOption);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate to personal details page when user selects TRACK_PERSONAL and is from public domain', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+                hasAccessibleDomainPolicies: false,
+            });
+        });
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const user = userEvent.setup();
+        const trackPersonalLabel = translatePurpose(CONST.ONBOARDING_CHOICES.TRACK_PERSONAL);
+        const trackPersonalOption = screen.getByLabelText(trackPersonalLabel);
+        await user.press(trackPersonalOption);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should call completeOnboarding with introSelected when user is from private domain and selects a direct-complete choice', async () => {
         await TestHelper.signInWithTestUser();
 
         const introSelectedValue = {
-            choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+            choice: CONST.ONBOARDING_CHOICES.EMPLOYER,
             inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
         };
@@ -164,16 +218,16 @@ describe('OnboardingPurpose Page', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        // Select CHAT_SPLIT which triggers completeOnboarding directly for private domain users
+        // Select EMPLOYER which triggers completeOnboarding directly for private domain users
         const user = userEvent.setup();
-        const chatSplitLabel = translatePurpose(CONST.ONBOARDING_CHOICES.CHAT_SPLIT);
-        const chatSplitOption = screen.getByLabelText(chatSplitLabel);
-        await user.press(chatSplitOption);
+        const employerLabel = translatePurpose(CONST.ONBOARDING_CHOICES.EMPLOYER);
+        const employerOption = screen.getByLabelText(employerLabel);
+        await user.press(employerOption);
 
         await waitFor(() => {
             expect(mockCompleteOnboarding).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
                     firstName: 'Test',
                     lastName: 'User',
                     introSelected: introSelectedValue,

@@ -8,7 +8,7 @@ import {openSubscriptionPage} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
-import {isPolicyAdmin, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
+import {isPolicyAdmin, isPolicyAuditor, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -92,8 +92,8 @@ function WorkspaceRestrictedActionPage({
         return <WorkspaceAdminRestrictedAction policyID={policyID} />;
     }
 
-    // Workspace User
-    if (isPolicyUser(policy, session?.email)) {
+    // Workspace User or Auditor
+    if (isPolicyUser(policy, session?.email) || isPolicyAuditor(policy, session?.email)) {
         return <WorkspaceUserRestrictedAction policyID={policyID} />;
     }
 
