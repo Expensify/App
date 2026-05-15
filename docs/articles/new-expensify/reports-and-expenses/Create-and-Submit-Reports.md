@@ -177,7 +177,7 @@ Unsubmitted reports will remain in your Open reports section. You can go back an
 
 ## Why don’t I see the “Submit” button?
 
-The Submit button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If your workspace has no approval workflow, the button will say **Mark as done** instead of **Submit**.
+The **Submit** button only appears once your report includes at least one valid expense. If the report has already been submitted, the button will no longer be visible. If your workspace has no approval workflow, the button will say **Mark as done** instead of **Submit**.
 
 ## Can I remove an expense after submitting?
 
