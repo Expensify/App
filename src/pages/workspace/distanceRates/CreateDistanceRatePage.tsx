@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -56,13 +56,16 @@ function CreateDistanceRatePage({
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const existingRateNames = useMemo(() => Object.values(customUnit?.rates ?? {}).map((r) => r.name ?? ''), [customUnit?.rates]);
+    const [hasMultipleErrors, setHasMultipleErrors] = useState(false);
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) => {
             if (isDateBoundMileageRateEnabled) {
-                return validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames);
+                const errors = validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames);
+                setHasMultipleErrors(Object.keys(errors).length > 1);
+                return errors;
             }
             return validateRateValue(values, toLocaleDigit, translate);
         },
@@ -121,7 +124,7 @@ function CreateDistanceRatePage({
                         validate={validate}
                         enabledWhenOffline
                         style={[styles.flexGrow1]}
-                        shouldHideFixErrorsAlert={!isDateBoundMileageRateEnabled}
+                        shouldHideFixErrorsAlert={!isDateBoundMileageRateEnabled || !hasMultipleErrors}
                         submitFlexEnabled={false}
                         submitButtonStyles={[styles.mh5, styles.mt0]}
                         addBottomSafeAreaPadding
