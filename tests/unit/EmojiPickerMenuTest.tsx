@@ -1,5 +1,5 @@
 /**
- * Fallback option 1: tests the frequently-used dedup logic end-to-end by calling
+ * Fallback option 1: tests the frequently-used dedupe logic end-to-end by calling
  * processFrequentlyUsedEmojis + mergeEmojisWithFrequentlyUsedEmojis directly rather than
  * mounting EmojiPickerMenu (which requires many providers).
  *
@@ -10,7 +10,7 @@ import emojis from '@assets/emojis';
 import {mergeEmojisWithFrequentlyUsedEmojis, processFrequentlyUsedEmojis} from '@libs/EmojiUtils';
 import type FrequentlyUsedEmoji from '@src/types/onyx/FrequentlyUsedEmoji';
 
-describe('EmojiPickerMenu frequently used dedup', () => {
+describe('EmojiPickerMenu frequently used dedupe', () => {
     it('collapses mixed-format frequently used entries to one picker entry per emoji', () => {
         const frequentlyUsedEmojis: FrequentlyUsedEmoji[] = [
             {name: '+1', code: '', count: 5, lastUpdatedAt: 100},

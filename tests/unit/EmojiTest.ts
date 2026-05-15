@@ -732,7 +732,7 @@ describe('EmojiTest', () => {
         });
     });
 
-    describe('processFrequentlyUsedEmojis hex dedup', () => {
+    describe('processFrequentlyUsedEmojis hex dedupe', () => {
         it('returns empty array for empty input', () => {
             expect(EmojiUtils.processFrequentlyUsedEmojis([])).toHaveLength(0);
         });

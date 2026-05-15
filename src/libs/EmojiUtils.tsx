@@ -110,7 +110,7 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
     // On AddComment API response, each variant of the same emoji (with different skin tones) is
     // treated as a separate entry due to unique emoji codes for each variant.
     // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
-    // Prefer hexcode as the dedup key so that entries stored with only a hexcode merge correctly.
+    // Prefer hexcode as the dedupe key so that entries stored with only a hexcode merge correctly.
     const frequentlyUsedEmojiMap = new Map<string, FrequentlyUsedEmoji>();
     for (const item of emojiList) {
         let resolvedEmoji: Emoji | undefined;
