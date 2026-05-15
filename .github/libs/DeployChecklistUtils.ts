@@ -162,7 +162,12 @@ async function listForRepoWithRetry(params: Parameters<typeof GithubUtils.octoki
     throw lastError;
 }
 
-async function getLastClosedDeployChecklist(): Promise<DeployChecklistData> {
+/**
+ * Returns the most recently closed StagingDeployCash deploy checklist, or null if none exist yet.
+ * Throws on unexpected API or parsing errors so callers can distinguish "no checklist" (safe to
+ * deploy) from "lookup failed" (should block the deploy to avoid bypassing the safety gate).
+ */
+async function getLastClosedDeployChecklist(): Promise<DeployChecklistData | null> {
     const data = await listForRepoWithRetry({
         owner: CONST.GITHUB_OWNER,
         repo: CONST.APP_REPO,
@@ -175,7 +180,7 @@ async function getLastClosedDeployChecklist(): Promise<DeployChecklistData> {
     });
 
     if (!data.length) {
-        throw new Error(`Unable to find any closed ${CONST.LABELS.STAGING_DEPLOY} issues.`);
+        return null;
     }
 
     // Sort by closed_at descending to find the most recently closed checklist.
@@ -185,7 +190,7 @@ async function getLastClosedDeployChecklist(): Promise<DeployChecklistData> {
 
     const issue = sorted.at(0);
     if (!issue) {
-        throw new Error(`Unable to find any closed ${CONST.LABELS.STAGING_DEPLOY} issues.`);
+        return null;
     }
 
     return getDeployChecklistData(issue);

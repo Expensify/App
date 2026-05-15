@@ -11541,20 +11541,21 @@ const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const DeployChecklistUtils_1 = __nccwpck_require__(2141);
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const run = async function () {
-    let version;
-    try {
-        const checklist = await (0, DeployChecklistUtils_1.getLastClosedDeployChecklist)();
-        version = checklist.version;
-        console.log(`Last closed deploy checklist references version: ${version}`);
-    }
-    catch (err) {
-        console.warn('No closed deploy checklist found, continuing with deploy:', err);
+    // getLastClosedDeployChecklist returns null when no closed checklist has ever existed
+    // (first deploy cycle), and throws on actual API/network/parse errors. We only fail
+    // open for the null case; errors propagate so the action fails and blocks the deploy.
+    const checklist = await (0, DeployChecklistUtils_1.getLastClosedDeployChecklist)();
+    if (checklist === null) {
+        console.log('No closed deploy checklist found yet (first deploy cycle), continuing with deploy');
         core.setOutput('HAS_PRODUCTION_RELEASE', true);
         return;
     }
+    const { version } = checklist;
+    console.log(`Last closed deploy checklist references version: ${version}`);
     if (!version) {
-        console.warn('Could not extract version from closed deploy checklist, continuing with deploy');
-        core.setOutput('HAS_PRODUCTION_RELEASE', true);
+        // The checklist was found but the version could not be parsed — treat as an
+        // unexpected state and block the deploy rather than silently skipping the check.
+        core.setFailed('Could not extract version from the most recently closed deploy checklist');
         return;
     }
     // Production releases use the bare version as the tag (staging releases append "-staging"
@@ -11788,6 +11789,11 @@ async function listForRepoWithRetry(params) {
     }
     throw lastError;
 }
+/**
+ * Returns the most recently closed StagingDeployCash deploy checklist, or null if none exist yet.
+ * Throws on unexpected API or parsing errors so callers can distinguish "no checklist" (safe to
+ * deploy) from "lookup failed" (should block the deploy to avoid bypassing the safety gate).
+ */
 async function getLastClosedDeployChecklist() {
     const data = await listForRepoWithRetry({
         owner: CONST_1.default.GITHUB_OWNER,
@@ -11800,7 +11806,7 @@ async function getLastClosedDeployChecklist() {
         per_page: 10,
     });
     if (!data.length) {
-        throw new Error(`Unable to find any closed ${CONST_1.default.LABELS.STAGING_DEPLOY} issues.`);
+        return null;
     }
     // Sort by closed_at descending to find the most recently closed checklist.
     // We cannot rely on the API's sort=updated because a comment or edit on an older
@@ -11808,7 +11814,7 @@ async function getLastClosedDeployChecklist() {
     const sorted = [...data].sort((a, b) => (b.closed_at ?? '').localeCompare(a.closed_at ?? ''));
     const issue = sorted.at(0);
     if (!issue) {
-        throw new Error(`Unable to find any closed ${CONST_1.default.LABELS.STAGING_DEPLOY} issues.`);
+        return null;
     }
     return getDeployChecklistData(issue);
 }

@@ -4,20 +4,23 @@ import {getLastClosedDeployChecklist} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
 const run = async function (): Promise<void> {
-    let version: string;
-    try {
-        const checklist = await getLastClosedDeployChecklist();
-        version = checklist.version;
-        console.log(`Last closed deploy checklist references version: ${version}`);
-    } catch (err) {
-        console.warn('No closed deploy checklist found, continuing with deploy:', err);
+    // getLastClosedDeployChecklist returns null when no closed checklist has ever existed
+    // (first deploy cycle), and throws on actual API/network/parse errors. We only fail
+    // open for the null case; errors propagate so the action fails and blocks the deploy.
+    const checklist = await getLastClosedDeployChecklist();
+    if (checklist === null) {
+        console.log('No closed deploy checklist found yet (first deploy cycle), continuing with deploy');
         core.setOutput('HAS_PRODUCTION_RELEASE', true);
         return;
     }
 
+    const {version} = checklist;
+    console.log(`Last closed deploy checklist references version: ${version}`);
+
     if (!version) {
-        console.warn('Could not extract version from closed deploy checklist, continuing with deploy');
-        core.setOutput('HAS_PRODUCTION_RELEASE', true);
+        // The checklist was found but the version could not be parsed — treat as an
+        // unexpected state and block the deploy rather than silently skipping the check.
+        core.setFailed('Could not extract version from the most recently closed deploy checklist');
         return;
     }
 
