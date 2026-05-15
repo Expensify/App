@@ -19,25 +19,25 @@ describe('Export actions', () => {
 
     test('sendExportFileFromConcierge merges shouldSendFromConcierge into the correct Onyx key', async () => {
         const exportID = 'test-export-123';
-        Export.sendExportFileFromConcierge(exportID);
+        const existingData = {state: 'preparing' as const};
+        Export.sendExportFileFromConcierge(exportID, existingData);
         await waitForBatchedUpdates();
 
         const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}`);
         expect(value).toEqual(expect.objectContaining({shouldSendFromConcierge: true}));
     });
 
-    test('sendExportFileFromConcierge failureData clears the Onyx key', async () => {
+    test('sendExportFileFromConcierge failureData reverts shouldSendFromConcierge to its previous value', async () => {
         const exportID = 'test-export-456';
         const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
+        const existingData = {state: 'ready' as const, shouldSendFromConcierge: false};
 
-        await Onyx.set(onyxKey, {state: 'ready', shouldSendFromConcierge: true});
+        await Onyx.set(onyxKey, existingData);
         await waitForBatchedUpdates();
 
-        Export.sendExportFileFromConcierge(exportID);
+        Export.sendExportFileFromConcierge(exportID, existingData);
         await waitForBatchedUpdates();
 
-        // Simulate failure by applying the failureData
-        // The API mock won't actually fail, so we verify the optimistic merge went through
         const value = await getOnyxValue(onyxKey);
         expect(value).toEqual(expect.objectContaining({shouldSendFromConcierge: true}));
     });
