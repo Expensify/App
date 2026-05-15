@@ -1,5 +1,5 @@
 import React from 'react';
-import type {PressableStateCallbackType} from 'react-native';
+import type {GestureResponderEvent, KeyboardEvent, PressableStateCallbackType} from 'react-native';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
@@ -55,7 +55,7 @@ export default function TableRow({
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {processedData, columns, shouldUseNarrowTableLayout, handleRowSelection, handleShiftRowSelection, selectionEnabled} = useTableContext();
+    const {processedData, columns, shouldUseNarrowTableLayout, tableMethods, selectionEnabled} = useTableContext();
 
     const item = processedData[rowIndex];
     const rowCount = processedData.length;
@@ -109,24 +109,14 @@ export default function TableRow({
         return children;
     };
 
-    const CheckboxComponent = (
-        <View style={styles.flex1}>
-            <Checkbox
-                isChecked={!!item.selected}
-                accessibilityLabel="TEST"
-                onPress={(event) => {
-                    const webEvent = event as unknown as MouseEvent;
+    const handleCheckboxPress = (event?: MouseEvent) => {
+        if (event && event.shiftKey) {
+            tableMethods.handleMultipleRowSelection(item.keyForList);
+            return;
+        }
 
-                    if (webEvent && webEvent.shiftKey) {
-                        handleShiftRowSelection(item.rowKey);
-                        return;
-                    }
-
-                    handleRowSelection(item.rowKey);
-                }}
-            />
-        </View>
-    );
+        tableMethods.handleSingleRowSelection(item.keyForList);
+    };
 
     return (
         <OfflineWithFeedback {...offlineWithFeedback}>
@@ -156,7 +146,15 @@ export default function TableRow({
                         </View>
                     ) : (
                         <View style={tableRowContentStyles}>
-                            {selectionEnabled && CheckboxComponent}
+                            {selectionEnabled && (
+                                <View style={styles.flex1}>
+                                    <Checkbox
+                                        isChecked={!!item.selected}
+                                        accessibilityLabel="TEST"
+                                        onPress={(event) => handleCheckboxPress(event as unknown as MouseEvent)}
+                                    />
+                                </View>
+                            )}
                             {renderChildren(state)}
                         </View>
                     )

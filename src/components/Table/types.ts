@@ -7,7 +7,7 @@ import {SelectionMethods} from './middlewares/selection';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
 type TableData = {
-    rowKey: string;
+    keyForList: string;
 };
 
 /**
@@ -110,7 +110,7 @@ type TableProps<DataType extends TableData, ColumnKey extends string = string, F
         title?: string;
 
         /** Array of data items to display in the table. */
-        data: TableRow<DataType>[] | undefined;
+        data: DataType[] | undefined;
 
         /** Whether multi selection is enabled */
         selectionEnabled?: boolean;

@@ -1,5 +1,5 @@
 import type {FlashListRef} from '@shopify/flash-list';
-import React, {useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useFiltering from './middlewares/filtering';
 import useSearching from './middlewares/searching';
@@ -7,7 +7,7 @@ import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
 import type {TableContextValue} from './TableContext';
-import type {TableData, TableHandle, TableMethods, TableProps, TableRow, TableRowData} from './types';
+import type {TableData, TableHandle, TableMethods, TableProps} from './types';
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.

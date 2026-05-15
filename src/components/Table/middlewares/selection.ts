@@ -9,9 +9,9 @@ export type UseSelectionProps<DataType extends TableData> = {
 export type SelectionMethods = {
     handleSelectAll: () => void;
 
-    handleMultipleRowSelection: (rowKey: string) => void;
+    handleMultipleRowSelection: (keyForList: string) => void;
 
-    handleSingleRowSelection: (rowKey: string) => void;
+    handleSingleRowSelection: (keyForList: string) => void;
 };
 
 export type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
@@ -29,11 +29,11 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
     /**
      *
      */
-    const handleMultipleRowSelection = (rowKey: string) => {
-        const rowKeys = data.map((item) => item.rowKey);
-        const rowKeyExists = rowKeys.includes(rowKey);
+    const handleMultipleRowSelection = (keyForList: string) => {
+        const keyForLists = data.map((item) => item.keyForList);
+        const keyForListExists = keyForLists.includes(keyForList);
 
-        if (!rowKeyExists) {
+        if (!keyForListExists) {
             return;
         }
 
@@ -41,15 +41,15 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
         const lastSelectedRowIsSelected = lastSelectedRowIsSelectedRef.current;
 
         if (!lastSelectedRowKey) {
-            handleSingleRowSelection(rowKey);
+            handleSingleRowSelection(keyForList);
             return;
         }
 
-        const currentSelectedRowIndex = rowKeys.indexOf(rowKey);
-        const lastSelectedRowIndex = rowKeys.indexOf(lastSelectedRowKey);
+        const currentSelectedRowIndex = keyForLists.indexOf(keyForList);
+        const lastSelectedRowIndex = keyForLists.indexOf(lastSelectedRowKey);
 
         if (currentSelectedRowIndex === -1 || lastSelectedRowIndex === -1) {
-            handleSingleRowSelection(rowKey);
+            handleSingleRowSelection(keyForList);
             return;
         }
 
@@ -60,7 +60,7 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
             const newSelectedKeys = [...prevSelectedKeys];
 
             for (let i = startIndex; i <= endIndex; i++) {
-                const key = rowKeys[i];
+                const key = keyForLists[i];
                 if (lastSelectedRowIsSelected) {
                     if (!newSelectedKeys.includes(key)) {
                         newSelectedKeys.push(key);
@@ -80,18 +80,18 @@ export default function useSelection<DataType extends TableData>({data}: UseSele
     /**
      *
      */
-    const handleSingleRowSelection = (rowKey: string) => {
+    const handleSingleRowSelection = (keyForList: string) => {
         setSelectedKeys((prevSelectedKeys) => {
-            if (prevSelectedKeys.includes(rowKey)) {
-                return prevSelectedKeys.filter((key) => key !== rowKey);
+            if (prevSelectedKeys.includes(keyForList)) {
+                return prevSelectedKeys.filter((key) => key !== keyForList);
             } else {
-                return [...prevSelectedKeys, rowKey];
+                return [...prevSelectedKeys, keyForList];
             }
         });
     };
 
     const middleware = (data: DataType[]) => {
-        return data.map((item) => ({...item, selected: selectedKeys.includes(item.rowKey)}));
+        return data.map((item) => ({...item, selected: selectedKeys.includes(item.keyForList)}));
     };
 
     return {

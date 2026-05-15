@@ -1,6 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React from 'react';
-import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table/';
+import Table, {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table/';
 import useLocalize from '@hooks/useLocalize';
 import {AvatarSource} from '@libs/UserAvatarUtils';
 import * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -8,8 +8,7 @@ import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 
 export type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
 
-export type WorkspaceCategoryTableRowData = {
-    keyForList: string;
+export type WorkspaceCategoryTableRowData = TableData & {
     name: string;
     glCode?: string;
     approverAvatar?: AvatarSource;

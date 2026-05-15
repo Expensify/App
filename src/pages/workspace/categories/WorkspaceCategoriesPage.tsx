@@ -222,7 +222,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const categoryRows = useMemo<WorkspaceCategoryTableRowData[]>(() => {
         const categories = Object.values(policyCategories ?? {});
 
-        return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
+        return categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value, index) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (!isOffline && isDisabled) {
@@ -235,7 +235,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
 
             acc.push({
-                keyForList: value.name,
+                keyForList: `${value.name}-${index}`,
                 name: getDecodedCategoryName(value.name),
                 glCode: value['GL Code'],
                 approverAvatar,
