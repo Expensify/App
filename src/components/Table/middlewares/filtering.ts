@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {TableData} from '../types';
 import type {Middleware, MiddlewareHookResult} from './types';
 
 /**
@@ -28,7 +29,7 @@ type FilterConfig<FilterKey extends string = string> = Record<FilterKey, FilterC
  * @param filters - The filters to check against.
  * @returns True if the item matches the filters, false otherwise.
  */
-type IsItemInFilterCallback<DataType> = (item: DataType, filters: string[]) => boolean;
+type IsItemInFilterCallback<DataType extends TableData> = (item: DataType, filters: string[]) => boolean;
 
 /**
  * Methods exposed by the table to control filtering.
@@ -49,7 +50,7 @@ type FilteringMethods<FilterKey extends string = string> = {
  * @template DataType - The type of items in the data array.
  * @template FilterKey - The type of filter keys.
  */
-type UseFilteringProps<DataType, FilterKey extends string = string> = {
+type UseFilteringProps<DataType extends TableData, FilterKey extends string = string> = {
     filters?: FilterConfig<FilterKey>;
     isItemInFilter?: IsItemInFilterCallback<DataType>;
 };
@@ -60,7 +61,7 @@ type UseFilteringProps<DataType, FilterKey extends string = string> = {
  * @template DataType - The type of items in the data array.
  * @template FilterKey - The type of filter keys.
  */
-type UseFilteringResult<DataType, FilterKey extends string = string> = MiddlewareHookResult<DataType, FilteringMethods<FilterKey>> & {
+type UseFilteringResult<DataType extends TableData, FilterKey extends string = string> = MiddlewareHookResult<DataType, FilteringMethods<FilterKey>> & {
     currentFilters: Record<FilterKey, unknown>;
 };
 
@@ -73,7 +74,10 @@ type UseFilteringResult<DataType, FilterKey extends string = string> = Middlewar
  * @param isItemInFilter - The callback to check if an item matches a filter.
  * @returns The result of the filtering middleware.
  */
-function useFiltering<DataType, FilterKey extends string = string>({filters, isItemInFilter}: UseFilteringProps<DataType, FilterKey>): UseFilteringResult<DataType, FilterKey> {
+function useFiltering<DataType extends TableData, FilterKey extends string = string>({
+    filters,
+    isItemInFilter,
+}: UseFilteringProps<DataType, FilterKey>): UseFilteringResult<DataType, FilterKey> {
     const [currentFilters, setCurrentFilters] = useState<Record<FilterKey, unknown>>(() => {
         const initialFilters = {} as Record<FilterKey, unknown>;
 
@@ -113,7 +117,7 @@ function useFiltering<DataType, FilterKey extends string = string>({filters, isI
  * @template DataType - The type of items in the data array.
  * @template FilterKey - The type of filter keys.
  */
-type FilteringMiddlewareParams<DataType, FilterKey extends string = string> = {
+type FilteringMiddlewareParams<DataType extends TableData, FilterKey extends string = string> = {
     data: DataType[];
     filters?: FilterConfig<FilterKey>;
     currentFilters: Record<FilterKey, unknown>;
@@ -131,7 +135,7 @@ type FilteringMiddlewareParams<DataType, FilterKey extends string = string> = {
  * @param isItemInFilter - The callback to check if an item matches a filter.
  * @returns The filtered data.
  */
-function filter<DataType, FilterKey extends string = string>({data, filters, currentFilters, isItemInFilter}: FilteringMiddlewareParams<DataType, FilterKey>): DataType[] {
+function filter<DataType extends TableData, FilterKey extends string = string>({data, filters, currentFilters, isItemInFilter}: FilteringMiddlewareParams<DataType, FilterKey>): DataType[] {
     if (!filters) {
         // No filters configured, return original data.
         return data;

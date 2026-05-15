@@ -5,6 +5,10 @@ import type {FilterConfig, FilteringMethods, IsItemInFilterCallback} from './mid
 import type {IsItemInSearchCallback, SearchingMethods} from './middlewares/searching';
 import type {ActiveSorting, CompareItemsCallback, SortingMethods} from './middlewares/sorting';
 
+type TableData = {
+    rowKey: string;
+};
+
 /**
  * Styling options for a table column.
  */
@@ -41,7 +45,7 @@ type TableColumn<ColumnKey extends string = string> = {
     styling?: TableColumnStyling;
 };
 
-type TableRowData<DataType extends object> = DataType & {
+type TableRow<DataType extends TableData> = DataType & {
     /** The key for the row */
     rowKey: string;
 
@@ -66,14 +70,14 @@ type TableMethods<ColumnKey extends string = string, FilterKey extends string = 
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableHandle<DataType, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<DataType> & TableMethods<ColumnKey, FilterKey>;
+type TableHandle<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<DataType> & TableMethods<ColumnKey, FilterKey>;
 
 /**
  * FlashList props with the 'data' prop omitted, as the Table manages data internally.
  *
  * @template DataType - The type of items in the table's data array.
  */
-type SharedListProps<DataType> = Omit<FlashListProps<DataType>, 'data'>;
+type SharedListProps<DataType extends TableData> = Omit<FlashListProps<DataType>, 'data'>;
 
 /**
  * Props for the Table component.
@@ -102,13 +106,13 @@ type SharedListProps<DataType> = Omit<FlashListProps<DataType>, 'data'>;
  * </Table>
  * ```
  */
-type TableProps<DataType extends object, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<DataType> &
+type TableProps<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<DataType> &
     PropsWithChildren<{
         /** The title for the table when shown on smaller screens */
         title?: string;
 
         /** Array of data items to display in the table. */
-        data: TableRowData<DataType>[] | undefined;
+        data: TableRow<DataType>[] | undefined;
 
         /** Whether multi selection is enabled */
         selectionEnabled?: boolean;
@@ -152,9 +156,11 @@ type TableProps<DataType extends object, ColumnKey extends string = string, Filt
     }>;
 
 export type {
+    TableData,
+    TableRow,
     TableColumn,
     TableMethods,
-    TableRowData,
+    TableRow as TableRowData,
     TableHandle,
     TableProps,
     SharedListProps,

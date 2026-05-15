@@ -6,7 +6,7 @@ import useSearching from './middlewares/searching';
 import useSorting from './middlewares/sorting';
 import TableContext from './TableContext';
 import type {TableContextValue} from './TableContext';
-import type {TableHandle, TableMethods, TableProps, TableRowData} from './types';
+import type {TableData, TableHandle, TableMethods, TableProps, TableRow, TableRowData} from './types';
 
 /**
  * A composable table component that provides filtering, search, and sorting functionality.
@@ -129,7 +129,7 @@ import type {TableHandle, TableMethods, TableProps, TableRowData} from './types'
  * </Table>
  * ```
  */
-function Table<DataType extends object, ColumnKey extends string = string, FilterKey extends string = string>({
+function Table<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     title,
     data = [],
