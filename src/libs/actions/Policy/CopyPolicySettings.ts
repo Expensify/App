@@ -274,7 +274,7 @@ function buildCopyPolicySettingsData(
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.COPY_POLICY_SETTINGS,
-        value: {currentStep: undefined},
+        value: {currentStep: null},
     });
 
     return {optimisticData, successData, failureData};
