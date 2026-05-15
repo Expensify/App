@@ -16,7 +16,6 @@ import {updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BankName} from '@src/types/onyx/Bank';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersBankAccountPage() {
@@ -27,37 +26,36 @@ function SearchFiltersBankAccountPage() {
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const selectedBankAccountIDs = searchAdvancedFiltersForm?.bankAccount ?? [];
 
-    const bankAccountItems: Array<SearchMultipleSelectionPickerItem<string>> = Object.values(bankAccountList ?? {})
-        .map((bankAccount) => {
-            const bankAccountID = bankAccount?.accountData?.bankAccountID;
-            if (!bankAccountID) {
-                return null;
-            }
-            const bankName = (bankAccount?.accountData?.additionalData?.bankName ?? '') as BankName;
-            const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
-            const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
-            const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
-            const label = maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
+    const bankAccountItems: Array<SearchMultipleSelectionPickerItem<string>> = [];
+    for (const bankAccount of Object.values(bankAccountList ?? {})) {
+        const bankAccountID = bankAccount?.accountData?.bankAccountID;
+        if (!bankAccountID) {
+            continue;
+        }
+        const bankName = bankAccount?.accountData?.additionalData?.bankName;
+        const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+        const formattedBankName = (bankName && CONST.BANK_NAMES_USER_FRIENDLY[bankName]) || CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+        const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
+        const label = maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
 
-            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
-            const leftElement = (
-                <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <Icon
-                        src={icon}
-                        width={iconSize}
-                        height={iconSize}
-                        additionalStyles={iconStyles}
-                    />
-                </View>
-            );
+        const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
+        const leftElement = (
+            <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                <Icon
+                    src={icon}
+                    width={iconSize}
+                    height={iconSize}
+                    additionalStyles={iconStyles}
+                />
+            </View>
+        );
 
-            return {
-                name: label,
-                value: bankAccountID.toString(),
-                leftElement,
-            };
-        })
-        .filter((item): item is SearchMultipleSelectionPickerItem<string> => item !== null);
+        bankAccountItems.push({
+            name: label,
+            value: bankAccountID.toString(),
+            leftElement,
+        });
+    }
 
     const initiallySelectedItems = bankAccountItems.filter((item) => selectedBankAccountIDs.includes(item.value));
 
