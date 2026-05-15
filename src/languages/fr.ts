@@ -1977,8 +1977,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Invite IA',
             subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
             prompt: 'Invite',
-            editPrompt: 'Modifier l'invite',
-            promptCannotBeEmpty: 'L'invite ne peut pas être vide',
+            editPrompt: "Modifier l'invite",
+            promptCannotBeEmpty: "L'invite ne peut pas être vide",
         },
     },
     securityPage: {
