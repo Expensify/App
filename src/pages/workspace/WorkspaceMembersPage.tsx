@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -66,13 +65,13 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
+    canEditWorkspaceSettings,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     isControlPolicy,
     isDeletedPolicyEmployee,
     isExpensifyTeam,
     isPaidGroupPolicy,
-    isPolicyAdmin as isPolicyAdminUtils,
     isPolicyApprover,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -159,7 +158,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const isPolicyAdmin = isPolicyAdminUtils(policy);
+    const isPolicyAdmin = canEditWorkspaceSettings(policy);
     const isLoading = useMemo(
         () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
         [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
@@ -287,10 +286,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             }
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedEmployees([]);
-            removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
-        });
+        setSelectedEmployees([]);
+        removeMembers(policy, selectedEmployees, policyMemberEmailsToAccountIDs);
     };
 
     /**
@@ -657,7 +654,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             closeOverlay={closeOverlay}
             onChange={handleRoleFilterChange}
             defaultValue={roleFilterOptions.at(0)?.value}
-            selectionListStyle={{listItemWrapperStyle: styles.mnh40}}
+            itemHeight={variables.optionRowHeightCompact}
         />
     );
 
@@ -1051,6 +1048,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         onSelectRow={openMemberDetails}
                         selectedItems={selectedEmployees}
                         canSelectMultiple={canSelectMultiple}
+                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllMembers')}
                         turnOnSelectionModeOnLongPress={isPolicyAdmin}
                         onSelectAll={displayedFilteredData.length > 0 ? () => toggleAllUsers(displayedFilteredData) : undefined}
                         style={{
