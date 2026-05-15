@@ -5848,7 +5848,7 @@ describe('ReportUtils', () => {
 
         it('should return true for a synced attachment-only action (optimistic flags cleared)', () => {
             const transaction = createRandomTransaction(302);
-            // After successData merge: isOptimisticAction=null, isAttachmentOnly persists from optimistic merge.
+            // Post-sync state: successData clears isOptimisticAction (null in Onyx, undefined here); isAttachmentOnly persists.
             const reportAction: ReportAction = {
                 reportActionID: '302',
                 actorAccountID: currentUserAccountID,
@@ -5861,7 +5861,7 @@ describe('ReportUtils', () => {
                     },
                 ],
                 isAttachmentOnly: true,
-                isOptimisticAction: null,
+                isOptimisticAction: undefined,
                 created: '2025-03-05 16:34:27',
             };
 
@@ -5882,7 +5882,7 @@ describe('ReportUtils', () => {
                     },
                 ],
                 isAttachmentWithText: true,
-                isOptimisticAction: null,
+                isOptimisticAction: undefined,
                 created: '2025-03-05 16:34:27',
             };
 

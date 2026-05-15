@@ -17,29 +17,43 @@ function isReportMessageAttachment(message: Message | undefined): boolean {
         return true;
     }
 
-    // First node decides: attachment tag → attachment-only; anything else (text, plain link, mention) → attachment+text.
-    let result = false;
-    let firstNodeSeen = false;
+    // Attachment-only = exactly one attachment tag and nothing else; any text/element outside it → attachment+text.
+    let attachmentCount = 0;
+    let hasOtherContent = false;
+    // Skip the filename text inside an open <a>/<video> so it isn't counted as user content.
+    let openAttachmentTag: string | null = null;
 
     const parser = new HtmlParser({
         ontext: (text) => {
-            if (firstNodeSeen || !text.trim()) {
+            if (openAttachmentTag || !text.trim()) {
                 return;
             }
-            firstNodeSeen = true;
+            hasOtherContent = true;
         },
         onopentag: (name, attribs) => {
-            if (firstNodeSeen) {
+            if (openAttachmentTag || name === 'br') {
                 return;
             }
-            firstNodeSeen = true;
-            result = ATTACHMENT_TAGS.has(name) && !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+            if (ATTACHMENT_TAGS.has(name) && !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]) {
+                attachmentCount += 1;
+                if (name === 'a' || name === 'video') {
+                    openAttachmentTag = name;
+                }
+                return;
+            }
+            hasOtherContent = true;
+        },
+        onclosetag: (name) => {
+            if (name !== openAttachmentTag) {
+                return;
+            }
+            openAttachmentTag = null;
         },
     });
     parser.write(message.html);
     parser.end();
 
-    return result;
+    return attachmentCount > 0 && !hasOtherContent;
 }
 
 // eslint-disable-next-line import/prefer-default-export

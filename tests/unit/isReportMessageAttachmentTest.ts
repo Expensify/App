@@ -95,4 +95,22 @@ describe('isReportMessageAttachment', () => {
         };
         expect(isReportMessageAttachment(message)).toBe(false);
     });
+
+    it('returns false for an attachment with a caption appended after it (regression guard for codex bot P2)', () => {
+        const message: Message = {
+            text: 'sample.doc https://www.expensify.com/chat-attachments/123/sample.doc my caption',
+            html: '<a href="https://www.expensify.com/chat-attachments/123/sample.doc" data-expensify-source="https://www.expensify.com/chat-attachments/123/sample.doc">sample.doc</a> my caption',
+            type: '',
+        };
+        expect(isReportMessageAttachment(message)).toBe(false);
+    });
+
+    it('returns true when the anchor inner text (filename) is the only text', () => {
+        const message: Message = {
+            text: 'sample.doc https://www.expensify.com/chat-attachments/123/sample.doc',
+            html: '<a href="https://www.expensify.com/chat-attachments/123/sample.doc" data-expensify-source="https://www.expensify.com/chat-attachments/123/sample.doc">sample.doc</a>',
+            type: '',
+        };
+        expect(isReportMessageAttachment(message)).toBe(true);
+    });
 });
