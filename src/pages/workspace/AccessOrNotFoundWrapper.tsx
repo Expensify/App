@@ -118,7 +118,7 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
             shouldForceFullScreen={shouldShowFullScreenFallback}
             shouldShowOfflineIndicator={false}
             onBackButtonPress={() => {
-                if (isPolicyNotAccessible) {
+                if (isPolicyNotAccessible && !isMoneyRequest) {
                     goBackFromWorkspaceSettingPages();
                     return;
                 }

@@ -7733,6 +7733,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 `),
                 subtitle: 'Envoyez une facture ou faites un essai d’Expensify pour en savoir plus.',
                 subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour envoyer une facture.',
+                subtitleCannotSend: "Vous avez besoin d'un espace de travail avec la facturation activée pour envoyer des factures.",
             },
             emptyTripResults: {
                 title: 'Aucun voyage à afficher',

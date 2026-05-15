@@ -28,7 +28,7 @@ import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
+import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
@@ -386,12 +386,20 @@ function EmptySearchViewContent({
                 }
                 break;
             // We want to display the default nothing to show message if there is any filter applied.
-            case CONST.SEARCH.DATA_TYPES.INVOICE:
+            case CONST.SEARCH.DATA_TYPES.INVOICE: {
+                const userCanSendInvoice = canSendInvoice(allPolicies, currentUserPersonalDetails.login);
                 if (!content && !hasResults) {
                     content = {
                         ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
-                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
+                        subtitle: translate(
+                            // eslint-disable-next-line no-nested-ternary
+                            !userCanSendInvoice
+                                ? 'search.searchResults.emptyInvoiceResults.subtitleCannotSend'
+                                : hasSeenTour
+                                  ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton'
+                                  : 'search.searchResults.emptyInvoiceResults.subtitle',
+                        ),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
@@ -401,15 +409,20 @@ function EmptySearchViewContent({
                                       },
                                   ]
                                 : []),
-                            {
-                                buttonText: translate('workspace.invoices.sendInvoice'),
-                                buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
-                                success: true,
-                            },
+                            ...(userCanSendInvoice
+                                ? [
+                                      {
+                                          buttonText: translate('workspace.invoices.sendInvoice'),
+                                          buttonAction: () => handleCreateMoneyRequest(CONST.IOU.TYPE.INVOICE),
+                                          success: true,
+                                      },
+                                  ]
+                                : []),
                         ],
                     };
                 }
                 break;
+            }
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 if (!content) {

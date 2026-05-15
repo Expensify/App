@@ -7665,6 +7665,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 `),
                 subtitle: 'Wyślij fakturę lub wypróbuj Expensify, aby dowiedzieć się więcej.',
                 subtitleWithOnlyCreateButton: 'Użyj zielonego przycisku poniżej, aby wysłać fakturę.',
+                subtitleCannotSend: 'Potrzebujesz przestrzeni roboczej z włączonym fakturowaniem, aby wysyłać faktury.',
             },
             emptyTripResults: {
                 title: 'Brak podróży do wyświetlenia',

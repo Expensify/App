@@ -7673,6 +7673,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 `),
                 subtitle: 'Stuur een factuur of maak een testrit met Expensify om meer te weten te komen.',
                 subtitleWithOnlyCreateButton: 'Gebruik de groene knop hieronder om een factuur te versturen.',
+                subtitleCannotSend: 'Je hebt een werkruimte met facturering ingeschakeld nodig om facturen te versturen.',
             },
             emptyTripResults: {
                 title: 'Geen reizen om weer te geven',

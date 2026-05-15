@@ -7667,6 +7667,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 `),
                 subtitle: 'Envie uma fatura ou faça um test drive do Expensify para saber mais.',
                 subtitleWithOnlyCreateButton: 'Use o botão verde abaixo para enviar uma fatura.',
+                subtitleCannotSend: 'Você precisa de um espaço de trabalho com faturamento habilitado para enviar faturas.',
             },
             emptyTripResults: {
                 title: 'Nenhuma viagem para exibir',
