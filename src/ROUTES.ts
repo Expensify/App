@@ -103,6 +103,10 @@ const DYNAMIC_ROUTES = {
         path: 'expense-limit-type',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER],
     },
+    IMPORTED_MEMBERS_ROLE: {
+        path: 'imported-members-role',
+        entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION],
+    },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',
         entryScreens: [SCREENS.REPORT_DETAILS.ROOT],

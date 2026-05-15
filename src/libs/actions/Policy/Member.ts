@@ -1398,8 +1398,13 @@ function setImportedSpreadsheetMemberData(memberData: ImportedSpreadsheetMemberD
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, memberData);
 }
 
+function setImportedSpreadsheetMemberRole(role: ValueOf<typeof CONST.POLICY.ROLE>) {
+    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE, role);
+}
+
 function clearImportedSpreadsheetMemberData() {
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_DATA, null);
+    Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE, null);
 }
 
 export {
@@ -1430,5 +1435,6 @@ export {
     setWorkspaceInviteApproverDraft,
     clearWorkspaceInviteApproverDraft,
     setImportedSpreadsheetMemberData,
+    setImportedSpreadsheetMemberRole,
     clearImportedSpreadsheetMemberData,
 };
