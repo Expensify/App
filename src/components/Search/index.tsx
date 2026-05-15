@@ -97,6 +97,7 @@ type SearchProps = {
     onSortPressedCallback?: () => void;
     isMobileSelectionModeEnabled: boolean;
     searchRequestResponseStatusCode?: number | null;
+    targetCurrency?: string;
     onContentReady?: () => void;
 
     /** Callback from the parent (SearchPageNarrow) to end submit-expense navigation spans.
@@ -230,6 +231,7 @@ function Search({
     isMobileSelectionModeEnabled,
     onSortPressedCallback,
     searchRequestResponseStatusCode,
+    targetCurrency,
     onContentReady,
     onDestinationVisible,
 }: SearchProps) {
@@ -737,11 +739,12 @@ function Search({
             shouldCalculateTotals,
             prevReportsLength: filteredDataLength,
             isLoading: !!searchResults?.search?.isLoading,
+            targetCurrency,
         });
 
         // We don't need to run the effect on change of isFocused.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy]);
+    }, [handleSearch, isOffline, offset, queryJSON, currentSearchKey, shouldCalculateTotals, validGroupBy, targetCurrency]);
 
     useEffect(() => {
         if (!shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -763,8 +766,20 @@ function Search({
             shouldCalculateTotals: true,
             prevReportsLength: filteredDataLength,
             isLoading: false,
+            targetCurrency,
         });
-    }, [filteredDataLength, handleSearch, offset, queryJSON, currentSearchKey, searchResults?.search?.count, searchResults?.search?.isLoading, shouldCalculateTotals, validGroupBy]);
+    }, [
+        filteredDataLength,
+        handleSearch,
+        offset,
+        queryJSON,
+        currentSearchKey,
+        searchResults?.search?.count,
+        searchResults?.search?.isLoading,
+        shouldCalculateTotals,
+        validGroupBy,
+        targetCurrency,
+    ]);
 
     // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
     const isRefreshingSelection = useRef(false);
@@ -1142,6 +1157,7 @@ function Search({
                     offset: 0,
                     shouldCalculateTotals: false,
                     isLoading: false,
+                    targetCurrency,
                 });
                 return;
             }
@@ -1251,6 +1267,7 @@ function Search({
             offset,
             searchResults?.search?.hasMoreResults,
             currentSearchKey,
+            targetCurrency,
         ],
     );
 

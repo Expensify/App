@@ -38,12 +38,18 @@ type SearchRequestData = {
     }>;
 };
 
+type SearchRequestParams = {
+    hash: number;
+    jsonQuery: string;
+};
+
 function getMakeRequestWithSideEffectsMock() {
     return makeRequestWithSideEffects as unknown as {
         mock: {
-            calls: Array<[unknown, unknown, SearchRequestData?]>;
+            calls: Array<[unknown, SearchRequestParams, SearchRequestData?]>;
         };
         mockResolvedValue: (value: {onyxData: Array<{value: {search: {offset: number; hasMoreResults: boolean}; data: Record<string, unknown>}}>; jsonCode: number}) => void;
+        mockReturnValue: (value: Promise<unknown>) => void;
     };
 }
 
@@ -58,6 +64,16 @@ function getSearchLoadingUpdateForHash(hash: number) {
     const [, , requestData] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
     const optimisticData = requestData?.optimisticData ?? [];
     return optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` && !!update.value?.search?.isLoading)?.value?.search;
+}
+
+function getLastSearchRequestParams() {
+    const makeRequestWithSideEffectsMock = getMakeRequestWithSideEffectsMock();
+    const [, requestParams] = makeRequestWithSideEffectsMock.mock.calls.at(-1) ?? [];
+    if (!requestParams) {
+        throw new Error('Search request params should be defined');
+    }
+
+    return requestParams;
 }
 
 describe('search loading totals handling', () => {
@@ -132,5 +148,50 @@ describe('search loading totals handling', () => {
         expect(loadingSearchData?.count).toBeUndefined();
         expect(loadingSearchData?.total).toBeUndefined();
         expect(loadingSearchData?.currency).toBeUndefined();
+    });
+
+    it('passes targetCurrency in the serialized search query', async () => {
+        const queryJSON = getQueryJSON();
+
+        await search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            targetCurrency: 'AUD',
+        });
+
+        expect(JSON.parse(getLastSearchRequestParams().jsonQuery)).toMatchObject({
+            targetCurrency: 'AUD',
+            shouldCalculateTotals: true,
+        });
+    });
+
+    it('allows concurrent in-flight searches for different target currencies', async () => {
+        const queryJSON = getQueryJSON();
+        getMakeRequestWithSideEffectsMock().mockReturnValue(new Promise(() => {}));
+
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            targetCurrency: 'AUD',
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            targetCurrency: 'USD',
+        });
+
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(2);
     });
 });

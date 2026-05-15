@@ -36,6 +36,10 @@ type SearchPageWideProps = {
         total: number | undefined;
         currency: string | undefined;
     };
+    footerDefaultCurrency: string | undefined;
+    isFooterTotalLoading: boolean;
+    targetCurrency: string | undefined;
+    onFooterCurrencyChange: (currency: string | undefined) => void;
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
     route: PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
@@ -52,6 +56,10 @@ function SearchPageWide({
     searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
     footerData,
+    footerDefaultCurrency,
+    isFooterTotalLoading,
+    targetCurrency,
+    onFooterCurrencyChange,
     handleSearchAction,
     onSortPressedCallback,
     route,
@@ -140,6 +148,7 @@ function SearchPageWide({
                                         onSearchListScroll={scrollHandler}
                                         onSortPressedCallback={onSortPressedCallback}
                                         searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                        targetCurrency={targetCurrency}
                                         onDestinationVisible={endSubmitNavigationSpans}
                                         onContentReady={onSearchContentReady}
                                     />
@@ -151,6 +160,9 @@ function SearchPageWide({
                                     count={footerData.count}
                                     total={footerData.total}
                                     currency={footerData.currency}
+                                    defaultCurrency={footerDefaultCurrency}
+                                    isTotalLoading={isFooterTotalLoading}
+                                    onCurrencyChange={onFooterCurrencyChange}
                                 />
                             )}
                         </>

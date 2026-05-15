@@ -535,6 +535,7 @@ function search({
     isLoading,
     shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
+    targetCurrency,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -552,12 +553,13 @@ function search({
      * optimistic write data.
      */
     skipWaitForWrites?: boolean;
+    targetCurrency?: string;
 }) {
     if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
-    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}_${targetCurrency ?? ''}`;
     if (inFlightSearchRequests.has(dedupeKey)) {
         return;
     }
@@ -571,6 +573,7 @@ function search({
         offset,
         filters: queryJSONWithoutFlatFilters.filters ?? null,
         shouldCalculateTotals,
+        ...(targetCurrency && {targetCurrency}),
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };

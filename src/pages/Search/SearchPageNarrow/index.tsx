@@ -57,6 +57,10 @@ type SearchPageNarrowProps = {
         total: number | undefined;
         currency: string | undefined;
     };
+    footerDefaultCurrency: string | undefined;
+    isFooterTotalLoading: boolean;
+    targetCurrency: string | undefined;
+    onFooterCurrencyChange: (currency: string | undefined) => void;
     shouldShowFooter: boolean;
     onSortPressedCallback: () => void;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
@@ -77,6 +81,10 @@ function SearchPageNarrow({
     isMobileSelectionModeEnabled,
     metadata,
     footerData,
+    footerDefaultCurrency,
+    isFooterTotalLoading,
+    targetCurrency,
+    onFooterCurrencyChange,
     shouldShowFooter,
     onSortPressedCallback,
     searchOverlayContent,
@@ -365,6 +373,7 @@ function SearchPageNarrow({
                                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                             onSearchListScroll={scrollHandler}
                                             searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                            targetCurrency={targetCurrency}
                                             onDestinationVisible={endSubmitNavigationSpans}
                                             onContentReady={onSearchContentReady}
                                             hasFilterBars={hasFilterBars}
@@ -407,6 +416,7 @@ function SearchPageNarrow({
                                             handleSearch={handleSearchAction}
                                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                             searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                                            targetCurrency={targetCurrency}
                                             onDestinationVisible={endSubmitNavigationSpans}
                                             onContentReady={onSearchContentReady}
                                             hasFilterBars={hasFilterBars}
@@ -430,6 +440,9 @@ function SearchPageNarrow({
                             count={footerData.count}
                             total={footerData.total}
                             currency={footerData.currency}
+                            defaultCurrency={footerDefaultCurrency}
+                            isTotalLoading={isFooterTotalLoading}
+                            onCurrencyChange={onFooterCurrencyChange}
                         />
                     )}
                 </View>
