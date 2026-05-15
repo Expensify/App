@@ -85,7 +85,6 @@ import {
     hasSubmissionBlockingViolations,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
-    isOdometerDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
@@ -118,10 +117,6 @@ function isSplitAction(
 
     const reportTransaction = reportTransactions.at(0);
     const {amount} = getTransactionDetails(reportTransaction) ?? {};
-
-    if (isOdometerDistanceRequest(reportTransaction)) {
-        return false;
-    }
 
     if (isPending(reportTransaction) || !!reportTransaction?.errors) {
         return false;

@@ -170,6 +170,7 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy: OnyxEntry
 
     const draftTransaction = buildOptimisticTransaction({
         originalTransactionID: transaction.transactionID,
+        existingTransaction: transaction,
         transactionParams: {
             splitExpenses,
             splitExpensesTotal: splitExpenses.reduce((total, item) => total + item.amount, 0),
@@ -180,6 +181,9 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy: OnyxEntry
             attendees: transactionDetails?.attendees as Attendee[],
             reportID,
             reimbursable: transactionDetails?.reimbursable,
+            customUnit: transaction?.comment?.customUnit,
+            odometerStart: transaction?.comment?.odometerStart,
+            odometerEnd: transaction?.comment?.odometerEnd,
         },
     });
 
