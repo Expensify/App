@@ -116,17 +116,19 @@ High contrast mode works with any base theme (light, dark, or device settings).
 
 ## Personal Information
 
-To update legal details like name, date of birth, and address:
+To update legal details like name, date of birth, phone number, and address:
 1. Go to **Account > Profile**.
-2. Scroll to the **Private Details** section.
-3. Update the **Legal Name**, **Date of Birth**, or **Address** fields.
+2. Under **Private**, select any field (**Legal name**, **Date of birth**, **Phone number**, or **Address**).
+3. Update the fields you want to change on the unified personal details form.
+4. Click **Save**.
+5. If any field was changed, enter the magic code sent to your primary contact method to confirm the update.
 
 ## Display or Legal Name
 
 To edit your display or legal name:
 1. Go to **Account > Profile**.
 2. For display name: Click **Display Name**, enter your preferred name, and click **Save**.
-3. For legal name: Scroll to **Private Details**, click **Legal Name**, update it, and click **Save**.
+3. For legal name: Under **Private**, select **Legal name**, update it on the personal details form, click **Save**, and enter the magic code to confirm.
 
 ---
 
