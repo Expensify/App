@@ -138,14 +138,15 @@ const mockModalState: {
 jest.mock('@hooks/useOnyx', () => {
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- jest.requireActual returns an untyped module; standard RN-mock pattern in this repo. */
     const ReactActual = jest.requireActual('react');
-    return () => {
+    return (_key: string, options?: {selector?: (v: unknown) => unknown}) => {
         const [, force] = ReactActual.useState({});
         ReactActual.useEffect(() => {
             const listener = () => force({});
             mockModalState.listeners.add(listener);
             return () => mockModalState.listeners.delete(listener);
         }, []);
-        return [mockModalState.value, {status: 'loaded'}];
+        const value = options?.selector ? options.selector(mockModalState.value) : mockModalState.value;
+        return [value, {status: 'loaded'}];
     };
 });
 

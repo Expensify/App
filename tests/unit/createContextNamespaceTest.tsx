@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
-import React, {useImperativeHandle} from 'react';
-import type {Ref} from 'react';
+import React, {use, useImperativeHandle} from 'react';
+import type {Context, Ref} from 'react';
 import Text from '@components/Text';
 import createContextNamespace from '@hooks/createContextNamespace';
 
@@ -14,10 +14,10 @@ function Consumer() {
     return <Text>{value.label}</Text>;
 }
 
-type CaptureHandle<T> = {value: T};
+type CaptureHandle<T> = {value: T | null};
 
-function CaptureConsumer<T>({useCtx, consumerName, captureRef}: {useCtx: (consumerName: string) => T; consumerName: string; captureRef: Ref<CaptureHandle<T>>}) {
-    const value = useCtx(consumerName);
+function CaptureConsumer<T>({context, captureRef}: {context: Context<T | null>; captureRef: Ref<CaptureHandle<T>>}) {
+    const value = use(context);
     useImperativeHandle(captureRef, () => ({value}), [value]);
     return null;
 }
@@ -60,8 +60,7 @@ describe('createContextNamespace', () => {
         render(
             <FooContext value={value}>
                 <CaptureConsumer<FooValue>
-                    useCtx={useFoo}
-                    consumerName="useFoo"
+                    context={FooContext}
                     captureRef={captureRef}
                 />
             </FooContext>,
@@ -70,13 +69,12 @@ describe('createContextNamespace', () => {
     });
 
     it('does NOT throw when the value is a falsy-but-non-null primitive (e.g. 0)', () => {
-        const [ZeroContext, useZero] = createContextNamespace('ZeroRoot')<number>();
+        const [ZeroContext] = createContextNamespace('ZeroRoot')<number>();
         const captureRef = React.createRef<CaptureHandle<number>>();
         render(
             <ZeroContext value={0}>
                 <CaptureConsumer<number>
-                    useCtx={useZero}
-                    consumerName="useZero"
+                    context={ZeroContext}
                     captureRef={captureRef}
                 />
             </ZeroContext>,
