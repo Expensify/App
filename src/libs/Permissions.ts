@@ -16,6 +16,10 @@ function canUseLinkPreviews(): boolean {
 }
 
 function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration?: OnyxEntry<BetaConfiguration>): boolean {
+    // LOCAL MOCK — do not commit
+    if (beta === CONST.BETAS.WORKSPACE_ROOMS_PAGE) {
+        return true;
+    }
     const hasAllBetasEnabled = canUseAllBetas(betas);
     const isFeatureEnabled = !!betas?.includes(beta);
 

@@ -4315,6 +4315,7 @@ ${amount} voor ${merchant} - ${date}`,
             travelInvoicingVendor: 'Reisaanbieder',
             travelInvoicingPayableAccount: 'Reiscrediteurenrekening',
             hr: 'HR',
+            rooms: 'Kamers',
         },
         createdForClient: {
             title: 'Je hebt een werkruimte voor je klant aangemaakt!',

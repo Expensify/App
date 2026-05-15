@@ -4218,6 +4218,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             travelInvoicingVendor: '差旅供应商',
             travelInvoicingPayableAccount: '差旅应付账户',
             hr: '人力资源',
+            rooms: '房间',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',

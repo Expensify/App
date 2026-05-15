@@ -4287,6 +4287,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             travelInvoicingVendor: '出張ベンダー',
             travelInvoicingPayableAccount: '旅費未払金勘定',
             hr: '人事',
+            rooms: 'ルーム',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
