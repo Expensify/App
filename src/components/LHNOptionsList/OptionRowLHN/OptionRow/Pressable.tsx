@@ -1,8 +1,14 @@
-import type {ReactNode, RefObject} from 'react';
-import React, {useState} from 'react';
+import type {ReactNode} from 'react';
+import React, {useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, View} from 'react-native';
 import Hoverable from '@components/Hoverable';
+import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
+import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
+import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
+import useEnvironment from '@hooks/useEnvironment';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -14,35 +20,72 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import useLHNRowProductTrainingTooltip from './useLHNRowProductTrainingTooltip';
 
-type OptionRowPressableProps = {
+type PressableProps = {
+    /** Option data for the row. Source of accessibility text and the report ID used by press/context-menu actions. */
     optionItem: OptionData;
+
+    /** Whether the row is the currently focused/active option. Drives the focused background and accessibility metadata. */
     isOptionFocused: boolean;
-    isScreenFocused: boolean;
-    popoverAnchor: RefObject<View | null>;
-    onSelectRow: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
+
+    /** Press handler invoked with the option data and the popover anchor ref. */
+    onSelectRow: (optionItem: OptionData, popoverAnchor: React.RefObject<View | null>) => void;
+
+    /** Layout handler forwarded to the underlying pressable. */
     onLayout?: (event: LayoutChangeEvent) => void;
-    accessibilityLabel: string;
-    accessibilityHint?: string;
-    testID?: string;
-    children: (hovered: boolean) => ReactNode;
+
+    /** Fires when the mouse enters the row. Hover state lives in the parent so leaves like Avatar can react. */
+    onHoverIn?: () => void;
+
+    /** Fires when the mouse leaves the row. */
+    onHoverOut?: () => void;
+
+    /** Row content. */
+    children: ReactNode;
 };
 
-function OptionRowPressable({
-    optionItem,
-    isOptionFocused,
-    isScreenFocused,
-    popoverAnchor,
-    onSelectRow,
-    onLayout,
-    accessibilityLabel,
-    accessibilityHint,
-    testID,
-    children,
-}: OptionRowPressableProps) {
+function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children}: PressableProps) {
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
+    const {isScreenFocused} = useLHNTooltipContext();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hideProductTrainingTooltip} = useLHNRowProductTrainingTooltip();
+
+    const popoverAnchor = useRef<View>(null);
+    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
+
     const reportID = optionItem.reportID;
+    const brickRoadIndicator = optionItem.brickRoadIndicator;
+    const actionBadgeText = !isProduction && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
+
+    let accessibilityLabelForBadge = '';
+    if (brickRoadIndicator) {
+        accessibilityLabelForBadge = [translate('common.yourReviewIsRequired'), actionBadgeText].filter(Boolean).join(', ');
+    } else if (optionItem.isPinned) {
+        accessibilityLabelForBadge = translate('common.pinned');
+    }
+
+    const accessibilityLabel = [
+        `${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`,
+        optionItem.isUnread ? translate('common.unread') : '',
+        optionItem.alternateText ?? '',
+        accessibilityLabelForBadge,
+    ]
+        .filter(Boolean)
+        .join('. ');
+    const contextMenuHint = getContextMenuAccessibilityHint({translate});
+    const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
+        accessibilityLabel,
+        nativeAccessibilityHint: accessibilityLabel,
+        contextMenuHint,
+    });
+
+    // reportID may be a number contrary to the type definition
+    const testID = typeof reportID === 'number' ? String(reportID) : reportID;
+
     const onPress = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         hideProductTrainingTooltip();
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`, {
@@ -55,11 +98,6 @@ function OptionRowPressable({
         ReportActionComposeFocusManager.focus();
         onSelectRow(optionItem, popoverAnchor);
     };
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     const showPopover = (event: MouseEvent | GestureResponderEvent) => {
         if (!isScreenFocused && shouldUseNarrowLayout) {
@@ -86,7 +124,10 @@ function OptionRowPressable({
     };
 
     return (
-        <Hoverable>
+        <Hoverable
+            onHoverIn={onHoverIn}
+            onHoverOut={onHoverOut}
+        >
             {(hovered) => (
                 <PressableWithSecondaryInteraction
                     ref={popoverAnchor}
@@ -121,19 +162,19 @@ function OptionRowPressable({
                         (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                     ]}
                     role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={accessibilityLabel}
+                    accessibilityLabel={accessibilityLabelWithContextMenuHint}
                     accessibilityHint={accessibilityHint}
                     onLayout={onLayout}
                     needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                     sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
                 >
-                    {children(hovered)}
+                    {children}
                 </PressableWithSecondaryInteraction>
             )}
         </Hoverable>
     );
 }
 
-OptionRowPressable.displayName = 'OptionRowPressable';
+Pressable.displayName = 'OptionRow.Pressable';
 
-export default OptionRowPressable;
+export default Pressable;
