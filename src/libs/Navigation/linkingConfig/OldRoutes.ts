@@ -29,6 +29,7 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select':
         '/workspaces/$1/accounting/quickbooks-desktop/export/qbd-out-of-pocket-expense/qbd-entity-select',
     '/flag/*/*': '/r/$1/flag/$1/$2',
+    '/a/*/avatar': '/avatar/$1',
     '/home-page': '/home',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
