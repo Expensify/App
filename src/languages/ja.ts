@@ -2973,6 +2973,7 @@ ${date} の ${merchant} への ${amount}`,
             title: '勤務用メールアドレスを追加できませんでした',
             subtitle: (workEmail: string | undefined) =>
                 `${workEmail} を追加できませんでした。後で「設定」からもう一度お試しいただくか、ガイダンスについて Concierge にチャットでお問い合わせください。`,
+            workAccountClosedSubtitle: 'このメールに関連付けられているビジネスアカウントは閉鎖されています。再有効化するには会社の管理者に連絡するか、別のメールアドレスで登録してください。',
         },
         tasks: {
             testDriveAdminTask: {
