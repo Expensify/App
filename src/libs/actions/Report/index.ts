@@ -182,7 +182,6 @@ import navigateFromNotification from '@userActions/navigateFromNotification';
 import {getAll} from '@userActions/PersistedRequests';
 import {buildAddMembersToWorkspaceOnyxData, buildRoomMembersOnyxData} from '@userActions/Policy/Member';
 import {createPolicyExpenseChats} from '@userActions/Policy/Policy';
-import {addEmojiReaction, removeEmojiReaction} from '@userActions/ReportActions';
 import {
     createUpdateCommentMatcher,
     resolveCommentDeletionConflicts,
