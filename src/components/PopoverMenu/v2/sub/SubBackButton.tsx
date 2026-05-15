@@ -23,7 +23,6 @@ function SubBackButton({text, testID, onPress: consumerOnPress}: SubBackButtonPr
     useSubContext(SubBackButton.displayName);
 
     const {translate} = useLocalize();
-    const hasCustomText = text !== undefined;
     const labelText = text ?? translate('common.goBack');
     const {ref, focused, onPress: exitSub, onFocus, isAtActiveLevel} = useSubBackButton();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
@@ -49,12 +48,9 @@ function SubBackButton({text, testID, onPress: consumerOnPress}: SubBackButtonPr
             iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
             additionalIconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}, styles.opacitySemiTransparent, styles.mr1]}
             iconStyles={[{width: variables.iconSizeNormal, height: variables.iconSizeNormal}]}
-            style={hasCustomText ? styles.pv0 : undefined}
             wrapperStyle={[styles.ph5, styles.pv3]}
             innerContainerStyle={styles.alignItemsCenter}
             title={labelText}
-            titleStyle={hasCustomText ? styles.createMenuHeaderText : undefined}
-            shouldShowBasicTitle={hasCustomText}
             accessibilityLabel={`${translate('common.goBack')}, ${labelText}`}
             shouldCheckActionAllowedOnPress={false}
             onPress={handlePress}

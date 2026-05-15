@@ -38,7 +38,6 @@ function VideoPopoverMenu() {
                             key={speed}
                             text={speed === 1 ? normalSpeedLabel : speed.toString()}
                             isSelected={currentPlaybackSpeed === speed}
-                            shouldPutLeftPaddingWhenNoIcon
                             onSelect={() => updatePlaybackSpeed(speed)}
                         />
                     ))}
