@@ -1,6 +1,5 @@
 import React from 'react';
 import {Platform, View} from 'react-native';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -62,48 +61,46 @@ function EditPromptPage({route}: EditPromptPageProps) {
     });
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                testID={EditPromptPage.displayName}
-                includeSafeAreaPaddingBottom
-                offlineIndicatorStyle={styles.mtAuto}
+        <ScreenWrapper
+            testID={EditPromptPage.displayName}
+            includeSafeAreaPaddingBottom
+            offlineIndicatorStyle={styles.mtAuto}
+        >
+            <HeaderWithBackButton
+                title={translate('editAgentPromptPage.title')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
+            />
+            <FormProvider
+                formID={ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM}
+                validate={validate}
+                onSubmit={handleSubmit}
+                submitButtonText={translate('common.save')}
+                style={[styles.flex1, styles.ph5]}
+                shouldUseScrollView={false}
+                submitFlexEnabled={false}
+                enabledWhenOffline
+                shouldHideFixErrorsAlert
+                shouldValidateOnChange
+                shouldValidateOnBlur
+                keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             >
-                <HeaderWithBackButton
-                    title={translate('editAgentPromptPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
-                />
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM}
-                    validate={validate}
-                    onSubmit={handleSubmit}
-                    submitButtonText={translate('common.save')}
-                    style={[styles.flex1, styles.ph5]}
-                    shouldUseScrollView={false}
-                    submitFlexEnabled={false}
-                    enabledWhenOffline
-                    shouldHideFixErrorsAlert
-                    shouldValidateOnChange
-                    shouldValidateOnBlur
-                    keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
-                >
-                    <View style={[styles.flex1]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PROMPT}
-                            label={translate('editAgentPage.instructions')}
-                            accessibilityLabel={translate('editAgentPage.instructions')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={agentPrompt?.prompt ?? ''}
-                            multiline
-                            containerStyles={[styles.flex1]}
-                            touchableInputWrapperStyle={[styles.flex1]}
-                            textInputContainerStyles={[styles.flex1]}
-                            inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
-                        />
-                    </View>
-                </FormProvider>
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+                <View style={[styles.flex1]}>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.PROMPT}
+                        label={translate('editAgentPage.instructions')}
+                        accessibilityLabel={translate('editAgentPage.instructions')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={agentPrompt?.prompt ?? ''}
+                        multiline
+                        containerStyles={[styles.flex1]}
+                        touchableInputWrapperStyle={[styles.flex1]}
+                        textInputContainerStyles={[styles.flex1]}
+                        inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
+                    />
+                </View>
+            </FormProvider>
+        </ScreenWrapper>
     );
 }
 

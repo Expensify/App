@@ -1,5 +1,4 @@
 import React from 'react';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -33,38 +32,36 @@ function EditNamePage({route}: EditNamePageProps) {
     };
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                testID={EditNamePage.displayName}
-                includeSafeAreaPaddingBottom
-                offlineIndicatorStyle={styles.mtAuto}
-                shouldEnableMaxHeight
+        <ScreenWrapper
+            testID={EditNamePage.displayName}
+            includeSafeAreaPaddingBottom
+            offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={translate('editAgentNamePage.title')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
+            />
+            <FormProvider
+                formID={ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM}
+                onSubmit={handleSubmit}
+                submitButtonText={translate('common.save')}
+                style={[styles.flex1, styles.ph5]}
+                enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
-                <HeaderWithBackButton
-                    title={translate('editAgentNamePage.title')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.FIRST_NAME}
+                    label={translate('editAgentPage.agentName')}
+                    accessibilityLabel={translate('editAgentPage.agentName')}
+                    role={CONST.ROLE.PRESENTATION}
+                    autoCapitalize="words"
+                    spellCheck={false}
+                    defaultValue={personalDetails?.displayName ?? ''}
                 />
-                <FormProvider
-                    formID={ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM}
-                    onSubmit={handleSubmit}
-                    submitButtonText={translate('common.save')}
-                    style={[styles.flex1, styles.ph5]}
-                    enabledWhenOffline
-                    shouldHideFixErrorsAlert
-                >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.FIRST_NAME}
-                        label={translate('editAgentPage.agentName')}
-                        accessibilityLabel={translate('editAgentPage.agentName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        autoCapitalize="words"
-                        spellCheck={false}
-                        defaultValue={personalDetails?.displayName ?? ''}
-                    />
-                </FormProvider>
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+            </FormProvider>
+        </ScreenWrapper>
     );
 }
 

@@ -2,7 +2,6 @@ import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {MenuItemProps} from '@components/MenuItem';
@@ -192,44 +191,42 @@ function SecuritySettingsPage() {
     ]);
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                testID="SecuritySettingsPage"
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
-                shouldShowOfflineIndicatorInWideScreen
-            >
-                <HeaderWithBackButton
-                    title={translate('initialSettingsPage.security')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={Navigation.goBack}
-                    icon={illustrations.LockClosed}
-                    shouldUseHeadlineHeader
-                    shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
-                />
-                <ScrollView contentContainerStyle={styles.pt3}>
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <Section
-                            title={translate('securityPage.title')}
-                            subtitle={translate('securityPage.subtitle')}
-                            isCentralPane
-                            subtitleMuted
-                            illustrationContainerStyle={styles.cardSectionIllustrationContainer}
-                            illustrationBackgroundColor={colors.ice500}
-                            titleStyles={styles.accountSettingsSectionTitle}
-                            childrenStyles={styles.pt5}
-                            {...securitySettingsIllustration}
-                        >
-                            <MenuItemList
-                                menuItems={securityMenuItems}
-                                shouldUseSingleExecution
-                            />
-                        </Section>
-                    </View>
-                </ScrollView>
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+        <ScreenWrapper
+            testID="SecuritySettingsPage"
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicatorInWideScreen
+        >
+            <HeaderWithBackButton
+                title={translate('initialSettingsPage.security')}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                onBackButtonPress={Navigation.goBack}
+                icon={illustrations.LockClosed}
+                shouldUseHeadlineHeader
+                shouldDisplaySearchRouter
+                shouldDisplayHelpButton
+            />
+            <ScrollView contentContainerStyle={styles.pt3}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('securityPage.title')}
+                        subtitle={translate('securityPage.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                        illustrationBackgroundColor={colors.ice500}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                        childrenStyles={styles.pt5}
+                        {...securitySettingsIllustration}
+                    >
+                        <MenuItemList
+                            menuItems={securityMenuItems}
+                            shouldUseSingleExecution
+                        />
+                    </Section>
+                </View>
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 
