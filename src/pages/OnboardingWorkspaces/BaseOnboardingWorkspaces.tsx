@@ -9,6 +9,7 @@ import SelectionList from '@components/SelectionList';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
 import Text from '@components/Text';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -19,7 +20,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {isCurrentUserValidated} from '@libs/UserUtils';
@@ -45,7 +46,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
 
@@ -69,15 +70,23 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026;
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
+        const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
+        const shouldUseSubmitFlow = canUseSubmit2026 && policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
+
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(policy.policyID);
         } else {
             askToJoinPolicy(policy.policyID);
         }
+
         completeOnboarding({
             engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
             onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
@@ -91,6 +100,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
 
+        if (shouldUseSubmitFlow) {
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout);
+            return;
+        }
+
         navigateAfterOnboardingWithMicrotaskQueue(
             isSmallScreenWidth,
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
@@ -103,6 +117,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     };
 
     const allPolicyIDItems = Object.values(joinablePolicies ?? {})
+        .filter((policyInfo) => policyInfo.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026)
         .sort((a, b) => b.employeeCount - a.employeeCount)
         .map((policyInfo) => ({
             text: policyInfo.policyName,
@@ -146,6 +161,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     });
 
     const skipJoiningWorkspaces = () => {
+        if (isEmployerWithSubmit) {
+            autoCreateSubmitWorkspace(onboardingPersonalDetails?.firstName ?? '', onboardingPersonalDetails?.lastName ?? '');
+            return;
+        }
+
         if (isVsb) {
             Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
             return;

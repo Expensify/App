@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShareSavedSearch from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -43,6 +44,7 @@ type SavedSearchMenuItemBuilderParams = {
     renderSavedSearchTooltip: () => React.JSX.Element;
     itemStyle: SavedSearchMenuItem['style'];
     tooltipWrapperStyle: SavedSearchMenuItem['tooltipWrapperStyle'];
+    isCopied: boolean;
 };
 
 function buildSavedSearchMenuItem({
@@ -57,6 +59,7 @@ function buildSavedSearchMenuItem({
     renderSavedSearchTooltip,
     itemStyle,
     tooltipWrapperStyle,
+    isCopied,
 }: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
     const isItemFocused = Number(key) === hash;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
@@ -76,6 +79,7 @@ function buildSavedSearchMenuItem({
                 hideProductTrainingTooltip={index === 0 && shouldShowSavedSearchTooltip ? hideSavedSearchTooltip : undefined}
                 shouldRenderTooltip={index === 0 && shouldShowSavedSearchTooltip}
                 renderTooltipContent={renderSavedSearchTooltip}
+                isCopied={isCopied}
             />
         ),
         style: itemStyle,
@@ -114,7 +118,8 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
         hideProductTrainingTooltip: hideSavedSearchTooltip,
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH, isFocused && areAllSectionsExpanded);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const {copiedHash, handleShare} = useShareSavedSearch();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
@@ -133,7 +138,11 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
         reportAttributes,
     });
 
-    const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal);
+    const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) =>
+        getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal, false, undefined, {
+            onShare: () => handleShare(itemHash, itemQuery),
+            isCopied: copiedHash === itemHash,
+        });
 
     const itemStyle = [styles.alignItemsCenter];
     const tooltipWrapperStyle = [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper];
@@ -152,6 +161,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
                   renderSavedSearchTooltip,
                   itemStyle,
                   tooltipWrapperStyle,
+                  isCopied: copiedHash === Number(key),
               }),
           )
         : [];

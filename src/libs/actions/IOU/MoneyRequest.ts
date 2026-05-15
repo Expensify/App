@@ -1,5 +1,5 @@
 import {format} from 'date-fns';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -13,7 +13,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
-import {generateReportID, getPolicyExpenseChat, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
+import {
+    generateReportID,
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    isInvoiceRoom,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isSelfDM,
+} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -48,17 +56,9 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {GpsPoint, IOURequestType} from './index';
-import {
-    getMoneyRequestParticipantsFromReport,
-    setCustomUnitRateID,
-    setMoneyRequestDistance,
-    setMoneyRequestMerchant,
-    setMoneyRequestParticipants,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestPendingFields,
-    setMultipleMoneyRequestParticipantsFromReport,
-} from './index';
+import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, setMoneyRequestPendingFields} from './index';
 import {createDistanceRequest, resetSplitShares, startSplitBill} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -1045,6 +1045,94 @@ function startDistanceRequest(
     }
 }
 
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false) {
+    // We should change the reportID and isFromGlobalCreate of the test transaction since this flow can start inside an existing report
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        participants,
+        isFromGlobalCreate: isTestTransaction ? true : undefined,
+        reportID: isTestTransaction ? participants?.at(0)?.reportID : undefined,
+    });
+}
+
+/**
+ * Finds the participants for an IOU based on the attached report
+ * @param transactionID of the transaction to set the participants of
+ * @param report attached to the transaction
+ */
+function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
+    // If the report is iou or expense report, we should get the chat report to set participant for request money
+    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
+    let participants: Participant[] = [];
+
+    if (isPolicyExpenseChat || isSelfDMChat) {
+        participants = [
+            {
+                accountID: 0,
+                reportID: chatReport?.reportID,
+                isPolicyExpenseChat,
+                selected: true,
+                policyID: isPolicyExpenseChat ? chatReport?.policyID : undefined,
+                isSelfDM: isSelfDMChat,
+            },
+        ];
+    } else if (isInvoiceRoom(chatReport)) {
+        participants = [
+            {reportID: chatReport?.reportID, selected: true},
+            {
+                policyID: chatReport?.policyID,
+                isSender: true,
+                selected: false,
+            },
+        ];
+    } else {
+        const chatReportOtherParticipants = Object.keys(chatReport?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID);
+        participants = chatReportOtherParticipants.map((accountID) => ({accountID, selected: true}));
+    }
+
+    return participants;
+}
+
+/**
+ * Sets the participants for an IOU based on the attached report
+ * @param transactionID of the transaction to set the participants of
+ * @param report attached to the transaction
+ * @param participantsAutoAssigned whether participants were auto assigned
+ */
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<Report>, currentUserAccountID?: number, participantsAutoAssigned = true) {
+    const participants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        participants,
+        participantsAutoAssigned,
+    });
+}
+
+/** Get report policy id of IOU request */
+function getIOURequestPolicyID(transaction: OnyxEntry<Transaction>, report: OnyxEntry<Report>): string | undefined {
+    // Workspace sender will exist for invoices
+    const workspaceSender = transaction?.participants?.find((participant) => participant.isSender);
+    return workspaceSender?.policyID ?? report?.policyID;
+}
+
+function updateLastLocationPermissionPrompt() {
+    Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+}
+
+function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<Report>, currentUserAccountID: number) {
+    const participants = getMoneyRequestParticipantsFromReport(reportValue, currentUserAccountID);
+    const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<Transaction>> = {};
+    for (const transactionID of transactionIDs) {
+        updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
+            participants,
+            participantsAutoAssigned: true,
+        };
+    }
+    return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, updatedTransactions);
+}
+
 export {
     createTransaction,
     handleMoneyRequestStepScanParticipants,
@@ -1055,5 +1143,11 @@ export {
     clearMoneyRequest,
     startMoneyRequest,
     startDistanceRequest,
+    setMoneyRequestParticipants,
+    getMoneyRequestParticipantsFromReport,
+    setMoneyRequestParticipantsFromReport,
+    getIOURequestPolicyID,
+    updateLastLocationPermissionPrompt,
+    setMultipleMoneyRequestParticipantsFromReport,
 };
-export type {MoneyRequestStepScanParticipantsFlowParams, MoneyRequestStepDistanceNavigationParams};
+export type {MoneyRequestStepScanParticipantsFlowParams};
