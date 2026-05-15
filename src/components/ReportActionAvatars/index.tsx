@@ -180,7 +180,6 @@ function ReportActionAvatars({
     if (avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_HORIZONTAL) {
         return (
             <ReportActionAvatar.Multiple.Horizontal
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...(isHorizontalStackingAnObject ? horizontalStacking : {})}
                 size={size}
                 icons={icons}

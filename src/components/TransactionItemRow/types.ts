@@ -84,10 +84,27 @@ type TransactionItemRowProps = {
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
     isLargeScreenWidth?: boolean;
-    policyForMovingExpenses?: Policy;
+    /** Precomputed shouldShowAttendees(SUBMIT, policyForMovingExpenses); drilled instead of the policy object
+     * to keep the prop ref content-stable across unrelated policy updates. */
+    isAttendeesEnabledForMovingPolicy?: boolean;
     nonPersonalAndWorkspaceCards?: CardList;
     isActionColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
+    /** Callbacks for inline cell editing */
+    onEditDate?: (newDate: string) => void;
+    onEditMerchant?: (newMerchant: string) => void;
+    onEditDescription?: (newDescription: string) => void;
+    onEditCategory?: (newCategory: string) => void;
+    onEditAmount?: (newAmount: number) => void;
+    onEditTag?: (newTag: string) => void;
+
+    /** Per-field edit permissions — controls whether the cell shows editable affordance */
+    canEditDate?: boolean;
+    canEditMerchant?: boolean;
+    canEditDescription?: boolean;
+    canEditCategory?: boolean;
+    canEditAmount?: boolean;
+    canEditTag?: boolean;
 };
 
 /**
