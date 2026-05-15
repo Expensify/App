@@ -878,7 +878,7 @@ const translations = {
         yourSpace: 'Your space',
         welcomeToRoom: (roomName: string) => `Welcome to ${roomName}!`,
         usePlusButton: (additionalText: string) => ` Use the + button to ${additionalText} an expense.`,
-        askConcierge: 'This is your chat with Concierge, your personal AI agent.',
+        askConcierge: 'Concierge can answer questions, update expenses, and more.',
         conciergeSupport: 'Your personal AI agent',
         create: 'create',
         iouTypes: {

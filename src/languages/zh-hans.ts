@@ -825,7 +825,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: '你的空间',
         welcomeToRoom: (roomName: string) => `欢迎来到 ${roomName}！`,
         usePlusButton: (additionalText: string) => `使用 + 按钮来${additionalText}一笔费用。`,
-        askConcierge: '这是您与 Concierge（您的个人 AI 代理）的聊天。',
+        askConcierge: 'Concierge 可以回答问题、更新报销等。',
         conciergeSupport: '您的专属AI助手',
         create: '创建',
         iouTypes: {

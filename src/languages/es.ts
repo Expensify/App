@@ -795,7 +795,7 @@ const translations: TranslationDeepObject<typeof en> = {
         yourSpace: 'Tu espacio',
         welcomeToRoom: (roomName) => `¡Bienvenido a ${roomName}!`,
         usePlusButton: (additionalText) => ` Usa el botón + para ${additionalText} un gasto`,
-        askConcierge: 'Este es tu chat con Concierge, tu agente personal de IA.',
+        askConcierge: 'Concierge puede responder preguntas, actualizar gastos y mucho más.',
         conciergeSupport: 'Tu agente personal de IA',
         create: 'crear',
         iouTypes: {
