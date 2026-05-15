@@ -95,6 +95,7 @@ autocompleteKey "key"
       / type
       / status
       / cardID
+      / bankAccountFilterKey
       / feed
       / groupBy
       / view
