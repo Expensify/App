@@ -138,9 +138,10 @@ The distance unit and rate can only be updated by a Workspace Admin on the Works
 
 ## What happens if a Distance expense is moved to a different Workspace?
 
-When a Distance expense is moved to another Workspace, it keeps its original unit and rate.
+When a Distance expense is moved to another Workspace, the system checks whether the current rate is valid in the destination Workspace.
 
-If the rate isn’t valid in the new Workspace, the expense will show a “Rate not valid for this workspace” violation. Selecting a valid rate will update the expense.
+- If the rate is valid, the expense keeps its original rate.
+- If the rate is not valid, the expense is automatically updated to use the destination Workspace’s default distance rate, and the amount and merchant are recalculated to match.
 
 ## Do I need to keep the mobile app open during GPS tracking?
 
