@@ -20,6 +20,7 @@ type UseConciergeReportActionsParams = {
     currentUserAccountID: number;
     greetingText: string;
     loadOlderChats: (force?: boolean) => void;
+    reportActionIDFromRoute?: string;
 };
 
 function useConciergeReportActions({
@@ -33,6 +34,7 @@ function useConciergeReportActions({
     currentUserAccountID,
     greetingText,
     loadOlderChats,
+    reportActionIDFromRoute,
 }: UseConciergeReportActionsParams) {
     const isInSidePanel = useIsInSidePanel();
     const [persistedShowFullHistory = false] = useOnyx(ONYXKEYS.RAM_ONLY_CONCIERGE_SHOW_FULL_HISTORY);
@@ -101,14 +103,17 @@ function useConciergeReportActions({
     }, [isConciergeChat, visibleReportActions, sessionStartTime, hadUserMessageAtSessionStart, hasOlderActions]);
 
     const showConciergeWelcome = isConciergeChat && hadUserMessageAtSessionStart && !hasUserSentMessage && !hasUnreadMessages && !showFullHistory;
-    const showConciergeGreeting = isConciergeChat && hadUserMessageAtSessionStart && !showFullHistory;
+
+    // The greeting is available whenever history is hidden, not just in the
+    // welcome state. This allows it to persist after the user sends a message.
+    const shouldCreateGreeting = isConciergeChat && hadUserMessageAtSessionStart && !showFullHistory;
 
     const conciergeGreetingAction = useMemo(() => {
-        if (!showConciergeGreeting && !hasUnreadMessages) {
+        if (!shouldCreateGreeting) {
             return undefined;
         }
         return buildConciergeGreetingReportAction({reportID: report?.reportID, greetingText, created: report?.lastReadTime ?? DateUtils.getDBTime()});
-    }, [showConciergeGreeting, report?.reportID, report?.lastReadTime, greetingText, hasUnreadMessages]);
+    }, [shouldCreateGreeting, report?.reportID, report?.lastReadTime, greetingText]);
 
     const firstUserMessageCreated = useMemo(() => {
         if (showConciergeWelcome || !isConciergeChat || !hasUserSentMessage || !sessionStartTime) {
@@ -148,7 +153,7 @@ function useConciergeReportActions({
                 const createdAction = actions.find(isCreatedAction);
                 return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
             }
-            if (!isConciergeChat || showFullHistory) {
+            if (!isConciergeChat || showFullHistory || reportActionIDFromRoute) {
                 return actions;
             }
             if (!sessionStartTime) {
@@ -170,13 +175,14 @@ function useConciergeReportActions({
             if (filtered.length === 0) {
                 return actions;
             }
-            // Splice greeting when the user started a fresh conversation (sent a
-            // message from the welcome state) or when there are no unread messages.
-            // Skip it only when unread messages appeared without user action (e.g.
-            // mark-as-unread), since the conversation was not freshly started.
-            if (conciergeGreetingAction && (!hasUnreadMessages || hasUserSentMessage)) {
-                const createdIndex = filtered.findIndex(isCreatedAction);
-                filtered.splice(createdIndex === -1 ? filtered.length : createdIndex, 0, conciergeGreetingAction);
+            if (conciergeGreetingAction) {
+                const createdIdx = filtered.findIndex(isCreatedAction);
+                if (createdIdx !== -1) {
+                    const result = [...filtered];
+                    result.splice(createdIdx, 0, conciergeGreetingAction);
+                    return result;
+                }
+                return [...filtered, conciergeGreetingAction];
             }
             return filtered;
         },
@@ -185,6 +191,7 @@ function useConciergeReportActions({
             conciergeGreetingAction,
             isConciergeChat,
             showFullHistory,
+            reportActionIDFromRoute,
             sessionStartTime,
             isCurrentSessionAction,
             hadUserMessageAtSessionStart,

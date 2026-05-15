@@ -11,11 +11,14 @@ import useSidePanelState from './useSidePanelState';
  * Returns the session start time for a Concierge chat.
  *
  * - **Side panel:** Captures `min(sidePanelSessionStartTime, lastReadTime)` when
- *   the panel opens. This ensures messages arriving while the panel was closed
- *   are treated as "unread" rather than hidden behind the greeting.
- * - **Main DM:** Captures `lastReadTime` on the first focus after navigating
- *   to the Concierge DM. Persists via a RAM-only Onyx key so it survives
- *   component unmounts caused by deep navigation (e.g. workspace sub-pages).
+ *   the panel opens so messages arriving while the panel was closed are treated
+ *   as "unread" rather than hidden behind the greeting.
+ * - **Main DM:** Captures `lastReadTime` the first time the Concierge report
+ *   activates. Persists via a RAM-only Onyx key so it survives component
+ *   unmounts caused by deep navigation (e.g. workspace sub-pages). The session
+ *   is cleared only when a *focused* non-Concierge ReportActionsView mounts
+ *   (i.e. the user navigated to a different chat). Settings / profile / workspace
+ *   pages don't render ReportActionsView so the session is preserved.
  */
 function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: string): string | null {
     const isInSidePanel = useIsInSidePanel();
@@ -23,13 +26,13 @@ function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: s
     const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
     const [persistedTime = null] = useOnyx(ONYXKEYS.RAM_ONLY_CONCIERGE_SESSION_START_TIME);
 
-    const shouldActivate = isFocused && isConciergeChat && !isInSidePanel;
+    // Write-through cache so the first render after activation already returns
+    // the boundary without waiting for the async Onyx.merge round-trip.
+    const [localTime, setLocalTime] = useState<string | null>(null);
+    const [prevPersistedTime, setPrevPersistedTime] = useState(persistedTime);
+    const [prevIsConciergeChat, setPrevIsConciergeChat] = useState(isConciergeChat);
 
-    const [mainDMSessionStartTime, setMainDMSessionStartTime] = useState<string | null>(null);
-    const [prevShouldActivate, setPrevShouldActivate] = useState(false);
-
-    // Capture side panel boundary at panel-open time so later lastReadTime
-    // updates (auto-read) don't shift the boundary.
+    // --- Side panel: capture boundary at panel-open time ---
     const [sidePanelBoundary, setSidePanelBoundary] = useState<string | null>(() => {
         if (!sidePanelSessionStartTime) {
             return null;
@@ -48,18 +51,30 @@ function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: s
         }
     }
 
-    // Reset local activation state only when navigating to a different chat
-    // (isConciergeChat flips to false), not when merely losing focus to
-    // settings/profile/workspaces. Without this, the reused route component
-    // would keep prevShouldActivate=true and skip re-activation.
-    if (prevShouldActivate && !shouldActivate && !isConciergeChat) {
-        setPrevShouldActivate(false);
-        setMainDMSessionStartTime(null);
+    // Synchronously clear localTime when navigating away from Concierge within
+    // the same component instance (React Navigation reuses the screen with
+    // different route params). This eliminates the async gap where localTime
+    // would still hold the old boundary.
+    if (prevIsConciergeChat !== isConciergeChat) {
+        setPrevIsConciergeChat(isConciergeChat);
+        if (prevIsConciergeChat && !isConciergeChat && !isInSidePanel) {
+            setLocalTime(null);
+        }
     }
 
-    // Clear persisted state only when a focused, non-side-panel view navigates
-    // away from Concierge. Without the isFocused guard, an RHP report mounting
-    // in the background would wipe the active Concierge session.
+    // Drop stale write-through cache when Onyx genuinely transitions to null
+    // (another instance cleared the session, e.g. after screen unfreeze).
+    if (prevPersistedTime !== persistedTime) {
+        setPrevPersistedTime(persistedTime);
+        if (!persistedTime && localTime) {
+            setLocalTime(null);
+        }
+    }
+
+    // Clear persisted Onyx session when a focused, non-side-panel view renders
+    // a non-Concierge chat. Covers fresh mounts (stack navigation) and the
+    // same-instance case. The isFocused guard prevents background RHP mounts
+    // from wiping the active session.
     useEffect(() => {
         if (isConciergeChat || !isFocused || isInSidePanel) {
             return;
@@ -68,24 +83,19 @@ function useConciergeSessionStartTime(isConciergeChat: boolean, lastReadTime?: s
         setConciergeShowFullHistory(false);
     }, [isConciergeChat, isFocused, isInSidePanel]);
 
-    if (!shouldActivate || prevShouldActivate) {
-        return isInSidePanel ? sidePanelBoundary : mainDMSessionStartTime;
-    }
-
-    setPrevShouldActivate(true);
-    if (persistedTime) {
-        setMainDMSessionStartTime(persistedTime);
-    } else {
-        const boundary = lastReadTime ?? DateUtils.getDBTime();
-        setMainDMSessionStartTime(boundary);
-        setConciergeSessionStartTime(boundary);
-    }
-
     if (isInSidePanel) {
         return sidePanelBoundary;
     }
 
-    return shouldActivate ? mainDMSessionStartTime : null;
+    // Initialize session on first activation (fresh mount or after clear).
+    const sessionTime = persistedTime ?? localTime;
+    if (isConciergeChat && !sessionTime) {
+        const boundary = lastReadTime ?? DateUtils.getDBTime();
+        setConciergeSessionStartTime(boundary);
+        setLocalTime(boundary);
+    }
+
+    return sessionTime;
 }
 
 export default useConciergeSessionStartTime;
