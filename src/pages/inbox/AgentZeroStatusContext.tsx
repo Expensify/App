@@ -46,32 +46,45 @@ const defaultActions: AgentZeroStatusActions = {
 const AgentZeroStatusStateContext = createContext<AgentZeroStatusState>(defaultState);
 const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defaultActions);
 
+const CUSTOM_AGENT_EMAIL_REGEX = /^agent_(\d+)@expensify\.ai$/;
+
 const getReportParticipantAccountIDs = (report: OnyxEntry<Report>): number[] => (report?.participants ? Object.keys(report.participants).map(Number) : []);
 
 /**
  * Cheap outer guard — only subscribes to the scalar CONCIERGE_REPORT_ID and the report's chat
  * metadata. For non-AgentZero reports (the common case), returns children directly.
  *
- * AgentZero chats include Concierge DMs, policy #admins rooms, and custom-agent chats (any chat
- * with a participant whose accountID has a SHARED_NVP_AGENT_PROMPT entry — populated by
- * OpenAgentsPage for agents the current user owns).
+ * AgentZero chats include Concierge DMs, policy #admins rooms, and custom-agent chats. A
+ * custom-agent participant is detected via two complementary signals so the gate works whether
+ * or not the user has visited the Agents settings page in this session:
+ *   1. `SHARED_NVP_AGENT_PROMPT_<accountID>` — populated by OpenAgentsPage for agents the user
+ *      owns. Authoritative when present.
+ *   2. The participant's login matches the canonical `agent_<id>@expensify.ai` email pattern.
+ *      This covers cold-start cases (user lands directly in the DM without visiting Agents).
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
     const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-    // First participant accountID with a SHARED_NVP_AGENT_PROMPT entry — both gates and identifies
-    // the persona in one pass so downstream callers can attribute streaming events.
+    // First participant whose accountID either has a SHARED_NVP_AGENT_PROMPT entry or whose login
+    // matches the canonical agent email pattern. Both gates and identifies the persona in one pass.
     const agentParticipantAccountID = useMemo(() => {
-        if (!participantAccountIDs?.length || !agentPrompts) {
+        if (!participantAccountIDs?.length) {
             return undefined;
         }
-        return participantAccountIDs.find((accountID) => !!agentPrompts[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`]);
-    }, [participantAccountIDs, agentPrompts]);
+        return participantAccountIDs.find((accountID) => {
+            if (agentPrompts?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`]) {
+                return true;
+            }
+            const login = personalDetails?.[accountID]?.login;
+            return typeof login === 'string' && CUSTOM_AGENT_EMAIL_REGEX.test(login);
+        });
+    }, [participantAccountIDs, agentPrompts, personalDetails]);
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
