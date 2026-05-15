@@ -1854,6 +1854,12 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Privado',
             subtitle: 'Estos detalles se utilizan para viajes y pagos. Nunca se mostrarán en tu perfil público.',
         },
+        aiPromptSection: {
+            title: 'AI prompt',
+            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
+            prompt: 'Prompt',
+            editPrompt: 'Edit prompt',
+        },
     },
     securityPage: {
         title: 'Opciones de seguridad',

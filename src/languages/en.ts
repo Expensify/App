@@ -2038,6 +2038,12 @@ const translations = {
             title: 'Private',
             subtitle: "These details are used for travel and payments. They're never shown on your public profile.",
         },
+        aiPromptSection: {
+            title: 'AI prompt',
+            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
+            prompt: 'Prompt',
+            editPrompt: 'Edit prompt',
+        },
     },
     securityPage: {
         title: 'Security options',

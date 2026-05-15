@@ -42,6 +42,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import AgentAIPromptSection from './AgentAIPromptSection';
 
 function ProfilePage() {
     const theme = useTheme();
@@ -321,6 +322,7 @@ function ProfilePage() {
                                 )}
                             </Section>
                         )}
+                        {isAgentAccount && <AgentAIPromptSection accountID={accountID} />}
                     </View>
                 </MenuItemGroup>
             </ScrollView>

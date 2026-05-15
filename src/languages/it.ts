@@ -1965,6 +1965,12 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Privato',
             subtitle: 'Questi dettagli vengono utilizzati per i viaggi e i pagamenti. Non vengono mai mostrati sul tuo profilo pubblico.',
         },
+        aiPromptSection: {
+            title: 'AI prompt',
+            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
+            prompt: 'Prompt',
+            editPrompt: 'Edit prompt',
+        },
     },
     securityPage: {
         title: 'Opzioni di sicurezza',

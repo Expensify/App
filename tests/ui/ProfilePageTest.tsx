@@ -6,6 +6,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -28,6 +29,12 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('@libs/actions/Agent', () => ({
+    openAgentsPage: jest.fn(),
+    clearAgentPromptUpdateError: jest.fn(),
+    updateAgentPrompt: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -152,7 +159,7 @@ const Stack = createPlatformStackNavigator<SettingsSplitNavigatorParamList>();
 
 const renderPageWithNavigation = (initialRouteName: typeof SCREENS.SETTINGS.PROFILE.ROOT) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={initialRouteName}>
@@ -228,6 +235,36 @@ describe('ProfilePage - agent account', () => {
         expect(screen.getByTestId('pronouns-menu-item')).toBeDefined();
         expect(screen.getByTestId('timezone-menu-item')).toBeDefined();
         expect(screen.getByText('Private')).toBeDefined();
+    });
+
+    it('shows AI prompt section with prompt text for agent account', async () => {
+        const accountID = 123;
+        await setupUser('agent_123@expensify.ai');
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`, {
+                prompt: 'Reject gambling expenses.',
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('ai-prompt-box')).toBeDefined();
+        expect(screen.getByTestId('ai-prompt-text')).toHaveTextContent('Reject gambling expenses.');
+        expect(screen.getByTestId('edit-prompt-button')).toBeDefined();
+    });
+
+    it('hides AI prompt section for non-agent account', async () => {
+        await setupUser('user@expensify.com');
+
+        renderPageWithNavigation(SCREENS.SETTINGS.PROFILE.ROOT);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByTestId('ai-prompt-box')).toBeNull();
+        expect(screen.queryByTestId('edit-prompt-button')).toBeNull();
     });
 });
 

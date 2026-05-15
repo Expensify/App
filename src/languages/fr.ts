@@ -1973,6 +1973,12 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Privé',
             subtitle: 'Ces informations sont utilisées pour les déplacements et les paiements. Elles n’apparaissent jamais sur votre profil public.',
         },
+        aiPromptSection: {
+            title: 'AI prompt',
+            subtitle: 'These details are displayed on your public profile. Anyone can see them.',
+            prompt: 'Prompt',
+            editPrompt: 'Edit prompt',
+        },
     },
     securityPage: {
         title: 'Options de sécurité',

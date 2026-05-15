@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {read, write} from '@libs/API';
+import {SetNameValuePairParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
@@ -147,10 +148,11 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
 }
 
 function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: string) {
+    const onyxKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`;
     const optimisticData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null},
         },
     ];
@@ -158,7 +160,7 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
     const successData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {pendingAction: null, promptErrors: null},
         },
     ];
@@ -166,7 +168,7 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
     const failureData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`,
+            key: onyxKey,
             value: {prompt: originalPrompt, pendingAction: null, promptErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updatePrompt')},
         },
     ];
@@ -248,6 +250,41 @@ function updateAgentAvatar(
     write(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, params, {optimisticData, successData, failureData});
 }
 
+function updateAgentPromptAsCopilot(accountID: number, prompt: string, originalPrompt: string) {
+    const onyxKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`;
+
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: onyxKey,
+            value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null},
+        },
+    ];
+
+    const successData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: onyxKey,
+            value: {pendingAction: null, promptErrors: null},
+        },
+    ];
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: onyxKey,
+            value: {prompt: originalPrompt, pendingAction: null, promptErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updatePrompt')},
+        },
+    ];
+
+    const parameters: SetNameValuePairParams = {
+        name: 'agentPrompt',
+        value: JSON.stringify({prompt}),
+    };
+
+    write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {optimisticData, successData, failureData});
+}
+
 function deleteAgent(accountID: number) {
     const optimisticData: AnyOnyxUpdate[] = [
         {
@@ -297,5 +334,6 @@ export {
     updateAgentName,
     updateAgentPrompt,
     updateAgentAvatar,
+    updateAgentPromptAsCopilot,
     deleteAgent,
 };
