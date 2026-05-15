@@ -136,28 +136,30 @@ function getSpendRuleFormValuesFromCardRule(cardRule?: ExpensifyCardRule): Spend
             return;
         }
 
-        if (typeof left !== 'string' || !Array.isArray(right)) {
+        if (typeof left !== 'string') {
             return;
         }
 
+        const rightValues = [right].flat();
+
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-            formValues.cardIDs = right;
+            formValues.cardIDs = rightValues;
             return;
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            formValues.maxAmount = typeof right === 'string' ? right : (right.at(0) ?? '');
+            formValues.maxAmount = rightValues.at(0) ?? '';
             return;
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            formValues.categories = right.filter(isSpendRuleCategory);
+            formValues.categories = rightValues.filter(isSpendRuleCategory);
             return;
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
-            formValues.merchantNames = [...formValues.merchantNames, ...right];
-            formValues.merchantMatchTypes = [...formValues.merchantMatchTypes, ...right.map(() => operator)];
+            formValues.merchantNames = [...formValues.merchantNames, ...rightValues];
+            formValues.merchantMatchTypes = [...formValues.merchantMatchTypes, ...rightValues.map(() => operator)];
         }
     };
 
