@@ -215,8 +215,8 @@ function NumberWithSymbolForm({
     const wasFocused = usePrevious(isFocused);
 
     const [selection, setSelection] = useState({
-        start: currentNumber.length,
-        end: currentNumber.length,
+        start: displayAsTextInput ? 0 : currentNumber.length,
+        end: displayAsTextInput ? 0 : currentNumber.length,
     });
 
     const forwardDeletePressedRef = useRef(false);
@@ -515,6 +515,11 @@ function NumberWithSymbolForm({
                 autoGrowExtraSpace={props.autoGrowExtraSpace}
                 autoGrowMarginSide={props.autoGrowMarginSide}
                 onSubmitEditing={onSubmitEditing}
+                selection={selection}
+                onSelectionChange={(e) => {
+                    const {start, end} = e.nativeEvent.selection;
+                    setSelection({start, end});
+                }}
                 onFocus={props.onFocus}
                 rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
             />
