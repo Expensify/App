@@ -5,7 +5,7 @@ import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {chatIncludesChronosWithID, isArchivedNonExpenseReport, isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
+import {isArchivedNonExpenseReport, isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
@@ -58,7 +58,6 @@ function ReportActionItem({
 
     return (
         <PureReportActionItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             action={action}
             report={report}
@@ -69,7 +68,6 @@ function ReportActionItem({
             originalReportID={originalReportID}
             originalReport={originalReport}
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
-            isChronosReport={chatIncludesChronosWithID(originalReportID)}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}

@@ -8,19 +8,18 @@ import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
 import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
 import {
-    initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,
-    setMoneyRequestDescription,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestTag,
 } from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
+import {initMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {calculateDiffAmount} from '@libs/actions/IOU/MoneyRequestBuilder';
 import {handleNavigateAfterExpenseCreate} from '@libs/actions/IOU/NavigationHelpers';
 import {shouldOptimisticallyUpdateSearch} from '@libs/actions/IOU/SearchUpdate';
@@ -6732,13 +6731,6 @@ describe('actions/IOU', () => {
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(draft?.comment?.customUnit?.attributes?.dates?.start).toBe('2024-01-01');
             expect(draft?.comment?.customUnit?.attributes?.dates?.end).toBe('2024-01-31');
-        });
-
-        it('setMoneyRequestDescription should set comment on transaction draft', async () => {
-            setMoneyRequestDescription(transactionID, '  Lunch with team  ', true);
-            await waitForBatchedUpdates();
-            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(draft?.comment?.comment).toBe('Lunch with team');
         });
 
         it('setMoneyRequestMerchant should set merchant on transaction draft', async () => {

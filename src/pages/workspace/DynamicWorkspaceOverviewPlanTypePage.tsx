@@ -17,6 +17,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import CardSectionUtils from '@pages/settings/Subscription/CardSection/utils';
@@ -54,8 +55,20 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         setCurrentPlan(policy?.type);
     }, [policy?.type]);
 
+    const isCurrentPolicySubmit = isSubmitPolicy(policy);
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
-        .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
+        .filter((type) => {
+            if (type === CONST.POLICY.TYPE.PERSONAL) {
+                return false;
+            }
+            // Per the design: the Submit row only appears when the current workspace is already
+            // Submit. This hides Submit from Collect/Control workspaces (no downgrade path) while
+            // still surfacing Collect/Control as upgrade options for Submit workspaces.
+            if (type === CONST.POLICY.TYPE.SUBMIT && !isCurrentPolicySubmit) {
+                return false;
+            }
+            return true;
+        })
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
             text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),
@@ -81,6 +94,14 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
         ) : null;
 
     const handleUpdatePlan = () => {
+        // Submit policies don't expose SUBMIT in the option list, but the editor can
+        // still pick Team/Corporate. Route any selection from a Submit policy to the
+        // upgrade screen — the polished Submit-specific upgrade UX ships in #87263.
+        if (policyID && policy?.type === CONST.POLICY.TYPE.SUBMIT && (currentPlan === CONST.POLICY.TYPE.TEAM || currentPlan === CONST.POLICY.TYPE.CORPORATE)) {
+            Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
+            return;
+        }
+
         if (policyID && policy?.type === CONST.POLICY.TYPE.TEAM && currentPlan === CONST.POLICY.TYPE.CORPORATE) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID));
             return;

@@ -766,6 +766,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',
         'src/languages/ja.ts',

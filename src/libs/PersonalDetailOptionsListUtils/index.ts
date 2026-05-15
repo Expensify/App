@@ -436,4 +436,4 @@ function getHeaderMessage(translate: LocaleContextProps['translate'], searchValu
 
 export {createOption, canCreateOptimisticPersonalDetailOption, filterOption, matchesSearchTerms, getValidOptions, createOptionList, getHeaderMessage};
 
-export type {OptionData, Options};
+export type {OptionData};
