@@ -11,7 +11,7 @@ Workspace Rules let Admins enforce expense policies by setting custom requiremen
 
 **Note:** Rules are only available on the **Control** plan. You must be a **Workspace Admin** to enable or manage them.
 
-You can also [add text or a PDF expense policy document](/articles/new-expensify/workspaces/Upload-an-expense-policy-document) to your workspace overview page so members can reference your company's expense guidelines.
+You can also [add text or a PDF expense policy document](/articles/new-expensify/workspaces/Add-an-Expense-Policy-to-a-Workspace) to your workspace overview page so members can reference your company's expense guidelines.
 
 ---
 
@@ -64,7 +64,7 @@ Workspace Merchant Rules:
 - Don't change how members submit expenses
 
 To learn how to set up and manage Workspace Merchant Rules, see:
-[**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
+[**Workspace Merchant Rules**](/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
 
 ---
 
@@ -112,7 +112,7 @@ To manage them:
 Available options:
 
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Default tax rate** – Set a default tax percentage ([Taxes](/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
 - **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
