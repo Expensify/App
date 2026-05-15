@@ -122,10 +122,10 @@ function useBulkPayOptions({
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
     let bulkPayButtonOptions;
-    if (onlyShowPayElsewhere) {
-        bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
-    } else if (!selectedReportID || !selectedPolicyID) {
+    if (!selectedReportID || !selectedPolicyID) {
         bulkPayButtonOptions = undefined;
+    } else if (onlyShowPayElsewhere) {
+        bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
     } else {
         bulkPayButtonOptions = [];
 
