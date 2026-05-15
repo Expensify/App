@@ -935,7 +935,7 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
- * Submit-workspace UX is gated on the Submit 2026 beta in addition to the workspace being on the Submit plan.
+ * We only allow users to access Submit feature if they have the SUBMIT_2026 beta enabled.
  */
 function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, betas: OnyxEntry<Beta[]>): boolean {
     return isSubmitPolicy(policy) && Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas);
