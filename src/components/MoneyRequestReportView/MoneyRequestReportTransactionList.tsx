@@ -334,8 +334,18 @@ function MoneyRequestReportTransactionList({
             shouldShowCommentsColumn,
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
             reportCurrency: report?.currency,
+            isPolicyTaxEnabled: isTaxEnabled,
         });
-    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, shouldShowCommentsColumn, reportDetailsColumns, report?.currency]);
+    }, [
+        transactions,
+        currentUserDetails?.accountID,
+        isExpenseReportViewFromIOUReport,
+        shouldShowBillableColumn,
+        shouldShowCommentsColumn,
+        reportDetailsColumns,
+        report?.currency,
+        isTaxEnabled,
+    ]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
@@ -456,15 +466,15 @@ function MoneyRequestReportTransactionList({
 
             if (!reportIDToNavigate) {
                 const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
-                const transactionThreadReport = createTransactionThreadReport(
+                const transactionThreadReport = createTransactionThreadReport({
                     introSelected,
-                    currentUserDetails.email ?? '',
-                    currentUserDetails.accountID,
+                    currentUserLogin: currentUserDetails.email ?? '',
+                    currentUserAccountID: currentUserDetails.accountID,
                     betas,
-                    report,
-                    iouAction,
+                    iouReport: report,
+                    iouReportAction: iouAction,
                     transaction,
-                );
+                });
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
                     routeParams.reportID = reportIDToNavigate;
@@ -648,7 +658,7 @@ function MoneyRequestReportTransactionList({
           })
         : resolvedTransactions.map((transaction) => renderTransactionItem(transaction));
 
-    const narrowListWrapper = shouldUseNarrowLayout ? [styles.highlightBG, styles.searchTableTopRadius, styles.searchTableBottomRadius, styles.overflowHidden] : undefined;
+    const narrowListWrapper = shouldUseNarrowLayout ? [styles.highlightBG, styles.tableTopRadius, styles.tableBottomRadius, styles.overflowHidden] : undefined;
 
     const transactionListContent = (
         <View
@@ -678,7 +688,7 @@ function MoneyRequestReportTransactionList({
                     !isDesktopTableLayout && styles.pl5,
                     isDesktopTableLayout ? styles.pr11 : styles.pr16,
                     styles.alignItemsCenter,
-                    isDesktopTableLayout && [styles.highlightBG, styles.searchTableTopRadius, styles.mh5],
+                    isDesktopTableLayout && [styles.highlightBG, styles.tableTopRadius, styles.mh5],
                     StyleUtils.getSelectedBorderBottomStyle(selectedTransactionIDs.length > 0),
                 ]}
             >

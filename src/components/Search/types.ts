@@ -150,7 +150,7 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchWithdrawalStatus = Array<ValueOf<typeof CONST.SEARCH.SETTLEMENT_STATUS>>;
-type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
+type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 
 type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
@@ -180,6 +180,8 @@ type SearchContextData = {
     isOnSearch: boolean;
     shouldTurnOffSelectionMode: boolean;
     shouldResetSearchQuery: boolean;
+    /** True when at least one transaction is selected. */
+    hasSelectedTransactions: boolean;
 };
 
 type SearchStateContextValue = SearchContextData & {
@@ -214,7 +216,7 @@ type SearchActionsContextValue = {
 
 type ASTNode = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
-    left: ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ASTNode;
+    left: SyntaxFilterKey | ASTNode;
     right: string | ASTNode | string[];
 };
 
@@ -253,6 +255,8 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN
     | ReportFieldTextKey;
 
+type SearchDateKey = `${SearchDateFilterKeys}${ValueOf<typeof CONST.SEARCH.DATE_MODIFIERS>}` | ReportFieldDateKey;
+
 type SearchAmountFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT;
 
 type SearchCurrencyFilterKeys =
@@ -261,7 +265,7 @@ type SearchCurrencyFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY;
 
 type SearchFilterKey =
-    | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
+    | SyntaxFilterKey
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
@@ -278,7 +282,7 @@ type QueryFilters = Array<{
     filters: QueryFilter[];
 }>;
 
-type RawFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS> | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
+type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
 type RawQueryFilter = {
     key: RawFilterKey;
@@ -385,6 +389,7 @@ export type {
     SearchColumnType,
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
+    SearchDateKey,
     SearchAmountFilterKeys,
     SearchStatus,
     SearchQueryJSON,
@@ -400,14 +405,10 @@ export type {
     ASTNode,
     QueryFilter,
     QueryFilters,
-    RawFilterKey,
+    SyntaxFilterKey,
     RawQueryFilter,
     SearchFilterKey,
     UserFriendlyKey,
-    ExpenseSearchStatus,
-    InvoiceSearchStatus,
-    TripSearchStatus,
-    TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
     BulkPaySelectionData,
@@ -421,7 +422,6 @@ export type {
     SearchDatePreset,
     SearchWithdrawalType,
     SearchWithdrawalStatus,
-    SearchAction,
     SearchCurrencyFilterKeys,
     UserFriendlyValue,
     SelectedReports,

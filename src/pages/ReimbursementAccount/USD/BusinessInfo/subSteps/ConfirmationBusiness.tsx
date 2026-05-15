@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -35,7 +35,7 @@ function ConfirmCompanyLabel() {
     );
 }
 
-function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
+function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -106,11 +106,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
             />
             <MenuItemWithTopDescription
                 description={translate('businessInfoStep.companyType')}
-                title={
-                    values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]
-                        ? translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)
-                        : ''
-                }
+                title={translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)}
                 shouldShowRightIcon
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_TYPE);
@@ -126,7 +122,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
             />
             <MenuItemWithTopDescription
                 description={translate('businessInfoStep.incorporationState')}
-                title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] ? translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`) : ''}
+                title={translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`)}
                 shouldShowRightIcon
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
