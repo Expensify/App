@@ -70,7 +70,6 @@ function LHNEmptyState() {
 
     return (
         <BlockingView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...(emptyLHNIllustration as BlockingViewProps)}
             title={translate('common.emptyLHN.title')}
             CustomSubtitle={subtitle}

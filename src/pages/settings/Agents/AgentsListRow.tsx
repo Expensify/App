@@ -45,7 +45,7 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const isDeleted = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const navigateToEdit = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
 
     return (
@@ -63,13 +63,13 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                     accessibilityLabel={displayName}
                     role={CONST.ROLE.BUTTON}
                     sentryLabel="AgentsListRow-Edit"
-                    disabled={isDeleted}
+                    disabled={isPendingDeletion}
                 >
                     <AgentInfoRow
                         accountID={accountID}
                         displayName={displayName}
                         login={login}
-                        isDeleted={isDeleted}
+                        isPendingDeletion={isPendingDeletion}
                     />
                     {!!brickRoadIndicator && (
                         <Icon
@@ -84,7 +84,7 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                         accountID={accountID}
                         displayName={displayName}
                         login={login}
-                        isDeleted={isDeleted}
+                        isPendingDeletion={isPendingDeletion}
                     />
                     {!!brickRoadIndicator && (
                         <Icon
@@ -96,7 +96,7 @@ function AgentsListRow({accountID, displayName, login, pendingAction, errors, on
                         small
                         text={translate('common.edit')}
                         onPress={navigateToEdit}
-                        isDisabled={isDeleted}
+                        isDisabled={isPendingDeletion}
                     />
                 </View>
             )}

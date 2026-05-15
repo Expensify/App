@@ -18,10 +18,10 @@ type AgentInfoRowProps = {
     login: string;
 
     /** Whether the agent is pending deletion */
-    isDeleted?: boolean;
+    isPendingDeletion?: boolean;
 };
 
-function AgentInfoRow({accountID, displayName, login, isDeleted = false}: AgentInfoRowProps) {
+function AgentInfoRow({accountID, displayName, login, isPendingDeletion = false}: AgentInfoRowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
@@ -36,13 +36,13 @@ function AgentInfoRow({accountID, displayName, login, isDeleted = false}: AgentI
             <View style={[styles.flex1, styles.gap1]}>
                 <Text
                     numberOfLines={1}
-                    style={[styles.textStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
+                    style={[styles.textStrong, isPendingDeletion ? styles.offlineFeedbackDeleted : {}]}
                 >
                     {displayName}
                 </Text>
                 <Text
                     numberOfLines={1}
-                    style={[styles.mutedNormalTextLabel, isDeleted ? styles.offlineFeedbackDeleted : {}]}
+                    style={[styles.mutedNormalTextLabel, isPendingDeletion ? styles.offlineFeedbackDeleted : {}]}
                 >
                     {login}
                 </Text>

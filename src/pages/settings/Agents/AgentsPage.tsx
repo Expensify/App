@@ -59,14 +59,15 @@ function AgentsPage() {
             if (!details) {
                 return null;
             }
+            const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
+            const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
             return {
                 accountID,
                 displayName: details.displayName ?? details.login ?? '',
                 login: details.login ?? '',
                 pendingAction: agentPrompt?.pendingAction,
                 errors: agentPrompt?.errors,
-                hasUpdateErrors:
-                    !!(agentPrompt?.nameErrors && Object.keys(agentPrompt.nameErrors).length > 0) || !!(agentPrompt?.promptErrors && Object.keys(agentPrompt.promptErrors).length > 0),
+                hasUpdateErrors: hasNameErrors || hasPromptErrors,
             };
         })
         .filter(Boolean) as AgentItem[];
