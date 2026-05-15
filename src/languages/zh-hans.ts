@@ -2916,7 +2916,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         mergeBlockScreen: {
             title: '无法添加工作邮箱',
             subtitle: (workEmail: string | undefined) => `我们无法添加 ${workEmail}。请稍后在设置中重试，或与 Concierge 聊天以获取指导。`,
-            workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系你们公司的管理员重新激活该账户，或者使用其他邮箱注册。',
+            workAccountClosedSubtitle: '与此邮箱关联的工作账户已被关闭。请联系您公司的管理员以重新激活该账户，或使用其他邮箱注册。',
         },
         tasks: {
             testDriveAdminTask: {

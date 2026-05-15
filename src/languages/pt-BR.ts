@@ -2992,7 +2992,7 @@ ${amount} para ${merchant} - ${date}`,
             subtitle: (workEmail: string | undefined) =>
                 `Não foi possível adicionar ${workEmail}. Tente novamente mais tarde em Configurações ou converse com o Concierge para obter orientação.`,
             workAccountClosedSubtitle:
-                'A conta de trabalho associada a este e-mail está encerrada. Entre em contato com o administrador da sua empresa para reativá-la ou cadastre-se com um e-mail diferente.',
+                'A conta de trabalho associada a este e-mail foi encerrada. Entre em contato com o administrador da sua empresa para reativá-la ou inscreva-se com um e-mail diferente.',
         },
         tasks: {
             testDriveAdminTask: {
