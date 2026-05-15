@@ -1,4 +1,3 @@
-import {useCallback} from 'react';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -24,20 +23,17 @@ function useTwoFactorAuthRoute(): TwoFactorAuthRouteResult {
 
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
 
-    const getTwoFactorAuthRoute = useCallback(
-        (backTo?: Route): Route => {
-            if (is2FAEnabled) {
-                return ROUTES.SETTINGS_2FA_ENABLED;
-            }
+    const getTwoFactorAuthRoute = (backTo?: Route): Route => {
+        if (is2FAEnabled) {
+            return ROUTES.SETTINGS_2FA_ENABLED;
+        }
 
-            if (!account?.validated) {
-                return createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backTo);
-            }
+        if (!account?.validated) {
+            return createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path, backTo);
+        }
 
-            return createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backTo);
-        },
-        [is2FAEnabled, account?.validated],
-    );
+        return createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backTo);
+    };
 
     return {getTwoFactorAuthRoute, is2FAEnabled};
 }

@@ -31,13 +31,9 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
-<<<<<<< HEAD:src/pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage.tsx
-function DynamicTwoFactorAuthPage() {
-=======
 const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
 
-function CopyCodesPage({route}: TwoFactorAuthPageProps) {
->>>>>>> main:src/pages/settings/Security/TwoFactorAuth/CopyCodesPage.tsx
+function DynamicTwoFactorAuthPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
