@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -17,7 +18,6 @@ import type SCREENS from '@src/SCREENS';
 import WorkspaceAdminRestrictedAction from './WorkspaceAdminRestrictedAction';
 import WorkspaceOwnerRestrictedAction from './WorkspaceOwnerRestrictedAction';
 import WorkspaceUserRestrictedAction from './WorkspaceUserRestrictedAction';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 type WorkspaceRestrictedActionPageProps = PlatformStackScreenProps<RestrictedActionParamList, typeof SCREENS.RESTRICTED_ACTION_ROOT>;
 

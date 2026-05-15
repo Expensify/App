@@ -195,7 +195,13 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                     if (
                         policyChatForActivePolicyPolicyID &&
                         policyChatForActivePolicyPolicy &&
-                        shouldRestrictUserBillableActions(policyChatForActivePolicyPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
+                        shouldRestrictUserBillableActions(
+                            policyChatForActivePolicyPolicy,
+                            ownerBillingGracePeriodEnd,
+                            userBillingGracePeriodEnds,
+                            amountOwed,
+                            currentUserPersonalDetails.accountID,
+                        )
                     ) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicyPolicyID));
                         return;

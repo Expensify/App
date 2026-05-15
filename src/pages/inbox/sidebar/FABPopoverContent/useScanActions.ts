@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -11,12 +12,10 @@ import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
 function useScanActions() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -48,7 +47,10 @@ function useScanActions() {
 
     const startQuickScan = () => {
         interceptAnonymousUser(() => {
-            if (policyChatPolicyID && shouldRestrictUserBillableActions(policyChatPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
+            if (
+                policyChatPolicyID &&
+                shouldRestrictUserBillableActions(policyChatPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
+            ) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatPolicyID));
                 return;
             }
