@@ -114,7 +114,7 @@ type HandleActionButtonPressParams = {
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     amountOwed: OnyxEntry<number>;
     onUndelete?: () => void;
-    currentUserAccountID: number;
+    currentUserAccountID?: number;
 };
 
 type BulkDeleteReportsParams = {
