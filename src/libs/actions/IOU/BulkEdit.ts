@@ -289,12 +289,28 @@ function updateMultipleMoneyRequests({
         // If we created the transaction thread optimistically above, seed it into Onyx
         // so the MODIFIED_EXPENSE action has somewhere to land. On success the server's
         // OpenReport data (triggered by UpdateMoneyRequest) will overwrite these values.
+        // Also link the thread back: set childReportID on the parent IOU action and
+        // transactionThreadReportID on the transaction so subsequent offline edits of the
+        // same expense reuse this thread instead of generating a new one each time.
         if (didCreateThreadInThisIteration && transactionThread && transactionThreadReportID) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
                 value: transactionThread,
             });
+            // Link childReportID on the parent IOU report action
+            if (reportAction?.reportActionID && iouReport?.reportID) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    value: {[reportAction.reportActionID]: {childReportID: transactionThreadReportID}},
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                    value: {[reportAction.reportActionID]: {childReportID: null}},
+                });
+            }
             failureData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
@@ -363,6 +379,9 @@ function updateMultipleMoneyRequests({
                 pendingFields,
                 isLoading: false,
                 errorFields: null,
+                // Link the optimistic thread back to the transaction so subsequent
+                // offline edits reuse it instead of generating a new thread each time.
+                ...(didCreateThreadInThisIteration && transactionThreadReportID ? {transactionThreadReportID} : {}),
             },
         });
 
