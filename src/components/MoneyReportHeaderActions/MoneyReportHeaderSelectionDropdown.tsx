@@ -84,7 +84,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
     const activeAdminPolicies = useActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {convertToDisplayString} = useCurrencyListActions();
@@ -118,6 +117,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const activePolicy = usePolicy(activePolicyID);
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -157,17 +157,8 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const {confirmApproval, handleSubmitReport, shouldBlockSubmit, isBlockSubmitDueToPreventSelfApproval} = useLifecycleActions({
         reportID,
         startApprovedAnimation,
-        startAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType, onConfirm, paymentType) =>
-            openHoldMenu({
-                requestType,
-                onConfirm: () => {
-                    onConfirm?.();
-                    clearSelectedTransactions(true);
-                },
-                paymentType,
-            }),
+        onHoldMenuOpen: (requestType) => openHoldMenu({requestType, onConfirm: () => clearSelectedTransactions(true)}),
     });
 
     const {
@@ -293,6 +284,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                conciergeReportID,
                 onPaid: () => {
                     startAnimation();
                 },
@@ -380,42 +372,40 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     // Ref writes below are inside onSelected callbacks that only fire on user interaction, never during render.
 
-    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = !isBulkSubmitApprovePayBetaEnabled
-        ? []
-        : [
-              ...(hasSubmitAction && !shouldBlockSubmit
-                  ? [
-                        {
-                            text: translate('common.submit'),
-                            icon: expensifyIcons.Send,
-                            value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
-                            onSelected: () => handleSubmitReport(true),
-                        },
-                    ]
-                  : []),
-              ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
-                  ? [
-                        {
-                            text: translate('iou.approve'),
-                            icon: expensifyIcons.ThumbsUp,
-                            value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                            onSelected: () => confirmApproval(true),
-                        },
-                    ]
-                  : []),
-              ...(hasPayAction && !(isOffline && !canAllowSettlement)
-                  ? [
-                        {
-                            text: translate('iou.settlePayment', totalAmount),
-                            icon: expensifyIcons.Cash,
-                            value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
-                            rightIcon: expensifyIcons.ArrowRight,
-                            backButtonText: translate('iou.settlePayment', totalAmount),
-                            subMenuItems: paymentSubMenuItems,
-                        },
-                    ]
-                  : []),
-          ];
+    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [
+        ...(hasSubmitAction && !shouldBlockSubmit
+            ? [
+                  {
+                      text: translate('common.submit'),
+                      icon: expensifyIcons.Send,
+                      value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
+                      onSelected: () => handleSubmitReport(true),
+                  },
+              ]
+            : []),
+        ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
+            ? [
+                  {
+                      text: translate('iou.approve'),
+                      icon: expensifyIcons.ThumbsUp,
+                      value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
+                      onSelected: () => confirmApproval(true),
+                  },
+              ]
+            : []),
+        ...(hasPayAction && !(isOffline && !canAllowSettlement)
+            ? [
+                  {
+                      text: translate('iou.settlePayment', totalAmount),
+                      icon: expensifyIcons.Cash,
+                      value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
+                      rightIcon: expensifyIcons.ArrowRight,
+                      backButtonText: translate('iou.settlePayment', totalAmount),
+                      subMenuItems: paymentSubMenuItems,
+                  },
+              ]
+            : []),
+    ];
 
     const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
         if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
@@ -533,4 +523,3 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 }
 
 export default MoneyReportHeaderSelectionDropdown;
-export type {MoneyReportHeaderSelectionDropdownProps};

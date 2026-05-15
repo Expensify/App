@@ -19,6 +19,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         setParams: (...args: unknown[]) => mockSetParams(...args),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
         isNavigationReady: () => mockIsNavigationReady(),
     },
 }));

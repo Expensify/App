@@ -382,4 +382,4 @@ function cancelIfStaleForNavState() {
 }
 
 export {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction, getPendingSubmitFollowUpAction, cancelSubmitFollowUpActionSpan, startTracking, setFastPath, addOptimization, isTracking};
-export type {SubmitFollowUpAction, PendingSubmitFollowUpAction, FastPathType, Optimization, SubmitExpenseContext, StartTrackingOptions};
+export type {SubmitFollowUpAction};
