@@ -378,6 +378,13 @@ const CONST = {
         },
     },
 
+    // Used to track the editing state of report action messages in the ReportActionEditMessageContext provider.
+    REPORT_ACTION_EDIT_MESSAGE_STATE: {
+        OFF: 'off',
+        EDITING: 'editing',
+        SUBMITTED: 'submitted',
+    },
+
     // Maximum width and height size in px for a selected image
     AVATAR_MAX_WIDTH_PX: 4096,
     AVATAR_MAX_HEIGHT_PX: 4096,
@@ -1842,6 +1849,18 @@ const CONST = {
         MAX_LINES_FULL: -1,
         // The minimum height needed to enable the full screen composer
         FULL_COMPOSER_MIN_HEIGHT: 60,
+        /**
+         * TestIDs for the main report composer vs inline message editor (E2E / integration tests only).
+         * See tests/ui/ReportActionMessageEditLayoutTest.tsx
+         */
+        TEST_ID: {
+            REPORT_ACTION_COMPOSE: 'reportActionCompose',
+            DRAFT_MESSAGE_ACTION_ROW: 'reportActionCompose_draftMessageActionRow',
+            EDITING_MESSAGE_ACTION_ROW: 'reportActionCompose_editingMessageActionRow',
+            REPORT_ACTION_ITEM_MESSAGE_EDIT: 'reportActionItemMessageEdit',
+            MESSAGE_EDIT_CANCEL_MAIN_COMPOSER: 'messageEditCancel_mainComposer',
+            MESSAGE_EDIT_CANCEL_INLINE: 'messageEditCancel_inlineMessageEdit',
+        },
     },
     MODAL: {
         MODAL_TYPE: {
@@ -1897,6 +1916,7 @@ const CONST = {
         TEST_TOOLS_MODAL_THROTTLE_TIME: 800,
         TOOLTIP_SENSE: 1000,
         COMMENT_LENGTH_DEBOUNCE_TIME: 1500,
+        DRAFT_SAVE_DEBOUNCE_TIME: 1000,
         SEARCH_OPTION_LIST_DEBOUNCE_TIME: 300,
         ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
@@ -6445,6 +6465,9 @@ const CONST = {
 
     NAVIGATION: {
         CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
+        // Fake history entry used to keep browser Back behavior correct after revealing a route under an RHP.
+        // addRootHistoryRouterExtension owns when this is added, carried forward, and removed.
+        CUSTOM_HISTORY_ENTRY_REVEAL_PADDING: 'CUSTOM_HISTORY-REVEAL_PADDING',
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
@@ -9290,6 +9313,7 @@ const CONST = {
             AGENTS: 'Account-Agents',
             RULES: 'Account-Rules',
             PREFERENCES: 'Account-Preferences',
+            COPILOT: 'Account-Copilot',
             SECURITY: 'Account-Security',
             SUBSCRIPTION: 'Account-Subscription',
             STATUS_PICKER: 'Account-StatusPicker',
@@ -9744,6 +9768,9 @@ const CONST = {
         },
         SETTINGS_EXIT_SURVEY: {
             GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
+        },
+        MESSAGES_ROW: {
+            DISMISS: 'MessagesRow-Dismiss',
         },
         PROFILE_PAGE: {
             AVATAR: 'ProfilePage-Avatar',

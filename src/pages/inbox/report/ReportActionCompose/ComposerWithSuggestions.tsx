@@ -1,13 +1,12 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import type {Ref, RefObject} from 'react';
-import React, {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {
     BlurEvent,
     LayoutChangeEvent,
     MeasureInWindowOnSuccessCallback,
     NativeMethods,
-    TextInput,
     TextInputContentSizeChangeEvent,
     TextInputKeyPressEvent,
     TextInputScrollEvent,
@@ -15,12 +14,11 @@ import type {
 // eslint-disable-next-line no-restricted-imports
 import {DeviceEventEmitter, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
-import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -40,8 +38,8 @@ import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSp
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
 import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getTextVSCursorOffset, insertTextVSBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import type {Selection} from '@libs/focusComposerWithDelay/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import {detectAndRewritePaste} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
@@ -49,13 +47,9 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
-import {useComposerActions, useComposerText} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
-import getCursorPosition from '@pages/inbox/report/ReportActionCompose/getCursorPosition';
-import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScrollPosition';
-import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
-import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
-import useLastEditableAction from '@pages/inbox/report/ReportActionCompose/useLastEditableAction';
+import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
+import useDebouncedSaveDraft from '@pages/inbox/report/useDebouncedSaveDraft';
+import useDraftMessageVideoAttributeCache from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
@@ -64,10 +58,21 @@ import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} fr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
 import findNodeHandle from '@src/utils/findNodeHandle';
+import {useComposerActions, useComposerEditState, useComposerText} from './ComposerContext';
+import getCursorPosition from './getCursorPosition';
+import getScrollPosition from './getScrollPosition';
+import getUpdatedSyncSelection from './getUpdatedSyncSelection';
+import type {SuggestionsRef} from './ReportActionCompose';
+import ReportActionComposeUtils from './ReportActionComposeUtils';
+import SilentCommentUpdater from './SilentCommentUpdater';
+import Suggestions from './Suggestions';
+import useEditComposerToggle from './useEditComposerToggle';
+import useLastEditableAction from './useLastEditableAction';
 
 type SyncSelection = {
     position: number;
@@ -75,6 +80,26 @@ type SyncSelection = {
 };
 
 type NewlyAddedChars = {startIndex: number; endIndex: number; diff: string};
+
+type ComposerWithSuggestionsRef = ComposerRef & {
+    /** Focus the composer */
+    focus: (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => void;
+
+    /** Replace the selection with text */
+    replaceSelectionWithText: OnEmojiSelected;
+
+    /** Get the current text of the composer */
+    getCurrentText: () => string;
+
+    /**
+     * Calling clear will immediately clear the input on the UI thread (its a worklet).
+     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
+     */
+    clearWorklet: () => void;
+
+    /** Reset the height of the composer */
+    resetHeight: () => void;
+};
 
 type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
     ForwardedFSClassProps & {
@@ -117,9 +142,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Function to handle sending a message */
         onEnterKeyPress: () => void;
 
-        /** Whether the compose input should show */
-        shouldShowComposeInput: OnyxEntry<boolean>;
-
         /** Function to measure the parent container */
         measureParentContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
 
@@ -145,7 +167,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         policyID?: string;
 
         /** Reference to the outer element */
-        ref?: Ref<ComposerRef | null>;
+        ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
 
 type SwitchToCurrentReportProps = {
@@ -153,29 +175,7 @@ type SwitchToCurrentReportProps = {
     reportToCopyDraftTo: string;
     callback: () => void;
 };
-
-type ComposerRef = {
-    blur: () => void;
-    focus: (shouldDelay?: boolean) => void;
-    replaceSelectionWithText: OnEmojiSelected;
-    getCurrentText: () => string;
-    isFocused: () => boolean;
-
-    /**
-     * Calling clear will immediately clear the input on the UI thread (its a worklet).
-     * Once the composer ahs cleared onCleared will be called with the value that was cleared.
-     */
-    clearWorklet: () => void;
-
-    /**
-     * Reset the height of the composer.
-     */
-    resetHeight: () => void;
-};
-
 const {RNTextInputReset} = NativeModules;
-
-const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
 /**
  * Broadcast that the user is typing. Debounced to limit how often we publish client events.
@@ -223,7 +223,6 @@ function ComposerWithSuggestions({
     onPasteFile,
     disabled,
     onEnterKeyPress,
-    shouldShowComposeInput,
     measureParentContainer = () => {},
     isScrollLikelyLayoutTriggered,
     raiseIsScrollLikelyLayoutTriggered,
@@ -256,16 +255,57 @@ function ComposerWithSuggestions({
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
     const isInSidePanel = useIsInSidePanel();
-    const value = useComposerText();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const composerRef = useRef<ComposerRef | null>(null);
+
+    const {editingState, editingReportActionID, editingReportAction, effectiveDraft, currentEditMessageSelection} = useComposerEditState();
+    const {setEditingMessage, setCurrentEditMessageSelection} = useReportActionActiveEditActions();
+
+    const isEditing = editingState !== CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.OFF;
+    const text = useComposerText();
     const {setText} = useComposerActions();
     // Snapshot of provider text at mount — used for one-time selection cursor + emoji baseline + autofocus decision.
     // Reading the live `value` for these would cause re-renders and effect re-fires on every keystroke.
     const [initialText] = useState(() => {
-        if (value) {
-            emojisPresentBefore.current = extractEmojis(value);
+        const initialValue = effectiveDraft ?? text;
+        if (initialValue) {
+            emojisPresentBefore.current = extractEmojis(initialValue);
         }
-        return value;
+        return initialValue;
     });
+
+    // Save the draft of the report action. This debounced so that we're not ceaselessly saving your edit.
+    const {saveDraft: debouncedSaveReportActionDraft, isSavePending: isDraftSavePending} = useDebouncedSaveDraft(
+        useCallback(
+            (comment: string) => {
+                saveReportActionDraft(reportID, editingReportAction, comment);
+            },
+            [reportID, editingReportAction],
+        ),
+    );
+
+    // Save the draft of the report comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
+    // allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
+    const {saveDraft: debouncedSaveComment, isSavePending: isCommentSavePending} = useDebouncedSaveDraft(
+        useCallback(
+            (comment: string) => {
+                saveReportDraftComment(reportID, comment);
+            },
+            [reportID],
+        ),
+    );
+
+    useDraftMessageVideoAttributeCache({
+        draftMessage: text,
+        isEditing,
+        editingReportAction,
+        updateDraftMessage: setText,
+        isEditInProgressRef: isDraftSavePending,
+    });
+
+    const [selection, setSelection] = useState<TextSelection>(() => currentEditMessageSelection ?? {start: initialText.length, end: initialText.length});
+
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const commentRef = useRef(initialText);
@@ -276,34 +316,59 @@ function ComposerWithSuggestions({
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 
+    /**
+     * Focus the composer text input
+     * @param [shouldDelay=false] Impose delay before focusing the composer
+     * @param [forcedSelectionRange] Optional selection to apply after focus
+     * @param [forceKeyboardIfAlreadyFocused] When already focused, use KeyboardController so the keyboard can show (e.g. edit-in-composer)
+     */
+    const focus = useCallback((shouldDelay = false, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused = false) => {
+        // If we're stacked above another RHP, wait for the transition to complete before focusing.
+        const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
+        focusComposerWithDelay(composerRef.current, delay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
+    }, []);
+
+    const handleEditFocus = useCallback(() => focus(true, undefined, true), [focus]);
+
+    const handleEditValueChange = useCallback(
+        (nextValue: string) => {
+            onValueChange(nextValue);
+            commentRef.current = nextValue;
+            emojisPresentBefore.current = extractEmojis(nextValue);
+
+            setText(nextValue);
+        },
+        [onValueChange, setText],
+    );
+
+    useEditComposerToggle({
+        selection,
+        composerRef,
+        onFocus: handleEditFocus,
+        onValueChange: handleEditValueChange,
+        onSelectionChange: setSelection,
+    });
+
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
     const lastTextRef = useRef(initialText);
     useEffect(() => {
-        lastTextRef.current = value;
-    }, [value]);
+        lastTextRef.current = text;
+    }, [text]);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!value) && shouldShowComposeInput && areAllModalsHidden() && isFocused;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!text) && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(initialText);
-    valueRef.current = value;
+    valueRef.current = text;
 
-    const [selection, setSelection] = useState<TextSelection>(() => ({start: initialText.length, end: initialText.length, positionX: 0, positionY: 0}));
-
-    const [composerHeightAfterClear, setDefaultComposerHeight] = useState<number | null>(null);
+    const [composerHeightAfterClear, setComposerHeightAfterClear] = useState<number | null>(null);
     const emptyComposerHeightRef = useRef<number | null>(null);
 
-    const textInputRef = useRef<TextInput | null>(null);
-
     const syncSelectionWithOnChangeTextRef = useRef<SyncSelection | null>(null);
-
-    // The ref to check whether the comment saving is in progress
-    const isCommentPendingSaved = useRef(false);
 
     // Tracks transition state to prevent SilentCommentUpdater from overwriting the just-saved draft during report ID changes
     const isTransitioningToPreExistingReport = useRef(false);
@@ -317,12 +382,12 @@ function ComposerWithSuggestions({
     /**
      * Set the TextInput Ref
      */
-    const setTextInputRef = useCallback(
-        (el: TextInput) => {
+    const setComposerRef = useCallback(
+        (el: ComposerRef) => {
             if (isFocused) {
                 ReportActionComposeFocusManager.composerRef.current = el;
             }
-            textInputRef.current = el;
+            composerRef.current = el;
             if (typeof animatedRef === 'function') {
                 animatedRef(el);
             }
@@ -336,15 +401,6 @@ function ComposerWithSuggestions({
         }
         RNTextInputReset.resetKeyboardInput(CONST.COMPOSER.NATIVE_ID);
     }, []);
-
-    const debouncedSaveReportComment = useMemo(
-        () =>
-            lodashDebounce((selectedReportID: string, newComment: string | null) => {
-                saveReportDraftComment(selectedReportID, newComment);
-                isCommentPendingSaved.current = false;
-            }, 1000),
-        [],
-    );
 
     useEffect(() => {
         const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({reportToCopyDraftTo, callback}: SwitchToCurrentReportProps) => {
@@ -414,7 +470,7 @@ function ComposerWithSuggestions({
             // previous text before change
             const prevText = lastTextRef.current;
             // snapshot selection (should be the selection that was active just before the paste/change)
-            const prevSelectionStart = selection?.start ?? 0;
+            const prevSelectionStart = selection.start ?? 0;
             const prevSelectionEnd = selection?.end ?? 0;
 
             // detect newly added text (existing helper)
@@ -436,9 +492,6 @@ function ComposerWithSuggestions({
             const commentWithSpaceInserted = isEmojiInserted ? insertWhiteSpaceAtIndex(effectiveCommentValue, endIndex) : effectiveCommentValue;
             const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(commentWithSpaceInserted, preferredSkinTone, preferredLocale);
 
-            const newComment = insertTextVSBetweenDigitAndEmoji(emojiConvertedText);
-            const textVSOffset = getTextVSCursorOffset(emojiConvertedText, cursorPosition);
-
             if (emojis.length) {
                 const newEmojis = getAddedEmojis(emojis, emojisPresentBefore.current);
                 if (newEmojis.length) {
@@ -448,49 +501,74 @@ function ComposerWithSuggestions({
                     }
                 }
             }
+
+            const newComment = insertTextVSBetweenDigitAndEmoji(emojiConvertedText);
             const newCommentConverted = convertToLTRForComposer(newComment);
             emojisPresentBefore.current = emojis;
 
+            const textVSOffset = getTextVSCursorOffset(emojiConvertedText, cursorPosition);
+
             setText(newCommentConverted);
+            onValueChange(newCommentConverted);
             if (commentValue !== newComment) {
                 const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + textVSOffset : undefined;
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), adjustedCursorPosition ?? 0);
 
-                if (commentWithSpaceInserted !== newComment && isIOSNative) {
-                    syncSelectionWithOnChangeTextRef.current = {position, value: newComment};
+                const updatedSyncSelection = getUpdatedSyncSelection({commentWithSpaceInserted, newComment, position});
+                if (updatedSyncSelection) {
+                    syncSelectionWithOnChangeTextRef.current = updatedSyncSelection;
                 }
 
+                // Keep selection in sync after emoji conversion / insertion while editing (e.g. emoji picker on web);
                 setSelection((prevSelection) => ({
+                    ...prevSelection,
                     start: position,
                     end: position,
-                    positionX: prevSelection.positionX,
-                    positionY: prevSelection.positionY,
                 }));
+                setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: position, end: position}));
             }
 
             commentRef.current = newCommentConverted;
+            if (editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && shouldUseNarrowLayout) {
+                setEditingMessage(newCommentConverted);
+                if (shouldDebounceSaveComment) {
+                    debouncedSaveReportActionDraft(newCommentConverted);
+                    return;
+                }
+
+                saveReportActionDraft(reportID, {reportActionID: editingReportActionID} as OnyxTypes.ReportAction, newCommentConverted);
+                return;
+            }
+
             if (shouldDebounceSaveComment) {
-                isCommentPendingSaved.current = true;
-                debouncedSaveReportComment(reportID, newCommentConverted);
+                debouncedSaveComment(newCommentConverted);
             } else {
                 saveReportDraftComment(reportID, newCommentConverted);
             }
+
             if (newCommentConverted) {
                 debouncedBroadcastUserIsTyping(reportID, currentUserAccountID);
             }
         },
         [
-            findNewlyAddedChars,
-            preferredLocale,
-            preferredSkinTone,
-            reportID,
-            suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
-            debouncedSaveReportComment,
-            selection?.end,
-            selection?.start,
-            currentUserAccountID,
+            selection.start,
+            selection.end,
+            findNewlyAddedChars,
+            preferredSkinTone,
+            preferredLocale,
             setText,
+            onValueChange,
+            editingState,
+            shouldUseNarrowLayout,
+            suggestionsRef,
+            setCurrentEditMessageSelection,
+            setEditingMessage,
+            reportID,
+            editingReportActionID,
+            debouncedSaveReportActionDraft,
+            debouncedSaveComment,
+            currentUserAccountID,
         ],
     );
 
@@ -498,10 +576,10 @@ function ComposerWithSuggestions({
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
      */
     const replaceSelectionWithText = useCallback(
-        (text: string) => {
+        (newText: string) => {
             // selection replacement should be debounced to avoid conflicts with text typing
             // (f.e. when emoji is being picked and 1 second still did not pass after user finished typing)
-            updateComment(insertText(commentRef.current, selection, text), true);
+            updateComment(insertText(commentRef.current, selection, newText), true);
         },
         [selection, updateComment],
     );
@@ -553,17 +631,34 @@ function ComposerWithSuggestions({
                 if (lastGraphemeLength > 1) {
                     event.preventDefault();
                     const newText = lastTextRef.current.slice(0, selection.start - lastGraphemeLength) + lastTextRef.current.slice(selection.start);
+                    const newStart = selection.start - lastGraphemeLength;
+                    const newEnd = selection.start - lastGraphemeLength;
+
                     setSelection((prevSelection) => ({
-                        start: selection.start - lastGraphemeLength,
-                        end: selection.start - lastGraphemeLength,
-                        positionX: prevSelection.positionX,
-                        positionY: prevSelection.positionY,
+                        ...prevSelection,
+                        start: newStart,
+                        end: newEnd,
                     }));
+
+                    setCurrentEditMessageSelection((prevSelection) => ({...prevSelection, start: newStart, end: newEnd}));
+
                     updateComment(newText, true);
                 }
             }
         },
-        [shouldUseNarrowLayout, isKeyboardShown, suggestionsRef, selection.start, includeChronos, onEnterKeyPress, lastReportAction, reportID, updateComment, selection.end],
+        [
+            shouldUseNarrowLayout,
+            isKeyboardShown,
+            suggestionsRef,
+            selection.start,
+            selection.end,
+            includeChronos,
+            onEnterKeyPress,
+            lastReportAction,
+            reportID,
+            updateComment,
+            setCurrentEditMessageSelection,
+        ],
     );
 
     /**
@@ -574,7 +669,7 @@ function ComposerWithSuggestions({
         if (composerHeightAfterClear == null) {
             return;
         }
-        setDefaultComposerHeight(null);
+        setComposerHeightAfterClear(null);
     }, [composerHeightAfterClear]);
 
     const onChangeText = useCallback(
@@ -585,31 +680,32 @@ function ComposerWithSuggestions({
 
             updateComment(commentValue, true);
 
-            if (isIOSNative && syncSelectionWithOnChangeTextRef.current) {
-                const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
-                syncSelectionWithOnChangeTextRef.current = null;
-
-                // ensure that selection is set imperatively after all state changes are effective
-                InteractionManager.runAfterInteractions(() => {
-                    // note: this implementation is only available on non-web RN, thus the wrapping
-                    // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-                    textInputRef.current?.setSelection(positionSnapshot, positionSnapshot);
-                });
+            if (!syncSelectionWithOnChangeTextRef.current) {
+                return;
             }
+
+            const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
+            syncSelectionWithOnChangeTextRef.current = null;
+            ReportActionComposeUtils.updateNativeSelectionValue(composerRef, positionSnapshot, positionSnapshot);
         },
         [clearComposerHeight, updateComment],
     );
 
     const onSelectionChange = useCallback(
         (e: CustomSelectionChangeEvent) => {
-            setSelection(e.nativeEvent.selection);
+            const newSelection = {...e.nativeEvent.selection};
+            setSelection(newSelection);
+            setCurrentEditMessageSelection((prevSelection) => ({
+                ...prevSelection,
+                ...newSelection,
+            }));
 
-            if (!textInputRef.current?.isFocused()) {
+            if (!composerRef.current?.isFocused()) {
                 return;
             }
             suggestionsRef.current?.onSelectionChange?.(e);
         },
-        [suggestionsRef],
+        [setCurrentEditMessageSelection, suggestionsRef],
     );
 
     const hideSuggestionMenu = useCallback(
@@ -630,16 +726,6 @@ function ComposerWithSuggestions({
         inputFocusChange(false);
         return suggestionsRef.current.setShouldBlockSuggestionCalc(false);
     }, [suggestionsRef]);
-
-    /**
-     * Focus the composer text input
-     * @param [shouldDelay=false] Impose delay before focusing the composer
-     */
-    const focus = useCallback((shouldDelay = false) => {
-        // If we're stacked above another RHP, wait for the transition to complete before focusing.
-        const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
-        focusComposerWithDelay(textInputRef.current, delay)(shouldDelay);
-    }, []);
 
     /**
      * In the stacked-RHP SearchReport case we disable the TextInput's immediate `autoFocus` to avoid jank.
@@ -677,7 +763,7 @@ function ComposerWithSuggestions({
         if (!isInSidePanel) {
             ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
         } else {
-            ReportActionComposeFocusManager.sidePanelComposerRef.current = textInputRef.current;
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = composerRef.current;
         }
     }, [isInSidePanel]);
 
@@ -735,13 +821,6 @@ function ComposerWithSuggestions({
         [checkComposerVisibility, focus, isSidePanelHiddenOrLargeScreen],
     );
 
-    const blur = useCallback(() => {
-        if (!textInputRef.current) {
-            return;
-        }
-        textInputRef.current.blur();
-    }, []);
-
     const clearWorklet = useCallback(() => {
         'worklet';
 
@@ -752,7 +831,7 @@ function ComposerWithSuggestions({
         if (!emptyComposerHeightRef.current) {
             return;
         }
-        setDefaultComposerHeight(emptyComposerHeightRef.current);
+        setComposerHeightAfterClear(emptyComposerHeightRef.current);
     }, []);
 
     const getCurrentText = useCallback(() => {
@@ -764,7 +843,7 @@ function ComposerWithSuggestions({
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             addKeyDownPressListener(focusComposerOnKeyPress);
             // The report isn't unmounted and can be focused again after going back from another report so we should update the composerRef again
-            ReportActionComposeFocusManager.composerRef.current = textInputRef.current;
+            ReportActionComposeFocusManager.composerRef.current = composerRef.current;
             setUpComposeFocusManager();
         });
         addKeyDownPressListener(focusComposerOnKeyPress);
@@ -792,7 +871,7 @@ function ComposerWithSuggestions({
 
         // We want to blur the input immediately when a screen is out of focus.
         if (!isFocused) {
-            textInputRef.current?.blur();
+            composerRef.current?.blur();
             return;
         }
 
@@ -822,33 +901,44 @@ function ComposerWithSuggestions({
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
-        updateMultilineInputRange(textInputRef.current, !!shouldAutoFocus);
+        updateMultilineInputRange(composerRef.current, !!shouldAutoFocus);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useImperativeHandle(
         ref,
-        () => ({
-            blur,
-            focus,
-            replaceSelectionWithText,
-            isFocused: () => !!textInputRef.current?.isFocused(),
-            getCurrentText,
-            clearWorklet,
-            resetHeight,
-        }),
-        [blur, focus, replaceSelectionWithText, clearWorklet, resetHeight, getCurrentText],
+        () =>
+            new Proxy(
+                {},
+                {
+                    get: (_target, prop) => {
+                        if (prop === 'focus') {
+                            return focus;
+                        }
+                        if (prop === 'replaceSelectionWithText') {
+                            return replaceSelectionWithText;
+                        }
+                        if (prop === 'getCurrentText') {
+                            return getCurrentText;
+                        }
+                        if (prop === 'clearWorklet') {
+                            return clearWorklet;
+                        }
+                        if (prop === 'resetHeight') {
+                            return resetHeight;
+                        }
+
+                        return composerRef.current?.[prop as keyof ComposerRef];
+                    },
+                },
+            ) as ComposerWithSuggestionsRef,
     );
 
-    useEffect(() => {
-        onValueChange(value);
-    }, [onValueChange, value]);
-
     const onClear = useCallback(
-        (text: string) => {
+        (textOnClear: string) => {
             mobileInputScrollPosition.current = 0;
             // Note: use the value when the clear happened, not the current value which might have changed already
-            onClearProp(text);
+            onClearProp(textOnClear);
             updateComment('', true);
         },
         [onClearProp, updateComment],
@@ -856,7 +946,7 @@ function ComposerWithSuggestions({
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(textInputRef.current) ?? -1);
+        tag.set(findNodeHandle(composerRef.current) ?? -1);
     }, [tag]);
 
     useFocusedInputHandler(
@@ -876,7 +966,7 @@ function ComposerWithSuggestions({
     );
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
-            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef: composerRef});
             const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
             measureParentContainer((x, y, width, height) => {
                 callback({
@@ -924,18 +1014,26 @@ function ComposerWithSuggestions({
 
     // When using the suggestions box (Suggestions) we need to imperatively
     // set the cursor to the end of the suggestion/mention after it's selected.
-    const onSuggestionSelected = useCallback((suggestionSelection: TextSelection) => {
-        const endOfSuggestionSelection = suggestionSelection.end;
-        setSelection(suggestionSelection);
+    const onSuggestionSelected = useCallback(
+        (suggestionSelection: TextSelection) => {
+            const endOfSuggestionSelection = suggestionSelection.end;
+            setSelection(suggestionSelection);
+            setCurrentEditMessageSelection((prevSelection) => ({
+                ...prevSelection,
+                start: suggestionSelection.start,
+                end: suggestionSelection.end,
+            }));
 
-        if (endOfSuggestionSelection === undefined) {
-            return;
-        }
+            if (endOfSuggestionSelection === undefined) {
+                return;
+            }
 
-        queueMicrotask(() => {
-            textInputRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
-        });
-    }, []);
+            queueMicrotask(() => {
+                composerRef.current?.setSelection?.(endOfSuggestionSelection, endOfSuggestionSelection);
+            });
+        },
+        [setCurrentEditMessageSelection],
+    );
 
     return (
         <>
@@ -951,7 +1049,7 @@ function ComposerWithSuggestions({
                     // So we must also prevent the TextInput's immediate `autoFocus` and rely on our delayed manual focus instead.
                     autoFocus={!!shouldAutoFocus && !shouldDelayAutoFocus}
                     multiline
-                    ref={setTextInputRef}
+                    ref={setComposerRef}
                     placeholder={inputPlaceholder}
                     placeholderTextColor={theme.placeholderText}
                     onChangeText={onChangeText}
@@ -967,7 +1065,7 @@ function ComposerWithSuggestions({
                     onBlur={onBlur}
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(files) => {
-                        textInputRef.current?.blur();
+                        composerRef.current?.blur();
                         onPasteFile(files);
                     }}
                     onClear={onClear}
@@ -976,8 +1074,8 @@ function ComposerWithSuggestions({
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}
                     onContentSizeChange={handleContentSizeChange}
-                    value={value}
-                    testID="composer"
+                    value={text}
+                    testID={CONST.COMPOSER.NATIVE_ID}
                     shouldCalculateCaretPosition
                     onLayout={onLayout}
                     onScroll={hideSuggestionMenu}
@@ -989,13 +1087,13 @@ function ComposerWithSuggestions({
 
             <Suggestions
                 ref={suggestionsRef}
-                isComposerFocused={textInputRef.current?.isFocused()}
+                isComposerFocused={composerRef.current?.isFocused()}
                 updateComment={updateComment}
                 measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
                 isGroupPolicyReport={isGroupPolicyReport}
                 policyID={policyID}
                 // Input
-                value={value}
+                value={text}
                 selection={selection}
                 setSelection={onSuggestionSelected}
                 resetKeyboardInput={resetKeyboardInput}
@@ -1004,10 +1102,10 @@ function ComposerWithSuggestions({
             {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
                     reportID={reportID}
-                    value={value}
+                    value={text}
                     updateComment={updateComment}
                     commentRef={commentRef}
-                    isCommentPendingSaved={isCommentPendingSaved}
+                    isCommentPendingSaved={isCommentSavePending}
                     isTransitioningToPreExistingReport={isTransitioningToPreExistingReport}
                     onTransitionToPreExistingReportComplete={handleTransitionToPreExistingReportComplete}
                 />
@@ -1021,4 +1119,4 @@ function ComposerWithSuggestions({
 
 export default memo(ComposerWithSuggestions);
 
-export type {ComposerRef};
+export type {ComposerWithSuggestionsRef};
