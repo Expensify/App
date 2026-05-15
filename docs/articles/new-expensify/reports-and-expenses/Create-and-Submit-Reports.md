@@ -27,9 +27,7 @@ Follow these steps to build an expense report manually.
 
 After submitting, the report status updates and a **”submitted”** entry appears in the activity at the bottom of the report. For details on what each report status means, see [Understanding Report Statuses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Understanding-Report-Statuses-and-Actions).
 
-**Note:** If your workspace uses automatic submission, you’ll see **”Waiting for your expenses to automatically submit”** at the top of the report instead of a Submit button.
-
-**Note:** If you selected “Track expenses for my business” or “Organize my personal spending” during onboarding and your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**, and the activity entry will say **”marked as done”** instead of **”submitted”**.
+**Note:** If your workspace does not use an approval workflow, you’ll see **Mark as done** instead of **Submit**. 
 
 ---
 
