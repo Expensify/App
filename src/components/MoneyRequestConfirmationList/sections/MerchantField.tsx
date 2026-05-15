@@ -5,7 +5,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestMerchant} from '@libs/actions/IOU';
+import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import {isValidInputLength} from '@libs/ValidationUtils';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -52,20 +52,24 @@ function MerchantField({
 
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
 
-    const iouMerchant = merchantState?.merchant ?? '';
-    const isMerchantEmpty = !iouMerchant || (merchantState?.isMissing ?? true);
+    const merchantValue = merchantState?.merchant ?? '';
+    const displayMerchantValue = !merchantState?.isMerchantSet ? '' : merchantValue;
+    const isMerchantEmpty = !displayMerchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
 
     // Determine if the merchant error should be displayed
     const merchantErrorText = (() => {
-        const merchantValue = iouMerchant ?? '';
         const {isValid, byteLength} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
 
         if (!isValid) {
             return translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
         }
 
-        if ((shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantRequired && isMerchantEmpty) {
+        if (formError === 'iou.error.invalidMerchant') {
+            return translate('iou.error.invalidMerchant');
+        }
+
+        if (shouldDisplayFieldError && isMerchantRequired && isMerchantEmpty) {
             return translate('common.error.fieldRequired');
         }
 
@@ -82,7 +86,16 @@ function MerchantField({
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
+            if (newMerchant.trim() === '') {
+                setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: '', isMerchantSet: false});
+                return;
+            }
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
+            return;
+        }
+
+        if (newMerchant.trim() === '') {
+            clearMoneyRequestMerchant(transactionID);
             return;
         }
 
@@ -93,7 +106,7 @@ function MerchantField({
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput
-                    value={isMerchantEmpty ? '' : (iouMerchant ?? '')}
+                    value={displayMerchantValue}
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
                     label={translate('common.merchant')}
@@ -107,7 +120,7 @@ function MerchantField({
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
-            title={isMerchantEmpty ? '' : iouMerchant}
+            title={isMerchantEmpty ? '' : displayMerchantValue}
             description={translate('common.merchant')}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}

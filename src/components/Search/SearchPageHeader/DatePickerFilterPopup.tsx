@@ -36,4 +36,3 @@ function DatePickerFilterPopup({closeOverlay, setPopoverWidth, filterKey, value,
 }
 
 export default DatePickerFilterPopup;
-export type {DatePickerFilterPopupProps};

@@ -94,12 +94,13 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState => ({
 
 // --- MerchantField ---
 
-type MerchantState = {merchant: string; isMissing: boolean; hasReceipt: boolean};
+type MerchantState = {merchant: string; isMissing: boolean; hasReceipt: boolean; isMerchantSet: Transaction['isMerchantSet']};
 
 const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState => ({
     merchant: getMerchant(t),
     isMissing: isMerchantMissing(t),
     hasReceipt: hasReceipt(t),
+    isMerchantSet: t?.isMerchantSet,
 });
 
 // --- DescriptionField ---
@@ -122,6 +123,7 @@ type AmountSlice = {
     iouRequestType: Transaction['iouRequestType'];
     comment: {type: NonNullable<Transaction['comment']>['type']; customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined;
     isAmountMissing: boolean;
+    isAmountSet: Transaction['isAmountSet'];
 };
 
 const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined => {
@@ -137,6 +139,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         iouRequestType: t.iouRequestType,
         comment: t.comment ? {type: t.comment.type, customUnit: t.comment.customUnit} : undefined,
         isAmountMissing: isAmountMissing(t),
+        isAmountSet: t.isAmountSet,
     };
 };
 

@@ -33,6 +33,7 @@ type DescriptionFieldProps = {
     reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     isEditingSplitBill: boolean;
+    onSubmitForm?: () => void;
 };
 
 function DescriptionField({
@@ -47,6 +48,7 @@ function DescriptionField({
     reportActionID,
     policy,
     isEditingSplitBill,
+    onSubmitForm,
 }: DescriptionFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -63,7 +65,6 @@ function DescriptionField({
     const contextMenuStateValue = {
         anchor: null,
         report: undefined,
-        isReportArchived: false,
         action: undefined,
         isDisabled: true,
         shouldDisplayContextMenu: false,
@@ -104,6 +105,8 @@ function DescriptionField({
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
+                                    submitBehavior="blurAndSubmit"
+                                    onSubmitEditing={onSubmitForm}
                                     label={translate('common.description')}
                                     accessibilityLabel={translate('common.description')}
                                     autoGrowHeight
