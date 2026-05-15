@@ -11657,6 +11657,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.NoOpenDeployChecklistError = void 0;
 exports.getDeployChecklist = getDeployChecklist;
+exports.getLastClosedDeployChecklist = getLastClosedDeployChecklist;
 exports.getDeployChecklistData = getDeployChecklistData;
 exports.generateDeployChecklistBodyAndAssignees = generateDeployChecklistBodyAndAssignees;
 exports.parseChecklistSection = parseChecklistSection;
@@ -11765,6 +11766,30 @@ async function listForRepoWithRetry(params) {
         }
     }
     throw lastError;
+}
+async function getLastClosedDeployChecklist() {
+    const data = await listForRepoWithRetry({
+        owner: CONST_1.default.GITHUB_OWNER,
+        repo: CONST_1.default.APP_REPO,
+        labels: CONST_1.default.LABELS.STAGING_DEPLOY,
+        state: 'closed',
+        sort: 'created',
+        direction: 'desc',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 10,
+    });
+    if (!data.length) {
+        throw new Error(`Unable to find any closed ${CONST_1.default.LABELS.STAGING_DEPLOY} issues.`);
+    }
+    // Sort by closed_at descending to find the most recently closed checklist.
+    // We cannot rely on the API's sort=updated because a comment or edit on an older
+    // closed issue would cause it to appear first, returning a stale version.
+    const sorted = [...data].sort((a, b) => (b.closed_at ?? '').localeCompare(a.closed_at ?? ''));
+    const issue = sorted.at(0);
+    if (!issue) {
+        throw new Error(`Unable to find any closed ${CONST_1.default.LABELS.STAGING_DEPLOY} issues.`);
+    }
+    return getDeployChecklistData(issue);
 }
 async function getDeployChecklist() {
     const openIssues = await listForRepoWithRetry({

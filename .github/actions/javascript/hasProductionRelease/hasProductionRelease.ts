@@ -1,7 +1,7 @@
 import * as core from '@actions/core';
+import CONST from '@github/libs/CONST';
 import {getLastClosedDeployChecklist} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
-import CONST from '@github/libs/CONST';
 
 const run = async function (): Promise<void> {
     let version: string;
