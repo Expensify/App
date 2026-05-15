@@ -279,34 +279,37 @@ function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndices[] {
 }
 
 /**
- * Get number of empty spaces to be filled to get equal emojis for every row
+ * Push spacer entries into an existing array to pad up to a full row boundary.
+ * Inlined at call sites to avoid allocating an intermediate spacer array.
  */
-function getDynamicSpacing(emojiCount: number, suffix: number): EmojiSpacer[] {
-    const spacerEmojis = [];
+function pushDynamicSpacing(target: EmojiPickerList, emojiCount: number, suffix: number): void {
     let modLength = CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
 
     // Empty spaces is pushed if the given row has less than eight emojis
     while (modLength > 0 && modLength < CONST.EMOJI_NUM_PER_ROW) {
-        spacerEmojis.push({
+        target.push({
             code: `${CONST.EMOJI_SPACER}_${suffix}_${modLength}`,
             spacer: true,
         });
         modLength -= 1;
     }
-    return spacerEmojis;
 }
 
 /**
  * Add dynamic spaces to emoji categories
  */
 function addSpacesToEmojiCategories(emojis: PickerEmojis): EmojiPickerList {
-    let updatedEmojis: EmojiPickerList = [];
-    for (const [index, emoji] of emojis.entries()) {
+    const updatedEmojis: EmojiPickerList = [];
+    let index = 0;
+    for (const emoji of emojis) {
         if (emoji && typeof emoji === 'object' && 'header' in emoji) {
-            updatedEmojis = updatedEmojis.concat(getDynamicSpacing(updatedEmojis.length, index), [emoji], getDynamicSpacing(1, index));
-            continue;
+            pushDynamicSpacing(updatedEmojis, updatedEmojis.length, index);
+            updatedEmojis.push(emoji);
+            pushDynamicSpacing(updatedEmojis, 1, index);
+        } else {
+            updatedEmojis.push(emoji);
         }
-        updatedEmojis.push(emoji);
+        index++;
     }
     return updatedEmojis;
 }
@@ -319,25 +322,48 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis, frequentlyUse
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const formattedFrequentlyUsedEmojis = frequentlyUsedEmojis.map((entry: FrequentlyUsedEmoji): Emoji => {
-        let baseEmoji: Emoji;
-        if (!entry.code) {
-            baseEmoji = findEmojiByName(entry.name);
-        } else if (!entry.name) {
-            baseEmoji = findEmojiByCode(entry.code);
-        } else {
-            baseEmoji = findEmojiByCode(entry.code) ?? findEmojiByName(entry.name);
-        }
-        return {
-            ...baseEmoji,
+    // Build the output directly to avoid a temporary merged array. Process the
+    // frequently-used header + entries first, then the main picker list in one pass.
+    const updatedEmojis: EmojiPickerList = [];
+    let index = 0;
+
+    // Frequently-used header
+    pushDynamicSpacing(updatedEmojis, updatedEmojis.length, index);
+    updatedEmojis.push(Emojis.categoryFrequentlyUsed);
+    pushDynamicSpacing(updatedEmojis, 1, index);
+    index++;
+
+    // Frequently-used entries – explicit object literal avoids spread overhead.
+    // Cast to Emoji: count/lastUpdatedAt/keywords are read by the picker but are
+    // not declared on the base Emoji type.
+    for (const entry of frequentlyUsedEmojis) {
+        const baseEmoji = findEmojiByCode(entry.code) ?? findEmojiByName(entry.name);
+        const emoji = {
+            code: baseEmoji.code,
+            name: baseEmoji.name,
+            hexcode: baseEmoji.hexcode,
+            types: baseEmoji.types,
             count: entry.count,
             lastUpdatedAt: entry.lastUpdatedAt,
             ...(entry.keywords ? {keywords: entry.keywords} : {}),
         } as Emoji;
-    });
+        updatedEmojis.push(emoji);
+        index++;
+    }
 
-    const mergedEmojis = [Emojis.categoryFrequentlyUsed, ...formattedFrequentlyUsedEmojis, ...emojis];
-    return addSpacesToEmojiCategories(mergedEmojis);
+    // Main picker list
+    for (const emoji of emojis) {
+        if (emoji && typeof emoji === 'object' && 'header' in emoji) {
+            pushDynamicSpacing(updatedEmojis, updatedEmojis.length, index);
+            updatedEmojis.push(emoji);
+            pushDynamicSpacing(updatedEmojis, 1, index);
+        } else {
+            updatedEmojis.push(emoji);
+        }
+        index++;
+    }
+
+    return updatedEmojis;
 }
 
 /**
