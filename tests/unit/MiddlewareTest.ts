@@ -144,6 +144,10 @@ describe('Middleware', () => {
             }));
 
             SequentialQueue.unpause();
+            // Two rounds of network promises are needed: the first round lets the initial
+            // OpenReport fetch resolve and Onyx process the preexistingReportID update;
+            // the second round lets the queued AddComment request fire with the updated reportID.
+            await waitForNetworkPromises();
             await waitForNetworkPromises();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
@@ -338,7 +342,10 @@ describe('Middleware', () => {
                 }));
 
             SequentialQueue.unpause();
-            await waitForBatchedUpdates();
+            // waitForNetworkPromises twice: first round resolves the OpenReport fetch and lets
+            // Onyx apply the preexistingReportID, second round fires the follow-up OpenReport request.
+            await waitForNetworkPromises();
+            await waitForNetworkPromises();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
 
