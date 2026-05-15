@@ -1458,9 +1458,9 @@ function getFilterDisplayValue({
         if (!bankAccount) {
             return filterValue;
         }
-        const bankName = bankAccount.accountData?.additionalData?.bankName ?? '';
+        const bankName = bankAccount.accountData?.additionalData?.bankName;
         const accountNumber = bankAccount.accountData?.accountNumber ?? '';
-        const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+        const formattedBankName = (bankName && CONST.BANK_NAMES_USER_FRIENDLY[bankName]) || CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
         const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
         return maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
     }
