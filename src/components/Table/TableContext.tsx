@@ -2,30 +2,30 @@ import type {FlashListRef} from '@shopify/flash-list';
 import React, {createContext, useContext} from 'react';
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting} from './middlewares/sorting';
-import type {SharedListProps, TableColumn, TableMethods} from './types';
+import type {SharedListProps, TableColumn, TableMethods, TableRowData} from './types';
 
 /**
  * The shape of the Table context value.
  * This context is provided by the `<Table>` component and consumed by its sub-components.
  *
- * @template T - The type of items in the table's data array.
+ * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  */
-type TableContextValue<T, ColumnKey extends string = string, FilterKey extends string = string> = {
+type TableContextValue<DataType extends object, ColumnKey extends string = string, FilterKey extends string = string> = {
     /** The title of the table when shown on smaller screens. */
     title?: string;
 
     /** Reference to the underlying FlashList for programmatic control. */
-    listRef: React.RefObject<FlashListRef<T> | null>;
+    listRef: React.RefObject<FlashListRef<DataType> | null>;
 
     /** FlashList props passed through from the Table component. */
-    listProps: SharedListProps<T>;
+    listProps: SharedListProps<DataType>;
 
     /** Whether or not selection is enabled for the table */
     selectionEnabled?: boolean;
 
     /** The data array after filtering, searching, and sorting have been applied. */
-    processedData: T[];
+    processedData: TableRowData<DataType>[];
 
     /** The original length of the data array before any processing. */
     originalDataLength: number;
@@ -57,11 +57,13 @@ type TableContextValue<T, ColumnKey extends string = string, FilterKey extends s
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
 
+    handleRowSelection: (rowKey: string) => void;
+
     /** Whether to use a narrow layout (e.g. on mobile screens). */
     shouldUseNarrowTableLayout: boolean;
 };
 
-const defaultTableContextValue: TableContextValue<unknown, string> = {
+const defaultTableContextValue: TableContextValue<any, string> = {
     listRef: React.createRef(),
     processedData: [],
     originalDataLength: 0,
@@ -75,6 +77,7 @@ const defaultTableContextValue: TableContextValue<unknown, string> = {
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,
     listProps: {} as SharedListProps<unknown>,
+    handleRowSelection: () => {},
     hasActiveFilters: false,
     hasSearchString: false,
     isEmptyResult: false,
@@ -100,14 +103,14 @@ const TableContext = createContext(defaultTableContextValue);
  * }
  * ```
  */
-function useTableContext<T, ColumnKey extends string = string>() {
+function useTableContext<DataType extends object, ColumnKey extends string = string>() {
     const context = useContext(TableContext);
 
     if (context === defaultTableContextValue && context.activeFilters === undefined) {
         throw new Error('useTableContext must be used within a Table provider');
     }
 
-    return context as unknown as TableContextValue<T, ColumnKey>;
+    return context as unknown as TableContextValue<DataType, ColumnKey>;
 }
 
 export default TableContext;

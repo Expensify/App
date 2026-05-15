@@ -41,15 +41,18 @@ type TableColumn<ColumnKey extends string = string> = {
     styling?: TableColumnStyling;
 };
 
-type TableRowData<T extends object> = T & {
-    selected?: boolean;
+type TableRowData<DataType extends object> = DataType & {
+    /** The key for the row */
+    rowKey: string;
+
+    /** Whether or not the row is selected or not */
+    selected: boolean;
 };
 
 /**
  * Methods exposed by the Table component for programmatic control.
  * Combines sorting, filtering, and searching capabilities.
  *
- * @template T - The type of items in the table's data array (unused in methods, kept for consistency).
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
@@ -59,18 +62,18 @@ type TableMethods<ColumnKey extends string = string, FilterKey extends string = 
  * The ref handle type for the Table component.
  * Provides access to both FlashList methods and custom table control methods.
  *
- * @template T - The type of items in the table's data array.
+ * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  */
-type TableHandle<T, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<T> & TableMethods<ColumnKey, FilterKey>;
+type TableHandle<DataType, ColumnKey extends string = string, FilterKey extends string = string> = FlashListRef<DataType> & TableMethods<ColumnKey, FilterKey>;
 
 /**
  * FlashList props with the 'data' prop omitted, as the Table manages data internally.
  *
- * @template T - The type of items in the table's data array.
+ * @template DataType - The type of items in the table's data array.
  */
-type SharedListProps<T> = Omit<FlashListProps<T>, 'data'>;
+type SharedListProps<DataType> = Omit<FlashListProps<DataType>, 'data'>;
 
 /**
  * Props for the Table component.
@@ -79,7 +82,7 @@ type SharedListProps<T> = Omit<FlashListProps<T>, 'data'>;
  * state and provides context, while child components (`<Table.Header>`, `<Table.Body>`,
  * `<Table.SearchBar>`, `<Table.FilterButtons>`) consume that context to render UI.
  *
- * @template T - The type of items in the table's data array.
+ * @template DataType - The type of items in the table's data array.
  * @template ColumnKey - A string literal type representing the valid column keys.
  * @template FilterKey - A string literal type representing the valid filter keys.
  *
@@ -99,13 +102,13 @@ type SharedListProps<T> = Omit<FlashListProps<T>, 'data'>;
  * </Table>
  * ```
  */
-type TableProps<T, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<T> &
+type TableProps<DataType extends object, ColumnKey extends string = string, FilterKey extends string = string> = SharedListProps<DataType> &
     PropsWithChildren<{
         /** The title for the table when shown on smaller screens */
         title?: string;
 
         /** Array of data items to display in the table. */
-        data: T[] | undefined;
+        data: TableRowData<DataType>[] | undefined;
 
         /** Whether multi selection is enabled */
         selectionEnabled?: boolean;
@@ -130,22 +133,22 @@ type TableProps<T, ColumnKey extends string = string, FilterKey extends string =
          * Receives two items and the current sorting configuration, returns a number
          * indicating sort order (negative = a before b, positive = b before a, 0 = equal).
          */
-        compareItems?: CompareItemsCallback<T, ColumnKey>;
+        compareItems?: CompareItemsCallback<DataType, ColumnKey>;
 
         /**
          * Predicate function to determine if an item matches the active filters.
          * Receives an item and an array of active filter values.
          */
-        isItemInFilter?: IsItemInFilterCallback<T>;
+        isItemInFilter?: IsItemInFilterCallback<DataType>;
 
         /**
          * Predicate function to determine if an item matches the search string.
          * Receives an item and the current search string.
          */
-        isItemInSearch?: IsItemInSearchCallback<T>;
+        isItemInSearch?: IsItemInSearchCallback<DataType>;
 
         /** Ref to access table methods programmatically. */
-        ref?: React.Ref<TableHandle<T, ColumnKey, FilterKey>>;
+        ref?: React.Ref<TableHandle<DataType, ColumnKey, FilterKey>>;
     }>;
 
 export type {

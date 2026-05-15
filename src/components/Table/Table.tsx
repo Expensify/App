@@ -129,7 +129,7 @@ import type {TableHandle, TableMethods, TableProps, TableRowData} from './types'
  * </Table>
  * ```
  */
-function Table<T extends object, ColumnKey extends string = string, FilterKey extends string = string>({
+function Table<DataType extends object, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
     title,
     data = [],
@@ -142,9 +142,13 @@ function Table<T extends object, ColumnKey extends string = string, FilterKey ex
     children,
     selectionEnabled,
     ...listProps
-}: TableProps<T, ColumnKey, FilterKey>) {
-    const [tableData, setTableData] = useState<TableRowData<T>[]>(() => {
-        return data.map((item, index) => ({...item, checked: false}));
+}: TableProps<DataType, ColumnKey, FilterKey>) {
+    const [tableData, setTableData] = useState<TableRowData<DataType>[]>(() => {
+        return data.map((item, index) => ({
+            ...item,
+            selected: false,
+            rowKey: index.toString(),
+        }));
     });
 
     if (!columns || columns.length === 0) {
@@ -153,15 +157,15 @@ function Table<T extends object, ColumnKey extends string = string, FilterKey ex
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<T, FilterKey>({filters, isItemInFilter});
+    const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<TableRowData<DataType>, FilterKey>({filters, isItemInFilter});
 
-    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<T>({isItemInSearch});
+    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<TableRowData<DataType>>({isItemInSearch});
 
-    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<T, ColumnKey>({compareItems, initialSortColumn});
+    const {middleware: sortMiddleware, activeSorting, methods: sortMethods} = useSorting<TableRowData<DataType>, ColumnKey>({compareItems, initialSortColumn});
 
     const processedData = [filterMiddleware, searchMiddleware, sortMiddleware].reduce((acc, middleware) => middleware(acc), tableData);
 
-    const listRef = useRef<FlashListRef<T>>(null);
+    const listRef = useRef<FlashListRef<DataType>>(null);
 
     const tableMethods: TableMethods<ColumnKey, FilterKey> = {
         ...filterMethods,
@@ -180,9 +184,9 @@ function Table<T extends object, ColumnKey extends string = string, FilterKey ex
                     return target[property as keyof typeof target];
                 }
 
-                return listRef.current?.[property as keyof FlashListRef<T>];
+                return listRef.current?.[property as keyof FlashListRef<DataType>];
             },
-        }) as TableHandle<T, ColumnKey, FilterKey>;
+        }) as TableHandle<DataType, ColumnKey, FilterKey>;
     });
 
     const originalDataLength = tableData?.length ?? 0;
@@ -200,8 +204,23 @@ function Table<T extends object, ColumnKey extends string = string, FilterKey ex
     const hasSearchString = activeSearchString.trim().length > 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasSearchString || hasActiveFilters);
 
+    /**
+     *
+     */
+    const handleRowSelection = (rowKey: string) => {
+        setTableData((prevData) => {
+            return prevData.map((item) => {
+                if (item.rowKey === rowKey) {
+                    return {...item, selected: !item.selected};
+                }
+
+                return item;
+            });
+        });
+    };
+
     // eslint-disable-next-line react/jsx-no-constructed-context-values
-    const contextValue: TableContextValue<T, ColumnKey, FilterKey> = {
+    const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
         title,
         listRef,
         listProps,
@@ -216,11 +235,12 @@ function Table<T extends object, ColumnKey extends string = string, FilterKey ex
         tableMethods,
         hasActiveFilters,
         hasSearchString,
+        handleRowSelection,
         isEmptyResult,
         shouldUseNarrowTableLayout,
     };
 
-    return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;
+    return <TableContext.Provider value={contextValue as unknown as TableContextValue<DataType, string>}>{children}</TableContext.Provider>;
 }
 
 export default Table;

@@ -55,8 +55,9 @@ export default function TableRow({
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {processedData, columns, shouldUseNarrowTableLayout, selectionEnabled} = useTableContext();
+    const {processedData, columns, shouldUseNarrowTableLayout, handleRowSelection, selectionEnabled} = useTableContext();
 
+    const item = processedData[rowIndex];
     const rowCount = processedData.length;
     const isLastRow = rowIndex === rowCount - 1;
     const isInteractive = interactive && !isLoading;
@@ -98,11 +99,7 @@ export default function TableRow({
     };
 
     return (
-        <OfflineWithFeedback
-            // We need to spread the props due to how the OfflineWithFeedback component handles child components
-
-            {...offlineWithFeedback}
-        >
+        <OfflineWithFeedback {...offlineWithFeedback}>
             <PressableWithFeedback
                 accessible={accessible}
                 accessibilityLabel="row"
@@ -132,8 +129,9 @@ export default function TableRow({
                             {selectionEnabled && (
                                 <View style={styles.flex1}>
                                     <Checkbox
+                                        isChecked={!!item.selected}
                                         accessibilityLabel="TEST"
-                                        onPress={() => {}}
+                                        onPress={() => handleRowSelection(item.rowKey)}
                                     />
                                 </View>
                             )}
