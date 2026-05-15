@@ -4,7 +4,6 @@ description: Learn how actions such as Approve, Pay, Export, and Hold behave in 
 keywords: [New Expensify, report actions, approver actions, submitter actions]
 ---
 
-
 Expense and report actions vary depending on the member role (submitter, approver, payer, admin) and the report's status (draft, outstanding, approved, done, paid). This guide outlines what to expect when reviewing, approving, paying, exporting, or managing expenses and reports based on varying workspace settings and report status.
 
 ---
@@ -32,7 +31,7 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 | **Export** | When the report is approved and not yet exported | Admin, Exporter | Sends report data to an integrated accounting system |
 | **Review** | When a report has violations (duplicate expenses, a missing receipt, etc.) | All roles | Prompts to resolve issues before submitting, approving, or paying |
 
-**Note:** If you selected "Track expenses for my business" or "Organize my personal spending" during onboarding and your workspace does not use an approval workflow, **Submit** and **Approve** will both display as **Mark as done**.
+**Note:** If your workspace does not use an approval workflow, you will see **Mark as done** instead of **Submit** and **Approve**.
 
 ---
 
