@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 
 const BAR_HEIGHT = 40;
 const BAR_PADDING = 16;
-const BAR_WIDTH = 200;
+const BAR_WIDTH = 180;
 const BAR_COUNT = 3;
 
 function ActionableItemSkeleton() {
@@ -22,7 +22,7 @@ function ActionableItemSkeleton() {
             <SkeletonViewContentLoader
                 height={BAR_HEIGHT}
                 width={BAR_WIDTH + BAR_PADDING * 2}
-                backgroundColor={theme.skeletonLHNIn}
+                backgroundColor={theme.buttonHoveredBG}
                 foregroundColor={theme.skeletonLHNOut}
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
             >
