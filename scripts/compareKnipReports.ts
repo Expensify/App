@@ -12,7 +12,7 @@ import CLI from './utils/CLI';
  * resolves others. Findings are matched per `<file>::<name>`, so a single file
  * with multiple unused items counts as one finding per item.
  *
- * Usage: ts-node scripts/compareKnipReports.ts --mainPath <main.json> --prPath <pr.json>
+ * Usage: ts-node scripts/compareKnipReports.ts --mainPath=<main.json> --prPath=<pr.json>
  */
 
 const CATEGORIES = [
@@ -59,7 +59,7 @@ function parseReport(filepath: string): Report {
     // we can't rely on a fixed token like `{"issues"`. Locate every `{` and try
     // to parse from there; accept the first slice that parses AND has an
     // `issues` array. Anything else is a hard failure — the CI should not
-    // silently treat an unparseable report as "no findings".
+    // silently treat a malformed report as "no findings".
     let searchFrom = 0;
     let lastParseError: Error | undefined;
     while (true) {
