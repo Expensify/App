@@ -5,7 +5,7 @@ keywords: [New Expensify, expense policy, policy document, policy text, upload e
 internalScope: Audience is Workspace Admins on the Control plan. Covers uploading, replacing, viewing, and removing PDF expense policy documents and creating or editing text-based expense policies on the workspace overview page. Does not cover configuring workspace expense rules, category rules, approval workflows, or tag rules.
 ---
 
-# Add an Expense policy to a workspace
+# Add an expense policy to a workspace
 
 You can add an **Expense Policy** to your workspace by uploading a PDF document or creating a text-based policy directly in the workspace overview page. Workspace members can view and download uploaded policy documents and view text-based policies.
 
