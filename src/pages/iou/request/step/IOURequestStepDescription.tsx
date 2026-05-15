@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {hasReceipt} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
-import {setMoneyRequestDescription} from '@userActions/IOU';
+import {setMoneyRequestDescription} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestDescription} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';

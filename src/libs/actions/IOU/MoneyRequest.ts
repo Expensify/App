@@ -61,13 +61,13 @@ import type {
     TransactionViolation,
 } from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {GpsPoint, IOURequestType} from './index';
-import {getAllTransactionDrafts, setMoneyRequestMerchant, setMoneyRequestPendingFields} from './index';
+import {getAllTransactionDrafts} from './index';
 import {createDistanceRequest, resetSplitShares, startSplitBill} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -1314,6 +1314,87 @@ function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<Transaction>,
     });
 }
 
+function setMoneyRequestReceiptState(transactionID: string, isDraft: boolean, shouldStopSmartscan = false) {
+    if (!isDraft || !shouldStopSmartscan) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN}});
+}
+
+function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false, shouldStopSmartscan = false) {
+    // Mark that the user has explicitly set the amount. This is used by the new manual expense flow to distinguish
+    // a default amount of 0 (field empty) from a user-entered 0 (valid $0 expense).
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount, isAmountSet: true});
+    setMoneyRequestReceiptState(transactionID, true, shouldStopSmartscan);
+}
+
+/**
+ * Clears the amount field back to an empty/unset state in the new manual expense flow.
+ * Called when the user deletes all characters from the amount input so that the field
+ * shows as empty and submission is blocked until a value is entered again.
+ */
+function clearMoneyRequestAmount(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount: 0, isAmountSet: false});
+}
+
+function clearMoneyRequestMerchant(transactionID: string, isDraft = true) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant: '', isMerchantSet: false});
+}
+
+function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean, shouldStopSmartscan = false) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
+}
+
+function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {attributes: {dates: {start, end}}}}});
+}
+
+function setMoneyRequestCurrency(transactionID: string, currency: string, isEditing = false) {
+    const fieldToUpdate = isEditing ? 'modifiedCurrency' : 'currency';
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
+}
+
+function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean, shouldStopSmartscan = false) {
+    // Trim only when persisting to the real transaction (not a draft) to avoid
+    // stripping trailing spaces/newlines while the user is still typing.
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {comment: isDraft ? comment : comment.trim()}});
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
+}
+
+function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraft: boolean, shouldStopSmartscan = false) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant, isMerchantSet: true});
+    setMoneyRequestReceiptState(transactionID, isDraft, shouldStopSmartscan);
+}
+
+function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {attendees}});
+}
+
+function setMoneyRequestAccountant(transactionID: string, accountant: Accountant, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {accountant});
+}
+
+function setMoneyRequestPendingFields(transactionID: string, pendingFields: Transaction['pendingFields']) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
+}
+
+function setMoneyRequestTag(transactionID: string, tag: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
+}
+
+function setMoneyRequestBillable(transactionID: string, billable: boolean) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
+}
+
+function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolean) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reimbursable});
+}
+
+function setMoneyRequestReportID(transactionID: string, reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
+}
+
 export {
     createTransaction,
     handleMoneyRequestStepScanParticipants,
@@ -1343,5 +1424,21 @@ export {
     setCustomUnitID,
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
+    setMoneyRequestReceiptState,
+    setMoneyRequestAmount,
+    clearMoneyRequestAmount,
+    clearMoneyRequestMerchant,
+    setMoneyRequestCreated,
+    setMoneyRequestDateAttribute,
+    setMoneyRequestCurrency,
+    setMoneyRequestDescription,
+    setMoneyRequestMerchant,
+    setMoneyRequestAttendees,
+    setMoneyRequestAccountant,
+    setMoneyRequestPendingFields,
+    setMoneyRequestTag,
+    setMoneyRequestBillable,
+    setMoneyRequestReimbursable,
+    setMoneyRequestReportID,
 };
 export type {MoneyRequestStepScanParticipantsFlowParams};

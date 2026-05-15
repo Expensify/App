@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@userActions/IOU';
+import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@userActions/IOU/MoneyRequest';
 import type {Policy} from '@src/types/onyx';
 
 type ExpenseDefaultsSetterProps = {
