@@ -2,6 +2,7 @@
 title: Playroll Integration
 description: Learn how to connect Expensify with Playroll to automatically sync approved expenses for HR and EOR processing.
 keywords: [Expensify Classic, Playroll, HR, EOR, expense sync, integration, payroll]
+internalScope: Audience is Workspace Admins and Workspace Owners. Covers connecting Expensify Classic to Playroll for one-way expense syncing. Does not cover Playroll configuration beyond the Expensify integration.
 ---
 
 
@@ -10,7 +11,7 @@ The Expensify-Playroll integration allows approved expenses in Expensify to auto
 **Important:** Only approved expenses will sync, and expenses without receipts will not sync to Playroll.
 
 ---
-
+## Who can connect Expensify to Playroll
 # Prerequisites
 
 Before setting up the integration, ensure the following:
@@ -22,7 +23,7 @@ Before setting up the integration, ensure the following:
 
 ---
 
-# Setup Steps
+## How to connect Expensify to Playroll
 
 ## Step 1: Switch to Expensify Classic
 
@@ -85,7 +86,7 @@ For example:
 
 {% include info.html %}
 Employee email addresses in Expensify must match Personal Emails in Playroll for expenses to sync correctly.
-{% include end-info.html %}
+## How to verify the Playroll integration is set up correctly
 
 ---
 
