@@ -256,7 +256,6 @@ function MapViewImpl({
     return !isOffline && !!accessToken && !!initialViewState ? (
         <View
             style={style}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...responder.panHandlers}
         >
             <Map

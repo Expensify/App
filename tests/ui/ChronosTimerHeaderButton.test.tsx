@@ -24,6 +24,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: (...args: unknown[]): void => {
         mockNavigate(...args);
     },
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     isTopmostRouteModalScreen: () => false,
 }));
 

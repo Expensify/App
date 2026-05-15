@@ -1,4 +1,7 @@
 import React, {useMemo, useState} from 'react';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,9 +15,6 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
-import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
-import SelectionListWithSections from './SelectionList/SelectionListWithSections';
-import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
