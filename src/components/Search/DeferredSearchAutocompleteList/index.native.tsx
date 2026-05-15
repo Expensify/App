@@ -37,7 +37,6 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
         );
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading -- This is a transparent wrapper that forwards all props to SearchAutocompleteList
     return <SearchAutocompleteList {...props} />;
 }
 
