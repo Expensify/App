@@ -46,13 +46,11 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@src/hooks/useRootNavigationState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({contextualReportID: undefined, isSearchRouterScreen: false}),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],

@@ -9,7 +9,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import OptionsListContextProvider from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {clearAllRelatedReportActionErrors} from '@libs/actions/ClearReportActionErrors';
+import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
 import {setHasRadio} from '@libs/NetworkState';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import PureReportActionItem from '@pages/inbox/report/PureReportActionItem';
@@ -82,18 +82,16 @@ describe('ClearReportActionErrors UI', () => {
         action: ReportAction,
         report: Report,
         options?: {
-            clearErrorFn?: typeof clearAllRelatedReportActionErrors;
             originalReportID?: string;
         },
     ) {
-        const {clearErrorFn, originalReportID = report.reportID} = options ?? {};
+        const {originalReportID = report.reportID} = options ?? {};
         return render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                 <OptionsListContextProvider>
                     <ScreenWrapper testID="test">
                         <PortalProvider>
                             <PureReportActionItem
-                                personalPolicyID={undefined}
                                 report={report}
                                 parentReportAction={undefined}
                                 action={action}
@@ -101,7 +99,6 @@ describe('ClearReportActionErrors UI', () => {
                                 shouldDisplayNewMarker={false}
                                 index={0}
                                 isFirstVisibleReportAction={false}
-                                clearAllRelatedReportActionErrors={clearErrorFn}
                                 originalReportID={originalReportID}
                             />
                         </PortalProvider>
@@ -134,10 +131,10 @@ describe('ClearReportActionErrors UI', () => {
         });
 
         it('should call clearAllRelatedReportActionErrors when error is dismissed', async () => {
-            // Given a rendered report action with errors and a mock clear function
+            // Given a rendered report action with errors and a spy on the clear function
             const action = getFakeReportAction(Number(REPORT_ACTION_ID), {actorAccountID: ACTOR_ACCOUNT_ID, errors: DEFAULT_ERRORS});
             const report = createMockReport({reportID: REPORT_ID, ownerAccountID: ACTOR_ACCOUNT_ID});
-            const mockClearErrors = jest.fn();
+            const spy = jest.spyOn(ClearReportActionErrorsActions, 'clearAllRelatedReportActionErrors');
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -147,10 +144,7 @@ describe('ClearReportActionErrors UI', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            renderReportActionItem(action, report, {
-                clearErrorFn: mockClearErrors,
-                originalReportID: REPORT_ID,
-            });
+            renderReportActionItem(action, report, {originalReportID: REPORT_ID});
             await waitForBatchedUpdatesWithAct();
 
             // When the user presses the dismiss button
@@ -158,7 +152,8 @@ describe('ClearReportActionErrors UI', () => {
             fireEvent.press(dismissButton);
 
             // Then clearAllRelatedReportActionErrors should be called with correct arguments
-            expect(mockClearErrors).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID);
+            expect(spy).toHaveBeenCalledWith(REPORT_ID, expect.objectContaining({reportActionID: REPORT_ACTION_ID}), REPORT_ID);
+            spy.mockRestore();
         });
 
         it('should clear error from Onyx when dismissed', async () => {
@@ -179,7 +174,6 @@ describe('ClearReportActionErrors UI', () => {
             await waitForBatchedUpdatesWithAct();
 
             renderReportActionItem(action, report, {
-                clearErrorFn: clearAllRelatedReportActionErrors,
                 originalReportID: REPORT_ID,
             });
             await waitForBatchedUpdatesWithAct();
@@ -236,7 +230,6 @@ describe('ClearReportActionErrors UI', () => {
             await waitForBatchedUpdatesWithAct();
 
             renderReportActionItem(parentAction, parentReport, {
-                clearErrorFn: clearAllRelatedReportActionErrors,
                 originalReportID: REPORT_ID,
             });
             await waitForBatchedUpdatesWithAct();
@@ -276,7 +269,6 @@ describe('ClearReportActionErrors UI', () => {
             await waitForBatchedUpdatesWithAct();
 
             renderReportActionItem(action, report, {
-                clearErrorFn: clearAllRelatedReportActionErrors,
                 originalReportID: REPORT_ID,
             });
             await waitForBatchedUpdatesWithAct();

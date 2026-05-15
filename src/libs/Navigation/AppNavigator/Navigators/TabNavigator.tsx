@@ -11,6 +11,8 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
+import {getSpan} from '@libs/telemetry/activeSpans';
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import TabNavigatorBar from './TabNavigatorBar';
@@ -21,21 +23,36 @@ const LazySearchFullscreenNavigator = lazy(() => import('./SearchFullscreenNavig
 const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
 const LazyWorkspaceNavigator = lazy(() => import('./WorkspaceNavigator'));
 
-function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>) {
+type LazyFallbackProps = {
+    /** Sentry span to tag when this fallback renders. */
+    tabSpanName?: string;
+};
+
+function LazyFallback({tabSpanName}: LazyFallbackProps) {
+    const styles = useThemeStyles();
+
+    // Lets Sentry split slow tab navigations into "lazy chunk fetch" vs "screen render" buckets.
+    useEffect(() => {
+        if (!tabSpanName) {
+            return;
+        }
+        getSpan(tabSpanName)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_LAZY_TAB_FALLBACK_SHOWN, true);
+    }, [tabSpanName]);
+
+    return (
+        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
+            <ActivityIndicator
+                size="large"
+                reasonAttributes={{context: 'TabNavigator.LazyTab'}}
+            />
+        </View>
+    );
+}
+
+function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>, tabSpanName?: string) {
     function SuspenseWrapper(props: P) {
-        const styles = useThemeStyles();
         return (
-            <Suspense
-                fallback={
-                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
-                        <ActivityIndicator
-                            size="large"
-                            reasonAttributes={{context: 'TabNavigator.LazyTab'}}
-                        />
-                    </View>
-                }
-            >
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+            <Suspense fallback={<LazyFallback tabSpanName={tabSpanName} />}>
                 <LazyComponent {...props} />
             </Suspense>
         );
@@ -44,8 +61,8 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
 }
 
 const HomePageScreen = withSuspense(LazyHomePage);
-const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator);
-const SearchFullscreenNavigatorScreen = withSuspense(LazySearchFullscreenNavigator);
+const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB);
+const SearchFullscreenNavigatorScreen = withSuspense(LazySearchFullscreenNavigator, CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS);
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 

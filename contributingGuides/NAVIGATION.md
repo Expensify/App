@@ -750,11 +750,49 @@ KEYBOARD_SHORTCUTS: {
 > and makes it harder to reason about which screens can trigger a given flow.
 > When in doubt, prefer an explicit list.
 
-### Current limitations (work in progress)
+### Optional path parameters
 
-- **Optional path parameters:** Suffixes must not include optional path params (e.g. `a/:reportID?`). Required path parameters (e.g. `flag/:reportActionID`) and query parameters are supported - see [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
+Dynamic route suffixes may declare optional path parameters by appending `?` to the parameter name.
+An optional parameter can be present or absent in the URL; when absent, the corresponding key is
+omitted from the navigation state's `params` (it is **not** set to `undefined`).
 
-If you try to use dynamic routes with optional path parameters now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
+Optionals can appear anywhere in the suffix:
+
+- **Trailing optional:** `member-details/:accountID?` matches both `member-details` and `member-details/123`.
+- **Middle optional:** `wrap/:p?/end` matches both `wrap/end` and `wrap/x/end`.
+- **Multiple optionals:** `a/:p1?/b/:p2?` matches `a/b`, `a/x/b`, `a/b/y`, and `a/x/b/y`.
+
+#### Configuration example
+
+```ts
+DYNAMIC_ROUTES: {
+    MEMBER_DETAILS: {
+        path: 'member-details/:accountID?',
+        entryScreens: [SCREENS.WORKSPACE.MEMBERS],
+        getRoute: (accountID?: string) => (accountID ? `member-details/${accountID}` : 'member-details'),
+    },
+},
+```
+
+#### Precedence rules
+
+When several registered suffixes could match the same URL, the matcher uses a deterministic
+three-phase order. Each phase exhausts all sub-suffix lengths (longest to shortest) before the
+next phase begins:
+
+1. **Static beats everything.** All sub-suffix lengths are checked for an exact static match
+   first. A short static match (e.g. single-segment `country`) always beats a longer parametric
+   match (e.g. `:reportID/country`).
+2. **Strict parametric beats optional parametric.** After statics, all sub-suffix lengths are
+   checked for strict parametric patterns (no optional params, e.g. `flag/:reportID/:reportActionID`).
+   Only after those are exhausted does the matcher try optional parametric patterns
+   (e.g. `page/:id?`).
+3. **Longest match wins within each phase.** Within a single phase the algorithm iterates from
+   the longest candidate to the shortest, so a 3-segment match beats a 2-segment one when both
+   are registered.
+4. **Among patterns of the same kind: first registered wins.** If multiple patterns of the same
+   type (strict or optional) could match the same candidate, the one declared first in
+   `DYNAMIC_ROUTES` wins.
 
 ### Multi-segment dynamic routes
 

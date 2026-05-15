@@ -27,4 +27,3 @@ function useScanRouteParams(): ScanRouteInfo {
 }
 
 export default useScanRouteParams;
-export type {ScanRouteParams, ScanRouteInfo};

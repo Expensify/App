@@ -1086,6 +1086,9 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
 
+        /** Whether Travel Invoicing JEs post as individual entries per expense or a single grouped entry */
+        travelInvoicingJournalPostingPreference?: NetSuiteJournalPostingPreferences;
+
         /** The provincial tax account for tax line items in NetSuite (only for Canadian Subsidiaries) */
         provincialTaxPostingAccount?: string;
 
@@ -1295,6 +1298,9 @@ type SageIntacctExportConfig = {
 
     /** Accounting method for Sage Intacct */
     accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
+
+    /** The payable account to use for Expensify Travel expenses when exporting to Sage Intacct */
+    travelInvoicingPayableAccountID?: string;
 };
 
 /**
@@ -1369,6 +1375,27 @@ type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Workspace member who acts as the final approver */
         finalApprover: string | null;
+
+        /** Collections of form field errors */
+        errorFields?: OnyxCommon.ErrorFields;
+    },
+    'approvalMode' | 'finalApprover'
+>;
+
+/** TriNet (Zenefits) connection data */
+type ZenefitsConnectionData = Record<string, never>;
+
+/** TriNet (Zenefits) connection config */
+type ZenefitsConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Zenefits approval mode */
+        approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null;
+
+        /** Workspace member who acts as the final approver */
+        finalApprover: string | null;
+
+        /** Whether the connection has been configured */
+        isConfigured: boolean;
 
         /** Collections of form field errors */
         errorFields?: OnyxCommon.ErrorFields;
@@ -1509,6 +1536,9 @@ type Connections = {
 
     /** Gusto integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.GUSTO]: Connection<GustoConnectionData, GustoConnectionConfig>;
+
+    /** TriNet (Zenefits) integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
@@ -1579,6 +1609,12 @@ type ProhibitedExpenses = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the policy prohibits adult entertainment expenses */
     adultEntertainment?: boolean;
+
+    /** Whether the policy prohibits gift card purchases */
+    giftCard?: boolean;
+
+    /** Whether the policy prohibits handwritten receipt expenses */
+    handwrittenReceipt?: boolean;
 }>;
 
 /** Day of the month to schedule submission  */
@@ -2199,7 +2235,6 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
-    ReceiptPartners,
     UberReceiptPartner,
     AllConnectionName,
     Tenant,
@@ -2217,9 +2252,6 @@ export type {
     NetSuiteCustomSegment,
     NetSuiteCustomFieldMapping,
     NetSuiteAccount,
-    NetSuiteVendor,
-    InvoiceItem,
-    NetSuiteTaxAccount,
     NetSuiteCustomFormID,
     SageIntacctMappingValue,
     SageIntacctMappingType,

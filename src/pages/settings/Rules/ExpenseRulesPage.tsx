@@ -25,6 +25,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearDraftRule, deleteExpenseRules, setDraftRule} from '@libs/actions/User';
@@ -178,6 +179,8 @@ function ExpenseRulesPage() {
         });
     }
 
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
@@ -187,17 +190,17 @@ function ExpenseRulesPage() {
             onPress={() => null}
             options={headerDropdownOptions}
             shouldAlwaysShowDropdownMenu
-            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
             testID="ExpenseRulesPage-header-dropdown-menu-button"
         />
     ) : (
-        <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+        <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
             <Button
                 success
                 onPress={navigateToNewRulePage}
                 icon={icons.Plus}
                 text={translate('expenseRulesPage.newRule')}
-                style={[shouldUseNarrowLayout && styles.flex1]}
+                style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
             />
         </View>
@@ -260,14 +263,13 @@ function ExpenseRulesPage() {
                 shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
             >
-                {!shouldUseNarrowLayout && hasRules && headerButton}
+                {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+            {shouldDisplayButtonsInSeparateLine && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
             {!hasRules && !isLoading && headerContent}
             {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <GenericEmptyStateComponent
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...genericIllustration}
                         title={translate('expenseRulesPage.emptyRules.title')}
                         subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
@@ -294,11 +296,12 @@ function ExpenseRulesPage() {
                 <SelectionListWithModal
                     addBottomSafeAreaPadding
                     canSelectMultiple={canSelectMultiple}
+                    selectAllAccessibilityLabel={translate('accessibilityHints.selectAllRules')}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
                     data={filteredRuleList}
                     ListItem={TableListItem}
-                    onCheckboxPress={toggleRule}
+                    onSelectionButtonPress={toggleRule}
                     onSelectAll={filteredRuleList.length > 0 ? toggleAllRules : undefined}
                     onSelectRow={onSelectRow}
                     onTurnOnSelectionMode={(item) => item && toggleRule(item)}
@@ -306,7 +309,6 @@ function ExpenseRulesPage() {
                     shouldHeaderBeInsideList
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldShowRightCaret
-                    shouldUseDefaultRightHandSideCheckmark={false}
                     shouldShowListEmptyContent={false}
                     showScrollIndicator={false}
                     turnOnSelectionModeOnLongPress={shouldUseNarrowLayout}

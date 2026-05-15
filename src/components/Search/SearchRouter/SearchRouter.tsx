@@ -22,6 +22,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +32,7 @@ import type {SearchOption} from '@libs/OptionsListUtils';
 import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportOrDraftReport, isHiddenForCurrentUser} from '@libs/ReportUtils';
+import {isHiddenForCurrentUser} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -74,7 +75,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListWithSectionsHandle>(null);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'ConciergeAvatar']);
-    const askConcierge = useAskConcierge();
+    const {askConcierge, shouldShowAskConcierge} = useAskConcierge();
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
@@ -86,7 +87,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const {contextualReportID, isSearchRouterScreen} = useRootNavigationState(getContextualReportData);
 
-    const [contextualReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`);
+    const contextualReport = useReportOrReportDraft(contextualReportID);
     const [contextualReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${contextualReportID}`, {
         selector: privateIsArchivedSelector,
     });
@@ -123,7 +124,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 return undefined;
             }
             let reportForContextualSearch = recentReports.find((option) => option.reportID === contextualReportID);
-            const reportForContextualSearchReport = getReportOrDraftReport(reportForContextualSearch?.reportID);
+            const reportForContextualSearchReport = reportForContextualSearch ? contextualReport : undefined;
             const reportAction = getReportAction(reportForContextualSearchReport?.parentReportID, reportForContextualSearchReport?.parentReportActionID);
             const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             if (!reportForContextualSearch) {
@@ -200,7 +201,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         ],
     );
 
-    const searchQueryItems = textInputValue
+    const searchQueryItems = textInputValue?.trim()
         ? [
               {
                   text: textInputValue,
@@ -210,15 +211,19 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                   keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.FIND_ITEM,
                   searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
               },
-              {
-                  text: translate('search.askConcierge', textInputValue),
-                  singleIcon: expensifyIcons.ConciergeAvatar,
-                  shouldIconApplyFill: false,
-                  searchQuery: textInputValue,
-                  itemStyle: styles.activeComponentBG,
-                  keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
-                  searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
-              },
+              ...(shouldShowAskConcierge
+                  ? [
+                        {
+                            text: translate('search.askConcierge', textInputValue),
+                            singleIcon: expensifyIcons.ConciergeAvatar,
+                            shouldIconApplyFill: false,
+                            searchQuery: textInputValue,
+                            itemStyle: styles.activeComponentBG,
+                            keyForList: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
+                            searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.ASK_CONCIERGE,
+                        },
+                    ]
+                  : []),
           ]
         : undefined;
 
@@ -253,7 +258,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const submitSearch = useCallback(
         (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
-            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
+            const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID);
             const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion);
             if (!updatedQuery) {
                 return;
@@ -271,13 +276,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
+        [autocompleteSubstitutions, currentUserAccountID, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
     );
 
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
             const setFocusAndScrollToRight = () => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     if (!textInputRef.current) {
                         return;

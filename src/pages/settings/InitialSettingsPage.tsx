@@ -29,6 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -46,7 +47,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
-import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
+import {getProfilePageBrickRoadIndicator, hasDeviceManagementError} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
@@ -105,6 +106,7 @@ export type {MenuData};
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons([
+        'Bot',
         'Gear',
         'Profile',
         'NewWindow',
@@ -126,6 +128,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
     const allCards = useNonPersonalCardList();
@@ -157,11 +160,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
+    const [hasAgentErrors] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {
+        selector: (agents) => Object.values(agents ?? {}).some((agent) => !isEmptyObject(agent?.nameErrors) || !isEmptyObject(agent?.promptErrors)),
+    });
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
+    const {isBetaEnabled} = usePermissions();
 
     const freeTrialText = getFreeTrialText(currentUserPersonalDetails.accountID, translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
@@ -243,6 +250,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * @returns object with translationKey, style and items for the account section
      */
     const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails, vacationDelegate, session?.email);
+    const securityBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
     const accountItems: MenuData[] = [
         {
             translationKey: 'common.profile',
@@ -279,10 +287,24 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             translationKey: 'initialSettingsPage.security',
             icon: icons.Lock,
             screenName: SCREENS.SETTINGS.SECURITY,
+            brickRoadIndicator: securityBrickRoadIndicator,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SECURITY,
             action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
         },
     ];
+
+    if (isBetaEnabled(CONST.BETAS.CUSTOM_AGENT)) {
+        const rulesIndex = accountItems.findIndex((item) => item.screenName === SCREENS.SETTINGS.RULES.ROOT);
+        accountItems.splice(rulesIndex + 1, 0, {
+            translationKey: 'agentsPage.title',
+            icon: icons.Bot,
+            screenName: SCREENS.SETTINGS.AGENTS.ROOT,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.AGENTS,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS),
+            badgeText: translate('common.beta'),
+            brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        });
+    }
 
     if (subscriptionPlan || (amountOwed ?? 0) > 0) {
         accountItems.splice(1, 0, {

@@ -49,6 +49,7 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import {useComposerActions, useComposerText} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
 import getCursorPosition from '@pages/inbox/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScrollPosition';
 import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
@@ -255,16 +256,19 @@ function ComposerWithSuggestions({
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
     const isInSidePanel = useIsInSidePanel();
-    const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
-    const [value, setValue] = useState(() => {
-        if (draftComment) {
-            emojisPresentBefore.current = extractEmojis(draftComment);
+    const value = useComposerText();
+    const {setText} = useComposerActions();
+    // Snapshot of provider text at mount — used for one-time selection cursor + emoji baseline + autofocus decision.
+    // Reading the live `value` for these would cause re-renders and effect re-fires on every keystroke.
+    const [initialText] = useState(() => {
+        if (value) {
+            emojisPresentBefore.current = extractEmojis(value);
         }
-        return draftComment;
+        return value;
     });
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const commentRef = useRef(value);
+    const commentRef = useRef(initialText);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -276,20 +280,20 @@ function ComposerWithSuggestions({
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [editFocused] = useOnyx(ONYXKEYS.INPUT_FOCUSED);
 
-    const lastTextRef = useRef(value);
+    const lastTextRef = useRef(initialText);
     useEffect(() => {
         lastTextRef.current = value;
     }, [value]);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!value) && shouldShowComposeInput && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
-    const valueRef = useRef(value);
+    const valueRef = useRef(initialText);
     valueRef.current = value;
 
-    const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
+    const [selection, setSelection] = useState<TextSelection>(() => ({start: initialText.length, end: initialText.length, positionX: 0, positionY: 0}));
 
     const [composerHeightAfterClear, setDefaultComposerHeight] = useState<number | null>(null);
     const emptyComposerHeightRef = useRef<number | null>(null);
@@ -447,7 +451,7 @@ function ComposerWithSuggestions({
             const newCommentConverted = convertToLTRForComposer(newComment);
             emojisPresentBefore.current = emojis;
 
-            setValue(newCommentConverted);
+            setText(newCommentConverted);
             if (commentValue !== newComment) {
                 const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + textVSOffset : undefined;
                 const position = Math.max((selection.end ?? 0) + (newComment.length - commentRef.current.length), adjustedCursorPosition ?? 0);
@@ -486,6 +490,7 @@ function ComposerWithSuggestions({
             selection?.end,
             selection?.start,
             currentUserAccountID,
+            setText,
         ],
     );
 
@@ -585,7 +590,6 @@ function ComposerWithSuggestions({
                 syncSelectionWithOnChangeTextRef.current = null;
 
                 // ensure that selection is set imperatively after all state changes are effective
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     // note: this implementation is only available on non-web RN, thus the wrapping
                     // 'if' block contains a redundant (since the ref is only used on iOS) platform check
@@ -657,7 +661,6 @@ function ComposerWithSuggestions({
         }
         delayedAutoFocusRouteKeyRef.current = route.key;
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const task = InteractionManager.runAfterInteractions(() => {
             focus(true);
         });
@@ -1018,4 +1021,4 @@ function ComposerWithSuggestions({
 
 export default memo(ComposerWithSuggestions);
 
-export type {ComposerWithSuggestionsProps, ComposerRef};
+export type {ComposerRef};

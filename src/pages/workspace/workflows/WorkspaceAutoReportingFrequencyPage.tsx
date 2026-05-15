@@ -7,14 +7,14 @@ import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getCorrectedAutoReportingFrequency, goBackFromInvalidPolicy, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, getCorrectedAutoReportingFrequency, goBackFromInvalidPolicy, isGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
@@ -118,7 +118,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                 <FullPageNotFoundView
                     onBackButtonPress={goBackFromInvalidPolicy}
                     onLinkPress={goBackFromInvalidPolicy}
-                    shouldShow={isEmptyObject(policy) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)}
+                    shouldShow={isEmptyObject(policy) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || !isGroupPolicy(policy)}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                     addBottomSafeAreaPadding
                 >
@@ -134,12 +134,11 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                         contentContainerStyle={styles.flex1}
                     >
                         <SelectionList
-                            ListItem={RadioListItem}
+                            ListItem={SingleSelectListItem}
                             data={autoReportingFrequencyItems}
                             onSelectRow={onSelectAutoReportingFrequency}
                             initiallyFocusedItemKey={autoReportingFrequency}
                             addBottomSafeAreaPadding
-                            shouldUpdateFocusedIndex
                         />
                     </OfflineWithFeedback>
                 </FullPageNotFoundView>
@@ -148,6 +147,5 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
     );
 }
 
-export type {AutoReportingFrequencyDisplayNames, AutoReportingFrequencyKey};
 export {getAutoReportingFrequencyDisplayNames};
 export default withPolicy(WorkspaceAutoReportingFrequencyPage);
