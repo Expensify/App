@@ -77,6 +77,7 @@ export default function TableRow({
         shouldUseNarrowTableLayout && !isLoading && styles.pv4,
         !shouldUseNarrowTableLayout && !isLoading && styles.pv2,
         isLastRow ? styles.tableBottomRadius : styles.borderBottom,
+        item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
         shouldUseNarrowTableLayout ? styles.tableRowHeightCompact : styles.tableRowHeight,
     ];
 
@@ -89,6 +90,16 @@ export default function TableRow({
         // Use Grid on web when available (will override flex if supported)
         !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: gridTemplateColumns.join(' ')}],
     ];
+
+    const tableRowPressableHoverStyle = (() => {
+        if (!isInteractive) {
+            return undefined;
+        } else if (item.selected) {
+            return styles.activeComponentBG;
+        } else {
+            return styles.hoveredComponentBG;
+        }
+    })();
 
     const renderChildren = (state: PressableStateCallbackType) => {
         if (typeof children === 'function') {
@@ -106,8 +117,8 @@ export default function TableRow({
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={isInteractive}
+                hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={isInteractive ? undefined : 1}
-                hoverStyle={isInteractive && styles.hoveredComponentBG}
                 role={isInteractive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 onPress={onPress}
                 {...props}
