@@ -5,7 +5,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {AddEmojiReactionParams, RemoveEmojiReactionParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
-import {addEmojiReaction, removeEmojiReaction} from '@src/libs/actions/ReportActions';
+import {addEmojiReaction, removeEmojiReaction} from '@src/libs/actions/EmojiReactions';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
