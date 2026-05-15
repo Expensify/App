@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -83,28 +83,25 @@ function usePopoverEditState<T>({
         });
     };
 
-    const cancelEditing = useCallback(() => {
+    const cancelEditing = () => {
         setIsPopoverVisible(false);
         setIsEditing(false);
-    }, []);
+    };
 
     /**
      * Handles saving a new value.
      * Compares the new value with the original value and only calls onSave if they differ.
      * Always closes the popover after handling.
      */
-    const handleSave = useCallback(
-        (newValue: T) => {
-            if (value !== undefined && onSave) {
-                const shouldSave = isEqual ? !isEqual(newValue, value) : !Object.is(newValue, value);
-                if (shouldSave) {
-                    onSave(newValue);
-                }
+    const handleSave = (newValue: T) => {
+        if (value !== undefined && onSave) {
+            const shouldSave = isEqual ? !isEqual(newValue, value) : !Object.is(newValue, value);
+            if (shouldSave) {
+                onSave(newValue);
             }
-            cancelEditing();
-        },
-        [value, onSave, isEqual, cancelEditing],
-    );
+        }
+        cancelEditing();
+    };
 
     // Cancel editing when permission is revoked (e.g., transaction status changed)
     useEffect(() => {
