@@ -455,5 +455,4 @@ export type {
     CardAssignmentData,
     UnassignedCard,
     PossibleFraudData,
-    FrozenCardData,
 };

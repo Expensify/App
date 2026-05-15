@@ -125,4 +125,3 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
 }
 
 export default useSearchFocusSync;
-export type {UseSearchFocusSyncParams};
