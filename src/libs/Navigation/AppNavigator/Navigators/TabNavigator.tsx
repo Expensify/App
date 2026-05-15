@@ -53,7 +53,6 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
     function SuspenseWrapper(props: P) {
         return (
             <Suspense fallback={<LazyFallback tabSpanName={tabSpanName} />}>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <LazyComponent {...props} />
             </Suspense>
         );

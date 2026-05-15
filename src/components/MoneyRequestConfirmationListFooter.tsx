@@ -1,30 +1,24 @@
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {shouldShowReceiptEmptyState} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
-import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {isScanRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
-import ConfirmedRoute from './ConfirmedRoute';
-import InvoiceSenderField from './MoneyRequestConfirmationList/sections/InvoiceSenderField';
-import PerDiemFields from './MoneyRequestConfirmationList/sections/PerDiemFields';
 import ConfirmationFieldList from './MoneyRequestConfirmationListFooter/ConfirmationFieldList';
-import ConfirmationReceiptThumbnail from './MoneyRequestConfirmationListFooter/ConfirmationReceiptThumbnail';
-import useCompactReceiptDimensions from './MoneyRequestConfirmationListFooter/hooks/useCompactReceiptDimensions';
 import useFooterDerivedFlags from './MoneyRequestConfirmationListFooter/hooks/useFooterDerivedFlags';
 import useFooterTagVisibility from './MoneyRequestConfirmationListFooter/hooks/useFooterTagVisibility';
-import useReceiptThumbnailSource from './MoneyRequestConfirmationListFooter/hooks/useReceiptThumbnailSource';
-import ReceiptEmptyState from './ReceiptEmptyState';
+import DistanceMapSection from './MoneyRequestConfirmationListFooter/sections/DistanceMapSection';
+import InvoiceSenderSection from './MoneyRequestConfirmationListFooter/sections/InvoiceSenderSection';
+import PerDiemSection from './MoneyRequestConfirmationListFooter/sections/PerDiemSection';
+import ReceiptSection from './MoneyRequestConfirmationListFooter/sections/ReceiptSection';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -50,6 +44,12 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** The error message for the form */
     formError: string;
+
+    /** Clears specific form errors by key */
+    clearFormErrors: (errors: string[]) => void;
+
+    /** Sets a form error message */
+    setFormError: (error: TranslationPaths | '') => void;
 
     /** Flag indicating if there is a route */
     hasRoute: boolean;
@@ -179,6 +179,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Toggles compact mode by showing all fields */
     setShowMoreFields?: (showMoreFields: boolean) => void;
+
+    /** Triggers submit from inline inputs */
+    onSubmitForm?: () => void;
 };
 
 function MoneyRequestConfirmationListFooter({
@@ -190,6 +193,8 @@ function MoneyRequestConfirmationListFooter({
     formattedAmount,
     formattedAmountPerAttendee,
     formError,
+    clearFormErrors,
+    setFormError,
     hasRoute,
     iouType,
     isCategoryRequired,
@@ -233,9 +238,9 @@ function MoneyRequestConfirmationListFooter({
     isDescriptionRequired = false,
     showMoreFields = false,
     setShowMoreFields = () => {},
+    onSubmitForm,
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
@@ -249,8 +254,6 @@ function MoneyRequestConfirmationListFooter({
         isPolicyExpenseChat,
         isReadOnly,
         isDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
         isPerDiemRequest,
         isTimeRequest,
         isTypeInvoice,
@@ -264,96 +267,64 @@ function MoneyRequestConfirmationListFooter({
         transaction,
     });
 
-    const receiptSource = useReceiptThumbnailSource({transaction, receiptPath, receiptFilename});
-
-    const horizontalMargin = typeof styles.moneyRequestImage.marginHorizontal === 'number' ? styles.moneyRequestImage.marginHorizontal : 0;
-    const compact = useCompactReceiptDimensions({
-        showMoreFields,
-        isScan: flags.isScan,
-        isInLandscapeMode,
-        windowWidth,
-        horizontalMargin,
-    });
-
-    const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
-    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    // ReceiptSection owns the receipt thumbnail + compact-mode hooks; the outer wrapper only needs this boolean.
+    const isCompactMode = !showMoreFields && isScanRequest(transaction) && !isInLandscapeMode;
 
     return (
-        <View style={compact.isCompactMode ? styles.flex1 : undefined}>
+        <View style={isCompactMode ? styles.flex1 : undefined}>
             <View>
-                {isTypeInvoice && (
-                    <InvoiceSenderField
-                        selectedParticipants={selectedParticipants}
-                        isReadOnly={isReadOnly}
-                        didConfirm={didConfirm}
-                        iouType={iouType}
-                        reportID={reportID}
-                        transaction={transaction}
-                    />
-                )}
-                {flags.shouldShowMap && (
-                    <View style={styles.confirmationListMapItem}>
-                        <ConfirmedRoute transaction={transaction ?? ({} as OnyxTypes.Transaction)} />
-                    </View>
-                )}
-                {isPerDiemRequest && action !== CONST.IOU.ACTION.SUBMIT && (
-                    <PerDiemFields
-                        perDiemCustomUnit={perDiemCustomUnit}
-                        transaction={transaction}
-                        isReadOnly={isReadOnly}
-                        didConfirm={didConfirm}
-                        transactionID={transactionID}
-                        action={action}
-                        iouType={iouType}
-                        reportID={reportID}
-                        shouldDisplayFieldError={shouldDisplayFieldError}
-                        formError={formError}
-                    />
-                )}
+                <InvoiceSenderSection
+                    iouType={iouType}
+                    reportID={reportID}
+                    selectedParticipants={selectedParticipants}
+                    isReadOnly={isReadOnly}
+                    didConfirm={didConfirm}
+                    transaction={transaction}
+                />
+                <DistanceMapSection
+                    transaction={transaction}
+                    isDistanceRequest={isDistanceRequest}
+                    isManualDistanceRequest={isManualDistanceRequest}
+                    isOdometerDistanceRequest={isOdometerDistanceRequest}
+                    iouType={iouType}
+                    isReadOnly={isReadOnly}
+                />
+                <PerDiemSection
+                    action={action}
+                    iouType={iouType}
+                    isPerDiemRequest={isPerDiemRequest}
+                    transaction={transaction}
+                    reportID={reportID}
+                    transactionID={transactionID}
+                    policy={policy}
+                    isReadOnly={isReadOnly}
+                    didConfirm={didConfirm}
+                    shouldDisplayFieldError={shouldDisplayFieldError}
+                    formError={formError}
+                />
             </View>
 
-            {(!flags.shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) &&
-                (receiptSource.hasReceiptImageOrThumbnail || isLoadingReceipt ? (
-                    <ConfirmationReceiptThumbnail
-                        transactionID={transactionID}
-                        reportID={reportID}
-                        action={action}
-                        iouType={iouType}
-                        isReceiptEditable={isReceiptEditable}
-                        shouldDisplayReceipt={shouldDisplayReceipt}
-                        isLoadingReceipt={isLoadingReceipt}
-                        isCompactMode={compact.isCompactMode}
-                        isLocalFile={receiptSource.isLocalFile}
-                        isThumbnail={receiptSource.isThumbnail}
-                        fileExtension={receiptSource.fileExtension}
-                        receiptFilename={receiptFilename}
-                        receiptThumbnail={receiptSource.receiptThumbnail}
-                        resolvedReceiptImage={receiptSource.resolvedReceiptImage as string | undefined}
-                        effectiveReceiptSource={receiptSource.effectiveReceiptSource}
-                        isOdometerDistanceRequest={isOdometerDistanceRequest}
-                        isDistanceRequest={isDistanceRequest}
-                        compactReceiptContainerStyle={compact.compactReceiptContainerStyle}
-                        onPDFLoadError={onPDFLoadError}
-                        onPDFPassword={onPDFPassword}
-                        onCompactReceiptContainerLayout={compact.handleCompactReceiptContainerLayout}
-                        onReceiptLoad={compact.handleReceiptLoad}
-                    />
-                ) : (
-                    showReceiptEmptyState && (
-                        <ReceiptEmptyState
-                            onPress={() => {
-                                if (!transactionID) {
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRoute()));
-                            }}
-                            style={[
-                                compact.isCompactMode ? undefined : styles.mv3,
-                                compact.isCompactMode && compact.compactReceiptStyle ? compact.compactReceiptStyle : styles.moneyRequestViewImage,
-                            ]}
-                        />
-                    )
-                ))}
+            <ReceiptSection
+                transaction={transaction}
+                transactionID={transactionID}
+                reportID={reportID}
+                action={action}
+                iouType={iouType}
+                policy={policy}
+                isPerDiemRequest={isPerDiemRequest}
+                isDistanceRequest={isDistanceRequest}
+                isManualDistanceRequest={isManualDistanceRequest}
+                isOdometerDistanceRequest={isOdometerDistanceRequest}
+                isReadOnly={isReadOnly}
+                isReceiptEditable={isReceiptEditable}
+                shouldDisplayReceipt={shouldDisplayReceipt}
+                isLoadingReceipt={isLoadingReceipt}
+                receiptPath={receiptPath}
+                receiptFilename={receiptFilename}
+                showMoreFields={showMoreFields}
+                onPDFLoadError={onPDFLoadError}
+                onPDFPassword={onPDFPassword}
+            />
 
             <ConfirmationFieldList
                 action={action}
@@ -396,6 +367,8 @@ function MoneyRequestConfirmationListFooter({
                 isPerDiemRequest={isPerDiemRequest}
                 shouldDisplayFieldError={shouldDisplayFieldError}
                 formError={formError}
+                clearFormErrors={clearFormErrors}
+                setFormError={setFormError}
                 iouCurrencyCode={flags.iouCurrencyCode}
                 amount={amount}
                 formattedAmount={formattedAmount}
@@ -409,10 +382,11 @@ function MoneyRequestConfirmationListFooter({
                 onToggleReimbursable={onToggleReimbursable}
                 onToggleBillable={onToggleBillable}
                 setShowMoreFields={setShowMoreFields}
-                isCompactMode={compact.isCompactMode}
+                isCompactMode={isCompactMode}
+                onSubmitForm={onSubmitForm}
             />
         </View>
     );
 }
 
-export default memo(MoneyRequestConfirmationListFooter);
+export default MoneyRequestConfirmationListFooter;

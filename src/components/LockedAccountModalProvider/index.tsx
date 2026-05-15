@@ -46,4 +46,3 @@ function useLockedAccountActions() {
 
 export default LockedAccountModalProvider;
 export {useLockedAccountState, useLockedAccountActions};
-export type {LockedAccountStateContextType, LockedAccountActionsContextType};
