@@ -67,15 +67,4 @@ function wasInvitedToNewDotSelector(introSelected: OnyxValue<typeof ONYXKEYS.NVP
     return introSelected?.inviteType !== undefined;
 }
 
-/**
- * Selector to check if the onboarding flow is loading
- *
- * `undefined` means the value is not loaded yet
- * `true` means the onboarding flow is loading
- * `false` means the onboarding flow is not loading
- */
-function isOnboardingLoadingSelector(onboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>): boolean | undefined {
-    return !!onboarding?.isLoading;
-}
-
-export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector, isOnboardingLoadingSelector};
+export {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, hasSeenTourSelector, wasInvitedToNewDotSelector};

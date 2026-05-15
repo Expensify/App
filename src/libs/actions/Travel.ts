@@ -48,7 +48,14 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS | typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
+        {
+            onyxMethod: 'merge',
+            key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+            value: {
+                hasAcceptedTerms: false,
+            },
+        },
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.TRAVEL_PROVISIONING,
@@ -73,8 +80,7 @@ function requestTravelAccess() {
             onyxMethod: 'merge',
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
             value: {
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                lastTravelSignupRequestTime: Date.now(),
+                lastTravelSignupRequestTime: Date.now().toString(),
             },
         },
     ];

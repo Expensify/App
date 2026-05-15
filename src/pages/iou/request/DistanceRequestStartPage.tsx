@@ -1,33 +1,25 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
-import usePrevious from '@hooks/usePrevious';
+import useResetIOUType from '@hooks/useResetIOUType';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {IOURequestType} from '@userActions/IOU';
-import {initMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {SelectedTabRequest} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
 import IOURequestStepDistanceManual from './step/IOURequestStepDistanceManual';
@@ -51,21 +43,12 @@ function DistanceRequestStartPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
-
-    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const personalPolicy = usePersonalPolicy();
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
@@ -79,8 +62,6 @@ function DistanceRequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.trackDistance'),
     };
 
-    const isFromGlobalCreate = isEmptyObject(report?.reportID);
-
     const transactionRequestType = useMemo(() => {
         if (!transaction?.iouRequestType) {
             return lastDistanceExpenseType ?? selectedTab ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
@@ -89,7 +70,15 @@ function DistanceRequestStartPage({
         return transaction.iouRequestType;
     }, [transaction?.iouRequestType, selectedTab, lastDistanceExpenseType]);
 
-    const prevTransactionReportID = usePrevious(transaction?.reportID);
+    const resetIOUTypeIfChanged = useResetIOUType({
+        reportID,
+        report,
+        transaction,
+        isLoadingSelectedTab,
+        transactionRequestType,
+        policy,
+        isTrackDistanceExpense,
+    });
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
@@ -98,60 +87,6 @@ function DistanceRequestStartPage({
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
-
-    const resetIOUTypeIfChanged = useCallback(
-        (newIOUType: IOURequestType) => {
-            Keyboard.dismiss();
-            if (transaction?.iouRequestType === newIOUType) {
-                return;
-            }
-            initMoneyRequest({
-                reportID,
-                policy,
-                personalPolicy,
-                isFromGlobalCreate,
-                isTrackDistanceExpense,
-                isFromFloatingActionButton: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate ?? isFromGlobalCreate,
-                currentIouRequestType: transaction?.iouRequestType,
-                newIouRequestType: newIOUType,
-                report,
-                parentReport,
-                currentDate,
-                lastSelectedDistanceRates,
-                currentUserPersonalDetails,
-                hasOnlyPersonalPolicies,
-                draftTransactionIDs,
-            });
-        },
-        [
-            transaction?.iouRequestType,
-            transaction?.isFromGlobalCreate,
-            transaction?.isFromFloatingActionButton,
-            reportID,
-            policy,
-            personalPolicy,
-            isFromGlobalCreate,
-            report,
-            parentReport,
-            currentDate,
-            lastSelectedDistanceRates,
-            currentUserPersonalDetails,
-            isTrackDistanceExpense,
-            hasOnlyPersonalPolicies,
-            draftTransactionIDs,
-        ],
-    );
-
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
-    useFocusEffect(
-        useCallback(() => {
-            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
-            if (transaction?.reportID === reportID || isLoadingSelectedTab || !transactionRequestType || prevTransactionReportID !== transaction?.reportID) {
-                return;
-            }
-            resetIOUTypeIfChanged(transactionRequestType);
-        }, [transaction?.reportID, reportID, resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
-    );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
@@ -167,7 +102,6 @@ function DistanceRequestStartPage({
             iouType={iouType}
             policyID={policy?.id}
             accessVariants={[CONST.IOU.ACCESS_VARIANTS.CREATE]}
-            allPolicies={allPolicies}
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={selectedTab === CONST.TAB_REQUEST.DISTANCE_ODOMETER}

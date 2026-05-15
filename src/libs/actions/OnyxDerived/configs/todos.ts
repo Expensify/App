@@ -58,7 +58,6 @@ const createTodosReportsAndTransactions = ({
         const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
-
         if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID)) {
             reportsToSubmit.push(report);
         }

@@ -1,8 +1,9 @@
 # `@react-navigation` patches
 
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
+#### [@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.16.1+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+elements+2.9.10+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.10+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch)
@@ -69,10 +70,3 @@
 - E/App issue: [#48150](https://github.com/Expensify/App/issues/48150)
 - PR Introducing Patch: [#48151](https://github.com/Expensify/App/pull/48151)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155)
-
-### [@react-navigation+core+7.16.1+003+fix-clearing-preloaded-routes-after-logout.patch](@react-navigation+core+7.16.1+003+fix-clearing-preloaded-routes-after-logout.patch)
-- Reason: Clear preloaded routes from state that are not available after logging out.
-- Upstream PR/issue: N/A
-- E/App issue: [#65709](https://github.com/Expensify/App/issues/65211)
-- PR Introducing Patch: [#65836](https://github.com/Expensify/App/pull/66890)
-- PR Updating Patch: N/A

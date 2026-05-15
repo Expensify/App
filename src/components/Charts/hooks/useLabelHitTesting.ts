@@ -1,11 +1,10 @@
 import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
-import {useMemo} from 'react';
 import type {SharedValue} from 'react-native-reanimated';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Scale} from 'victory-native';
-import {DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/constants';
+import {AXIS_LABEL_GAP, DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/constants';
 import type {LabelRotation} from '@components/Charts/types';
-import {getFontLineMetrics, isCursorOverChartLabel, measureTextWidth} from '@components/Charts/utils';
+import {getAdditionalOffset, getFontLineMetrics, isCursorOverChartLabel, rotatedLabelYOffset} from '@components/Charts/utils';
 import variables from '@styles/variables';
 import type {HitTestArgs} from './useChartInteractions';
 
@@ -22,95 +21,67 @@ type LabelHitGeometry = {
     /** Per-label: labelWidth / 2 — half-extent for 0° and 90° hit bounds */
     halfWidths: number[];
 
-    /** Per-label: rightUpperCorner.x = targetX + cornerAnchorDX[i] */
-    cornerAnchorDX: number[];
+    /** rightUpperCorner.x = targetX + cornerAnchorDX */
+    cornerAnchorDX: number;
 
-    /** Per-label: rightUpperCorner.y = labelY + cornerAnchorDY[i] */
-    cornerAnchorDY: number[];
+    /** rightUpperCorner.y = labelY + cornerAnchorDY */
+    cornerAnchorDY: number;
 
-    /** Per-label: yMin90 = labelY + yMin90Offsets[i] */
-    yMin90Offsets: number[];
+    /** yMin90 = labelY + yMin90Offset */
+    yMin90Offset: number;
 
     /** Per-label: yMax90 = labelY + yMax90Offsets[i] */
     yMax90Offsets: number[];
 };
 
-type ComputeGeometryInput = {
-    /** The ascent of the font */
-    ascent: number;
-
-    /** The descent of the font */
-    descent: number;
-
-    /** The sine of the angle */
-    sinA: number;
-
-    /** The angle in radians */
-    angleRad: number;
-
-    /** The widths of the labels */
-    labelWidths: number[];
-
-    /** The padding of the labels */
-    padding: number;
-};
-
-type ComputeGeometryFn = (input: ComputeGeometryInput) => LabelHitGeometry;
-
 type UseLabelHitTestingParams = {
     fontMgr: SkTypefaceFontProvider | null | undefined;
     fontSize: number;
-    truncatedLabels: string[];
+    /** Pre-computed pixel widths of each truncated label, from useChartLabelLayout. */
+    truncatedLabelWidths: number[];
     labelRotation: LabelRotation;
     labelSkipInterval: number;
     chartBottom: SharedValue<number>;
-
-    /**
-     * Chart-specific geometry factory.
-     * Receives font metrics, trig values, and per-label widths; returns the
-     * normalized geometry shape. Define as a module-level constant to keep
-     * the useMemo dependency stable.
-     */
-    computeGeometry: ComputeGeometryFn;
 };
 
 /**
  * Shared hook for x-axis label hit-testing in cartesian charts.
  *
- * Encapsulates label width measurement, angle conversion, pre-computed hit geometry,
- * and the isCursorOverLabel / findLabelCursorX worklets — all of which are identical
- * between bar and line chart except for how the hit geometry is computed.
+ * Encapsulates angle conversion, pre-computed hit geometry, and the
+ * isCursorOverLabel / findLabelCursorX worklets — all of which are identical
+ * between bar and line charts.
  *
- * Chart-specific geometry (45° corner anchor offsets, 90° vertical bounds) is supplied
- * via the `computeGeometry` callback, which should be a stable module-level constant.
+ * Label widths are accepted as a pre-computed array (from useChartLabelLayout)
+ * so no Skia measurement happens here.
+ *
+ * Labels are right-aligned at the tick: the 45° parallelogram's upper-right corner is
+ * offset by (iconSize/3 * sinA) left and down, placing the box just below the axis line.
  */
-function useLabelHitTesting({fontMgr, fontSize, truncatedLabels, labelRotation, labelSkipInterval, chartBottom, computeGeometry}: UseLabelHitTestingParams) {
+function useLabelHitTesting({fontMgr, fontSize, truncatedLabelWidths, labelRotation, labelSkipInterval, chartBottom}: UseLabelHitTestingParams) {
     const tickXPositions = useSharedValue<number[]>([]);
-
-    const labelWidths = useMemo(() => {
-        if (!fontMgr) {
-            return [] as number[];
-        }
-        return truncatedLabels.map((label) => measureTextWidth(label, fontMgr, fontSize));
-    }, [fontMgr, fontSize, truncatedLabels]);
 
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
-    /**
-     * Pre-computed geometry for label hit-testing.
-     * All per-label arrays and trig values are resolved once per layout/rotation change
-     * rather than on every hover event. The `computeGeometry` callback supplies the
-     * chart-specific differences (bar vs. line anchor offsets).
-     */
-    const labelHitGeometry = useMemo((): LabelHitGeometry | null => {
-        if (!fontMgr) {
-            return null;
-        }
-        const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
+    const fontMetrics = fontMgr ? getFontLineMetrics(fontMgr, fontSize) : null;
+
+    let labelHitGeometry: LabelHitGeometry | null = null;
+    if (fontMetrics) {
+        const {ascent, descent} = fontMetrics;
         const sinA = Math.sin(angleRad);
         const padding = variables.iconSizeExtraSmall / 2;
-        return computeGeometry({ascent, descent, sinA, angleRad, labelWidths, padding});
-    }, [fontMgr, fontSize, angleRad, labelWidths, computeGeometry]);
+        const iconThirdSin = (variables.iconSizeExtraSmall / 3) * sinA;
+        const additionalOffset = getAdditionalOffset(angleRad);
+        labelHitGeometry = {
+            labelYOffset: AXIS_LABEL_GAP + rotatedLabelYOffset(ascent, descent, angleRad) - additionalOffset,
+            iconSin: variables.iconSizeExtraSmall * sinA,
+            labelSins: truncatedLabelWidths.map((w) => w * sinA),
+            halfWidths: truncatedLabelWidths.map((w) => w / 2),
+            cornerAnchorDX: -iconThirdSin,
+            cornerAnchorDY: iconThirdSin,
+            yMin90Offset: padding,
+            yMax90Offsets: truncatedLabelWidths.map((w) => w + padding),
+        };
+    }
 
     /**
      * Hit-tests whether the cursor is over the x-axis label at `activeIndex`.
@@ -123,7 +94,7 @@ function useLabelHitTesting({fontMgr, fontSize, truncatedLabels, labelRotation, 
             return false;
         }
 
-        const {labelYOffset, iconSin, labelSins, halfWidths, cornerAnchorDX, cornerAnchorDY, yMin90Offsets, yMax90Offsets} = labelHitGeometry;
+        const {labelYOffset, iconSin, labelSins, halfWidths, cornerAnchorDX, cornerAnchorDY, yMin90Offset, yMax90Offsets} = labelHitGeometry;
         const padding = variables.iconSizeExtraSmall / 2;
         const halfWidth = halfWidths.at(activeIndex) ?? 0;
         const labelY = args.chartBottom + labelYOffset;
@@ -131,9 +102,7 @@ function useLabelHitTesting({fontMgr, fontSize, truncatedLabels, labelRotation, 
         let corners45: Array<{x: number; y: number}> | undefined;
         if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
             const labelSin = labelSins.at(activeIndex) ?? 0;
-            const anchorDX = cornerAnchorDX.at(activeIndex) ?? 0;
-            const anchorDY = cornerAnchorDY.at(activeIndex) ?? 0;
-            const rightUpperCorner = {x: args.targetX + anchorDX, y: labelY + anchorDY};
+            const rightUpperCorner = {x: args.targetX + cornerAnchorDX, y: labelY + cornerAnchorDY};
             const rightLowerCorner = {x: rightUpperCorner.x + iconSin, y: rightUpperCorner.y + iconSin};
             const leftUpperCorner = {x: rightUpperCorner.x - labelSin, y: rightUpperCorner.y + labelSin};
             const leftLowerCorner = {x: rightLowerCorner.x - labelSin, y: rightLowerCorner.y + labelSin};
@@ -149,7 +118,7 @@ function useLabelHitTesting({fontMgr, fontSize, truncatedLabels, labelRotation, 
             halfWidth,
             padding,
             corners45,
-            yMin90: labelY + (yMin90Offsets.at(activeIndex) ?? 0),
+            yMin90: labelY + yMin90Offset,
             yMax90: labelY + (yMax90Offsets.at(activeIndex) ?? 0),
         });
     };
@@ -190,4 +159,3 @@ function useLabelHitTesting({fontMgr, fontSize, truncatedLabels, labelRotation, 
 }
 
 export default useLabelHitTesting;
-export type {ComputeGeometryFn, ComputeGeometryInput, LabelHitGeometry};

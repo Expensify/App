@@ -4,17 +4,21 @@ import {tryNewDotOnyxSelector} from '@selectors/Onboarding';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {DismissedProductTraining} from '@src/types/onyx';
+import type {DismissedProductTraining, Session} from '@src/types/onyx';
 import type {GuardResult, NavigationGuard} from './types';
 
 let hasBeenAddedToNudgeMigration = false;
 let dismissedProductTraining: OnyxEntry<DismissedProductTraining>;
+let isDismissedProductTrainingLoaded = false;
+let session: OnyxEntry<Session>;
+let isLoadingApp = true;
 
 let hasRedirectedToMigratedUserModal = false;
 
@@ -22,11 +26,45 @@ function resetSessionFlag() {
     hasRedirectedToMigratedUserModal = false;
 }
 
+/**
+ * Proactively navigate to the migrated user welcome modal when all conditions are met,
+ * without waiting for a user-initiated navigation action.
+ * Waits for NVP_DISMISSED_PRODUCT_TRAINING to load before evaluating, preventing the
+ * race condition where the modal would re-appear on app restart.
+ */
+function navigateToMigratedUserWelcomeModalIfReady() {
+    if (
+        !session?.authToken ||
+        isLoadingApp ||
+        hasRedirectedToMigratedUserModal ||
+        !hasBeenAddedToNudgeMigration ||
+        !isDismissedProductTrainingLoaded ||
+        isProductTrainingElementDismissed('migratedUserWelcomeModal', dismissedProductTraining)
+    ) {
+        return;
+    }
+
+    Log.info('[MigratedUserWelcomeModalGuard] Proactively navigating to migrated user welcome modal');
+    hasRedirectedToMigratedUserModal = true;
+    Navigation.navigate(ROUTES.MIGRATED_USER_WELCOME_MODAL.getRoute());
+}
+
+/**
+ * Called by guards/index.ts when session or loading app state changes.
+ * Reuses the shared Onyx subscriptions from guards/index.ts to avoid duplicate connections.
+ */
+function onSessionOrLoadingAppChanged(sessionValue: OnyxEntry<Session>, isLoadingAppValue: boolean) {
+    session = sessionValue;
+    isLoadingApp = isLoadingAppValue;
+    navigateToMigratedUserWelcomeModalIfReady();
+}
+
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (value) => {
         const result = value ? tryNewDotOnyxSelector(value) : undefined;
         hasBeenAddedToNudgeMigration = result?.hasBeenAddedToNudgeMigration ?? false;
+        navigateToMigratedUserWelcomeModalIfReady();
     },
 });
 
@@ -34,9 +72,11 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
     callback: (value) => {
         dismissedProductTraining = value;
+        isDismissedProductTrainingLoaded = true;
         if (isProductTrainingElementDismissed('migratedUserWelcomeModal', value)) {
             hasRedirectedToMigratedUserModal = false;
         }
+        navigateToMigratedUserWelcomeModalIfReady();
     },
 });
 
@@ -98,4 +138,4 @@ const MigratedUserWelcomeModalGuard: NavigationGuard = {
 };
 
 export default MigratedUserWelcomeModalGuard;
-export {resetSessionFlag};
+export {resetSessionFlag, onSessionOrLoadingAppChanged};

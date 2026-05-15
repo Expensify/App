@@ -26,11 +26,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-            CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-            CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
-            CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
@@ -57,6 +53,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
         ],
@@ -69,7 +66,6 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -82,6 +78,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
@@ -119,6 +116,7 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE,
@@ -132,8 +130,6 @@ const typeFiltersKeys = {
             CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-            CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY,
-            CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
         ],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -335,8 +331,6 @@ function useAdvancedSearchFilters() {
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(searchCards ?? {}).length, true);
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
-    const shouldDisplayGroupCurrencyFilter = !!searchAdvancedFilters.groupBy;
-    const shouldDisplayViewFilter = !!searchAdvancedFilters.groupBy;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
@@ -368,12 +362,6 @@ function useAdvancedSearchFilters() {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID && !shouldDisplayWorkspaceFilter) {
-                            return;
-                        }
-                        if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY && !shouldDisplayGroupCurrencyFilter) {
-                            return;
-                        }
-                        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && !shouldDisplayViewFilter) {
                             return;
                         }
                         if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE && !(policyDerived?.isAttendeeTrackingEnabled ?? true)) {

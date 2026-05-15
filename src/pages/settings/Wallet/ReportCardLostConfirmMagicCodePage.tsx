@@ -6,6 +6,7 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 import useInitialOnyxValue from '@hooks/useInitialOnyxValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearCardListErrors, requestReplacementExpensifyCard} from '@libs/actions/Card';
 import {setErrors} from '@libs/actions/FormActions';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
@@ -26,10 +27,9 @@ function ReportCardLostConfirmMagicCodePage({
     },
 }: ReportCardLostConfirmMagicCodePageProps) {
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
 
-    const primaryLogin = account?.primaryLogin ?? '';
+    const primaryLogin = usePrimaryContactMethod();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const initialCardList = useInitialOnyxValue(ONYXKEYS.CARD_LIST);
     const physicalCard = cardList?.[cardID];
@@ -78,7 +78,7 @@ function ReportCardLostConfirmMagicCodePage({
             handleSubmitForm={handleValidateCodeEntered}
             isLoading={formData?.isLoading}
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction()}
             validateError={validateError}
             clearError={() => {

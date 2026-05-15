@@ -12,6 +12,7 @@ import type {
     UpdateHomeAddressParams,
     UpdateLegalNameParams,
     UpdatePhoneNumberParams,
+    UpdatePrivatePersonalDetailsParams,
     UpdatePronounsParams,
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
@@ -506,31 +507,62 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
 }
 
 /**
- * Clear error and pending fields for the current user's avatar
- */
-function clearAvatarErrors(currentUserAccountID: number) {
-    if (!currentUserAccountID) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        [currentUserAccountID]: {
-            errorFields: {
-                avatar: null,
-            },
-            pendingFields: {
-                avatar: null,
-            },
-        },
-    });
-}
-
-/**
  * Clear errors for the current user's personal details
  */
 function clearPersonalDetailsErrors() {
     Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
         errors: null,
+        errorFields: {personalDetails: null},
+    });
+}
+
+function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
+    const stateValue = (values.state ?? '').trim();
+    const parameters: UpdatePrivatePersonalDetailsParams = {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? '', countryCode),
+        addressCity: (values.city ?? '').trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country ?? '',
+        addressState: stateValue,
+        addressProvince: values.country !== CONST.COUNTRY.US ? stateValue : '',
+        dob: values.dob ?? '',
+        validateCode,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                    errorFields: {personalDetails: null},
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                    errorFields: {personalDetails: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                },
+            },
+        ],
     });
 }
 
@@ -563,7 +595,6 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
 }
 
 export {
-    clearAvatarErrors,
     deleteAvatar,
     openPublicProfilePage,
     updateAddress,
@@ -577,6 +608,7 @@ export {
     clearPhoneNumberError,
     updatePronouns,
     updateSelectedTimezone,
+    updatePrivatePersonalDetails,
     updatePersonalDetailsAndShipExpensifyCards,
     clearPersonalDetailsErrors,
     buildSetPersonalDetailsAndShipExpensifyCardsParams,

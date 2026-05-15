@@ -3,7 +3,7 @@
 # Secure proxy script to create an inline comment on a GitHub PR.
 set -eu
 
-readonly ALLOWED_RULES_FILE="${GITHUB_WORKSPACE}/.claude/allowed-rules.txt"
+readonly ALLOWED_RULES_FILE="${ALLOWED_RULES_FILE:-${GITHUB_WORKSPACE}/.claude/allowed-rules.txt}"
 
 # Print error and exit.
 die() {

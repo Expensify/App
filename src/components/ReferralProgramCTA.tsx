@@ -64,6 +64,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
             {/* Hidden from accessibility — the CTA pressable above already announces this content. */}
             <View
                 aria-hidden
+                pointerEvents="none"
                 style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
             >
                 <RenderHTML html={translate(`referralProgram.${referralContentType}.buttonText`)} />

@@ -11,7 +11,6 @@ import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDyna
 import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRoute';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
-import getRedirectedPath from './getRedirectedPath';
 
 /**
  * @param path - The path to parse
@@ -19,8 +18,7 @@ import getRedirectedPath from './getRedirectedPath';
  */
 function getStateFromPath(path: Route): PartialState<NavigationState> {
     const normalizedPath = !path.startsWith('/') ? `/${path}` : path;
-    const redirectedPath = getRedirectedPath(normalizedPath);
-    const normalizedPathAfterRedirection = getMatchingNewRoute(redirectedPath) ?? redirectedPath;
+    const normalizedPathAfterRedirection = getMatchingNewRoute(normalizedPath) ?? normalizedPath;
 
     const suffixMatch = findMatchingDynamicSuffix(normalizedPathAfterRedirection);
     if (suffixMatch) {

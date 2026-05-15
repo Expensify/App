@@ -2,7 +2,6 @@ import type {MarkdownStyle} from '@expensify/react-native-live-markdown';
 import {useIsFocused} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
 import type {TextInputKeyPressEvent, TextInputSelectionChangeEvent} from 'react-native';
 import {DeviceEventEmitter, StyleSheet} from 'react-native';
 import type {ComposerProps} from '@components/Composer/types';
@@ -360,7 +359,6 @@ function Composer({
             value={value}
             defaultValue={defaultValue}
             autoFocus={autoFocus}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             onSelectionChange={addCursorPositionToSelectionChange}
             onContentSizeChange={(e) => {

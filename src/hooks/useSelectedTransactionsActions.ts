@@ -4,7 +4,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
-import {initBulkEditDraftTransaction} from '@libs/actions/IOU';
+import {initBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
@@ -36,12 +36,12 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
+import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from './useDefaultExpensePolicy';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
-import useEnvironment from './useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -97,6 +97,7 @@ function useSelectedTransactionsActions({
         'Trashcan',
         'ArrowRight',
         'Table',
+        'TablePencil',
         'DocumentMerge',
         'Export',
         'ArrowCollapse',
@@ -112,7 +113,6 @@ function useSelectedTransactionsActions({
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const {isProduction} = useEnvironment();
 
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -153,6 +153,7 @@ function useSelectedTransactionsActions({
     const hasTransactionsFromMultipleOwners = hasUnknownOwner ? knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1 : knownOwnerIDs.size > 1;
 
     const {translate, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     const selectedTransactionsForDuplicate = useMemo(() => {
@@ -168,7 +169,6 @@ function useSelectedTransactionsActions({
 
     const isDuplicateOptionVisible = useMemo(
         () =>
-            !isProduction &&
             shouldShowBulkDuplicateOption({
                 selectedTransactionsKeys: selectedTransactionIDs,
                 selectedTransactions: selectedTransactionsForDuplicate,
@@ -182,7 +182,6 @@ function useSelectedTransactionsActions({
                 searchData: undefined,
             }),
         [
-            isProduction,
             selectedTransactionIDs,
             selectedTransactionsForDuplicate,
             allTransactions,
@@ -202,7 +201,6 @@ function useSelectedTransactionsActions({
         duplicateHandlerRef.current();
     }, []);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
 
@@ -290,7 +288,7 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
             const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
-            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy, currentUserAccountID);
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
@@ -331,7 +329,7 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action.childReportID, policy, isOffline);
+                        unholdRequest(transactionID, action.childReportID, policy, isOffline, login ?? '', currentUserAccountID);
                     }
                     clearSelectedTransactions(true);
                 },
@@ -389,10 +387,12 @@ function useSelectedTransactionsActions({
 
             // If the user has any custom integration export templates, add them as export options
             const exportTemplates = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy, includeReportLevelExport);
+            const standardTemplateNames = new Set<string>([CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]);
             for (const template of exportTemplates) {
+                const isStandardTemplate = standardTemplateNames.has(template.templateName);
                 exportOptions.push({
                     text: template.name,
-                    icon: expensifyIcons.Table,
+                    icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                     description: template.description,
                     onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
                 });
@@ -475,13 +475,25 @@ function useSelectedTransactionsActions({
         }
 
         if (isDuplicateOptionVisible) {
+            const exceedsBulkDuplicateLimit = selectedTransactionIDs.length > CONST.SEARCH.BULK_DUPLICATE_LIMIT;
             // eslint-disable-next-line react-hooks/refs -- invokeDuplicateHandler reads a ref, but only at event-handler time (onSelected), never during render
             options.push({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionIDs.length}),
                 icon: expensifyIcons.ExpenseCopy,
                 value: DUPLICATE,
                 shouldCloseModalOnSelect: true,
-                onSelected: invokeDuplicateHandler,
+                onSelected: () => {
+                    if (exceedsBulkDuplicateLimit) {
+                        showConfirmModal({
+                            title: translate('common.duplicateExpense'),
+                            prompt: translate('iou.bulkDuplicateLimit'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
+                        return;
+                    }
+                    invokeDuplicateHandler();
+                },
             });
         }
 

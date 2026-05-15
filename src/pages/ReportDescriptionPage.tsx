@@ -14,11 +14,9 @@ function ReportDescriptionPage(props: ReportDescriptionPageProps) {
     const isTask = ReportUtils.isTaskReport(props.report);
 
     if (isTask) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return <TaskDescriptionPage {...props} />;
     }
 
-    // eslint-disable-next-line react/jsx-props-no-spreading
     return <RoomDescriptionPage {...props} />;
 }
 

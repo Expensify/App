@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -61,6 +62,7 @@ function EmptyWorkspaceView() {
 
 type WorkspaceNewRoomPageRef = {
     focus?: () => void;
+    isValidInput?: () => boolean;
 };
 
 type WorkspaceNewRoomPageProps = {
@@ -86,6 +88,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 
     useImperativeHandle(ref, () => ({
         focus: () => roomPageInputRef.current?.focus(),
+        isValidInput: () => !!roomPageInputRef.current,
     }));
 
     const workspaceOptions = useMemo(
@@ -134,7 +137,6 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             currentUserAccountID,
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 addPolicyReport(policyReport);
@@ -323,3 +325,4 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
 }
 
 export default WorkspaceNewRoomPage;
+export type {WorkspaceNewRoomPageRef};

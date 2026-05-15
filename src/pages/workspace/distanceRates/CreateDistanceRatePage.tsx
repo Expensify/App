@@ -74,7 +74,7 @@ function CreateDistanceRatePage({
             setMoneyRequestDistanceRate(transactionDraft, customUnitRateID, policy, true);
             Navigation.goBack(
                 !isEdit
-                    ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID)
+                    ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID)
                     : ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID),
                 {compareParams: false},
             );

@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -82,10 +82,12 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                 onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingApp ? (
-                <FullScreenLoadingIndicator
-                    style={[styles.flex1, styles.pRelative]}
-                    reasonAttributes={{context: 'DisplayNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
-                />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'DisplayNamePage', isLoadingApp} satisfies SkeletonSpanReasonAttributes}
+                    />
+                </View>
             ) : (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}

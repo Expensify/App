@@ -14,7 +14,6 @@ jest.mock('@libs/ActiveClientManager', () => ({
 const mockShowModifiedExpenseNotification = jest.fn();
 const mockShowCommentNotification = jest.fn();
 jest.mock('@libs/Notification/LocalNotification', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         showModifiedExpenseNotification: (...args: unknown[]) => mockShowModifiedExpenseNotification(...args),
@@ -25,7 +24,6 @@ jest.mock('@libs/Notification/LocalNotification', () => ({
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         getTopmostReportId: jest.fn(() => 'other-report-id'),
@@ -34,7 +32,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@libs/Visibility', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: {
         isVisible: jest.fn(() => false),
@@ -84,7 +81,6 @@ describe('showReportActionNotification', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
             actorAccountID: OTHER_USER_ACCOUNT_ID,
             created: '2026-01-01 00:00:00.000',
-            originalMessage: {actionableForAccountIDs: [CURRENT_USER_ACCOUNT_ID]},
             message: [{type: 'COMMENT', html: 'expense modified', text: 'expense modified'}],
             person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
         };
@@ -112,7 +108,6 @@ describe('showReportActionNotification', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
             actorAccountID: OTHER_USER_ACCOUNT_ID,
             created: '2026-01-01 00:00:00.000',
-            originalMessage: {actionableForAccountIDs: [CURRENT_USER_ACCOUNT_ID]},
             message: [{type: 'COMMENT', html: 'expense modified', text: 'expense modified'}],
             person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
         };
@@ -148,24 +143,6 @@ describe('showReportActionNotification', () => {
         await waitForBatchedUpdates();
 
         expect(mockShowCommentNotification).toHaveBeenCalledTimes(1);
-        expect(mockShowModifiedExpenseNotification).not.toHaveBeenCalled();
-    });
-
-    it('should not display notifications for non-actionable actions', async () => {
-        await setupReport();
-
-        const reportAction = {
-            reportActionID: 'action4',
-            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-            actorAccountID: OTHER_USER_ACCOUNT_ID,
-            created: '2026-01-01 00:00:00.000',
-            message: [{type: 'COMMENT', html: 'expense modified', text: 'expense modified'}],
-            person: [{type: 'TEXT', style: 'strong', text: 'Other User'}],
-        };
-
-        Report.showReportActionNotification(REPORT_ID, reportAction as Parameters<typeof Report.showReportActionNotification>[1], CURRENT_USER_ACCOUNT_ID, CURRENT_USER_LOGIN, undefined);
-        await waitForBatchedUpdates();
-
         expect(mockShowModifiedExpenseNotification).not.toHaveBeenCalled();
     });
 });

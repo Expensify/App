@@ -3,6 +3,7 @@ import {useEffect, useEffectEvent, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePrevious from '@hooks/usePrevious';
@@ -81,6 +82,11 @@ function ReportNavigateAwayHandler() {
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
 
+    // Track whether the current route is an own workspace chat. A vacation delegate split sends
+    // a temporary Onyx SET that wipes the report; by the time effects fire, report is undefined
+    // so we must persist the value in a ref updated synchronously during render. See issue #84248.
+    const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
+
     const firstRender = useRef(true);
 
     // Navigation action that reads non-reactive context (concierge params, modal state, etc.)
@@ -138,7 +144,10 @@ function ReportNavigateAwayHandler() {
             isEmpty(report) &&
             (isMoneyRequest(prevReport) ||
                 isMoneyRequestReport(prevReport) ||
-                isPolicyExpenseChat(prevReport) ||
+                // Own workspace chats are excluded: a vacation delegate split sends a temporary
+                // Onyx SET that wipes the report — the chat was never intentionally removed.
+                // See issue #84248.
+                (isPolicyExpenseChat(prevReport) && !prevReport?.isOwnPolicyExpenseChat) ||
                 isGroupChat(prevReport) ||
                 isAdminRoom(prevReport) ||
                 isAnnounceRoom(prevReport));
@@ -191,6 +200,17 @@ function ReportNavigateAwayHandler() {
 
         // Only redirect if focused
         if (!isFocused) {
+            return;
+        }
+
+        // For own workspace chats, a vacation delegate split sends a temporary Onyx SET that
+        // silently wipes the report from Onyx — triggering this effect. We skip navigation here
+        // entirely: the re-fetch effect in ReportFetchHandler restores the data, which causes
+        // useReportWasDeleted to reset wasDeleted → false, and this effect exits early on the
+        // next run. Genuine workspace deletions (e.g. user removed, workspace closed) always
+        // trigger the "navigate on removal" effect above via userLeavingStatus / didReportClose,
+        // never via this path alone. See issue #84248.
+        if (isCurrentRouteOwnWorkspaceChatRef.current) {
             return;
         }
 

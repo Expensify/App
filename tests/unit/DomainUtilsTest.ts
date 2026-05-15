@@ -1,5 +1,7 @@
-import {hasDomainAdminsErrors, hasDomainAdminsSettingsErrors, hasDomainErrors, hasDomainMembersErrors, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
+import {getMemberCustomRowProps, hasDomainAdminsErrors, hasDomainAdminsSettingsErrors, hasDomainErrors, hasDomainMembersErrors, hasDomainMembersSettingsErrors} from '@libs/DomainUtils';
+import CONST from '@src/CONST';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
+import type DomainPendingAction from '@src/types/onyx/DomainPendingActions';
 
 const adminID = 1;
 describe('DomainUtils', () => {
@@ -229,6 +231,146 @@ describe('DomainUtils', () => {
                 setTwoFactorAuthRequiredError: {},
             };
             expect(hasDomainMembersSettingsErrors(domainErrors)).toBe(false);
+        });
+    });
+
+    describe('getMemberCustomRowProps', () => {
+        const accountID = 42;
+        const email = 'user@example.com';
+        const EARLY_TIMESTAMP = 1742000000000000;
+        const LATE_TIMESTAMP = 1742000001000000;
+
+        it('should return empty errors and no pendingAction when both are undefined', () => {
+            const result = getMemberCustomRowProps(accountID, undefined, undefined);
+            expect(result.errors).toEqual({});
+            expect(result.pendingAction).toBeUndefined();
+            expect(result.brickRoadIndicator).toBeUndefined();
+        });
+
+        it('should return pendingAction from email key', () => {
+            const domainPendingActions: DomainPendingAction['member'] = {
+                [email]: {pendingAction: 'add', lockAccount: undefined, changeDomainSecurityGroup: undefined},
+            };
+            const result = getMemberCustomRowProps(accountID, domainPendingActions, undefined, email);
+            expect(result.pendingAction).toBe('add');
+        });
+
+        it('should return pendingAction from accountID key when no email key exists', () => {
+            const domainPendingActions: DomainPendingAction['member'] = {
+                [accountID]: {pendingAction: 'update', lockAccount: undefined, changeDomainSecurityGroup: undefined},
+            };
+            const result = getMemberCustomRowProps(accountID, domainPendingActions, undefined);
+            expect(result.pendingAction).toBe('update');
+        });
+
+        it('should fall back to lockAccount pending action when accountID pendingAction is undefined', () => {
+            const domainPendingActions: DomainPendingAction['member'] = {
+                [accountID]: {pendingAction: undefined, lockAccount: 'update', changeDomainSecurityGroup: undefined},
+            };
+            const result = getMemberCustomRowProps(accountID, domainPendingActions, undefined);
+            expect(result.pendingAction).toBe('update');
+        });
+
+        it('should prefer email pendingAction over accountID pendingAction', () => {
+            const domainPendingActions: DomainPendingAction['member'] = {
+                [email]: {pendingAction: 'add', lockAccount: undefined, changeDomainSecurityGroup: undefined},
+                [accountID]: {pendingAction: 'delete', lockAccount: undefined, changeDomainSecurityGroup: undefined},
+            };
+            const result = getMemberCustomRowProps(accountID, domainPendingActions, undefined, email);
+            expect(result.pendingAction).toBe('add');
+        });
+
+        it('should return errors from accountID memberErrors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {
+                    [accountID]: {errors: {[EARLY_TIMESTAMP]: 'Account error'}, changeDomainSecurityGroupErrors: {}},
+                },
+            };
+            const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Account error'});
+        });
+
+        it('should return errors from email memberErrors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {
+                    [email]: {errors: {[EARLY_TIMESTAMP]: 'Email error'}, changeDomainSecurityGroupErrors: {}},
+                },
+            };
+            const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Email error'});
+        });
+
+        it('should return the latest error key after merging accountID and email errors', () => {
+            // getLatestError picks the lexicographically latest key from merged errors
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {
+                    [accountID]: {errors: {[EARLY_TIMESTAMP]: 'Account error'}, changeDomainSecurityGroupErrors: {}},
+                    [email]: {errors: {[LATE_TIMESTAMP]: 'Email error'}, changeDomainSecurityGroupErrors: {}},
+                },
+            };
+            const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
+            // LATE_TIMESTAMP > EARLY_TIMESTAMP, so email error wins
+            expect(result.errors).toEqual({[LATE_TIMESTAMP]: 'Email error'});
+        });
+
+        it('should include lockAccountErrors in merged errors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {
+                    [accountID]: {errors: {}, lockAccountErrors: {[EARLY_TIMESTAMP]: 'Lock error'}, changeDomainSecurityGroupErrors: {}},
+                },
+            };
+            const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Lock error'});
+        });
+
+        it('should set brickRoadIndicator to ERROR when vacationDelegateErrors exist', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {
+                    [email]: {errors: {}, vacationDelegateErrors: {[EARLY_TIMESTAMP]: 'Delegate error'}, changeDomainSecurityGroupErrors: {}},
+                },
+            };
+            const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
+            expect(result.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('should set brickRoadIndicator to ERROR when twoFactorAuthExemptEmailsError exist', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {
+                    [email]: {errors: {}, twoFactorAuthExemptEmailsError: {[EARLY_TIMESTAMP]: '2FA error'}, changeDomainSecurityGroupErrors: {}},
+                },
+            };
+            const result = getMemberCustomRowProps(accountID, undefined, domainErrors, email);
+            expect(result.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('should surface changeDomainSecurityGroupErrors in result errors (not brickRoadIndicator)', () => {
+            // changeDomainSecurityGroupErrors are merged into base errors, not tracked as a separate field
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {
+                    [accountID]: {errors: {}, changeDomainSecurityGroupErrors: {[EARLY_TIMESTAMP]: 'Group error'}},
+                },
+            };
+            const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
+            expect(result.errors).toEqual({[EARLY_TIMESTAMP]: 'Group error'});
+            expect(result.brickRoadIndicator).toBeUndefined();
+        });
+
+        it('should leave brickRoadIndicator undefined when there are only base errors', () => {
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {
+                    [accountID]: {errors: {[EARLY_TIMESTAMP]: 'Some error'}, changeDomainSecurityGroupErrors: {}},
+                },
+            };
+            const result = getMemberCustomRowProps(accountID, undefined, domainErrors);
+            expect(result.brickRoadIndicator).toBeUndefined();
         });
     });
 });

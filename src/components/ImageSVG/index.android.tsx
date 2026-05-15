@@ -43,7 +43,6 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
                 width={width}
                 height={height}
                 style={style}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...additionalProps}
             />
         );
@@ -52,6 +51,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     // Handle static image sources (traditional approach)
     return (
         <Image
+            accessibilityIgnoresInvertColors
             onLoadEnd={onLoadEnd}
             // Caching images to memory since some SVGs are being displayed with delay
             // See issue: https://github.com/Expensify/App/issues/34881
@@ -60,7 +60,6 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
             source={src}
             recyclingKey={getImageRecyclingKey(src)}
             style={[{width, height}, style as ExpoImageProps['style']]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...tintColorProp}
         />
     );

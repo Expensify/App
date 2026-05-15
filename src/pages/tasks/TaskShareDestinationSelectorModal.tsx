@@ -29,7 +29,7 @@ const selectReportHandler = (option: unknown) => {
     HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
     const optionItem = option as OptionData;
 
-    if (!optionItem || !optionItem?.reportID) {
+    if (!optionItem?.reportID) {
         return;
     }
 

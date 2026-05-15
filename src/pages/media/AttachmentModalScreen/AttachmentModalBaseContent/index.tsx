@@ -61,6 +61,7 @@ function AttachmentModalBaseContent({
     isRotating = false,
     submitRef,
     onDownloadAttachment,
+    shouldAllowDownloadOutsideReportContext = false,
     onClose,
     onConfirm,
     AttachmentContent,
@@ -70,6 +71,7 @@ function AttachmentModalBaseContent({
     footerActionButtons,
     customAttachmentContent,
     attachmentViewContainerStyles,
+    pdfRotation,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -187,13 +189,26 @@ function AttachmentModalBaseContent({
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const shouldShowDownloadButton = useMemo(() => {
-        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH;
+        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || shouldAllowDownloadOutsideReportContext;
         if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
             return false;
         }
 
         return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && isAttachmentLoaded?.(source);
-    }, [isAttachmentLoaded, isDownloadButtonReadyToBeShown, isErrorInAttachment, isLocalSource, isOffline, onDownloadAttachment, report, shouldShowNotFoundPage, source, type, isEReceipt]);
+    }, [
+        isAttachmentLoaded,
+        isDownloadButtonReadyToBeShown,
+        isErrorInAttachment,
+        isLocalSource,
+        isOffline,
+        onDownloadAttachment,
+        report,
+        shouldAllowDownloadOutsideReportContext,
+        shouldShowNotFoundPage,
+        source,
+        type,
+        isEReceipt,
+    ]);
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
@@ -259,6 +274,7 @@ function AttachmentModalBaseContent({
                             transaction={transaction}
                             isUploaded={!isEmptyObject(report)}
                             reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                            rotation={pdfRotation}
                         />
                     </AttachmentCarouselPagerActionsContext.Provider>
                 </AttachmentCarouselPagerStateContext.Provider>
@@ -278,6 +294,7 @@ function AttachmentModalBaseContent({
         isWorkspaceAvatar,
         maybeIcon,
         onNavigate,
+        pdfRotation,
         report,
         reportID,
         setAttachmentError,

@@ -5,7 +5,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
+import {getGpsPoints, stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
@@ -27,7 +27,7 @@ function GPSTripStateChecker() {
 
     const reportID = gpsDraftDetails?.reportID ?? generateReportID();
 
-    useUpdateGpsTripOnReconnect();
+    useUpdateGpsTripOnReconnect({gpsPoints: getGpsPoints(gpsDraftDetails)});
     useUpdateGpsNotification();
 
     useEffect(() => {
@@ -94,7 +94,7 @@ function GPSTripStateChecker() {
 
     const onViewTrip = () => {
         setShowContinueTripModal(false);
-        stopGpsTrip(isOffline);
+        stopGpsTrip(isOffline, getGpsPoints(gpsDraftDetails));
         navigateToGpsScreen();
     };
 

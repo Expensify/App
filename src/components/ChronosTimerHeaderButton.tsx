@@ -3,25 +3,33 @@ import {View} from 'react-native';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isChronosTimerRunningFromVisibleActions} from '@libs/ChronosUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, canWriteInReport} from '@libs/ReportUtils';
 import {addComment} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
-import Button from './Button';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 
 type ChronosTimerHeaderButtonProps = {
     report: OnyxTypes.Report;
 };
+
+type ChronosAction = 'timer' | 'scheduleOOO';
 
 function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     const {translate} = useLocalize();
@@ -43,8 +51,19 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         [canPerformWriteAction, visibleReportActionsData, report.reportID, currentUserAccountID],
     );
 
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report.reportID}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+    const {isOffline} = useNetwork();
+
+    // Keep the button usable while offline so queued start/stop comments are sent on reconnect.
+    // The button should be disabled if the OpenReport request is in progress, so that the state of the button (whether it says "start" or "stop") will reflect the most recent data coming from the server.
+    // There is still a possible bug where if you are offline, the button could reflect the wrong state. However, there is really no way to fix this without breaking the offline experience.
+    const shouldDisableButton = !!isLoadingInitialReportActions && !isOffline;
+
     const ancestors = useAncestors(report);
     const isInSidePanel = useIsInSidePanel();
+    const delegateAccountID = useDelegateAccountID();
 
     function sendCommentToChronos() {
         addComment({
@@ -56,8 +75,35 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             currentUserAccountID,
             shouldPlaySound: false,
             isInSidePanel,
+            delegateAccountID,
         });
     }
+
+    const options: Array<DropdownOption<ChronosAction>> = [
+        {
+            value: 'timer' as const,
+            text: translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer'),
+            disabled: shouldDisableButton,
+            onSelected: () => {
+                if (shouldDisableButton) {
+                    return;
+                }
+                callFunctionIfActionIsAllowed(sendCommentToChronos)();
+            },
+        },
+        {
+            value: 'scheduleOOO' as const,
+            text: translate('chronos.scheduleOOO'),
+            disabled: shouldDisableButton,
+            onSelected: () => {
+                if (shouldDisableButton) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID));
+            },
+            shouldUpdateSelectedIndex: false,
+        },
+    ];
 
     if (!canWriteInReport(report)) {
         return null;
@@ -65,11 +111,14 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
-            <Button
+            <ButtonWithDropdownMenu<ChronosAction>
                 success={!isTimerRunning}
-                text={translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer')}
-                onPress={callFunctionIfActionIsAllowed(sendCommentToChronos)}
-                style={styles.flex1}
+                isDisabled={shouldDisableButton}
+                onPress={() => {
+                    callFunctionIfActionIsAllowed(sendCommentToChronos)();
+                }}
+                options={options}
+                wrapperStyle={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_BUTTON}
             />
         </View>

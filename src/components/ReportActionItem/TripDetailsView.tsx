@@ -9,13 +9,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
@@ -187,6 +187,7 @@ type TripDetailsViewProps = {
 function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransactions}: TripDetailsViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const getTripDescription = useCallback(
@@ -194,7 +195,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
             const trips = `${reservations.length} ${reservations.length === 1 ? translate('travel.trip') : translate('travel.trips')}`;
             return `${convertToDisplayString(amount, currency)} • ${trips.toLowerCase()}`;
         },
-        [translate],
+        [convertToDisplayString, translate],
     );
 
     const getTripTitle = useCallback(

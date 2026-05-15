@@ -47,30 +47,12 @@ type SubscriptionPlanInfo = {
     description: string;
 };
 
-type SubscriptionPlanIllustrations = {
-    Mailbox: IconAsset;
-    ShieldYellow: IconAsset;
-};
-
-let currentUserAccountID = -1;
+let deprecatedCurrentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+        deprecatedCurrentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
-});
-
-let privateAmountOwed: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-    callback: (value) => (privateAmountOwed = value),
-});
-
-let deprecatedAllPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (value) => (deprecatedAllPolicies = value),
-    waitForCollectionCallback: true,
 });
 
 /**
@@ -147,7 +129,11 @@ function hasCardExpiringSoon(fundList: OnyxEntry<FundList>, billingStatus: OnyxE
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
+/**
+ * @param currentUserAccountID — Session account ID of the current user (used to detect owned paid policies).
+ */
 function shouldShowDiscountBanner(
+    currentUserAccountID: number | undefined,
     hasTeam2025Pricing: boolean,
     subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null,
     firstDayFreeTrial: string | undefined,
@@ -393,6 +379,7 @@ function calculateRemainingFreeTrialDays(lastDayFreeTrial: string | undefined): 
  * @returns The free trial badge text .
  */
 function getFreeTrialText(
+    currentUserAccountID: number | undefined,
     translate: LocalizedTranslate,
     policies: OnyxCollection<Policy> | null,
     introSelected: OnyxEntry<IntroSelected>,
@@ -453,14 +440,48 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 }
 
 /**
+ * Whether the user is eligible to cancel their subscription.
+ * Annual subscribers who have committed to a subscription can cancel.
+ * Excludes: non-annual users, active trial users, pre-trial users, and expired trial users who never subscribed.
+ */
+function canCancelSubscription(
+    subscriptionType: SubscriptionType | undefined,
+    firstDayFreeTrial: string | undefined,
+    lastDayFreeTrial: string | undefined,
+    userBillingFundID: number | undefined,
+    hasPurchases: boolean | undefined,
+): boolean {
+    if (subscriptionType !== CONST.SUBSCRIPTION.TYPE.ANNUAL) {
+        return false;
+    }
+
+    // User is currently on a free trial
+    if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
+        return false;
+    }
+
+    // User is in pre-trial state (trial dates exist but trial hasn't started yet)
+    if (firstDayFreeTrial && !hasUserFreeTrialEnded(lastDayFreeTrial)) {
+        return false;
+    }
+
+    // User's trial ended — only allow cancellation if they have a card or have been billed before
+    if (hasUserFreeTrialEnded(lastDayFreeTrial) && !doesUserHavePaymentCardAdded(userBillingFundID) && !hasPurchases) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Whether the user's billable actions should be restricted.
  */
 function shouldRestrictUserBillableActions(
-    policyID: string,
+    policy: OnyxEntry<Policy>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
-    amountOwed: OnyxEntry<number> = privateAmountOwed,
-    policy: OnyxEntry<Policy> = deprecatedAllPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+    amountOwed: OnyxEntry<number>,
+    currentUserAccountID: number = deprecatedCurrentUserAccountID,
 ): boolean {
     const currentDate = new Date();
 
@@ -495,7 +516,7 @@ function shouldRestrictUserBillableActions(
     return false;
 }
 
-function shouldCalculateBillNewDot(canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
+function shouldCalculateBillNewDot(currentUserAccountID: number, canDowngrade: boolean | undefined, policies: OnyxCollection<Policy>): boolean {
     return (canDowngrade ?? false) && getOwnedPaidPolicies(policies, currentUserAccountID).length === 1;
 }
 
@@ -505,7 +526,8 @@ function getSubscriptionPrice(
     privateSubscriptionType: SubscriptionType | undefined,
     hasTeam2025Pricing: boolean,
 ): number {
-    if (!privateSubscriptionType || !plan) {
+    // Submit is a free plan — no subscription price to look up.
+    if (!privateSubscriptionType || !plan || plan === CONST.POLICY.TYPE.SUBMIT) {
         return 0;
     }
 
@@ -514,6 +536,10 @@ function getSubscriptionPrice(
     }
 
     return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];
+}
+
+function shouldUseSimplifiedCollectSubscriptionUI(plan: PersonalPolicyTypeExcludedProps | null, hasTeam2025Pricing: boolean): boolean {
+    return plan === CONST.POLICY.TYPE.TEAM && hasTeam2025Pricing;
 }
 
 function getSubscriptionPlanInfo(
@@ -581,6 +607,7 @@ function getSubscriptionPlanInfo(
 }
 
 function shouldShowTrialEndedUI(
+    currentUserAccountID: number | undefined,
     lastDayFreeTrial: string | undefined,
     userBillingFundID: number | undefined,
     policies: OnyxCollection<Policy>,
@@ -609,6 +636,7 @@ function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType
 
 export {
     calculateRemainingFreeTrialDays,
+    canCancelSubscription,
     doesUserHavePaymentCardAdded,
     getCardForSubscriptionBilling,
     getFreeTrialText,
@@ -616,7 +644,6 @@ export {
     hasCardAuthenticatedError,
     hasCardExpiredError,
     hasGracePeriodOverdue,
-    hasRetryBillingError,
     hasSubscriptionGreenDotInfo,
     hasSubscriptionRedDotError,
     hasUserFreeTrialEnded,
@@ -629,9 +656,10 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    shouldUseSimplifiedCollectSubscriptionUI,
     shouldShowTrialEndedUI,
     isSubscriptionTypeOfInvoicing,
     hasInsufficientFundsError,
 };
 
-export type {DiscountInfo, SubscriptionPlanIllustrations};
+export type {DiscountInfo};

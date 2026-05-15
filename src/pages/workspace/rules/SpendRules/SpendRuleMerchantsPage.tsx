@@ -1,4 +1,6 @@
-import React from 'react';
+import type {NavigationProp} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
+import React, {useEffect} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -10,28 +12,37 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import {clearSpendRuleFormDraft, updateDraftSpendRule} from '@libs/actions/User';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS>;
 
 function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
-    const {policyID} = route.params;
+    const {policyID, ruleID} = route.params;
+    const navigation = useNavigation<NavigationProp<SettingsNavigatorParamList>>();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
+    const [spendRuleFormDraft] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM_DRAFT);
     const illustrations = useMemoizedLazyIllustrations(['FoodTruck']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
-    const merchantNames = spendRuleForm?.merchantNames ?? [];
-    const merchantMatchTypes = spendRuleForm?.merchantMatchTypes ?? [];
+    const merchantNames = spendRuleFormDraft?.merchantNames ?? spendRuleForm?.merchantNames ?? [];
+    const merchantMatchTypes = spendRuleFormDraft?.merchantMatchTypes ?? spendRuleForm?.merchantMatchTypes ?? [];
+
+    useEffect(
+        () => () => {
+            clearSpendRuleFormDraft();
+        },
+        [],
+    );
 
     const emptyStateTitle =
         restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? translate('workspace.rules.spendRules.noBlockedMerchants') : translate('workspace.rules.spendRules.noAllowedMerchants');
@@ -41,10 +52,19 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
             ? translate('workspace.rules.spendRules.addMerchantToBlockSpend')
             : translate('workspace.rules.spendRules.addMerchantToAllowSpend');
 
-    const goBack = () => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+    const goBack = () => navigation.goBack();
+
+    const handleSave = () => {
+        updateDraftSpendRule({merchantNames, merchantMatchTypes});
+        goBack();
+    };
+
+    const navigateToMerchantEdit = (merchantIndex: string) => {
+        navigation.navigate(SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT, {policyID, ruleID, merchantIndex});
+    };
 
     const addMerchant = () => {
-        Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, ROUTES.NEW));
+        navigateToMerchantEdit(ROUTES.NEW);
     };
 
     return (
@@ -82,7 +102,7 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                                         ? translate('workspace.rules.spendRules.merchantExactlyMatches')
                                         : translate('workspace.rules.spendRules.merchantContains')
                                 }
-                                onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, String(index)))}
+                                onPress={() => navigateToMerchantEdit(String(index))}
                                 shouldShowRightIcon
                                 title={merchantName}
                                 titleStyle={styles.flex1}
@@ -105,7 +125,7 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                     buttonText={translate('common.save')}
                     containerStyles={[styles.m4, styles.mb5]}
                     isAlertVisible={false}
-                    onSubmit={goBack}
+                    onSubmit={handleSave}
                     enabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                 />

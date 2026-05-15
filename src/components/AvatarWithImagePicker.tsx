@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -141,7 +141,7 @@ function AvatarWithImagePicker({
     /**
      * Validates an image and opens avatar crop modal if valid
      */
-    const showAvatarCropModal = useCallback((image: FileObject) => {
+    const showAvatarCropModal = (image: FileObject) => {
         validateAvatarImage(image)
             .then((validationResult) => {
                 if (!validationResult.isValid) {
@@ -161,7 +161,7 @@ function AvatarWithImagePicker({
             .catch(() => {
                 setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
             });
-    }, []);
+    };
 
     const hideAvatarCropModal = () => {
         setIsAvatarCropModalOpen(false);
@@ -201,23 +201,20 @@ function AvatarWithImagePicker({
         return menuItems;
     };
 
-    const onPressAvatar = useCallback(
-        (openPicker: OpenPicker) => {
-            anchorRef.current?.blur();
-            if (disabled && enablePreview && onViewPhotoPress) {
-                onViewPhotoPress();
-                return;
-            }
-            if (isUsingDefaultAvatar) {
-                openPicker({
-                    onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                });
-                return;
-            }
-            setIsMenuVisible((prev) => !prev);
-        },
-        [disabled, enablePreview, isUsingDefaultAvatar, onViewPhotoPress, showAvatarCropModal],
-    );
+    const onPressAvatar = (openPicker: OpenPicker) => {
+        anchorRef.current?.blur();
+        if (disabled && enablePreview && onViewPhotoPress) {
+            onViewPhotoPress();
+            return;
+        }
+        if (isUsingDefaultAvatar) {
+            openPicker({
+                onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+            });
+            return;
+        }
+        setIsMenuVisible((prev) => !prev);
+    };
 
     useLayoutEffect(() => {
         if (!anchorRef.current || !isMenuVisible) {

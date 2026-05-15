@@ -171,6 +171,7 @@ function NewChatConfirmPage() {
             introSelected,
             isSelfTourViewed,
             betas,
+            personalData.accountID,
             newGroupDraft.avatarUri ?? '',
             avatarFile,
         );

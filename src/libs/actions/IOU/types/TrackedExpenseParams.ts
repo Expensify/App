@@ -26,6 +26,7 @@ type BuildOnyxDataForTrackExpenseKeys =
     | typeof ONYXKEYS.COLLECTION.REPORT
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+    | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
@@ -56,12 +57,15 @@ type TrackedExpenseParams = {
         | typeof ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE
         | typeof ONYXKEYS.GPS_DRAFT_DETAILS
         | typeof ONYXKEYS.SELF_DM_REPORT_ID
+        | typeof ONYXKEYS.ODOMETER_DRAFT
     >;
     reportInformation: TrackedExpenseReportInformation;
     transactionParams: TrackedExpenseTransactionParams;
     policyParams: TrackedExpensePolicyParams;
     createdWorkspaceParams?: CreateWorkspaceParams;
     accountantParams?: TrackExpenseAccountantParams;
+    currentUserAccountID: number;
+    currentUserEmail?: string;
 };
 
 export type {TrackedExpenseParams, TrackedExpensePolicyParams, TrackedExpenseTransactionParams, TrackedExpenseReportInformation, BuildOnyxDataForTrackExpenseKeys};
