@@ -66,13 +66,14 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
  * Removes a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  */
-function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, currentUserAccountID: number) {
+function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji, currentUserAccountID: number, reactionKey?: string) {
+    const onyxKey = reactionKey ?? emoji.hexcode ?? emoji.name;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
             value: {
-                [emoji.name]: {
+                [onyxKey]: {
                     users: {
                         [currentUserAccountID]: null,
                     },
@@ -84,7 +85,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
     const parameters: RemoveEmojiReactionParams = {
         reportID,
         reportActionID,
-        emojiCode: emoji.name,
+        emojiCode: onyxKey,
     };
 
     API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
@@ -118,13 +119,17 @@ function toggleEmojiReaction(
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
     const emoji = findEmojiByCode(reactionObject.code);
-    const existingReactionObject = (emoji.hexcode ? existingReactions?.[emoji.hexcode] : undefined) ?? existingReactions?.[emoji.name];
+    // Prefer the hex key so the optimistic removal targets the same Onyx entry
+    // that the server will write. Fall back to name for legacy reactions that
+    // haven't been migrated yet.
+    const existingReactionKey = (emoji.hexcode && existingReactions?.[emoji.hexcode]) ? emoji.hexcode : emoji.name;
+    const existingReactionObject = existingReactions?.[existingReactionKey];
 
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
 
     if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
-        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID);
+        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, existingReactionKey);
         return;
     }
 
