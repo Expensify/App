@@ -16,7 +16,7 @@ import {enablePolicyTravel} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy, isSubmitPolicy as isSubmitPolicyUtils} from '@libs/PolicyUtils';
+import {canAccessSubmitWorkspaceFeatures, canEditWorkspaceSettings, canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -76,7 +76,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const {translate} = useLocalize();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const isSubmitPolicy = isSubmitPolicyUtils(policy);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const canAccessSubmitWorkspace = canAccessSubmitWorkspaceFeatures(policy, betas);
     const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -318,7 +319,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
-                        isSubmitPolicy={isSubmitPolicy}
+                        isSubmitPolicy={canAccessSubmitWorkspace}
                     />
                 )}
             </ScrollView>

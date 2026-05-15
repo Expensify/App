@@ -50,6 +50,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
+    canAccessSubmitWorkspaceFeatures,
     canEditWorkspaceSettings,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
@@ -57,7 +58,6 @@ import {
     isGroupPolicy as isGroupPolicyUtil,
     isGustoConnected as isGustoConnectionEnabled,
     isPolicyAdmin as isPolicyAdminUtil,
-    isSubmitPolicy,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -220,7 +220,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             usedApproverEmails,
         });
 
-        if (isSubmitPolicy(policy)) {
+        if (canAccessSubmitWorkspaceFeatures(policy, betas)) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
                     route.params.policyID,
@@ -243,7 +243,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID));
-    }, [policy, route.params.policyID, availableMembers, usedApproverEmails]);
+    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, betas]);
 
     const filteredApprovalWorkflows =
         policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED || policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL
@@ -457,7 +457,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         )}
                     </>
                 ),
-                disabled: isSmartLimitEnabled || isDEWEnabled || isGustoConnected || isSubmitPolicy(policy),
+                disabled: isSmartLimitEnabled || isDEWEnabled || isGustoConnected || canAccessSubmitWorkspaceFeatures(policy, betas),
                 disabledAction: isGustoConnected ? promptConfigureApprovalsInGusto : undefined,
                 isActive:
                     isGustoConnected ||
@@ -472,7 +472,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 subtitle: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 switchAccessibilityLabel: translate('workflowsPage.makeOrTrackPaymentsDescription'),
                 onToggle: (isEnabled: boolean) => {
-                    if (isEnabled && isSubmitPolicy(policy)) {
+                    if (isEnabled && canAccessSubmitWorkspaceFeatures(policy, betas)) {
                         Navigation.navigate(
                             ROUTES.WORKSPACE_UPGRADE.getRoute(
                                 route.params.policyID,

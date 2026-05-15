@@ -20,6 +20,7 @@ import type {
     Transaction,
     TravelSettings,
 } from '@src/types/onyx';
+import type Beta from '@src/types/onyx/Beta';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ApprovalRule,
@@ -49,6 +50,7 @@ import Navigation from './Navigation/Navigation';
 import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
+import Permissions from './Permissions';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain, isValidAccountRoute} from './ValidationUtils';
@@ -932,6 +934,13 @@ function isSubmitPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.SUBMIT;
 }
 
+/**
+ * Submit-workspace UX is gated on the Submit 2026 beta in addition to the workspace being on the Submit plan.
+ */
+function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, betas: OnyxEntry<Beta[]>): boolean {
+    return isSubmitPolicy(policy) && Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas);
+}
+
 const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
 
 /**
@@ -969,8 +978,8 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
  * When conditions match, navigates to the workspace upgrade flow and returns true (caller should not enable the feature).
  * @returns true if upgrade navigation was shown; false otherwise
  */
-function shouldShowUpgradeSubmitPolicy(policy: OnyxEntry<Policy>, policyID: string | undefined, isEnabling: boolean, upgradeFeatureAlias: string): boolean {
-    if (!policyID || !isEnabling || !isSubmitPolicy(policy)) {
+function shouldShowUpgradeSubmitPolicy(policy: OnyxEntry<Policy>, policyID: string | undefined, isEnabling: boolean, upgradeFeatureAlias: string, betas: OnyxEntry<Beta[]>): boolean {
+    if (!policyID || !isEnabling || !canAccessSubmitWorkspaceFeatures(policy, betas)) {
         return false;
     }
     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, upgradeFeatureAlias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
@@ -2366,6 +2375,7 @@ export {
     sortPoliciesByName,
     isPolicyApprover,
     shouldShowUpgradeSubmitPolicy,
+    canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     getHRConnectionNames,
     isGustoConnected,

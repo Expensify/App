@@ -266,7 +266,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, betas)) {
                                     return;
                                 }
                                 enablePolicyConnections(policyID, isEnabled);
@@ -492,7 +492,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias, betas)) {
                                     return;
                                 }
                                 enablePolicyTravel(policyID, isEnabled);
@@ -516,7 +516,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.alias, betas)) {
                                     return;
                                 }
                                 enableExpensifyCard(policyID, isEnabled);
@@ -540,7 +540,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCardSubmit.alias, betas)) {
                                     return;
                                 }
                                 enableCompanyCards(policyID, isEnabled, true);
@@ -609,7 +609,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                 if (!policyID) {
                                     return;
                                 }
-                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias)) {
+                                if (shouldShowUpgradeSubmitPolicy(policy, policyID, isEnabled, CONST.UPGRADE_FEATURE_INTRO_MAPPING.invoicing.alias, betas)) {
                                     return;
                                 }
                                 enablePolicyInvoicing(policyID, isEnabled);

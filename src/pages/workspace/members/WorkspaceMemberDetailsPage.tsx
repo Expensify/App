@@ -35,7 +35,7 @@ import {getAllCardsForWorkspace, getCardFeedIcon, getCardFeedWithDomainID, getPl
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canAccessSubmitWorkspaceFeatures, isControlPolicy, isPolicyApprover} from '@libs/PolicyUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -82,6 +82,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const {showConfirmModal} = useConfirmModal();
 
@@ -338,7 +339,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 description={translate('common.role')}
                                 shouldShowRightIcon={!isReimburser}
                                 onPress={() => {
-                                    if (isSubmitPolicy(policy)) {
+                                    if (canAccessSubmitWorkspaceFeatures(policy, betas)) {
                                         Navigation.navigate(
                                             ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                 policyID,

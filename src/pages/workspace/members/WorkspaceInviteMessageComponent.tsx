@@ -27,7 +27,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canAccessSubmitWorkspaceFeatures, getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -77,6 +77,7 @@ function WorkspaceInviteMessageComponent({
     const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
     const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${policyID}`);
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
@@ -147,7 +148,7 @@ function WorkspaceInviteMessageComponent({
 
     const sendInvitation = () => {
         Keyboard.dismiss();
-        if (policy && isSubmitPolicy(policy) && workspaceInviteRoleDraft !== CONST.POLICY.ROLE.USER) {
+        if (policy && canAccessSubmitWorkspaceFeatures(policy, betas) && workspaceInviteRoleDraft !== CONST.POLICY.ROLE.USER) {
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute()));
             return;
         }
@@ -287,7 +288,7 @@ function WorkspaceInviteMessageComponent({
                                 description={translate('common.role')}
                                 shouldShowRightIcon
                                 onPress={() => {
-                                    if (isSubmitPolicy(policy)) {
+                                    if (canAccessSubmitWorkspaceFeatures(policy, betas)) {
                                         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, Navigation.getActiveRoute()));
                                         return;
                                     }

@@ -7,7 +7,7 @@ import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {goBackFromInvalidPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canAccessSubmitWorkspaceFeatures, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -23,17 +23,18 @@ type DynamicWorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoading
 
 function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspaceInviteMessageRolePageProps) {
     const [role = CONST.POLICY.ROLE.USER, roleResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isOnyxLoading = isLoadingOnyxValue(roleResult);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path);
     const didRedirectSubmitWorkspaceToUpgradeRef = useRef(false);
 
     useEffect(() => {
-        if (didRedirectSubmitWorkspaceToUpgradeRef.current || isEmptyObject(policy) || isOnyxLoading || !isSubmitPolicy(policy)) {
+        if (didRedirectSubmitWorkspaceToUpgradeRef.current || isEmptyObject(policy) || isOnyxLoading || !canAccessSubmitWorkspaceFeatures(policy, betas)) {
             return;
         }
         didRedirectSubmitWorkspaceToUpgradeRef.current = true;
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(route.params.policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias, backPath));
-    }, [policy, isOnyxLoading, route.params.policyID, backPath]);
+    }, [policy, isOnyxLoading, route.params.policyID, backPath, betas]);
 
     return (
         <AccessOrNotFoundWrapper

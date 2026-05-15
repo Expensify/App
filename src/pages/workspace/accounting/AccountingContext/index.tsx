@@ -6,11 +6,13 @@ import AccountingConnectionConfirmationModal from '@components/AccountingConnect
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {removePolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canAccessSubmitWorkspaceFeatures, isControlPolicy} from '@libs/PolicyUtils';
 import {getAccountingIntegrationData} from '@pages/workspace/accounting/utils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -29,6 +31,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
@@ -51,7 +54,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 undefined,
                 accountingIcons,
             );
-            if (isSubmitPolicy(policy)) {
+            if (canAccessSubmitWorkspaceFeatures(policy, betas)) {
                 Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
                 return;
             }
@@ -67,7 +70,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 key: Math.random(),
             });
         },
-        [policy, policyID, translate, hasReusablePoliciesConnectedToSageIntacct, hasReusablePoliciesConnectedToQBD, accountingIcons],
+        [policy, policyID, translate, hasReusablePoliciesConnectedToSageIntacct, hasReusablePoliciesConnectedToQBD, accountingIcons, betas],
     );
 
     const closeConfirmationModal = () => {
