@@ -6,7 +6,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
-import {useComposerMeta, useComposerSendState} from './ComposerContext';
+import {useComposerActions, useComposerMeta, useComposerSendState} from './ComposerContext';
 
 type ComposerEmojiPickerProps = {
     reportID: string;
@@ -16,6 +16,7 @@ function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
     const styles = useThemeStyles();
 
     const {isMediumScreenWidth} = useResponsiveLayout();
+    const {focus} = useComposerActions();
     const {composerRef} = useComposerMeta();
     const {isBlockedFromConcierge} = useComposerSendState();
 
@@ -50,7 +51,7 @@ function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
                 if (activeElementId === CONST.COMPOSER.NATIVE_ID || activeElementId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID) {
                     return;
                 }
-                composerRef.current?.focus(true);
+                focus();
             }}
             onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
             emojiPickerID={reportID}
