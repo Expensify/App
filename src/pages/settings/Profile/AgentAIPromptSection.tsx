@@ -25,6 +25,15 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
         openAgentsPage();
     }, []);
 
+    useEffect(() => {
+        if (!isEditing || !agentPrompt?.promptErrors) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDraftPrompt(agentPrompt?.prompt ?? '');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [agentPrompt?.promptErrors]);
+
     const handleEditPress = () => {
         setDraftPrompt(agentPrompt?.prompt ?? '');
         setIsEditing(true);
@@ -55,6 +64,7 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
         >
             <OfflineWithFeedback
                 errors={agentPrompt?.promptErrors}
+                pendingAction={agentPrompt?.pendingAction}
                 onClose={() => clearAgentPromptUpdateError(accountID)}
             >
                 <View
