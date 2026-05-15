@@ -1,8 +1,8 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant]
-internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, expense policy, policy document, policy text, custom rules, upload policy PDF]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, report rules, and the Expense policy section (policy document upload and custom policy text). Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules 
@@ -83,6 +83,32 @@ To enable it:
    - Adult Entertainment
 
 **Note:** Violations appear in both New Expensify and Expensify Classic, but the rule must be enabled in **New Expensify**.
+
+---
+
+# How to set up an Expense policy for your workspace
+
+The **Expense policy** section on the workspace Overview page lets you share your team's expense policy with all workspace members. You can upload a policy document (PDF) and write custom policy text so everyone knows what's covered.
+
+**Note:** The Expense policy section is only visible to **Workspace Admins** on a **paid** plan. Non-admin members can view the policy document and policy text if either has been added.
+
+## How to upload an Expense policy document
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Scroll down to the **Expense policy** section.
+4. Click **Policy document** and select a PDF file to upload.
+
+To replace or remove an uploaded document, click the three dots **(⋮)** next to the document name and select **Replace** or **Remove**.
+
+## How to add Expense policy text
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Scroll down to the **Expense policy** section.
+4. Click **Policy text**.
+5. Enter your policy text (supports markdown formatting).
+6. Click **Save**.
 
 ---
 
@@ -183,6 +209,12 @@ No. Disabling a rule only affects expenses that are in draft or awaiting submiss
 
 ## What happens if a Category or Tag Rule conflicts with a Workspace Rule?
 
-Category and Tag Rules take priority over Workspace Rules. When both apply to the same expense, the category-specific setting is used
+Category and Tag Rules take priority over Workspace Rules. When both apply to the same expense, the category-specific setting is used.
 
+## Can workspace members see the Expense policy?
 
+Yes. If an admin has uploaded a policy document or added policy text, non-admin workspace members can view both on the workspace Overview page. Only Workspace Admins can add, edit, or remove the policy document and policy text.
+
+## What file types are supported for the Expense policy document?
+
+Only PDF files are supported.
