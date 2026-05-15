@@ -199,6 +199,7 @@ type MoneyRequestInformationParams = {
     optimisticReportPreviewActionID?: string;
     shouldGenerateTransactionThreadReport?: boolean;
     isSplitExpense?: boolean;
+    isReverseSplitOperation?: boolean;
     action?: IOUAction;
     currentReportActionID?: string;
     isASAPSubmitBetaEnabled: boolean;
@@ -242,6 +243,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     isNewChatReport: boolean;
     shouldCreateNewMoneyRequestReport: boolean;
     isOneOnOneSplit?: boolean;
+    isReverseSplitOperation?: boolean;
     existingTransactionThreadReportID?: string;
     policyParams?: BasePolicyParams;
     optimisticParams: MoneyRequestOptimisticParams;
@@ -414,6 +416,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         quickAction,
         personalDetails,
         isSelfDMSplit,
+        isReverseSplitOperation,
         selfDMReportID,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -502,6 +505,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 ...transactionThreadReport,
                 parentReportID: selfDMReportID,
                 chatReportID: selfDMReportID,
+                ...(isReverseSplitOperation && transactionThreadReport.policyID === CONST.POLICY.ID_FAKE ? {policyID: undefined} : {}),
             };
             onyxData.optimisticData?.push(
                 {
@@ -509,7 +513,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
                     value: {
                         ...patchedTransactionThreadReport,
-                        pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        ...(isReverseSplitOperation ? {} : {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}),
                     },
                 },
                 {
@@ -1253,6 +1257,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         optimisticReportPreviewActionID,
         shouldGenerateTransactionThreadReport = true,
         isSplitExpense,
+        isReverseSplitOperation,
         action,
         currentReportActionID,
         isASAPSubmitBetaEnabled,
@@ -1607,6 +1612,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         shouldCreateNewMoneyRequestReport,
         shouldGenerateTransactionThreadReport,
         isOneOnOneSplit: isSplitExpense,
+        isReverseSplitOperation,
         policyParams: {
             policy,
             policyCategories,
