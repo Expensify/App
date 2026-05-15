@@ -60,9 +60,7 @@ const renderReportActionCompose = (props?: Partial<ReportActionComposeProps>) =>
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <ReportActionCompose
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </ComposeProviders>,
