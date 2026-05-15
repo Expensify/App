@@ -19,7 +19,7 @@ You can add an **Expense Policy** to your workspace by uploading a PDF document 
 
 ---
 
-## How to upload a Policy Document to an Expense policy 
+## How to upload a policy document to an expense policy
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Select your workspace name > **Overview**.
@@ -30,7 +30,7 @@ The uploaded document appears on the workspace overview page for workspace membe
 
 ---
 
-## How add Policy text to an Expense Policy 
+## How to add policy text to an expense policy
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
 2. Select your workspace name > **Overview**.
 3. In the **Policy text** section, type or paste your expense policy.
