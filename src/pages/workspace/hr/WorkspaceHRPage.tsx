@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -102,9 +102,9 @@ function WorkspaceHRPage({
 
     useWorkspaceDocumentTitle(undefined, 'workspace.common.hr');
 
-    const fetchPolicyHRPage = () => {
+    const fetchPolicyHRPage = useCallback(() => {
         openPolicyHRPage(policyID);
-    };
+    }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchPolicyHRPage});
 
