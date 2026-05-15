@@ -139,7 +139,7 @@ function WorkspacesListRow({
     const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass']);
-    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow', 'EnvelopeReceipt']);
 
     const [ownerDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(ownerAccountID)});
 
@@ -150,11 +150,13 @@ function WorkspacesListRow({
                     return illustrations.ShieldYellow;
                 case CONST.POLICY.TYPE.TEAM:
                     return illustrations.Mailbox;
+                case CONST.POLICY.TYPE.SUBMIT:
+                    return illustrations.EnvelopeReceipt;
                 default:
                     return illustrations.Mailbox;
             }
         },
-        [illustrations.Mailbox, illustrations.ShieldYellow],
+        [illustrations.EnvelopeReceipt, illustrations.Mailbox, illustrations.ShieldYellow],
     );
 
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);

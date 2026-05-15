@@ -36,7 +36,6 @@ function DomainEmailInput({onInputChange, ref, ...rest}: BaseTextInputProps) {
                 // https://github.com/Expensify/App/pull/80090#issuecomment-3819449517
                 onInputChange?.(value.replaceAll('@', ''));
             }}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         />
     );
