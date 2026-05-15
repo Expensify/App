@@ -7,7 +7,7 @@
 import {render, screen} from '@testing-library/react-native';
 import React from 'react';
 import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
-import {getEmojiReactionDetails} from '@libs/EmojiUtils';
+import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
 import type {ReportActionReaction} from '@src/types/onyx/ReportActionReactions';
 
 const USER_ACCOUNT_ID = 12345;
@@ -66,5 +66,45 @@ describe('ReportActionItemEmojiReactions — dual-format reaction keys', () => {
         expect(hexDetails.emoji?.name).toBe(nameDetails.emoji?.name);
         expect(hexDetails.emojiCodes).toEqual(nameDetails.emojiCodes);
         expect(hexDetails.reactionCount).toBe(nameDetails.reactionCount);
+    });
+});
+
+describe('mergeReactionsByEmoji', () => {
+    const makeReaction = (userID: string, timestamp: string): ReportActionReaction => ({
+        createdAt: timestamp,
+        oldestTimestamp: timestamp,
+        users: {
+            [userID]: {id: userID, oldestTimestamp: timestamp, skinTones: {[-1]: timestamp}},
+        },
+    });
+
+    it('collapses a hex-keyed and a name-keyed entry for the same emoji into one bubble', () => {
+        const reactions = {
+            '+1': makeReaction('111', '2024-01-01T00:00:00.000Z'),
+            '1F44D': makeReaction('222', '2024-02-01T00:00:00.000Z'),
+        };
+        const merged = mergeReactionsByEmoji(reactions);
+        expect(Object.keys(merged)).toHaveLength(1);
+        const entry = Object.values(merged).at(0)!;
+        expect(entry.users?.['111']).toBeDefined();
+        expect(entry.users?.['222']).toBeDefined();
+        expect(entry.oldestTimestamp).toBe('2024-01-01T00:00:00.000Z');
+    });
+
+    it('keeps distinct emojis as separate entries', () => {
+        const reactions = {
+            '1F44D': makeReaction('111', '2024-01-01T00:00:00.000Z'),
+            '1F602': makeReaction('222', '2024-02-01T00:00:00.000Z'),
+        };
+        const merged = mergeReactionsByEmoji(reactions);
+        expect(Object.keys(merged)).toHaveLength(2);
+    });
+
+    it('is a no-op when all keys are already canonical', () => {
+        const reactions = {
+            '1F44D': makeReaction('111', '2024-01-01T00:00:00.000Z'),
+        };
+        const merged = mergeReactionsByEmoji(reactions);
+        expect(merged).toEqual(reactions);
     });
 });

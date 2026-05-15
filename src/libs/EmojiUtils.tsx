@@ -11,7 +11,7 @@ import Text from '@components/Text';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
-import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
+import type {ReportActionReaction, ReportActionReactions, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {isSafari} from './Browser';
 import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
@@ -701,6 +701,49 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
 };
 
 /**
+ * Collapses a ReportActionReactions map so that entries whose keys resolve to the same emoji
+ * (one legacy name-key and one hex-key for the same 👍, for example) are merged into a single
+ * entry. This prevents rendering duplicate reaction bubbles during the transitional period
+ * when Onyx may contain both formats simultaneously.
+ *
+ * The first key seen for a canonical emoji is kept; subsequent collisions are merged into it
+ * (union of users, earliest timestamps, preserved pendingAction).
+ */
+const mergeReactionsByEmoji = (reactions: ReportActionReactions): ReportActionReactions => {
+    const merged: ReportActionReactions = {};
+    const canonicalToKey: Record<string, string> = {};
+
+    for (const [key, reaction] of Object.entries(reactions)) {
+        if (!reaction) {
+            continue;
+        }
+
+        const resolved = Emojis.findEmojiByHexCode(key) ?? findEmojiByName(key);
+        const canonical = resolved?.hexcode ?? key;
+
+        const existingKey = canonicalToKey[canonical];
+        if (existingKey) {
+            const existing = merged[existingKey];
+            if (!existing) {
+                continue;
+            }
+            merged[existingKey] = {
+                ...existing,
+                createdAt: existing.createdAt < reaction.createdAt ? existing.createdAt : reaction.createdAt,
+                oldestTimestamp: existing.oldestTimestamp < reaction.oldestTimestamp ? existing.oldestTimestamp : reaction.oldestTimestamp,
+                users: {...existing.users, ...reaction.users},
+                pendingAction: existing.pendingAction ?? reaction.pendingAction,
+            };
+        } else {
+            canonicalToKey[canonical] = key;
+            merged[key] = reaction;
+        }
+    }
+
+    return merged;
+};
+
+/**
  * Given an emoji code, returns an base emoji code without skin tone
  */
 const getRemovedSkinToneEmoji = (emoji?: string) => emoji?.replaceAll(CONST.REGEX.EMOJI_SKIN_TONES, '');
@@ -867,6 +910,7 @@ export {
     getEmojiCodeWithSkinColor,
     getPreferredEmojiCode,
     getEmojiReactionDetails,
+    mergeReactionsByEmoji,
     replaceAndExtractEmojis,
     extractEmojis,
     getAddedEmojis,
