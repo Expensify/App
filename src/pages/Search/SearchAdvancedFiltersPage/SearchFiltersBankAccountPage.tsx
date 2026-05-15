@@ -1,0 +1,95 @@
+import React from 'react';
+import {View} from 'react-native';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import getBankIcon from '@components/Icon/BankIcons';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
+import type {SearchMultipleSelectionPickerItem} from '@components/Search/SearchMultipleSelectionPicker';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
+import variables from '@styles/variables';
+import {updateAdvancedFilters} from '@userActions/Search';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {BankName} from '@src/types/onyx/Bank';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+function SearchFiltersBankAccountPage() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const selectedBankAccountIDs = searchAdvancedFiltersForm?.bankAccount ?? [];
+
+    const bankAccountItems: Array<SearchMultipleSelectionPickerItem<string>> = Object.values(bankAccountList ?? {})
+        .map((bankAccount) => {
+            const bankAccountID = bankAccount?.accountData?.bankAccountID;
+            if (!bankAccountID) {
+                return null;
+            }
+            const bankName = (bankAccount?.accountData?.additionalData?.bankName ?? '') as BankName;
+            const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+            const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+            const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
+            const label = maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
+
+            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles, maxIconSize: isLargeScreenWidth ? variables.w28 : undefined});
+            const leftElement = (
+                <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <Icon
+                        src={icon}
+                        width={iconSize}
+                        height={iconSize}
+                        additionalStyles={iconStyles}
+                    />
+                </View>
+            );
+
+            return {
+                name: label,
+                value: bankAccountID.toString(),
+                leftElement,
+            };
+        })
+        .filter((item): item is SearchMultipleSelectionPickerItem<string> => item !== null);
+
+    const initiallySelectedItems = bankAccountItems.filter((item) => selectedBankAccountIDs.includes(item.value));
+
+    const onSaveSelection = (values: string[]) => updateAdvancedFilters({bankAccount: values});
+
+    return (
+        <ScreenWrapper
+            testID={SearchFiltersBankAccountPage.displayName}
+            shouldShowOfflineIndicatorInWideScreen
+            offlineIndicatorStyle={styles.mtAuto}
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={translate('common.bankAccount')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
+                }}
+            />
+            <View style={[styles.flex1]}>
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={bankAccountItems}
+                        initiallySelectedItems={initiallySelectedItems}
+                        onSaveSelection={onSaveSelection}
+                        shouldShowTextInput={bankAccountItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                    />
+                )}
+            </View>
+        </ScreenWrapper>
+    );
+}
+
+SearchFiltersBankAccountPage.displayName = 'SearchFiltersBankAccountPage';
+
+export default SearchFiltersBankAccountPage;
