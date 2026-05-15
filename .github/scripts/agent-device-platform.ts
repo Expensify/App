@@ -378,6 +378,42 @@ class IOSPlatform implements Platform {
 
   launch(): void {
     const dev = this.getDevice();
+    /*
+     * `agent-device boot` is the daemon-side counterpart to
+     * `xcrun simctl boot` — it tells the agent-device daemon to
+     * "ensure target device/simulator is booted and ready". Without
+     * this, the workflow's prior `xcrun simctl boot` step boots the
+     * sim at the macOS level but the agent-device daemon never wires
+     * up its session-binding state, leading to `agent-device
+     * snapshot` hanging forever after `open` (runs 25861525119,
+     * 25864724817, 25868449643 all exhibited this).
+     *
+     * Belt-and-suspenders: do this even though the workflow has its
+     * own xcrun simctl boot step — boot is idempotent and lets the
+     * daemon refresh its device list.
+     */
+    try {
+      execFileSync(
+        "agent-device",
+        [
+          "boot",
+          "--platform",
+          "ios",
+          "--device",
+          dev.name,
+          "--udid",
+          dev.udid,
+          "--session",
+          SESSION,
+        ],
+        { stdio: "inherit", timeout: 60_000 },
+      );
+    } catch (e) {
+      process.stdout.write(
+        `platform.ios: agent-device boot failed: ${(e as Error).message.slice(0, 120)}\n`,
+      );
+    }
+
     execFileSync(
       "agent-device",
       [
@@ -393,34 +429,6 @@ class IOSPlatform implements Platform {
       ],
       { stdio: "inherit" },
     );
-    this.wakeAccessibilityServices();
-  }
-
-  /*
-   * iOS Simulator's accessibility services don't start until something
-   * interacts with the screen after a cold boot. Without this, the
-   * first `agent-device snapshot` call hangs indefinitely waiting for
-   * the accessibility tree (observed on every run from 25861525119 +
-   * 25864724817 + 25868449643 — snapshot timed out at 30s, 60s, and
-   * the dual-flag attempt all alike).
-   *
-   * A throwaway tap at a known-empty area of the screen kicks the AX
-   * subsystem into life without altering the UI we care about. The
-   * coordinates (200, 400) are roughly center-upper on a 1290×2796
-   * iPhone 15 frame — should hit no interactive elements on the
-   * Expensify SignIn screen (which has its inputs lower down).
-   */
-  private wakeAccessibilityServices(): void {
-    try {
-      execFileSync("xcrun", ["simctl", "io", "booted", "tap", "200", "400"], {
-        timeout: 10_000,
-        stdio: "ignore",
-      });
-    } catch (e) {
-      process.stdout.write(
-        `platform.ios: AX wake tap failed: ${(e as Error).message.slice(0, 80)}\n`,
-      );
-    }
   }
 
   forceRelaunch(): void {
@@ -452,7 +460,6 @@ class IOSPlatform implements Platform {
         ],
         { timeout: 30_000, stdio: "ignore" },
       );
-      this.wakeAccessibilityServices();
     } catch (e) {
       process.stdout.write(
         `platform.ios: relaunch failed: ${(e as Error).message.slice(0, 80)}\n`,
