@@ -410,7 +410,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 shouldShowRightIcon: true,
                 action: () => {
                     if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, backTo));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
                     } else {
                         Navigation.navigate(ROUTES.REPORT_PARTICIPANTS.getRoute(report?.reportID, backTo));
                     }
@@ -424,7 +424,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
-                    Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report?.reportID));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
                 },
             });
         }
@@ -943,8 +943,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
 
             // If the deleted expense is opened from the super wide rhp, go back there.
             if (
-                previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
-                (previousRoute.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT])?.reportID === route.params.reportID
+                previousRoute?.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT &&
+                (previousRoute.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT])?.reportID === route.params.reportID
             ) {
                 if (isSuperWideRHPDisplayed) {
                     const distanceToPop = rhpRoutes.length - 1 - superWideRHPIndex;

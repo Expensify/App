@@ -7,6 +7,7 @@ import {ImageBehaviorContextProvider} from '@components/Image/ImageBehaviorConte
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,13 +31,14 @@ import type {WithReportAndReportActionOrNotFoundProps} from '@pages/inbox/report
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.ROOT>;
+type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & PlatformStackScreenProps<SplitDetailsNavigatorParamList, typeof SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT>;
 
-function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPageProps) {
+function SplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -57,6 +59,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const privateIsArchived = useReportIsArchived(reportID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.path);
 
     // In case this is workspace split expense, we manually add the workspace as the second participant of the split expense
     // because we don't save any accountID in the report action's originalMessage other than the payee's accountID
@@ -103,7 +106,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
-                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     {isScanning(transaction) && (

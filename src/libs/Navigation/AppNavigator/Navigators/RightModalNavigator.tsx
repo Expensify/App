@@ -425,7 +425,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     component={ModalStackNavigators.ScheduleCallModalStackNavigator}
                                 />
                                 <Stack.Screen
-                                    name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
+                                    name={SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT}
                                     getComponent={loadRHPReportScreen}
                                     options={(props) => {
                                         const options = modalStackScreenOptions(props);

@@ -7,11 +7,12 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUReportIDFromReportActionPreview, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {createTransactionThreadReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type ChatTransactionPreviewProps = {
@@ -64,7 +65,7 @@ function ChatTransactionPreview({action, reportID, originalReportID, chatReportI
                 transactionPreviewWidth={reportPreviewStyles.transactionPreviewStandaloneStyle.width}
                 onPreviewPressed={() => {
                     if (shouldShowSplitPreview) {
-                        Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(action.reportActionID)));
                         return;
                     }
 

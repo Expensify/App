@@ -239,7 +239,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         hasTitle: !!title,
     };
 
-    const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT;
     const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboarding, conciergeReportID, onboardingPurposeSelected);

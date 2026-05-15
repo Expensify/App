@@ -31,7 +31,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
@@ -116,6 +116,7 @@ import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
 import getStateFromPath from './Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from './Navigation/helpers/isNavigatorName';
@@ -10251,11 +10252,12 @@ function navigateToLinkedReportAction(
 ) {
     if (isInNarrowPaneModal) {
         Navigation.navigate(
-            ROUTES.SEARCH_REPORT.getRoute({
-                reportID: ancestor.report.reportID,
-                reportActionID: ancestor.reportAction.reportActionID,
-                backTo: SCREENS.RIGHT_MODAL.SEARCH_REPORT,
-            }),
+            createDynamicRoute(
+                DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({
+                    reportID: ancestor.report.reportID,
+                    reportActionID: ancestor.reportAction.reportActionID,
+                }),
+            ),
         );
         return;
     }

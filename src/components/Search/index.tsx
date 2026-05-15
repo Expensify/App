@@ -28,6 +28,7 @@ import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
 import {flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
@@ -70,7 +71,7 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
@@ -1219,12 +1220,12 @@ function Search({
                     isCreatedTaskReportAction(reportActionItem) && (isOptimisticCreatedTaskAction || reportActionItem.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
                 const reportActionID = shouldSkipReportActionID ? undefined : reportActionItem.reportActionID;
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID})));
                 return;
             }
 
             if (isTaskListItemType(item)) {
-                requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+                requestAnimationFrame(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID}))));
                 return;
             }
 
@@ -1234,7 +1235,7 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
             }
 
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+            requestAnimationFrame(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID}))));
         },
         [
             isMobileSelectionModeEnabled,

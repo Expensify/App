@@ -88,7 +88,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {isInNarrowPaneModal, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
     >();
     const styles = useThemeStyles();
@@ -160,7 +160,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const {currentSearchHash} = useSearchStateContext();
     const {removeTransaction} = useSearchActionsContext();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
-    const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
+    const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     // State

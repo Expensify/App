@@ -45,7 +45,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
     const {wideRHPRouteKeys} = useWideRHPState();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
     >();
 

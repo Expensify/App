@@ -244,7 +244,7 @@ const TravelModalStackNavigator = createModalStackNavigator<TravelNavigatorParam
 });
 
 const SplitDetailsModalStackNavigator = createModalStackNavigator<SplitDetailsNavigatorParamList>({
-    [SCREENS.SPLIT_DETAILS.ROOT]: () => require<ReactComponentModule>('../../../../pages/iou/SplitBillDetailsPage').default,
+    [SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/iou/SplitBillDetailsPage').default,
 });
 
 const ProfileModalStackNavigator = createModalStackNavigator<ProfileNavigatorParamList>({
@@ -369,9 +369,9 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator<Particip
 });
 
 const RoomMembersModalStackNavigator = createModalStackNavigator<RoomMembersNavigatorParamList>({
-    [SCREENS.ROOM_MEMBERS.ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomMembersPage').default,
-    [SCREENS.ROOM_MEMBERS.INVITE]: () => require<ReactComponentModule>('../../../../pages/RoomInvitePage').default,
-    [SCREENS.ROOM_MEMBERS.DETAILS]: () => require<ReactComponentModule>('../../../../pages/RoomMemberDetailsPage').default,
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT]: () => require<ReactComponentModule>('../../../../pages/RoomMembersPage').default,
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_INVITE]: () => require<ReactComponentModule>('../../../../pages/RoomInvitePage').default,
+    [SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS]: () => require<ReactComponentModule>('../../../../pages/RoomMemberDetailsPage').default,
 });
 
 const NewChatModalStackNavigator = createModalStackNavigator<NewChatNavigatorParamList>({

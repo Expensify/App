@@ -26,13 +26,13 @@ function MoneyRequestHeaderActions({reportID, onBackButtonPress}: MoneyRequestHe
     const {wideRHPRouteKeys} = useWideRHPState();
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
     >();
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const shouldDisplayNarrowButtons = !shouldDisplayButtonsInSeparateLine || (wideRHPRouteKeys.length > 0 && !isSmallScreenWidth);
-    const shouldDisplayTransactionNavigation = !!(reportID && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+    const shouldDisplayTransactionNavigation = !!(reportID && route.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT);
 
     return (
         <View

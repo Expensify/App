@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildMergedTransactionData, getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -28,7 +29,7 @@ import {findSelfDMReportID} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -97,7 +98,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         if ((isOnSearch || isSearchTopmostFullScreenRoute()) && searchReportIDToOpen) {
             Navigation.dismissModal();
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen}));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID: searchReportIDToOpen})));
             });
             return;
         }

@@ -48,7 +48,7 @@ const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteRe
 };
 
 const screensWithReportID = [
-    SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+    SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT,
     SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
     SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
     SCREENS.REPORT,

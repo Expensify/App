@@ -28,11 +28,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportStatusColorStyle, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 import type {TransactionListItemType} from './SearchList/ListItem/types';
 import UserInfoCellsWithArrow from './SearchList/ListItem/UserInfoCellsWithArrow';
@@ -146,7 +147,7 @@ function SearchStaticList({
             return;
         }
 
-        requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+        requestAnimationFrame(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID}))));
     };
 
     const renderItem = ({item, index}: ListRenderItemInfo<TransactionListItemType>) => {

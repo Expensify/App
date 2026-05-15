@@ -30,7 +30,7 @@ function WideRHPReceiptPanel() {
     const route = useRoute();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    if (route.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT || isSmallScreenWidth) {
+    if (route.name !== SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT || isSmallScreenWidth) {
         return null;
     }
     return <WideRHPReceiptPanelGate />;

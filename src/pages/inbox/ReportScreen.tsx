@@ -79,7 +79,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     };
 
     return (
-        <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
+        <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT}>
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper

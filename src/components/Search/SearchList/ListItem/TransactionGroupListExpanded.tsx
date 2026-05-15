@@ -21,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -31,7 +32,7 @@ import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
@@ -171,7 +172,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 return;
             }
             markReportIDAsExpense(reportID);
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID})));
         };
 
         // The arrow navigation in RHP is only allowed for group-by:reports

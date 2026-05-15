@@ -329,7 +329,7 @@ const SCREENS = {
         REFERRAL: 'Referral',
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
-        SEARCH_REPORT: 'SearchReport',
+        DYNAMIC_SEARCH_REPORT: 'Dynamic_SearchReport',
         SEARCH_REPORT_ACTIONS: 'SearchReportActions',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
 
@@ -908,7 +908,7 @@ const SCREENS = {
     },
 
     SPLIT_DETAILS: {
-        ROOT: 'SplitDetails_Root',
+        DYNAMIC_ROOT: 'Dynamic_SplitDetails_Root',
         EDIT_REQUEST: 'SplitDetails_Edit_Request',
         EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
     },
@@ -971,9 +971,9 @@ const SCREENS = {
         ROLE: 'ReportParticipants_Role',
     },
     ROOM_MEMBERS: {
-        ROOT: 'RoomMembers_Root',
-        INVITE: 'RoomMembers_Invite',
-        DETAILS: 'RoomMember_Details',
+        DYNAMIC_ROOT: 'Dynamic_RoomMembers_Root',
+        DYNAMIC_INVITE: 'Dynamic_RoomMembers_Invite',
+        DYNAMIC_DETAILS: 'Dynamic_RoomMembers_Details',
     },
     DYNAMIC_FLAG_COMMENT: 'Dynamic_Flag_Comment',
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',

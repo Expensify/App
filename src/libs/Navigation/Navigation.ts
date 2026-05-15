@@ -303,8 +303,8 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     // Start a Sentry span for report navigation — only for exact report-open routes, not sub-pages.
-    // Matches: r/<id>, search/r/<id>, search/view/<id>, e/<id>
-    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view)|r|e)\/(\w+)$/);
+    // Matches: r/<id>, search/r/<id>, search/view/<id>, search/search-report/<id>, e/<id>
+    const reportOpenMatch = Str.cutAfter(route, '?').match(/^(search\/(?:r|view|search-report)|r|e)\/(\w+)$/);
     if (reportOpenMatch) {
         const routePrefix = reportOpenMatch.at(1);
         const reportID = reportOpenMatch.at(2);
@@ -1164,7 +1164,7 @@ function removePreInsertedFullscreenIfNeeded() {
     });
 }
 
-function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
+function getTopmostSearchReportRouteParams(state = navigationRef.getRootState()): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT] | undefined {
     if (!state) {
         return undefined;
     }
@@ -1175,9 +1175,9 @@ function getTopmostSearchReportRouteParams(state = navigationRef.getRootState())
     }
 
     const nestedRoutes = lastRoute.state?.routes ?? [];
-    const lastSearchReport = [...nestedRoutes].reverse().find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+    const lastSearchReport = [...nestedRoutes].reverse().find((route) => route.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT);
 
-    return lastSearchReport?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+    return lastSearchReport?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT] | undefined;
 }
 
 function getTopmostSearchReportID(state = navigationRef.getRootState()): string | undefined {

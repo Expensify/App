@@ -19,6 +19,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import {clearDeleteTransactionNavigateBackUrl, openReport} from '@libs/actions/Report';
 import {dismissDuplicateTransactionViolation, getDuplicateTransactionDetails} from '@libs/actions/Transaction';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -28,7 +29,7 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -139,7 +140,7 @@ function TransactionDuplicateReview() {
     const onPreviewPressed = (reportID: string) => {
         const siblingTransactionIDsList = transactions.map((transaction) => transaction.transactionID);
         setActiveTransactionIDs(siblingTransactionIDsList).then(() => {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID})));
         });
         // Store the initial value of transactionIDsList and only save it when the item is clicked for the first time
         // to ensure that transactionIDsList reflects its original value when this component is mounted

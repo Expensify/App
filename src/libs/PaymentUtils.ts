@@ -11,7 +11,7 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {AccountData, Beta, BillingGraceEndPeriod, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
@@ -203,7 +203,7 @@ const handleUnvalidatedAccount = (iouReport: OnyxEntry<Report>) => {
 
     if (activeRoute.includes(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}))) {
         Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
-    } else if (activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
+    } else if (activeRoute.includes(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
         Navigation.navigate(ROUTES.SEARCH_REPORT_VERIFY_ACCOUNT.getRoute(reportID));
     } else if (activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID}))) {
         Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID));

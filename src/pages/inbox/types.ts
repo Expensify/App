@@ -4,6 +4,6 @@ import type SCREENS from '@src/SCREENS';
 
 type ReportScreenNavigationProps =
     | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT>;
 
 export default ReportScreenNavigationProps;

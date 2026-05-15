@@ -1,4 +1,4 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -31,8 +32,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearUserSearchPhrase, updateUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -53,17 +55,18 @@ import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@use
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 
-type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>;
+type RoomMembersPageProps = WithReportOrNotFoundProps &
+    WithCurrentUserPersonalDetailsProps &
+    PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT>;
 
 function RoomMembersPage({report, policy}: RoomMembersPageProps) {
-    const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Plus', 'RemoveMembers']);
     const reportAction = useMemo(() => getReportAction(report?.parentReportID, report?.parentReportActionID), [report?.parentReportID, report?.parentReportActionID]);
     const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
@@ -78,7 +81,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const [didLoadRoomMembers, setDidLoadRoomMembers] = useState(false);
     const personalDetails = usePersonalDetails();
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
-    const backTo = route.params.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBERS.path);
     const isReportArchived = useReportIsArchived(report.reportID);
     const reportForSubtitle = useMemo(() => getReportForHeader(report), [report]);
 
@@ -144,8 +147,8 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
             return;
         }
         setSearchValue('');
-        Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(report.reportID, backTo));
-    }, [report, setSearchValue, backTo]);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
+    }, [report, setSearchValue]);
 
     /**
      * Remove selected users from the room
@@ -274,7 +277,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
         onClearSelection: () => setSelectedMembers([]),
         onNavigationCallBack: () => {
             setSearchValue('');
-            Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+            Navigation.goBack(backPath);
         },
     });
 
@@ -390,9 +393,9 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 return;
             }
 
-            Navigation.navigate(ROUTES.ROOM_MEMBER_DETAILS.getRoute(report.reportID, item?.accountID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.getRoute(item.accountID)));
         },
-        [report.reportID, backTo],
+        [createDynamicRoute],
     );
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
 
@@ -437,7 +440,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                 shouldShow={isEmptyObject(report) || isReportArchived || (!isChatThread(report) && ((isUserCreatedPolicyRoom(report) && !isPolicyEmployee) || isDefaultRoom(report)))}
                 subtitleKey={subtitleKey}
                 onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+                    Navigation.goBack(backPath);
                 }}
             >
                 <HeaderWithBackButton
@@ -453,7 +456,7 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         }
 
                         setSearchValue('');
-                        Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
+                        Navigation.goBack(backPath);
                     }}
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>

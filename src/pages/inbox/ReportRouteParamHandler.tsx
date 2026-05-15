@@ -12,7 +12,7 @@ import type SCREENS from '@src/SCREENS';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT>;
 
 /**
  * Component that does not render anything. Resolves the reportID route param when missing,

@@ -65,6 +65,7 @@ import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpActi
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -74,7 +75,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -396,7 +397,7 @@ function MoneyRequestReportTransactionList({
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
+        if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT) {
             return;
         }
         setActiveTransactionIDs(visualOrderTransactionIDs);
@@ -456,12 +457,10 @@ function MoneyRequestReportTransactionList({
     const navigateToTransaction = useCallback(
         (activeTransactionID: string) => {
             const iouAction = getIOUActionForTransactionID(reportActions, activeTransactionID);
-            const backTo = Navigation.getActiveRoute();
             let reportIDToNavigate = iouAction?.childReportID;
 
             const routeParams = {
                 reportID: reportIDToNavigate,
-                backTo,
             } as ReportScreenNavigationProps;
 
             if (!reportIDToNavigate) {
@@ -489,7 +488,7 @@ function MoneyRequestReportTransactionList({
                 if (reportIDToNavigate) {
                     markReportIDAsExpense(reportIDToNavigate);
                 }
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute(routeParams)));
             });
         },
         [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense, introSelected, betas, currentUserDetails.email, currentUserDetails.accountID],

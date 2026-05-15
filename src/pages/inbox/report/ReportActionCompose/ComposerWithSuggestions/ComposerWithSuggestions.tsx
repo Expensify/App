@@ -272,7 +272,7 @@ function ComposerWithSuggestions({
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
-    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const shouldDelayAutoFocus = superWideRHPRouteKeys.length > 0 && route.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT;
     const shouldDelayAutoFocusRef = useRef(shouldDelayAutoFocus);
     shouldDelayAutoFocusRef.current = shouldDelayAutoFocus;
 

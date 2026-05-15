@@ -6,7 +6,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportActions} from '@src/types/onyx';
 import {openReport, saveReportDraftComment} from './Report';
@@ -187,7 +187,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         if (
             parentReportID &&
             isParentOneTransactionReport &&
-            (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
+            (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(parentReportID)) || activeRoute.includes(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID})))
         ) {
             if (draftReportComment) {
                 // Draft must be saved first because the callback will clear the optimistic report and its associated draft

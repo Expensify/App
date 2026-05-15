@@ -10,6 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createTransactionThreadReport} from '@libs/actions/Report';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
@@ -27,7 +28,7 @@ import {useReportActionItemActions, useReportActionItemState} from '@pages/inbox
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import TransactionPreview from './TransactionPreview';
@@ -110,7 +111,7 @@ function MoneyRequestAction({
             return;
         }
         if (isSplitBillAction) {
-            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_BILL_DETAILS.getRoute(action.reportActionID)));
             return;
         }
 
@@ -128,7 +129,7 @@ function MoneyRequestAction({
                 iouReportAction: action,
             });
             if (shouldOpenReportInRHP) {
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID})));
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(transactionThreadReport?.reportID, undefined, undefined, Navigation.getActiveRoute()));
@@ -136,7 +137,7 @@ function MoneyRequestAction({
         }
 
         if (shouldOpenReportInRHP) {
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: action?.childReportID, backTo: Navigation.getActiveRoute()}));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID: action?.childReportID})));
             return;
         }
 

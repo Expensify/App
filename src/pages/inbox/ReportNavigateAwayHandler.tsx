@@ -26,7 +26,7 @@ import useReportWasDeleted from './hooks/useReportWasDeleted';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT>;
 
 const reportDetailScreens = [
     ...Object.values(SCREENS.REPORT_DETAILS),
@@ -94,7 +94,8 @@ function ReportNavigateAwayHandler() {
         const currentRoute = navigationRef.getCurrentRoute();
         const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
         const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
-        const isHoldScreenOpenInRHP = currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
+        const isHoldScreenOpenInRHP =
+            currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
         const isReportDetailOpenInRHP =
             isTopMostReportId &&
             reportDetailScreens.find((r) => r === currentRoute?.name) &&

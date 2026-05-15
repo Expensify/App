@@ -8,6 +8,7 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,14 +24,14 @@ import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails} from '@src/types/onyx';
 import NotFoundPage from './ErrorPage/NotFoundPage';
 import withReportOrNotFound from './inbox/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
 
-type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
+type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_DETAILS>;
 
 function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
@@ -44,7 +45,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
 
     const accountID = Number(route.params.accountID);
-    const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, route.params.backTo);
+    const backTo = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_MEMBER_DETAILS.path);
 
     const member = report?.participants?.[accountID];
     const details = personalDetails?.[accountID] ?? ({} as PersonalDetails);

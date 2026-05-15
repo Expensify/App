@@ -15,6 +15,7 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
@@ -36,13 +37,12 @@ import {getHeaderMessage, getValidOptions} from '@libs/PersonalDetailOptionsList
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
-import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -57,16 +57,12 @@ const defaultListOptions = {
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'RoomInvitePage.getValidOptions'});
 
-type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.INVITE>;
+type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_INVITE>;
 
 type MembersSection = SectionListData<OptionData, Section<OptionData>>;
 function RoomInvitePage({
     report,
-    policy,
     didScreenTransitionEnd,
-    route: {
-        params: {backTo},
-    },
 }: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const reportAttributes = useReportAttributes();
@@ -79,6 +75,7 @@ function RoomInvitePage({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const delegateAccountID = useDelegateAccountID();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ROOM_INVITE.path);
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedLogins, setSelectedLogins] = useState<Set<string>>(new Set());
@@ -178,9 +175,6 @@ function RoomInvitePage({
     };
 
     // Non policy members should not be able to view the participants of a room
-    const reportID = report?.reportID;
-    const isPolicyEmployee = isPolicyEmployeeUtil(report?.policyID, policy);
-    const backRoute = reportID && (!isPolicyEmployee || isReportArchived ? ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo) : ROUTES.ROOM_MEMBERS.getRoute(reportID, backTo));
 
     const reportName = getReportName(report, reportAttributes);
 
@@ -213,11 +207,7 @@ function RoomInvitePage({
                 inviteToRoom(report, invitedEmailsToAccountIDs, formatPhoneNumber);
             }
             clearUserSearchPhrase();
-            if (backTo) {
-                Navigation.goBack(backTo);
-            } else {
-                Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-            }
+            Navigation.goBack(backPath);
         }
     };
 
@@ -261,12 +251,12 @@ function RoomInvitePage({
             <FullPageNotFoundView
                 shouldShow={isEmptyObject(report) || isReportArchived}
                 subtitleKey={subtitleKey}
-                onBackButtonPress={() => Navigation.goBack(backRoute)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             >
                 <HeaderWithBackButton
                     title={translate('workspace.invite.invitePeople')}
                     subtitle={reportName}
-                    onBackButtonPress={() => Navigation.goBack(backRoute)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <SelectionListWithSections
                     sections={sections}

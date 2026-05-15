@@ -88,7 +88,7 @@ const DYNAMIC_ROUTES = {
         path: 'add-bank-account/verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
@@ -119,7 +119,7 @@ const DYNAMIC_ROUTES = {
         path: 'change-workspace-educational',
         entryScreens: [
             SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.ROOT,
@@ -410,6 +410,19 @@ const DYNAMIC_ROUTES = {
         getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
         queryParams: ['reportID'],
     },
+    ROOM_MEMBERS: {
+        path: 'members',
+        entryScreens: [SCREENS.REPORT_DETAILS.ROOT],
+    },
+    ROOM_MEMBER_DETAILS: {
+        path: 'member-details/:accountID',
+        entryScreens: [SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT],
+        getRoute: (accountID: string | number) => `member-details/${accountID}` as const,
+    },
+    ROOM_INVITE: {
+        path: 'room-invite',
+        entryScreens: [SCREENS.REPORT_DETAILS.ROOT, SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT],
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
         path: 'sage-intacct/export',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.COMPANY_CARD_EXPORT],
@@ -572,14 +585,25 @@ const DYNAMIC_ROUTES = {
         path: 'travel-upgrade',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
     },
+    SEARCH_REPORT: {
+        path: 'search-report/:reportID/:reportActionID?',
+        entryScreens: ['*'],
+        getRoute: ({reportID, reportActionID}: {reportID: string; reportActionID?: string}) =>
+            reportActionID ? `search-report/${reportID}/${reportActionID}` : `search-report/${reportID}`,
+    },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     FLAG_COMMENT: {
         path: 'flag/:reportID/:reportActionID',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
+    },
+    SPLIT_BILL_DETAILS: {
+        path: 'split/:reportActionID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (reportActionID: string) => `split/${reportActionID}`,
     },
 } as const satisfies DynamicRoutes;
 
@@ -614,19 +638,6 @@ const ROUTES = {
                 return baseRoute;
             }
             return `${baseRoute}/${subPage}` as const;
-        },
-    },
-    SEARCH_REPORT: {
-        route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string | undefined; reportActionID?: string; backTo?: string}) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
-            }
-
-            const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
 
@@ -1363,17 +1374,6 @@ const ROUTES = {
         route: 'r/:reportID/chronos/schedule-ooo',
         getRoute: (reportID: string) => `r/${reportID}/chronos/schedule-ooo` as const,
     },
-    SPLIT_BILL_DETAILS: {
-        route: 'r/:reportID/split/:reportActionID',
-        getRoute: (reportID: string | undefined, reportActionID: string, backTo?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the SPLIT_BILL_DETAILS route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo);
-        },
-    },
     TASK_TITLE: {
         route: 'r/:reportID/title',
         getRoute: (reportID: string | undefined, backTo?: string) => {
@@ -1418,29 +1418,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID}/edit` as const, backTo),
-    },
-    ROOM_MEMBERS: {
-        route: 'r/:reportID/members',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members` as const, backTo),
-    },
-    ROOM_MEMBER_DETAILS: {
-        route: 'r/:reportID/members/:accountID',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID}` as const, backTo),
-    },
-    ROOM_INVITE: {
-        route: 'r/:reportID/invite',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the ROOM_INVITE route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${reportID}/invite` as const, backTo);
-        },
     },
     SPLIT_EXPENSE: {
         // TODO: Remove backTo from route once we have find another way to fix navigation issues with tabs

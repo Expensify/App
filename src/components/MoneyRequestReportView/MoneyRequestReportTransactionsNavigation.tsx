@@ -104,7 +104,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     useEffect(() => {
         return () => {
             const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-            if (focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW) {
+            if (focusedRoute?.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT || focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW) {
                 return;
             }
             clearActiveTransactionIDs();
@@ -121,7 +121,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         let backTo = Navigation.getActiveRoute();
         if (isFromReviewDuplicates) {
             const currentRoute = navigationRef.getCurrentRoute();
-            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT] | undefined;
             backTo = params?.backTo ?? backTo;
         }
         const nextThreadReportID = nextParentReportAction?.childReportID;
@@ -157,7 +157,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         let backTo = Navigation.getActiveRoute();
         if (isFromReviewDuplicates) {
             const currentRoute = navigationRef.getCurrentRoute();
-            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT] | undefined;
             backTo = params?.backTo ?? backTo;
         }
         const prevThreadReportID = prevParentReportAction?.childReportID;

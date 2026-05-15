@@ -35,7 +35,7 @@ import type {Transaction} from '@src/types/onyx';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT>;
 
 const defaultReportMetadata = {
     isOptimisticReport: false,
@@ -330,7 +330,7 @@ function ReportFetchHandler() {
         // Skip if already created, coming from Search page, or thread already exists
         if (
             hasCreatedLegacyThreadRef.current ||
-            route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
+            route.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT ||
             transactionThreadReport ||
             (transactionThreadReportID && transactionThreadReportID !== '0') ||
             !reportLoadingState?.hasOnceLoadedReportActions ||
