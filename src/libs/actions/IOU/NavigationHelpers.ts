@@ -36,17 +36,21 @@ function highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate: boolean |
  */
 function handleNavigateAfterExpenseCreate({
     activeReportID,
+    iouReportID,
     transactionID,
+    transactionThreadReportID,
     isFromGlobalCreate,
     isInvoice,
 }: {
     activeReportID?: string;
+    iouReportID?: string;
     transactionID?: string;
+    transactionThreadReportID?: string;
     isFromGlobalCreate?: boolean;
     isInvoice?: boolean;
 }) {
     const hasMultipleTransactions = Object.values(getAllTransactions()).filter((transaction) => transaction?.reportID === activeReportID).length > 0;
-    navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobalCreate, isInvoice, hasMultipleTransactions});
+    navigateAfterExpenseCreate({activeReportID, iouReportID, transactionID, transactionThreadReportID, isFromGlobalCreate, isInvoice, hasMultipleTransactions});
 }
 
 export {dismissModalAndOpenReportInInboxTab, handleNavigateAfterExpenseCreate, highlightTransactionOnSearchRouteIfNeeded};

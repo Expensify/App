@@ -140,7 +140,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         const backTo = (currentRouteInfo?.params as {backTo?: Route})?.backTo;
         const screenName = currentRouteInfo?.name;
 
-        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`);
+        const isOptimisticReportFocused = activeRoute.includes(`/r/${reportID}`) || activeRoute.includes(`/search/view/${reportID}`);
 
         // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
         // When user is editing a money request report (/e/:reportID route) and has

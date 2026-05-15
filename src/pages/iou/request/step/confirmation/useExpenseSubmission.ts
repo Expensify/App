@@ -456,7 +456,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             if (shouldHandleNav && result && activeReportID) {
                 navigateAfterExpenseCreate({
                     activeReportID,
+                    iouReportID: result.iouReport?.reportID,
                     transactionID: transaction.transactionID,
+                    transactionThreadReportID: result.transactionThreadReportID,
                     isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
                     hasMultipleTransactions: reportTransactions.length > 0,
                 });

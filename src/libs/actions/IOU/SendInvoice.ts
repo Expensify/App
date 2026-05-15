@@ -814,7 +814,9 @@ function sendInvoice({
     if (shouldHandleNavigation) {
         handleNavigateAfterExpenseCreate({
             activeReportID: invoiceRoom.reportID,
+            iouReportID: invoiceReportID,
             transactionID,
+            transactionThreadReportID,
             isFromGlobalCreate,
             isInvoice: true,
         });

@@ -11,7 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIsReady} from '@libs/Growl';
-import type {GrowlRef} from '@libs/Growl';
+import type {GrowlAction, GrowlRef} from '@libs/Growl';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import GrowlNotificationContainer from './GrowlNotificationContainer';
@@ -30,6 +30,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
     const [duration, setDuration] = useState<number>();
+    const [action, setAction] = useState<GrowlAction | undefined>();
     const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
@@ -70,10 +71,11 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
      * @param {String} type
      * @param {Number} duration
      */
-    const show = useCallback((text: string, growlType: string, growlDuration: number) => {
+    const show = useCallback((text: string, growlType: string, growlDuration: number, growlAction?: GrowlAction) => {
         setBodyText(text);
         setType(growlType);
         setDuration(growlDuration);
+        setAction(growlAction);
     }, []);
 
     /**
@@ -140,7 +142,21 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
                                 src={types[type].icon}
                                 fill={types[type].iconColor}
                             />
-                            <Text style={styles.growlNotificationText}>{bodyText}</Text>
+                            <Text style={[styles.growlNotificationText, action ? styles.flex1 : undefined]}>{bodyText}</Text>
+                            {!!action && (
+                                <PressableWithoutFeedback
+                                    accessibilityLabel={action.label}
+                                    onPress={() => {
+                                        const onPress = action.onPress;
+                                        fling();
+                                        setAction(undefined);
+                                        onPress();
+                                    }}
+                                    style={[styles.ml2, styles.p2]}
+                                >
+                                    <Text style={[styles.growlNotificationText, styles.textBold, {color: theme.link}]}>{action.label}</Text>
+                                </PressableWithoutFeedback>
+                            )}
                         </View>
                     </GestureDetector>
                 </PressableWithoutFeedback>

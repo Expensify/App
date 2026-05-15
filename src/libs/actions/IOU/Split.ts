@@ -2086,7 +2086,13 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     if (shouldHandleNavigation) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
-        handleNavigateAfterExpenseCreate({activeReportID: backToReport ?? activeReportID, isFromGlobalCreate, transactionID: parameters.transactionID});
+        handleNavigateAfterExpenseCreate({
+            activeReportID: backToReport ?? activeReportID,
+            iouReportID: parameters.iouReportID,
+            isFromGlobalCreate,
+            transactionID: parameters.transactionID,
+            transactionThreadReportID: parameters.transactionThreadReportID,
+        });
     }
 
     if (!isMoneyRequestReport) {

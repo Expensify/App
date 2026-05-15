@@ -1854,7 +1854,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         if (shouldHandleNavigation) {
             handleNavigateAfterExpenseCreate({
                 activeReportID: backToReport ?? activeReportID,
+                iouReportID: iouReport?.reportID,
                 transactionID: transaction.transactionID,
+                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                 isFromGlobalCreate,
             });
         }
@@ -2652,7 +2654,9 @@ function trackExpense(params: CreateTrackExpenseParams) {
         if (shouldHandleNavigation) {
             handleNavigateAfterExpenseCreate({
                 activeReportID,
+                iouReportID: iouReport?.reportID,
                 transactionID: transaction?.transactionID,
+                transactionThreadReportID: transactionThreadReportID ?? iouAction?.childReportID,
                 isFromGlobalCreate,
             });
         }

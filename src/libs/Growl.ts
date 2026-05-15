@@ -1,8 +1,13 @@
 import React from 'react';
 import CONST from '@src/CONST';
 
+type GrowlAction = {
+    label: string;
+    onPress: () => void;
+};
+
 type GrowlRef = {
-    show?: (bodyText: string, type: string, duration: number) => void;
+    show?: (bodyText: string, type: string, duration: number, action?: GrowlAction) => void;
 };
 
 const growlRef = React.createRef<GrowlRef>();
@@ -21,12 +26,12 @@ function setIsReady() {
 /**
  * Show the growl notification
  */
-function show(bodyText: string, type: string, duration: number = CONST.GROWL.DURATION) {
+function show(bodyText: string, type: string, duration: number = CONST.GROWL.DURATION, action?: GrowlAction) {
     isReadyPromise.then(() => {
         if (!growlRef?.current?.show) {
             return;
         }
-        growlRef.current.show(bodyText, type, duration);
+        growlRef.current.show(bodyText, type, duration, action);
     });
 }
 
@@ -40,8 +45,8 @@ function error(bodyText: string, duration: number = CONST.GROWL.DURATION) {
 /**
  * Show success growl
  */
-function success(bodyText: string, duration: number = CONST.GROWL.DURATION) {
-    show(bodyText, CONST.GROWL.SUCCESS, duration);
+function success(bodyText: string, duration: number = CONST.GROWL.DURATION, action?: GrowlAction) {
+    show(bodyText, CONST.GROWL.SUCCESS, duration, action);
 }
 
 export default {
@@ -50,6 +55,6 @@ export default {
     success,
 };
 
-export type {GrowlRef};
+export type {GrowlRef, GrowlAction};
 
 export {growlRef, setIsReady};
