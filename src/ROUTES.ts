@@ -492,6 +492,27 @@ const DYNAMIC_ROUTES = {
         path: 'confirm-magic-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
     },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION: {
+        path: 'rules/selection',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS: {
+        path: 'rules/merchants',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT: {
+        path: 'rules/merchants/edit/:merchantIndex',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+        getRoute: (merchantIndex: string) => `rules/merchants/edit/${merchantIndex}` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY: {
+        path: 'rules/category',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: {
+        path: 'rules/max-amount',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
         path: 'issue-new',
         entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED],
@@ -2894,26 +2915,6 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL: {
         route: 'workspaces/:policyID/expensify-card/:fundID/work-email',
         getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_SELECTION: {
-        route: 'workspaces/:policyID/expensify-card/rules/selection',
-        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/selection` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MERCHANTS: {
-        route: 'workspaces/:policyID/expensify-card/rules/merchants',
-        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/merchants` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MERCHANT_EDIT: {
-        route: 'workspaces/:policyID/expensify-card/rules/merchants/edit/:merchantIndex',
-        getRoute: (policyID: string, merchantIndex: string) => `workspaces/${policyID}/expensify-card/rules/merchants/edit/${merchantIndex}` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_CATEGORY: {
-        route: 'workspaces/:policyID/expensify-card/rules/category',
-        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/category` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MAX_AMOUNT: {
-        route: 'workspaces/:policyID/expensify-card/rules/max-amount',
-        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/rules/max-amount` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL: {
         route: 'workspaces/:policyID/expensify-card/:fundID/verify-work-email',

@@ -20,12 +20,13 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryText, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 
 type SetSpendRulesStepProps = {
@@ -101,7 +102,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
             return;
         }
         setSpendRuleErrorMessage('');
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_SELECTION.getRoute(policyID));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION.path));
     };
 
     const handleSpendRuleOptionSelection = (option: string) => {
@@ -268,7 +269,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
                                         setSpendRuleErrorMessage('');
-                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MERCHANTS.getRoute(policyID));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS.path));
                                     }}
                                 />
                                 <MenuItemWithTopDescription
@@ -280,7 +281,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
                                         setSpendRuleErrorMessage('');
-                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_CATEGORY.getRoute(policyID));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY.path));
                                     }}
                                 />
                                 <MenuItemWithTopDescription
@@ -291,7 +292,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                                     onPress={() => {
                                         setSpendRuleErrorMessage('');
-                                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MAX_AMOUNT.getRoute(policyID));
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT.path));
                                     }}
                                 />
                             </View>
