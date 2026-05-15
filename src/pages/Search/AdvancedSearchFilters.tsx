@@ -152,6 +152,11 @@ const baseFilterConfig = {
         description: 'common.card' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CARD_ID),
     },
+    bankAccount: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.bankAccount' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.BANK_ACCOUNT),
+    },
     taxRate: {
         getTitle: getFilterTaxRateDisplayTitle,
         description: 'workspace.taxes.taxRate' as const,
