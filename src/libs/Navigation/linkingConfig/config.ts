@@ -382,6 +382,24 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_AGENTS_ADD,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.AGENTS.EDIT]: {
+                            path: ROUTES.SETTINGS_AGENTS_EDIT.route,
+                            parse: {
+                                accountID: Number,
+                            },
+                        },
+                        [SCREENS.SETTINGS.AGENTS.EDIT_NAME]: {
+                            path: ROUTES.SETTINGS_AGENTS_EDIT_NAME.route,
+                            parse: {
+                                accountID: Number,
+                            },
+                        },
+                        [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
+                            path: ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.route,
+                            parse: {
+                                accountID: Number,
+                            },
+                        },
                         [SCREENS.SETTINGS.RULES.ADD]: {
                             path: ROUTES.SETTINGS_RULES_ADD.route,
                             exact: true,
@@ -480,6 +498,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
                             path: ROUTES.SETTINGS_ADDRESS,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
+                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
+                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
@@ -775,6 +801,16 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_AUTO_SYNC]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_ACCOUNTING_METHOD]: DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD.path,
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXISTING_CONNECTIONS]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_IMPORT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DIMENSION_MAPPING]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_DIMENSION_MAPPING.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_PREFERRED_EXPORTER]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_STATUS]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT_DATE]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_DEFAULT_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {path: ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC]: {
                             path: ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC.route,
@@ -1217,6 +1253,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.HR_GUSTO_FINAL_APPROVER]: {
                             path: ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.route,
+                        },
+                        [SCREENS.WORKSPACE.HR_ZENEFITS_APPROVAL_MODE]: {
+                            path: ROUTES.WORKSPACE_HR_ZENEFITS_APPROVAL_MODE.route,
+                        },
+                        [SCREENS.WORKSPACE.HR_ZENEFITS_FINAL_APPROVER]: {
+                            path: ROUTES.WORKSPACE_HR_ZENEFITS_FINAL_APPROVER.route,
                         },
                         [SCREENS.WORKSPACE.RULES_CUSTOM]: {
                             path: ROUTES.RULES_CUSTOM.route,

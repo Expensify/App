@@ -101,7 +101,6 @@ function SelectionListWithModal<TItem extends ListItem>({
                 isSmallScreenWidth={isSmallScreenWidth}
                 disableMaintainingScrollPosition
                 style={style}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
             <Modal
