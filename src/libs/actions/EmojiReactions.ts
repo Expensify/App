@@ -2,7 +2,7 @@ import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
-import * as API from '@libs/API';
+import {write} from '@libs/API';
 import type {AddEmojiReactionParams, RemoveEmojiReactionParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {findEmojiByCode, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
@@ -59,7 +59,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         createdAt,
     };
 
-    API.write(WRITE_COMMANDS.ADD_EMOJI_REACTION, parameters, {optimisticData, finallyData});
+    write(WRITE_COMMANDS.ADD_EMOJI_REACTION, parameters, {optimisticData, finallyData});
 }
 
 /**
@@ -88,7 +88,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
         emojiCode: onyxKey,
     };
 
-    API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
+    write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
 }
 
 /**
@@ -119,17 +119,26 @@ function toggleEmojiReaction(
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
     const emoji = findEmojiByCode(reactionObject.code);
-    // Prefer the hex key so the optimistic removal targets the same Onyx entry
-    // that the server will write. Fall back to name for legacy reactions that
-    // haven't been migrated yet.
-    const existingReactionKey = emoji.hexcode && existingReactions?.[emoji.hexcode] ? emoji.hexcode : emoji.name;
-    const existingReactionObject = existingReactions?.[existingReactionKey];
 
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
+    const skinToneToCheck = ignoreSkinToneOnCompare ? undefined : skinTone;
 
-    if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
-        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, existingReactionKey);
+    // When both a legacy name-keyed and a hex-keyed entry exist for the same emoji, find the
+    // key under which the current user has actually reacted so we remove the right entry.
+    const hexEntry = emoji.hexcode ? existingReactions?.[emoji.hexcode] : undefined;
+    const nameEntry = existingReactions?.[emoji.name];
+
+    const userReactedUnderName = !!nameEntry && hasAccountIDEmojiReacted(currentUserAccountID, nameEntry.users, skinToneToCheck);
+    const userReactedUnderHex = !!hexEntry && hasAccountIDEmojiReacted(currentUserAccountID, hexEntry.users, skinToneToCheck);
+
+    if (userReactedUnderName) {
+        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, emoji.name);
+        return;
+    }
+
+    if (userReactedUnderHex && emoji.hexcode) {
+        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, emoji.hexcode);
         return;
     }
 

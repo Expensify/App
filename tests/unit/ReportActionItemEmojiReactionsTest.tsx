@@ -107,4 +107,27 @@ describe('mergeReactionsByEmoji', () => {
         const merged = mergeReactionsByEmoji(reactions);
         expect(merged).toEqual(reactions);
     });
+
+    it('merges per-user skinTones when the same user appears under both keys', () => {
+        const hexReaction: ReportActionReaction = {
+            createdAt: '2024-01-01T00:00:00.000Z',
+            oldestTimestamp: '2024-01-01T00:00:00.000Z',
+            users: {
+                '111': {id: '111', oldestTimestamp: '2024-01-01T00:00:00.000Z', skinTones: {[1]: '2024-01-01T00:00:00.000Z'}},
+            },
+        };
+        const nameReaction: ReportActionReaction = {
+            createdAt: '2024-02-01T00:00:00.000Z',
+            oldestTimestamp: '2024-02-01T00:00:00.000Z',
+            users: {
+                '111': {id: '111', oldestTimestamp: '2024-02-01T00:00:00.000Z', skinTones: {[3]: '2024-02-01T00:00:00.000Z'}},
+            },
+        };
+        const merged = mergeReactionsByEmoji({'1F44D': hexReaction, '+1': nameReaction});
+        expect(Object.keys(merged)).toHaveLength(1);
+        const entry = Object.values(merged).at(0)!;
+        expect(Object.keys(entry.users?.['111']?.skinTones ?? {})).toHaveLength(2);
+        expect(entry.users?.['111']?.skinTones?.[1]).toBeDefined();
+        expect(entry.users?.['111']?.skinTones?.[3]).toBeDefined();
+    });
 });

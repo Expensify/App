@@ -708,7 +708,7 @@ const getEmojiReactionDetails = (emojiName: string, reaction: ReportActionReacti
  * when Onyx may contain both formats simultaneously.
  *
  * The first key seen for a canonical emoji is kept; subsequent collisions are merged into it
- * (union of users, earliest timestamps, preserved pendingAction).
+ * (per-user skinTones union, earliest timestamps, preserved pendingAction).
  */
 const mergeReactionsByEmoji = (reactions: ReportActionReactions): ReportActionReactions => {
     const merged: ReportActionReactions = {};
@@ -728,11 +728,29 @@ const mergeReactionsByEmoji = (reactions: ReportActionReactions): ReportActionRe
             if (!existing) {
                 continue;
             }
+
+            const mergedUsers: UsersReactions = {...existing.users};
+            for (const [userID, newUser] of Object.entries(reaction.users ?? {})) {
+                if (!newUser) {
+                    continue;
+                }
+                const existingUser = mergedUsers[userID];
+                if (existingUser) {
+                    mergedUsers[userID] = {
+                        ...existingUser,
+                        skinTones: {...existingUser.skinTones, ...newUser.skinTones},
+                        oldestTimestamp: existingUser.oldestTimestamp < newUser.oldestTimestamp ? existingUser.oldestTimestamp : newUser.oldestTimestamp,
+                    };
+                } else {
+                    mergedUsers[userID] = newUser;
+                }
+            }
+
             merged[existingKey] = {
                 ...existing,
                 createdAt: existing.createdAt < reaction.createdAt ? existing.createdAt : reaction.createdAt,
                 oldestTimestamp: existing.oldestTimestamp < reaction.oldestTimestamp ? existing.oldestTimestamp : reaction.oldestTimestamp,
-                users: {...existing.users, ...reaction.users},
+                users: mergedUsers,
                 pendingAction: existing.pendingAction ?? reaction.pendingAction,
             };
         } else {
