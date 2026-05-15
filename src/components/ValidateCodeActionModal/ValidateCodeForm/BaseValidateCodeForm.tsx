@@ -179,10 +179,9 @@ function BaseValidateCodeForm({
                 return;
             }
 
-            // Wait for the screen transition to finish, then ensure the app window has
-            // focus before focusing the input.  On Android the soft keyboard only appears
-            // when the window is focused (see Android docs for `showSoftInput`).
-            // `isWindowReadyToFocus` is a no-op on iOS and web.
+            // Android only opens the soft keyboard once the app window has focus, so we
+            // chain: wait for the screen transition to finish, then for the window-focus
+            // signal (a no-op on iOS and web), then focus the input.
             let didFocus = false;
             const focusOnce = () => {
                 if (didFocus) {
