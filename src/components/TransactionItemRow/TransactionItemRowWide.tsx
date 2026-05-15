@@ -127,6 +127,10 @@ function TransactionItemRowWide({
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
+    const reportForCustomColumns = transactionItem.report ?? report;
+    const submitterUserID = reportForCustomColumns?.submitterUserID;
+    const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
+    const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
@@ -561,6 +565,33 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)]}
                     >
                         <TextCell text={transactionItem.withdrawalID} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID)]}
+                    >
+                        <TextCell text={submitterUserID} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID)]}
+                    >
+                        <TextCell text={submitterPayrollID} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}
+                    >
+                        <TextCell text={orderDealNumbers} />
                     </View>
                 );
             default:

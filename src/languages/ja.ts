@@ -379,6 +379,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'レポートID',
         longReportID: '長いレポートID',
         withdrawalID: '出金ID',
+        internationalReimbursementIDs: '国際払い戻しID',
         withdrawalStatus: '出金ステータス',
         bankAccounts: '銀行口座',
         chooseFile: 'ファイルを選択',

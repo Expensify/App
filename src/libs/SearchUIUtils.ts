@@ -140,6 +140,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getPersonalDetailsForAccountID,
     getPolicyName,
+    getReportCustomColumnValue,
     getReportName,
     getReportOrDraftReport,
     getReportStatusTranslation,
@@ -3662,6 +3663,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS) {
+        return data.sort((a, b) => {
+            const aValue = getReportCustomColumnValue(sortBy, a.report);
+            const bValue = getReportCustomColumnValue(sortBy, b.report);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
@@ -3866,6 +3875,14 @@ function getSortedReportData(
         return data.sort((a, b) => {
             const aValue = `${!!a.exported}`;
             const bValue = `${!!b.exported}`;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID || sortBy === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS) {
+        return data.sort((a, b) => {
+            const aValue = getReportCustomColumnValue(sortBy, a);
+            const bValue = getReportCustomColumnValue(sortBy, b);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
@@ -4119,6 +4136,12 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
             return 'common.withdrawalID';
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID:
+            return 'workspace.common.customField1';
+        case CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID:
+            return 'workspace.common.customField2';
+        case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
+            return 'common.internationalReimbursementIDs';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
@@ -5527,6 +5550,9 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
             CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+            CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
+            CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
+            CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
         ]);
 
         return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);
@@ -5675,6 +5701,12 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
             minWidth += 16;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || column === CONST.SEARCH.TABLE_COLUMNS.BILLABLE) {
             minWidth += 80;
+        } else if (
+            column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID ||
+            column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID ||
+            column === CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS
+        ) {
+            minWidth += 200;
         } else {
             minWidth += 200;
         }
