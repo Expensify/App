@@ -1075,9 +1075,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT]: {
                             path: ROUTES.WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT.route,
                         },
-                        [SCREENS.WORKSPACE.TAGS_SETTINGS]: {
-                            path: ROUTES.WORKSPACE_TAGS_SETTINGS.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_TAGS_SETTINGS]: DYNAMIC_ROUTES.WORKSPACE_TAGS_SETTINGS.path,
                         [SCREENS.WORKSPACE.TAGS_EDIT]: {
                             path: ROUTES.WORKSPACE_EDIT_TAGS.route,
                             parse: {
@@ -1099,9 +1097,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.route,
                         },
-                        [SCREENS.WORKSPACE.TAG_CREATE]: {
-                            path: ROUTES.WORKSPACE_TAG_CREATE.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_TAG_CREATE]: DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path,
                         [SCREENS.WORKSPACE.TAG_EDIT]: {
                             path: ROUTES.WORKSPACE_TAG_EDIT.route,
                             parse: {
@@ -1499,9 +1495,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
                     screens: {
-                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: {
-                            path: ROUTES.SETTINGS_CATEGORY_SETTINGS.route,
-                        },
+                        [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.path,
                         [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORIES_SETTINGS]: DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path,
                         [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_CREATE]: DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path,
                         [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_EDIT]: DYNAMIC_ROUTES.SETTINGS_CATEGORY_EDIT.path,
@@ -1511,12 +1505,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED]: {
                             path: ROUTES.SETTINGS_CATEGORIES_IMPORTED.route,
                         },
-                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_PAYROLL_CODE]: {
-                            path: ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.route,
-                        },
-                        [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE]: {
-                            path: ROUTES.SETTINGS_CATEGORY_GL_CODE.route,
-                        },
+                        [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_PAYROLL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path,
+                        [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_GL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SETTINGS_TAGS]: {
