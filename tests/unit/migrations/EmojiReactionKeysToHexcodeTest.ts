@@ -132,15 +132,34 @@ describe('EmojiReactionKeysToHexcode', () => {
         expect(result).toBeUndefined();
     });
 
-    it('is a no-op when all reactions are already hex-keyed', async () => {
+    it('does not call Onyx.multiSet when all reactions are already hex-keyed', async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${REPORT_ACTION_ID}`, {
             [THUMBSUP_HEX]: makeReaction(TIMESTAMP_JAN, USER_ID_A),
         });
 
+        const multiSetSpy = jest.spyOn(Onyx, 'multiSet');
+
         await EmojiReactionKeysToHexcode();
         await waitForBatchedUpdates();
 
+        expect(multiSetSpy).not.toHaveBeenCalled();
+        multiSetSpy.mockRestore();
+
         const result = await getReactionsFromOnyx(REPORT_ACTION_ID);
         expect(result?.[THUMBSUP_HEX]).toBeDefined();
+    });
+
+    it('skips the collection read entirely when the migration completion flag is set', async () => {
+        await Onyx.set(ONYXKEYS.EMOJI_REACTION_KEYS_TO_HEXCODE_MIGRATION_DONE, true);
+        await waitForBatchedUpdates();
+
+        const multiSetSpy = jest.spyOn(Onyx, 'multiSet');
+
+        await EmojiReactionKeysToHexcode();
+        await waitForBatchedUpdates();
+
+        // No write of any kind should have occurred — the migration resolved after reading only the flag.
+        expect(multiSetSpy).not.toHaveBeenCalled();
+        multiSetSpy.mockRestore();
     });
 });

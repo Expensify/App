@@ -148,6 +148,9 @@ const ONYXKEYS = {
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
 
+    /** Set to true once the EmojiReactionKeysToHexcode Onyx migration has completed */
+    EMOJI_REACTION_KEYS_TO_HEXCODE_MIGRATION_DONE: 'emojiReactionKeysToHexcodeMigrationDone',
+
     /** Key under which personal policy id is stored. Returned by OpenApp */
     PERSONAL_POLICY_ID: 'personalPolicyID',
 
@@ -1428,6 +1431,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST]: SavedCSVColumnLayoutList;
     [ONYXKEYS.NVP_INTRO_SELECTED]: OnyxTypes.IntroSelected;
     [ONYXKEYS.HAS_NON_PERSONAL_POLICY]: boolean;
+    [ONYXKEYS.EMOJI_REACTION_KEYS_TO_HEXCODE_MIGRATION_DONE]: boolean;
     [ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]: OnyxTypes.LastSelectedDistanceRates;
     [ONYXKEYS.NVP_SEEN_NEW_USER_MODAL]: boolean;
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
