@@ -6143,6 +6143,8 @@ const translations = {
                 amount: 'Amount',
                 copyExisting: 'Copy existing',
                 createNew: 'Create new',
+                spendRulesEmptyStateTitle: 'No rules to choose from',
+                spendRulesEmptyStateSubtitle: "You haven't created any rules yet. You can create one from the previous screen.",
             },
             deactivateCardModal: {
                 deactivate: 'Deactivate',

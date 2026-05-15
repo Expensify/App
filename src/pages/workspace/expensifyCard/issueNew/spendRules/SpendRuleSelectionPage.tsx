@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -10,6 +11,7 @@ import SpendRuleListItem from '@components/SelectionList/ListItem/SpendRuleListI
 import type {SpendRuleListItemType} from '@components/SelectionList/ListItem/types';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
@@ -34,6 +36,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {cardRules, isLoadingCardRules} = useExpensifyCardRules(policyID);
     const [issueCardForm] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
@@ -90,6 +93,9 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
         />
     );
 
+    const isLoadedAndEmpty = !isLoadingCardRules && !cardRules.length;
+    const isLoadedWithContent = !isLoadingCardRules && cardRules.length > 0;
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -119,7 +125,17 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                     </View>
                 )}
 
-                {!isLoadingCardRules && (
+                {isLoadedAndEmpty && (
+                    <GenericEmptyStateComponent
+                        headerMedia={illustrations.EmptyShelves}
+                        headerContentStyles={styles.emptyShelvesIllustration}
+                        title={translate('workspace.card.issueNewCard.spendRulesEmptyStateTitle')}
+                        subtitle={translate('workspace.card.issueNewCard.spendRulesEmptyStateSubtitle')}
+                        headerStyles={styles.emptyStateCardIllustrationContainer}
+                    />
+                )}
+
+                {isLoadedWithContent && (
                     <SelectionList
                         ListItem={SpendRuleListItem}
                         data={filteredCardRules}
