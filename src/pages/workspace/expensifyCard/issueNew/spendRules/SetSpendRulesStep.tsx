@@ -14,6 +14,7 @@ import SpendRuleRestrictionTypeToggle from '@components/SpendRules/SpendRuleRest
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +27,7 @@ import Navigation from '@navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 
 type SetSpendRulesStepProps = {
@@ -43,6 +44,7 @@ type SetSpendRulesStepProps = {
 function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesStepProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
     const personalDetails = usePersonalDetails();
     const domainAccountID = useDefaultFundID(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Pencil']);
@@ -225,81 +227,85 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                 shouldHideFixErrorsAlert
                 validate={validate}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
-                <ToggleSettingOptionRow
-                    title={translate('workspace.card.issueNewCard.addSpendRule')}
-                    isActive={spendRuleEnabled}
-                    onToggle={handleToggleSpendRules}
-                    switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
-                    wrapperStyle={[styles.mv3]}
-                />
-                {spendRuleEnabled && (
-                    <View style={[styles.pt4, styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
-                        <TabSelectorBase
-                            equalWidth
-                            tabs={spendRuleTabs}
-                            activeTabKey={spendRuleOption}
-                            onTabPress={handleSpendRuleOptionSelection}
+                {!isProduction && (
+                    <>
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.card.issueNewCard.addSpendRule')}
+                            isActive={spendRuleEnabled}
+                            onToggle={handleToggleSpendRules}
+                            switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
+                            wrapperStyle={[styles.mv3]}
                         />
+                        {spendRuleEnabled && (
+                            <View style={[styles.pt4, styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
+                                <TabSelectorBase
+                                    equalWidth
+                                    tabs={spendRuleTabs}
+                                    activeTabKey={spendRuleOption}
+                                    onTabPress={handleSpendRuleOptionSelection}
+                                />
 
-                        {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={existingSpendRuleTitle}
-                                description={translate('workspace.card.chooseRule')}
-                                onPress={handleChooseSpendRule}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
-                            />
-                        )}
-
-                        {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && (
-                            <View>
-                                <View style={[styles.ph5, styles.pv3]}>
-                                    <SpendRuleRestrictionTypeToggle
-                                        restrictionAction={spendRuleAction}
-                                        onSelect={handleSelectRestrictionAction}
+                                {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon
+                                        title={existingSpendRuleTitle}
+                                        description={translate('workspace.card.chooseRule')}
+                                        onPress={handleChooseSpendRule}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
                                     />
-                                </View>
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    numberOfLinesTitle={2}
-                                    titleStyle={styles.flex1}
-                                    title={spendRuleMerchantNamesTitle}
-                                    description={translate('common.merchant')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                    onPress={() => {
-                                        setSpendRuleErrorMessage('');
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS.path));
-                                    }}
-                                />
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    numberOfLinesTitle={2}
-                                    titleStyle={styles.flex1}
-                                    title={spendRuleCategoriesTitle}
-                                    description={translate('workspace.rules.spendRules.spendCategory')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                    onPress={() => {
-                                        setSpendRuleErrorMessage('');
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY.path));
-                                    }}
-                                />
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={spendRuleMaxAmountTitle}
-                                    titleStyle={styles.flex1}
-                                    description={translate('workspace.rules.spendRules.maxAmount')}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                    onPress={() => {
-                                        setSpendRuleErrorMessage('');
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT.path));
-                                    }}
-                                />
+                                )}
+
+                                {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && (
+                                    <View>
+                                        <View style={[styles.ph5, styles.pv3]}>
+                                            <SpendRuleRestrictionTypeToggle
+                                                restrictionAction={spendRuleAction}
+                                                onSelect={handleSelectRestrictionAction}
+                                            />
+                                        </View>
+                                        <MenuItemWithTopDescription
+                                            shouldShowRightIcon
+                                            numberOfLinesTitle={2}
+                                            titleStyle={styles.flex1}
+                                            title={spendRuleMerchantNamesTitle}
+                                            description={translate('common.merchant')}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                            onPress={() => {
+                                                setSpendRuleErrorMessage('');
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS.path));
+                                            }}
+                                        />
+                                        <MenuItemWithTopDescription
+                                            shouldShowRightIcon
+                                            numberOfLinesTitle={2}
+                                            titleStyle={styles.flex1}
+                                            title={spendRuleCategoriesTitle}
+                                            description={translate('workspace.rules.spendRules.spendCategory')}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                            onPress={() => {
+                                                setSpendRuleErrorMessage('');
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY.path));
+                                            }}
+                                        />
+                                        <MenuItemWithTopDescription
+                                            shouldShowRightIcon
+                                            title={spendRuleMaxAmountTitle}
+                                            titleStyle={styles.flex1}
+                                            description={translate('workspace.rules.spendRules.maxAmount')}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                            onPress={() => {
+                                                setSpendRuleErrorMessage('');
+                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT.path));
+                                            }}
+                                        />
+                                    </View>
+                                )}
                             </View>
                         )}
-                    </View>
+                        {!!spendRuleErrorMessage && <FormHelpMessage message={spendRuleErrorMessage} />}
+                    </>
                 )}
-                {!!spendRuleErrorMessage && <FormHelpMessage message={spendRuleErrorMessage} />}
 
                 {isVirtualCard && (
                     <>

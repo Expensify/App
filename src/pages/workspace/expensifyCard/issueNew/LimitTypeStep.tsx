@@ -8,6 +8,7 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,11 +36,13 @@ type LimitTypeStepProps = {
 };
 
 function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
+
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const formRef = useRef<FormRef | null>(null);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultType = getDefaultExpensifyCardLimitType(policy);
@@ -51,8 +54,12 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
         if (isEditing) {
             return CONST.EXPENSIFY_CARD.STEP.CONFIRMATION;
         }
-        return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
-    }, [isEditing]);
+        if (!isProduction || issueNewCard?.data.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL) {
+            return CONST.EXPENSIFY_CARD.STEP.SPEND_RULES;
+        }
+
+        return CONST.EXPENSIFY_CARD.STEP.CARD_NAME;
+    }, [isEditing, isProduction, issueNewCard?.data.cardType]);
 
     const onInputFocus = useCallback(() => {
         formRef.current?.scrollToEnd();

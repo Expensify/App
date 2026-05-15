@@ -296,4 +296,5 @@ function getSpendRuleSummaryText(
     return summaryArray;
 }
 
+export type {SpendRuleSummaryPart};
 export {buildSpendRuleAST, getSpendRuleByCardID, getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getSpendRuleSummaryText, getTruncatedSpendRuleSummary};
