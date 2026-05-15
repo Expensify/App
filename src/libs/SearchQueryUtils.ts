@@ -1416,6 +1416,7 @@ type GetFilterDisplayValueParams = {
     translate: LocalizedTranslate;
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
     feedKeysWithCards?: FeedKeysWithAssignedCards;
+    bankAccountList?: OnyxTypes.BankAccountList;
 };
 
 /**
@@ -1433,6 +1434,7 @@ function getFilterDisplayValue({
     translate,
     reportAttributes,
     feedKeysWithCards,
+    bankAccountList,
 }: GetFilterDisplayValueParams) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
@@ -1450,6 +1452,17 @@ function getFilterDisplayValue({
             return filterValue;
         }
         return getCardDescription(cardList?.[cardID], translate) || filterValue;
+    }
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
+        const bankAccount = bankAccountList?.[filterValue];
+        if (!bankAccount) {
+            return filterValue;
+        }
+        const bankName = bankAccount.accountData?.additionalData?.bankName ?? '';
+        const accountNumber = bankAccount.accountData?.accountNumber ?? '';
+        const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+        const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
+        return maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
@@ -1495,6 +1508,7 @@ function getDisplayQueryFiltersForKey(
     translate: LocalizedTranslate,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
+    bankAccountList?: OnyxTypes.BankAccountList,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
@@ -1546,6 +1560,26 @@ function getDisplayQueryFiltersForKey(
         }, [] as QueryFilter[]);
     }
 
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
+        return queryFilter.map((filter) => ({
+            operator: filter.operator,
+            value: getFilterDisplayValue({
+                filterName: key,
+                filterValue: filter.value.toString(),
+                personalDetails,
+                reports,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+                reportAttributes,
+                feedKeysWithCards,
+                bankAccountList,
+            }),
+        }));
+    }
+
     return queryFilter.map((filter) => ({
         operator: filter.operator,
         value: getFilterDisplayValue({
@@ -1560,6 +1594,7 @@ function getDisplayQueryFiltersForKey(
             translate,
             reportAttributes,
             feedKeysWithCards,
+            bankAccountList,
         }),
     }));
 }
@@ -1639,6 +1674,7 @@ type BuildUserReadableQueryStringParams = {
     translate: LocalizedTranslate;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     reportAttributes: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
+    bankAccountList?: OnyxTypes.BankAccountList;
 };
 
 function buildUserReadableQueryString({
@@ -1654,6 +1690,7 @@ function buildUserReadableQueryString({
     translate,
     feedKeysWithCards,
     reportAttributes,
+    bankAccountList,
 }: BuildUserReadableQueryStringParams) {
     const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
@@ -1699,6 +1736,7 @@ function buildUserReadableQueryString({
                 translate,
                 reportAttributes,
                 feedKeysWithCards,
+                bankAccountList,
             );
 
             if (!displayQueryFilters.length) {
@@ -1753,6 +1791,7 @@ function buildUserReadableQueryString({
             translate,
             reportAttributes,
             feedKeysWithCards,
+            bankAccountList,
         );
 
         if (!displayQueryFilters.length) {
