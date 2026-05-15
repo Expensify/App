@@ -180,7 +180,7 @@ function WalletPage() {
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
-            setShouldShowShareButton(accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN);
+            setShouldShowShareButton(accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !!accountData?.allowDebit);
             if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !!accountData?.sharees?.length) {
                 const isOnlyCurrentUserInSharees = accountData.sharees.length === 1 && accountData.sharees.at(0) === email;
                 setShouldShowUnshareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isOnlyCurrentUserInSharees);
@@ -700,7 +700,6 @@ function WalletPage() {
                             titleStyles={styles.accountSettingsSectionTitle}
                             illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                             illustrationBackgroundColor="#411103"
-                            // eslint-disable-next-line react/jsx-props-no-spreading
                             {...walletIllustration}
                         >
                             <PaymentMethodList

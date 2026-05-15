@@ -4,6 +4,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,6 +42,8 @@ function IOURequestStepParticipants({
     const isPerDiem = isPerDiemRequest(initialTransaction);
     const isTime = isTimeRequestUtil(initialTransaction);
     const isCorporateCard = isCorporateCardTransaction(initialTransaction);
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     let headerTitle = translate('iou.chooseRecipient');
     if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -125,8 +128,14 @@ function IOURequestStepParticipants({
             return false;
         }
 
+        // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
+        if (isNewManualExpenseFlowEnabled) {
+            return false;
+        }
+
         return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
     };
+
     const isWorkspacesOnly = getIsWorkspacesOnly();
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.

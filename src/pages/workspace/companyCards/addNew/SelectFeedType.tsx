@@ -10,6 +10,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
@@ -22,6 +23,8 @@ function SelectFeedType() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>>();
     const [hasError, setHasError] = useState(false);
+    const {isBetaEnabled} = usePermissions();
+    const isCSVCardImportBetaEnabled = isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
     const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : undefined);
@@ -86,7 +89,8 @@ function SelectFeedType() {
         isSelected: typeSelected === CONST.COMPANY_CARDS.FEED_TYPE.FILE_IMPORT,
     };
 
-    const finalData = doesCountrySupportPlaid ? [directFeedItem, commercialFeedItem, fileImportItem] : [commercialFeedItem, fileImportItem];
+    const baseItems = doesCountrySupportPlaid ? [directFeedItem, commercialFeedItem] : [commercialFeedItem];
+    const finalData = isCSVCardImportBetaEnabled ? [...baseItems, fileImportItem] : baseItems;
 
     const confirmButtonOptions = useMemo(
         () => ({

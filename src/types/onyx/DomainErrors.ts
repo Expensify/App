@@ -121,5 +121,5 @@ type DomainErrors = {
     setTwoFactorAuthRequiredError?: OnyxCommon.Errors;
 } & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupErrors>;
 
-export type {GeneralDomainMemberErrors, DomainMemberErrors, DomainSecurityGroupErrors};
+export type {DomainMemberErrors, DomainSecurityGroupErrors};
 export default DomainErrors;
