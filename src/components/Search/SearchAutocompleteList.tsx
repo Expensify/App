@@ -175,6 +175,7 @@ function SearchAutocompleteList({
     const allCards = personalAndWorkspaceCards ?? CONST.EMPTY_OBJECT;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const effectiveInputQueryValue = inputQueryValue ?? autocompleteQueryValue;
+    const isInputAheadOfDebounce = effectiveInputQueryValue !== autocompleteQueryValue;
     const hasEffectiveInputQuery = effectiveInputQueryValue.trim() !== '';
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -376,8 +377,8 @@ function SearchAutocompleteList({
             return searchOptions.recentReports;
         }
 
-        // User typed but debounce has not emitted yet; avoid showing stale empty-query results.
-        if (autocompleteQueryValue.trim() === '') {
+        // User typed but debounce has not emitted yet; avoid showing stale results from the previous query.
+        if (isInputAheadOfDebounce) {
             return [];
         }
 
@@ -392,7 +393,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, hasEffectiveInputQuery, searchOptions]);
+    }, [autocompleteQueryValue, hasEffectiveInputQuery, isInputAheadOfDebounce, searchOptions]);
 
     useEffect(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {
@@ -485,7 +486,7 @@ function SearchAutocompleteList({
             });
         }
 
-        if (autocompleteSuggestions.length > 0) {
+        if (!isInputAheadOfDebounce && autocompleteSuggestions.length > 0) {
             const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
                 return {
                     text: getAutocompleteDisplayText(filterKey, text),
@@ -504,6 +505,7 @@ function SearchAutocompleteList({
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
     }, [
         hasEffectiveInputQuery,
+        isInputAheadOfDebounce,
         autocompleteSuggestions,
         expensifyIcons,
         getAdditionalSections,
