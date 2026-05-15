@@ -53,6 +53,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                 height="100%"
                 width="100%"
                 seamless
+                // frameBorder is deprecated in HTML5 but needed for consistent cross-browser iframe border removal
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 frameBorder="0"
                 onLoad={() => {
