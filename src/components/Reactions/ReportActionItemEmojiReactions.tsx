@@ -108,7 +108,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, shouldBlockReac
                 hasUserReacted,
                 oldestTimestamp,
                 onPress,
-                reactionEmojiName: emojiName,
+                reactionEmojiName: emoji?.name ?? emojiName,
                 pendingAction: emojiReaction.pendingAction,
             };
         }),
