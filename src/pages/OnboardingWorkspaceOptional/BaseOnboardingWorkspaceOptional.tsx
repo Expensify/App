@@ -24,6 +24,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -103,7 +104,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     const [isLoading, setIsLoading] = useState(false);
 
     const completeOnboarding = useCallback(
-        (overrides?: {engagementChoice?: OnboardingPurpose; adminsChatReportID?: string; policyID?: string}) => {
+        async (overrides?: {engagementChoice?: OnboardingPurpose; adminsChatReportID?: string; policyID?: string}) => {
             if (isLoading) {
                 return;
             }
@@ -118,30 +119,36 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
             const resolvedAdminsChatReportID = overrides?.adminsChatReportID ?? onboardingAdminsChatReportID;
             const resolvedPolicyID = overrides?.policyID ?? onboardingPolicyID;
 
-            completeOnboardingReport({
-                engagementChoice,
-                onboardingMessage: onboardingMessages[engagementChoice],
-                firstName: currentUserPersonalDetails.firstName,
-                lastName: currentUserPersonalDetails.lastName,
-                adminsChatReportID: resolvedAdminsChatReportID,
-                onboardingPolicyID: resolvedPolicyID,
-                introSelected,
-                betas,
-                isSelfTourViewed,
-            });
+            try {
+                await completeOnboardingReport({
+                    engagementChoice,
+                    onboardingMessage: onboardingMessages[engagementChoice],
+                    firstName: currentUserPersonalDetails.firstName,
+                    lastName: currentUserPersonalDetails.lastName,
+                    adminsChatReportID: resolvedAdminsChatReportID,
+                    onboardingPolicyID: resolvedPolicyID,
+                    introSelected,
+                    betas,
+                    isSelfTourViewed,
+                });
 
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
+                setOnboardingAdminsChatReportID();
+                setOnboardingPolicyID();
 
-            navigateAfterOnboardingWithMicrotaskQueue(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                conciergeChatReportID,
-                archivedReportsIdSet,
-                resolvedPolicyID,
-                mergedAccountConciergeReportID,
-                false,
-            );
+                navigateAfterOnboardingWithMicrotaskQueue(
+                    isSmallScreenWidth,
+                    isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                    conciergeChatReportID,
+                    archivedReportsIdSet,
+                    resolvedPolicyID,
+                    mergedAccountConciergeReportID,
+                    false,
+                );
+            } catch (error) {
+                Log.warn('[BaseOnboardingWorkspaceOptional] Error completing onboarding', {error});
+            } finally {
+                setIsLoading(false);
+            }
         },
         [
             isLoading,
@@ -162,7 +169,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         ],
     );
 
-    const createWorkspaceAndCompleteOnboarding = useCallback(() => {
+    const createWorkspaceAndCompleteOnboarding = useCallback(async () => {
         if (!onboardingPurposeSelected || isLoading) {
             return;
         }
@@ -196,7 +203,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
               })
             : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-        completeOnboarding({
+        await completeOnboarding({
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             adminsChatReportID,
             policyID,

@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
@@ -95,7 +96,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
             sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
-            onPress: () => {
+            onPress: async () => {
                 if (isLoading) {
                     return;
                 }
@@ -114,18 +115,24 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                         autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
                         return;
                     }
-                    completeOnboarding({
-                        engagementChoice: choice,
-                        onboardingMessage: onboardingMessages[choice],
-                        firstName: personalDetailsForm.firstName,
-                        lastName: personalDetailsForm.lastName,
-                        adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
-                        onboardingPolicyID,
-                        companySize: onboardingCompanySize,
-                        introSelected,
-                        isSelfTourViewed,
-                        betas,
-                    });
+                    try {
+                        await completeOnboarding({
+                            engagementChoice: choice,
+                            onboardingMessage: onboardingMessages[choice],
+                            firstName: personalDetailsForm.firstName,
+                            lastName: personalDetailsForm.lastName,
+                            adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
+                            onboardingPolicyID,
+                            companySize: onboardingCompanySize,
+                            introSelected,
+                            isSelfTourViewed,
+                            betas,
+                        });
+                    } catch (error) {
+                        Log.warn('[BaseOnboardingPurpose] Error completing onboarding', {error});
+                    } finally {
+                        setIsLoading(false);
+                    }
 
                     return;
                 }

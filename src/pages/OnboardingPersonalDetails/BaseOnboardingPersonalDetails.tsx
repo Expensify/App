@@ -20,6 +20,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasURL} from '@libs/Url';
@@ -78,34 +79,40 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     }, []);
 
     const completeOnboarding = useCallback(
-        (firstName: string, lastName: string) => {
+        async (firstName: string, lastName: string) => {
             if (!onboardingPurposeSelected) {
                 return;
             }
-            completeOnboardingReport({
-                engagementChoice: onboardingPurposeSelected,
-                onboardingMessage: onboardingMessages[onboardingPurposeSelected],
-                firstName,
-                lastName,
-                adminsChatReportID: onboardingAdminsChatReportID,
-                onboardingPolicyID,
-                introSelected,
-                isSelfTourViewed,
-                betas,
-            });
+            try {
+                await completeOnboardingReport({
+                    engagementChoice: onboardingPurposeSelected,
+                    onboardingMessage: onboardingMessages[onboardingPurposeSelected],
+                    firstName,
+                    lastName,
+                    adminsChatReportID: onboardingAdminsChatReportID,
+                    onboardingPolicyID,
+                    introSelected,
+                    isSelfTourViewed,
+                    betas,
+                });
 
-            setOnboardingAdminsChatReportID();
-            setOnboardingPolicyID();
+                setOnboardingAdminsChatReportID();
+                setOnboardingPolicyID();
 
-            navigateAfterOnboardingWithMicrotaskQueue(
-                isSmallScreenWidth,
-                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
-                conciergeChatReportID,
-                archivedReportsIdSet,
-                onboardingPolicyID,
-                mergedAccountConciergeReportID,
-                false,
-            );
+                navigateAfterOnboardingWithMicrotaskQueue(
+                    isSmallScreenWidth,
+                    isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                    conciergeChatReportID,
+                    archivedReportsIdSet,
+                    onboardingPolicyID,
+                    mergedAccountConciergeReportID,
+                    false,
+                );
+            } catch (error) {
+                Log.warn('[BaseOnboardingPersonalDetails] Error completing onboarding', {error});
+            } finally {
+                setIsLoading(false);
+            }
         },
         [
             onboardingPurposeSelected,
