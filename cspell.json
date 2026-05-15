@@ -530,6 +530,7 @@
         "onloaderror",
         "onopentag",
         "onplayerror",
+        "ontext",
         "onxy",
         "ONYXKEY",
         "ONYXKEYS",
