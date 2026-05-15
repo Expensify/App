@@ -13,7 +13,6 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
-import useEnvironment from '@hooks/useEnvironment';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -81,7 +80,6 @@ function IOURequestStepDistance({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const {isProduction} = useEnvironment();
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
@@ -683,7 +681,7 @@ function IOURequestStepDistance({
         [currentDistance, distanceUnit, submitManualDistance, manualFormError, handleManualInputChange],
     );
 
-    if (isEditing && !isProduction) {
+    if (isEditing) {
         return (
             <StepScreenWrapper
                 headerTitle={translate('common.distance')}

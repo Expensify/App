@@ -5147,6 +5147,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             free: '無料',
             control: 'コントロール',
             collect: '回収',
+            submit: '提出',
         },
         companyCards: {
             addCards: 'カードを追加',

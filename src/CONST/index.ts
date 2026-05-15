@@ -3534,6 +3534,7 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
 
+            // Free "Submit" plan for employees submitting expenses to their employer
             SUBMIT: 'submit2026',
         },
         RULE_CONDITIONS: {

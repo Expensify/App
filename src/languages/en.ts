@@ -5242,6 +5242,7 @@ const translations = {
             free: 'Free',
             control: 'Control',
             collect: 'Collect',
+            submit: 'Submit',
         },
         companyCards: {
             addCards: 'Add cards',
