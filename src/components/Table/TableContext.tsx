@@ -57,6 +57,8 @@ type TableContextValue<DataType extends object, ColumnKey extends string = strin
     /** Whether the table has an empty result caused by search or filters. */
     isEmptyResult: boolean;
 
+    handleShiftRowSelection: (rowKey: string) => void;
+
     handleRowSelection: (rowKey: string) => void;
 
     /** Whether to use a narrow layout (e.g. on mobile screens). */
@@ -77,11 +79,12 @@ const defaultTableContextValue: TableContextValue<any, string> = {
     tableMethods: {} as TableMethods<string, string>,
     filterConfig: undefined,
     listProps: {} as SharedListProps<unknown>,
-    handleRowSelection: () => {},
     hasActiveFilters: false,
     hasSearchString: false,
     isEmptyResult: false,
     shouldUseNarrowTableLayout: false,
+    handleShiftRowSelection: () => {},
+    handleRowSelection: () => {},
 };
 
 const TableContext = createContext(defaultTableContextValue);

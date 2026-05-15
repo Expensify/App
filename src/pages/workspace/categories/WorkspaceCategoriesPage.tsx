@@ -247,7 +247,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 action: () => {
                     const path = isQuickSettingsFlow
                         ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, value.name, backTo)
-                        : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, value.name);
+                        : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(value.name));
 
                     Navigation.navigate(path);
                 },

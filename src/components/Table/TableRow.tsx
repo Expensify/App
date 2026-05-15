@@ -55,7 +55,7 @@ export default function TableRow({
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {processedData, columns, shouldUseNarrowTableLayout, handleRowSelection, selectionEnabled} = useTableContext();
+    const {processedData, columns, shouldUseNarrowTableLayout, handleRowSelection, handleShiftRowSelection, selectionEnabled} = useTableContext();
 
     const item = processedData[rowIndex];
     const rowCount = processedData.length;
@@ -109,6 +109,25 @@ export default function TableRow({
         return children;
     };
 
+    const CheckboxComponent = (
+        <View style={styles.flex1}>
+            <Checkbox
+                isChecked={!!item.selected}
+                accessibilityLabel="TEST"
+                onPress={(event) => {
+                    const webEvent = event as unknown as MouseEvent;
+
+                    if (webEvent && webEvent.shiftKey) {
+                        handleShiftRowSelection(item.rowKey);
+                        return;
+                    }
+
+                    handleRowSelection(item.rowKey);
+                }}
+            />
+        </View>
+    );
+
     return (
         <OfflineWithFeedback {...offlineWithFeedback}>
             <PressableWithFeedback
@@ -137,16 +156,7 @@ export default function TableRow({
                         </View>
                     ) : (
                         <View style={tableRowContentStyles}>
-                            {selectionEnabled && (
-                                <View style={styles.flex1}>
-                                    <Checkbox
-                                        isChecked={!!item.selected}
-                                        accessibilityLabel="TEST"
-                                        onPress={() => handleRowSelection(item.rowKey)}
-                                    />
-                                </View>
-                            )}
-
+                            {selectionEnabled && CheckboxComponent}
                             {renderChildren(state)}
                         </View>
                     )

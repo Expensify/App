@@ -143,6 +143,9 @@ function Table<DataType extends object, ColumnKey extends string = string, Filte
     selectionEnabled,
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
+    const lastSelectedRowBooleanRef = useRef<boolean>(false);
+    const lastSelectedRowKeyRef = useRef<string | null>(null);
+
     const [tableData, setTableData] = useState<TableRowData<DataType>[]>(() => {
         return data.map((item, index) => ({
             ...item,
@@ -204,14 +207,55 @@ function Table<DataType extends object, ColumnKey extends string = string, Filte
     const hasSearchString = activeSearchString.trim().length > 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasSearchString || hasActiveFilters);
 
+    const handleShiftRowSelection = (rowKey: string) => {
+        const rowKeyExists = processedData.some((item) => item.rowKey === rowKey);
+
+        if (!rowKeyExists) {
+            return;
+        }
+
+        const lastSelectedKey = lastSelectedRowKeyRef.current;
+
+        if (!lastSelectedKey) {
+            handleRowSelection(rowKey);
+            return;
+        }
+
+        const rowKeys = processedData.map((item) => item.rowKey);
+        const lastIndex = rowKeys.indexOf(lastSelectedKey);
+        const currentIndex = rowKeys.indexOf(rowKey);
+
+        if (lastIndex === -1 || currentIndex === -1) {
+            handleRowSelection(rowKey);
+            return;
+        }
+
+        const [start, end] = currentIndex > lastIndex ? [lastIndex, currentIndex] : [currentIndex, lastIndex];
+        const newSelectedState = lastSelectedRowBooleanRef.current;
+
+        setTableData((prevData) => {
+            return prevData.map((item) => {
+                if (rowKeys.indexOf(item.rowKey) >= start && rowKeys.indexOf(item.rowKey) <= end) {
+                    return {...item, selected: newSelectedState};
+                }
+
+                return item;
+            });
+        });
+    };
+
     /**
      *
      */
+    // JACK_TODO: going to clean this up
     const handleRowSelection = (rowKey: string) => {
         setTableData((prevData) => {
             return prevData.map((item) => {
                 if (item.rowKey === rowKey) {
-                    return {...item, selected: !item.selected};
+                    const selected = !item.selected;
+                    lastSelectedRowKeyRef.current = rowKey;
+                    lastSelectedRowBooleanRef.current = selected;
+                    return {...item, selected};
                 }
 
                 return item;
@@ -235,6 +279,7 @@ function Table<DataType extends object, ColumnKey extends string = string, Filte
         tableMethods,
         hasActiveFilters,
         hasSearchString,
+        handleShiftRowSelection,
         handleRowSelection,
         isEmptyResult,
         shouldUseNarrowTableLayout,
