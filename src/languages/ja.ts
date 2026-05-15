@@ -1426,6 +1426,8 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>領収書のアップロード中にエラーが発生しました。後で再度お試しいただくために、<a href="download">領収書を保存</a>してから、時間をおいて<a href="retry">もう一度お試しください</a>。</rbr>',
             receiptFailureMessageShort: 'レシートのアップロード中にエラーが発生しました。',
+            receiptUploadFailedMessage: 'レシートのアップロードに失敗しました。レシートを保存するか、経費を削除して失うかを選択してください。',
+            saveReceipt: '領収書を保存',
             genericDeleteFailureMessage: 'この経費の削除中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericSmartscanFailureMessage: '取引に未入力の項目があります',

@@ -1439,6 +1439,8 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptDeleteFailureError: 'Erro inesperado ao excluir este recibo. Tente novamente mais tarde.',
             receiptFailureMessage: '<rbr>Ocorreu um erro ao enviar seu recibo. Por favor, <a href="download">salve o recibo</a> e <a href="retry">tente novamente</a> mais tarde.</rbr>',
             receiptFailureMessageShort: 'Ocorreu um erro ao enviar seu recibo.',
+            receiptUploadFailedMessage: 'Falha no envio do recibo. Salve o recibo ou exclua a despesa e perca-a.',
+            saveReceipt: 'Salvar recibo',
             genericDeleteFailureMessage: 'Erro inesperado ao excluir esta despesa. Tente novamente mais tarde.',
             genericEditFailureMessage: 'Erro inesperado ao editar esta despesa. Tente novamente mais tarde.',
             genericSmartscanFailureMessage: 'A transação está com campos ausentes',
