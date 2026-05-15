@@ -5,8 +5,8 @@ import type {Emoji} from '@assets/emojis/types';
 import * as API from '@libs/API';
 import type {AddEmojiReactionParams, RemoveEmojiReactionParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {findEmojiByCode, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
+import {getReportAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -121,7 +121,7 @@ function toggleEmojiReaction(
         return;
     }
 
-    const originalReportAction = ReportActionsUtils.getReportAction(originalReportID, reportAction.reportActionID);
+    const originalReportAction = getReportAction(originalReportID, reportAction.reportActionID);
 
     if (isEmptyObject(originalReportAction)) {
         return;
@@ -129,13 +129,13 @@ function toggleEmojiReaction(
 
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
-    const emoji = EmojiUtils.findEmojiByCode(reactionObject.code);
+    const emoji = findEmojiByCode(reactionObject.code);
     const existingReactionObject = existingReactions?.[emoji.name] ?? (emoji.hexcode ? existingReactions?.[emoji.hexcode] : undefined);
 
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? CONST.EMOJI_DEFAULT_SKIN_TONE : paramSkinTone;
 
-    if (existingReactionObject && EmojiUtils.hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
+    if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, ignoreSkinToneOnCompare ? undefined : skinTone)) {
         removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID);
         return;
     }
