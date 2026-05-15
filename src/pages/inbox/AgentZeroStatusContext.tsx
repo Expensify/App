@@ -1,14 +1,12 @@
+import {getAgentAccountIDFlags, getAgentLoginAccountIDFlags, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType} from '@selectors/Report';
 import React, {createContext, useContext, useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useOnyx from '@hooks/useOnyx';
 import {clearConciergeThinkingKickoff} from '@libs/actions/Report';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AgentPrompt} from '@src/types/onyx';
-import type Report from '@src/types/onyx/Report';
 
 type AgentZeroStatusState = {
     /** Whether AgentZero is actively working */
@@ -47,27 +45,6 @@ const defaultActions: AgentZeroStatusActions = {
 const AgentZeroStatusStateContext = createContext<AgentZeroStatusState>(defaultState);
 const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defaultActions);
 
-const CUSTOM_AGENT_EMAIL_REGEX = /^agent_(\d+)@expensify\.ai$/;
-
-const getReportParticipantAccountIDs = (report: OnyxEntry<Report>): number[] => (report?.participants ? Object.keys(report.participants).map(Number) : []);
-
-// Selector reduces the full SHARED_NVP_AGENT_PROMPT collection to a small Record<accountID, true>
-// so the provider only re-renders when an agent is added/removed (not when an agent's prompt
-// content changes). The collection is small (current user's agents only) so deepEqual is cheap.
-const getAgentAccountIDFlags = (agentPrompts: OnyxCollection<AgentPrompt>): Record<number, true> => {
-    if (!agentPrompts) {
-        return {};
-    }
-    const flags: Record<number, true> = {};
-    for (const key of Object.keys(agentPrompts)) {
-        const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-        if (!Number.isNaN(accountID)) {
-            flags[accountID] = true;
-        }
-    }
-    return flags;
-};
-
 /**
  * Cheap outer guard — only subscribes to the scalar CONCIERGE_REPORT_ID and the report's chat
  * metadata. For non-AgentZero reports (the common case), returns children directly.
@@ -84,20 +61,14 @@ function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
     const [agentAccountIDFlags] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {selector: getAgentAccountIDFlags});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [agentLoginAccountIDFlags] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getAgentLoginAccountIDFlags});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
     // First participant whose accountID either has a SHARED_NVP_AGENT_PROMPT entry or whose login
     // matches the canonical agent email pattern. Both gates and identifies the persona in one pass.
-    const agentParticipantAccountID = participantAccountIDs?.find((accountID) => {
-        if (agentAccountIDFlags?.[accountID]) {
-            return true;
-        }
-        const login = personalDetails?.[accountID]?.login;
-        return typeof login === 'string' && CUSTOM_AGENT_EMAIL_REGEX.test(login);
-    });
+    const agentParticipantAccountID = participantAccountIDs?.find((accountID) => !!(agentAccountIDFlags?.[accountID] || agentLoginAccountIDFlags?.[accountID]));
     const isCustomAgentChat = agentParticipantAccountID !== undefined;
     const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
