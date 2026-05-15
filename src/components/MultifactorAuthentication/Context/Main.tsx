@@ -524,4 +524,3 @@ function useMultifactorAuthentication(): MultifactorAuthenticationContextValue {
 MultifactorAuthenticationContextProvider.displayName = 'MultifactorAuthenticationContextProvider';
 
 export {useMultifactorAuthentication, MultifactorAuthenticationContextProvider};
-export type {MultifactorAuthenticationContextValue, ExecuteScenarioParams};
