@@ -84,8 +84,8 @@ function CreateDistanceRatePage({
             rate: parseFloat(values.rate) * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
             customUnitRateID,
             enabled: true,
-            ...(isDateBoundMileageRateEnabled && values.startDate ? {startDate: values.startDate} : {}),
-            ...(isDateBoundMileageRateEnabled && values.endDate ? {endDate: values.endDate} : {}),
+            ...(isDateBoundMileageRateEnabled && values.startDate && {startDate: values.startDate}),
+            ...(isDateBoundMileageRateEnabled && values.endDate && {endDate: values.endDate}),
         };
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
