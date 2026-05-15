@@ -2,7 +2,7 @@ import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
-import * as API from '@libs/API';
+import {write} from '@libs/API';
 import type {AddEmojiReactionParams, RemoveEmojiReactionParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {findEmojiByCode, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
@@ -24,7 +24,7 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
             value: {
-                [emoji.name]: {
+                [emoji.hexcode]: {
                     createdAt,
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     users: {
@@ -39,24 +39,12 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
             value: {
-                [emoji.name]: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
-            value: {
-                [emoji.name]: {
+                [emoji.hexcode]: {
                     pendingAction: null,
                 },
             },
@@ -66,12 +54,12 @@ function addEmojiReaction(reportID: string, reportActionID: string, emoji: Emoji
     const parameters: AddEmojiReactionParams = {
         reportID,
         skinTone,
-        emojiCode: emoji.name,
+        emojiCode: emoji.hexcode,
         reportActionID,
         createdAt,
     };
 
-    API.write(WRITE_COMMANDS.ADD_EMOJI_REACTION, parameters, {optimisticData, successData, failureData});
+    write(WRITE_COMMANDS.ADD_EMOJI_REACTION, parameters, {optimisticData, finallyData});
 }
 
 /**
@@ -84,7 +72,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
             value: {
-                [emoji.name]: {
+                [emoji.hexcode]: {
                     users: {
                         [currentUserAccountID]: null,
                     },
@@ -96,10 +84,10 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
     const parameters: RemoveEmojiReactionParams = {
         reportID,
         reportActionID,
-        emojiCode: emoji.name,
+        emojiCode: emoji.hexcode,
     };
 
-    API.write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
+    write(WRITE_COMMANDS.REMOVE_EMOJI_REACTION, parameters, {optimisticData});
 }
 
 /**
