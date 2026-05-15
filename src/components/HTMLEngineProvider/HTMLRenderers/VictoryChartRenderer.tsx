@@ -183,6 +183,46 @@ function parseCornerRadius(attribute: string): RoundedCorners | undefined {
 }
 
 /**
+ * Helper to parse VC's `domainPadding` into VN's `domainPadding`
+ */
+function parseDomainPadding(attribute: string): ComponentProps<typeof CartesianChart<RawData, string, string>>['domainPadding'] | undefined {
+    const domainPadding = parseAttribute(attribute);
+    if (typeof domainPadding === 'number') {
+        return domainPadding;
+    }
+    if (Array.isArray(domainPadding)) {
+        return {
+            left: domainPadding[0],
+            right: domainPadding[1],
+        };
+    }
+    if (lodashIsObject(domainPadding)) {
+        let left: number | undefined, right: number | undefined, top: number | undefined, bottom: number | undefined;
+        if ('x' in domainPadding && typeof domainPadding.x === 'number') {
+            left = domainPadding.x;
+            right = domainPadding.x;
+        } else if ('x' in domainPadding && Array.isArray(domainPadding.x)) {
+            left = domainPadding.x[0];
+            right = domainPadding.x[1];
+        }
+        if ('y' in domainPadding && typeof domainPadding.y === 'number') {
+            top = domainPadding.y;
+            bottom = domainPadding.y;
+        } else if ('y' in domainPadding && Array.isArray(domainPadding.y)) {
+            top = domainPadding.y[1];
+            bottom = domainPadding.y[0];
+        }
+        return {
+            left,
+            right,
+            top,
+            bottom,
+        };
+    }
+    return undefined;
+}
+
+/**
  * Helper to parse common styles
  */
 function parseStyles(tnode: TNode) {
@@ -264,8 +304,7 @@ function VictoryChartRenderer({tnode}: CustomRendererProps<TBlock>) {
                     xAxis={xAxis}
                     yAxis={yAxis}
                     domain={parseAttribute(tnode.attributes.domain)}
-                    // s77rt TOOD fix compatibility
-                    domainPadding={parseAttribute(tnode.attributes.domainpadding)}
+                    domainPadding={parseDomainPadding(tnode.attributes.domainpadding)}
                     padding={parseAttribute(tnode.attributes.padding)}
                 >
                     {(renderArgs) => tnode.children.map((child, childIndex) => renderCartesianChartChild(child, childIndex, renderArgs))}
