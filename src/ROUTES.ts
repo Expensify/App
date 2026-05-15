@@ -1063,6 +1063,7 @@ const ROUTES = {
     SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
     SETTINGS_AGENTS: 'settings/agents',
     SETTINGS_AGENTS_ADD: 'settings/agents/new',
+    SETTINGS_AGENTS_ADD_AVATAR: 'settings/agents/new/avatar',
     SETTINGS_AGENTS_EDIT: {
         route: 'settings/agents/:accountID/edit',
         getRoute: (accountID: number) => `settings/agents/${accountID}/edit` as const,
@@ -1074,6 +1075,10 @@ const ROUTES = {
     SETTINGS_AGENTS_EDIT_PROMPT: {
         route: 'settings/agents/:accountID/edit/prompt',
         getRoute: (accountID: number) => `settings/agents/${accountID}/edit/prompt` as const,
+    },
+    SETTINGS_AGENTS_EDIT_AVATAR: {
+        route: 'settings/agents/:accountID/edit/avatar',
+        getRoute: (accountID: number) => `settings/agents/${accountID}/edit/avatar` as const,
     },
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {

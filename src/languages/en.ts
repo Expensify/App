@@ -2804,6 +2804,7 @@ const translations = {
             genericUpdate: 'There was a problem updating this agent',
             updateName: "There was a problem updating this agent's name",
             updatePrompt: "There was a problem updating this agent's instructions",
+            updateAvatar: "There was a problem updating this agent's avatar",
         },
     },
     addAgentPage: {
@@ -2811,7 +2812,7 @@ const translations = {
         agentName: 'Agent name',
         instructions: 'Write custom instructions',
         createAgent: 'Create agent',
-        switchAvatar: 'Switch avatar',
+        editAvatar: 'Edit avatar',
         defaultAgentName: (displayName: string) => `${displayName}'s Agent`,
         defaultPrompt:
             "Reject expenses that are for gambling, movies, or other obvious non-business reasons.\n\nRemind the user to always include a receipt image that makes the tip clear.\n\nApprove the report if it's very similar to previous reports from the same user.\n\nReject reports with more than $500 in travel expenses.",
@@ -2823,6 +2824,9 @@ const translations = {
         deleteAgent: 'Delete agent',
         deleteAgentTitle: 'Delete agent?',
         deleteAgentMessage: 'Are you sure you want to delete this agent? This action cannot be undone.',
+    },
+    editAgentAvatarPage: {
+        title: 'Edit avatar',
     },
     editAgentNamePage: {
         title: 'Agent name',
@@ -8144,7 +8148,7 @@ const translations = {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} from ${timePeriod} on ${date}`,
         startTimer: 'Start Timer',
-        stopTimer: 'Stop Timer',
+        stopTimer: (duration: string) => `Stop Timer (${duration})`,
         scheduleOOO: 'Schedule OOO',
         scheduleOOOTitle: 'Schedule Out of Office',
         date: 'Date',

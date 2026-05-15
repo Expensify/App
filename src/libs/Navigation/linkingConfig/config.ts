@@ -382,6 +382,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_AGENTS_ADD,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: {
+                            path: ROUTES.SETTINGS_AGENTS_ADD_AVATAR,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.AGENTS.EDIT]: {
                             path: ROUTES.SETTINGS_AGENTS_EDIT.route,
                             parse: {
@@ -396,6 +400,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
                             path: ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.route,
+                            parse: {
+                                accountID: Number,
+                            },
+                        },
+                        [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
+                            path: ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.route,
                             parse: {
                                 accountID: Number,
                             },
