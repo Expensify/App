@@ -60,15 +60,19 @@ jobs:
       - name: Check if production release exists for last deploy checklist version
         id: hasProductionRelease
         run: |
-          # Find most recent closed deploy checklist
+          # Find the most recently *closed* deploy checklist.
+          # The GitHub Issues API does not support sorting by closed_at, so we fetch
+          # several recent ones sorted by created and re-sort by closed_at using jq.
+          # This avoids a false positive where an older checklist is returned first
+          # simply because it received a new comment or edit after being closed.
           ISSUE_BODY=$(gh api "/repos/${{ github.repository }}/issues" \
             -X GET \
             -f labels="StagingDeployCash" \
             -f state=closed \
-            -f sort=updated \
+            -f sort=created \
             -f direction=desc \
-            -f per_page=1 \
-            --jq '.[0].body')
+            -f per_page=10 \
+            --jq 'sort_by(.closed_at) | reverse | .[0].body')
 
           if [[ -z "$ISSUE_BODY" || "$ISSUE_BODY" == "null" ]]; then
             echo "No closed deploy checklist found, continuing with deploy"
