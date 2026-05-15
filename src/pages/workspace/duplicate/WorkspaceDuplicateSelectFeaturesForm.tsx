@@ -95,7 +95,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: totalMembers ? `${totalMembers} ${translate('workspace.common.members').toLowerCase()}` : undefined,
                   }
                 : undefined,
-            reportFields > 0 && policy?.areReportFieldsEnabled
+            reportFields > 0
                 ? {
                       translation: translate('workspace.common.reports'),
                       value: 'reports',
