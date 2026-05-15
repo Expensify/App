@@ -279,7 +279,7 @@ describe('PaginationUtils', () => {
                 '15',
                 '14',
             ]);
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '');
+            const result = getContinuousChain(input, pages, getID, '');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(true);
             expect(result.hasNextPage).toBe(true);
@@ -305,7 +305,7 @@ describe('PaginationUtils', () => {
             ];
 
             const expectedResult = createItems(['18', '17', '16', '15', '14']);
-            const result = PaginationUtils.getContinuousChain(input, pages, getID, '18');
+            const result = getContinuousChain(input, pages, getID, '18');
             expect(result.data).toStrictEqual(expectedResult);
             expect(result.hasPreviousPage).toBe(true);
             expect(result.hasNextPage).toBe(true);
