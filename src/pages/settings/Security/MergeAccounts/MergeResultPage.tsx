@@ -6,7 +6,6 @@ import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
@@ -222,39 +221,37 @@ function MergeResultPage() {
     } = results[result] || defaultResult;
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom
-                testID="MergeResultPage"
-            >
-                <HeaderWithBackButton
-                    title={translate('mergeAccountsPage.mergeAccount')}
-                    shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
-                    }}
-                />
-                <ConfirmationPage
-                    containerStyle={{...styles.flexGrow1, ...styles.mt3}}
-                    heading={heading}
-                    headingStyle={headingStyle}
-                    onButtonPress={onButtonPress}
-                    shouldShowButton
-                    buttonText={buttonText}
-                    shouldShowSecondaryButton={shouldShowSecondaryButton}
-                    secondaryButtonText={secondaryButtonText}
-                    onSecondaryButtonPress={onSecondaryButtonPress}
-                    description={description}
-                    descriptionStyle={[descriptionStyle, styles.textSupporting]}
-                    illustration={illustration}
-                    illustrationStyle={illustrationStyle}
-                    cta={cta}
-                    ctaStyle={ctaStyle}
-                    descriptionComponent={descriptionComponent}
-                    ctaComponent={ctaComponent}
-                />
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            testID="MergeResultPage"
+        >
+            <HeaderWithBackButton
+                title={translate('mergeAccountsPage.mergeAccount')}
+                shouldShowBackButton={result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS}
+                onBackButtonPress={() => {
+                    Navigation.goBack(backTo ?? ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
+                }}
+            />
+            <ConfirmationPage
+                containerStyle={{...styles.flexGrow1, ...styles.mt3}}
+                heading={heading}
+                headingStyle={headingStyle}
+                onButtonPress={onButtonPress}
+                shouldShowButton
+                buttonText={buttonText}
+                shouldShowSecondaryButton={shouldShowSecondaryButton}
+                secondaryButtonText={secondaryButtonText}
+                onSecondaryButtonPress={onSecondaryButtonPress}
+                description={description}
+                descriptionStyle={[descriptionStyle, styles.textSupporting]}
+                illustration={illustration}
+                illustrationStyle={illustrationStyle}
+                cta={cta}
+                ctaStyle={ctaStyle}
+                descriptionComponent={descriptionComponent}
+                ctaComponent={ctaComponent}
+            />
+        </ScreenWrapper>
     );
 }
 

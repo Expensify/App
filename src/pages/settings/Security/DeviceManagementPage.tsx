@@ -14,7 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearRevokeError, revokeDevice} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDeviceLogins, getLastLogin, getLoginKey} from '@libs/UserUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Credentials} from '@src/types/onyx';
 import type {Login} from '@src/types/onyx/Logins';
