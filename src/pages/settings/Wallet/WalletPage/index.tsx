@@ -6,11 +6,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
-<<<<<<< HEAD
-=======
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
->>>>>>> 4bd53301c27 (feat: Implement DelegateNoAccessWrapper for AGENT access restriction in PreferencesPage and WalletPage)
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import KYCWall from '@components/KYCWall';
@@ -73,6 +68,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
 import useWalletSectionIllustration from './useWalletSectionIllustration';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 
 const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
     Object.fromEntries(Object.entries(allFunds ?? {}).filter(([, item]) => item.accountData?.additionalData?.isP2PDebitCard === true));
@@ -675,8 +671,11 @@ function WalletPage() {
                     shouldShowOfflineIndicatorInWideScreen
                 >
                     {headerWithBackButton}
-                    <View style={styles.flex1}>
-                        <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={reasonAttributes}
+                        />
                     </View>
                 </ScreenWrapper>
             </DelegateNoAccessWrapper>
@@ -690,42 +689,6 @@ function WalletPage() {
                 shouldShowOfflineIndicatorInWideScreen
             >
                 {headerWithBackButton}
-<<<<<<< HEAD
-                <View style={[styles.flex1, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={reasonAttributes}
-                    />
-                </View>
-            </ScreenWrapper>
-        );
-    }
-
-    return (
-        <ScreenWrapper
-            testID="WalletPage"
-            shouldShowOfflineIndicatorInWideScreen
-        >
-            {headerWithBackButton}
-            <ScrollView style={styles.pt3}>
-                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    <OfflineWithFeedback
-                        style={styles.flex1}
-                        contentContainerStyle={styles.flex1}
-                        onClose={clearWalletError}
-                        errors={userWallet?.errors}
-                        errorRowStyles={styles.ph6}
-                    >
-                        <Section
-                            subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
-                            title={translate('common.bankAccounts')}
-                            isCentralPane
-                            subtitleMuted
-                            titleStyles={styles.accountSettingsSectionTitle}
-                            illustrationContainerStyle={styles.cardSectionIllustrationContainer}
-                            illustrationBackgroundColor="#411103"
-                            {...walletIllustration}
-=======
                 <ScrollView style={styles.pt3}>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <OfflineWithFeedback
@@ -734,7 +697,6 @@ function WalletPage() {
                             onClose={clearWalletError}
                             errors={userWallet?.errors}
                             errorRowStyles={styles.ph6}
->>>>>>> 4bd53301c27 (feat: Implement DelegateNoAccessWrapper for AGENT access restriction in PreferencesPage and WalletPage)
                         >
                             <Section
                                 subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
