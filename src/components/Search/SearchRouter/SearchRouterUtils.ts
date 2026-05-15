@@ -44,7 +44,7 @@ function getContextualReportData(state: NavigationState | undefined): Contextual
         maybeReportRoute = findFocusedRoute(stateWithoutLastRoute);
     }
 
-    if (maybeReportRoute?.name === SCREENS.REPORT || maybeReportRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+    if (maybeReportRoute?.name === SCREENS.REPORT || maybeReportRoute?.name === SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT) {
         // We're guaranteed that the type of params is of SCREENS.REPORT
         return {contextualReportID: (maybeReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT]).reportID, isSearchRouterScreen};
     }

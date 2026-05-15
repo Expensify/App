@@ -330,6 +330,7 @@ const SCREENS = {
         TRANSACTION_DUPLICATE: 'TransactionDuplicate',
         TRAVEL: 'Travel',
         DYNAMIC_SEARCH_REPORT: 'Dynamic_SearchReport',
+        DYNAMIC_EXPENSE_REPORT: 'Dynamic_ExpenseReport',
         SEARCH_REPORT_ACTIONS: 'SearchReportActions',
         SEARCH_MONEY_REQUEST_REPORT: 'SearchMoneyRequestReport',
 
@@ -352,7 +353,6 @@ const SCREENS = {
         MERGE_TRANSACTION: 'MergeTransaction',
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
         DOMAIN: 'Domain',
-        EXPENSE_REPORT: 'ExpenseReport',
         MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
         CHRONOS_SCHEDULE_OOO: 'Chronos_Schedule_OOO',
     },

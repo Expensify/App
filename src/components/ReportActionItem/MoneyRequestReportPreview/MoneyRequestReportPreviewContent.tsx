@@ -31,6 +31,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
@@ -63,7 +64,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReportAttributesDerivedValue, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import AccessMoneyRequestReportPreviewPlaceHolder from './AccessMoneyRequestReportPreviewPlaceHolder';
@@ -523,12 +524,7 @@ function MoneyRequestReportPreviewContent({
         if (isSmallScreenWidth) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
         } else {
-            Navigation.navigate(
-                ROUTES.EXPENSE_REPORT_RHP.getRoute({
-                    reportID: iouReportID,
-                    backTo: Navigation.getActiveRoute(),
-                }),
-            );
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSE_REPORT.getRoute(iouReportID)));
         }
     }, [iouReportID, isSmallScreenWidth]);
 

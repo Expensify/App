@@ -187,7 +187,7 @@ function ParentNavigationSubtitle({
             // avoid stacking RHPs by going back to the search report if it's already there
             const previousRoute = currentFocusedNavigator?.state?.routes.at(-2);
 
-            if (previousRoute?.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT && lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+            if (previousRoute?.name === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT && lastRoute?.name === SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT) {
                 if (previousRoute.params && 'reportID' in previousRoute.params) {
                     const reportIDFromParams = previousRoute.params.reportID;
 

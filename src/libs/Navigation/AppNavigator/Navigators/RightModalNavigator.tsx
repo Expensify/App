@@ -433,7 +433,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                     }}
                                 />
                                 <Stack.Screen
-                                    name={SCREENS.RIGHT_MODAL.EXPENSE_REPORT}
+                                    name={SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT}
                                     getComponent={loadSearchMoneyRequestReportPage}
                                     options={(props) => {
                                         const options = modalStackScreenOptions(props);

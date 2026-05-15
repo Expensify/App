@@ -145,7 +145,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
         // Fix specific case: https://github.com/Expensify/App/pull/77657#issuecomment-3678696730.
         // When user is editing a money request report (/e/:reportID route) and has
         // an optimistic report in the background that should be replaced with preexisting report
-        const isOptimisticReportInBackground = screenName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && backTo && backTo.includes(`/r/${reportID}`);
+        const isOptimisticReportInBackground = screenName === SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT && backTo && backTo.includes(`/r/${reportID}`);
 
         // Only re-route them if they are still looking at the optimistically created report
         if (isOptimisticReportFocused || isOptimisticReportInBackground) {

@@ -89,7 +89,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
             SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT,
-            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SEARCH.ROOT,
@@ -120,7 +120,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT,
-            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.ROOT,
             SCREENS.REPORT_CHANGE_WORKSPACE.ROOT,
@@ -585,6 +585,16 @@ const DYNAMIC_ROUTES = {
         path: 'travel-upgrade',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
     },
+    EXPENSE_REPORT: {
+        path: 'e/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+        ],
+        getRoute: (reportID: string) => `e/${reportID}` as const,
+    },
     SEARCH_REPORT: {
         path: 'search-report/:reportID/:reportActionID?',
         entryScreens: ['*'],
@@ -592,16 +602,16 @@ const DYNAMIC_ROUTES = {
     },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     FLAG_COMMENT: {
         path: 'flag/:reportID/:reportActionID',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
     },
     SPLIT_BILL_DETAILS: {
         path: 'split/:reportActionID',
-        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportActionID: string) => `split/${reportActionID}`,
     },
 } as const satisfies DynamicRoutes;
@@ -637,16 +647,6 @@ const ROUTES = {
                 return baseRoute;
             }
             return `${baseRoute}/${subPage}` as const;
-        },
-    },
-
-    EXPENSE_REPORT_RHP: {
-        route: 'e/:reportID',
-        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `e/${reportID}` as const;
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
 

@@ -55,7 +55,7 @@ import type {ReportAttributesDerivedValue, Transaction, TransactionViolations} f
 
 type SearchMoneyRequestPageProps =
     | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
-    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT>;
+    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT>;
 
 const defaultReportLoadingState = {
     isLoadingInitialReportActions: true,
@@ -92,7 +92,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     useEffect(() => {
         // Update last visit time when the expense super wide RHP report is focused
-        if (!reportIDFromRoute || !isFocused || route.name !== SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+        if (!reportIDFromRoute || !isFocused || route.name !== SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT) {
             return;
         }
 
