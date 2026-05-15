@@ -93,9 +93,6 @@ function BookTravelButton({
     // Ref to track if we should auto-resume the booking flow after returning from TravelLegalNamePage
     const shouldResumeBookingRef = useRef(false);
 
-    const hidePreventionModal = () => setPreventionModalVisibility(false);
-    const hideVerificationModal = () => setVerificationModalVisibility(false);
-
     const navigateToPublicDomainError = () => {
         const dynamicSuffix = hasPolicyIDInActiveRoute() ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID);
         Navigation.navigate(createDynamicRoute(dynamicSuffix));
