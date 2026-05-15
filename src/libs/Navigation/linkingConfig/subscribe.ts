@@ -9,25 +9,14 @@ import ROUTES from '@src/ROUTES';
 
 const subscribe: LinkingOptions<RootNavigatorParamList>['subscribe'] = (listener) => {
     const subscription = Linking.addEventListener('url', ({url}: {url: string}) => {
-        // Skip GPS distance screen deep links when the user is already on that screen.
-        // This prevents a re-navigation with animation when tapping the GPS live update notification
-        // while the GPS screen is already visible.
-        if (url.includes(ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route)) {
+        // Skip deep links to screens where the user is already focused.
+        const routesToSkipIfAlreadyFocused = [ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route, ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route];
+        const matchedRoute = routesToSkipIfAlreadyFocused.find((route) => url.includes(route));
+        if (matchedRoute) {
             const state = navigationRef.current?.getRootState();
             if (state) {
                 const currentRoute = findFocusedRoute(state);
-                if (currentRoute?.name === ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route) {
-                    return;
-                }
-            }
-        }
-
-        // Prevent duplicate navigation when tapping the "Scan receipt" shortcut
-        if (url.includes(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route)) {
-            const state = navigationRef.current?.getRootState();
-            if (state) {
-                const currentRoute = findFocusedRoute(state);
-                if (currentRoute?.name === ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.route) {
+                if (currentRoute?.name === matchedRoute) {
                     return;
                 }
             }
