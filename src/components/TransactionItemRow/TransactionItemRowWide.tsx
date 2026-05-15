@@ -48,7 +48,7 @@ import TypeCell from './DataCells/TypeCell';
 import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
 import type {TransactionItemRowProps, TransactionItemRowWideComputedData} from './types';
 
-type TransactionItemRowWideProps = Omit<TransactionItemRowProps, 'shouldUseNarrowLayout' | 'policyForMovingExpenses' | 'isLargeScreenWidth' | 'shouldShowCheckbox'> &
+type TransactionItemRowWideProps = Omit<TransactionItemRowProps, 'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox'> &
     TransactionItemRowWideComputedData;
 
 function TransactionItemRowWide({
