@@ -1,17 +1,4 @@
-/**
- * Onyx selectors used by the confirmation field leaves.
- *
- * Selectors live outside their consumers so they have stable identity across
- * renders, can be unit-tested in isolation, and give the React Compiler a
- * clean memoization boundary. Selectors that close over runtime arguments
- * (e.g. a tag index) are exposed as factory functions; the React Compiler
- * memoizes the returned selector at the call site.
- *
- * Naming follows the codebase convention: `fooSelector` for stable selectors
- * and `createFooSelector` for factories. Selectors that are sufficiently
- * generic to be reused outside this feature live under `src/selectors/`
- * instead — see `@selectors/Session` for `emailSelector` and `accountIDSelector`.
- */
+/** Onyx selectors used by the confirmation field leaves. */
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canSendInvoice} from '@libs/PolicyUtils';
 import {
