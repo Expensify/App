@@ -10,21 +10,21 @@ const emojiNameTable: EmojiTable = {};
 const emojiCodeTableWithSkinTones: EmojiTable = {};
 const emojiHexcodeTable: EmojiTable = {};
 
-for (const cur of emojis) {
-    if ('header' in cur) {
+for (const emoji of emojis) {
+    if ('header' in emoji) {
         continue;
     }
-    if (cur.name) {
-        emojiNameTable[cur.name] = cur;
+    if (emoji.name) {
+        emojiNameTable[emoji.name] = emoji;
     }
-    emojiCodeTableWithSkinTones[cur.code] = cur;
-    if (cur.types) {
-        for (const type of cur.types) {
-            emojiCodeTableWithSkinTones[type] = cur;
+    emojiCodeTableWithSkinTones[emoji.code] = emoji;
+    if (emoji.types) {
+        for (const type of emoji.types) {
+            emojiCodeTableWithSkinTones[type] = emoji;
         }
     }
-    if (cur.hexcode) {
-        emojiHexcodeTable[cur.hexcode] = cur;
+    if (emoji.hexcode) {
+        emojiHexcodeTable[emoji.hexcode] = emoji;
     }
 }
 
