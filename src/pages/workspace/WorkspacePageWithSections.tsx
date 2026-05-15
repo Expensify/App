@@ -209,7 +209,7 @@ function WorkspacePageWithSections({
         >
             <FullPageNotFoundView
                 onBackButtonPress={handleOnBackButtonPress}
-                onLinkPress={() => Navigation.goBackToHome()}
+                onLinkPress={() => goBackFromWorkspaceSettingPages()}
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 shouldForceFullScreen

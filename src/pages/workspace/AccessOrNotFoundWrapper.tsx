@@ -126,6 +126,7 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
             }}
             {...fullPageNotFoundViewProps}
             shouldShowBackButton={fullPageNotFoundViewProps?.shouldShowBackButton ?? (!shouldShowFullScreenFallback ? shouldUseNarrowLayout : undefined)}
+            {...(isPolicyNotAccessible ? {onLinkPress: () => goBackFromWorkspaceSettingPages()} : {})}
         />
     );
 }
