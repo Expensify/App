@@ -70,6 +70,7 @@ import FolderWithPapersAndWatch from '@assets/images/product-illustrations/folde
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
+import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
 import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
@@ -266,6 +267,7 @@ const Illustrations = {
     FolderWithPapers,
     Hands,
     CardReplacementSuccess,
+    Copilots,
     MagicCode,
     ModalHoldOrReject,
     MushroomTopHat,

@@ -575,6 +575,7 @@ function IOURequestStepDistance({
             isASAPSubmitBetaEnabled,
             parentReportNextStep,
             recentWaypoints,
+            distanceOriginalPolicy,
         });
         transactionWasSaved.current = true;
         // Remove the backup eagerly so the parent report view reads the optimistic transaction
@@ -609,6 +610,7 @@ function IOURequestStepDistance({
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,
         hasRouteError,
+        distanceOriginalPolicy,
     ]);
 
     const renderItem = useCallback(
