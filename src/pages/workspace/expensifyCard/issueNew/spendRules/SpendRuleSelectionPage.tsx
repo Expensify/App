@@ -141,6 +141,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                         data={filteredCardRules}
                         canSelectMultiple={false}
                         customListHeader={headerContent}
+                        shouldShowListEmptyContent={false}
                         onSelectRow={onSelectCardRule}
                         footerContent={
                             <FormAlertWithSubmitButton
