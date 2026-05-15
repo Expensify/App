@@ -43,6 +43,7 @@ import {getReportLayoutGroupBy, setReportLayoutGroupBy} from '@libs/actions/Repo
 import {clearActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -65,7 +66,6 @@ import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpActi
 import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {getTransactionPendingAction, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isReportOpenInSuperWideRHP from '@navigation/helpers/isReportOpenInSuperWideRHP';
 import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';

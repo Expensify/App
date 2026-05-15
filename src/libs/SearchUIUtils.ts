@@ -2542,9 +2542,7 @@ function createAndOpenSearchTransactionThread(
             : item.reportID;
 
         if (targetReportID) {
-            Navigation.setNavigationActionToMicrotaskQueue(() =>
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID}))),
-            );
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID}))));
         }
     }
 }

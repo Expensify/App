@@ -588,8 +588,7 @@ const DYNAMIC_ROUTES = {
     SEARCH_REPORT: {
         path: 'search-report/:reportID/:reportActionID?',
         entryScreens: ['*'],
-        getRoute: ({reportID, reportActionID}: {reportID: string; reportActionID?: string}) =>
-            reportActionID ? `search-report/${reportID}/${reportActionID}` : `search-report/${reportID}`,
+        getRoute: ({reportID, reportActionID}: {reportID: string; reportActionID?: string}) => (reportActionID ? `search-report/${reportID}/${reportActionID}` : `search-report/${reportID}`),
     },
     REPORT_CHANGE_APPROVER: {
         path: 'change-approver',

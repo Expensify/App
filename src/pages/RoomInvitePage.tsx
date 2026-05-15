@@ -60,10 +60,7 @@ const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoring
 type RoomInvitePageProps = WithReportOrNotFoundProps & WithNavigationTransitionEndProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DYNAMIC_INVITE>;
 
 type MembersSection = SectionListData<OptionData, Section<OptionData>>;
-function RoomInvitePage({
-    report,
-    didScreenTransitionEnd,
-}: RoomInvitePageProps) {
+function RoomInvitePage({report, didScreenTransitionEnd}: RoomInvitePageProps) {
     const styles = useThemeStyles();
     const reportAttributes = useReportAttributes();
     const {translate, formatPhoneNumber} = useLocalize();

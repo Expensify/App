@@ -12,9 +12,7 @@ type SearchReportVerifyAccountPageProps = PlatformStackScreenProps<SearchReportA
 function SearchReportVerifyAccountPage({route}: SearchReportVerifyAccountPageProps) {
     const {reportID, reportActionID} = Navigation.getTopmostSearchReportRouteParams() ?? {};
     const navigateBackTo = createDynamicRoute(
-        DYNAMIC_ROUTES.SEARCH_REPORT.getRoute(
-            reportID === route.params.reportID ? {reportID: route.params.reportID, reportActionID} : {reportID: route.params.reportID},
-        ),
+        DYNAMIC_ROUTES.SEARCH_REPORT.getRoute(reportID === route.params.reportID ? {reportID: route.params.reportID, reportActionID} : {reportID: route.params.reportID}),
         ROUTES.SEARCH_ROOT.route,
     );
     return <VerifyAccountPageBase navigateBackTo={navigateBackTo} />;

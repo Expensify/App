@@ -108,9 +108,7 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 
             const isSearchScreen = routeName === SCREENS.SEARCH.ROOT;
             const isSearchMoneyRequestReport =
-                routeName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT ||
-                routeName === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ||
-                routeName === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT;
+                routeName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT || routeName === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || routeName === SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT;
 
             const scrollOffsetKeys = Object.keys(scrollOffsetsRef.current);
 
