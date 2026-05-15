@@ -7,6 +7,7 @@ type UpdateMoneyRequestParams = Partial<TransactionDetails> & {
     policyID?: string;
     /** Used for bulk updates - JSON stringified object containing only changed fields */
     updates?: string;
+    hasDistanceBeenManuallyUpdated?: boolean;
 };
 
 export default UpdateMoneyRequestParams;

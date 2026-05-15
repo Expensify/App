@@ -1425,7 +1425,7 @@ function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>
     }
     const quantity = transaction?.comment?.customUnit?.quantity;
     const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
-    const routeDistanceMeters = transaction?.routes?.route0?.distance;
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
     if (typeof quantity !== 'number' || !distanceUnit || typeof routeDistanceMeters !== 'number' || routeDistanceMeters <= 0) {
         return false;
     }
@@ -1524,7 +1524,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         // Removing the ghost IOU report on API failure which can cause unexpected errors.
         failureData?.push(...additionalFailureData);
 
-        const workspaceParamsForAPI = hasManualDistanceOverrideForRequest ? {...workspaceParams, waypoints: undefined} : workspaceParams;
+        const workspaceParamsForAPI = hasManualDistanceOverrideForRequest ? {...workspaceParams, waypoints: undefined, hasDistanceBeenManuallyUpdated: true} : workspaceParams;
         const params = {
             amount,
             distance,
