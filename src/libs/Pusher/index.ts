@@ -242,7 +242,7 @@ function subscribe<EventName extends PusherEventName>(
 
                             // In production, report to Sentry without crashing the app.
                             // This can happen when disconnect() is called (e.g. during the "Upgrade Required"
-                            // teardown) before this deferred InteractionManager callback runs.
+                            // teardown) before this deferred TransitionTracker callback runs.
                             Sentry.captureException(error, {
                                 tags: {source: 'Pusher.subscribe'},
                                 extra: {channelName, eventName},
