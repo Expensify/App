@@ -8,6 +8,8 @@ jest.mock('@src/ROUTES', () => ({
         FLAG_COMMENT: {path: 'flag/:reportID/:reportActionID'},
         MEMBER_DETAILS: {path: 'member-details/:accountID'},
         KEYBOARD_SHORTCUTS: {path: 'keyboard-shortcuts'},
+        OPT_TRAILING: {path: 'opt-page/:id?'},
+        OPT_MIDDLE: {path: 'wrap/:p?/end'},
     },
 }));
 
@@ -113,6 +115,56 @@ describe('findMatchingDynamicSuffix', () => {
             pattern: 'keyboard-shortcuts',
             actualSuffix: 'keyboard-shortcuts',
             pathParams: {},
+        });
+    });
+
+    describe('optional path params', () => {
+        it('should match trailing-optional pattern when optional is absent', () => {
+            expect(findMatchingDynamicSuffix('/r/123/opt-page')).toEqual({
+                pattern: 'opt-page/:id?',
+                actualSuffix: 'opt-page',
+                pathParams: {},
+            });
+        });
+
+        it('should match trailing-optional pattern when optional is present', () => {
+            expect(findMatchingDynamicSuffix('/r/123/opt-page/789')).toEqual({
+                pattern: 'opt-page/:id?',
+                actualSuffix: 'opt-page/789',
+                pathParams: {id: '789'},
+            });
+        });
+
+        it('should match middle-optional pattern when optional is absent', () => {
+            expect(findMatchingDynamicSuffix('/r/123/wrap/end')).toEqual({
+                pattern: 'wrap/:p?/end',
+                actualSuffix: 'wrap/end',
+                pathParams: {},
+            });
+        });
+
+        it('should match middle-optional pattern when optional is present', () => {
+            expect(findMatchingDynamicSuffix('/r/123/wrap/x/end')).toEqual({
+                pattern: 'wrap/:p?/end',
+                actualSuffix: 'wrap/x/end',
+                pathParams: {p: 'x'},
+            });
+        });
+
+        it('should ignore query params when matching trailing-optional present-form', () => {
+            expect(findMatchingDynamicSuffix('/r/123/opt-page/789?tab=details')).toEqual({
+                pattern: 'opt-page/:id?',
+                actualSuffix: 'opt-page/789',
+                pathParams: {id: '789'},
+            });
+        });
+
+        it('should ignore query params when matching trailing-optional absent-form', () => {
+            expect(findMatchingDynamicSuffix('/r/123/opt-page?tab=details')).toEqual({
+                pattern: 'opt-page/:id?',
+                actualSuffix: 'opt-page',
+                pathParams: {},
+            });
         });
     });
 });

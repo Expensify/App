@@ -12,7 +12,6 @@ describe('CheckboxWithLabel Component', () => {
             <CheckboxWithLabel
                 label={LABEL}
                 onInputChange={mockOnInputChange}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />,
         );

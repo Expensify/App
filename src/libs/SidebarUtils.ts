@@ -72,6 +72,7 @@ import {
     getPolicyChangeLogEmployeeLeftMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
+    getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
     getReimburserUpdateMessage,
@@ -82,6 +83,7 @@ import {
     getReportAction,
     getReportActionActorAccountID,
     getReportActionMessageText,
+    getRequireCompanyCardsEnabledMessage,
     getRoomAvatarUpdatedMessage,
     getSetAutoJoinMessage,
     getSettlementAccountLockedMessage,
@@ -859,6 +861,7 @@ function getOptionData({
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
+    result.chatReportID = report.chatReportID;
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;
@@ -871,6 +874,7 @@ function getOptionData({
     result.keyForList = String(report.reportID);
     result.hasOutstandingChildRequest = report.hasOutstandingChildRequest;
     result.parentReportID = report.parentReportID;
+    result.parentReportActionID = report.parentReportActionID;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.notificationPreference = getReportNotificationPreference(report);
     result.isAllowedToComment = canUserPerformWriteActionUtil(report, isReportArchived);
@@ -889,8 +893,11 @@ function getOptionData({
 
     const status = personalDetail?.status ?? '';
 
+    const isOneOnOneChatReport = isOneOnOneChat(report);
+    result.isOneOnOneChat = isOneOnOneChatReport;
+
     // For 1:1 DMs, add the other participant's selected timezone
-    if (isOneOnOneChat(report)) {
+    if (isOneOnOneChatReport) {
         const recipientPersonalDetail = participantPersonalDetailListExcludeCurrentUser.at(0);
         result.timezone = recipientPersonalDetail?.timezone;
     }
@@ -1075,6 +1082,8 @@ function getOptionData({
             result.alternateText = getWorkspaceFeatureEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
             result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
+            result.alternateText = getRequireCompanyCardsEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
             result.alternateText = getAutoPayApprovedReportsEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
@@ -1099,6 +1108,8 @@ function getOptionData({
             result.alternateText = getCompanyAddressUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
             result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT) {
+            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
             result.alternateText = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE) {

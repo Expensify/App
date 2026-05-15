@@ -44,7 +44,6 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => mockShouldOpenOnAdminRoom() as boolean,
 }));

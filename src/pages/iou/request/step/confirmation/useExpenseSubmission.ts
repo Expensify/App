@@ -2,6 +2,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import useActivePolicy from '@hooks/useActivePolicy';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -16,7 +17,7 @@ import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
+import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
@@ -32,6 +33,7 @@ import {
     getRateID,
     getTaxValue,
     getValidWaypoints,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
@@ -180,6 +182,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const policyRecentlyUsedCurrencies = policyRecentlyUsedCurrenciesOnyx ?? [];
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const activePolicy = useActivePolicy();
 
     // Reports
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
@@ -201,12 +204,12 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
-
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,
@@ -311,7 +314,16 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 action,
                 transactionParams: {
                     amount: itemAmount,
-                    distance: isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
+                    // Pass the stored quantity for any distance request so that a manually-edited distance
+                    // on a map-based expense survives `convertTrackedExpenseToRequest`. Without this, BE
+                    // would recompute the distance from waypoints and drop the user's edit. Check the
+                    // per-item transaction (not the page-level `isDistanceRequest` prop) because in
+                    // submit-from-self-DM flows the page-level transaction can be a draft optimistic one
+                    // that hasn't yet inherited the distance custom unit.
+                    distance:
+                        isDistanceRequestTransactionUtils(item) && typeof item.comment?.customUnit?.quantity === 'number'
+                            ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity)
+                            : undefined,
                     attendees: item.comment?.attendees,
                     currency: itemCurrency,
                     created: item.created,
@@ -438,6 +450,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 betas,
                 personalDetails,
                 optimisticChatReportID,
+                conciergeReportID,
                 shouldHandleNavigation: shouldHandleNav,
             });
             if (shouldHandleNav && result && activeReportID) {
@@ -505,7 +518,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
                     isFromGlobalCreate: item?.isFromFloatingActionButton ?? item?.isFromGlobalCreate,
-                    gpsCoordinates: isGPSDistanceRequest ? getGPSCoordinates(gpsDraftDetails) : undefined,
+                    gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                 },
                 accountantParams: {
                     accountant: item.accountant,
@@ -515,13 +528,14 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: email,
                 introSelected,
-                activePolicyID,
+                activePolicy,
                 quickAction,
                 recentWaypoints,
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
                 defaultWorkspaceName: generateDefaultWorkspaceName(email, lastWorkspaceNumber, translate),
+                previousOdometerDraft: odometerDraft,
             });
         }
     }
@@ -567,7 +581,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 odometerStart: isOdometerDistanceRequest ? transaction.comment?.odometerStart : undefined,
                 odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
                 isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
-                gpsCoordinates: isGPSDistanceRequest ? getGPSCoordinates(gpsDraftDetails) : undefined,
+                gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
             },
             backToReport,
             isASAPSubmitBetaEnabled,
@@ -578,6 +592,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             recentWaypoints,
             betas,
             shouldHandleNavigation: shouldHandleNav,
+            previousOdometerDraft: odometerDraft,
         });
     }
 
@@ -861,4 +876,3 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 }
 
 export default useExpenseSubmission;
-export type {UseExpenseSubmissionParams};

@@ -28,12 +28,14 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, getCardSettings, sortCardsByCardholderName} from '@libs/CardUtils';
 import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -42,7 +44,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import EmptyCardView from './EmptyCardView';
@@ -63,7 +65,7 @@ type WorkspaceExpensifyCardListPageProps = {
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Export', 'Gear', 'Plus']);
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
@@ -85,7 +87,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const isBankAccountVerified = !cardOnWaitlist;
     const {windowHeight} = useWindowDimensions();
-    const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const headerHeight = useEmptyViewHeaderHeight(shouldDisplayButtonsInSeparateLine, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
     const cardFeedIcon = (
         <CardFeedIcon
@@ -155,9 +158,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             showDelegateNoAccessModal();
             return;
         }
-        const activeRoute = Navigation.getActiveRoute();
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path));
     };
     const secondaryActions = [
         {
@@ -168,7 +170,12 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         },
     ];
     const getHeaderButtons = () => {
-        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldUseNarrowLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3];
+        const headerButtonsRowStyle = [
+            styles.flexRow,
+            styles.gap2,
+            !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3,
+            shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mt3,
+        ];
 
         if (selectedCardIDs.length > 0) {
             return (
@@ -181,7 +188,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         isSplitButton={false}
                         shouldAlwaysShowDropdownMenu
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.BULK_ACTIONS_DROPDOWN}
-                        wrapperStyle={[styles.flexGrow1, shouldChangeLayout && styles.flexShrink1]}
+                        wrapperStyle={[!isInLandscapeMode && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.flexShrink1]}
                     />
                 </View>
             );
@@ -195,7 +202,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         onPress={handleIssueCardPress}
                         icon={icons.Plus}
                         text={translate('workspace.expensifyCard.issueCard')}
-                        style={shouldChangeLayout && styles.flex1}
+                        style={shouldDisplayButtonsInSeparateLine && styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                     />
                 )}
@@ -206,7 +213,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     options={secondaryActions}
                     isSplitButton={false}
                     shouldUseOptionIcon
-                    wrapperStyle={isCardListEmpty ? styles.flexGrow1 : styles.flexGrow0}
+                    wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
                 />
             </View>
@@ -324,13 +331,14 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 shouldDisplayHelpButton
                 onBackButtonPress={handleBackButtonPress}
             >
-                {!shouldShowSelector && !shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
+                {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && getHeaderButtons()}
             </HeaderWithBackButton>
-            {!shouldShowSelector && shouldUseNarrowLayout && isBankAccountVerified && <View style={styles.ph5}>{getHeaderButtons()}</View>}
+            {!shouldShowSelector && shouldDisplayButtonsInSeparateLine && isBankAccountVerified && <View style={styles.ph5}>{getHeaderButtons()}</View>}
             {shouldShowSelector && (
-                <View style={[styles.w100, styles.ph5, styles.pb3, !shouldChangeLayout && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
+                <View style={[styles.w100, styles.ph5, styles.pb3, (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector
-                        onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
+                        wrapperStyle={isInLandscapeMode ? styles.flex1 : undefined}
+                        onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
                         CardFeedIcon={cardFeedIcon}
                         feedName={translate('workspace.common.expensifyCard')}
                         supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies)}

@@ -107,6 +107,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
+    const hasAccountingConnection = hasAccountingConnections(policy);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
     const shouldShowEnterCredentials = connectedIntegration && !!synchronizationError && isAuthenticationError(policy, connectedIntegration);
@@ -295,7 +296,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     }, [connectedIntegration, currentXeroOrganization?.id, policy, policyID, styles.fontWeightNormal, styles.sectionMenuItemTopDescription, tenants.length, translate, icons.ArrowRight]);
 
     const connectionsMenuItems: MenuItemData[] = useMemo(() => {
-        if (isEmptyObject(policy?.connections) && !isSyncInProgress && policyID) {
+        if (!hasAccountingConnection && !isSyncInProgress && policyID) {
             return accountingIntegrations
                 .map((integration) => {
                     const integrationData = getAccountingIntegrationData(
@@ -465,11 +466,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     />
                 ),
             },
-            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isEmptyObject(policy?.connections) ? [] : [integrationSpecificMenuItems]),
-            ...(isEmptyObject(policy?.connections) || !isConnectionVerified ? [] : configurationOptions),
+            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
+            ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
         policy,
+        hasAccountingConnection,
         isSyncInProgress,
         policyID,
         connectedIntegration,
@@ -504,7 +506,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
-        if ((isEmptyObject(policy?.connections) && !isSyncInProgress) || !policyID) {
+        if ((!hasAccountingConnection && !isSyncInProgress) || !policyID) {
             return;
         }
         const otherIntegrations = accountingIntegrations.filter(
@@ -562,7 +564,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             })
             .filter(Boolean) as MenuItemWithLink[];
     }, [
-        policy?.connections,
+        hasAccountingConnection,
         isSyncInProgress,
         accountingIntegrations,
         connectionSyncProgress?.connectionName,
@@ -636,7 +638,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         <MenuItem
                                             brickRoadIndicator={menuItem.brickRoadIndicator}
                                             key={menuItem.title}
-                                            // eslint-disable-next-line react/jsx-props-no-spreading
                                             {...menuItem}
                                         />
                                     </OfflineWithFeedback>
@@ -717,10 +718,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
 function PolicyAccountingPageWrapper(props: PolicyAccountingPageProps) {
     return (
         <AccountingContextProvider policy={props.policy}>
-            <PolicyAccountingPage
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
+            <PolicyAccountingPage {...props} />
         </AccountingContextProvider>
     );
 }
