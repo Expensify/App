@@ -57,7 +57,6 @@ function DropdownButton({label, value, medium = false, labelStyle, innerStyles, 
 
     return (
         <FilterPopupButton
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             renderButton={({onPress, ref, isExpanded}) => (
                 <View style={[styles.flexRow]}>
