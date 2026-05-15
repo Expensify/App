@@ -156,7 +156,7 @@ function CreateDistanceRatePage({
                                         label={translate('workspace.distanceRates.startDate')}
                                     />
                                 </View>
-                                <View style={[styles.mh5, styles.mt2]}>
+                                <View style={[styles.mh5]}>
                                     <InputWrapper
                                         InputComponent={DatePicker}
                                         inputID={INPUT_IDS.END_DATE}
