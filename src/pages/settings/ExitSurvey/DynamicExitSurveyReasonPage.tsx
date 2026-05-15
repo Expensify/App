@@ -110,6 +110,7 @@ function DynamicExitSurveyReasonPage() {
                 onSubmit={submitForm}
                 submitButtonText=""
                 isSubmitButtonVisible={false}
+                shouldValidateOnBlur={false}
                 validate={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM>) => {
                     const errors: Errors = {};
                     const response = values[INPUT_IDS.RESPONSE] ?? '';
