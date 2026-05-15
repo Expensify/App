@@ -94,13 +94,12 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState => ({
 
 // --- MerchantField ---
 
-type MerchantState = {merchant: string; isMissing: boolean; hasReceipt: boolean; isMerchantSet: Transaction['isMerchantSet']};
+type MerchantState = {merchant: string; isMissing: boolean; hasReceipt: boolean};
 
 const merchantStateSelector = (t: OnyxEntry<Transaction>): MerchantState => ({
     merchant: getMerchant(t),
     isMissing: isMerchantMissing(t),
     hasReceipt: hasReceipt(t),
-    isMerchantSet: t?.isMerchantSet,
 });
 
 // --- DescriptionField ---

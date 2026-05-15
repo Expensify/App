@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {isValidInputLength} from '@libs/ValidationUtils';
+import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -53,7 +53,7 @@ function MerchantField({
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
 
     const merchantValue = merchantState?.merchant ?? '';
-    const displayMerchantValue = !merchantState?.isMerchantSet ? '' : merchantValue;
+    const displayMerchantValue = isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
     const isMerchantEmpty = !displayMerchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
 

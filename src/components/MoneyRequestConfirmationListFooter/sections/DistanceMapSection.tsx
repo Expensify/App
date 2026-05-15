@@ -1,40 +1,37 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
+import shouldShowDistanceMap from '@components/MoneyRequestConfirmationListFooter/shouldShowDistanceMap';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isFetchingWaypointsFromServer} from '@libs/TransactionUtils';
-import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type DistanceMapSectionProps = {
+    /** Active transaction (drives the rendered route + waypoint pending/error state) */
     transaction: OnyxEntry<Transaction>;
+
+    /** Whether the active transaction is a distance request (gate for showing the map) */
     isDistanceRequest: boolean;
+
+    /** Whether the active transaction is a manual distance request (suppresses the map) */
     isManualDistanceRequest: boolean;
+
+    /** Whether the active transaction is an odometer-driven distance request (suppresses the map) */
     isOdometerDistanceRequest: boolean;
+
+    /** Type of IOU being confirmed (splits never show the map) */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
+
+    /** Whether the surface is read-only (read-only without errors/pending hides the map) */
     isReadOnly: boolean;
 };
 
 function DistanceMapSection({transaction, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, iouType, isReadOnly}: DistanceMapSectionProps) {
     const styles = useThemeStyles();
 
-    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
-    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    const shouldShowMap =
-        isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest && [hasErrors, hasPendingWaypoints, iouType !== CONST.IOU.TYPE.SPLIT, !isReadOnly].some(Boolean);
-
-    // Mapbox token lifecycle is gated here so it only runs when the map is visible
-    useEffect(() => {
-        if (!shouldShowMap) {
-            return;
-        }
-        initMapboxToken();
-        return stopMapboxToken;
-    }, [shouldShowMap]);
+    const shouldShowMap = shouldShowDistanceMap({transaction, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, iouType, isReadOnly});
 
     if (!shouldShowMap) {
         return null;

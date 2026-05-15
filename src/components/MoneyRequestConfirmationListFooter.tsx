@@ -254,8 +254,6 @@ function MoneyRequestConfirmationListFooter({
         isPolicyExpenseChat,
         isReadOnly,
         isDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
         isPerDiemRequest,
         isTimeRequest,
         isTypeInvoice,
