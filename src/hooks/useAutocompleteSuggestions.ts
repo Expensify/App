@@ -54,6 +54,7 @@ type UseAutocompleteSuggestionsParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     translate: LocaleContextProps['translate'];
+    localeCompare: LocaleContextProps['localeCompare'];
     /** Map of display values to IDs for filters (e.g. workspace name → policy ID); used to exclude by ID when names duplicate */
     autocompleteSubstitutions?: SubstitutionMap;
 };
@@ -102,6 +103,7 @@ function useAutocompleteSuggestions({
     personalDetails,
     feedKeysWithCards,
     translate,
+    localeCompare,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
@@ -435,7 +437,7 @@ function useAutocompleteSuggestions({
                         (item.label.toLowerCase().includes(autocompleteValue.toLowerCase()) || item.accountNumber.includes(autocompleteValue)) &&
                         !alreadyAutocompletedKeys.has(item.label.toLowerCase()),
                 )
-                .sort((a, b) => a.label.localeCompare(b.label))
+                .sort((a, b) => localeCompare(a.label, b.label))
                 .slice(0, 10);
 
             return filteredBankAccounts.map((item) => ({

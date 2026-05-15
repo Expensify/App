@@ -311,6 +311,7 @@ function SearchAutocompleteList({
         personalDetails,
         feedKeysWithCards,
         translate,
+        localeCompare,
         autocompleteSubstitutions,
     });
 
