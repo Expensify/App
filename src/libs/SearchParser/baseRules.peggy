@@ -38,6 +38,8 @@ taxRate
 cardID
   = "cardID"
   / "card"i { return "cardID"; }
+bankAccountFilterKey
+  = "bankAccount"i { return "bankAccount"; }
 from = "from"i { return "from"; }
 attendee = "attendee"i {return "attendee"}
 expenseType
