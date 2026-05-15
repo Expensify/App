@@ -3,11 +3,9 @@ import DecisionModal from '@components/DecisionModal';
 import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
-import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
@@ -17,9 +15,8 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -90,22 +87,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const isDuplicateFeedDetected = !!addNewCard?.data?.isDuplicateFeedDetected;
-    const {showConfirmModal} = useConfirmModal();
-
-    useEffect(() => {
-        if (!isDuplicateFeedDetected) {
-            return;
-        }
-        setAddNewCompanyCardStepAndData({data: {isDuplicateFeedDetected: false}});
-        showConfirmModal({
-            title: translate('workspace.companyCards.addNewCard.duplicateFeedModal.title'),
-            prompt: translate('workspace.companyCards.addNewCard.duplicateFeedModal.prompt'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [isDuplicateFeedDetected, showConfirmModal, translate]);
 
     return (
         <AccessOrNotFoundWrapper
