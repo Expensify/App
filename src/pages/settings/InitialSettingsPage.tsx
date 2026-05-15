@@ -118,6 +118,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Exit',
         'Lightbulb',
         'Lock',
+        'Users',
         'Emoji',
         'CreditCard',
         'Wallet',
@@ -160,6 +161,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
     const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
+    const [hasAgentErrors] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {
+        selector: (agents) => Object.values(agents ?? {}).some((agent) => !isEmptyObject(agent?.nameErrors) || !isEmptyObject(agent?.promptErrors)),
+    });
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
@@ -281,6 +285,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
         },
         {
+            translationKey: 'delegate.copilot',
+            icon: icons.Users,
+            screenName: SCREENS.SETTINGS.COPILOT,
+            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.COPILOT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_COPILOT),
+        },
+        {
             translationKey: 'initialSettingsPage.security',
             icon: icons.Lock,
             screenName: SCREENS.SETTINGS.SECURITY,
@@ -299,6 +310,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.AGENTS,
             action: () => Navigation.navigate(ROUTES.SETTINGS_AGENTS),
             badgeText: translate('common.beta'),
+            brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         });
     }
 

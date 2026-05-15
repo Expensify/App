@@ -24,7 +24,6 @@ function CardFeedIcon({iconProps, selectedFeed, isExpensifyCardFeed = false, use
     const isPlaidCardFeed = !!getPlaidInstitutionId(selectedFeed);
 
     if (isExpensifyCardFeed) {
-        // eslint-disable-next-line react/jsx-props-no-spreading
         return <ExpensifyCardFeedIcon {...iconProps} />;
     }
 
@@ -33,7 +32,6 @@ function CardFeedIcon({iconProps, selectedFeed, isExpensifyCardFeed = false, use
             <PlaidCardFeedIcon
                 plaidUrl={getPlaidInstitutionIconUrl(selectedFeed)}
                 useSkeletonLoader={useSkeletonLoader}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restIconProps}
             />
         );
@@ -46,7 +44,6 @@ function CardFeedIcon({iconProps, selectedFeed, isExpensifyCardFeed = false, use
     return (
         <Icon
             src={src ?? getCardFeedIcon(selectedFeed, illustrations, companyCardFeedIcons)}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restIconProps}
         />
     );
@@ -60,7 +57,6 @@ function ExpensifyCardFeedIcon(iconProps: Partial<IconProps>) {
     return (
         <Icon
             src={memoizedIllustrations.ExpensifyCardImage}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...restIconProps}
         />
     );
