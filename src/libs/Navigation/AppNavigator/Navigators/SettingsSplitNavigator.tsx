@@ -14,7 +14,7 @@ const loadInitialSettingsPage = () => require<ReactComponentModule>('../../../..
 type Screens = Partial<Record<keyof SettingsSplitNavigatorParamList, () => React.ComponentType>>;
 
 const CENTRAL_PANE_SETTINGS_SCREENS = {
-    [SCREENS.SETTINGS.PREFERENCES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PreferencesPage').default,
+    [SCREENS.SETTINGS.PREFERENCES.ROOT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/PreferencesPage').default),
     [SCREENS.SETTINGS.SECURITY]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/SecuritySettingsPage').default),
     [SCREENS.SETTINGS.COPILOT]: () => require<ReactComponentModule>('../../../../pages/settings/Copilot/CopilotPage').default,
     [SCREENS.SETTINGS.PROFILE.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/ProfilePage').default,

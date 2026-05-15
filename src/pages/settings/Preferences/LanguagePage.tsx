@@ -1,6 +1,5 @@
 import React, {useMemo, useRef} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -45,26 +44,24 @@ function LanguagePage() {
     };
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID="LanguagePage"
-            >
-                <HeaderWithBackButton
-                    title={translate('languagePage.language')}
-                    onBackButtonPress={() => Navigation.goBack()}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="LanguagePage"
+        >
+            <HeaderWithBackButton
+                title={translate('languagePage.language')}
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <FullPageOfflineBlockingView>
+                <SelectionList
+                    data={locales}
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={updateLanguage}
+                    shouldSingleExecuteRowSelect
+                    initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
                 />
-                <FullPageOfflineBlockingView>
-                    <SelectionList
-                        data={locales}
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={updateLanguage}
-                        shouldSingleExecuteRowSelect
-                        initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
-                    />
-                </FullPageOfflineBlockingView>
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+            </FullPageOfflineBlockingView>
+        </ScreenWrapper>
     );
 }
 

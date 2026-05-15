@@ -1,7 +1,6 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -56,44 +55,42 @@ function ThemePage() {
     };
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID="ThemePage"
-            >
-                <HeaderWithBackButton
-                    title={translate('themePage.theme')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
-                <View style={styles.flex1}>
-                    <SelectionList
-                        data={localesToThemes}
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={updateTheme}
-                        shouldSingleExecuteRowSelect
-                        initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
-                        listFooterContent={
-                            <>
-                                <View style={[styles.mh5, styles.borderTop]} />
-                                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                                    <View style={styles.flex4}>
-                                        <Text>{translate('themePage.highContrastMode')}</Text>
-                                    </View>
-                                    <View style={[styles.flex1, styles.alignItemsEnd]}>
-                                        <Switch
-                                            accessibilityLabel={translate('themePage.highContrastMode')}
-                                            isOn={isHighContrast}
-                                            onToggle={onToggleHighContrast}
-                                        />
-                                    </View>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="ThemePage"
+        >
+            <HeaderWithBackButton
+                title={translate('themePage.theme')}
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
+            <View style={styles.flex1}>
+                <SelectionList
+                    data={localesToThemes}
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={updateTheme}
+                    shouldSingleExecuteRowSelect
+                    initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
+                    listFooterContent={
+                        <>
+                            <View style={[styles.mh5, styles.borderTop]} />
+                            <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                                <View style={styles.flex4}>
+                                    <Text>{translate('themePage.highContrastMode')}</Text>
                                 </View>
-                            </>
-                        }
-                    />
-                </View>
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+                                <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                    <Switch
+                                        accessibilityLabel={translate('themePage.highContrastMode')}
+                                        isOn={isHighContrast}
+                                        onToggle={onToggleHighContrast}
+                                    />
+                                </View>
+                            </View>
+                        </>
+                    }
+                />
+            </View>
+        </ScreenWrapper>
     );
 }
 

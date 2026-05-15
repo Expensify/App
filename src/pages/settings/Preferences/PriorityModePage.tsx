@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -46,25 +45,23 @@ function PriorityModePage() {
     );
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID="PriorityModePage"
-            >
-                <HeaderWithBackButton
-                    title={translate('priorityModePage.priorityMode')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
-                <Text style={[styles.mh5, styles.mv3]}>{translate('priorityModePage.explainerText')}</Text>
-                <SelectionList
-                    data={priorityModes}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={updateMode}
-                    shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
-                />
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="PriorityModePage"
+        >
+            <HeaderWithBackButton
+                title={translate('priorityModePage.priorityMode')}
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <Text style={[styles.mh5, styles.mv3]}>{translate('priorityModePage.explainerText')}</Text>
+            <SelectionList
+                data={priorityModes}
+                ListItem={SingleSelectListItem}
+                onSelectRow={updateMode}
+                shouldSingleExecuteRowSelect
+                initiallyFocusedItemKey={priorityModes.find((mode) => mode.isSelected)?.keyForList}
+            />
+        </ScreenWrapper>
     );
 }
 

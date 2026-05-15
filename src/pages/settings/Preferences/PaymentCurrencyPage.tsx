@@ -1,7 +1,6 @@
 import React from 'react';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -30,37 +29,35 @@ function PaymentCurrencyPage() {
     };
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID="PaymentCurrencyPage"
-            >
-                {({didScreenTransitionEnd}) => (
-                    <>
-                        <HeaderWithBackButton
-                            title={translate('billingCurrency.paymentCurrency')}
-                            shouldShowBackButton
-                            onBackButtonPress={handleDismissKeyboardAndGoBack}
-                        />
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="PaymentCurrencyPage"
+        >
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('billingCurrency.paymentCurrency')}
+                        shouldShowBackButton
+                        onBackButtonPress={handleDismissKeyboardAndGoBack}
+                    />
 
-                        <Text style={[styles.mh5, styles.mv4]}>{translate('billingCurrency.paymentCurrencyDescription')}</Text>
+                    <Text style={[styles.mh5, styles.mv4]}>{translate('billingCurrency.paymentCurrencyDescription')}</Text>
 
-                        <CurrencySelectionList
-                            recentlyUsedCurrencies={[]}
-                            searchInputLabel={translate('common.search')}
-                            onSelect={(option: CurrencyListItem) => {
-                                if (option.currencyCode !== paymentCurrency) {
-                                    updateGeneralSettings(personalPolicy, personalPolicy?.name ?? '', option.currencyCode);
-                                }
-                                handleDismissKeyboardAndGoBack();
-                            }}
-                            initiallySelectedCurrencyCode={paymentCurrency}
-                            didScreenTransitionEnd={didScreenTransitionEnd}
-                        />
-                    </>
-                )}
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+                    <CurrencySelectionList
+                        recentlyUsedCurrencies={[]}
+                        searchInputLabel={translate('common.search')}
+                        onSelect={(option: CurrencyListItem) => {
+                            if (option.currencyCode !== paymentCurrency) {
+                                updateGeneralSettings(personalPolicy, personalPolicy?.name ?? '', option.currencyCode);
+                            }
+                            handleDismissKeyboardAndGoBack();
+                        }}
+                        initiallySelectedCurrencyCode={paymentCurrency}
+                        didScreenTransitionEnd={didScreenTransitionEnd}
+                    />
+                </>
+            )}
+        </ScreenWrapper>
     );
 }
 

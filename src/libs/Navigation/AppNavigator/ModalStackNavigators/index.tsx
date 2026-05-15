@@ -56,7 +56,7 @@ import type {
 import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
-import withAgentAccessDenied from '../withAgentAccessDenied';
+import withAgentAccessDenied from '@libs/Navigation/AppNavigator/withAgentAccessDenied';
 import useModalStackScreenOptions from './useModalStackScreenOptions';
 
 const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../../pages/media/AttachmentModalScreen').default;
@@ -402,10 +402,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/DynamicVerifyAccountPage').default,
     [SCREENS.SETTINGS.DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/DynamicAddBankAccountVerifyAccountPage').default,
     [SCREENS.SETTINGS.SHARE_CODE]: () => require<ReactComponentModule>('../../../../pages/ShareCodePage').default,
-    [SCREENS.SETTINGS.PROFILE.PRONOUNS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PronounsPage').default,
+    [SCREENS.SETTINGS.PROFILE.PRONOUNS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/PronounsPage').default),
     [SCREENS.SETTINGS.PROFILE.DISPLAY_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/DisplayNamePage').default,
-    [SCREENS.SETTINGS.PROFILE.TIMEZONE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneInitialPage').default,
-    [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneSelectPage').default,
+    [SCREENS.SETTINGS.PROFILE.TIMEZONE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneInitialPage').default),
+    [SCREENS.SETTINGS.PROFILE.TIMEZONE_SELECT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/TimezoneSelectPage').default),
     [SCREENS.SETTINGS.PROFILE.LEGAL_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/LegalNamePage').default,
     [SCREENS.SETTINGS.PROFILE.DATE_OF_BIRTH]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/DateOfBirthPage').default,
     [SCREENS.SETTINGS.PROFILE.PHONE_NUMBER]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/PhoneNumberPage').default,
@@ -413,7 +413,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage').default,
     [SCREENS.SETTINGS.PROFILE.ADDRESS_STATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/PersonalDetails/StateSelectionPage').default,
     [SCREENS.SETTINGS.PROFILE.AVATAR]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Avatar/AvatarPage').default,
-    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/ContactMethodsPage').default,
+    [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/ContactMethodsPage').default),
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/ContactMethodDetailsPage').default,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/NewContactMethodPage').default,
     [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: () =>
@@ -421,11 +421,11 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/SetDefaultContactMethodConfirmMagicCodePage').default,
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/VerifyAccountPage').default,
-    [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PriorityModePage').default,
+    [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/PriorityModePage').default),
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
-    [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/LanguagePage').default,
-    [SCREENS.SETTINGS.PREFERENCES.THEME]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/ThemePage').default,
-    [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PaymentCurrencyPage').default,
+    [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/LanguagePage').default),
+    [SCREENS.SETTINGS.PREFERENCES.THEME]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/ThemePage').default),
+    [SCREENS.SETTINGS.PREFERENCES.PAYMENT_CURRENCY]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Preferences/PaymentCurrencyPage').default),
     [SCREENS.SETTINGS.DEVICE_MANAGEMENT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/DeviceManagementPage').default),
     [SCREENS.SETTINGS.CLOSE]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Security/CloseAccountPage').default),
     [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: () => require<ReactComponentModule>('../../../../pages/settings/AppDownloadLinks').default,
@@ -712,8 +712,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ITEMS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/import/QuickbooksDesktopItemsPage').default,
     [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: () => require<ReactComponentModule>('@pages/workspace/ConnectExistingBusinessBankAccountPage').default,
     [SCREENS.REIMBURSEMENT_ACCOUNT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/ReimbursementAccountPage').default),
-    [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/NonUSD/NonUSDVerifiedBankAccountFlowPage').default),
-    [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/ReimbursementAccountVerifyAccountPage').default),
+    [SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD]: withAgentAccessDenied(
+        () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/NonUSD/NonUSDVerifiedBankAccountFlowPage').default,
+    ),
+    [SCREENS.REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT]: withAgentAccessDenied(
+        () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/ReimbursementAccountVerifyAccountPage').default,
+    ),
     [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/EnterSignerInfo').default),
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED]: withAgentAccessDenied(() => require<ReactComponentModule>('../../../../pages/settings/Wallet/ReportCardLostPage').default),
     [SCREENS.SETTINGS.REPORT_CARD_LOST_OR_DAMAGED_CONFIRM_MAGIC_CODE]: withAgentAccessDenied(

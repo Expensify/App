@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -72,28 +71,26 @@ function TimezoneSelectPage({currentUserPersonalDetails}: TimezoneSelectPageProp
     );
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID="TimezoneSelectPage"
-            >
-                <HeaderWithBackButton
-                    title={translate('timezonePage.timezone')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
-                />
-                <SelectionList
-                    data={timezoneOptions}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={saveSelectedTimezone}
-                    textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
-                    isDisabled={!!timezone.automatic}
-                    shouldShowTooltips={false}
-                    shouldSingleExecuteRowSelect
-                    showScrollIndicator
-                />
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            testID="TimezoneSelectPage"
+        >
+            <HeaderWithBackButton
+                title={translate('timezonePage.timezone')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
+            />
+            <SelectionList
+                data={timezoneOptions}
+                ListItem={SingleSelectListItem}
+                onSelectRow={saveSelectedTimezone}
+                textInputOptions={textInputOptions}
+                initiallyFocusedItemKey={timezoneOptions.find((tz) => tz.text === timezone.selected)?.keyForList}
+                isDisabled={!!timezone.automatic}
+                shouldShowTooltips={false}
+                shouldSingleExecuteRowSelect
+                showScrollIndicator
+            />
+        </ScreenWrapper>
     );
 }
 
