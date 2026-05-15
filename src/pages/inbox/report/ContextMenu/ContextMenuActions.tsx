@@ -194,10 +194,10 @@ import {
     openReport,
     readNewestAction,
     saveReportActionDraft,
-    toggleEmojiReaction,
     togglePinnedState,
     toggleSubscribeToChildReport,
 } from '@userActions/Report';
+import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';

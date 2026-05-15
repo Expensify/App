@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEmojiReactionDetails} from '@libs/EmojiUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import {toggleEmojiReaction} from '@userActions/Report';
+import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
