@@ -33,12 +33,13 @@ import type {TableData, TableHandle, TableMethods, TableProps, TableRow, TableRo
  * 1. **Filtering** - Applies dropdown filter selections
  * 2. **Searching** - Applies search string filtering
  * 3. **Sorting** - Sorts data by the active column
+ * 4. **Selection** - Applies row selection state & provides helpers for selection
  *
  * Each middleware transforms the data array and passes it to the next.
  *
  * ## Generic Type Parameters
  *
- * - `T` - The type of items in your data array
+ * - `DataType` - The type of items in your data array
  * - `ColumnKey` - String literal union of valid column keys (e.g., `'name' | 'date'`)
  * - `FilterKey` - String literal union of valid filter keys
  *
@@ -158,7 +159,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const {middleware: selectionMiddleware, methods: selectionMethods} = useSelection<DataType>({data});
 
-    const processedData = [filterMiddleware, searchMiddleware, sortMiddleware, selectionMiddleware].reduce((acc, middleware) => middleware(acc), data);
+    // Apply the middleware
+    const filteredData = filterMiddleware(data);
+    const searchedData = searchMiddleware(filteredData);
+    const sortedData = sortMiddleware(searchedData);
+    const processedData = selectionMiddleware(sortedData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
 

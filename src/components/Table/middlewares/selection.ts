@@ -1,5 +1,5 @@
 import {useRef, useState} from 'react';
-import {TableData} from '../types';
+import {TableData, TableRow} from '../types';
 import {MiddlewareHookResult} from './types';
 
 export type UseSelectionProps<DataType extends TableData> = {
@@ -14,7 +14,7 @@ export type SelectionMethods = {
     handleSingleRowSelection: (rowKey: string) => void;
 };
 
-export type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods>;
+export type UseSelectionResult<DataType extends TableData> = MiddlewareHookResult<DataType, SelectionMethods, TableRow<DataType>>;
 
 export default function useSelection<DataType extends TableData>({data}: UseSelectionProps<DataType>): UseSelectionResult<DataType> {
     const lastSelectedRowKeyRef = useRef<string | null>(null);
