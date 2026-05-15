@@ -7904,6 +7904,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         exportAll: {
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
+            selectAllOnThisPage: 'Seleziona tutto in questa pagina',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Seleziona le date per Da e A',

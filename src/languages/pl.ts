@@ -7867,6 +7867,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         exportAll: {
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Zaznaczono wszystkie pasujące elementy',
+            selectAllOnThisPage: 'Zaznacz wszystko na tej stronie',
         },
         errors: {
             pleaseSelectDatesForBothFromAndTo: 'Wybierz daty dla Od i Do',

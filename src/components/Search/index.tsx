@@ -319,8 +319,7 @@ function Search({
         suggestedSearches,
     } = useSearchStateContext();
 
-    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, setShouldShowSelectAllMatchingItems, selectAllMatchingItems, setShouldResetSearchQuery} =
-        useSearchActionsContext();
+    const {setSelectedTransactions, clearSelectedTransactions, setShouldShowFiltersBarLoading, selectAllMatchingItems, setShouldResetSearchQuery} = useSearchActionsContext();
     const [offset, setOffset] = useState(0);
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -1002,14 +1001,11 @@ function Search({
                 : filteredData.length;
             const areAllItemsSelected = totalSelectableItemsCount === Object.keys(updatedSelectedTransactions).length;
 
-            // If the user has selected all the expenses in their view but there are more expenses matched by the search
-            // give them the option to select all matching expenses
-            setShouldShowSelectAllMatchingItems(!!(areAllItemsSelected && searchResults?.search?.hasMoreResults));
             if (!areAllItemsSelected) {
                 selectAllMatchingItems(false);
             }
         },
-        [filteredData, validGroupBy, type, searchResults?.search?.hasMoreResults, setShouldShowSelectAllMatchingItems, selectAllMatchingItems],
+        [filteredData, validGroupBy, type, selectAllMatchingItems],
     );
 
     const toggleTransaction = useCallback(
