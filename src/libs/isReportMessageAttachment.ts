@@ -1,8 +1,8 @@
+import {Parser as HtmlParser} from 'htmlparser2';
 import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
 
-const attachmentRegex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
-const attachmentOnlyHtmlRegex = /^\s*<(?:img|a|video)\s/i;
+const ATTACHMENT_TAGS = new Set(['a', 'img', 'video']);
 
 /**
  * Returns true for attachment-only messages (no user-typed text), false for attachment+text and non-attachment messages.
@@ -17,12 +17,29 @@ function isReportMessageAttachment(message: Message | undefined): boolean {
         return true;
     }
 
-    if (!attachmentRegex.test(message.html)) {
-        return false;
-    }
+    // First node decides: attachment tag → attachment-only; anything else (text, plain link, mention) → attachment+text.
+    let result = false;
+    let firstNodeSeen = false;
 
-    // Attachment-only HTML starts with the attachment tag; attachment+text has user content before it.
-    return attachmentOnlyHtmlRegex.test(message.html);
+    const parser = new HtmlParser({
+        ontext: (text) => {
+            if (firstNodeSeen || !text.trim()) {
+                return;
+            }
+            firstNodeSeen = true;
+        },
+        onopentag: (name, attribs) => {
+            if (firstNodeSeen) {
+                return;
+            }
+            firstNodeSeen = true;
+            result = ATTACHMENT_TAGS.has(name) && !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+        },
+    });
+    parser.write(message.html);
+    parser.end();
+
+    return result;
 }
 
 // eslint-disable-next-line import/prefer-default-export
