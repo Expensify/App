@@ -112,9 +112,9 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     mergedAccountConciergeReportID,
                     false,
                 );
+                setIsLoading(false);
             } catch (error) {
                 Log.warn('[BaseOnboardingPersonalDetails] Error completing onboarding', {error});
-            } finally {
                 setIsLoading(false);
             }
         },

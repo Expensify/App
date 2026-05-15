@@ -144,9 +144,9 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                             isSelfTourViewed,
                             betas,
                         });
+                        setIsLoading(false);
                     } catch (error) {
                         Log.warn('[BaseOnboardingPurpose] Error completing onboarding', {error});
-                    } finally {
                         setIsLoading(false);
                     }
 

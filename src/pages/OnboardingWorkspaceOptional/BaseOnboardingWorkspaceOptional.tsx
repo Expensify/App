@@ -145,9 +145,9 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
                     mergedAccountConciergeReportID,
                     false,
                 );
+                setIsLoading(false);
             } catch (error) {
                 Log.warn('[BaseOnboardingWorkspaceOptional] Error completing onboarding', {error});
-            } finally {
                 setIsLoading(false);
             }
         },
