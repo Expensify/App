@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import {RequestError} from '@octokit/request-error';
 import CONST from '@github/libs/CONST';
 import {getLastClosedDeployChecklist} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
@@ -42,8 +43,15 @@ const run = async function (): Promise<void> {
             core.setOutput('HAS_PRODUCTION_RELEASE', true);
         }
     } catch (err) {
-        console.log(`No release found for version ${version}, blocking deploy`);
-        core.setOutput('HAS_PRODUCTION_RELEASE', false);
+        // A 404 means the tag simply doesn't exist yet — no production release for this version.
+        // Any other error (5xx, rate-limit, auth) is an infrastructure problem; rethrow so the
+        // action fails visibly rather than silently masquerading as "no production release".
+        if (err instanceof RequestError && err.status === 404) {
+            console.log(`No release found for version ${version}, blocking deploy`);
+            core.setOutput('HAS_PRODUCTION_RELEASE', false);
+        } else {
+            throw err;
+        }
     }
 };
 

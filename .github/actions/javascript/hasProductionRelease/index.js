@@ -11537,6 +11537,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
+const request_error_1 = __nccwpck_require__(537);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const DeployChecklistUtils_1 = __nccwpck_require__(2141);
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
@@ -11577,8 +11578,16 @@ const run = async function () {
         }
     }
     catch (err) {
-        console.log(`No release found for version ${version}, blocking deploy`);
-        core.setOutput('HAS_PRODUCTION_RELEASE', false);
+        // A 404 means the tag simply doesn't exist yet — no production release for this version.
+        // Any other error (5xx, rate-limit, auth) is an infrastructure problem; rethrow so the
+        // action fails visibly rather than silently masquerading as "no production release".
+        if (err instanceof request_error_1.RequestError && err.status === 404) {
+            console.log(`No release found for version ${version}, blocking deploy`);
+            core.setOutput('HAS_PRODUCTION_RELEASE', false);
+        }
+        else {
+            throw err;
+        }
     }
 };
 if (require.main === require.cache[eval('__filename')]) {
