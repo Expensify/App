@@ -444,7 +444,6 @@ function SecuritySettingsPage() {
                                 illustrationBackgroundColor={colors.ice500}
                                 titleStyles={styles.accountSettingsSectionTitle}
                                 childrenStyles={styles.pt5}
-                                // eslint-disable-next-line react/jsx-props-no-spreading
                                 {...securitySettingsIllustration}
                             >
                                 <MenuItemList

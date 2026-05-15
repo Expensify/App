@@ -65,7 +65,6 @@ export default function TableRow({
         styles.mh5,
         styles.flexRow,
         styles.highlightBG,
-        styles.overflowHidden,
         styles.alignItemsCenter,
         isInteractive && styles.userSelectNone,
         shouldUseNarrowTableLayout ? styles.ph4 : styles.ph3,
@@ -96,7 +95,7 @@ export default function TableRow({
     return (
         <OfflineWithFeedback
             // We need to spread the props due to how the OfflineWithFeedback component handles child components
-            // eslint-disable-next-line react/jsx-props-no-spreading
+
             {...offlineWithFeedback}
         >
             <PressableWithFeedback
@@ -109,7 +108,6 @@ export default function TableRow({
                 hoverStyle={isInteractive && styles.hoveredComponentBG}
                 role={isInteractive ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                 onPress={onPress}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {(state) =>

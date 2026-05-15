@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
