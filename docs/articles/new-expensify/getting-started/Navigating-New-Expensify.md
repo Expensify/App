@@ -95,7 +95,8 @@ From Account, you can manage:
  - **Wallet** to manage bank accounts and linked credit cards
  - **Expense rules** to create and edit personal expense rules
  - **Preferences** to update app settings
- - **Security** to manage security options and Copilot delegated access
+ - **Copilot** to manage Copilot delegated access
+ - **Security** to manage security options
 
 You can also access: 
  - **Help** to access help and support resources, including a link to the help site
