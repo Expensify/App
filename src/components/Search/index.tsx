@@ -7,8 +7,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
-import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -16,6 +14,7 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
@@ -25,6 +24,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useStableArrayReference from '@hooks/useStableArrayReference';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
@@ -34,11 +34,10 @@ import {flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite} from '@libs
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-// eslint-disable-next-line no-restricted-imports
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getNonHeldAndFullAmount, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -64,7 +63,7 @@ import {
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isOnHold, isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
@@ -74,11 +73,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, SaveSearch, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import arraysEqual from '@src/utils/arraysEqual';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchActionsContext, useSearchStateContext} from './SearchContext';
@@ -306,18 +305,6 @@ function Search({
     const styles = useThemeStyles();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
-    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const [holdMenuParams, setHoldMenuParams] = useState<{
-        chatReport: OnyxEntry<Report>;
-        fullAmount: string;
-        moneyRequestReport: OnyxEntry<Report>;
-        transactionCount: number;
-        nonHeldAmount: string;
-        requestType: ActionHandledType;
-        paymentType?: PaymentMethodType;
-        hasValidNonHeldAmount: boolean;
-        hasNoneHeldExpenses: boolean;
-    } | null>(null);
 
     const {markReportIDAsExpense, markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
     const {
@@ -361,6 +348,9 @@ function Search({
     });
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    // Only the boolean derived from policyForMovingExpenses is consumed by row components downstream.
+    // Drilling the policy object causes ref churn on every unrelated policy update (Pusher pushes).
+    const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
     const [cardFeeds, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -378,26 +368,6 @@ function Search({
         selector: savedSearchSelector,
     });
 
-    const handleHoldMenuOpen = useCallback(
-        (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => {
-            const chatReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
-            const moneyRequestReport = searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
-            const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, item.allActions?.includes(CONST.SEARCH.ACTION_TYPES.PAY) ?? false);
-            setHoldMenuParams({
-                chatReport,
-                moneyRequestReport,
-                transactionCount: item.transactionCount ?? 0,
-                fullAmount,
-                requestType,
-                paymentType,
-                nonHeldAmount,
-                hasValidNonHeldAmount,
-                hasNoneHeldExpenses: item.transactions.some((t) => !isOnHold(t)),
-            });
-            setIsHoldMenuVisible(true);
-        },
-        [searchResults?.data],
-    );
     const {convertToDisplayString} = useCurrencyListActions();
 
     const validGroupBy = getValidGroupBy(groupBy);
@@ -450,7 +420,7 @@ function Search({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isSmallScreenWidth]);
 
-    const {newSearchResultKeys, handleSelectionListScroll, newTransactions} = useSearchHighlightAndScroll({
+    const {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
@@ -462,6 +432,16 @@ function Search({
         previousReportActions,
         shouldUseLiveData,
     });
+
+    // Mirror `hasQueuedHighlights` into a ref so the post-create-flow `useFocusEffect`
+    // (which has empty deps) can read the latest value without re-creating its callback.
+    // Used to skip the deferral that would otherwise hide the freshly-added row from
+    // FlashList during the RHP dismiss transition, which would prevent the highlight
+    // animation from ever firing on it.
+    const hasQueuedHighlightsRef = useRef(hasQueuedHighlights);
+    useEffect(() => {
+        hasQueuedHighlightsRef.current = hasQueuedHighlights;
+    }, [hasQueuedHighlights]);
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
@@ -515,6 +495,14 @@ function Search({
 
             if (skipDeferralOnFocusRef.current) {
                 skipDeferralOnFocusRef.current = false;
+                return;
+            }
+
+            // If the highlight hook already queued rows for the post-create animation,
+            // skip the skeleton-during-transition defer. Otherwise FlashList stays empty
+            // for ~1s while the RHP dismiss transition runs, the row never mounts inside
+            // the 300ms highlight window, and `useAnimatedHighlightStyle` never fires.
+            if (hasQueuedHighlightsRef.current) {
                 return;
             }
 
@@ -1268,12 +1256,17 @@ function Search({
 
     const shouldUseStrictDefaultExpenseColumns = currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && isDefaultExpensesQuery(queryJSON);
 
-    const currentColumns = useMemo(() => {
+    const computedColumns = useMemo(() => {
         if (!searchResults?.data) {
-            return [];
+            return getEmptyArray<SearchColumnType>();
         }
         return getColumnsToShow({currentAccountID: accountID, data: searchResults?.data, visibleColumns, type: searchDataType, groupBy: validGroupBy, shouldUseStrictDefaultExpenseColumns});
     }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy, shouldUseStrictDefaultExpenseColumns]);
+
+    // getColumnsToShow allocates a fresh array on every call; preserve the previous reference
+    // when contents are equal so downstream consumers don't re-render on Onyx snapshot churn
+    // (e.g. opening a report bumps searchResults.data) that doesn't actually change the columns.
+    const currentColumns = useStableArrayReference(computedColumns);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
@@ -1281,12 +1274,12 @@ function Search({
     }));
 
     const previousColumns = usePrevious(currentColumns);
-    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>([]);
+    const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
     useEffect(() => {
-        if ((previousColumns && currentColumns && arraysEqual(previousColumns, currentColumns)) || offset === 0 || isSmallScreenWidth) {
+        if (previousColumns === currentColumns || offset === 0 || isSmallScreenWidth) {
             setColumnsToShow(currentColumns);
             return;
         }
@@ -1829,31 +1822,15 @@ function Search({
                     }
                     queryJSON={queryJSON}
                     columns={columnsToShow}
-                    violations={violations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    onHoldMenuOpen={handleHoldMenuOpen}
-                    policyForMovingExpenses={policyForMovingExpenses}
+                    isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                     nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                     isActionColumnWide={isTask || hasDeletedTransaction}
                 />
-                {isHoldMenuVisible && !!holdMenuParams && (
-                    <ProcessMoneyReportHoldMenu
-                        isVisible={isHoldMenuVisible}
-                        onClose={() => setIsHoldMenuVisible(false)}
-                        chatReport={holdMenuParams.chatReport}
-                        fullAmount={holdMenuParams.fullAmount}
-                        moneyRequestReport={holdMenuParams.moneyRequestReport}
-                        transactionCount={holdMenuParams.transactionCount}
-                        hasNonHeldExpenses={holdMenuParams?.hasNoneHeldExpenses}
-                        nonHeldAmount={holdMenuParams.hasNoneHeldExpenses && holdMenuParams.hasValidNonHeldAmount ? holdMenuParams.nonHeldAmount : undefined}
-                        requestType={holdMenuParams.requestType}
-                        paymentType={holdMenuParams.paymentType}
-                    />
-                )}
             </Animated.View>
         </SearchScopeProvider>
     );
@@ -1861,7 +1838,7 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {SearchProps, HoldMenuCallback};
+export type {HoldMenuCallback};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 
