@@ -387,14 +387,18 @@ function PureReportActionItem({
 
     const disabledActions = !canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : [];
 
+    const hasErrors = !isEmptyValueObject(action.errors);
+    // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
+    const hasOnlyReceiptErrors = hasErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
+
     /**
      * Show the ReportActionContextMenu modal popover.
      *
      * @param [event] - A press event.
      */
     const showPopover = (event: GestureResponderEvent | MouseEvent) => {
-        // Block menu on the message being Edited or if the report action item has errors
-        if (hasDraft || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenuValue) {
+        // Block menu on the message being Edited or if the report action item has errors (except receipt upload errors, to allow Delete)
+        if (hasDraft || (hasErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue) {
             return;
         }
 
@@ -488,7 +492,6 @@ function PureReportActionItem({
         return null;
     }
 
-    const hasErrors = !isEmptyValueObject(action.errors);
     const whisperedTo = getWhisperedTo(action);
 
     const iouReportID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUReportID ? getOriginalMessage(action)?.IOUReportID?.toString() : undefined;
@@ -530,7 +533,7 @@ function PureReportActionItem({
                         onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onSecondaryInteraction={showPopover}
-                        preventDefaultContextMenu={!hasDraft && !hasErrors}
+                        preventDefaultContextMenu={!hasDraft && (!hasErrors || hasOnlyReceiptErrors)}
                         withoutFocusOnSecondaryInteraction
                         accessibilityLabel={accessibilityLabel}
                         accessibilityHint={translate('accessibilityHints.chatMessage')}

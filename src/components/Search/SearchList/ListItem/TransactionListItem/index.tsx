@@ -2,7 +2,7 @@
 // SearchStaticList (src/components/Search/SearchStaticList.tsx) used for fast
 // perceived performance. If you change the narrow-layout UI here, verify the
 // static version still looks visually identical.
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
@@ -11,9 +11,11 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {TransactionListItemProps, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+import {useEditingCellState} from '@components/Table/EditableCell';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
@@ -127,6 +129,66 @@ function TransactionListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
+
+    // When a popover is opened during inline editing, onHoverOut never fires after editing ends, leaving the hover style stuck.
+    // Disable it until the next intentional hover (onHoverIn).
+    // See: https://github.com/Expensify/App/pull/83127#issuecomment-4114490080
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
+
+    const {
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        wasEditingOnMouseDownRef,
+    } = useTransactionInlineEdit({
+        transactionID: transactionItem.transactionID,
+        hash: currentSearchHash,
+        linkedReportAction: transactionItem.reportAction,
+    });
+
+    const handleOnPress = () => {
+        // Consume the tap that dismissed an editing cell — a second tap will open the row.
+        // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
+        if (wasEditingOnMouseDownRef.current) {
+            wasEditingOnMouseDownRef.current = false;
+            return;
+        }
+        // react-native-web fires onPress on Space for role="button" elements; suppress it while a cell is being edited.
+        if (isEditingCell) {
+            return;
+        }
+        if (isDeletedTransaction && !canSelectMultiple) {
+            return;
+        }
+        onSelectRow(item, transactionPreviewData);
+    };
+
+    const handleOnMouseDown = (e?: React.MouseEvent) => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+
+        // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
+        if (!isEditingCell) {
+            e?.preventDefault();
+        }
+    };
+
+    const handleOnHoverIn = () => setShouldDisableHoverStyle(false);
 
     const handleActionButtonPress = () => {
         handleActionButtonPressUtil({
@@ -170,6 +232,22 @@ function TransactionListItem<TItem extends ListItem>({
         exportedReportActions,
         nonPersonalAndWorkspaceCards,
         isAttendeesEnabledForMovingPolicy,
+        shouldDisableHoverStyle,
+        onPressRow: handleOnPress,
+        onMouseDownRow: handleOnMouseDown,
+        onHoverInRow: handleOnHoverIn,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
     };
 
     if (!isLargeScreenWidth) {
