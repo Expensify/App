@@ -5743,7 +5743,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 subtitle: 'Defina uma taxa horária faturável para o controle de tempo.',
                 defaultHourlyRate: 'Taxa horária padrão',
             },
-            hrWarningModal: {disconnectText: 'Para desativar o RH, primeiro desconecte o Gusto deste workspace.'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desativar RH, desconecte primeiro a integração ${integration} deste workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',
@@ -7028,15 +7028,21 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Sincronizando funcionários do Gusto';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Carregando dados do Gusto';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'Provisionamento de funcionários na política';
+                    case 'zenefitsSyncTitle':
+                        return 'Sincronizando funcionários da TriNet';
+                    case 'zenefitsSyncLoadData':
+                        return 'Carregando dados do TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Provisionamento de funcionários na política';
                     case 'jobDone':
                         return 'Aguardando o carregamento dos dados importados';
                     default: {
-                        return `Tradução ausente para o estágio: ${stage}`;
+                        return `Tradução ausente para a etapa: ${stage}`;
                     }
                 }
             },
@@ -7063,6 +7069,30 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 syncError: 'Não é possível conectar ao Gusto',
                 disconnectTitle: 'Desconectar Gusto',
                 disconnectPrompt: 'Tem certeza de que deseja desconectar o Gusto?',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Conectar',
+                syncNow: 'Sincronizar agora',
+                disconnect: 'Desconectar',
+                lastSync: (relativeDate: string) => `Última sincronização ${relativeDate}`,
+                syncError: 'Não é possível conectar ao TriNet',
+                disconnectTitle: 'Desconectar TriNet',
+                disconnectPrompt: 'Tem certeza de que quer desconectar a TriNet?',
+                connectionDescription: 'Conecte o TriNet para manter as aprovações de funcionários sincronizadas com o seu espaço de trabalho.',
+                approvalMode: 'Modo de aprovação',
+                finalApprover: 'Aprovador final',
+                notSet: 'Não definido',
+                approvalModeDescription: 'Os membros e gerentes estão configurados para sincronizar com o TriNet.',
+                approvalModeWarningTitle: 'Alterar modo de aprovação?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Tem certeza de que deseja alterar o modo de aprovação deste espaço de trabalho? Saiba mais sobre os diferentes modos de fluxo de trabalho habilitados pelo TriNet no nosso <a href="${helpSiteURL}">site de ajuda</a>.`,
+                approvalModeWarningConfirm: 'Alterar modo de aprovação',
+                approvalModes: {
+                    basic: {label: 'Aprovação básica', description: 'Todos os usuários enviam para uma única pessoa para processamento e aprovação.'},
+                    manager: {label: 'Aprovação do gerente', description: 'Os funcionários enviam relatórios para o gerente direto configurado no TriNet.'},
+                    custom: {label: 'Aprovação personalizada', description: 'Vou configurar manualmente fluxos de aprovação no Expensify.'},
+                },
             },
         },
     },
@@ -8850,12 +8880,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     },
     delegate: {
         switchAccount: 'Trocar de conta:',
+        switch: 'Trocar',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
         copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
         addCopilot: 'Adicionar copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
-        youCanAccessTheseAccounts: 'Você pode acessar essas contas pelo alternador de conta:',
+        youCanAccessTheseAccounts: 'Você pode acessar essas contas:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

@@ -116,6 +116,7 @@ const SCREENS = {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
         SECURITY: 'Settings_Security',
+        COPILOT: 'Settings_Copilot',
         ABOUT: 'Settings_About',
         SAVE_THE_WORLD: 'Settings_TeachersUnite',
         APP_DOWNLOAD_LINKS: 'Settings_App_Download_Links',

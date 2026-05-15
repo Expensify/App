@@ -5737,7 +5737,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 subtitle: 'Ustaw godzinową stawkę rozliczeniową do śledzenia czasu.',
                 defaultHourlyRate: 'Domyślna stawka godzinowa',
             },
-            hrWarningModal: {disconnectText: 'Aby wyłączyć HR, najpierw odłącz Gusto od tego miejsca pracy.'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Aby wyłączyć HR, najpierw odłącz ${integration} od tego workspace’a.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Przykłady:',
@@ -7022,11 +7022,17 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Synchronizowanie pracowników Gusto';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Wczytywanie danych z Gusto';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'Przydzielanie pracowników w polisie';
+                    case 'zenefitsSyncTitle':
+                        return 'Synchronizowanie pracowników TriNet';
+                    case 'zenefitsSyncLoadData':
+                        return 'Wczytywanie danych z TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Przydzielanie pracowników w polisie';
                     case 'jobDone':
                         return 'Oczekiwanie na załadowanie zaimportowanych danych';
                     default: {
@@ -7057,6 +7063,30 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 syncError: 'Nie można połączyć się z Gusto',
                 disconnectTitle: 'Odłącz Gusto',
                 disconnectPrompt: 'Czy na pewno chcesz odłączyć Gusto?',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Połącz',
+                syncNow: 'Synchronizuj teraz',
+                disconnect: 'Odłącz',
+                lastSync: (relativeDate: string) => `Ostatnia synchronizacja: ${relativeDate}`,
+                syncError: 'Nie można połączyć się z TriNet',
+                disconnectTitle: 'Odłącz TriNet',
+                disconnectPrompt: 'Czy na pewno chcesz odłączyć TriNet?',
+                connectionDescription: 'Połącz TriNet, żeby utrzymywać zatwierdzenia pracowników w synchronizacji z twoim workspace’em.',
+                approvalMode: 'Tryb zatwierdzania',
+                finalApprover: 'Ostateczny zatwierdzający',
+                notSet: 'Nie ustawiono',
+                approvalModeDescription: 'Członkowie i menedżerowie są skonfigurowani do synchronizacji z TriNet.',
+                approvalModeWarningTitle: 'Zmienić tryb zatwierdzania?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Czy na pewno chcesz zmienić tryb zatwierdzania dla tego workspace? Dowiedz się więcej o różnych trybach workflow obsługiwanych przez TriNet na naszej <a href="${helpSiteURL}">stronie pomocy</a>.`,
+                approvalModeWarningConfirm: 'Zmień tryb akceptacji',
+                approvalModes: {
+                    basic: {label: 'Podstawowa akceptacja', description: 'Wszyscy użytkownicy przesyłają wydatki do jednej osoby w celu ich przetworzenia i zatwierdzenia.'},
+                    manager: {label: 'Akceptacja przez menedżera', description: 'Pracownicy składają raporty do swojego bezpośredniego przełożonego skonfigurowanego w TriNet.'},
+                    custom: {label: 'Niestandardowe zatwierdzanie', description: 'Ręcznie skonfiguruję przepływy akceptacji w Expensify.'},
+                },
             },
         },
     },
@@ -8843,12 +8873,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     },
     delegate: {
         switchAccount: 'Przełącz konta:',
+        switch: 'Przełącz',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Dostęp delegowany',
         copilotDelegatedAccessDescription: 'Zezwól innym członkom na dostęp do Twojego konta.',
         learnMoreAboutDelegatedAccess: 'Dowiedz się więcej o dostępie delegowanym',
         addCopilot: 'Dodaj pilota',
         membersCanAccessYourAccount: 'Ci członkowie mają dostęp do Twojego konta:',
-        youCanAccessTheseAccounts: 'Masz dostęp do tych kont za pomocą przełącznika kont:',
+        youCanAccessTheseAccounts: 'Masz dostęp do tych kont:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

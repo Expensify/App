@@ -5742,7 +5742,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
                 defaultHourlyRate: 'Standaard uurtarief',
             },
-            hrWarningModal: {disconnectText: 'Om HR uit te schakelen, verbreek eerst de verbinding van Gusto met deze workspace.'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -7027,13 +7027,19 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Gusto-medewerkers synchroniseren';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Gegevens laden van Gusto';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'Medewerkers toewijzen in beleid';
+                    case 'zenefitsSyncTitle':
+                        return 'TriNet-medewerkers synchroniseren';
+                    case 'zenefitsSyncLoadData':
+                        return 'Gegevens laden van TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Medewerkers toewijzen in beleid';
                     case 'jobDone':
-                        return 'Wachten tot geïmporteerde gegevens zijn geladen';
+                        return 'Wachten tot geïmporteerde gegevens worden geladen';
                     default: {
                         return `Vertaling ontbreekt voor fase: ${stage}`;
                     }
@@ -7062,6 +7068,30 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 syncError: 'Kan geen verbinding maken met Gusto',
                 disconnectTitle: 'Verbinding met Gusto verbreken',
                 disconnectPrompt: 'Weet je zeker dat je de verbinding met Gusto wilt verbreken?',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Verbinden',
+                syncNow: 'Nu synchroniseren',
+                disconnect: 'Verbinding verbreken',
+                lastSync: (relativeDate: string) => `Laatst gesynchroniseerd ${relativeDate}`,
+                syncError: 'Kan geen verbinding maken met TriNet',
+                disconnectTitle: 'Koppeling met TriNet verbreken',
+                disconnectPrompt: 'Weet je zeker dat je TriNet wilt loskoppelen?',
+                connectionDescription: 'Verbind TriNet om goedkeuringen van medewerkers synchroon te houden met je werkruimte.',
+                approvalMode: 'Goedkeuringsmodus',
+                finalApprover: 'Laatste fiatteur',
+                notSet: 'Niet ingesteld',
+                approvalModeDescription: 'Leden en managers zijn ingesteld om te synchroniseren met TriNet.',
+                approvalModeWarningTitle: 'Goedkeuringsmodus wijzigen?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Weet je zeker dat je de goedkeuringsmodus voor deze workspace wilt wijzigen? Lees meer over de verschillende TriNet-ondersteunde workflowmodi op onze <a href="${helpSiteURL}">help-pagina</a>.`,
+                approvalModeWarningConfirm: 'Goedkeuringsmodus wijzigen',
+                approvalModes: {
+                    basic: {label: 'Eenvoudige goedkeuring', description: 'Alle gebruikers dienen in bij één persoon voor verwerking en goedkeuring.'},
+                    manager: {label: 'Goedkeuring door manager', description: 'Werknemers dienen rapporten in bij hun direct leidinggevende die is ingesteld in TriNet.'},
+                    custom: {label: 'Aangepaste goedkeuring', description: 'Ik stel handmatig goedkeuringsworkflows in Expensify in.'},
+                },
             },
         },
     },
@@ -8856,12 +8886,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     },
     delegate: {
         switchAccount: 'Van account wisselen:',
+        switch: 'Wisselen',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Gedelegeerde toegang',
         copilotDelegatedAccessDescription: 'Sta andere leden toe toegang te krijgen tot je account.',
         learnMoreAboutDelegatedAccess: 'Meer informatie over gedelegeerde toegang',
         addCopilot: 'Copiloot toevoegen',
         membersCanAccessYourAccount: 'Deze leden hebben toegang tot je account:',
-        youCanAccessTheseAccounts: 'Je hebt toegang tot deze accounts via de accountwisselaar:',
+        youCanAccessTheseAccounts: 'Je hebt toegang tot deze accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

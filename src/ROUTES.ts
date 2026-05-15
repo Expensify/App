@@ -849,6 +849,7 @@ const ROUTES = {
     SETTINGS_LANGUAGE: 'settings/preferences/language',
     SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
+    SETTINGS_COPILOT: 'settings/copilot',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_DEVICE_MANAGEMENT: 'settings/security/device-management',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
@@ -1200,7 +1201,12 @@ const ROUTES = {
     NEW_REPORT_WORKSPACE_SELECTION: {
         route: 'new-report-workspace-selection',
         getRoute: (isMovingExpenses?: boolean, backTo?: string) => {
-            const baseRoute = `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const;
+            const params = new URLSearchParams();
+            if (isMovingExpenses) {
+                params.set('isMovingExpenses', 'true');
+            }
+            const query = params.toString();
+            const baseRoute = `new-report-workspace-selection${query ? `?${query}` : ''}` as const;
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(baseRoute, backTo);

@@ -5695,7 +5695,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 subtitle: '時間追跡用の請求可能な時間単価を設定します。',
                 defaultHourlyRate: 'デフォルトの時給率',
             },
-            hrWarningModal: {disconnectText: '人事機能を無効にするには、まずこのワークスペースから Gusto の連携を解除してください。'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -6972,15 +6972,21 @@ ${reportName}
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Gusto 従業員を同期中';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Gusto からデータを読み込んでいます';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'ポリシー内で従業員をプロビジョニングする';
+                    case 'zenefitsSyncTitle':
+                        return 'TriNet 従業員を同期しています';
+                    case 'zenefitsSyncLoadData':
+                        return 'TriNet からデータを読み込んでいます';
+                    case 'zenefitsSyncProvisioning':
+                        return 'ポリシー内で従業員をプロビジョニングする';
                     case 'jobDone':
                         return 'インポートしたデータの読み込みを待機しています';
                     default: {
-                        return `ステージの翻訳が見つかりません: ${stage}`;
+                        return `ステージ「${stage}」の翻訳が見つかりません`;
                     }
                 }
             },
@@ -7007,6 +7013,30 @@ ${reportName}
                 syncError: 'Gusto に接続できません',
                 disconnectTitle: 'Gusto の接続を解除',
                 disconnectPrompt: 'Gusto との接続を本当に解除しますか？',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: '接続',
+                syncNow: '今すぐ同期',
+                disconnect: '切断する',
+                lastSync: (relativeDate: string) => `最終同期日時：${relativeDate}`,
+                syncError: 'TriNet に接続できません',
+                disconnectTitle: 'TriNet の接続を解除',
+                disconnectPrompt: 'TriNet との接続を解除してもよろしいですか？',
+                connectionDescription: 'TriNet を接続して、従業員の承認をワークスペースと同期させましょう。',
+                approvalMode: '承認モード',
+                finalApprover: '最終承認者',
+                notSet: '未設定',
+                approvalModeDescription: 'メンバーとマネージャーは TriNet と同期するように設定されています。',
+                approvalModeWarningTitle: '承認モードを変更しますか？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `このワークスペースの承認モードを本当に変更してもよろしいですか？TriNet に対応した各種ワークフローモードの詳細は、<a href="${helpSiteURL}">ヘルプサイト</a>をご覧ください。`,
+                approvalModeWarningConfirm: '承認モードを変更',
+                approvalModes: {
+                    basic: {label: '基本承認', description: 'すべてのユーザーが、処理と承認のために 1 人の担当者へ経費を提出します。'},
+                    manager: {label: 'マネージャー承認', description: '従業員は、TriNet で設定された直属のマネージャーにレポートを提出します。'},
+                    custom: {label: 'カスタム承認', description: 'Expensify で承認ワークフローを手動で設定します。'},
+                },
             },
         },
     },
@@ -8775,12 +8805,14 @@ ${reportName}
     },
     delegate: {
         switchAccount: 'アカウントを切り替え:',
+        switch: '切り替え',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：代理アクセス',
         copilotDelegatedAccessDescription: '他のメンバーがあなたのアカウントにアクセスできるようにする',
         learnMoreAboutDelegatedAccess: '代理アクセスの詳細',
         addCopilot: 'コパイロットを追加',
         membersCanAccessYourAccount: '次のメンバーがあなたのアカウントにアクセスできます:',
-        youCanAccessTheseAccounts: 'これらのアカウントには、アカウント切り替え機能からアクセスできます。',
+        youCanAccessTheseAccounts: 'これらのアカウントにアクセスできます:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

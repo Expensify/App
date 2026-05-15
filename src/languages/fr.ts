@@ -5794,7 +5794,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
-            hrWarningModal: {disconnectText: 'Pour désactiver les RH, veuillez d’abord déconnecter Gusto de cet espace de travail.'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Pour désactiver les RH, veuillez d'abord déconnecter ${integration} de cet espace de travail.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemples :',
@@ -7087,15 +7087,21 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Synchronisation des employés Gusto';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Chargement des données depuis Gusto';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'Affectation des employés à la politique';
+                    case 'zenefitsSyncTitle':
+                        return 'Synchronisation des employés TriNet';
+                    case 'zenefitsSyncLoadData':
+                        return 'Chargement des données depuis TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Affectation des employés à la politique';
                     case 'jobDone':
                         return 'En attente du chargement des données importées';
                     default: {
-                        return `Traduction manquante pour l’étape : ${stage}`;
+                        return `Traduction manquante pour l'étape : ${stage}`;
                     }
                 }
             },
@@ -7122,6 +7128,30 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 syncError: 'Impossible de se connecter à Gusto',
                 disconnectTitle: 'Déconnecter Gusto',
                 disconnectPrompt: 'Voulez-vous vraiment déconnecter Gusto ?',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Connecter',
+                syncNow: 'Synchroniser maintenant',
+                disconnect: 'Déconnecter',
+                lastSync: (relativeDate: string) => `Dernière synchronisation ${relativeDate}`,
+                syncError: 'Impossible de se connecter à TriNet',
+                disconnectTitle: 'Déconnecter TriNet',
+                disconnectPrompt: 'Voulez-vous vraiment déconnecter TriNet ?',
+                connectionDescription: 'Connectez TriNet pour synchroniser les approbations des employés avec votre espace de travail.',
+                approvalMode: 'Mode d’approbation',
+                finalApprover: 'Approbateur final',
+                notSet: 'Non défini',
+                approvalModeDescription: 'Les membres et les responsables sont configurés pour se synchroniser avec TriNet.',
+                approvalModeWarningTitle: 'Changer le mode d’approbation ?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Voulez-vous vraiment modifier le mode d’approbation de cet espace de travail ? En savoir plus sur les différents modes de workflow compatibles TriNet sur notre <a href="${helpSiteURL}">site d’aide</a>.`,
+                approvalModeWarningConfirm: 'Modifier le mode d’approbation',
+                approvalModes: {
+                    basic: {label: 'Approbation de base', description: 'Tous les utilisateurs soumettent à une seule personne pour traitement et approbation.'},
+                    manager: {label: 'Approbation du responsable', description: 'Les employés soumettent des notes de frais à leur supérieur hiérarchique direct configuré dans TriNet.'},
+                    custom: {label: 'Approbation personnalisée', description: 'Je configurerai manuellement les workflows d’approbation dans Expensify.'},
+                },
             },
         },
     },
@@ -8922,8 +8952,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         copilotDelegatedAccessDescription: 'Autoriser les autres membres à accéder à votre compte.',
         learnMoreAboutDelegatedAccess: "En savoir plus sur l'accès délégué",
         addCopilot: 'Ajouter un copilote',
+        switch: 'Changer',
+        copilot: 'Copilot',
         membersCanAccessYourAccount: 'Ces membres peuvent accéder à votre compte :',
-        youCanAccessTheseAccounts: 'Vous pouvez accéder à ces comptes via le sélecteur de compte :',
+        youCanAccessTheseAccounts: 'Vous pouvez accéder à ces comptes :',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

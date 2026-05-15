@@ -10,6 +10,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useActivePolicy from '@hooks/useActivePolicy';
+import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -76,6 +77,7 @@ function IOURequestStepUpgrade({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
     const {selectedTransactions} = useSearchStateContext();
@@ -195,11 +197,16 @@ function IOURequestStepUpgrade({
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
-                Navigation.goBack();
-                if (action === CONST.IOU.ACTION.CREATE) {
-                    // Coming from "Create report" button (no workspace) → go to workspace selection which creates the report
-                    navigateWithMicrotask(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                if (action === CONST.IOU.ACTION.CREATE && policyID) {
+                    // Coming from "Create report" (no workspace) — create directly with the just-created
+                    // workspace. forceReplace removes the upgrade screen from history so back returns to
+                    // the originating screen, not the upgrade step.
+                    const {reportID: newReportID} = createReportForCurrentUser(policyID);
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newReportID), {forceReplace: true});
+                    });
                 } else {
+                    Navigation.goBack();
                     navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 }
 
@@ -235,6 +242,7 @@ function IOURequestStepUpgrade({
         iouType,
         isTrack,
         allPolicyTags,
+        createReportForCurrentUser,
     ]);
 
     const participant = transaction?.participants?.[0];

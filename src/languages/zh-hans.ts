@@ -5592,7 +5592,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 subtitle: '为时间跟踪设置可计费的小时费率。',
                 defaultHourlyRate: '默认时薪',
             },
-            hrWarningModal: {disconnectText: '若要禁用人力资源功能，请先将 Gusto 与此工作区断开连接。'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6849,11 +6849,17 @@ ${reportName}
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return '同步 Gusto 员工';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return '正在从 Gusto 加载数据';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return '在政策中为员工开通账号';
+                    case 'zenefitsSyncTitle':
+                        return '正在同步 TriNet 员工';
+                    case 'zenefitsSyncLoadData':
+                        return '正在从 TriNet 加载数据';
+                    case 'zenefitsSyncProvisioning':
+                        return '在政策中为员工开通账号';
                     case 'jobDone':
                         return '正在加载导入的数据';
                     default: {
@@ -6884,6 +6890,30 @@ ${reportName}
                 syncError: '无法连接到 Gusto',
                 disconnectTitle: '断开 Gusto',
                 disconnectPrompt: '确定要断开与 Gusto 的连接吗？',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: '连接',
+                syncNow: '立即同步',
+                disconnect: '断开连接',
+                lastSync: (relativeDate: string) => `上次同步时间：${relativeDate}`,
+                syncError: '无法连接到 TriNet',
+                disconnectTitle: '断开 TriNet 连接',
+                disconnectPrompt: '确定要断开 TriNet 吗？',
+                connectionDescription: '连接 TriNet，将员工审批与你的工作区保持同步。',
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
+                notSet: '未设置',
+                approvalModeDescription: '成员和管理者已设置为与 TriNet 同步。',
+                approvalModeWarningTitle: '更改审批模式？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 TriNet 启用的工作流模式的信息。`,
+                approvalModeWarningConfirm: '更改审批模式',
+                approvalModes: {
+                    basic: {label: '基础审批', description: '所有用户都提交给同一个人进行处理和审批。'},
+                    manager: {label: '经理审批', description: '员工会将报销报告提交给在 TriNet 中配置的直属经理。'},
+                    custom: {label: '自定义审批', description: '我会在 Expensify 中手动设置审批流程。'},
+                },
             },
         },
     },
@@ -8621,12 +8651,14 @@ ${reportName}
     },
     delegate: {
         switchAccount: '切换账户：',
+        switch: '切换',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：委托访问',
         copilotDelegatedAccessDescription: '允许其他成员访问你的账户。',
         learnMoreAboutDelegatedAccess: '了解更多关于委托访问的信息',
         addCopilot: '添加副驾',
         membersCanAccessYourAccount: '这些成员可以访问你的账户：',
-        youCanAccessTheseAccounts: '您可以通过账户切换器访问这些账户：',
+        youCanAccessTheseAccounts: '您可以访问这些账户：',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

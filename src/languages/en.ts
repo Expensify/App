@@ -5774,7 +5774,7 @@ const translations = {
                 confirmText: 'Got it',
             },
             hrWarningModal: {
-                disconnectText: 'To disable HR, please disconnect Gusto from this workspace first.',
+                disconnectText: ({integration}: {integration: string}) => `To disable HR, please disconnect ${integration} from this workspace first.`,
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
@@ -6420,6 +6420,12 @@ const translations = {
                         return 'Loading data from Gusto';
                     case 'gustoSyncProvisioning':
                         return 'Provisioning employees in policy';
+                    case 'zenefitsSyncTitle':
+                        return 'Synchronizing TriNet Employees';
+                    case 'zenefitsSyncLoadData':
+                        return 'Loading data from TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Provisioning employees in policy';
                     case 'jobDone':
                         return 'Waiting for imported data to load';
                     default: {
@@ -6457,6 +6463,39 @@ const translations = {
                     custom: {
                         label: 'Custom approval',
                         description: 'I’ll manually setup approval workflows in Expensify.',
+                    },
+                },
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Connect',
+                syncNow: 'Sync now',
+                disconnect: 'Disconnect',
+                lastSync: (relativeDate: string) => `Last synced ${relativeDate}`,
+                syncError: "Can't connect to TriNet",
+                disconnectTitle: 'Disconnect TriNet',
+                disconnectPrompt: 'Are you sure you want to disconnect TriNet?',
+                connectionDescription: 'Connect TriNet to keep employee approvals in sync with your workspace.',
+                approvalMode: 'Approval mode',
+                finalApprover: 'Final approver',
+                notSet: 'Not set',
+                approvalModeDescription: 'Members and managers are set up to sync with TriNet.',
+                approvalModeWarningTitle: 'Change approval mode?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Are you sure you would like to change the approval mode for this workspace? Learn more about the different TriNet-enabled workflow modes in our <a href="${helpSiteURL}">help site</a>.`,
+                approvalModeWarningConfirm: 'Change approval mode',
+                approvalModes: {
+                    basic: {
+                        label: 'Basic approval',
+                        description: 'All users submit to a single person for processing and approval.',
+                    },
+                    manager: {
+                        label: 'Manager approval',
+                        description: 'Employees submit reports to their direct manager configured in TriNet.',
+                    },
+                    custom: {
+                        label: 'Custom approval',
+                        description: "I'll manually setup approval workflows in Expensify.",
                     },
                 },
             },
@@ -8907,12 +8946,14 @@ const translations = {
     },
     delegate: {
         switchAccount: 'Switch accounts:',
+        switch: 'Switch',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Delegated access',
         copilotDelegatedAccessDescription: 'Allow other members to access your account.',
         learnMoreAboutDelegatedAccess: 'Learn more about delegated access',
-        addCopilot: 'Add copilot',
+        addCopilot: 'Add a copilot to your account',
         membersCanAccessYourAccount: 'These members can access your account:',
-        youCanAccessTheseAccounts: 'You can access these accounts via the account switcher:',
+        youCanAccessTheseAccounts: 'You can access these accounts:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

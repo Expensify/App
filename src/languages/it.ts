@@ -5764,7 +5764,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 subtitle: 'Imposta una tariffa oraria fatturabile per il rilevamento del tempo.',
                 defaultHourlyRate: 'Tariffa oraria predefinita',
             },
-            hrWarningModal: {disconnectText: 'Per disattivare le risorse umane, disconnetti prima Gusto da questo spazio di lavoro.'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Per disattivare HR, scollega prima ${integration} da questo workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Esempi:',
@@ -7051,11 +7051,17 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Sincronizzazione dei dipendenti Gusto';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Caricamento dei dati da Gusto';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'Provisioning dei dipendenti nella policy';
+                    case 'zenefitsSyncTitle':
+                        return 'Sincronizzazione dipendenti TriNet';
+                    case 'zenefitsSyncLoadData':
+                        return 'Caricamento dei dati da TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Provisioning dei dipendenti nella policy';
                     case 'jobDone':
                         return 'In attesa del caricamento dei dati importati';
                     default: {
@@ -7086,6 +7092,30 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 syncError: 'Impossibile connettersi a Gusto',
                 disconnectTitle: 'Disconnetti Gusto',
                 disconnectPrompt: 'Sei sicuro di voler disconnettere Gusto?',
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Connetti',
+                syncNow: 'Sincronizza ora',
+                disconnect: 'Disconnetti',
+                lastSync: (relativeDate: string) => `Ultima sincronizzazione ${relativeDate}`,
+                syncError: 'Impossibile connettersi a TriNet',
+                disconnectTitle: 'Disconnetti TriNet',
+                disconnectPrompt: 'Sei sicuro di voler disconnettere TriNet?',
+                connectionDescription: 'Collega TriNet per mantenere sincronizzate le approvazioni dei dipendenti con il tuo spazio di lavoro.',
+                approvalMode: 'Modalità approvazione',
+                finalApprover: 'Responsabile finale approvazione',
+                notSet: 'Non impostato',
+                approvalModeDescription: 'Membri e responsabili sono configurati per sincronizzarsi con TriNet.',
+                approvalModeWarningTitle: 'Cambiare modalità di approvazione?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Sei sicuro di voler cambiare la modalità di approvazione per questo workspace? Scopri di più sulle diverse modalità di workflow abilitate per TriNet nel nostro <a href="${helpSiteURL}">sito di assistenza</a>.`,
+                approvalModeWarningConfirm: 'Modifica modalità di approvazione',
+                approvalModes: {
+                    basic: {label: 'Approvazione di base', description: 'Tutti gli utenti inviano a una sola persona per l’elaborazione e l’approvazione.'},
+                    manager: {label: 'Approvazione del manager', description: 'I dipendenti inviano i report al loro responsabile diretto configurato in TriNet.'},
+                    custom: {label: 'Approvazione personalizzata', description: 'Imposterò manualmente i flussi di approvazione in Expensify.'},
+                },
             },
         },
     },
@@ -8887,12 +8917,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     },
     delegate: {
         switchAccount: 'Cambia account:',
+        switch: 'Cambia',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Accesso delegato',
         copilotDelegatedAccessDescription: 'Consenti agli altri membri di accedere al tuo account.',
         learnMoreAboutDelegatedAccess: "Scopri di più sull'accesso delegato",
         addCopilot: 'Aggiungi copilota',
         membersCanAccessYourAccount: 'Questi membri possono accedere al tuo account:',
-        youCanAccessTheseAccounts: 'Puoi accedere a questi account tramite il selettore di account:',
+        youCanAccessTheseAccounts: 'Puoi accedere a questi account:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
