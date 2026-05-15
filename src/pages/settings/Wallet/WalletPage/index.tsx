@@ -6,7 +6,6 @@ import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} fr
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import KYCWall from '@components/KYCWall';
@@ -665,252 +664,248 @@ function WalletPage() {
     if (isLoadingApp) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
         return (
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-                <ScreenWrapper
-                    testID="WalletPage"
-                    shouldShowOfflineIndicatorInWideScreen
-                >
-                    {headerWithBackButton}
-                    <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={reasonAttributes}
-                        />
-                    </View>
-                </ScreenWrapper>
-            </DelegateNoAccessWrapper>
-        );
-    }
-
-    return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
             <ScreenWrapper
                 testID="WalletPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 {headerWithBackButton}
-                <ScrollView style={styles.pt3}>
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <OfflineWithFeedback
-                            style={styles.flex1}
-                            contentContainerStyle={styles.flex1}
-                            onClose={clearWalletError}
-                            errors={userWallet?.errors}
-                            errorRowStyles={styles.ph6}
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={reasonAttributes}
+                    />
+                </View>
+            </ScreenWrapper>
+        );
+    }
+
+    return (
+        <ScreenWrapper
+            testID="WalletPage"
+            shouldShowOfflineIndicatorInWideScreen
+        >
+            {headerWithBackButton}
+            <ScrollView style={styles.pt3}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <OfflineWithFeedback
+                        style={styles.flex1}
+                        contentContainerStyle={styles.flex1}
+                        onClose={clearWalletError}
+                        errors={userWallet?.errors}
+                        errorRowStyles={styles.ph6}
+                    >
+                        <Section
+                            subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
+                            title={translate('common.bankAccounts')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                            illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                            illustrationBackgroundColor="#411103"
+                            {...walletIllustration}
                         >
-                            <Section
-                                subtitle={translate('walletPage.addBankAccountToSendAndReceive')}
-                                title={translate('common.bankAccounts')}
-                                isCentralPane
-                                subtitleMuted
-                                titleStyles={styles.accountSettingsSectionTitle}
-                                illustrationContainerStyle={styles.cardSectionIllustrationContainer}
-                                illustrationBackgroundColor="#411103"
-                                {...walletIllustration}
-                            >
+                            <PaymentMethodList
+                                onPress={onBankAccountRowPressed}
+                                onAddBankAccountPress={addBankAccountPressed}
+                                onThreeDotsMenuPress={paymentMethodPressed}
+                                style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                shouldShowBankAccountSections
+                                threeDotsMenuItems={threeDotMenuItems}
+                            />
+                        </Section>
+
+                        <Section
+                            subtitle={translate('walletPage.assignedCardsDescription')}
+                            title={translate('walletPage.assignedCards')}
+                            isCentralPane
+                            subtitleMuted
+                            titleStyles={styles.accountSettingsSectionTitle}
+                        >
+                            <>
                                 <PaymentMethodList
-                                    onPress={onBankAccountRowPressed}
-                                    onAddBankAccountPress={addBankAccountPressed}
-                                    onThreeDotsMenuPress={paymentMethodPressed}
+                                    shouldShowAddBankAccount={false}
+                                    shouldShowAssignedCards
+                                    onPress={assignedCardPressed}
+                                    threeDotsMenuItems={cardThreeDotsMenuItems}
                                     style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
                                     listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                    shouldShowBankAccountSections
-                                    threeDotsMenuItems={threeDotMenuItems}
                                 />
-                            </Section>
-
+                                <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+                                    <MenuItem
+                                        onPress={onAddPersonalCardPress}
+                                        title={translate('personalCard.addPersonalCard')}
+                                        icon={icons.Plus}
+                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
+                                    />
+                                </View>
+                            </>
+                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                <MenuItem
+                                    title={translate('workspace.companyCards.importTransactions.importButton')}
+                                    icon={icons.Table}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
+                                    wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
+                                />
+                            </View>
+                            {!hasAssignedCard && (
+                                <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
+                                    <MenuItem
+                                        iconHeight={40}
+                                        iconWidth={40}
+                                        shouldShowRightIcon
+                                        icon={illustrations.VerticalCreditCards}
+                                        displayInDefaultIconColor
+                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                        title={translate('personalCard.lookingForCompanyCards')}
+                                        description={translate('personalCard.lookingForCompanyCardsDescription')}
+                                        titleStyle={styles.textStrong}
+                                        onPress={openCompanyCardFlow}
+                                    />
+                                </View>
+                            )}
+                        </Section>
+                        {hasWallet && (
                             <Section
-                                subtitle={translate('walletPage.assignedCardsDescription')}
-                                title={translate('walletPage.assignedCards')}
+                                subtitle={translate(`walletPage.sendAndReceiveMoney`)}
+                                title={translate('walletPage.expensifyWallet')}
                                 isCentralPane
                                 subtitleMuted
                                 titleStyles={styles.accountSettingsSectionTitle}
+                                childrenStyles={shouldShowLoadingSpinner ? styles.mt7 : styles.mt5}
                             >
                                 <>
-                                    <PaymentMethodList
-                                        shouldShowAddBankAccount={false}
-                                        shouldShowAssignedCards
-                                        onPress={assignedCardPressed}
-                                        threeDotsMenuItems={cardThreeDotsMenuItems}
-                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                    />
-                                    <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
-                                        <MenuItem
-                                            onPress={onAddPersonalCardPress}
-                                            title={translate('personalCard.addPersonalCard')}
-                                            icon={icons.Plus}
-                                            wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
+                                    {shouldShowLoadingSpinner && (
+                                        <ActivityIndicator
+                                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                            style={[styles.mb5]}
+                                            reasonAttributes={walletLoadingReasonAttributes}
                                         />
-                                    </View>
-                                </>
-                                <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
-                                    <MenuItem
-                                        title={translate('workspace.companyCards.importTransactions.importButton')}
-                                        icon={icons.Table}
-                                        shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS)}
-                                        wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.IMPORT_TRANSACTIONS}
-                                    />
-                                </View>
-                                {!hasAssignedCard && (
-                                    <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
-                                        <MenuItem
-                                            iconHeight={40}
-                                            iconWidth={40}
-                                            shouldShowRightIcon
-                                            icon={illustrations.VerticalCreditCards}
-                                            displayInDefaultIconColor
-                                            wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
-                                            title={translate('personalCard.lookingForCompanyCards')}
-                                            description={translate('personalCard.lookingForCompanyCardsDescription')}
-                                            titleStyle={styles.textStrong}
-                                            onPress={openCompanyCardFlow}
-                                        />
-                                    </View>
-                                )}
-                            </Section>
-                            {hasWallet && (
-                                <Section
-                                    subtitle={translate(`walletPage.sendAndReceiveMoney`)}
-                                    title={translate('walletPage.expensifyWallet')}
-                                    isCentralPane
-                                    subtitleMuted
-                                    titleStyles={styles.accountSettingsSectionTitle}
-                                    childrenStyles={shouldShowLoadingSpinner ? styles.mt7 : styles.mt5}
-                                >
-                                    <>
-                                        {shouldShowLoadingSpinner && (
-                                            <ActivityIndicator
-                                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                                style={[styles.mb5]}
-                                                reasonAttributes={walletLoadingReasonAttributes}
-                                            />
-                                        )}
-                                        {!shouldShowLoadingSpinner && hasActivatedWallet && (
-                                            <OfflineWithFeedback
-                                                pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
-                                                errors={walletTerms?.errors}
-                                                onClose={clearWalletTermsError}
-                                                errorRowStyles={[styles.ml10, styles.mr2]}
-                                                style={[styles.mb2]}
-                                            >
-                                                <MenuItemWithTopDescription
-                                                    description={translate('walletPage.balance')}
-                                                    title={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
-                                                    titleStyle={styles.textHeadlineH2}
-                                                    interactive={false}
-                                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                    copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
-                                                    copyable
-                                                />
-                                            </OfflineWithFeedback>
-                                        )}
-
-                                        <KYCWall
-                                            ref={kycWallRef}
-                                            onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
-                                            onSelectPaymentMethod={(selectedPaymentMethod: string) => {
-                                                if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-                                                    return;
-                                                }
-                                                // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
-                                                setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
-                                            }}
-                                            enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
-                                            addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                            source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
-                                            shouldIncludeDebitCard={hasActivatedWallet}
+                                    )}
+                                    {!shouldShowLoadingSpinner && hasActivatedWallet && (
+                                        <OfflineWithFeedback
+                                            pendingAction={CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}
+                                            errors={walletTerms?.errors}
+                                            onClose={clearWalletTermsError}
+                                            errorRowStyles={[styles.ml10, styles.mr2]}
+                                            style={[styles.mb2]}
                                         >
-                                            {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
-                                                if (shouldShowLoadingSpinner) {
-                                                    return null;
-                                                }
+                                            <MenuItemWithTopDescription
+                                                description={translate('walletPage.balance')}
+                                                title={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
+                                                titleStyle={styles.textHeadlineH2}
+                                                interactive={false}
+                                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                                copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
+                                                copyable
+                                            />
+                                        </OfflineWithFeedback>
+                                    )}
 
-                                                if (hasActivatedWallet) {
-                                                    return (
-                                                        <MenuItem
-                                                            ref={buttonRef as ForwardedRef<View>}
-                                                            title={translate('common.transferBalance')}
-                                                            icon={icons.Transfer}
-                                                            onPress={(event) => {
-                                                                triggerKYCFlow({event});
-                                                            }}
-                                                            shouldShowRightIcon
-                                                            wrapperStyle={[
-                                                                styles.transferBalance,
-                                                                shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
-                                                                shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
-                                                            ]}
-                                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_BALANCE}
-                                                        />
-                                                    );
-                                                }
+                                    <KYCWall
+                                        ref={kycWallRef}
+                                        onSuccessfulKYC={(_iouPaymentType?: PaymentMethodType, source?: Source) => navigateToWalletOrTransferBalancePage(source)}
+                                        onSelectPaymentMethod={(selectedPaymentMethod: string) => {
+                                            if (hasActivatedWallet || selectedPaymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+                                                return;
+                                            }
+                                            // To allow upgrading to a gold wallet, continue with the KYC flow after adding a bank account
+                                            setPersonalBankAccountContinueKYCOnSuccess(ROUTES.SETTINGS_WALLET);
+                                        }}
+                                        enablePaymentsRoute={ROUTES.SETTINGS_ENABLE_PAYMENTS}
+                                        addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
+                                        source={hasActivatedWallet ? CONST.KYC_WALL_SOURCE.TRANSFER_BALANCE : CONST.KYC_WALL_SOURCE.ENABLE_WALLET}
+                                        shouldIncludeDebitCard={hasActivatedWallet}
+                                    >
+                                        {(triggerKYCFlow, buttonRef: RefObject<View | null>) => {
+                                            if (shouldShowLoadingSpinner) {
+                                                return null;
+                                            }
 
-                                                if (isPendingOnfidoResult) {
-                                                    return (
-                                                        <View style={alertViewStyle}>
-                                                            <Icon
-                                                                src={icons.Hourglass}
-                                                                fill={theme.icon}
-                                                            />
-
-                                                            <Text style={alertTextStyle}>{translate('walletPage.walletActivationPending')}</Text>
-                                                        </View>
-                                                    );
-                                                }
-
-                                                if (hasFailedOnfido) {
-                                                    return (
-                                                        <View style={alertViewStyle}>
-                                                            <Icon
-                                                                src={icons.Exclamation}
-                                                                fill={theme.icon}
-                                                            />
-
-                                                            <Text style={alertTextStyle}>{translate('walletPage.walletActivationFailed')}</Text>
-                                                        </View>
-                                                    );
-                                                }
-
+                                            if (hasActivatedWallet) {
                                                 return (
                                                     <MenuItem
-                                                        title={translate('walletPage.enableWallet')}
-                                                        icon={icons.Wallet}
                                                         ref={buttonRef as ForwardedRef<View>}
-                                                        onPress={() => {
-                                                            if (isAccountLocked) {
-                                                                showLockedAccountModal();
-                                                                return;
-                                                            }
-
-                                                            if (!isUserValidated) {
-                                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
-                                                                return;
-                                                            }
-                                                            Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
+                                                        title={translate('common.transferBalance')}
+                                                        icon={icons.Transfer}
+                                                        onPress={(event) => {
+                                                            triggerKYCFlow({event});
                                                         }}
+                                                        shouldShowRightIcon
                                                         wrapperStyle={[
                                                             styles.transferBalance,
                                                             shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                                                             shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
                                                         ]}
-                                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
+                                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_BALANCE}
                                                     />
                                                 );
-                                            }}
-                                        </KYCWall>
-                                    </>
-                                </Section>
-                            )}
-                        </OfflineWithFeedback>
-                        {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.mh4, styles.mb5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
-                    </View>
-                </ScrollView>
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+                                            }
+
+                                            if (isPendingOnfidoResult) {
+                                                return (
+                                                    <View style={alertViewStyle}>
+                                                        <Icon
+                                                            src={icons.Hourglass}
+                                                            fill={theme.icon}
+                                                        />
+
+                                                        <Text style={alertTextStyle}>{translate('walletPage.walletActivationPending')}</Text>
+                                                    </View>
+                                                );
+                                            }
+
+                                            if (hasFailedOnfido) {
+                                                return (
+                                                    <View style={alertViewStyle}>
+                                                        <Icon
+                                                            src={icons.Exclamation}
+                                                            fill={theme.icon}
+                                                        />
+
+                                                        <Text style={alertTextStyle}>{translate('walletPage.walletActivationFailed')}</Text>
+                                                    </View>
+                                                );
+                                            }
+
+                                            return (
+                                                <MenuItem
+                                                    title={translate('walletPage.enableWallet')}
+                                                    icon={icons.Wallet}
+                                                    ref={buttonRef as ForwardedRef<View>}
+                                                    onPress={() => {
+                                                        if (isAccountLocked) {
+                                                            showLockedAccountModal();
+                                                            return;
+                                                        }
+
+                                                        if (!isUserValidated) {
+                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+                                                            return;
+                                                        }
+                                                        Navigation.navigate(ROUTES.SETTINGS_ENABLE_PAYMENTS);
+                                                    }}
+                                                    wrapperStyle={[
+                                                        styles.transferBalance,
+                                                        shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
+                                                        shouldUseNarrowLayout ? styles.ph5 : styles.ph8,
+                                                    ]}
+                                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ENABLE_WALLET}
+                                                />
+                                            );
+                                        }}
+                                    </KYCWall>
+                                </>
+                            </Section>
+                        )}
+                    </OfflineWithFeedback>
+                    {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.mh4, styles.mb5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
+                </View>
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 

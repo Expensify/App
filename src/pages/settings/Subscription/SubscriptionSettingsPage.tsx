@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -17,7 +16,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import CardSection from './CardSection/CardSection';
@@ -57,34 +55,32 @@ function SubscriptionSettingsPage({route}: SubscriptionSettingsPageProps) {
     }
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                testID="SubscriptionSettingsPage"
-                shouldShowOfflineIndicatorInWideScreen
-            >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.subscription')}
-                    onBackButtonPress={() => {
-                        if (backTo) {
-                            Navigation.goBack(backTo);
-                            return;
-                        }
-                        Navigation.goBack();
-                    }}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
-                    icon={illustrations.CreditCardsNew}
-                    shouldUseHeadlineHeader
-                />
-                <ScrollView style={styles.pt3}>
-                    <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                        <CardSection />
-                        <SubscriptionPlan />
-                    </View>
-                </ScrollView>
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+        <ScreenWrapper
+            testID="SubscriptionSettingsPage"
+            shouldShowOfflineIndicatorInWideScreen
+        >
+            <HeaderWithBackButton
+                title={translate('workspace.common.subscription')}
+                onBackButtonPress={() => {
+                    if (backTo) {
+                        Navigation.goBack(backTo);
+                        return;
+                    }
+                    Navigation.goBack();
+                }}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter
+                shouldDisplayHelpButton
+                icon={illustrations.CreditCardsNew}
+                shouldUseHeadlineHeader
+            />
+            <ScrollView style={styles.pt3}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <CardSection />
+                    <SubscriptionPlan />
+                </View>
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 

@@ -4,7 +4,6 @@ import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -147,53 +146,51 @@ function AccountValidatePage() {
     const validateCodeError = !errorPage && authenticationErrorKey ? {authError: translate(authenticationErrorKey)} : undefined;
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                shouldEnableMaxHeight
-                includeSafeAreaPaddingBottom
-                testID="AccountValidatePage"
-                shouldShowOfflineIndicatorInWideScreen
+        <ScreenWrapper
+            shouldEnableMaxHeight
+            includeSafeAreaPaddingBottom
+            testID="AccountValidatePage"
+            shouldShowOfflineIndicatorInWideScreen
+        >
+            <HeaderWithBackButton
+                title={translate('mergeAccountsPage.mergeAccount')}
+                onBackButtonPress={() => {
+                    Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
+                }}
+            />
+            <ScrollView
+                style={[styles.w100, styles.h100, styles.flex1]}
+                contentContainerStyle={[styles.flexGrow1]}
             >
-                <HeaderWithBackButton
-                    title={translate('mergeAccountsPage.mergeAccount')}
-                    onBackButtonPress={() => {
-                        Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
-                    }}
-                />
-                <ScrollView
-                    style={[styles.w100, styles.h100, styles.flex1]}
-                    contentContainerStyle={[styles.flexGrow1]}
-                >
-                    <ValidateCodeActionForm
-                        descriptionPrimary={translate('mergeAccountsPage.accountValidate.confirmMerge')}
-                        descriptionPrimaryStyles={{...styles.mb8, ...styles.textStrong}}
-                        descriptionSecondary={
-                            <View style={[styles.w100]}>
-                                <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
-                                    <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', email)} />
-                                </View>
-                                <View style={[styles.renderHTML, styles.flexRow]}>
-                                    <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', email)} />
-                                </View>
+                <ValidateCodeActionForm
+                    descriptionPrimary={translate('mergeAccountsPage.accountValidate.confirmMerge')}
+                    descriptionPrimaryStyles={{...styles.mb8, ...styles.textStrong}}
+                    descriptionSecondary={
+                        <View style={[styles.w100]}>
+                            <View style={[styles.mb8, styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData', email)} />
                             </View>
-                        }
-                        descriptionSecondaryStyles={styles.mb8}
-                        handleSubmitForm={(code) => {
-                            mergeWithValidateCodeAction(email, code);
-                        }}
-                        sendValidateCode={() => {
-                            requestValidationCodeForAccountMerge(email, true, countryCode);
-                        }}
-                        shouldSkipInitialValidation
-                        clearError={() => clearMergeWithValidateCode()}
-                        validateError={validateCodeError}
-                        hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
-                        submitButtonText={translate('mergeAccountsPage.mergeAccount')}
-                        isLoading={mergeWithValidateCode?.isLoading}
-                    />
-                </ScrollView>
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+                            <View style={[styles.renderHTML, styles.flexRow]}>
+                                <RenderHTML html={translate('mergeAccountsPage.accountValidate.enterMagicCode', email)} />
+                            </View>
+                        </View>
+                    }
+                    descriptionSecondaryStyles={styles.mb8}
+                    handleSubmitForm={(code) => {
+                        mergeWithValidateCodeAction(email, code);
+                    }}
+                    sendValidateCode={() => {
+                        requestValidationCodeForAccountMerge(email, true, countryCode);
+                    }}
+                    shouldSkipInitialValidation
+                    clearError={() => clearMergeWithValidateCode()}
+                    validateError={validateCodeError}
+                    hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
+                    submitButtonText={translate('mergeAccountsPage.mergeAccount')}
+                    isLoading={mergeWithValidateCode?.isLoading}
+                />
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 

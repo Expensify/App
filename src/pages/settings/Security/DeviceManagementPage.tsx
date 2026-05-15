@@ -4,7 +4,6 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -55,25 +54,23 @@ function DeviceManagementPage() {
     };
 
     return (
-        <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.AGENT]}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom
-                testID="DeviceManagementPage"
-            >
-                <HeaderWithBackButton
-                    title={translate('deviceManagementPage.title')}
-                    onBackButtonPress={Navigation.goBack}
-                />
-                <Text style={[styles.ph5, styles.pv3]}>{translate('deviceManagementPage.description')}</Text>
-                <FlashList
-                    data={logins}
-                    renderItem={renderItem}
-                    keyExtractor={getLoginKey}
-                    maintainVisibleContentPosition={{disabled: true}}
-                    contentContainerStyle={[styles.ph5]}
-                />
-            </ScreenWrapper>
-        </DelegateNoAccessWrapper>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            testID="DeviceManagementPage"
+        >
+            <HeaderWithBackButton
+                title={translate('deviceManagementPage.title')}
+                onBackButtonPress={Navigation.goBack}
+            />
+            <Text style={[styles.ph5, styles.pv3]}>{translate('deviceManagementPage.description')}</Text>
+            <FlashList
+                data={logins}
+                renderItem={renderItem}
+                keyExtractor={getLoginKey}
+                maintainVisibleContentPosition={{disabled: true}}
+                contentContainerStyle={[styles.ph5]}
+            />
+        </ScreenWrapper>
     );
 }
 
