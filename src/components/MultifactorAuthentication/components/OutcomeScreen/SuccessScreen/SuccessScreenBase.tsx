@@ -15,9 +15,10 @@ type SuccessScreenBaseProps = {
     title: TranslationPaths;
     subtitle?: TranslationPaths;
     customSubtitle?: React.ReactElement;
+    onClose?: () => void;
 };
 
-function SuccessScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle}: SuccessScreenBaseProps) {
+function SuccessScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, onClose}: SuccessScreenBaseProps) {
     const {translate} = useLocalize();
 
     return (
@@ -30,6 +31,7 @@ function SuccessScreenBase({headerTitle, illustration, iconWidth, iconHeight, ti
             subtitle={subtitle ? translate(subtitle) : undefined}
             customSubtitle={customSubtitle}
             padding={spacing.p2}
+            onClose={onClose}
         />
     );
 }

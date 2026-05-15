@@ -25,6 +25,13 @@ type OutcomeScreenBaseProps = {
     subtitle?: string;
     customSubtitle?: React.ReactElement;
     padding?: ViewStyle;
+    /**
+     * Override the back/confirm button handler. Defaults to dispatching CLOSE_MODAL,
+     * which is correct when the screen is hosted inside the MFA modal navigator.
+     * Hosts outside that navigator (e.g. RHP pages rendering the outcome inline)
+     * must supply their own dismiss callback (e.g. Navigation.closeRHPFlow).
+     */
+    onClose?: () => void;
 };
 
 function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: ViewStyle}) {
@@ -45,15 +52,17 @@ function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: Vi
     );
 }
 
-function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding}: OutcomeScreenBaseProps) {
+function OutcomeScreenBase({headerTitle, illustration, iconWidth, iconHeight, title, subtitle, customSubtitle, padding, onClose: onCloseOverride}: OutcomeScreenBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(illustration));
     const {dispatch} = useMultifactorAuthenticationActions();
 
-    const onClose = () => {
-        dispatch({type: 'CLOSE_MODAL'});
-    };
+    const onClose =
+        onCloseOverride ??
+        (() => {
+            dispatch({type: 'CLOSE_MODAL'});
+        });
 
     const CustomSubtitle = customSubtitle ?? (
         <HTMLSubtitle
