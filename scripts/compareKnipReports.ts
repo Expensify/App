@@ -1,14 +1,18 @@
 import fs from 'fs';
 import type {TupleToUnion} from 'type-fest';
+import CLI from './utils/CLI';
 
 /**
- * Compare two knip JSON reports (main vs PR).
- * Exit 1 if the PR introduces any new finding that isn't present on main, regardless
- * of whether the PR also resolves others. Findings are matched per `<file>::<name>`,
- * so a single file with multiple unused items in the same category counts as one
- * finding per item.
+ * Knip (https://knip.dev) is a static analyzer that flags unused files, exports,
+ * types, dependencies, and unlisted imports across the codebase. Project-specific
+ * scope and ignores live in `knip.json`.
  *
- * Usage: ts-node scripts/compareKnipReports.ts <main.json> <pr.json>
+ * This script compares two knip JSON reports (main vs PR) and exits 1 if the PR
+ * introduces any new finding that isn't present on main — even when the PR also
+ * resolves others. Findings are matched per `<file>::<name>`, so a single file
+ * with multiple unused items counts as one finding per item.
+ *
+ * Usage: ts-node scripts/compareKnipReports.ts --mainPath <main.json> --prPath <pr.json>
  */
 
 const CATEGORIES = [
@@ -148,11 +152,20 @@ function printSection(title: string, byCategory: Map<Category, string[]>): void 
     }
 }
 
-const [mainPath, prPath] = process.argv.slice(2);
-if (!mainPath || !prPath) {
-    console.error('Usage: ts-node compareKnipReports.ts <main.json> <pr.json>');
-    process.exit(2);
-}
+const cli = new CLI({
+    namedArgs: {
+        mainPath: {
+            description: 'Path to the main knip report JSON file',
+            required: true,
+        },
+        prPath: {
+            description: 'Path to the PR knip report JSON file',
+            required: true,
+        },
+    },
+});
+
+const {mainPath, prPath} = cli.namedArgs;
 
 let mainFlat: Map<Category, Set<string>>;
 let prFlat: Map<Category, Set<string>>;

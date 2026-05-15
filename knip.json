@@ -53,7 +53,7 @@
         "config": ["config/eslint/eslint.config.mjs", "eslint.changed.config.mjs"]
     },
     "webpack": {
-        "config": ["config/webpack/webpack.common.ts", "config/webpack/webpack.dev.ts"]
+        "config": ["config/webpack/webpack.common.ts"]
     },
     "babel": {
         "config": ["babel.config.js"]

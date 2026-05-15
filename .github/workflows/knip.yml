@@ -31,17 +31,11 @@ jobs:
         # v6
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
-      - name: Capture PR ref
-        id: pr-ref
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
       - name: Run knip on PR
         run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-pr.json
-        env:
-          CI: true
 
       - name: Checkout main
         run: |
@@ -50,11 +44,9 @@ jobs:
 
       - name: Run knip on main
         run: KNIP=true npx knip --reporter json --no-exit-code > /tmp/knip-main.json
-        env:
-          CI: true
 
       - name: Restore PR workspace
-        run: git checkout ${{ steps.pr-ref.outputs.sha }}
+        run: git checkout ${{ github.sha }}
 
       - name: Compare reports
-        run: npx ts-node .github/scripts/compareKnipReports.ts /tmp/knip-main.json /tmp/knip-pr.json
+        run: npx ts-node ./scripts/compareKnipReports.ts -mainPath /tmp/knip-main.json -prPath /tmp/knip-pr.json
