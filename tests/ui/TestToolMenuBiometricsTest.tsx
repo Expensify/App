@@ -84,6 +84,8 @@ jest.mock('@libs/ApiUtils', () => ({
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@userActions/Network', () => ({
