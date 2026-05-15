@@ -5,10 +5,7 @@ import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {chatIncludesChronosWithID, getTransactionsWithReceipts, isArchivedNonExpenseReport, isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
-import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {deleteReportActionDraft, resolveActionableMentionWhisper, resolveActionableReportMentionWhisper} from '@userActions/Report';
-import {clearError} from '@userActions/Transaction';
+import {isArchivedNonExpenseReport, isClosedExpenseReportWithNoExpenses} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Transaction} from '@src/types/onyx';
 import type {PureReportActionItemProps} from './PureReportActionItem';
@@ -61,7 +58,6 @@ function ReportActionItem({
 
     return (
         <PureReportActionItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             action={action}
             report={report}
@@ -71,15 +67,8 @@ function ReportActionItem({
             personalDetails={personalDetails}
             originalReportID={originalReportID}
             originalReport={originalReport}
-            deleteReportActionDraft={deleteReportActionDraft}
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
-            isChronosReport={chatIncludesChronosWithID(originalReportID)}
-            resolveActionableReportMentionWhisper={resolveActionableReportMentionWhisper}
-            resolveActionableMentionWhisper={resolveActionableMentionWhisper}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
-            getTransactionsWithReceipts={getTransactionsWithReceipts}
-            clearError={clearError}
-            clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
         />

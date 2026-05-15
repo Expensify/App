@@ -773,6 +773,107 @@ describe('actions/Policy', () => {
             expect(messages?.at(0)?.text).toBe(callerEmail);
         });
 
+        it('duplicate workspace with distance rates clones all source rates in optimistic data with the default rebound to the API-known rate ID', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+
+            const sourceDistanceUnitID = 'srcDistUnit';
+            const sourceDefaultRateID = 'srcDefaultRate';
+            const sourceExtraRateID = 'srcExtraRate';
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(19, CONST.POLICY.TYPE.TEAM),
+                customUnits: {
+                    [sourceDistanceUnitID]: {
+                        customUnitID: sourceDistanceUnitID,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        enabled: true,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        rates: {
+                            [sourceDefaultRateID]: {customUnitRateID: sourceDefaultRateID, name: 'Default Rate', rate: 72.5, currency: 'USD', enabled: true, index: 0},
+                            [sourceExtraRateID]: {customUnitRateID: sourceExtraRateID, name: 'Extra Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
+                        },
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Distance Rates Duplicate',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: true,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+            };
+
+            // Pause the API call so successData (which clears the optimistic source rate IDs) does not
+            // run yet — this lets us inspect the optimistic state the user sees offline.
+            mockFetch.pause();
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const duplicatePolicy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            expect(duplicatePolicy?.areDistanceRatesEnabled).toBe(true);
+            const distanceUnit = Object.values(duplicatePolicy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
+            if (!distanceUnit) {
+                throw new Error('Expected duplicated distance unit');
+            }
+            // The duplicated unit's customUnitID should differ from the source's (fresh ID).
+            expect(distanceUnit.customUnitID).not.toBe(sourceDistanceUnitID);
+            // Both rates should be present in optimistic data: the extra rate keeps its source ID,
+            // and the default is rebound to a fresh API-known customUnitRateID.
+            const rateKeys = Object.keys(distanceUnit.rates);
+            expect(rateKeys).toContain(sourceExtraRateID);
+            expect(rateKeys).not.toContain(sourceDefaultRateID);
+            expect(rateKeys).toHaveLength(2);
+            // The Default Rate should be the one picked by getDefaultDistanceRate (lowest enabled index).
+            const defaultRate = Object.values(distanceUnit.rates)
+                .filter((rate) => rate.enabled !== false)
+                .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
+                .at(0);
+            expect(defaultRate?.name).toBe('Default Rate');
+            expect(defaultRate?.rate).toBe(72.5);
+            // The default rate's customUnitRateID matches its dictionary key (rebound).
+            expect(defaultRate?.customUnitRateID).not.toBe(sourceDefaultRateID);
+            const defaultRateID = defaultRate?.customUnitRateID;
+            if (!defaultRateID) {
+                throw new Error('Expected default rate to have a customUnitRateID');
+            }
+            expect(distanceUnit.rates[defaultRateID]).toBe(defaultRate);
+
+            // Resume the mocked fetch so the API call resolves; the duplicated workspace's optimistic
+            // rates remain visible until a Pusher response (not mocked here) repopulates them with
+            // the server's rate set. We rely on the server preserving the source's non-default rate
+            // IDs in the duplicate, so the optimistic state and the eventual server state line up.
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+        });
+
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to MANAGE_TEAM
@@ -1138,6 +1239,43 @@ describe('actions/Policy', () => {
                 callback: (policy) => {
                     // Then workflows are not enabled
                     expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                },
+            });
+        });
+
+        it('creates a Submit workspace with ADVANCED approval mode and correct feature flags', async () => {
+            const policyID = Policy.generatePolicyID();
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID,
+                engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.EMPLOYER},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                betas: undefined,
+                hasActiveAdminPolicies: false,
+                activePolicy: undefined,
+                type: CONST.POLICY.TYPE.SUBMIT,
+            });
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    expect(policy?.type).toBe(CONST.POLICY.TYPE.SUBMIT);
+                    expect(policy?.role).toBe(CONST.POLICY.ROLE.EDITOR);
+                    expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+                    expect(policy?.areWorkflowsEnabled).toBe(true);
+                    expect(policy?.areTagsEnabled).toBe(true);
+                    expect(policy?.areDistanceRatesEnabled).toBe(true);
+                    expect(policy?.areCompanyCardsEnabled).toBe(false);
+                    expect(policy?.harvesting?.enabled).toBe(false);
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+                    expect(policy?.employeeList?.[ESH_EMAIL]?.role).toBe(CONST.POLICY.ROLE.EDITOR);
                 },
             });
         });
@@ -1599,7 +1737,7 @@ describe('actions/Policy', () => {
             });
 
             expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-            expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, ESH_ACCOUNT_ID);
+            expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED.NAME, ESH_ACCOUNT_ID, ESH_EMAIL);
         });
 
         it('should not publish a workspace created event if this is not their first policy', () => {

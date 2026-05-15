@@ -129,14 +129,23 @@ function CreateReportMenuItem() {
                     if (
                         !workspaceIDForReportCreation ||
                         (defaultChatEnabledPolicy &&
-                            shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed) &&
+                            shouldRestrictUserBillableActions(
+                                defaultChatEnabledPolicy,
+                                ownerBillingGracePeriodEnd,
+                                userBillingGracePeriodEnds,
+                                amountOwed,
+                                currentUserPersonalDetails.accountID,
+                            ) &&
                             groupPoliciesWithChatEnabled.length > 1)
                     ) {
                         Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                         return;
                     }
 
-                    if (!defaultChatEnabledPolicy || !shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                    if (
+                        !defaultChatEnabledPolicy ||
+                        !shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
+                    ) {
                         // Check if empty report confirmation should be shown
                         if (shouldShowEmptyReportConfirmation) {
                             openCreateReportConfirmation();

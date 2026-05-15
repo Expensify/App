@@ -1,7 +1,7 @@
 ---
 title: Managing Expenses in a Report
 description: Learn how to add, remove, and move expenses in a report in New Expensify, including how comments and system messages interact with them.
-keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report]
+keywords: [New Expensify, manage expenses, add expense, delete expense, move expense, expense table, edit report, report approval, expense actions, create report, admin create report, inline editing, edit expense inline]
 ---
 
 Easily add, delete, or move expenses within reports in New Expensify. This guide covers how to manage expenses using the expense table on both web and mobile.
@@ -91,12 +91,22 @@ The table displays:
 - Date
 - Merchant
 - Category
-- Attendees (if any expense has attendees)
-- Per attendee (if any expense has attendees)
 - Amount
 - Workspace violations (if applicable)
 
+Additional columns such as **Attendees** and **Per attendee** can be enabled via the **Columns** picker when attendee tracking is available.
+
 Clicking a row opens the full expense in a side panel (web) or details screen (mobile).
+
+## How to edit expenses inline on desktop
+
+On desktop, you can edit certain expense fields directly in the table without opening the expense details:
+
+1. Click a **date**, **merchant**, **description**, **category**, or **amount** cell in the expense table.
+2. Edit the value using the inline editor that appears (a text input, date picker, or category picker depending on the field).
+3. Click outside the cell or press Enter to save your changes.
+
+**Note:** Inline editing is only available on desktop (wide layout). On mobile, tap the expense row to open the full details screen.
 
 ---
 

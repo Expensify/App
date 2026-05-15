@@ -20,7 +20,6 @@ import ComposerInput from './ComposerInput';
 import ComposerLocalTime from './ComposerLocalTime';
 import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 
 type ReportActionComposeProps = {
     reportID: string;
@@ -32,10 +31,6 @@ function ComposerInner({reportID}: ReportActionComposeProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
-
-    if (!report) {
-        return null;
-    }
 
     return (
         <View style={[isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -88,4 +83,4 @@ Composer.ExceededLength = ComposerExceededLength;
 Composer.ImportedState = ComposerImportedState;
 
 export default Composer;
-export type {SuggestionsRef, ComposerRef, ReportActionComposeProps};
+export type {SuggestionsRef, ReportActionComposeProps};
