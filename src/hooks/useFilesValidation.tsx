@@ -1,7 +1,5 @@
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import PDFThumbnail from '@components/PDFThumbnail';
@@ -57,6 +55,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
     const dataTransferItemList = useRef<DataTransferItem[]>([]);
     const collectedErrors = useRef<FileValidationError[]>([]);
     const originalFileOrder = useRef<Map<string, number>>(new Map());
+    const pendingAfterHide = useRef<() => void>(() => {});
     const loaderTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const updateFileOrderMapping = (oldFile: FileObject | undefined, newFile: FileObject) => {
@@ -106,11 +105,15 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         originalFileOrder.current.clear();
     };
 
+    const runPendingAfterHide = () => {
+        const action = pendingAfterHide.current;
+        pendingAfterHide.current = () => {};
+        action();
+    };
+
     const hideModalAndReset = () => {
+        pendingAfterHide.current = reset;
         setIsErrorModalVisible(false);
-        InteractionManager.runAfterInteractions(() => {
-            reset();
-        });
     };
 
     const checkIfAllValidatedAndProceed = () => {
@@ -373,16 +376,16 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
         }
 
         const sortedFiles = sortFilesByOriginalOrder(validFilesToUpload, originalFileOrder.current);
-        // If we're validating attachments we need to use InteractionManager to ensure
-        // the error modal is dismissed before opening the attachment modal
+        // If we're validating attachments we need to wait for the error modal close
+        // transition to finish before opening the attachment modal
         if (isValidatingReceipts === false && fileError) {
-            setIsErrorModalVisible(false);
-            InteractionManager.runAfterInteractions(() => {
+            pendingAfterHide.current = () => {
                 if (sortedFiles.length !== 0) {
                     onFilesValidated(sortedFiles, dataTransferItemList.current);
                 }
                 reset();
-            });
+            };
+            setIsErrorModalVisible(false);
         } else {
             if (sortedFiles.length !== 0) {
                 onFilesValidated(sortedFiles, dataTransferItemList.current);
@@ -443,6 +446,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
             title={fileValidationErrorText.title}
             onConfirm={onConfirmError}
             onCancel={hideModalAndReset}
+            onModalHide={runPendingAfterHide}
             isVisible={isErrorModalVisible}
             prompt={getModalPrompt()}
             confirmText={translate(isValidatingMultipleFiles ? 'common.continue' : 'common.close')}
