@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import React, {useId} from 'react';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {TextInputAccessibilityResult} from './useTextInputAccessibility';
+import type TextInputAccessibilityResult from './types';
 
 /**
  * Android implementation: omits accessibilityValue (Android's EditText natively exposes its text to TalkBack)

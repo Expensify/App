@@ -1,16 +1,5 @@
-import type {ReactNode} from 'react';
 import {useMemo} from 'react';
-
-type TextInputAccessibilityResult = {
-    /** The accessibilityValue prop for the TextInput */
-    accessibilityValue: {text: string} | undefined;
-
-    /** The accessibilityLabelledBy prop for the TextInput (Android only) */
-    accessibilityLabelledBy: string | undefined;
-
-    /** A hidden label element to render before the TextInput (Android only) */
-    hiddenLabel: ReactNode;
-};
+import type TextInputAccessibilityResult from './types';
 
 /**
  * Default (iOS) implementation: sets accessibilityValue so VoiceOver announces the entered value on re-focus.
@@ -27,4 +16,3 @@ function useTextInputAccessibility(value: string | undefined, _accessibilityLabe
 }
 
 export default useTextInputAccessibility;
-export type {TextInputAccessibilityResult};
