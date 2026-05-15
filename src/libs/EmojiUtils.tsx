@@ -106,45 +106,48 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
     if (!emojiList) {
         return [];
     }
-    const processedFrequentlyUsedEmojis =
-        emojiList
-            ?.map((item): FrequentlyUsedEmoji | null => {
-                let resolvedEmoji: Emoji | undefined;
-                if (item.hexcode) {
-                    resolvedEmoji = Emojis.findEmojiByHexCode(item.hexcode);
-                }
-                if (!resolvedEmoji && item.name) {
-                    resolvedEmoji = findEmojiByName(item.name);
-                }
-                if (!resolvedEmoji && item.code) {
-                    resolvedEmoji = findEmojiByCode(item.code);
-                }
-                const emojiWithSkinTones = resolvedEmoji ? Emojis.emojiCodeTableWithSkinTones[resolvedEmoji.code] : undefined;
-                if (!emojiWithSkinTones) {
-                    return null;
-                }
-                return {
-                    ...emojiWithSkinTones,
-                    count: item.count,
-                    lastUpdatedAt: item.lastUpdatedAt,
-                    ...(item.keywords ? {keywords: item.keywords} : {}),
-                };
-            })
-            .filter((emoji): emoji is FrequentlyUsedEmoji => emoji !== null) ?? [];
 
     // On AddComment API response, each variant of the same emoji (with different skin tones) is
     // treated as a separate entry due to unique emoji codes for each variant.
     // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
     // Prefer hexcode as the dedup key so that entries stored with only a hexcode merge correctly.
+    // Resolve, filter, and dedup in a single pass to avoid intermediate array allocations. All three
+    // lookup tables (hexcode/name/code) store references to the same objects, so no re-lookup into
+    // emojiCodeTableWithSkinTones is needed after resolution. New entries are built with an explicit
+    // object literal rather than spread so V8 can assign a fixed hidden class.
     const frequentlyUsedEmojiMap = new Map<string, FrequentlyUsedEmoji>();
-    for (const emoji of processedFrequentlyUsedEmojis) {
-        const key = emoji.hexcode ?? emoji.code;
+    for (const item of emojiList) {
+        let resolvedEmoji: Emoji | undefined;
+        if (item.hexcode) {
+            resolvedEmoji = Emojis.findEmojiByHexCode(item.hexcode);
+        }
+        if (!resolvedEmoji && item.name) {
+            resolvedEmoji = findEmojiByName(item.name);
+        }
+        if (!resolvedEmoji && item.code) {
+            resolvedEmoji = findEmojiByCode(item.code);
+        }
+        if (!resolvedEmoji) {
+            continue;
+        }
+        const key = resolvedEmoji.hexcode ?? resolvedEmoji.code;
         const existingEmoji = frequentlyUsedEmojiMap.get(key);
         if (existingEmoji) {
-            existingEmoji.count += emoji.count;
-            existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, emoji.lastUpdatedAt);
+            existingEmoji.count += item.count;
+            existingEmoji.lastUpdatedAt = Math.max(existingEmoji.lastUpdatedAt, item.lastUpdatedAt);
         } else {
-            frequentlyUsedEmojiMap.set(key, emoji);
+            const entry: FrequentlyUsedEmoji = {
+                code: resolvedEmoji.code,
+                name: resolvedEmoji.name,
+                hexcode: resolvedEmoji.hexcode,
+                types: resolvedEmoji.types,
+                count: item.count,
+                lastUpdatedAt: item.lastUpdatedAt,
+            };
+            if (item.keywords) {
+                entry.keywords = item.keywords;
+            }
+            frequentlyUsedEmojiMap.set(key, entry);
         }
     }
     return Array.from(frequentlyUsedEmojiMap.values()).sort((a, b) => {
