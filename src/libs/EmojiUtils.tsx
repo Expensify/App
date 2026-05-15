@@ -111,10 +111,6 @@ const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
     // treated as a separate entry due to unique emoji codes for each variant.
     // So merge duplicate emojis, sum their counts, and use the latest lastUpdatedAt timestamp, then sort accordingly.
     // Prefer hexcode as the dedup key so that entries stored with only a hexcode merge correctly.
-    // Resolve, filter, and dedup in a single pass to avoid intermediate array allocations. All three
-    // lookup tables (hexcode/name/code) store references to the same objects, so no re-lookup into
-    // emojiCodeTableWithSkinTones is needed after resolution. New entries are built with an explicit
-    // object literal rather than spread so V8 can assign a fixed hidden class.
     const frequentlyUsedEmojiMap = new Map<string, FrequentlyUsedEmoji>();
     for (const item of emojiList) {
         let resolvedEmoji: Emoji | undefined;
@@ -280,7 +276,6 @@ function getHeaderEmojis(emojis: EmojiPickerList): HeaderIndices[] {
 
 /**
  * Push spacer entries into an existing array to pad up to a full row boundary.
- * Inlined at call sites to avoid allocating an intermediate spacer array.
  */
 function pushDynamicSpacing(target: EmojiPickerList, emojiCount: number, suffix: number): void {
     let modLength = CONST.EMOJI_NUM_PER_ROW - (emojiCount % CONST.EMOJI_NUM_PER_ROW);
@@ -322,20 +317,16 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis, frequentlyUse
         return addSpacesToEmojiCategories(emojis);
     }
 
-    // Build the output directly to avoid a temporary merged array. Process the
-    // frequently-used header + entries first, then the main picker list in one pass.
     const updatedEmojis: EmojiPickerList = [];
     let index = 0;
 
-    // Frequently-used header
+    // Frequently-used section
     pushDynamicSpacing(updatedEmojis, updatedEmojis.length, index);
     updatedEmojis.push(Emojis.categoryFrequentlyUsed);
     pushDynamicSpacing(updatedEmojis, 1, index);
     index++;
 
-    // Frequently-used entries – explicit object literal avoids spread overhead.
-    // Cast to Emoji: count/lastUpdatedAt/keywords are read by the picker but are
-    // not declared on the base Emoji type.
+    // count/lastUpdatedAt/keywords are read by the picker but not declared on the base Emoji type.
     for (const entry of frequentlyUsedEmojis) {
         const baseEmoji = findEmojiByCode(entry.code) ?? findEmojiByName(entry.name);
         const emoji = {
@@ -351,7 +342,6 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis: PickerEmojis, frequentlyUse
         index++;
     }
 
-    // Main picker list
     for (const emoji of emojis) {
         if (emoji && typeof emoji === 'object' && 'header' in emoji) {
             pushDynamicSpacing(updatedEmojis, updatedEmojis.length, index);
