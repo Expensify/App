@@ -6,6 +6,7 @@ import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimate
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 import {CartesianChart, Line} from 'victory-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import AreaGradient from '@components/Charts/components/AreaGradient';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
 import ChartYAxisLabels from '@components/Charts/components/ChartYAxisLabels';
@@ -281,13 +282,20 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                         frame={{lineWidth: 0}}
                         data={chartData}
                     >
-                        {({points}) => (
-                            <Line
-                                points={points.y}
-                                color={DEFAULT_CHART_COLOR}
-                                strokeWidth={2}
-                                curveType="linear"
-                            />
+                        {({points, yScale, yTicks}) => (
+                            <>
+                                <AreaGradient
+                                    points={points.y}
+                                    y0={yScale(Math.min(...yTicks))}
+                                    color={DEFAULT_CHART_COLOR}
+                                />
+                                <Line
+                                    points={points.y}
+                                    color={DEFAULT_CHART_COLOR}
+                                    strokeWidth={2}
+                                    curveType="linear"
+                                />
+                            </>
                         )}
                     </CartesianChart>
                 )}

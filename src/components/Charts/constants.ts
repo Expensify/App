@@ -22,6 +22,12 @@ const Y_AXIS_LINE_WIDTH = 1;
 /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
 const PIE_CHART_START_ANGLE = -90;
 
+/** Inner-radius fraction of the outer radius; renders the pie as a donut and reserves room for a center total label. */
+const PIE_CHART_INNER_RADIUS_RATIO = 0.8;
+
+/** Angular width (degrees) of the gap drawn between donut slices. */
+const PIE_CHART_SLICE_GAP_DEGREES = 0.5;
+
 /** Supported label rotation angles in degrees */
 const LABEL_ROTATIONS = {
     HORIZONTAL: 0,
@@ -42,8 +48,6 @@ const MIN_TRUNCATED_CHARS = 10;
 /** Radian threshold separating diagonal from vertical label hit-test */
 const DIAGONAL_ANGLE_RADIAN_THRESHOLD = 1;
 
-const PIE_CHART_TOOLTIP_RADIUS_DISTANCE = 2 / 3;
-
 // Maximum width for Y-axis labels in pixels
 const MAX_Y_AXIS_LABEL_WIDTH = 200;
 
@@ -63,13 +67,14 @@ export {
     X_AXIS_LINE_WIDTH,
     Y_AXIS_LINE_WIDTH,
     PIE_CHART_START_ANGLE,
+    PIE_CHART_INNER_RADIUS_RATIO,
+    PIE_CHART_SLICE_GAP_DEGREES,
     LABEL_ROTATIONS,
     SIN_45,
     LABEL_PADDING,
     ELLIPSIS,
     MIN_TRUNCATED_CHARS,
     DIAGONAL_ANGLE_RADIAN_THRESHOLD,
-    PIE_CHART_TOOLTIP_RADIUS_DISTANCE,
     MAX_X_AXIS_LABEL_WIDTH,
     MAX_Y_AXIS_LABEL_WIDTH,
     GLYPH_PADDING,

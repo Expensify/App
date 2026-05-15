@@ -2,7 +2,7 @@ import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import {CHART_FONT_FAMILIES, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, PIE_CHART_TOOLTIP_RADIUS_DISTANCE, SIN_45} from './constants';
+import {CHART_FONT_FAMILIES, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from './constants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from './types';
 
 /**
@@ -44,7 +44,7 @@ function getChartColor(index: number): string {
 }
 
 /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
-const DEFAULT_CHART_COLOR = getChartColor(5);
+const DEFAULT_CHART_COLOR = getChartColor(3);
 
 /** One reusable ParagraphBuilder per fontMgr instance. Auto-GC'd when fontMgr is released. */
 const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
@@ -254,11 +254,15 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
  */
-function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGeometry: {centerX: number; centerY: number; radius: number}): PieSlice[] {
+function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number}): PieSlice[] {
     const total = data.reduce((sum, point) => sum + Math.abs(point.total), 0);
     if (total === 0) {
         return [];
     }
+
+    // Anchor the tooltip at the midpoint of the donut ring (between inner and outer radius)
+    // so it sits on the slice rather than in the empty center.
+    const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
 
     return data
         .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index}))
@@ -268,8 +272,8 @@ function processDataIntoSlices(data: ChartDataPoint[], startAngle: number, pieGe
                 const fraction = slice.absTotal / total;
                 const sweepAngle = fraction * 360;
                 const angle = acc.angle + sweepAngle / 2;
-                const tooltipX = pieGeometry.centerX + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.cos((angle * Math.PI) / 180);
-                const tooltipY = pieGeometry.centerY + pieGeometry.radius * PIE_CHART_TOOLTIP_RADIUS_DISTANCE * Math.sin((angle * Math.PI) / 180);
+                const tooltipX = pieGeometry.centerX + tooltipRadius * Math.cos((angle * Math.PI) / 180);
+                const tooltipY = pieGeometry.centerY + tooltipRadius * Math.sin((angle * Math.PI) / 180);
                 acc.slices.push({
                     label: slice.label,
                     value: slice.absTotal,
