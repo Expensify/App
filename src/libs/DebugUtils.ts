@@ -1091,6 +1091,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     modifiedMerchant: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     modifiedWaypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     participantsAutoAssigned: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isMerchantSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1140,6 +1141,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     splitsStartDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splitsEndDate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     withdrawalID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    isAmountSet: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 },
                 'string',
             );
@@ -1304,6 +1306,9 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 originalMessage: 'object',
                 previousMessage: 'object',
             });
+        case 'isAmountSet':
+        case 'isMerchantSet':
+            return validateBoolean(value);
     }
 }
 

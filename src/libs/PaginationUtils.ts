@@ -457,5 +457,3 @@ function getContinuousChain<TResource>(sortedItems: TResource[], pages: Pages, g
 }
 
 export {mergeAndSortContinuousPages, mergePagesByIDOverlap, getContinuousChain, prunePagesToNewestWindow, selectNewestPageWithIndex};
-
-export default {mergeAndSortContinuousPages, mergePagesByIDOverlap, getContinuousChain, prunePagesToNewestWindow, selectNewestPageWithIndex};

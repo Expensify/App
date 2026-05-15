@@ -58,4 +58,3 @@ function SpendRuleRestrictionTypeToggle({restrictionAction, onSelect}: SpendRule
 SpendRuleRestrictionTypeToggle.displayName = 'SpendRuleRestrictionTypeToggle';
 
 export default SpendRuleRestrictionTypeToggle;
-export type {SpendRuleRestrictionTypeToggleProps};
