@@ -110,6 +110,7 @@ function useAutocompleteSuggestions({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const sortedActions = useSortedActions();
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
@@ -411,6 +412,37 @@ function useAutocompleteSuggestions({
                 text: getCardDescription(card, translate),
                 autocompleteID: card.cardID.toString(),
                 mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT: {
+            const bankAccounts = Object.values(bankAccountList ?? {});
+            const filteredBankAccounts = bankAccounts
+                .map((bankAccount) => {
+                    const bankAccountID = bankAccount?.accountData?.bankAccountID;
+                    if (!bankAccountID) {
+                        return null;
+                    }
+                    const bankName = bankAccount?.accountData?.additionalData?.bankName ?? '';
+                    const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+                    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+                    const maskedNumber = accountNumber ? `xx${accountNumber.slice(-4)}` : '';
+                    const label = maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
+                    return {id: bankAccountID.toString(), label, accountNumber};
+                })
+                .filter((item): item is {id: string; label: string; accountNumber: string} => item !== null)
+                .filter(
+                    (item) =>
+                        (item.label.toLowerCase().includes(autocompleteValue.toLowerCase()) || item.accountNumber.includes(autocompleteValue)) &&
+                        !alreadyAutocompletedKeys.has(item.label.toLowerCase()),
+                )
+                .sort((a, b) => a.label.localeCompare(b.label))
+                .slice(0, 10);
+
+            return filteredBankAccounts.map((item) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.BANK_ACCOUNT,
+                text: item.label,
+                autocompleteID: item.id,
+                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
