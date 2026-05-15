@@ -752,10 +752,7 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
 
 function getTopmostSuperWideRHPReportParams(
     state: NavigationState = navigationRef.getRootState(),
-):
-    | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT]
-    | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT]
-    | undefined {
+): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT] | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.DYNAMIC_EXPENSE_REPORT] | undefined {
     if (!state) {
         return;
     }

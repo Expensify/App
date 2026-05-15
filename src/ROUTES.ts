@@ -587,12 +587,7 @@ const DYNAMIC_ROUTES = {
     },
     EXPENSE_REPORT: {
         path: 'e/:reportID',
-        entryScreens: [
-            SCREENS.REPORT,
-            SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT,
-            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            SCREENS.HOME,
-        ],
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.DYNAMIC_SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.HOME],
         getRoute: (reportID: string) => `e/${reportID}` as const,
     },
     SEARCH_REPORT: {
