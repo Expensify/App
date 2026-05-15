@@ -6820,6 +6820,9 @@ const CONST = {
 
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
+
+    // Returned when a user tries to add a work email tied to a closed work account, so we can show a specific error message instead of the generic blocking screen subtitle
+    WORK_ACCOUNT_CLOSED_ERROR: '401 work account is closed',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
