@@ -100,9 +100,10 @@ function useSearchPageInput({queryJSON, onSearch, onSubmit}: UseSearchPageInputP
             currentUserAccountID,
             translate,
             reportAttributes,
+            bankAccountList,
         );
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate, reportAttributes]);
+    }, [allFeeds, personalAndWorkspaceCards, originalInputQuery, personalDetails, reports, taxRates, policies, currentUserAccountID, translate, reportAttributes, bankAccountList]);
 
     useEffect(() => {
         const newValue = shouldShowQuery ? queryText : '';

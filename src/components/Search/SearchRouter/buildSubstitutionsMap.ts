@@ -4,7 +4,7 @@ import type {SearchAutocompleteQueryRange} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {BankAccountList, CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
@@ -35,6 +35,7 @@ function buildSubstitutionsMap(
     currentUserAccountID: number,
     translate: LocalizedTranslate,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+    bankAccountList?: BankAccountList,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -70,6 +71,7 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
@@ -89,6 +91,7 @@ function buildSubstitutionsMap(
                 currentUserAccountID,
                 translate,
                 reportAttributes,
+                bankAccountList,
             });
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
