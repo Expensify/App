@@ -2356,7 +2356,6 @@ export {
     getHRConnectionNames,
     isGustoConnected,
     isSubmitPolicy,
-    isPolicyEditor,
 };
 
 export type {MemberEmailsToAccountIDs};

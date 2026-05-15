@@ -298,7 +298,6 @@
 "../../src/libs/PersonalDetailsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/Pusher/index.native.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/Pusher/index.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
-"../../src/libs/ReceiptUploadRetryHandler/handleFileRetry.ts"	"no-restricted-syntax"	2
 "../../src/libs/ReportActionItemEventHandler/index.android.ts"	"@typescript-eslint/no-deprecated/InteractionManager.runAfterInteractions"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/getReportName"	2
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/getReportNameCallback"	1

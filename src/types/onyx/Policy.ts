@@ -2412,8 +2412,6 @@ export type {
     SageIntacctDataElement,
     SageIntacctConnectionsConfig,
     SageIntacctExportConfig,
-    FinancialForceConnectionConfig,
-    FinancialForceConnectionData,
     ACHAccount,
     ApprovalRule,
     ExpenseRule,

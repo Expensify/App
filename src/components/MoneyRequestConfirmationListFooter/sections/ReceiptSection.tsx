@@ -168,4 +168,3 @@ function ReceiptSection({
 }
 
 export default ReceiptSection;
-export type {ReceiptSectionProps};
