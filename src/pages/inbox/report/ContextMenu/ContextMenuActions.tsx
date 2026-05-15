@@ -186,6 +186,7 @@ import {
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {setDownload} from '@userActions/Download';
+import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import {
     deleteReportActionDraft,
     explain,
@@ -197,7 +198,6 @@ import {
     togglePinnedState,
     toggleSubscribeToChildReport,
 } from '@userActions/Report';
-import {toggleEmojiReaction} from '@userActions/EmojiReactions';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
