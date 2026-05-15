@@ -301,14 +301,18 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.COPILOT,
             action: () => Navigation.navigate(ROUTES.SETTINGS_COPILOT),
         },
-        {
-            translationKey: 'initialSettingsPage.security',
-            icon: icons.Lock,
-            screenName: SCREENS.SETTINGS.SECURITY,
-            brickRoadIndicator: securityBrickRoadIndicator,
-            sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SECURITY,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
-        },
+        ...(!isAgentAccount
+            ? [
+                  {
+                      translationKey: 'initialSettingsPage.security' as const,
+                      icon: icons.Lock,
+                      screenName: SCREENS.SETTINGS.SECURITY,
+                      brickRoadIndicator: securityBrickRoadIndicator,
+                      sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SECURITY,
+                      action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
+                  },
+              ]
+            : []),
     ];
 
     if (!isAgentAccount && isBetaEnabled(CONST.BETAS.CUSTOM_AGENT)) {

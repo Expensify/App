@@ -25,6 +25,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     clearPreloadedRoutes: jest.fn(),
 }));
 
@@ -156,7 +158,7 @@ describe('InitialSettingsPage - agent account', () => {
         await waitForBatchedUpdatesWithAct();
     }
 
-    it('hides Wallet and Preferences for agent account', async () => {
+    it('hides Wallet, Preferences and Security for agent account', async () => {
         await setupUser('agent_123@expensify.ai');
 
         renderPage();
@@ -165,10 +167,22 @@ describe('InitialSettingsPage - agent account', () => {
         await waitFor(() => {
             expect(screen.queryByTestId('menu-item-Wallet')).toBeNull();
             expect(screen.queryByTestId('menu-item-Preferences')).toBeNull();
+            expect(screen.queryByTestId('menu-item-Security')).toBeNull();
         });
     });
 
-    it('shows Wallet and Preferences for non-agent account', async () => {
+    it('shows Copilot for agent account', async () => {
+        await setupUser('agent_123@expensify.ai');
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-Copilot')).toBeDefined();
+        });
+    });
+
+    it('shows Wallet, Preferences and Security for non-agent account', async () => {
         await setupUser('user@expensify.com');
 
         renderPage();
@@ -177,6 +191,7 @@ describe('InitialSettingsPage - agent account', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Wallet')).toBeDefined();
             expect(screen.getByTestId('menu-item-Preferences')).toBeDefined();
+            expect(screen.getByTestId('menu-item-Security')).toBeDefined();
         });
     });
 
