@@ -2151,7 +2151,7 @@ describe('PopoverMenu V2', () => {
                         </PressableWithFeedback>
                     </PopoverMenu.Trigger>,
                 ),
-            ).toThrow(/<PopoverMenu\.Trigger> must be rendered inside <PopoverMenu\.Root>/);
+            ).toThrow(/PopoverMenu\.Trigger must be used inside <PopoverMenu\.Root>/);
         });
 
         it('throws when SecondaryInteractionTrigger is rendered outside Root', () => {
@@ -2166,7 +2166,7 @@ describe('PopoverMenu V2', () => {
                         </PressableWithSecondaryInteraction>
                     </PopoverMenu.SecondaryInteractionTrigger>,
                 ),
-            ).toThrow(/<PopoverMenu\.SecondaryInteractionTrigger> must be rendered inside <PopoverMenu\.Root>/);
+            ).toThrow(/PopoverMenu\.SecondaryInteractionTrigger must be used inside <PopoverMenu\.Root>/);
         });
 
         it('throws when useIsPopoverVisible is called outside Root', () => {
@@ -2174,7 +2174,7 @@ describe('PopoverMenu V2', () => {
                 PopoverMenu.useIsPopoverVisible();
                 return null;
             }
-            expect(() => render(<CallVisibilityHook />)).toThrow(/useIsPopoverVisible\(\) must be called inside <PopoverMenu\.Root>/);
+            expect(() => render(<CallVisibilityHook />)).toThrow(/useIsPopoverVisible must be used inside <PopoverMenu\.Root>/);
         });
 
         it('throws when Content is rendered outside Root', () => {
@@ -2187,7 +2187,7 @@ describe('PopoverMenu V2', () => {
                         />
                     </PopoverMenu.Content>,
                 ),
-            ).toThrow(/<PopoverMenu\.Content> must be rendered inside <PopoverMenu\.Root>/);
+            ).toThrow(/PopoverMenu\.Content must be used inside <PopoverMenu\.Root>/);
         });
 
         it('throws when Item is rendered outside Content', () => {
@@ -2200,7 +2200,7 @@ describe('PopoverMenu V2', () => {
                         />
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Item> must be rendered inside <PopoverMenu\.Content>/);
+            ).toThrow(/PopoverMenu\.Item must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when Group is rendered outside Content', () => {
@@ -2212,7 +2212,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Group>
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Group> must be rendered inside <PopoverMenu\.Content>/);
+            ).toThrow(/PopoverMenu\.Group must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when Sub is rendered outside Content', () => {
@@ -2224,7 +2224,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Sub>
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Sub> must be rendered inside <PopoverMenu\.Content>/);
+            ).toThrow(/PopoverMenu\.Sub must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when Sub.Trigger is rendered outside Sub', () => {
@@ -2236,7 +2236,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Sub\.Trigger> must be rendered inside <PopoverMenu\.Sub>/);
+            ).toThrow(/PopoverMenu\.Sub\.Trigger must be used inside <PopoverMenu\.Sub>/);
         });
 
         it('throws when useSelectableRow is called outside Content', () => {
@@ -2250,7 +2250,7 @@ describe('PopoverMenu V2', () => {
                         <CallSelectableRowHook />
                     </Harness>,
                 ),
-            ).toThrow(/useSelectableRow\(\) must be called inside <PopoverMenu\.Content>/);
+            ).toThrow(/useSelectableRow must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when useClosePopover is called outside Content', () => {
@@ -2264,7 +2264,7 @@ describe('PopoverMenu V2', () => {
                         <CallClosePopoverHook />
                     </Harness>,
                 ),
-            ).toThrow(/useClosePopover\(\) must be called inside <PopoverMenu\.Content>/);
+            ).toThrow(/useClosePopover must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when useSubBackButton is called outside Sub', () => {
@@ -2280,7 +2280,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </Harness>,
                 ),
-            ).toThrow(/useSubBackButton\(\) must be called inside <PopoverMenu\.Sub>/);
+            ).toThrow(/useSubBackButton must be used inside <PopoverMenu\.Sub>/);
         });
 
         it('throws when useSubTrigger is called outside Sub', () => {
@@ -2296,7 +2296,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </Harness>,
                 ),
-            ).toThrow(/useSubTrigger\(\) must be called inside <PopoverMenu\.Sub>/);
+            ).toThrow(/useSubTrigger must be used inside <PopoverMenu\.Sub>/);
         });
 
         it('throws when Sub.Content is rendered outside Sub', () => {
@@ -2313,7 +2313,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Sub\.Content> must be rendered inside <PopoverMenu\.Sub>/);
+            ).toThrow(/PopoverMenu\.Sub\.Content must be used inside <PopoverMenu\.Sub>/);
         });
 
         it('throws when Header is rendered outside Content', () => {
@@ -2323,7 +2323,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Header>Title</PopoverMenu.Header>
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Header> must be rendered inside <PopoverMenu\.Content>/);
+            ).toThrow(/PopoverMenu\.Header must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when Label is rendered outside Content', () => {
@@ -2333,7 +2333,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Label text="Label" />
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Label> must be rendered inside <PopoverMenu\.Content>/);
+            ).toThrow(/PopoverMenu\.Label must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when RadioItem is rendered outside Content', () => {
@@ -2346,7 +2346,7 @@ describe('PopoverMenu V2', () => {
                         />
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.RadioItem> must be rendered inside <PopoverMenu\.Content>/);
+            ).toThrow(/PopoverMenu\.RadioItem must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when Separator is rendered outside Content', () => {
@@ -2356,7 +2356,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Separator />
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Separator> must be rendered inside <PopoverMenu\.Content>/);
+            ).toThrow(/PopoverMenu\.Separator must be used inside <PopoverMenu\.Content>/);
         });
 
         it('throws when Sub.BackButton is rendered outside Sub', () => {
@@ -2368,7 +2368,7 @@ describe('PopoverMenu V2', () => {
                         </PopoverMenu.Content>
                     </Harness>,
                 ),
-            ).toThrow(/<PopoverMenu\.Sub\.BackButton> must be rendered inside <PopoverMenu\.Sub>/);
+            ).toThrow(/PopoverMenu\.Sub\.BackButton must be used inside <PopoverMenu\.Sub>/);
         });
 
         it('throws when ScrollableContent is rendered outside Root', () => {
@@ -2381,7 +2381,7 @@ describe('PopoverMenu V2', () => {
                         />
                     </PopoverMenu.ScrollableContent>,
                 ),
-            ).toThrow(/<PopoverMenu\.ScrollableContent> must be rendered inside <PopoverMenu\.Root>/);
+            ).toThrow(/PopoverMenu\.ScrollableContent must be used inside <PopoverMenu\.Root>/);
         });
     });
 

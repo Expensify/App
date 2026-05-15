@@ -1,7 +1,6 @@
-import {createContext} from 'react';
 import type {Dispatch, RefObject, SetStateAction} from 'react';
 import type {View} from 'react-native';
-import useAssertedContext from '@hooks/useAssertedContext';
+import createContextNamespace from '@hooks/createContextNamespace';
 
 type AnchorRef = RefObject<View | null>;
 
@@ -28,20 +27,11 @@ type RootActions = {
     setActiveAnchor: (anchor: ActiveAnchor) => void;
 };
 
-const PARENT = '<PopoverMenu.Root>';
+const createRootContext = createContextNamespace('PopoverMenu.Root');
 
-const RootVisibilityContext = createContext<RootVisibility | null>(null);
-RootVisibilityContext.displayName = 'PopoverMenuRootVisibilityContext';
-
-const RootMetaContext = createContext<RootMeta | null>(null);
-RootMetaContext.displayName = 'PopoverMenuRootMetaContext';
-
-const RootActionsContext = createContext<RootActions | null>(null);
-RootActionsContext.displayName = 'PopoverMenuRootActionsContext';
-
-const useRootVisibility = (consumerName: string) => useAssertedContext(RootVisibilityContext, consumerName, PARENT);
-const useRootMeta = (consumerName: string) => useAssertedContext(RootMetaContext, consumerName, PARENT);
-const useRootActions = (consumerName: string) => useAssertedContext(RootActionsContext, consumerName, PARENT);
+const [RootVisibilityContext, useRootVisibility] = createRootContext<RootVisibility>('Visibility');
+const [RootMetaContext, useRootMeta] = createRootContext<RootMeta>('Meta');
+const [RootActionsContext, useRootActions] = createRootContext<RootActions>('Actions');
 
 export {RootVisibilityContext, RootMetaContext, RootActionsContext, useRootVisibility, useRootMeta, useRootActions};
 export type {ActiveAnchor, AnchorRect, AnchorRef, RootVisibility, RootMeta, RootActions};

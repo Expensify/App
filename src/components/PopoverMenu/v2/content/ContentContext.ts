@@ -1,7 +1,6 @@
-import {createContext} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import useAssertedContext from '@hooks/useAssertedContext';
+import createContextNamespace from '@hooks/createContextNamespace';
 
 type FocusableItem = {
     ref: RefObject<View | null>;
@@ -38,28 +37,13 @@ type ContentItemActions = {
 /** Closes and resets sub-navigation + focus state. */
 type ContentClose = () => void;
 
-const PARENT = '<PopoverMenu.Content>';
+const createContentContext = createContextNamespace('PopoverMenu.Content');
 
-const ContentNavigationContext = createContext<ContentNavigation | null>(null);
-ContentNavigationContext.displayName = 'PopoverMenuContentNavigationContext';
-
-const ContentFocusContext = createContext<ContentFocus | null>(null);
-ContentFocusContext.displayName = 'PopoverMenuContentFocusContext';
-
-const ContentSubActionsContext = createContext<ContentSubActions | null>(null);
-ContentSubActionsContext.displayName = 'PopoverMenuContentSubActionsContext';
-
-const ContentItemActionsContext = createContext<ContentItemActions | null>(null);
-ContentItemActionsContext.displayName = 'PopoverMenuContentItemActionsContext';
-
-const ContentCloseContext = createContext<ContentClose | null>(null);
-ContentCloseContext.displayName = 'PopoverMenuContentCloseContext';
-
-const useContentNavigation = (consumerName: string) => useAssertedContext(ContentNavigationContext, consumerName, PARENT);
-const useContentFocus = (consumerName: string) => useAssertedContext(ContentFocusContext, consumerName, PARENT);
-const useContentSubActions = (consumerName: string) => useAssertedContext(ContentSubActionsContext, consumerName, PARENT);
-const useContentItemActions = (consumerName: string) => useAssertedContext(ContentItemActionsContext, consumerName, PARENT);
-const useContentClose = (consumerName: string) => useAssertedContext(ContentCloseContext, consumerName, PARENT);
+const [ContentNavigationContext, useContentNavigation] = createContentContext<ContentNavigation>('Navigation');
+const [ContentFocusContext, useContentFocus] = createContentContext<ContentFocus>('Focus');
+const [ContentSubActionsContext, useContentSubActions] = createContentContext<ContentSubActions>('SubActions');
+const [ContentItemActionsContext, useContentItemActions] = createContentContext<ContentItemActions>('ItemActions');
+const [ContentCloseContext, useContentClose] = createContentContext<ContentClose>('Close');
 
 export {
     ContentNavigationContext,

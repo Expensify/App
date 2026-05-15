@@ -1,7 +1,6 @@
 import {useRef} from 'react';
 import type {View} from 'react-native';
-import useAssertedContext from '@hooks/useAssertedContext';
-import {RootActionsContext} from './RootContext';
+import {useRootActions} from './RootContext';
 import type {AnchorRect, AnchorRef} from './RootContext';
 
 type UseAnchorOpenerResult = {
@@ -10,7 +9,7 @@ type UseAnchorOpenerResult = {
 };
 
 function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
-    const {setIsVisible, setActiveAnchor} = useAssertedContext(RootActionsContext, callerName, '<PopoverMenu.Root>');
+    const {setIsVisible, setActiveAnchor} = useRootActions(callerName);
     const ownRef: AnchorRef = useRef<View | null>(null);
 
     const open = (overrideRect?: AnchorRect) => {

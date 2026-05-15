@@ -1,8 +1,7 @@
-import useAssertedContext from '@hooks/useAssertedContext';
-import {RootVisibilityContext} from './RootContext';
+import {useRootVisibility} from './RootContext';
 
 function useIsPopoverVisible(): boolean {
-    return useAssertedContext(RootVisibilityContext, 'useIsPopoverVisible', '<PopoverMenu.Root>').isVisible;
+    return useRootVisibility('useIsPopoverVisible').isVisible;
 }
 
 export default useIsPopoverVisible;

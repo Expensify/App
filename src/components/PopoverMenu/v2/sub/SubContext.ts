@@ -1,6 +1,6 @@
-import {createContext, use} from 'react';
+import {use} from 'react';
 import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
-import useAssertedContext from '@hooks/useAssertedContext';
+import createContextNamespace from '@hooks/createContextNamespace';
 
 type SubContextValue = {
     subID: string;
@@ -8,10 +8,7 @@ type SubContextValue = {
     parentSubID: string | null;
 };
 
-const SubContext = createContext<SubContextValue | null>(null);
-SubContext.displayName = 'PopoverMenuSubContext';
-
-const useSubContext = (consumerName: string) => useAssertedContext(SubContext, consumerName, '<PopoverMenu.Sub>');
+const [SubContext, useSubContext] = createContextNamespace('PopoverMenu.Sub')<SubContextValue>();
 
 const useSubContextOptional = (): SubContextValue | null => use(SubContext);
 

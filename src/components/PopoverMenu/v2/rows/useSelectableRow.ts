@@ -1,8 +1,7 @@
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
-import {ContentCloseContext} from '@components/PopoverMenu/v2/content/ContentContext';
+import {useContentClose} from '@components/PopoverMenu/v2/content/ContentContext';
 import {useIsAtActiveLevel} from '@components/PopoverMenu/v2/sub/SubContext';
-import useAssertedContext from '@hooks/useAssertedContext';
 import {createCustomEvent} from '@libs/CustomEventUtils';
 import type {CustomEvent} from '@libs/CustomEventUtils';
 import useFocusableRow from './useFocusableRow';
@@ -21,7 +20,7 @@ type UseSelectableRowResult = {
 
 /** Closes after `onSelect`; call `event.preventDefault()` inside `onSelect` to keep the menu open. */
 function useSelectableRow({onSelect, disabled = false, text}: {onSelect?: (event: ItemSelectEvent) => void; disabled?: boolean; text?: string} = {}): UseSelectableRowResult {
-    const close = useAssertedContext(ContentCloseContext, HOOK_NAME, '<PopoverMenu.Content>');
+    const close = useContentClose(HOOK_NAME);
     const isAtActiveLevel = useIsAtActiveLevel(HOOK_NAME);
 
     const row = useFocusableRow({
