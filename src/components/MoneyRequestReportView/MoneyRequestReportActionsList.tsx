@@ -462,7 +462,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         hasNewestReportAction,
         setIsFloatingMessageCounterVisible,
         scrollToEnd: reportScrollManager.scrollToEnd,
-        resetKey: report.reportID,
+        resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
     /**
