@@ -262,6 +262,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                                 customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                                 shouldShowSuccessStyle
                                 ref={kycWallRef}
+                                shouldPutHeaderTextAfterBackButton
                             />
                         </View>
                     ) : (

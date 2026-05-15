@@ -503,6 +503,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                     customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                     shouldShowSuccessStyle
                     ref={kycWallRef}
+                    shouldPutHeaderTextAfterBackButton
                 />
             </>
         );
