@@ -1,8 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {cancelAnimation, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -56,6 +55,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionIDRef = useRef<string | undefined>(undefined);
     const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
+    const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
     const reportActionsRef = useRef(reportActions);
@@ -173,6 +173,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      * @param reportID - Active Report Id
      * @param reportActionID - ReportAction for ContextMenu
      * @param originalReportID - The current Report Id of the reportAction
+     * @param draftMessage - ReportAction draft message
      * @param [onShow] - Run a callback when Menu is shown
      * @param [onHide] - Run a callback when Menu is hidden
      */
@@ -198,7 +199,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         }
 
         const {reportID, originalReportID} = currentReport;
-        const {reportActionID, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
+        const {reportActionID, draftMessage, isThreadReportParentAction: isThreadReportParentActionParam = false} = reportAction;
         const {onShow = () => {}, onHide = () => {}, setIsEmojiPickerActive = () => {}} = callbacks;
         setIsContextMenuOpening(true);
         setIsWithoutOverlay(withoutOverlay);
@@ -244,6 +245,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
             originalReportIDRef.current = originalReportID || undefined;
             selectionRef.current = selection;
             setIsPopoverVisible(true);
+            reportActionDraftMessageRef.current = draftMessage;
             setIsThreadReportParentAction(isThreadReportParentActionParam);
             setShouldSwitchPositionIfOverflow(isOverflowMenu);
         });
@@ -287,6 +289,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
      */
     const performHide = () => {
         selectionRef.current = '';
+        reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
 
         transitionActionSheetState({
@@ -394,7 +397,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
-            InteractionManager.runAfterInteractions(() => {
+            callbackWhenDeleteModalHide.current = () => {
                 deleteReportComment(
                     report,
                     reportAction,
@@ -405,7 +408,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     visibleReportActionsData ?? undefined,
                     reportActionsRef.current ?? undefined,
                 );
-            });
+            };
         }
 
         DeviceEventEmitter.emit(`deletedReportAction_${reportIDRef.current}`, reportAction?.reportActionID);
@@ -487,6 +490,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     type={typeRef.current}
                     reportID={reportIDRef.current}
                     reportActionID={reportActionIDRef.current}
+                    draftMessage={reportActionDraftMessageRef.current}
                     selection={selectionRef.current}
                     isThreadReportParentAction={isThreadReportParentAction}
                     anchor={contextMenuTargetNode}

@@ -4,8 +4,8 @@ import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -228,16 +228,18 @@ function WorkspacePageWithSections({
                     {headerContent}
                 </HeaderWithBackButton>
                 {!isOffline && (isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
-                    <FullScreenLoadingIndicator
-                        style={[styles.flex1, styles.pRelative]}
-                        reasonAttributes={
-                            {
-                                context: 'WorkspacePageWithSections',
-                                isLoading,
-                                isFirstRender: firstRender.current,
-                            } satisfies SkeletonSpanReasonAttributes
-                        }
-                    />
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            reasonAttributes={
+                                {
+                                    context: 'WorkspacePageWithSections',
+                                    isLoading,
+                                    isFirstRender: firstRender.current,
+                                } satisfies SkeletonSpanReasonAttributes
+                            }
+                        />
+                    </View>
                 ) : (
                     <>
                         {shouldUseScrollView ? (

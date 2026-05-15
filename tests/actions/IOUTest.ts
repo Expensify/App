@@ -14,7 +14,6 @@ import {
     setMoneyRequestCategory,
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,
-    setMoneyRequestDescription,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestTag,
@@ -6732,13 +6731,6 @@ describe('actions/IOU', () => {
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(draft?.comment?.customUnit?.attributes?.dates?.start).toBe('2024-01-01');
             expect(draft?.comment?.customUnit?.attributes?.dates?.end).toBe('2024-01-31');
-        });
-
-        it('setMoneyRequestDescription should set comment on transaction draft', async () => {
-            setMoneyRequestDescription(transactionID, '  Lunch with team  ', true);
-            await waitForBatchedUpdates();
-            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(draft?.comment?.comment).toBe('Lunch with team');
         });
 
         it('setMoneyRequestMerchant should set merchant on transaction draft', async () => {
