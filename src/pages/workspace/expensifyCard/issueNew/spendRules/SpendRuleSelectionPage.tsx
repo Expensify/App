@@ -8,6 +8,7 @@ import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import SpendRuleListItem from '@components/SelectionList/ListItem/SpendRuleListItem';
 import type {SpendRuleListItemType} from '@components/SelectionList/ListItem/types';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,7 +23,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type SpendRuleSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION>;
@@ -38,6 +39,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
 
     const [shouldShowError, setShouldShowError] = useState(false);
     const [cardRuleID, setCardRuleID] = useState(issueCardForm?.data?.spendRuleID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION.path);
 
     // We only allow cards that share the same currency to be on a spend rule
     const availableCardRules = cardRules.filter((cardRule) => cardRule.currencyCode === issueCardForm?.data?.currency);
@@ -59,7 +61,7 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
     const [inputValue, setInputValue, filteredCardRules] = useSearchResults(cardRuleListItems, filterCardRules);
 
     const goBack = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID));
+        Navigation.goBack(backPath);
     };
 
     const onSelectCardRule = (item: SpendRuleListItemType) => {

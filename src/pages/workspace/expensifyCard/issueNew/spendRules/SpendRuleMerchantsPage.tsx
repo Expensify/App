@@ -1,11 +1,12 @@
 import React from 'react';
 import SpendRuleMerchantsBase from '@components/SpendRules/configuration/SpendRuleMerchantsBase';
 import useOnyx from '@hooks/useOnyx';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS>;
@@ -24,7 +25,7 @@ export default function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPagePr
             action={restrictionAction}
             merchantNames={merchantNames}
             merchantMatchTypes={merchantMatchTypes}
-            getEditMerchantRoute={(merchantIndex) => ROUTES.WORKSPACE_EXPENSIFY_CARD_SPEND_RULE_MERCHANT_EDIT.getRoute(policyID, merchantIndex)}
+            getEditMerchantRoute={(merchantIndex) => createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT.getRoute(merchantIndex))}
         />
     );
 }
