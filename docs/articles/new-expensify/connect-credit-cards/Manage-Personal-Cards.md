@@ -44,6 +44,8 @@ You can manage the following settings for a personal card:
 - Manually refresh the card to import recent transactions
 - Fix connection issues if the card stops syncing
 - Remove the card from your account
+- Import additional transactions from a spreadsheet (for spreadsheet-imported cards)
+- Delete a spreadsheet-imported card
 
 ---
 
@@ -53,8 +55,8 @@ You can manage the following settings for a personal card:
 2. Under **Assigned cards**, select a personal card.
 3. On the **Card details** page, you can:
    - Rename the card
-   - Update the card to pull in new transactions (if not CSV-imported)
-   - Unassign the card if it's no longer needed
+   - Update the card to pull in new transactions (if not spreadsheet-imported)
+   - Remove the card if it's no longer needed, or **Delete** for spreadsheet-imported cards
    - Toggle **Mark transactions as reimbursable** to mark future transactions as reimbursable. 
 
 **Note:** Removing a personal card permanently deletes any unreported expenses or expenses on draft reports from that card.

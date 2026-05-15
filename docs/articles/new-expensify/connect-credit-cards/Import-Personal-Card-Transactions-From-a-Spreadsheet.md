@@ -63,8 +63,8 @@ You’ll see an error message and won’t be able to proceed until the issue is 
 
 ## Can I import additional transactions to the same card?
 
-Yes. You can simply repeat the import process.
+Yes. You can repeat the import process from **Wallet**, or select the card and choose **Import spreadsheet** from the card details page.
 
-## Can I delete personal card spreadsheet imports? 
+## Can I delete a spreadsheet-imported card? 
 
-You cannot delete the imported file, but you can delete the individual expenses that were created. [Learn how to delete expenses](/articles/new-expensify/reports-and-expenses/How-to-Delete-Expenses). 
+Yes. Select the card in **Wallet** to open the card details page, then choose **Delete**. Deleting the card permanently removes any unreported expenses or expenses on draft reports from that card.
