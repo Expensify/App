@@ -1,12 +1,14 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+import {useEditingCellState} from '@components/Table/EditableCell';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import CONST from '@src/CONST';
@@ -32,11 +34,12 @@ function BaseSearchList({
     flattenedItemsLength,
     newTransactions,
     selectedTransactions,
-    policyForMovingExpenses,
+    isAttendeesEnabledForMovingPolicy,
     nonPersonalAndWorkspaceCards,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
+    const {focusedCellId, isEditingCell} = useEditingCellState();
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -59,45 +62,60 @@ function BaseSearchList({
         captureOnInputs: false,
     });
 
-    const renderItemWithKeyboardFocus = useCallback(
-        ({item, index}: {item: SearchListItem; index: number}) => {
-            const isItemFocused = focusedIndex === index;
-
-            const onFocus = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-                // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                if (isMobileChrome() && event.nativeEvent) {
-                    if (!event.nativeEvent.sourceCapabilities) {
-                        return;
-                    }
-                    // Ignore the focus if it's caused by a touch event on mobile chrome.
-                    // For example, a long press will trigger a focus event on mobile chrome
-                    if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
-                        return;
-                    }
-                }
-                setFocusedIndex(index);
-            };
-            return renderItem(item, index, isItemFocused, onFocus);
-        },
-        [focusedIndex, renderItem, setFocusedIndex],
-    );
-
-    const selectFocusedOption = useCallback(() => {
-        const focusedItem = data.at(focusedIndex);
-
-        if (!focusedItem) {
-            return;
+    const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+        // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+        if (isMobileChrome() && event.nativeEvent) {
+            if (!event.nativeEvent.sourceCapabilities) {
+                return;
+            }
+            // Ignore the focus if it's caused by a touch event on mobile chrome.
+            // For example, a long press will trigger a focus event on mobile chrome
+            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                return;
+            }
         }
+        setFocusedIndex(index);
+    };
+    const getOnFocus = useStableIndexedHandler(handleFocusByIndex);
 
-        onSelectRow(focusedItem);
-    }, [data, focusedIndex, onSelectRow]);
+    const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => {
+        const isItemFocused = focusedIndex === index;
+        return renderItem(item, index, isItemFocused, getOnFocus(index));
+    };
+
+    const selectFocusedOption = useCallback(
+        (event?: GestureResponderEvent | KeyboardEvent) => {
+            // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
+            // When not editing, stop propagation to prevent unintended button activation and handle row selection.
+            if (isEditingCell) {
+                return;
+            }
+
+            // If a cell has keyboard focus (via Tab), let the Enter event propagate to trigger the cell's onPress
+            if (focusedCellId) {
+                return;
+            }
+
+            event?.stopPropagation();
+
+            const focusedItem = data.at(focusedIndex);
+
+            if (!focusedItem) {
+                return;
+            }
+
+            onSelectRow(focusedItem);
+        },
+        [data, focusedCellId, focusedIndex, isEditingCell, onSelectRow],
+    );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
         shouldBubble: false,
         shouldPreventDefault: false,
         isActive: isFocused && focusedIndex >= 0,
-        shouldStopPropagation: true,
+        // Propagation is controlled manually in selectFocusedOption based on editing state
+        shouldStopPropagation: false,
     });
 
     useEffect(() => {
@@ -107,8 +125,8 @@ function BaseSearchList({
     }, [setHasKeyBeenPressed]);
 
     const extraData = useMemo(
-        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, policyForMovingExpenses],
-        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, policyForMovingExpenses],
+        () => [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
+        [focusedIndex, columns, newTransactions, selectedTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
     );
 
     return (
