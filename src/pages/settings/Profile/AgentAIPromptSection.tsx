@@ -1,13 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import {TextInput, View} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import type {TextInputKeyPressEvent} from 'react-native';
+import {View} from 'react-native';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAgentPromptUpdateError, openAgentsPage, updateAgentPromptAsCopilot} from '@libs/actions/Agent';
+import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type AgentAIPromptSectionProps = {
@@ -20,6 +24,8 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [isEditing, setIsEditing] = useState(false);
     const [draftPrompt, setDraftPrompt] = useState('');
+    const [showEmptyError, setShowEmptyError] = useState(false);
+    const inputRef = useRef<BaseTextInputRef>(null);
 
     useEffect(() => {
         openAgentsPage();
@@ -36,12 +42,15 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
 
     const handleEditPress = () => {
         setDraftPrompt(agentPrompt?.prompt ?? '');
+        setShowEmptyError(false);
         setIsEditing(true);
     };
 
     const handleSave = () => {
         const trimmed = draftPrompt.trim();
         if (!trimmed) {
+            setShowEmptyError(true);
+            inputRef.current?.focus();
             return;
         }
         updateAgentPromptAsCopilot(accountID, trimmed, agentPrompt?.prompt ?? '');
@@ -51,6 +60,21 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
     const handleCancel = () => {
         setIsEditing(false);
         setDraftPrompt('');
+        setShowEmptyError(false);
+    };
+
+    const handleChangeText = (text: string) => {
+        setDraftPrompt(text);
+        if (showEmptyError && text.trim()) {
+            setShowEmptyError(false);
+        }
+    };
+
+    const handleKeyPress = (e: TextInputKeyPressEvent) => {
+        const event = e as unknown as KeyboardEvent;
+        if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            handleSave();
+        }
     };
 
     return (
@@ -67,25 +91,36 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
                 pendingAction={agentPrompt?.pendingAction}
                 onClose={() => clearAgentPromptUpdateError(accountID)}
             >
-                <View
-                    style={[styles.border, styles.borderRadiusComponentLarge, styles.p4, styles.mb4]}
-                    testID="ai-prompt-box"
-                >
-                    <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('profilePage.aiPromptSection.prompt')}</Text>
-                    {isEditing ? (
-                        <TextInput
-                            value={draftPrompt}
-                            onChangeText={setDraftPrompt}
-                            multiline
-                            style={[styles.textNormal, styles.textAlignVerticalTop, styles.flexibleHeight]}
-                            testID="ai-prompt-input"
-                            accessibilityLabel={translate('profilePage.aiPromptSection.prompt')}
-                            autoFocus
-                        />
-                    ) : (
-                        <Text testID="ai-prompt-text">{agentPrompt?.prompt ?? ''}</Text>
-                    )}
-                </View>
+                {isEditing ? (
+                    <TextInput
+                        ref={inputRef}
+                        label={translate('profilePage.aiPromptSection.prompt')}
+                        accessibilityLabel={translate('profilePage.aiPromptSection.prompt')}
+                        value={draftPrompt}
+                        onChangeText={handleChangeText}
+                        onKeyPress={handleKeyPress}
+                        multiline
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.lineHeightNormal * 15}
+                        errorText={showEmptyError ? translate('profilePage.aiPromptSection.promptCannotBeEmpty') : ''}
+                        containerStyles={[styles.mb4]}
+                        testID="ai-prompt-input"
+                        autoFocus
+                    />
+                ) : (
+                    <View
+                        style={[styles.border, styles.borderRadiusComponentLarge, styles.p4, styles.mb4]}
+                        testID="ai-prompt-box"
+                    >
+                        <Text style={[styles.textLabelSupporting, styles.mb2]}>{translate('profilePage.aiPromptSection.prompt')}</Text>
+                        <Text
+                            numberOfLines={10}
+                            testID="ai-prompt-text"
+                        >
+                            {agentPrompt?.prompt ?? ''}
+                        </Text>
+                    </View>
+                )}
             </OfflineWithFeedback>
             {isEditing ? (
                 <View style={[styles.flexRow, styles.gap3]}>
