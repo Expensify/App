@@ -368,6 +368,56 @@ describe('useAdvancedSearchFilters', () => {
         });
     });
 
+    describe('bank account filter visibility', () => {
+        it('hides bank account filter when no bank accounts exist', async () => {
+            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.typeFiltersKeys.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('shows bank account filter for expense type when at least one bank account exists', async () => {
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                42: {
+                    accountData: {
+                        bankAccountID: 42,
+                        accountNumber: '123456789012',
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                },
+            });
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.typeFiltersKeys.flat();
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+
+        it('does not include bank account filter for non-expense types even when bank accounts exist', async () => {
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                42: {
+                    accountData: {
+                        bankAccountID: 42,
+                        accountNumber: '123456789012',
+                        additionalData: {bankName: CONST.BANK_NAMES.CHASE},
+                    },
+                },
+            });
+            await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {type: CONST.SEARCH.DATA_TYPES.CHAT});
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.typeFiltersKeys.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT);
+            });
+        });
+    });
+
     describe('currentType', () => {
         it('defaults to expense when no type is set', async () => {
             const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
