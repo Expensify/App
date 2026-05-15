@@ -14,9 +14,6 @@ import useResponsiveLayout from './useResponsiveLayout';
 /**
  * Shared state for the onboarding workspace auto-creation hooks
  * (`useAutoCreateSubmitWorkspace`, `useAutoCreateTrackWorkspace`).
- *
- * Email and accountID come from `ONYXKEYS.SESSION` because session is hydrated
- * earlier in onboarding than personal details.
  */
 function useOnboardingWorkspaceCreationState() {
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
@@ -24,12 +21,10 @@ function useOnboardingWorkspaceCreationState() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-
-    const currentUserEmail = session?.email ?? '';
-    const currentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.login ?? '';
+    const currentUserAccountID = currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const localCurrencyCode = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     const activePolicy = useActivePolicy();
@@ -38,9 +33,7 @@ function useOnboardingWorkspaceCreationState() {
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
     const {onboardingMessages} = useOnboardingMessages();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return {
         onboardingPolicyID,
@@ -59,7 +52,7 @@ function useOnboardingWorkspaceCreationState() {
         hasActiveAdminPolicies,
         onboardingMessages,
         lastWorkspaceNumber,
-        isSmallScreenWidth,
+        shouldUseNarrowLayout,
     };
 }
 

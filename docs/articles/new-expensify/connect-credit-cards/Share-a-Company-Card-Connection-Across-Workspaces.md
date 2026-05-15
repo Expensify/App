@@ -34,8 +34,9 @@ Workspace Admins with an email on a private domain can share a company card feed
 1. Click the navigation tabs (on the left on web, on the bottom on mobile) and select **Workspaces > [Workspace Name]**
 2. Choose **Company cards** to view your company’s card setup page.
  - If you don't see **Company cards**, enable the feature under **More features > Company cards**
-3. Select your existing card connection.
-4. In **From other workspaces**, choose a company card feed to add to the Workspace.
+3. Click **Add cards**.
+4. Select your existing card connection.
+5. In **From other workspaces**, choose a company card feed to add to the Workspace.
 
 ---
 

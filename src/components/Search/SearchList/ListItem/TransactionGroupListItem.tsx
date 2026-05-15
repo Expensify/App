@@ -17,6 +17,7 @@ import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -75,7 +76,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     columns,
     groupBy,
     searchType,
-    isOffline,
     newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
@@ -96,6 +96,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
     const {convertToDisplayString} = useCurrencyListActions();
+    const {isOffline} = useNetwork();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`);
@@ -198,23 +199,22 @@ function TransactionGroupListItem<TItem extends ListItem>({
     };
 
     const StyleUtils = useStyleUtils();
+    const isItemSelected = isSelectAllChecked || item?.isSelected;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
+        backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG,
         shouldApplyOtherStyles: false,
     });
-
-    const isItemSelected = isSelectAllChecked || item?.isSelected;
 
     const pressableStyle = [
         styles.transactionGroupListItemStyle,
         isLargeScreenWidth && {
-            ...styles.searchTableRowHeight,
+            ...styles.tableRowHeight,
             borderRadius: 0,
             paddingVertical: variables.tableGroupRowPaddingVertical,
-            ...(isLastItem ? styles.searchTableBottomRadius : {}),
+            ...(isLastItem ? styles.tableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
     ];
@@ -528,7 +528,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
+                hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => e.preventDefault()}
                 id={item.keyForList ?? ''}
@@ -544,9 +544,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]
                         : [
-                              !isFirstItem && styles.borderTop,
-                              isFirstItem && [styles.searchTableTopRadius, styles.overflowHidden],
-                              isLastItem && [styles.searchTableBottomRadius, styles.overflowHidden],
+                              isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
+                              isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+                              !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isItemSelected),
                           ],
                 ]}
             >
@@ -558,7 +558,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             onPress={onExpandIconPress}
                             expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
-                            borderBottomStyle={isLargeScreenWidth && styles.borderNone}
+                            borderBottomStyle={isLargeScreenWidth ? styles.borderNone : isItemSelected && {borderColor: theme.buttonHoveredBG}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
                             <TransactionGroupListExpandedItem

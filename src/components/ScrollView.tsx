@@ -40,7 +40,6 @@ function ScrollView({
             // See: https://github.com/Expensify/App/issues/31441
             contentContainerStyle={contentContainerStyle}
             scrollIndicatorInsets={scrollIndicatorInsets ?? {right: Number.MIN_VALUE}}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
             {children}

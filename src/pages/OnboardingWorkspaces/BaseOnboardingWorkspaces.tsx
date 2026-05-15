@@ -46,7 +46,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
 
@@ -78,12 +78,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
-        // Only mirror the EMPLOYER ("Get paid back by my employer") + Submit-2026 onboarding flow
-        // when the user actually picked EMPLOYER, or when no Purpose was selected (private-domain
-        // users who reach this screen without going through the Purpose step). Users on the Submit
-        // beta who picked a different Purpose (e.g. MANAGE_TEAM) must not be re-routed through
-        // the Submit flow.
-        const shouldUseSubmitFlow = canUseSubmit2026 && (!onboardingPurposeSelected || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER);
+        const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
+        const shouldUseSubmitFlow = canUseSubmit2026 && policy.automaticJoiningEnabled && isJoiningSubmitPolicy;
 
         if (policy.automaticJoiningEnabled) {
             joinAccessiblePolicy(policy.policyID);
@@ -91,13 +87,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             askToJoinPolicy(policy.policyID);
         }
 
-        const engagementChoice = shouldUseSubmitFlow ? CONST.ONBOARDING_CHOICES.EMPLOYER : CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
         completeOnboarding({
-            engagementChoice,
-            onboardingMessage: onboardingMessages[engagementChoice],
+            engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+            onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
             firstName: onboardingPersonalDetails?.firstName ?? '',
             lastName: onboardingPersonalDetails?.lastName ?? '',
-            onboardingPolicyID: shouldUseSubmitFlow && policy.automaticJoiningEnabled ? policy.policyID : undefined,
             companySize: onboardingCompanySize,
             introSelected,
             isSelfTourViewed,
@@ -106,8 +100,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
 
-        if (shouldUseSubmitFlow && policy.automaticJoiningEnabled) {
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, isSmallScreenWidth);
+        if (shouldUseSubmitFlow) {
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout);
             return;
         }
 
@@ -123,6 +117,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     };
 
     const allPolicyIDItems = Object.values(joinablePolicies ?? {})
+        .filter((policyInfo) => policyInfo.policyType !== CONST.POLICY.TYPE.SUBMIT || canUseSubmit2026)
         .sort((a, b) => b.employeeCount - a.employeeCount)
         .map((policyInfo) => ({
             text: policyInfo.policyName,

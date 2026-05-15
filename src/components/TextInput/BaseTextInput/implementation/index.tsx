@@ -60,6 +60,7 @@ function BaseTextInput({
     hideFocusedState = false,
     maxLength = undefined,
     hint = '',
+    shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
     shouldInterceptSwipe = false,
@@ -340,7 +341,6 @@ function BaseTextInput({
         <>
             <View
                 style={[containerStyles]}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
                 <PressableWithoutFeedback
@@ -583,6 +583,7 @@ function BaseTextInput({
                         nativeID={helpMessageTextID}
                         isError={!!errorText}
                         message={inputHelpText}
+                        shouldRenderMessageAsHTML={!errorText && shouldRenderHintAsHTML}
                     />
                 )}
             </View>

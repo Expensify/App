@@ -114,7 +114,10 @@ function Composer({
         [onPasteFile],
     );
 
-    const maxHeightStyle = useMemo(() => StyleUtils.getComposerMaxHeightStyle(maxLines, isComposerFullSize), [StyleUtils, isComposerFullSize, maxLines]);
+    const maxHeightStyle = useMemo(
+        () => StyleUtils.getComposerMaxHeightStyle(isInLandscapeMode ? CONST.COMPOSER.MAX_LINES_LANDSCAPE_MODE : maxLines, isComposerFullSize),
+        [StyleUtils, isComposerFullSize, maxLines, isInLandscapeMode],
+    );
     const composerStyle = useMemo(() => StyleSheet.flatten([style, textContainsOnlyEmojis ? styles.onlyEmojisTextLineHeight : {}]), [style, textContainsOnlyEmojis, styles]);
 
     return (
@@ -130,7 +133,6 @@ function Composer({
             textAlignVertical="center"
             style={[composerStyle, maxHeightStyle]}
             markdownStyle={markdownStyle}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             autoFocus={isInLandscapeMode ? false : props.autoFocus}
             readOnly={isDisabled}
