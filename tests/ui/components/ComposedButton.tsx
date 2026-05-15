@@ -45,7 +45,6 @@ describe('ButtonComposed — Button', () => {
         render(
             <Button
                 accessibilityLabel={LABEL}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
                 {children}

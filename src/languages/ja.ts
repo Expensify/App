@@ -2450,6 +2450,7 @@ const translations: TranslationDeepObject<typeof en> = {
             revealDetails: '詳細を表示',
             revealCvv: 'CVV を表示',
             copyCardNumber: 'カード番号をコピー',
+            copyCvv: 'CVV をコピー',
             updateAddress: '住所を更新',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `${platform}ウォレットに追加しました`,
@@ -2710,6 +2711,9 @@ ${date} の ${merchant} への ${amount}`,
         emptyAgents: {title: 'エージェントは作成されていません', subtitle: '手作業はやめて、代わりにエージェントに指示を出して、時間を大幅に節約しましょう。'},
         error: {
             genericAdd: 'このエージェントの追加中に問題が発生しました',
+            genericUpdate: 'このエージェントの更新中に問題が発生しました',
+            updateName: 'このエージェント名の更新中に問題が発生しました',
+            updatePrompt: 'このエージェントの指示を更新する際に問題が発生しました',
         },
     },
     addAgentPage: {
@@ -2722,6 +2726,16 @@ ${date} の ${merchant} への ${amount}`,
         defaultPrompt:
             'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
     },
+    editAgentPage: {
+        title: 'エージェントを編集',
+        agentName: '担当者名',
+        instructions: 'カスタム指示を作成',
+        deleteAgent: 'エージェントを削除',
+        deleteAgentTitle: 'エージェントを削除しますか？',
+        deleteAgentMessage: 'このエージェントを削除してもよろしいですか？この操作は取り消せません。',
+    },
+    editAgentNamePage: {title: '担当者名'},
+    editAgentPromptPage: {title: 'カスタム指示を作成', error: {emptyPrompt: '担当者への指示を入力してください。'}},
     expenseRulesPage: {
         title: '経費ルール',
         findRule: 'ルールを検索',
@@ -5134,6 +5148,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             free: '無料',
             control: 'コントロール',
             collect: '回収',
+            submit: '提出',
         },
         companyCards: {
             addCards: 'カードを追加',
@@ -7639,7 +7654,7 @@ ${reportName}
         bulkActions: {
             editMultiple: '複数を編集',
             editMultipleTitle: '複数の経費を編集',
-            editMultipleDescription: '変更は選択したすべての経費に適用され、以前に設定された値は上書きされます。',
+            editMultipleDescription: '変更は選択されたすべての経費に適用され、以前に設定された値は上書きされます。',
             approve: '承認',
             pay: '支払う',
             delete: '削除',

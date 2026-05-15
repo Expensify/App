@@ -2476,6 +2476,7 @@ const translations: TranslationDeepObject<typeof en> = {
             revealDetails: 'Details anzeigen',
             revealCvv: 'CVV anzeigen',
             copyCardNumber: 'Kartennummer kopieren',
+            copyCvv: 'CVV kopieren',
             updateAddress: 'Adresse aktualisieren',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `Zu ${platform} Wallet hinzugefügt`,
@@ -2742,6 +2743,9 @@ ${amount} für ${merchant} – ${date}`,
         emptyAgents: {title: 'Keine Agenten erstellt', subtitle: 'Hör auf, Dinge manuell zu erledigen. Weise stattdessen eine:n Agent:in an und spare dir eine Menge Zeit.'},
         error: {
             genericAdd: 'Beim Hinzufügen dieses Agenten ist ein Problem aufgetreten',
+            genericUpdate: 'Beim Aktualisieren dieses Agents ist ein Problem aufgetreten',
+            updateName: 'Beim Aktualisieren des Namens dieses Agents ist ein Problem aufgetreten',
+            updatePrompt: 'Beim Aktualisieren der Anweisungen dieses Agenten ist ein Problem aufgetreten',
         },
     },
     addAgentPage: {
@@ -2754,6 +2758,16 @@ ${amount} für ${merchant} – ${date}`,
         defaultPrompt:
             'Lehne Ausgaben ab, die für Glücksspiele, Kinobesuche oder andere offensichtlich nicht geschäftliche Zwecke sind.\n\nErinnere den:die Nutzer:in daran, immer ein Belegfoto beizufügen, auf dem das Trinkgeld klar erkennbar ist.\n\nGenehmige den Bericht, wenn er früheren Berichten derselben Person sehr ähnlich ist.\n\nLehne Berichte mit mehr als 500 $ an Reisekosten ab.',
     },
+    editAgentPage: {
+        title: 'Agent bearbeiten',
+        agentName: 'Agentenname',
+        instructions: 'Eigene Anweisungen schreiben',
+        deleteAgent: 'Agent löschen',
+        deleteAgentTitle: 'Agent löschen?',
+        deleteAgentMessage: 'Sind Sie sicher, dass Sie diese Ansprechperson löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+    },
+    editAgentNamePage: {title: 'Agentenname'},
+    editAgentPromptPage: {title: 'Eigene Anweisungen schreiben', error: {emptyPrompt: 'Bitte gib Anweisungen für deine Agentin/deinen Agenten ein.'}},
     expenseRulesPage: {
         title: 'Ausgabenregeln',
         findRule: 'Regel finden',
@@ -5197,6 +5211,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             free: 'Kostenlos',
             control: 'Steuerung',
             collect: 'Einziehen',
+            submit: 'Einreichen',
         },
         companyCards: {
             addCards: 'Karten hinzufügen',
@@ -7742,7 +7757,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         bulkActions: {
             editMultiple: 'Mehrere bearbeiten',
             editMultipleTitle: 'Mehrere Ausgaben bearbeiten',
-            editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben festgelegt und überschreiben alle zuvor festgelegten Werte.',
+            editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben übernommen und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
             pay: 'Bezahlen',
             delete: 'Löschen',

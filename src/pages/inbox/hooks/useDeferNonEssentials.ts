@@ -1,8 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports -- No higher-level Navigation API for waiting on transitions without navigating
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-// eslint-disable-next-line no-restricted-imports -- Type import from same restricted module
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';

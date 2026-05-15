@@ -2405,6 +2405,7 @@ const translations: TranslationDeepObject<typeof en> = {
             revealDetails: '显示详细信息',
             revealCvv: '显示 CVV',
             copyCardNumber: '复制卡号',
+            copyCvv: '复制 CVV',
             updateAddress: '更新地址',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `已添加到 ${platform} 钱包`,
@@ -2658,9 +2659,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         subtitle: '通过自定义智能体自动化处理任务。',
         newAgent: '新代理人',
         emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
-        error: {
-            genericAdd: '添加此智能体时出现了问题',
-        },
+        error: {genericAdd: '添加此智能体时出现了问题', genericUpdate: '更新此代理时出现问题', updateName: '更新此代理名称时出现问题', updatePrompt: '更新此代理的说明时出现问题'},
     },
     addAgentPage: {
         title: '新代理',
@@ -2672,6 +2671,16 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         defaultPrompt:
             '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
     },
+    editAgentPage: {
+        title: '编辑代理',
+        agentName: '客服名称',
+        instructions: '编写自定义说明',
+        deleteAgent: '删除代理',
+        deleteAgentTitle: '删除代理人？',
+        deleteAgentMessage: '确定要删除此代理吗？此操作无法撤销。',
+    },
+    editAgentNamePage: {title: '客服名称'},
+    editAgentPromptPage: {title: '编写自定义说明', error: {emptyPrompt: '请输入给您代理的指示。'}},
     expenseRulesPage: {
         title: '报销规则',
         findRule: '查找规则',
@@ -5050,6 +5059,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             free: '免费',
             control: '控制',
             collect: '收款',
+            submit: '提交',
         },
         companyCards: {
             addCards: '添加卡片',
@@ -7509,7 +7519,7 @@ ${reportName}
         bulkActions: {
             editMultiple: '批量编辑',
             editMultipleTitle: '编辑多个费用',
-            editMultipleDescription: '更改将应用于所有选定的费用，并将覆盖之前设置的任何值。',
+            editMultipleDescription: '更改将应用于所有选中的报销，并覆盖任何先前设置的值。',
             approve: '批准',
             pay: '支付',
             delete: '删除',

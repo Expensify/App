@@ -270,7 +270,6 @@ function ExpenseRulesPage() {
             {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <GenericEmptyStateComponent
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...genericIllustration}
                         title={translate('expenseRulesPage.emptyRules.title')}
                         subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
