@@ -95,7 +95,7 @@ describe('ValidateLoginPage', () => {
         renderPage({accountID: '1', validateCode: '123456'});
         await waitForBatchedUpdatesWithAct();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
     it('Should not navigate to home when signed in session opens /v/ to view the code (autoAuthState !== JUST_SIGNED_IN)', async () => {
@@ -109,7 +109,7 @@ describe('ValidateLoginPage', () => {
         renderPage({accountID: '1', validateCode: '123456'});
         await waitForBatchedUpdatesWithAct();
 
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME);
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
         expect(screen.getByTestId('validate-code')).toBeOnTheScreen();
     });
 });

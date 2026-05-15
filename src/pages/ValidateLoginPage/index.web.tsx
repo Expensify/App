@@ -85,9 +85,11 @@ function ValidateLoginPage({
             // link opened in a fresh session like incognito) so there's no original tab to head
             // back to. Route to app home instead of leaving a blank page. Gated on
             // JUST_SIGNED_IN so a pre-existing signed-in session opening /v/... just to view the
-            // code isn't redirected away.
+            // code isn't redirected away. forceReplace avoids leaving `/v/:accountID/:validateCode`
+            // in the browser history — pressing Back would otherwise land on the consumed magic
+            // link and redirect right back here.
             if (isSignedIn && autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN) {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.HOME, {forceReplace: true});
                 return;
             }
             if (cachedAccountID && is2FARequired) {
