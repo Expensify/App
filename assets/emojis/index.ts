@@ -6,34 +6,27 @@ type EmojiTable = Record<string, Emoji>;
 
 type LocaleEmojis = Partial<Record<FullySupportedLocale, EmojisList>>;
 
-const emojiNameTable = emojis.reduce<EmojiTable>((prev, cur) => {
-    const newValue = prev;
-    if (!('header' in cur) && cur.name) {
-        newValue[cur.name] = cur;
-    }
-    return newValue;
-}, {});
+const emojiNameTable: EmojiTable = {};
+const emojiCodeTableWithSkinTones: EmojiTable = {};
+const emojiHexcodeTable: EmojiTable = {};
 
-const emojiCodeTableWithSkinTones = emojis.reduce<EmojiTable>((prev, cur) => {
-    const newValue = prev;
-    if (!('header' in cur)) {
-        newValue[cur.code] = cur;
+for (const cur of emojis) {
+    if ('header' in cur) {
+        continue;
     }
-    if ('types' in cur && cur.types) {
+    if (cur.name) {
+        emojiNameTable[cur.name] = cur;
+    }
+    emojiCodeTableWithSkinTones[cur.code] = cur;
+    if (cur.types) {
         for (const type of cur.types) {
-            newValue[type] = cur;
+            emojiCodeTableWithSkinTones[type] = cur;
         }
     }
-    return newValue;
-}, {});
-
-const emojiHexcodeTable: EmojiTable = emojis.reduce<EmojiTable>((prev, cur) => {
-    const newValue = prev;
-    if (!('header' in cur) && cur.hexcode) {
-        newValue[cur.hexcode] = cur;
+    if (cur.hexcode) {
+        emojiHexcodeTable[cur.hexcode] = cur;
     }
-    return newValue;
-}, {});
+}
 
 const findEmojiByHexCode = (hexcode: string): Emoji | undefined => emojiHexcodeTable[hexcode];
 
