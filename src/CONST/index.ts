@@ -6447,6 +6447,9 @@ const CONST = {
 
     NAVIGATION: {
         CUSTOM_HISTORY_ENTRY_SIDE_PANEL: 'CUSTOM_HISTORY-SIDE_PANEL',
+        // Fake history entry used to keep browser Back behavior correct after revealing a route under an RHP.
+        // addRootHistoryRouterExtension owns when this is added, carried forward, and removed.
+        CUSTOM_HISTORY_ENTRY_REVEAL_PADDING: 'CUSTOM_HISTORY-REVEAL_PADDING',
         ACTION_TYPE: {
             REPLACE: 'REPLACE',
             PUSH: 'PUSH',
@@ -9746,6 +9749,9 @@ const CONST = {
         },
         SETTINGS_EXIT_SURVEY: {
             GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
+        },
+        MESSAGES_ROW: {
+            DISMISS: 'MessagesRow-Dismiss',
         },
         PROFILE_PAGE: {
             AVATAR: 'ProfilePage-Avatar',
