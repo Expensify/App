@@ -516,6 +516,7 @@ function NumberWithSymbolForm({
                 autoGrowMarginSide={props.autoGrowMarginSide}
                 onSubmitEditing={onSubmitEditing}
                 onFocus={props.onFocus}
+                onBlur={props.onBlur}
                 rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
             />
         );
