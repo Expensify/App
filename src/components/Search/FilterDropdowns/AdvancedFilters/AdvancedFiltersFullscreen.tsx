@@ -44,7 +44,7 @@ function AdvancedFiltersFullscreen({queryJSON, closeOverlay}: AdvancedFiltersFul
             // Avoiding keyboard is already handled by the modal
             shouldEnableKeyboardAvoidingView={false}
             includePaddingTop={false}
-            style={[styles.advanceFiltersFullscreenContainer]}
+            style={[styles.flex1]}
         >
             <HeaderWithBackButton
                 title={translate(selectedFilter ? FILTER_VIEW_MAP[selectedFilter].labelKey : 'search.filtersHeader')}
@@ -86,7 +86,7 @@ function AdvancedFiltersFullscreen({queryJSON, closeOverlay}: AdvancedFiltersFul
                         />
                     )}
                     <Button
-                        style={[styles.ph5, styles.pb3]}
+                        style={[styles.ph5, styles.pb5]}
                         success
                         large
                         text={translate('search.applyFilters')}

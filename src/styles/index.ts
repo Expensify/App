@@ -4983,11 +4983,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: 3,
         },
 
-        advanceFiltersFullscreenContainer: {
-            flex: 1,
-            paddingBottom: 8,
-        },
-
         typeFiltersContainer: {
             borderRightWidth: 1,
             borderRightColor: theme.border,
