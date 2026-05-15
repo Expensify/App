@@ -122,7 +122,7 @@ function toggleEmojiReaction(
     // Prefer the hex key so the optimistic removal targets the same Onyx entry
     // that the server will write. Fall back to name for legacy reactions that
     // haven't been migrated yet.
-    const existingReactionKey = (emoji.hexcode && existingReactions?.[emoji.hexcode]) ? emoji.hexcode : emoji.name;
+    const existingReactionKey = emoji.hexcode && existingReactions?.[emoji.hexcode] ? emoji.hexcode : emoji.name;
     const existingReactionObject = existingReactions?.[existingReactionKey];
 
     // Only use skin tone if emoji supports it
