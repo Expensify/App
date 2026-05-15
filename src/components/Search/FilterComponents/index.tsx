@@ -129,7 +129,6 @@ function MultiSelectFilterComponents({filterKey, value = [], selectionListStyle,
 }
 
 function FilterComponents({filterKey, value, policyIDQuery, selectionListTextInputStyle, selectionListStyle, scrollViewOffset, autoFocus, footer, onChange}: FilterComponentsProps) {
-    console.log('auto focus?', autoFocus)
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
