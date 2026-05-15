@@ -70,31 +70,41 @@ describe('ReportActionItemEmojiReactions — dual-format reaction keys', () => {
 });
 
 describe('mergeReactionsByEmoji', () => {
-    const makeReaction = (userID: string, timestamp: string): ReportActionReaction => ({
-        createdAt: timestamp,
-        oldestTimestamp: timestamp,
-        users: {
-            [userID]: {id: userID, oldestTimestamp: timestamp, skinTones: {[-1]: timestamp}},
-        },
-    });
+    const THUMBSUP_HEX = '1F44D';
+    const THUMBSUP_NAME = '+1';
+    const JOY_HEX = '1F602';
+    const USER_A = '111';
+    const USER_B = '222';
+    const JAN = '2024-01-01T00:00:00.000Z';
+    const FEB = '2024-02-01T00:00:00.000Z';
+
+    function makeTimestampedReaction(userID: string, timestamp: string): ReportActionReaction {
+        return {
+            createdAt: timestamp,
+            oldestTimestamp: timestamp,
+            users: {
+                [userID]: {id: userID, oldestTimestamp: timestamp, skinTones: {[-1]: timestamp}},
+            },
+        };
+    }
 
     it('collapses a hex-keyed and a name-keyed entry for the same emoji into one bubble', () => {
         const reactions = {
-            '+1': makeReaction('111', '2024-01-01T00:00:00.000Z'),
-            '1F44D': makeReaction('222', '2024-02-01T00:00:00.000Z'),
+            [THUMBSUP_NAME]: makeTimestampedReaction(USER_A, JAN),
+            [THUMBSUP_HEX]: makeTimestampedReaction(USER_B, FEB),
         };
         const merged = mergeReactionsByEmoji(reactions);
         expect(Object.keys(merged)).toHaveLength(1);
-        const entry = Object.values(merged).at(0)!;
-        expect(entry.users?.['111']).toBeDefined();
-        expect(entry.users?.['222']).toBeDefined();
-        expect(entry.oldestTimestamp).toBe('2024-01-01T00:00:00.000Z');
+        const entry = Object.values(merged).at(0);
+        expect(entry?.users?.[USER_A]).toBeDefined();
+        expect(entry?.users?.[USER_B]).toBeDefined();
+        expect(entry?.oldestTimestamp).toBe(JAN);
     });
 
     it('keeps distinct emojis as separate entries', () => {
         const reactions = {
-            '1F44D': makeReaction('111', '2024-01-01T00:00:00.000Z'),
-            '1F602': makeReaction('222', '2024-02-01T00:00:00.000Z'),
+            [THUMBSUP_HEX]: makeTimestampedReaction(USER_A, JAN),
+            [JOY_HEX]: makeTimestampedReaction(USER_B, FEB),
         };
         const merged = mergeReactionsByEmoji(reactions);
         expect(Object.keys(merged)).toHaveLength(2);
@@ -102,32 +112,35 @@ describe('mergeReactionsByEmoji', () => {
 
     it('is a no-op when all keys are already canonical', () => {
         const reactions = {
-            '1F44D': makeReaction('111', '2024-01-01T00:00:00.000Z'),
+            [THUMBSUP_HEX]: makeTimestampedReaction(USER_A, JAN),
         };
         const merged = mergeReactionsByEmoji(reactions);
         expect(merged).toEqual(reactions);
     });
 
     it('merges per-user skinTones when the same user appears under both keys', () => {
+        const SKIN_TONE_1 = 1;
+        const SKIN_TONE_3 = 3;
         const hexReaction: ReportActionReaction = {
-            createdAt: '2024-01-01T00:00:00.000Z',
-            oldestTimestamp: '2024-01-01T00:00:00.000Z',
+            createdAt: JAN,
+            oldestTimestamp: JAN,
             users: {
-                '111': {id: '111', oldestTimestamp: '2024-01-01T00:00:00.000Z', skinTones: {[1]: '2024-01-01T00:00:00.000Z'}},
+                [USER_A]: {id: USER_A, oldestTimestamp: JAN, skinTones: {[SKIN_TONE_1]: JAN}},
             },
         };
         const nameReaction: ReportActionReaction = {
-            createdAt: '2024-02-01T00:00:00.000Z',
-            oldestTimestamp: '2024-02-01T00:00:00.000Z',
+            createdAt: FEB,
+            oldestTimestamp: FEB,
             users: {
-                '111': {id: '111', oldestTimestamp: '2024-02-01T00:00:00.000Z', skinTones: {[3]: '2024-02-01T00:00:00.000Z'}},
+                [USER_A]: {id: USER_A, oldestTimestamp: FEB, skinTones: {[SKIN_TONE_3]: FEB}},
             },
         };
-        const merged = mergeReactionsByEmoji({'1F44D': hexReaction, '+1': nameReaction});
+        const merged = mergeReactionsByEmoji({[THUMBSUP_HEX]: hexReaction, [THUMBSUP_NAME]: nameReaction});
         expect(Object.keys(merged)).toHaveLength(1);
-        const entry = Object.values(merged).at(0)!;
-        expect(Object.keys(entry.users?.['111']?.skinTones ?? {})).toHaveLength(2);
-        expect(entry.users?.['111']?.skinTones?.[1]).toBeDefined();
-        expect(entry.users?.['111']?.skinTones?.[3]).toBeDefined();
+        const entry = Object.values(merged).at(0);
+        const skinTones = entry?.users?.[USER_A]?.skinTones ?? {};
+        expect(Object.keys(skinTones)).toHaveLength(2);
+        expect(skinTones[SKIN_TONE_1]).toBeDefined();
+        expect(skinTones[SKIN_TONE_3]).toBeDefined();
     });
 });
