@@ -31,7 +31,13 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
+<<<<<<< HEAD:src/pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage.tsx
 function DynamicTwoFactorAuthPage() {
+=======
+const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
+
+function CopyCodesPage({route}: TwoFactorAuthPageProps) {
+>>>>>>> main:src/pages/settings/Security/TwoFactorAuth/CopyCodesPage.tsx
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -155,7 +161,7 @@ function DynamicTwoFactorAuthPage() {
                                             text={translate('common.download')}
                                             icon={icons.Download}
                                             onPress={() => {
-                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate);
+                                                localFileDownload(TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME, account?.recoveryCodes ?? '', translate, undefined, undefined, false);
                                                 setError('');
                                                 setCodesAreCopied();
                                                 announceStatus(translate('fileDownload.success.title'));
