@@ -42,9 +42,12 @@ type PressableProps = {
 
     /** Row content. */
     children: ReactNode;
+
+    /** Whether to show the "Mark as Done" state for this row. */
+    isMarkAsDone?: boolean;
 };
 
-function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children}: PressableProps) {
+function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, isMarkAsDone}: PressableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -59,8 +62,11 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
 
     const reportID = optionItem.reportID;
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-    const actionBadgeText = !isProduction && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
 
+    let actionBadgeText = '';
+    if (!isProduction && optionItem.actionBadge) {
+        actionBadgeText = isMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`);
+    }
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {
         accessibilityLabelForBadge = [translate('common.yourReviewIsRequired'), actionBadgeText].filter(Boolean).join(', ');

@@ -202,7 +202,6 @@ function OptionRowLHNData({
 
     return (
         <OptionRowLHN
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
             viewMode={viewMode}
             isOptionFocused={isReportFocused}
