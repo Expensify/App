@@ -14,6 +14,7 @@ const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
+
 const popoverDimensions = {
     height: CONST.POPOVER_DATE_MIN_HEIGHT,
     width: CONST.POPOVER_DATE_WIDTH,
@@ -32,10 +33,12 @@ function DatePickerModal({
     isVisible,
     onClose,
     anchorPosition,
+    anchorAlignment = DEFAULT_ANCHOR_ORIGIN,
     onSelected,
     shouldCloseWhenBrowserNavigationChanged = false,
     shouldPositionFromTop = false,
     forwardedFSClass,
+    shouldEnableMonthYearBackdropInNarrowPane = false,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const anchorRef = useRef<View>(null);
@@ -72,7 +75,8 @@ function DatePickerModal({
             popoverDimensions={popoverDimensions}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
-            anchorAlignment={DEFAULT_ANCHOR_ORIGIN}
+            anchorAlignment={anchorAlignment}
+            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
             shouldReturnFocus={false}
             shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
@@ -87,6 +91,7 @@ function DatePickerModal({
                 value={selectedDate}
                 onSelected={handleDateSelection}
                 containerStyle={bottomSafeAreaPaddingStyle}
+                shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </PopoverWithMeasuredContent>
     );

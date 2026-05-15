@@ -62,9 +62,7 @@ const renderReportActionItemMessageEdit = (props?: Partial<ReportActionItemMessa
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <ReportActionItemMessageEdit
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             />
         </ComposeProviders>,
