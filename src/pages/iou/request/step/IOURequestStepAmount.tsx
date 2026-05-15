@@ -332,7 +332,7 @@ function IOURequestStepAmount({
                         destinationReportID: report?.reportID,
                         telemetryContext: {
                             scenario: CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            iouType,
                             requestType: 'manual',
                             isFromGlobalCreate: isEmptyObject(report) || !report?.reportID,
                             hasReceipt: false,
