@@ -78,7 +78,7 @@ When you create a tracked expense, Concierge will show an actionable message wit
    - **Submit it to someone** – Send it for approval or reimbursement.
    - **Nothing for now** – Leave it stored for later.
 
-If you belong to a workspace, you can also:
+If you belong to a workspace, you can also click into the expense to:
    - **Categorize** – Assign to a workspace category.
    - **Share with your accountant** – Give access to financial contacts.
    - **Move expense(s)** – Add the expense to an existing report or create a new report on the spot.
