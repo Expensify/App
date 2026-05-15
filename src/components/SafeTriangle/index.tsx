@@ -23,6 +23,8 @@ type Rect = {
 /** Time in ms before the safe triangle is cleared after cursor stops moving toward submenu */
 const SAFE_TRIANGLE_CLEAR_DELAY_MS = 50;
 
+const OFFSET = 2;
+
 function isPointInPolygon(point: Point, polygon: Point[]) {
     const [x, y] = point;
     let isInside = false;
@@ -101,23 +103,23 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
         const [x, y] = apexRef.current ?? [clientX, clientY];
 
         // Create a polygon from apex to the submenu's left edge
-        // We add 2 to x-coordinates to account for the -2 offset in the container's left style
-        const cursorPointOne: Point = [0, y - rect.top];
-        const cursorPointTwo: Point = [rect.left - x + 2, 0];
-        const cursorPointThree: Point = [rect.left - x + 2, rect.bottom - rect.top];
+        const cursorPoint: Point = [0, y - rect.top];
+        // We subtract OFFSET from x-coordinates to account for the offset in the container's left style
+        const topLeftSubMenuPoint: Point = [rect.left - x - OFFSET, 0];
+        const bottomLeftSubMenuPoint: Point = [rect.left - x - OFFSET, rect.bottom - rect.top];
 
-        const polygon = [cursorPointOne, cursorPointTwo, cursorPointThree];
+        const polygon = [cursorPoint, topLeftSubMenuPoint, bottomLeftSubMenuPoint];
 
         // Check if the current mouse position is within the safe triangle
-        // The polygon points are relative to [x - 2, rect.top], so we adjust the mouse position accordingly
-        const isSafe = isPointInPolygon([clientX - x + 2, clientY - rect.top], polygon);
+        // The polygon points are relative to [x + OFFSET, rect.top], so we adjust the mouse position accordingly
+        const isSafe = isPointInPolygon([clientX - x + OFFSET, clientY - rect.top], polygon);
 
         if (isSafe) {
             const pointsStr = polygon.map((p) => p.join(',')).join(' ');
             setPoints(pointsStr);
             setSvgRect({
                 top: rect.top,
-                left: x - 2,
+                left: x + OFFSET,
                 height: rect.height,
                 width: rect.left - x + 2,
             });
