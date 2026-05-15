@@ -126,19 +126,21 @@ function toggleEmojiReaction(
 
     // When both a legacy name-keyed and a hex-keyed entry exist for the same emoji, find the
     // key under which the current user has actually reacted so we remove the right entry.
+    // Prefer the hex (canonical) key so that the server-confirmed entry is cleared first;
+    // any stale name-keyed optimistic residue will be cleaned up by the server's Onyx update.
     const hexEntry = emoji.hexcode ? existingReactions?.[emoji.hexcode] : undefined;
     const nameEntry = existingReactions?.[emoji.name];
 
     const userReactedUnderName = !!nameEntry && hasAccountIDEmojiReacted(currentUserAccountID, nameEntry.users, skinToneToCheck);
     const userReactedUnderHex = !!hexEntry && hasAccountIDEmojiReacted(currentUserAccountID, hexEntry.users, skinToneToCheck);
 
-    if (userReactedUnderName) {
-        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, emoji.name);
+    if (userReactedUnderHex && emoji.hexcode) {
+        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, emoji.hexcode);
         return;
     }
 
-    if (userReactedUnderHex && emoji.hexcode) {
-        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, emoji.hexcode);
+    if (userReactedUnderName) {
+        removeEmojiReaction(originalReportID, reportAction.reportActionID, emoji, currentUserAccountID, emoji.name);
         return;
     }
 
