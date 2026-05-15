@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {read, write} from '@libs/API';
-import {SetNameValuePairParams} from '@libs/API/parameters';
+import type {SetNameValuePairParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {resolveAvatarURI} from '@libs/Avatars/PresetAvatarCatalog';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';

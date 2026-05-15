@@ -69,6 +69,7 @@ function AgentAIPromptSection({accountID}: AgentAIPromptSectionProps) {
                             multiline
                             style={[styles.textNormal, styles.textAlignVerticalTop, styles.flexibleHeight]}
                             testID="ai-prompt-input"
+                            accessibilityLabel={translate('profilePage.aiPromptSection.prompt')}
                             autoFocus
                         />
                     ) : (
