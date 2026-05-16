@@ -61,4 +61,3 @@ function doesPersonalDetailMatchSearchTerm(
 }
 
 export {getCurrentUserSearchTerms, getPersonalDetailSearchTerms, doesPersonalDetailMatchSearchTerm};
-export type {SearchMatchConfig};

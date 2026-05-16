@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -15,6 +16,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -29,6 +31,7 @@ import {openPolicyHRPage} from '@libs/actions/PolicyConnections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getIntegrationLastSuccessfulDate, isGustoConnected} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
@@ -45,6 +48,7 @@ function WorkspaceHRPage({
     },
 }: WorkspaceHRPageProps) {
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
+    const isFocused = useIsFocused();
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -90,6 +94,8 @@ function WorkspaceHRPage({
         fetchPolicyHRPage();
     }, [fetchPolicyHRPage]);
 
+    useGustoSyncResultsModal(policyID, connectionSyncProgress, isFocused);
+
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             {
@@ -122,6 +128,13 @@ function WorkspaceHRPage({
             default:
                 return translate('workspace.hr.gusto.notSet');
         }
+    };
+    const getGustoFinalApproverDisplayName = (finalApprover?: string | null) => {
+        if (!finalApprover) {
+            return translate('workspace.hr.gusto.notSet');
+        }
+
+        return getDisplayNameOrDefault(getPersonalDetailByEmail(finalApprover), finalApprover, false);
     };
     let gustoRowRightComponent;
     if (!isConnected) {
@@ -200,16 +213,28 @@ function WorkspaceHRPage({
                                 rightComponent={gustoRowRightComponent}
                             />
                             {isConnected && (
-                                <OfflineWithFeedback pendingAction={gustoConfig?.pendingFields?.approvalMode}>
-                                    <MenuItemWithTopDescription
-                                        description={translate('workspace.hr.gusto.approvalMode')}
-                                        title={getGustoApprovalModeLabel(gustoConfig?.approvalMode)}
-                                        style={[styles.sectionMenuItemTopDescription, styles.mt2]}
-                                        shouldShowRightIcon
-                                        brickRoadIndicator={gustoConfig?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(policyID))}
-                                    />
-                                </OfflineWithFeedback>
+                                <>
+                                    <OfflineWithFeedback pendingAction={gustoConfig?.pendingFields?.approvalMode}>
+                                        <MenuItemWithTopDescription
+                                            description={translate('workspace.hr.gusto.approvalMode')}
+                                            title={getGustoApprovalModeLabel(gustoConfig?.approvalMode)}
+                                            style={[styles.sectionMenuItemTopDescription, styles.mt2]}
+                                            shouldShowRightIcon
+                                            brickRoadIndicator={gustoConfig?.errorFields?.approvalMode ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_GUSTO_APPROVAL_MODE.getRoute(policyID))}
+                                        />
+                                    </OfflineWithFeedback>
+                                    <OfflineWithFeedback pendingAction={gustoConfig?.pendingFields?.finalApprover}>
+                                        <MenuItemWithTopDescription
+                                            description={translate('workspace.hr.gusto.finalApprover')}
+                                            title={getGustoFinalApproverDisplayName(gustoConfig?.finalApprover)}
+                                            style={styles.sectionMenuItemTopDescription}
+                                            shouldShowRightIcon
+                                            brickRoadIndicator={gustoConfig?.errorFields?.finalApprover ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_HR_GUSTO_FINAL_APPROVER.getRoute(policyID))}
+                                        />
+                                    </OfflineWithFeedback>
+                                </>
                             )}
                         </Section>
                     </View>

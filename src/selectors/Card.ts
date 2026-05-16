@@ -100,6 +100,10 @@ const areAllExpensifyCardsShipped = (cardList: OnyxEntry<CardList>): boolean =>
 const isExpensifyCardUkEuSupportedSelector = (cardList: OnyxEntry<CardList>, cardID: string): boolean =>
     !!cardID && Object.values(cardList ?? {}).some((card) => isCard(card) && card.cardID === Number(cardID) && supportsPINManagementFeatures(card ?? undefined));
 
+const isExpensifyCardContinuousReconciliationEnabledSelector = (value: boolean | string | undefined): boolean | undefined => {
+    return typeof value === 'string' ? value === '1' : value;
+};
+
 export {
     filterCardsHiddenFromSearch,
     filterOutPersonalCards,
@@ -109,4 +113,5 @@ export {
     buildFeedKeysWithAssignedCards,
     isExpensifyCardUkEuSupportedSelector,
     getBankLinkedPersonalCards,
+    isExpensifyCardContinuousReconciliationEnabledSelector,
 };
