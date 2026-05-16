@@ -1,7 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -179,10 +178,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report, accountIDsToRemove);
         setSearchValue('');
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedMembers([]);
-            clearUserSearchPhrase();
-        });
+
+        setSelectedMembers([]);
+        clearUserSearchPhrase();
     };
 
     const showRemoveMembersModal = async () => {

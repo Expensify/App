@@ -54,7 +54,6 @@ function MapView({ref, ...props}: MapViewProps) {
                 {!isOffline ? (
                     <MapViewImpl
                         ref={ref}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     />
                 ) : (

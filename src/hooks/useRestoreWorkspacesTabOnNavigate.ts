@@ -59,7 +59,9 @@ function useRestoreWorkspacesTabOnNavigate() {
             }
 
             // Fall back to session storage when no workspace route exists anywhere in the navigation tree.
-            const sessionRoute = getWorkspacesTabStateFromSessionStorage()
+            // getStateFromPath returns state rooted at TAB_NAVIGATOR, so we must drill into it first.
+            const sessionTabNavigatorRoute = getWorkspacesTabStateFromSessionStorage()?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+            const sessionRoute = getTabState(sessionTabNavigatorRoute)
                 ?.routes?.findLast((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR)
                 ?.state?.routes?.findLast((route) => isWorkspaceNavigatorRouteName(route.name));
             if (sessionRoute) {
