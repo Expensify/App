@@ -51,6 +51,7 @@ type DeleteMoneyRequestFunctionParams = {
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 };
 
 /**
@@ -62,6 +63,7 @@ type DeleteMoneyRequestFunctionParams = {
 function prepareToCleanUpMoneyRequest(
     transactionID: string,
     reportAction: OnyxTypes.ReportAction,
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
@@ -71,7 +73,6 @@ function prepareToCleanUpMoneyRequest(
 ) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
-    const allReports = getAllReports();
     const allReportActions = getAllReportActionsFromIOU();
 
     // STEP 1: Get all collections we're updating
@@ -80,18 +81,13 @@ function prepareToCleanUpMoneyRequest(
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTransactionOnHold = isOnHold(transaction);
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-    const transactionThreadID = reportAction.childReportID;
-    let transactionThread = null;
-    if (transactionThreadID) {
-        transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
-    }
 
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
     // 2. Update the moneyRequestPreview to show [Deleted expense] - update if the transactionThread exists AND it isn't being deleted
     // The current state is that we want to get rid of the [Deleted expense] breadcrumb,
     // so we never want to display it if transactionThreadID is present.
-    const shouldDeleteTransactionThread = !!transactionThreadID;
+    const shouldDeleteTransactionThread = !!transactionThreadReport?.reportID;
 
     // STEP 3: Update the IOU reportAction and decide if the iouReport should be deleted. We delete the iouReport if there are no visible comments left in the report.
     const updatedReportAction = {
@@ -234,8 +230,8 @@ function prepareToCleanUpMoneyRequest(
         updatedReportAction,
         updatedIOUReport,
         updatedReportPreviewAction,
-        transactionThreadID,
-        transactionThread,
+        transactionThreadID: transactionThreadReport?.reportID,
+        transactionThreadReport,
         transaction,
         transactionViolations,
         reportPreviewAction,
@@ -261,8 +257,16 @@ function getNavigationUrlOnMoneyRequestDelete(
     if (!transactionID) {
         return undefined;
     }
+    const allReports = getAllReports();
+    const transactionThreadID = reportAction.childReportID;
+    let transactionThread = null;
+    if (transactionThreadID) {
+        transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
+    }
 
-    const {shouldDeleteTransactionThread, shouldDeleteIOUReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, isChatReportArchived);
+    transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`];
+
+    const {shouldDeleteTransactionThread, shouldDeleteIOUReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction, transactionThread, iouReport, chatReport, isChatReportArchived);
 
     // Determine which report to navigate back to
     if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
@@ -637,6 +641,7 @@ function deleteMoneyRequest({
     transactionID,
     reportAction,
     transactions,
+    transactionThreadReport,
     violations,
     iouReport,
     chatReport,
@@ -664,7 +669,17 @@ function deleteMoneyRequest({
         transactionViolations,
         reportPreviewAction,
         iouReportActions,
-    } = prepareToCleanUpMoneyRequest(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, false, transactionIDsPendingDeletion, selectedTransactionIDs);
+    } = prepareToCleanUpMoneyRequest(
+        transactionID,
+        reportAction,
+        transactionThreadReport,
+        iouReport,
+        chatReport,
+        isChatIOUReportArchived,
+        false,
+        transactionIDsPendingDeletion,
+        selectedTransactionIDs,
+    );
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, iouReport, chatReport, isChatIOUReportArchived, isSingleTransactionView);
 
