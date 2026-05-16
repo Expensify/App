@@ -1869,7 +1869,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
-            paddingVertical: variables.componentBorderRadiusLarge,
+            paddingVertical: variables.componentBorderRadiusLarge * 1.5,
         },
 
         compactPopoverMenuItemBase: compactPopoverMenuItemBaseStyle,
