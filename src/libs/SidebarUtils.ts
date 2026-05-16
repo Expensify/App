@@ -345,6 +345,8 @@ function shouldDisplayReportInLHN({
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
+        currentUserLogin,
+        currentUserAccountID,
     });
 
     return {shouldDisplay};
