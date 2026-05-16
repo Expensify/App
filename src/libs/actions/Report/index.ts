@@ -88,7 +88,7 @@ import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import capturePageHTML from '@libs/PageHTMLCapture';
-import PaginationUtils from '@libs/PaginationUtils';
+import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -1465,11 +1465,9 @@ function openReport(params: OpenReportActionParams) {
     const participantLoginList = participants.map((p) => p.login).filter((login) => !!login);
     // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
-    const optimisticReport = reportActionsExist(reportID)
-        ? {}
-        : {
-              reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME,
-          };
+    const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+    const isCreatingNewReport = !isEmptyObject(newReportObject);
+    const optimisticReport: Partial<Pick<Report, 'reportName'>> = reportActionsExist(reportID) || !existingReportName ? {} : {reportName: existingReportName};
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1498,8 +1496,10 @@ function openReport(params: OpenReportActionParams) {
         },
     ];
 
-    // Only add the report update if optimisticReport has data
-    if (Object.keys(optimisticReport).length > 0) {
+    // We need a report update for both:
+    // 1) existing reports with a known name, and
+    // 2) new reports, because the new-report flow mutates optimisticData.at(0) into a SET on REPORT_<id>.
+    if (isCreatingNewReport || Object.keys(optimisticReport).length > 0) {
         optimisticData.unshift({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -1699,7 +1699,6 @@ function openReport(params: OpenReportActionParams) {
     }
 
     // If we are creating a new report, we need to add the optimistic report data and a report action
-    const isCreatingNewReport = !isEmptyObject(newReportObject);
     if (isCreatingNewReport) {
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
@@ -1857,7 +1856,7 @@ function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sort
         return;
     }
 
-    const pruned = PaginationUtils.prunePagesToNewestWindow(sortedReportActions, pages, (action) => action.reportActionID);
+    const pruned = prunePagesToNewestWindow(sortedReportActions, pages, (action) => action.reportActionID);
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`, pruned);
 }
 
@@ -3317,6 +3316,9 @@ function saveReportActionDraft(reportID: string | undefined, reportAction: Repor
     }
 
     const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
+    if (!originalReportID) {
+        return;
+    }
 
     Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {
         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`]: {
@@ -7856,7 +7858,7 @@ function clearConciergeThinkingKickoff() {
     Onyx.set(ONYXKEYS.CONCIERGE_THINKING_KICKOFF, null);
 }
 
-export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams, ParticipantInfo, CreateTransactionThreadReportParams};
+export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams};
 
 export {
     addAttachmentWithComment,
