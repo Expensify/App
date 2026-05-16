@@ -315,4 +315,27 @@ describe('BaseSelectionList', () => {
 
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeNull();
     });
+
+    it('does not scroll-jump the list on programmatic row focus (no sourceCapabilities) — focus-return restoring the trigger on back nav must not move the cursor', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        render(<SelectionListRenderer data={mockItems} />);
+        mockScrollToIndex.mockClear();
+
+        const row = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`);
+        // NavigationFocusReturn's .focus() (and context-menu close) produce a focus event with no sourceCapabilities.
+        fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: null}});
+
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+    });
+
+    it('still scrolls to a row on genuine pointer focus (sourceCapabilities present)', () => {
+        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        render(<SelectionListRenderer data={mockItems} />);
+        mockScrollToIndex.mockClear();
+
+        const row = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`);
+        fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: {firesTouchEvents: false}}});
+
+        expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 5}));
+    });
 });
