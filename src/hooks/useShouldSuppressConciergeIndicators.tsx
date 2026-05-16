@@ -24,22 +24,21 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
 
     const isConciergeChat = reportID === conciergeReportID;
 
-    const shouldSuppressSelector = (actions: OnyxEntry<ReportActions>) => {
+    const hasActivitySelector = (actions: OnyxEntry<ReportActions>) => {
         if (!actions || !sessionStartTime) {
             return false;
         }
         const hasUserSentMessage = Object.values(actions).some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
         if (hasUserSentMessage) {
-            return false;
+            return true;
         }
-        const hasUnreadMessages = Object.values(actions).some((action) => !isCreatedAction(action) && action.created > sessionStartTime);
-        return !hasUnreadMessages;
+        return Object.values(actions).some((action) => !isCreatedAction(action) && action.created > sessionStartTime);
     };
-    const [shouldSuppress] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: shouldSuppressSelector,
+    const [hasActivity] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: hasActivitySelector,
     });
 
-    return isConciergeChat && isInSidePanel && !!shouldSuppress;
+    return isConciergeChat && isInSidePanel && !hasActivity;
 }
 
 export default useShouldSuppressConciergeIndicators;

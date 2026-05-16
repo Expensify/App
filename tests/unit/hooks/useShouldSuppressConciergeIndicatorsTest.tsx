@@ -49,7 +49,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
                 return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
             }
             if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`) {
-                return [true, {status: 'loaded'}];
+                return [false, {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -58,24 +58,7 @@ describe('useShouldSuppressConciergeIndicators', () => {
         expect(result.current).toBe(false);
     });
 
-    it('should suppress indicators in side panel when no user messages and no unread', () => {
-        mockUseIsInSidePanel.mockReturnValue(true);
-        mockUseSidePanelState.mockReturnValue({sessionStartTime: '2024-01-01 00:00:00.000'});
-        mockUseOnyx.mockImplementation((key: string) => {
-            if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
-                return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
-            }
-            if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`) {
-                return [true, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
-
-        const {result} = renderHook(() => useShouldSuppressConciergeIndicators(CONCIERGE_REPORT_ID));
-        expect(result.current).toBe(true);
-    });
-
-    it('should not suppress when selector indicates user sent message or unread exist', () => {
+    it('should suppress indicators in side panel when no activity after session start', () => {
         mockUseIsInSidePanel.mockReturnValue(true);
         mockUseSidePanelState.mockReturnValue({sessionStartTime: '2024-01-01 00:00:00.000'});
         mockUseOnyx.mockImplementation((key: string) => {
@@ -89,12 +72,29 @@ describe('useShouldSuppressConciergeIndicators', () => {
         });
 
         const {result} = renderHook(() => useShouldSuppressConciergeIndicators(CONCIERGE_REPORT_ID));
+        expect(result.current).toBe(true);
+    });
+
+    it('should not suppress when activity exists (user sent message or unread)', () => {
+        mockUseIsInSidePanel.mockReturnValue(true);
+        mockUseSidePanelState.mockReturnValue({sessionStartTime: '2024-01-01 00:00:00.000'});
+        mockUseOnyx.mockImplementation((key: string) => {
+            if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
+                return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONCIERGE_REPORT_ID}`) {
+                return [true, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+
+        const {result} = renderHook(() => useShouldSuppressConciergeIndicators(CONCIERGE_REPORT_ID));
         expect(result.current).toBe(false);
     });
 
-    it('should not suppress when session start time is null', () => {
-        mockUseIsInSidePanel.mockReturnValue(true);
-        mockUseSidePanelState.mockReturnValue({sessionStartTime: null});
+    it('should not suppress when not in side panel even with no activity', () => {
+        mockUseIsInSidePanel.mockReturnValue(false);
+        mockUseSidePanelState.mockReturnValue({sessionStartTime: '2024-01-01 00:00:00.000'});
         mockUseOnyx.mockImplementation((key: string) => {
             if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
                 return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
