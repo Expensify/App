@@ -13,7 +13,10 @@ type DerivedSourceValues<Deps extends readonly OnyxKey[]> = Partial<{
     [K in Deps[number]]: OnyxCollectionSourceValue<K>;
 }>;
 
-type DerivedValueContext<Key extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
+// Deps is loosened to `readonly OnyxKey[]` here so the framework's init loop (which collapses all
+// configs' Key types into a union) doesn't have its `Exclude<OnyxKey, Key>` constraint reject every
+// derived key. Per-config self-reference is still prevented by `OnyxDerivedValueConfig` below.
+type DerivedValueContext<Key extends OnyxKey, Deps extends readonly OnyxKey[]> = {
     currentValue?: OnyxValue<Key>;
     sourceValues?: DerivedSourceValues<Deps>;
 };

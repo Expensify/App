@@ -283,6 +283,27 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * A report enriched with LHN-only metadata used during sidebar filtering/sorting.
+ */
+type SidebarReportForLHN = Report & {
+    /** True when report has non-receipt errors surfaced in LHN. */
+    hasErrorsOtherThanFailedReceipt?: boolean;
+    /** True when report requires action from current user (GBR). */
+    requiresAttention?: boolean;
+};
+
+/**
+ * The derived value for the LHN sidebar ordering. Computed outside React to avoid React's
+ * batching dropping intermediate Onyx source-value updates.
+ */
+type SidebarOrderedReportsDerivedValue = {
+    /** Reports kept after LHN filtering, keyed by `reports_<id>` (the same shape as the REPORT collection). */
+    reportsToDisplay: Record<string, SidebarReportForLHN>;
+    /** Sorted report IDs (no `reports_` prefix) representing LHN row order. */
+    orderedReportIDs: string[];
+};
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
@@ -301,4 +322,6 @@ export type {
     CardFeedErrorState,
     CardFeedErrors,
     CardErrors,
+    SidebarOrderedReportsDerivedValue,
+    SidebarReportForLHN,
 };

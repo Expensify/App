@@ -4,7 +4,6 @@ import useBiometricRegistrationStatus, {REGISTRATION_STATUS} from '@hooks/useBio
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -32,7 +31,6 @@ function TestToolMenu() {
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {clearLHNCache} = useSidebarOrderedReportsActions();
     const [isMFARevokeLoading, setIsMFARevokeLoading] = useState(false);
     const {localCredentialID, isCurrentDeviceRegistered, otherDeviceCount, registrationStatus} = useBiometricRegistrationStatus();
 
@@ -117,15 +115,6 @@ function TestToolMenu() {
                             small
                             text={translate('initialSettingsPage.troubleshoot.invalidateWithDelay')}
                             onPress={() => expireSessionWithDelay()}
-                        />
-                    </TestToolRow>
-
-                    {/* Clears the useSidebarOrderedReports cache to re-compute from latest onyx values */}
-                    <TestToolRow title={translate('initialSettingsPage.troubleshoot.leftHandNavCache')}>
-                        <Button
-                            small
-                            text={translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}
-                            onPress={clearLHNCache}
                         />
                     </TestToolRow>
 
