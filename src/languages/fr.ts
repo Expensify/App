@@ -6410,7 +6410,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Assurez-vous que ce compte correspond à votre compte de règlement de facturation de voyage (se terminant par ${lastFourPAN}) afin que le rapprochement continu fonctionne correctement.`,
             },
-            syncCentralInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
         },
         export: {
             notReadyHeading: 'Pas prêt à être exporté',

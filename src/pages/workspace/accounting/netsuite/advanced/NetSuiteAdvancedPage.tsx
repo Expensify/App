@@ -173,9 +173,9 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
         },
         {
             type: 'toggle',
-            title: translate('workspace.accounting.syncCentralInvoicingSettlements'),
+            title: translate('workspace.accounting.syncTravelInvoicingSettlements'),
             isActive: !!travelInvoicingContinuousReconciliation,
-            switchAccessibilityLabel: translate('workspace.accounting.syncCentralInvoicingSettlements'),
+            switchAccessibilityLabel: translate('workspace.accounting.syncTravelInvoicingSettlements'),
             disabled: !autoSync,
             onToggle: (isEnabled) => {
                 toggleTravelInvoicingContinuousReconciliation(workspaceAccountID, isEnabled, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, travelInvoicingContinuousReconciliationConnection);

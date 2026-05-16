@@ -6357,7 +6357,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Certifique-se de que esta conta corresponda à sua conta de liquidação de faturamento de viagem (terminada em ${lastFourPAN}) para que a Conciliação Contínua funcione corretamente.`,
             },
-            syncCentralInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
+            syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
         },
         export: {
             notReadyHeading: 'Não está pronto para exportar',

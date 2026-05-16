@@ -6307,7 +6307,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Continuous Reconciliation が正しく機能するように、この口座が、旅行の請求書決済用口座（末尾が ${lastFourPAN} の口座）と一致していることを確認してください。`,
             },
-            syncCentralInvoicingSettlements: '出張請求の精算を同期',
+            syncTravelInvoicingSettlements: '出張請求の精算を同期',
         },
         export: {
             notReadyHeading: 'エクスポートの準備ができていません',

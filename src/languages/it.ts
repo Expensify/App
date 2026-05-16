@@ -6378,7 +6378,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Assicurati che questo conto corrisponda al tuo conto di regolamento per la fatturazione dei viaggi (che termina con ${lastFourPAN}) in modo che la Riconciliazione continua funzioni correttamente.`,
             },
-            syncCentralInvoicingSettlements: 'Sincronizza le liquidazioni delle fatture di viaggio',
+            syncTravelInvoicingSettlements: 'Sincronizza le liquidazioni delle fatture di viaggio',
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',

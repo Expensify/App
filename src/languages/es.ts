@@ -6171,7 +6171,7 @@ ${amount} para ${merchant} - ${date}`,
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Asegúrate de que esta cuenta coincida con tu cuenta de liquidación de facturas de viaje (que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
             },
-            syncCentralInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
+            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
         },
         card: {
             issueCard: 'Emitir tarjeta',

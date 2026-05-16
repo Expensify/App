@@ -6388,7 +6388,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
                     `Stellen Sie sicher, dass dieses Konto mit Ihrem Abrechnungskonto für Reiseabrechnungen (endet auf ${lastFourPAN}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             },
-            syncCentralInvoicingSettlements: 'Reiseabrechnungs­abgleiche synchronisieren',
+            syncTravelInvoicingSettlements: 'Reiseabrechnungs­abgleiche synchronisieren',
         },
         export: {
             notReadyHeading: 'Nicht bereit zum Export',
