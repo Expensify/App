@@ -29,6 +29,7 @@ function ChatListItem<TItem extends ListItem>({
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
     const personalDetails = usePersonalDetails();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const styles = useThemeStyles();
@@ -76,6 +77,7 @@ function ChatListItem<TItem extends ListItem>({
         >
             <ReportActionItem
                 action={reportActionItem}
+                transactionThreadReport={transactionThreadReport}
                 report={report}
                 onPress={() => onSelectRow(item)}
                 parentReportAction={undefined}

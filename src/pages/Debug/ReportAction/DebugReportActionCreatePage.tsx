@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -52,6 +52,10 @@ function DebugReportActionCreatePage({
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
+
+    const reportAction = useMemo(() => JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction, [draftReportAction]);
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
 
     const [error, setError] = useState<string>();
 
@@ -111,6 +115,7 @@ function DebugReportActionCreatePage({
                             {!error ? (
                                 <ReportActionItem
                                     action={JSON.parse(draftReportAction.replaceAll('\n', '')) as ReportAction}
+                                    transactionThreadReport={transactionThreadReport}
                                     report={{reportID}}
                                     parentReportAction={undefined}
                                     displayAsGroup={false}

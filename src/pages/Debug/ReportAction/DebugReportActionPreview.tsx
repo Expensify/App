@@ -21,11 +21,12 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
-
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
     return (
         <ScrollView>
             <ReportActionItem
                 action={reportAction ?? ({} as ReportAction)}
+                transactionThreadReport={transactionThreadReport}
                 report={report ?? ({} as Report)}
                 parentReportAction={undefined}
                 displayAsGroup={false}

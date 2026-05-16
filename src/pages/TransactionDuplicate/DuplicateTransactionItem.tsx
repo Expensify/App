@@ -39,6 +39,7 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
     const originalReportID = getOriginalReportID(report?.reportID, action, reportActions);
 
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`);
 
     const [linkedTransactionRouteError] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined)}`,
@@ -64,6 +65,7 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
                     <ReportActionItem
                         action={action}
                         report={report}
+                        transactionThreadReport={transactionThreadReport}
                         parentReportAction={getReportAction(report?.parentReportID, report?.parentReportActionID)}
                         index={index}
                         displayAsGroup={false}
