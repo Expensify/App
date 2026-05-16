@@ -976,6 +976,8 @@ type GetUpdateMoneyRequestParamsType = {
     isSplitTransaction?: boolean;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66407
     isOffline?: boolean;
+    // TODO: Will be made required in PR 8b when all wrappers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1015,6 +1017,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         iouReportNextStep,
         isSplitTransaction,
         isOffline,
+        delegateAccountID,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -1168,7 +1171,16 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // For split transactions, the merchant and amount are already available in transactionChanges,
     // so we can build the optimistic report action even when waypoints are pending.
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
-        ? buildOptimisticModifiedExpenseReportAction(transactionThreadReport, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative)
+        ? buildOptimisticModifiedExpenseReportAction(
+              transactionThreadReport,
+              transaction,
+              transactionChanges,
+              isFromExpenseReport,
+              policy,
+              delegateAccountID,
+              updatedTransaction,
+              allowNegative,
+          )
         : null;
     if (
         (!hasPendingWaypoints || hasSplitDistanceMessageFields || hasDistanceWithWaypoints) &&
@@ -1612,6 +1624,8 @@ function getUpdateTrackExpenseParams(
     hash?: number,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
+    // TODO: Will be made required in PR 8b when all wrappers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number,
 ): UpdateMoneyRequestData<
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION
@@ -1699,7 +1713,7 @@ function getUpdateTrackExpenseParams(
     // and the report action is created on the server with the distance-related response from the MapBox API
     const allowNegative = shouldEnableNegative(transactionThread ?? undefined);
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
-        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, updatedTransaction, allowNegative)
+        ? buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, delegateAccountID, updatedTransaction, allowNegative)
         : null;
     if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
         apiParams.reportActionID = updatedReportAction.reportActionID;

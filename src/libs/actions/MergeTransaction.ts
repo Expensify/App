@@ -222,6 +222,7 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam,
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
+    delegateAccountID,
 }: {
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
@@ -235,6 +236,8 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
+    // TODO: Will be made required in PR 8d when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number;
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -263,6 +266,8 @@ function getOnyxTargetTransactionData({
             policy,
             undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
+            undefined,
+            delegateAccountID,
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -281,6 +286,7 @@ function getOnyxTargetTransactionData({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            delegateAccountID,
         });
     }
 
@@ -333,6 +339,8 @@ type MergeTransactionRequestParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
+    // TODO: Will be made required in PR 8d when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number;
     selfDMReport: OnyxEntry<Report>;
 };
 /**
@@ -353,6 +361,7 @@ function mergeTransactionRequest({
     currentUserAccountIDParam,
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
+    delegateAccountID,
     selfDMReport,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
@@ -402,6 +411,7 @@ function mergeTransactionRequest({
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
+        delegateAccountID,
     });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report

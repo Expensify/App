@@ -83,6 +83,8 @@ type UpdateMultipleMoneyRequestsParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     currentUserLogin: string;
     currentUserAccountID: number;
+    // TODO: Will be made required in PR 8d when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    delegateAccountID?: number;
 };
 
 function updateMultipleMoneyRequests({
@@ -100,6 +102,7 @@ function updateMultipleMoneyRequests({
     betas,
     currentUserAccountID,
     currentUserLogin,
+    delegateAccountID,
 }: UpdateMultipleMoneyRequestsParams) {
     // Track running totals per report so multiple edits in the same report compound correctly.
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -411,6 +414,7 @@ function updateMultipleMoneyRequests({
             optimisticTransactionChanges,
             isFromExpenseReport,
             transactionPolicy,
+            delegateAccountID,
             updatedTransaction,
         );
 
