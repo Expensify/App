@@ -33,6 +33,9 @@ const ONYXKEYS = {
     /** Boolean flag set whenever the sidebar has loaded */
     RAM_ONLY_IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    /** Whether the user has revealed full Concierge chat history in the main DM */
+    RAM_ONLY_CONCIERGE_SHOW_FULL_HISTORY: 'conciergeShowFullHistory',
+
     /** Boolean flag set whenever we are searching for reports in the server */
     RAM_ONLY_IS_SEARCHING_FOR_REPORTS: 'isSearchingForReports',
 
@@ -1506,6 +1509,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
     [ONYXKEYS.ONBOARDING_LAST_VISITED_PATH]: string;
+    [ONYXKEYS.RAM_ONLY_CONCIERGE_SHOW_FULL_HISTORY]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
     [ONYXKEYS.REPORT_LAST_VISIT_TIMES]: OnyxTypes.ReportLastVisitTimes;

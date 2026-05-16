@@ -1,10 +1,12 @@
 import {useCallback, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import setConciergeShowFullHistory from '@libs/actions/ConciergeSession';
 import DateUtils from '@libs/DateUtils';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useIsInSidePanel from './useIsInSidePanel';
 import useOnyx from './useOnyx';
 
 type UseConciergeReportActionsParams = {
@@ -37,18 +39,39 @@ function useConciergeReportActions({
     const [pendingConciergeResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${report?.reportID}`);
     const hasPendingConciergeResponse = !!pendingConciergeResponse?.reportAction;
 
-    const [showFullHistory, setShowFullHistoryState] = useState(false);
+    const isInSidePanel = useIsInSidePanel();
+    const [persistedShowFullHistory = false] = useOnyx(ONYXKEYS.RAM_ONLY_CONCIERGE_SHOW_FULL_HISTORY);
+
+    // When a non-Concierge report renders, clear the persisted key so that
+    // navigating back to Concierge starts with history hidden.
+    if (!isInSidePanel && !isConciergeChat && persistedShowFullHistory) {
+        setConciergeShowFullHistory(false);
+    }
+
+    const [showFullHistory, setShowFullHistoryState] = useState(() => (!isInSidePanel && isConciergeChat ? persistedShowFullHistory : false));
+    const [prevPersistedShowFullHistory, setPrevPersistedShowFullHistory] = useState(persistedShowFullHistory);
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
+
+    if (!isInSidePanel && isConciergeChat && prevPersistedShowFullHistory !== persistedShowFullHistory) {
+        setPrevPersistedShowFullHistory(persistedShowFullHistory);
+        setShowFullHistoryState(persistedShowFullHistory);
+    }
 
     const hasSessionChanged = sessionStartTime && prevSessionStartTime && prevSessionStartTime !== sessionStartTime;
 
     if (hasSessionChanged) {
         setPrevSessionStartTime(sessionStartTime);
         setShowFullHistoryState(false);
+        if (!isInSidePanel) {
+            setConciergeShowFullHistory(false);
+        }
     } else if (prevHasUserSentMessage && !hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
         setShowFullHistoryState(false);
+        if (!isInSidePanel) {
+            setConciergeShowFullHistory(false);
+        }
     } else if (prevHasUserSentMessage !== hasUserSentMessage) {
         setPrevHasUserSentMessage(hasUserSentMessage);
     }
@@ -204,8 +227,11 @@ function useConciergeReportActions({
 
     const handleShowPreviousMessages = useCallback(() => {
         setShowFullHistoryState(true);
+        if (!isInSidePanel) {
+            setConciergeShowFullHistory(true);
+        }
         loadOlderChats(true);
-    }, [loadOlderChats]);
+    }, [isInSidePanel, loadOlderChats]);
 
     return {
         filteredVisibleActions,
