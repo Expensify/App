@@ -236,7 +236,7 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
-    // TODO: Will be made required in PR 8d when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
@@ -339,7 +339,7 @@ type MergeTransactionRequestParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
-    // TODO: Will be made required in PR 8d when all callers pass the value (https://github.com/Expensify/App/issues/66425)
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
     selfDMReport: OnyxEntry<Report>;
 };
