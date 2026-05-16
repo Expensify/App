@@ -122,53 +122,44 @@ function HelpPage() {
         helpSiteItem,
     ];
 
-    const partnerTeamItems = [
-        ...(partnerManagerDetails
-            ? [
-                  {
-                      key: partnerManagerDetails.login,
-                      title: partnerManagerDetails.displayName,
-                      description: translate('initialSettingsPage.helpPage.partnerManagerApprovedDescription'),
-                      icon: partnerManagerDetails.avatar,
-                      iconType: CONST.ICON_TYPE_AVATAR,
-                      onPress: () => navigateToAndOpenReportWithAccountIDs([partnerManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
-                      shouldShowRightIcon: true,
-                      wrapperStyle: [styles.sectionMenuItemTopDescription],
-                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
-                  },
-              ]
-            : []),
-        ...(accountExecutiveDetails
-            ? [
-                  {
-                      key: accountExecutiveDetails.login,
-                      title: accountExecutiveDetails.displayName,
-                      description: translate('initialSettingsPage.helpPage.accountExecutiveDescription'),
-                      icon: accountExecutiveDetails.avatar,
-                      iconType: CONST.ICON_TYPE_AVATAR,
-                      onPress: () => navigateToAndOpenReportWithAccountIDs([accountExecutiveDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
-                      shouldShowRightIcon: true,
-                      wrapperStyle: [styles.sectionMenuItemTopDescription],
-                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_EXECUTIVE,
-                  },
-              ]
-            : []),
-        ...(accountManagerDetails
-            ? [
-                  {
-                      key: accountManagerDetails.login,
-                      title: accountManagerDetails.displayName,
-                      description: translate('initialSettingsPage.helpPage.accountManagerApprovedDescription'),
-                      icon: accountManagerDetails.avatar,
-                      iconType: CONST.ICON_TYPE_AVATAR,
-                      onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
-                      shouldShowRightIcon: true,
-                      wrapperStyle: [styles.sectionMenuItemTopDescription],
-                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
-                  },
-              ]
-            : []),
-    ];
+    const partnerManagerItem = partnerManagerDetails
+        ? {
+              key: partnerManagerDetails.login,
+              title: partnerManagerDetails.displayName,
+              icon: partnerManagerDetails.avatar,
+              iconType: CONST.ICON_TYPE_AVATAR,
+              onPress: () => navigateToAndOpenReportWithAccountIDs([partnerManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
+              shouldShowRightIcon: true,
+              wrapperStyle: [styles.sectionMenuItemTopDescription],
+              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
+          }
+        : null;
+
+    const accountExecutiveItem = accountExecutiveDetails
+        ? {
+              key: accountExecutiveDetails.login,
+              title: accountExecutiveDetails.displayName,
+              icon: accountExecutiveDetails.avatar,
+              iconType: CONST.ICON_TYPE_AVATAR,
+              onPress: () => navigateToAndOpenReportWithAccountIDs([accountExecutiveDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
+              shouldShowRightIcon: true,
+              wrapperStyle: [styles.sectionMenuItemTopDescription],
+              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_EXECUTIVE,
+          }
+        : null;
+
+    const accountManagerItem = accountManagerDetails
+        ? {
+              key: accountManagerDetails.login,
+              title: accountManagerDetails.displayName,
+              icon: accountManagerDetails.avatar,
+              iconType: CONST.ICON_TYPE_AVATAR,
+              onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
+              shouldShowRightIcon: true,
+              wrapperStyle: [styles.sectionMenuItemTopDescription],
+              sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
+          }
+        : null;
 
     const moreResourcesItems = [conciergeItem, helpSiteItem];
 
@@ -207,11 +198,34 @@ function HelpPage() {
                     >
                         {isApprovedAccountant ? (
                             <>
-                                <View style={[styles.flex1, styles.mt5]}>
-                                    <MenuItemList
-                                        menuItems={partnerTeamItems}
-                                        shouldUseSingleExecution
-                                    />
+                                <View style={[styles.flex1, styles.mt5, styles.gap5]}>
+                                    {partnerManagerItem && (
+                                        <View>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.partnerManagerDescription')}</Text>
+                                            <MenuItemList
+                                                menuItems={[partnerManagerItem]}
+                                                shouldUseSingleExecution
+                                            />
+                                        </View>
+                                    )}
+                                    {accountExecutiveItem && (
+                                        <View>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountExecutiveDescription')}</Text>
+                                            <MenuItemList
+                                                menuItems={[accountExecutiveItem]}
+                                                shouldUseSingleExecution
+                                            />
+                                        </View>
+                                    )}
+                                    {accountManagerItem && (
+                                        <View>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountManagerDescription')}</Text>
+                                            <MenuItemList
+                                                menuItems={[accountManagerItem]}
+                                                shouldUseSingleExecution
+                                            />
+                                        </View>
+                                    )}
                                 </View>
                                 <Text style={[styles.textLabelSupportingNormal, styles.mt5, styles.mb2]}>{translate('initialSettingsPage.helpPage.moreResources')}</Text>
                                 <MenuItemList
