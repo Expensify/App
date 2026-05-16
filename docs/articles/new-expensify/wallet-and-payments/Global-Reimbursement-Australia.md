@@ -25,6 +25,8 @@ If your company’s business bank account is located in Australia, you can enabl
 * ✅ Certified ID & Proof of Address for all signatories
 * ✅ Entity ownership chart signed by a CPA, lawyer, or notary
 
+Accepted file types: PDF, PNG, JPEG. Each file must be 2 MB or less.
+
 ---
 
 # Step 1: Connect Your Australian Bank Account

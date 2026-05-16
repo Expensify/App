@@ -8,6 +8,7 @@ import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusConte
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -53,6 +54,7 @@ function UserListItemContent<TItem extends ListItem>({
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
@@ -72,12 +74,16 @@ function UserListItemContent<TItem extends ListItem>({
     const policyID = isThereOnlyWorkspaceIcon && shouldUseIconPolicyID ? String(item.icons?.at(0)?.id) : item.policyID;
 
     const isHovered = hovered && !shouldDisableHoverStyle;
-    const contactAccessibilityLabel = getAccessibilityLabel(item);
+    const baseAccessibilityLabel = getAccessibilityLabel(item);
+    const accessibilityLabel =
+        shouldDisableAccessibleGrouping && item.isSelected !== undefined
+            ? `${translate(item.isSelected ? 'common.deselect' : 'common.select')}, ${baseAccessibilityLabel}`
+            : baseAccessibilityLabel;
 
     return (
         <View
             accessible={shouldDisableAccessibleGrouping || undefined}
-            accessibilityLabel={shouldDisableAccessibleGrouping ? contactAccessibilityLabel : undefined}
+            accessibilityLabel={shouldDisableAccessibleGrouping ? accessibilityLabel : undefined}
             role={shouldDisableAccessibleGrouping ? CONST.ROLE.BUTTON : undefined}
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
         >
@@ -132,4 +138,3 @@ function UserListItemContent<TItem extends ListItem>({
 }
 
 export default UserListItemContent;
-export type {UserListItemContentProps};
