@@ -199,7 +199,7 @@ function HelpPage() {
                         {isApprovedAccountant ? (
                             <>
                                 <View style={[styles.flex1, styles.mt5, styles.gap5]}>
-                                    {partnerManagerItem && (
+                                    {!!partnerManagerItem && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.partnerManagerDescription')}</Text>
                                             <MenuItemList
@@ -208,7 +208,7 @@ function HelpPage() {
                                             />
                                         </View>
                                     )}
-                                    {accountExecutiveItem && (
+                                    {!!accountExecutiveItem && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountExecutiveDescription')}</Text>
                                             <MenuItemList
@@ -217,7 +217,7 @@ function HelpPage() {
                                             />
                                         </View>
                                     )}
-                                    {accountManagerItem && (
+                                    {!!accountManagerItem && (
                                         <View>
                                             <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountManagerDescription')}</Text>
                                             <MenuItemList
