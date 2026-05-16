@@ -96,4 +96,3 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
 }
 
 export default MoneyReportHeaderActions;
-export type {MoneyReportHeaderActionsProps};

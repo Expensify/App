@@ -311,4 +311,4 @@ function MoneyRequestAmountForm({
 }
 
 export default MoneyRequestAmountForm;
-export type {CurrentMoney, MoneyRequestAmountFormProps};
+export type {CurrentMoney};

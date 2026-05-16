@@ -781,10 +781,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
-                // The routes contains the distance in meters. Clearing the routes ensures we use the distance
-                // in the correct unit stored under the transaction customUnit once the request is created.
-                // The route is also not saved in the backend, so we can't rely on it.
-                routes: null,
+                // Keep `routes`: the BE never returns it, so it's the only source `ConfirmedRoute`/the preview can draw the map from (GH #90057).
             },
         },
 
@@ -1620,16 +1617,13 @@ function mergePolicyRecentlyUsedCurrencies(currency: string | undefined, policyR
 export {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
-    buildOnyxDataForTestDriveIOU,
     calculateDiffAmount,
     getMoneyRequestInformation,
     getReceiptError,
     getReportPreviewAction,
     getTransactionWithPreservedLocalReceiptSource,
     getUpdatedMoneyRequestReportData,
-    maybeUpdateReportNameForFormulaTitle,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
-    recalculateOptimisticReportName,
 };
 export type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformation, MoneyRequestInformationParams, OneOnOneIOUReport, RequestMoneyInformation};
