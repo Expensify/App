@@ -21,6 +21,7 @@ const {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
+    skipNextFocusRestore,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     setupNavigationFocusReturn,
@@ -37,6 +38,7 @@ const {
     notifyPushParamsForward: (routeKey: string, prevParams: unknown) => void;
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
+    skipNextFocusRestore: () => void;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     setupNavigationFocusReturn: () => void;
@@ -1414,6 +1416,52 @@ describe('handleStateChange integration', () => {
             handleStateChange(onA);
 
             const spy = jest.spyOn(trigger, 'focus');
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('skipNextFocusRestore suppresses the restore for the next backward nav only (form-submit goBack), then resumes', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            handleStateChange(onA);
+
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+            handleStateChange(onAB);
+            trigger.blur();
+
+            // Form-submit save calls skipNextFocusRestore() right before goBack.
+            skipNextFocusRestore();
+            const spy = jest.spyOn(trigger, 'focus');
+            handleStateChange(onA);
+            jest.runAllTimers();
+            expect(spy).not.toHaveBeenCalled();
+
+            // The flag is one-shot: a subsequent Back-button dismissal restores normally.
+            handleStateChange(onAB);
+            trigger.blur();
+            handleStateChange(onA);
+            jest.runAllTimers();
+            expect(spy).toHaveBeenCalled();
+        });
+    });
+
+    it('skipNextFocusRestore flag is cleared by an intervening forward nav so it cannot leak into a later backward', () => {
+        withFakeTimers(() => {
+            simulateTab();
+            handleStateChange(onA);
+
+            const trigger = appendButton();
+            fireFocusIn(trigger);
+
+            // Flag set but a forward nav happens before any backward — must not persist.
+            skipNextFocusRestore();
+            handleStateChange(onAB);
+
+            trigger.blur();
+            const spy = jest.spyOn(trigger, 'focus');
+            handleStateChange(onA);
             jest.runAllTimers();
             expect(spy).toHaveBeenCalled();
         });

@@ -45,6 +45,7 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
 
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
+let skipNextRestore = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
@@ -136,6 +137,11 @@ function notifyPushParamsForward(routeKey: string, prevParams: unknown): void {
 
 function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void {
     scheduleRestore(compoundParamsKey(routeKey, targetParams));
+}
+
+/** Suppress focus-restore for the next backward nav. Call before a form-submit goBack so the re-focused row doesn't shadow the page's pressOnEnter submit. Back/Esc dismissals don't call this, so they still restore (WCAG 2.4.3). */
+function skipNextFocusRestore(): void {
+    skipNextRestore = true;
 }
 
 // 'retry' = in DOM but cannot accept focus now; 'gone' = detached, drop the entry.
@@ -356,6 +362,7 @@ function handleStateChange(newState: NavigationState | undefined): void {
     }
 
     if (action.type === 'forward') {
+        skipNextRestore = false;
         cancelPendingRestore();
         captureTriggerForRoute(action.captureKey);
         // Loose refs would pin detached unmounted nodes; triggerMap holds the captured copy.
@@ -363,8 +370,14 @@ function handleStateChange(newState: NavigationState | undefined): void {
         lastMouseTrigger = null;
         lastMouseTriggerAt = 0;
     } else if (action.type === 'backward') {
-        scheduleRestore(action.restoreKey);
+        if (skipNextRestore) {
+            skipNextRestore = false;
+            cancelPendingRestore();
+        } else {
+            scheduleRestore(action.restoreKey);
+        }
     } else if (action.type === 'lateral') {
+        skipNextRestore = false;
         // Stale restore would steal focus back on sibling nav.
         cancelPendingRestore();
     }
@@ -447,6 +460,7 @@ function teardownNavigationFocusReturn(): void {
     lastInteractiveElement = null;
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
+    skipNextRestore = false;
     if (typeof document !== 'undefined') {
         if (focusinHandler) {
             document.removeEventListener('focusin', focusinHandler, true);
@@ -474,6 +488,7 @@ function resetForTests(): void {
     lastMouseTrigger = null;
     lastMouseTriggerAt = 0;
     lastRestoreTarget = null;
+    skipNextRestore = false;
 }
 
 function setLastInteractiveElementForTests(element: HTMLElement | null): void {
@@ -496,6 +511,7 @@ export {
     notifyPushParamsForward,
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
+    skipNextFocusRestore,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
