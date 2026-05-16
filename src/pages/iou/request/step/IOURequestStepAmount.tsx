@@ -397,12 +397,11 @@ function IOURequestStepAmount({
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
         const newAmount = convertToBackendAmount(Number.parseFloat(amount));
 
-        // Edits to the amount from the splits page should reset the split shares.
-        if (transaction?.splitShares) {
-            resetSplitShares(transaction, newAmount, selectedCurrency);
-        }
-
         if (!isEditing) {
+            // Edits to the amount from the splits page should reset the split shares.
+            if (transaction?.splitShares) {
+                resetSplitShares(transaction, newAmount, selectedCurrency, true);
+            }
             navigateToNextPage({amount, paymentMethod});
             return;
         }
@@ -425,6 +424,11 @@ function IOURequestStepAmount({
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount});
             navigateBack();
             return;
+        }
+
+        // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
+        if (transaction?.splitShares) {
+            resetSplitShares(transaction, newAmount, selectedCurrency, false);
         }
 
         updateMoneyRequestAmountAndCurrency({

@@ -1426,6 +1426,8 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>領収書のアップロード中にエラーが発生しました。後で再度お試しいただくために、<a href="download">領収書を保存</a>してから、時間をおいて<a href="retry">もう一度お試しください</a>。</rbr>',
             receiptFailureMessageShort: 'レシートのアップロード中にエラーが発生しました。',
+            receiptUploadFailedMessage: 'レシートのアップロードに失敗しました。レシートを保存するか、経費を削除して失うかを選択してください。',
+            saveReceipt: '領収書を保存',
             genericDeleteFailureMessage: 'この経費の削除中に予期しないエラーが発生しました。しばらくしてからもう一度お試しください。',
             genericEditFailureMessage: 'この経費の編集中に予期しないエラーが発生しました。後でもう一度お試しください。',
             genericSmartscanFailureMessage: '取引に未入力の項目があります',
@@ -2714,6 +2716,7 @@ ${date} の ${merchant} への ${amount}`,
             genericUpdate: 'このエージェントの更新中に問題が発生しました',
             updateName: 'このエージェント名の更新中に問題が発生しました',
             updatePrompt: 'このエージェントの指示を更新する際に問題が発生しました',
+            updateAvatar: 'このエージェントのアバターを更新する際に問題が発生しました',
         },
     },
     addAgentPage: {
@@ -2721,7 +2724,7 @@ ${date} の ${merchant} への ${amount}`,
         agentName: 'エージェント名',
         instructions: 'カスタム指示を作成',
         createAgent: 'エージェントを作成',
-        switchAvatar: 'アバターを切り替え',
+        editAvatar: 'アバターを切り替え',
         defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
         defaultPrompt:
             'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
@@ -2729,13 +2732,14 @@ ${date} の ${merchant} への ${amount}`,
     editAgentPage: {
         title: 'エージェントを編集',
         agentName: '担当者名',
-        instructions: 'カスタム指示を作成',
+        instructions: 'カスタム手順を作成',
         deleteAgent: 'エージェントを削除',
         deleteAgentTitle: 'エージェントを削除しますか？',
-        deleteAgentMessage: 'このエージェントを削除してもよろしいですか？この操作は取り消せません。',
+        deleteAgentMessage: 'このエージェントを削除してもよろしいですか？この操作は元に戻せません。',
     },
+    editAgentAvatarPage: {title: 'アバターを編集'},
     editAgentNamePage: {title: '担当者名'},
-    editAgentPromptPage: {title: 'カスタム指示を作成', error: {emptyPrompt: '担当者への指示を入力してください。'}},
+    editAgentPromptPage: {title: 'カスタム手順を作成', error: {emptyPrompt: 'エージェントへの指示を入力してください。'}},
     expenseRulesPage: {
         title: '経費ルール',
         findRule: 'ルールを検索',
@@ -3268,7 +3272,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         enterPhoneNumber: '電話番号は何ですか？',
         personalDetails: '個人情報',
         privateDataMessage: 'これらの詳細は出張と支払いに使用されます。公開プロフィールに表示されることは決してありません。',
-        basicDetails: '基本情報',
         legalName: '法的氏名',
         legalFirstName: '法的な名',
         legalLastName: '法的な姓',
@@ -5693,7 +5696,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 subtitle: '時間追跡用の請求可能な時間単価を設定します。',
                 defaultHourlyRate: 'デフォルトの時給率',
             },
-            hrWarningModal: {disconnectText: '人事機能を無効にするには、まずこのワークスペースから Gusto の連携を解除してください。'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
         },
         reports: {
             reportsCustomTitleExamples: '例:',
@@ -6970,15 +6973,21 @@ ${reportName}
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Gusto 従業員を同期中';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Gusto からデータを読み込んでいます';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'ポリシー内で従業員をプロビジョニングする';
+                    case 'zenefitsSyncTitle':
+                        return 'TriNet 従業員を同期しています';
+                    case 'zenefitsSyncLoadData':
+                        return 'TriNet からデータを読み込んでいます';
+                    case 'zenefitsSyncProvisioning':
+                        return 'ポリシー内で従業員をプロビジョニングする';
                     case 'jobDone':
                         return 'インポートしたデータの読み込みを待機しています';
                     default: {
-                        return `ステージの翻訳が見つかりません: ${stage}`;
+                        return `ステージ「${stage}」の翻訳が見つかりません`;
                     }
                 }
             },
@@ -7005,6 +7014,41 @@ ${reportName}
                 syncError: 'Gusto に接続できません',
                 disconnectTitle: 'Gusto の接続を解除',
                 disconnectPrompt: 'Gusto との接続を本当に解除しますか？',
+                syncResults: {
+                    title: 'Gusto 同期結果',
+                    successTitle: 'Gusto との連携が正常に同期されました！',
+                    added: '追加済み',
+                    removed: '削除済み',
+                    skipped: 'スキップ済み',
+                    employeeCount: () => ({
+                        one: '1 従業員',
+                        other: (count: number) => `${count} 従業員`,
+                    }),
+                },
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: '接続',
+                syncNow: '今すぐ同期',
+                disconnect: '切断する',
+                lastSync: (relativeDate: string) => `最終同期日時：${relativeDate}`,
+                syncError: 'TriNet に接続できません',
+                disconnectTitle: 'TriNet の接続を解除',
+                disconnectPrompt: 'TriNet との接続を解除してもよろしいですか？',
+                connectionDescription: 'TriNet を接続して、従業員の承認をワークスペースと同期させましょう。',
+                approvalMode: '承認モード',
+                finalApprover: '最終承認者',
+                notSet: '未設定',
+                approvalModeDescription: 'メンバーとマネージャーは TriNet と同期するように設定されています。',
+                approvalModeWarningTitle: '承認モードを変更しますか？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `このワークスペースの承認モードを本当に変更してもよろしいですか？TriNet に対応した各種ワークフローモードの詳細は、<a href="${helpSiteURL}">ヘルプサイト</a>をご覧ください。`,
+                approvalModeWarningConfirm: '承認モードを変更',
+                approvalModes: {
+                    basic: {label: '基本承認', description: 'すべてのユーザーが、処理と承認のために 1 人の担当者へ経費を提出します。'},
+                    manager: {label: 'マネージャー承認', description: '従業員は、TriNet で設定された直属のマネージャーにレポートを提出します。'},
+                    custom: {label: 'カスタム承認', description: 'Expensify で承認ワークフローを手動で設定します。'},
+                },
             },
         },
     },
@@ -7986,7 +8030,7 @@ ${reportName}
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}（${date} までの ${dayCount} ${dayCount === 1 ? '日' : '日数'} 分）`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${date}の${timePeriod}の${summary}`,
         startTimer: 'タイマー開始',
-        stopTimer: 'タイマーを停止',
+        stopTimer: (duration: string) => `タイマーを停止 (${duration})`,
         scheduleOOO: '不在予定を設定',
         scheduleOOOTitle: '不在予定を設定',
         date: '日付',
@@ -8773,12 +8817,14 @@ ${reportName}
     },
     delegate: {
         switchAccount: 'アカウントを切り替え:',
+        switch: '切り替え',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：代理アクセス',
         copilotDelegatedAccessDescription: '他のメンバーがあなたのアカウントにアクセスできるようにする',
         learnMoreAboutDelegatedAccess: '代理アクセスの詳細',
         addCopilot: 'コパイロットを追加',
         membersCanAccessYourAccount: '次のメンバーがあなたのアカウントにアクセスできます:',
-        youCanAccessTheseAccounts: 'これらのアカウントには、アカウント切り替え機能からアクセスできます。',
+        youCanAccessTheseAccounts: 'これらのアカウントにアクセスできます:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:

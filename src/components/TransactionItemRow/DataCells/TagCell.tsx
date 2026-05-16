@@ -1,9 +1,9 @@
 import React from 'react';
 import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
-import type {EditableProps} from '@components/Table/EditableCell';
-import {EditableCell, usePopoverEditState} from '@components/Table/EditableCell';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 import TextWithTooltip from '@components/TextWithTooltip';
+import type {EditableProps} from '@components/TransactionItemRow/EditableCell';
+import {EditableCell, usePopoverEditState} from '@components/TransactionItemRow/EditableCell';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
