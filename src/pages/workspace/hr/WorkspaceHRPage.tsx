@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -17,6 +18,7 @@ import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useGustoSyncResultsModal from '@hooks/useGustoSyncResultsModal';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -49,6 +51,7 @@ function WorkspaceHRPage({
     },
 }: WorkspaceHRPageProps) {
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
+    const isFocused = useIsFocused();
     const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -111,6 +114,8 @@ function WorkspaceHRPage({
     useEffect(() => {
         fetchPolicyHRPage();
     }, [fetchPolicyHRPage]);
+
+    useGustoSyncResultsModal(policyID, connectionSyncProgress, isFocused);
 
     const showGustoDisconnectModal = () => {
         showConfirmModal({
