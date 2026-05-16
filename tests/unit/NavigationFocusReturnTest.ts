@@ -1431,7 +1431,6 @@ describe('handleStateChange integration', () => {
             handleStateChange(onAB);
             trigger.blur();
 
-            // Form-submit save calls skipNextFocusRestore() right before goBack.
             skipNextFocusRestore();
             const spy = jest.spyOn(trigger, 'focus');
             handleStateChange(onA);
@@ -1455,7 +1454,6 @@ describe('handleStateChange integration', () => {
             const trigger = appendButton();
             fireFocusIn(trigger);
 
-            // Flag set but a forward nav happens before any backward — must not persist.
             skipNextFocusRestore();
             handleStateChange(onAB);
 

@@ -4,7 +4,6 @@ import type {SelectionListProps} from '@components/SelectionList/types';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
 import {isMobileChrome} from '@libs/Browser';
-import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import type {ExtendedTargetedEvent, ListItem, SelectableListItemProps} from './types';
 
@@ -94,8 +93,8 @@ function ListItemRenderer<TItem extends ListItem>({
                     if (shouldIgnoreFocus || isDisabled) {
                         return;
                     }
-                    // Keyboard Tab also lacks sourceCapabilities but must still sync the cursor — so gate on the restore/mobile-Chrome signals, not sourceCapabilities alone.
-                    if (event.nativeEvent && !event.nativeEvent.sourceCapabilities && (isFocusRestoreInProgress() || isMobileChrome())) {
+                    // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
+                    if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
                         return;
                     }
                     setFocusedIndex(normalizedIndex ?? index);

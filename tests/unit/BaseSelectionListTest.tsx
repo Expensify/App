@@ -324,17 +324,22 @@ describe('BaseSelectionList', () => {
         expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeNull();
     });
 
-    it('does not scroll-jump the list when the focus-return restore focuses a row (no sourceCapabilities, restore in progress)', () => {
+    it('suppresses the scroll on a focus-return restore but still syncs the cursor (no scroll-jump, no stale focusedIndex)', () => {
         (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
         mockIsFocusRestoreInProgress.mockReturnValue(true);
         render(<SelectionListRenderer data={mockItems} />);
         mockScrollToIndex.mockClear();
 
         const row = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`);
-        // NavigationFocusReturn.restoreTriggerForRoute's .focus() — no sourceCapabilities, isFocusRestoreInProgress() true.
         fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: null}});
 
         expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        // Cursor still synced: the one-shot suppress is consumed, so a later non-restore focus on another row scrolls (focusedIndex moved, not stale).
+        mockIsFocusRestoreInProgress.mockReturnValue(false);
+        const otherRow = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}7`);
+        fireEvent(otherRow, 'focus', {nativeEvent: {sourceCapabilities: {firesTouchEvents: false}}});
+        expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 7}));
     });
 
     it('still syncs the cursor on genuine keyboard Tab focus (no sourceCapabilities, restore NOT in progress) — regression guard for Codex P2', () => {
@@ -344,7 +349,6 @@ describe('BaseSelectionList', () => {
         mockScrollToIndex.mockClear();
 
         const row = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}5`);
-        // Keyboard Tab focus carries no sourceCapabilities either — but it must still move the arrow cursor.
         fireEvent(row, 'focus', {nativeEvent: {sourceCapabilities: null}});
 
         expect(mockScrollToIndex).toHaveBeenCalledWith(expect.objectContaining({index: 5}));
