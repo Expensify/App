@@ -9,44 +9,37 @@ import useSidePanelState from './useSidePanelState';
 
 /**
  * Returns true when thinking/typing indicators should be hidden in the
- * Concierge welcome state — when no messages (from anyone) exist after the
- * session boundary and the user hasn't sent a new message yet.
+ * Concierge welcome state — when the user hasn't sent a message and no
+ * unread messages exist after the session boundary.
  *
  * Only active in the side panel where the boundary is available via context.
  * The main DM boundary lives in local useState (no global key), so
  * suppression is not applied there — typing indicators always show.
  */
 function useShouldSuppressConciergeIndicators(reportID: string | undefined): boolean {
+    const isInSidePanel = useIsInSidePanel();
+    const {sessionStartTime} = useSidePanelState();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isConciergeChat = reportID === conciergeReportID;
 
-    const isInSidePanel = useIsInSidePanel();
-    const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
-    const sessionStartTime = isInSidePanel ? sidePanelSessionStartTime : null;
-
-    const hasUserSentMessageSelector = (actions: OnyxEntry<ReportActions>) => {
+    const shouldSuppressSelector = (actions: OnyxEntry<ReportActions>) => {
         if (!actions || !sessionStartTime) {
             return false;
         }
-        return Object.values(actions).some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
-    };
-    const [hasUserSentMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: hasUserSentMessageSelector,
-    });
-
-    const hasUnreadMessagesSelector = (actions: OnyxEntry<ReportActions>) => {
-        if (!actions || !sessionStartTime) {
+        const hasUserSentMessage = Object.values(actions).some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime);
+        if (hasUserSentMessage) {
             return false;
         }
-        return Object.values(actions).some((action) => !isCreatedAction(action) && action.created > sessionStartTime);
+        const hasUnreadMessages = Object.values(actions).some((action) => !isCreatedAction(action) && action.created > sessionStartTime);
+        return !hasUnreadMessages;
     };
-    const [hasUnreadMessages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        selector: hasUnreadMessagesSelector,
+    const [shouldSuppress] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        selector: shouldSuppressSelector,
     });
 
-    return isConciergeChat && !!sessionStartTime && !hasUserSentMessage && !hasUnreadMessages;
+    return isConciergeChat && isInSidePanel && !!shouldSuppress;
 }
 
 export default useShouldSuppressConciergeIndicators;

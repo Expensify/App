@@ -3,7 +3,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import useOnyx from './useOnyx';
 
 type UseConciergeReportActionsParams = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -32,6 +34,9 @@ function useConciergeReportActions({
     loadOlderChats,
     reportActionIDFromRoute,
 }: UseConciergeReportActionsParams) {
+    const [pendingConciergeResponse] = useOnyx(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${report?.reportID}`);
+    const hasPendingConciergeResponse = !!pendingConciergeResponse?.reportAction;
+
     const [showFullHistory, setShowFullHistoryState] = useState(false);
     const [prevSessionStartTime, setPrevSessionStartTime] = useState(sessionStartTime);
     const [prevHasUserSentMessage, setPrevHasUserSentMessage] = useState(hasUserSentMessage);
@@ -89,7 +94,13 @@ function useConciergeReportActions({
 
     const isReportUnread = !!(report?.lastReadTime && report?.lastVisibleActionCreated && report.lastVisibleActionCreated > report.lastReadTime);
 
-    const showConciergeWelcome = isConciergeChat && hadUserMessageAtSessionStart && !hasUnreadMessages && (!isReportUnread || hasUserSentMessage) && !showFullHistory;
+    const showConciergeWelcome =
+        isConciergeChat &&
+        hadUserMessageAtSessionStart &&
+        !hasUnreadMessages &&
+        (!isReportUnread || hasUserSentMessage) &&
+        (!hasPendingConciergeResponse || hasUserSentMessage) &&
+        !showFullHistory;
 
     const conciergeGreetingAction = useMemo(() => {
         if (!showConciergeWelcome) {
@@ -140,15 +151,6 @@ function useConciergeReportActions({
                     return createdAction ? [conciergeGreetingAction, createdAction] : [conciergeGreetingAction];
                 }
 
-                const hasConciergeActivity = postSessionActions.some((action) => action.actorAccountID !== currentUserAccountID);
-                if (hasConciergeActivity) {
-                    const result = [...postSessionActions];
-                    if (createdAction) {
-                        result.push(createdAction);
-                    }
-                    return result;
-                }
-
                 const result = [...postSessionActions, conciergeGreetingAction];
                 if (createdAction) {
                     result.push(createdAction);
@@ -163,6 +165,11 @@ function useConciergeReportActions({
             }
             if (!hadUserMessageAtSessionStart) {
                 return actions;
+            }
+
+            if (hasPendingConciergeResponse && !hasUserSentMessage) {
+                const filtered = actions.filter(isUnreadAction);
+                return filtered.length > 0 ? filtered : actions.filter(isCreatedAction);
             }
 
             if (hasUnreadMessages && !hasUserSentMessage) {
@@ -183,7 +190,7 @@ function useConciergeReportActions({
             showFullHistory,
             reportActionIDFromRoute,
             sessionStartTime,
-            currentUserAccountID,
+            hasPendingConciergeResponse,
             isCurrentSessionAction,
             hadUserMessageAtSessionStart,
             hasUnreadMessages,
