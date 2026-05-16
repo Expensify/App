@@ -4,6 +4,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,7 +15,6 @@ import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receip
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import StepScreenWrapper from './StepScreenWrapper';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -42,6 +42,8 @@ function IOURequestStepParticipants({
     const isPerDiem = isPerDiemRequest(initialTransaction);
     const isTime = isTimeRequestUtil(initialTransaction);
     const isCorporateCard = isCorporateCardTransaction(initialTransaction);
+    const {isBetaEnabled} = usePermissions();
+    const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
 
     let headerTitle = translate('iou.chooseRecipient');
     if (action === CONST.IOU.ACTION.CATEGORIZE) {
@@ -126,9 +128,20 @@ function IOURequestStepParticipants({
             return false;
         }
 
+        // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
+        if (isNewManualExpenseFlowEnabled) {
+            return false;
+        }
+
         return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
     };
+
     const isWorkspacesOnly = getIsWorkspacesOnly();
+    const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
+    // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
+    // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly
+    // so formatSectionsFromSearchTerm can render them in the selected section.
+    const selectedParticipantsWithoutReport = selectedParticipant && !selectedParticipant.reportID ? [selectedParticipant] : CONST.EMPTY_ARRAY;
 
     return (
         <StepScreenWrapper
@@ -146,7 +159,7 @@ function IOURequestStepParticipants({
                 />
             )}
             <MoneyRequestParticipantsSelector
-                participants={isSplitRequest ? participants : getEmptyArray()}
+                participants={isSplitRequest ? participants : selectedParticipantsWithoutReport}
                 onParticipantsAdded={addParticipant}
                 onFinish={goToNextStep}
                 iouType={iouType}
@@ -155,6 +168,8 @@ function IOURequestStepParticipants({
                 isTimeRequest={isTime}
                 isWorkspacesOnly={isWorkspacesOnly}
                 isCorporateCardTransaction={isCorporateCard}
+                initiallySelectedReportID={selectedParticipant?.reportID}
+                shouldMoveSelectedToTop
             />
         </StepScreenWrapper>
     );

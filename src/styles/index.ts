@@ -441,6 +441,10 @@ const staticStyles = (theme: ThemeColors) =>
             verticalAlign: 'top',
         },
 
+        textAlignVerticalTop: {
+            textAlignVertical: 'top',
+        },
+
         lineHeightUndefined: {
             lineHeight: undefined,
         },
@@ -556,6 +560,11 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         textXLarge: {
+            fontSize: variables.fontSizeXLarge,
+        },
+
+        textXLargeThemeText: {
+            color: theme.text,
             fontSize: variables.fontSizeXLarge,
         },
 
@@ -1121,6 +1130,57 @@ const staticStyles = (theme: ThemeColors) =>
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: theme.bordersBold,
+        },
+
+        /**
+         * Matches the border and padding of editableCell so column headers stay
+         * visually aligned with their editable cells.
+         */
+        editableCellHeader: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            paddingHorizontal: 4,
+        },
+
+        editableCell: {
+            width: '100%',
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: 'transparent',
+            padding: 4,
+            height: 'auto',
+            minHeight: variables.editableCellHeight,
+            overflow: 'hidden',
+            justifyContent: 'center',
+        },
+
+        editableCellHover: {
+            borderColor: theme.buttonHoveredBG,
+        },
+
+        editableCellFocus: {
+            borderColor: theme.borderFocus,
+            backgroundColor: theme.appBG,
+        },
+
+        /** Suppresses all visual styling on TextInput when rendered inside EditableCell */
+        editableCellInputStyle: {
+            padding: 0,
+            borderWidth: 0,
+            borderColor: 'transparent',
+            borderRadius: 0,
+            backgroundColor: 'transparent',
+            height: '100%',
+            minHeight: 0,
+            fontSize: variables.fontSizeNormal,
+        },
+
+        editableCellSymbolStyle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
         },
 
         borderColorFocus: {
@@ -1696,7 +1756,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.success,
             height: variables.componentSizeLarge,
             width: variables.componentSizeLarge,
-            borderRadius: 999,
+            borderRadius: variables.componentBorderRadiusCircle,
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: theme.shadow,
@@ -1706,7 +1766,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.buttonDefaultBG,
             height: variables.componentSizeLarge,
             width: variables.componentSizeLarge,
-            borderRadius: 999,
+            borderRadius: variables.componentBorderRadiusCircle,
             alignItems: 'center',
             justifyContent: 'center',
         },
@@ -2519,18 +2579,26 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomRightRadius: variables.componentBorderRadiusNormal,
         },
 
-        searchTableTopRadius: {
+        tableTopRadius: {
             borderTopLeftRadius: variables.componentBorderRadius,
             borderTopRightRadius: variables.componentBorderRadius,
         },
 
-        searchTableBottomRadius: {
+        tableBottomRadius: {
             borderBottomLeftRadius: variables.componentBorderRadius,
             borderBottomRightRadius: variables.componentBorderRadius,
         },
 
-        searchTableRowHeight: {
+        tableRowHeightCompact: {
+            minHeight: variables.tableRowHeightCompact,
+        },
+
+        tableRowHeight: {
             minHeight: variables.tableRowHeight,
+        },
+
+        tableHeaderContentHeight: {
+            minHeight: variables.tableHeaderContentHeight,
         },
 
         borderBottom: {
@@ -2697,14 +2765,6 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         reportDetailsTitleContainer: {
-            ...display.dFlex,
-            ...flex.flexColumn,
-            ...flex.alignItemsCenter,
-            paddingHorizontal: 20,
-        },
-
-        reportDetailsRoomInfo: {
-            ...flex.flex1,
             ...display.dFlex,
             ...flex.flexColumn,
             ...flex.alignItemsCenter,
@@ -2880,10 +2940,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        sectionSelectCircle: {
-            backgroundColor: theme.cardBG,
-        },
-
         sectionMenuItemTopDescription: {
             ...spacing.ph8,
             ...spacing.mhn8,
@@ -2908,23 +2964,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         trialBannerBackgroundColor: {
             backgroundColor: theme.trialBannerBackgroundColor,
-        },
-
-        selectCircle: {
-            width: variables.componentSizeSmall,
-            height: variables.componentSizeSmall,
-            borderColor: theme.bordersBold,
-            borderWidth: 1,
-            borderRadius: variables.componentSizeSmall / 2,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: theme.componentBG,
-            marginLeft: 8,
-        },
-
-        optionSelectCircle: {
-            borderRadius: variables.componentSizeSmall / 2 + 1,
-            padding: 1,
         },
 
         unreadIndicatorContainer: {
@@ -3075,28 +3114,6 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: theme.appBG,
-        },
-
-        radioButtonContainer: {
-            backgroundColor: theme.componentBG,
-            borderRadius: 14,
-            height: 28,
-            width: 28,
-            borderColor: theme.bordersBold,
-            borderWidth: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-        },
-
-        newRadioButtonContainer: {
-            backgroundColor: theme.componentBG,
-            borderRadius: variables.componentBorderRadiusRounded,
-            height: variables.iconSizeNormal,
-            width: variables.iconSizeNormal,
-            borderColor: theme.bordersBold,
-            borderWidth: 2,
-            justifyContent: 'center',
-            alignItems: 'center',
         },
 
         toggleSwitchLockIcon: {
@@ -3646,6 +3663,16 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.overlay,
         },
 
+        bottomDockedModalDismissButton: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: variables.iconSizeXSmall,
+            backgroundColor: theme.transparent,
+            zIndex: 1,
+        },
+
         invisibleOverlay: {
             backgroundColor: theme.transparent,
             zIndex: 1000,
@@ -4068,7 +4095,7 @@ const staticStyles = (theme: ThemeColors) =>
         footerRow: {
             paddingVertical: 4,
             marginBottom: 8,
-            color: theme.textLight,
+            color: theme.text,
             fontSize: variables.fontSizeMedium,
         },
 
@@ -4194,7 +4221,7 @@ const staticStyles = (theme: ThemeColors) =>
         loginHeroBody: {
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSignInHeroBody,
-            color: theme.textLight,
+            color: theme.text,
             textAlign: 'center',
         },
 
@@ -4436,6 +4463,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         dropDownButtonCartIcon: {
             minWidth: 22,
+        },
+
+        filterDropDownCloseIcon: {
+            minWidth: 24,
         },
 
         dropDownSmallButtonArrowContain: {
@@ -4921,13 +4952,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...objectFit.oFCover,
         },
 
-        singleOptionSelectorRow: {
-            ...flex.flexRow,
-            ...flex.alignItemsCenter,
-            gap: 12,
-            marginBottom: 16,
-        },
-
         holdRequestInline: {
             ...headlineFont,
             ...whiteSpace.preWrap,
@@ -4978,7 +5002,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 34,
             width: 202,
         },
-        searchPageInputNarrowTouchableWrapper: {height: variables.componentSizeLarge},
+        searchPageInputNarrowTouchableWrapper: {height: 44},
 
         walletStaticIllustration: {
             width: 262,
@@ -5115,10 +5139,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
-        },
-
-        singleOptionSelectorCircle: {
-            borderColor: theme.icon,
         },
 
         headerProgressBarContainer: {
@@ -5379,6 +5399,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        agentsPageEmptyStateIllustration: {
+            width: 96,
+            height: 142,
+        },
+
         expensifyCardEmptyIllustration: {
             width: 280,
             height: 172,
@@ -5395,9 +5420,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 170,
         },
 
-        travelCCVIllustration: {
-            width: 240,
-            height: 100,
+        travelCVVDigitBox: {
+            width: variables.componentSizeLarge,
+            height: variables.componentSizeLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusMedium,
         },
 
         travelInvoicingIcon: {
@@ -5474,6 +5502,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         emptyStateContent: {
             width: '100%',
+        },
+
+        agentsPageEmptyStateSubtitle: {
+            maxWidth: 335,
+            alignSelf: 'center',
         },
 
         emptyStateFolderWithPaperIconSize: {
@@ -5662,6 +5695,12 @@ const staticStyles = (theme: ThemeColors) =>
         todoBadge: {
             alignItems: 'center',
             justifyContent: 'center',
+        },
+
+        searchSectionBadge: {
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: 16,
         },
 
         stickToBottom: {
@@ -5942,6 +5981,13 @@ const staticStyles = (theme: ThemeColors) =>
             width: 174,
             height: 156,
         },
+        copilotsIllustration: {
+            width: 272,
+            height: 138,
+        },
+        copilotRoleBadge: {
+            marginLeft: 6,
+        },
         aboutStaticIllustration: {
             width: 100,
             height: 106,
@@ -6006,10 +6052,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
         chartContent: {
-            minHeight: CHART_CONTENT_MIN_HEIGHT,
+            height: CHART_CONTENT_MIN_HEIGHT,
         },
         chartActivityIndicator: {
-            minHeight: CHART_CONTENT_MIN_HEIGHT,
+            height: CHART_CONTENT_MIN_HEIGHT,
             justifyContent: 'center',
             alignItems: 'center',
         },

@@ -1,8 +1,8 @@
 ---
 title: Manage Domain Members
 description: Learn how to manage domain members in New Expensify.
-internalScope: Audience is Domain Admins. Covers inviting/adding domain members, closing accounts, and promoting members to Domain Admin. Does not cover domain verification, SAML setup, Domain Groups configuration, or account access troubleshooting.
-keywords: [New Expensify, Workspaces, Domains, domain members, verify domain, domain admin, domain control, remove domain member, deactivate domain user, invite domain user, promote to domain admin, workspace admins]
+internalScope: Audience is Domain Admins. Covers inviting/adding domain members, closing accounts, promoting members to Domain Admin, and moving a member between domain groups. Does not cover domain verification, SAML setup, Domain Groups configuration, or account access troubleshooting.
+keywords: [New Expensify, Workspaces, Domains, domain members, verify domain, domain admin, domain control, remove domain member, deactivate domain user, invite domain user, promote to domain admin, workspace admins, move member to group, domain group]
 ---
 
 # Manage Domain Members
@@ -70,6 +70,20 @@ You can give any member permission to manage domain settings by promoting them t
 2. Select your domain.
 3. Open **Domain Admins**.
 4. Add the member’s email address or phone number.
+
+## How to move a Domain Member to a different domain group
+
+Domain Admins can move a member from one domain group to another to change which domain-level rules apply to them.
+
+1. Go to **Workspaces > Domains**.
+2. Select your domain.
+3. Click **Domain Members**.
+4. Select the member.
+5. Click **Domain group**.
+6. Select the group you want to move the member to.
+7. Click **Save**.
+
+---
 
 # FAQ
 
