@@ -4,6 +4,7 @@ import {calculateAmount} from '@libs/IOUUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+import {getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {getTransactionDetails, isOpenReport, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
@@ -178,7 +179,9 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
             !policyByCustomUnitID && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
                 ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[customUnitRateID])) ?? undefined)
                 : undefined;
-        const effectivePolicy = policy ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
+        const fallbackPolicyForDeletedSource =
+            isSelfDMReport && !isP2PRate && !policy && !policyByCustomUnitID && !policyByCustomUnitRateID ? getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}).at(0) : undefined;
+        const effectivePolicy = policy ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackPolicyForDeletedSource;
         const mileageRate = resolveSplitMileageRate({transaction, policy: effectivePolicy ?? undefined, isSelfDMSplit: isSelfDMReport});
         const {rate, unit, currency} = mileageRate;
 

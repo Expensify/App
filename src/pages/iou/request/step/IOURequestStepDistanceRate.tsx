@@ -22,7 +22,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDistanceRateCustomUnitRate, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isReportInGroupPolicy} from '@libs/ReportUtils';
 import {
     calculateTaxAmount,
@@ -87,7 +87,9 @@ function IOURequestStepDistanceRate({
         isEditingSplit && !policyByCustomUnitID && distanceCustomUnitRateID && distanceCustomUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID
             ? (Object.values(allPolicies ?? {}).find((p) => Object.values(p?.customUnits ?? {}).some((unit) => !!unit.rates?.[distanceCustomUnitRateID])) ?? undefined)
             : undefined;
-    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID;
+    const availablePaidPolicies = isEditingSplit ? getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}) : [];
+    const fallbackAvailablePolicy = isEditingSplit && !isP2PRate && !policyForTransaction && !policyByCustomUnitID && !policyByCustomUnitRateID ? availablePaidPolicies.at(0) : undefined;
+    const policy = policyForTransaction ?? policyByCustomUnitID ?? policyByCustomUnitRateID ?? fallbackAvailablePolicy;
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isPolicyExpenseChat = isReportInGroupPolicy(report);

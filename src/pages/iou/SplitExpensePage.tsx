@@ -218,19 +218,22 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     for (const splitExpense of splitExpenses) {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpense.transactionID)}`] ?? transaction;
         const isEditable = isSplitExpenseEditable(splitExpense);
-        if (splitTransaction && effectivePolicy && isEditable) {
-            const isSplitDistance = isDistanceRequest(splitTransaction);
-            if (isSplitDistance && !isCustomUnitRateIDForP2P(splitTransaction)) {
-                const currentRateID = splitExpense?.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
-                // Check the rate value directly from the split expense's rate ID rather than calling
-                // getRate({transaction: splitTransaction}), which would use the original transaction's
-                // (possibly deleted) rate ID and return undefined for unreported expenses.
-                const splitRate = rates[currentRateID]?.rate;
-                if (!rates[currentRateID] || !splitRate) {
-                    isUnitRateIDOutOfPolicy = true;
-                }
-            }
+        if (!splitTransaction || !isEditable) {
+            continue;
+        }
+        const isSplitDistance = isDistanceRequest(splitTransaction);
+        if (!isSplitDistance || isCustomUnitRateIDForP2P(splitTransaction)) {
+            continue;
+        }
+        if (!effectivePolicy) {
+            isUnitRateIDOutOfPolicy = true;
+            continue;
+        }
+        const currentRateID = splitExpense?.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
+        const splitRate = rates[currentRateID]?.rate;
+        if (!rates[currentRateID] || !splitRate) {
+            isUnitRateIDOutOfPolicy = true;
         }
     }
 

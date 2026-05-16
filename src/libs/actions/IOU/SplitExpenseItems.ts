@@ -116,11 +116,35 @@ function resolveSplitMileageRate({
         (!rawPolicyRate || rawPolicyRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate.enabled === false);
 
     const baseMileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
-    if (!isOriginalRateDeleted) {
+    if (baseMileageRate.rate && !isOriginalRateDeleted) {
         return baseMileageRate;
     }
-    const fallbackMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
-    return fallbackMileageRate ?? baseMileageRate;
+    // Policy is present but the originally-stored rate was deleted/disabled — pick the policy's
+    // current default mileage rate so split surfaces use a real (enabled) rate.
+    if (policy) {
+        const fallbackMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
+        if (fallbackMileageRate?.rate) {
+            return fallbackMileageRate;
+        }
+    }
+    // No policy resolved (e.g. source workspace deleted and no other paid workspace either) AND the
+    // policy-driven lookup above produced nothing useful: reconstruct a rate from the transaction
+    // itself (amount / quantity) so distance splits still get sensible labels instead of falling back
+    // to the original-merchant string.
+    if (!baseMileageRate.rate && !isP2PRate) {
+        const quantity = transaction?.comment?.customUnit?.quantity;
+        const transactionAmount = transaction?.amount;
+        if (typeof quantity === 'number' && quantity > 0 && typeof transactionAmount === 'number' && transactionAmount !== 0) {
+            const derivedRate = Math.abs(transactionAmount) / quantity;
+            return {
+                ...baseMileageRate,
+                customUnitRateID: baseMileageRate.customUnitRateID ?? customUnitRateID,
+                rate: derivedRate,
+                currency: baseMileageRate.currency ?? transaction?.currency ?? CONST.CURRENCY.USD,
+            };
+        }
+    }
+    return baseMileageRate;
 }
 
 function resolveSplitItemReportID({

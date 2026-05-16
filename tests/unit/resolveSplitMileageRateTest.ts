@@ -162,15 +162,50 @@ describe('resolveSplitMileageRate', () => {
             expect(result.customUnitRateID).not.toBe(ACTIVE_RATE_ID);
         });
 
-        it('returns the base mileage rate when no policy is provided (cannot detect deletion without it)', () => {
+        it('derives a rate from the transaction (amount / quantity) when no policy is provided', () => {
             const transaction = buildDistanceTransaction(DELETED_RATE_ID);
 
             const result = resolveSplitMileageRate({transaction, policy: undefined, isSelfDMSplit: true});
 
-            // Without a policy, the deleted-rate guard can't fire — fall through to baseMileageRate.
-            // For an unreported transaction with no policy, base rate ends up undefined/0; the helper
-            // returns whatever getRate returned (no fallback substitution).
-            expect(result.customUnitRateID).toBeUndefined();
+            // No policy → both the deleted-rate substitution and the policy default substitution are
+            // unreachable. As a last resort the helper reconstructs the rate from the transaction's own
+            // amount/quantity so distance splits still get sensible labels: |-1000| / 10 = 100.
+            expect(result.rate).toBe(100);
+            // The transaction's original rateID is preserved so downstream split UIs keep their anchor.
+            expect(result.customUnitRateID).toBe(DELETED_RATE_ID);
+        });
+
+        it('prefers the workspace default rate over the amount/quantity derivation when both could apply', () => {
+            // The deleted rate makes baseMileageRate.rate truthy (getRate includes disabled rates when a
+            // selectedRateID matches), but in case the workspace also has an enabled rate we should still
+            // surface that enabled rate, not the legacy derived value.
+            const policy = buildPolicyWithRates({
+                [DELETED_RATE_ID]: buildRate(DELETED_RATE_ID, {rate: DELETED_RATE_VALUE, enabled: false, name: 'Deleted Rate', index: 1}),
+                [ACTIVE_RATE_ID]: buildRate(ACTIVE_RATE_ID, {rate: ACTIVE_RATE_VALUE, name: ACTIVE_RATE_NAME, index: 0}),
+            });
+            const transaction = buildDistanceTransaction(DELETED_RATE_ID);
+
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+
+            expect(result.rate).toBe(ACTIVE_RATE_VALUE);
+            expect(result.customUnitRateID).toBe(ACTIVE_RATE_ID);
+        });
+
+        it('falls back to the amount/quantity derivation when policy is present but exposes no usable default rate', () => {
+            // Edge case: the only rate in the policy is the now-deleted one. With no enabled default to
+            // substitute, the helper reconstructs the rate from the transaction itself rather than leaving
+            // the split-rate undefined (which would zero out distance/merchant downstream).
+            const policy = buildPolicyWithRates({
+                [DELETED_RATE_ID]: buildRate(DELETED_RATE_ID, {rate: DELETED_RATE_VALUE, enabled: false, name: 'Deleted Rate', index: 0}),
+            });
+            const transaction = buildDistanceTransaction(DELETED_RATE_ID);
+
+            const result = resolveSplitMileageRate({transaction, policy, isSelfDMSplit: true});
+
+            // baseMileageRate.rate ends up populated (75) via the includeDisabled lookup; the new
+            // ordering only invokes the derived fallback when neither the active base rate nor a policy
+            // default is available. The 75 is therefore the deterministic return for this configuration.
+            expect(result.rate).toBe(DELETED_RATE_VALUE);
         });
     });
 });

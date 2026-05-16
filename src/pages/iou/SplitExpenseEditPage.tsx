@@ -30,7 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getTagLists} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, getTagLists} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
@@ -72,6 +72,10 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
 
     const effectivePolicy = useSplitEffectivePolicy(currentReport, splitExpenseDraftTransaction, transaction);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    // Detect selfDM splits whose source workspace is gone: nothing for the Rate step to render.
+    // Used below to short-circuit the Rate menu navigation into the upgrade screen.
+    const hasAnyPaidWorkspace = useMemo(() => getGroupPaidPoliciesWithExpenseChatEnabled(allPolicies ?? {}).length > 0, [allPolicies]);
 
     const effectivePolicyID = effectivePolicy?.id;
 
@@ -217,13 +221,30 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
             <MenuItemWithTopDescription
                 description={translate('common.rate')}
                 title={rateToDisplay}
-                interactive={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates}
-                shouldShowRightIcon={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates}
+                interactive={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace}
+                shouldShowRightIcon={!isSelfDMSplit || isRateBroken || hasAvailableEnabledRates || !hasAnyPaidWorkspace}
                 titleStyle={styles.flex1}
                 brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={getErrorForField('customUnitRateID')}
                 style={[styles.moneyRequestMenuItem]}
                 onPress={() => {
+                    // SelfDM split whose source workspace is gone and user has no other paid workspace:
+                    // mirror the selfDM track-expense Rate flow (MoneyRequestView) and route through the
+                    // IOU-level upgrade screen so the user can create a workspace, then a distance rate.
+                    // Use OPTIMISTIC_TRANSACTION_ID so the post-upgrade hop back into the rate step picks
+                    // up the same SPLIT_TRANSACTION_DRAFT this screen reads from (see line 57 above).
+                    if (isSelfDMSplit && !effectivePolicy && !hasAnyPaidWorkspace && reportID) {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action: CONST.IOU.ACTION.EDIT,
+                                iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
+                            }),
+                        );
+                        return;
+                    }
                     Navigation.navigate(
                         ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
                             CONST.IOU.ACTION.EDIT,

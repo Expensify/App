@@ -760,28 +760,30 @@ function updateSplitTransactions({
                 if (transactionChanges.amount !== undefined && splitTransaction) {
                     const previousAmount = splitTransaction.amount ?? 0;
                     const previousConverted = splitTransaction.convertedAmount ?? null;
-                    const splitAmountPositive = Number(transactionChanges.amount);
-                    const signedSplitAmount = previousAmount < 0 ? -splitAmountPositive : splitAmountPositive;
-                    const rescaledConvertedAmount =
-                        previousAmount !== 0 && previousConverted != null && Number.isFinite(signedSplitAmount)
-                            ? Math.round(previousConverted * (signedSplitAmount / previousAmount))
-                            : previousConverted;
-                    updateMoneyRequestParamsOnyxData.optimisticData?.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`,
-                        value: {
-                            amount: signedSplitAmount,
-                            convertedAmount: rescaledConvertedAmount,
-                        },
-                    });
-                    updateMoneyRequestParamsOnyxData.failureData?.push({
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`,
-                        value: {
-                            amount: previousAmount,
-                            convertedAmount: previousConverted,
-                        },
-                    });
+                    const previousModified = splitTransaction.modifiedAmount ?? null;
+                    const targetAmount = optimisticTransactionFromGetMoneyRequest?.amount ?? null;
+                    const targetModified = optimisticTransactionFromGetMoneyRequest?.modifiedAmount ?? null;
+                    const targetConverted = optimisticTransactionFromGetMoneyRequest?.convertedAmount ?? null;
+                    if (targetAmount != null || targetConverted != null || targetModified != null) {
+                        updateMoneyRequestParamsOnyxData.optimisticData?.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`,
+                            value: {
+                                ...(targetAmount != null ? {amount: targetAmount} : {}),
+                                ...(targetModified != null ? {modifiedAmount: targetModified} : {}),
+                                ...(targetConverted != null ? {convertedAmount: targetConverted} : {}),
+                            },
+                        });
+                        updateMoneyRequestParamsOnyxData.failureData?.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`,
+                            value: {
+                                amount: previousAmount,
+                                modifiedAmount: previousModified,
+                                convertedAmount: previousConverted,
+                            },
+                        });
+                    }
                 }
 
                 if (isReverseSplitOperation && transactionIOUReport) {
