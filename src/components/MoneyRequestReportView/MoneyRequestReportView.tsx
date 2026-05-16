@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {Animated, InteractionManager, ScrollView, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -246,7 +247,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                 needsOffscreenAlphaCompositing
                 shouldShowErrorMessages={false}
             >
-                {reportHeaderView}
+                <CollapsibleHeaderOnKeyboard>{reportHeaderView}</CollapsibleHeaderOnKeyboard>
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={reportPendingAction}

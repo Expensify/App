@@ -2,7 +2,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectorType} from '@components/SelectionScreen';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {findSelectedBankAccountWithDefaultSelect, findSelectedVendorWithDefaultSelect, getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
+import {getCurrentConnectionName, getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card, Policy} from '@src/types/onyx';
@@ -119,8 +119,7 @@ function getExportMenuItem(
             const type = translate('workspace.xero.xeroBankAccount');
             const description = currentConnectionName && type ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
             const exportType = CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_XERO_EXPORT_BANK_ACCOUNT;
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const defaultAccount = exportConfiguration?.nonReimbursableAccount || bankAccounts?.[0]?.id;
+            const defaultAccount = exportConfiguration?.nonReimbursableAccount;
             const isDefaultTitle = !!(
                 defaultAccount &&
                 (!companyCard?.nameValuePairs?.xero_export_bank_account || companyCard?.nameValuePairs?.xero_export_bank_account === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
@@ -165,13 +164,12 @@ function getExportMenuItem(
             switch (netSuiteConfig) {
                 case CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL: {
                     const vendors = policy?.connections?.netsuite?.options.data.vendors;
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    defaultAccount = config?.defaultVendor || vendors?.[0]?.id;
+                    defaultAccount = config?.defaultVendor;
                     isDefaultTitle = !!(
                         defaultAccount &&
                         (!companyCard?.nameValuePairs?.netsuite_export_vendor || companyCard?.nameValuePairs?.netsuite_export_vendor === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
                     );
-                    const selectedVendor = findSelectedVendorWithDefaultSelect(vendors, companyCard?.nameValuePairs?.netsuite_export_vendor ?? defaultAccount);
+                    const selectedVendor = vendors?.find(({id}) => id === (companyCard?.nameValuePairs?.netsuite_export_vendor ?? defaultAccount));
                     title = isDefaultTitle ? defaultCard : selectedVendor?.name;
                     const resultData = (vendors ?? []).length > 0 ? [defaultMenuItem, ...(vendors ?? [])] : vendors;
                     data = (resultData ?? []).map(({id, name}) => {
@@ -187,14 +185,13 @@ function getExportMenuItem(
                 }
                 case CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY: {
                     const payableAccounts = policy?.connections?.netsuite?.options.data.payableList;
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    defaultAccount = config?.payableAcct || payableAccounts?.[0]?.id;
+                    defaultAccount = config?.payableAcct;
                     isDefaultTitle = !!(
                         defaultAccount &&
                         (!companyCard?.nameValuePairs?.netsuite_export_payable_account ||
                             companyCard?.nameValuePairs?.netsuite_export_payable_account === CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE)
                     );
-                    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(payableAccounts, companyCard?.nameValuePairs?.netsuite_export_payable_account ?? defaultAccount);
+                    const selectedPayableAccount = payableAccounts?.find(({id}) => id === (companyCard?.nameValuePairs?.netsuite_export_payable_account ?? defaultAccount));
                     title = isDefaultTitle ? defaultCard : selectedPayableAccount?.name;
                     const resultData = (payableAccounts ?? []).length > 0 ? [defaultMenuItem, ...(payableAccounts ?? [])] : payableAccounts;
                     data = (resultData ?? []).map(({id, name}) => {
@@ -218,7 +215,7 @@ function getExportMenuItem(
                 shouldShowMenuItem,
                 exportType,
                 data,
-                exportPageLink: ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID, backTo),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path),
             };
         }
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT: {
@@ -346,7 +343,7 @@ function getExportMenuItem(
                 title,
                 exportType,
                 shouldShowMenuItem,
-                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)),
+                exportPageLink: createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT.path),
                 data: resultData.map((card) => ({
                     value: card.id,
                     text: card.name,

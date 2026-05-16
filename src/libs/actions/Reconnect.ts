@@ -60,25 +60,27 @@ onNetworkReachabilityConfirmed(() => {
 });
 
 // Any offline→online transition — flush the sequential queue
-let wasOffline = getIsOffline();
-subscribeNetworkState(() => {
-    const offline = getIsOffline();
-    if (wasOffline && !offline) {
-        Log.info('[Reconnect] Offline→online, flushing queue');
+let wasOffline: boolean;
+const initReconnect = () => {
+    wasOffline = getIsOffline();
+    subscribeNetworkState(() => {
+        const offline = getIsOffline();
+        if (wasOffline && !offline) {
+            Log.info('[Reconnect] Offline→online, flushing queue');
+            flush();
+        }
+        wasOffline = offline;
+    });
+
+    // App came to foreground — sync data and flush queue
+    AppStateMonitor.addBecameActiveListener(() => {
+        Log.info('[Reconnect] App became active');
+        if (getIsOffline()) {
+            refreshNetworkState();
+        }
+        reconnect();
         flush();
-    }
-    wasOffline = offline;
-});
+    });
+};
 
-// App came to foreground — sync data and flush queue
-AppStateMonitor.addBecameActiveListener(() => {
-    Log.info('[Reconnect] App became active');
-    if (getIsOffline()) {
-        refreshNetworkState();
-    }
-    reconnect();
-    flush();
-});
-
-// eslint-disable-next-line import/prefer-default-export -- single export is intentional; more reconnection helpers may be added here as the architecture evolves
-export {reconnect};
+export {reconnect, initReconnect};

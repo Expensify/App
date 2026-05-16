@@ -9,7 +9,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {startMoneyRequest} from '@libs/actions/IOU';
+import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
