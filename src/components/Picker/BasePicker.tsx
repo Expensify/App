@@ -14,7 +14,6 @@ import useScrollContext from '@hooks/useScrollContext';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
-import getOperatingSystem from '@libs/getOperatingSystem';
 import CONST from '@src/CONST';
 import getAccessibilityLabelConfig from './getAccessibilityLabelConfig';
 import type {BasePickerProps} from './types';
@@ -147,14 +146,10 @@ function BasePicker<TPickerValue>({
 
     /**
      * We pass light text on Android, since Android Native alerts have a dark background in all themes for now.
+     * We use theme.text instead of theme.textLight because textLight maps to a dark color in high contrast themes,
+     * making picker items invisible on the dark native dialog background.
      */
-    const itemColor = useMemo(() => {
-        if (getOperatingSystem() === CONST.OS.ANDROID) {
-            return theme.textLight;
-        }
-
-        return theme.text;
-    }, [theme]);
+    const itemColor = useMemo(() => theme.text, [theme]);
 
     // Windows will reuse the text color of the select for each one of the options
     // so we might need to color accordingly so it doesn't blend with the background.
