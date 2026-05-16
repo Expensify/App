@@ -9755,6 +9755,7 @@ const CONST = {
             HELP_DOCS: 'SettingsHelp-HelpDocs',
             ACCOUNT_MANAGER: 'SettingsHelp-AccountManager',
             PARTNER_MANAGER: 'SettingsHelp-PartnerManager',
+            ACCOUNT_EXECUTIVE: 'SettingsHelp-AccountExecutive',
             GUIDE: 'SettingsHelp-Guide',
         },
         SETTINGS_ABOUT: {
