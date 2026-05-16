@@ -1077,7 +1077,7 @@ function completeSplitBill(
 /**
  * Sets the `splitShares` map that holds individual shares of a split bill
  */
-function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[], isDraft = true) {
+function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[], currentUserAccountID: number, isDraft = true) {
     if (!transaction) {
         return;
     }
@@ -1096,20 +1096,20 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     // Create an array containing unique IDs of the current transaction participants and the new ones
     // The current userAccountID might not be included in newAccountIDs if this is called from the participants step using Global Create
     // If this is called from an existing group chat, it'll be included. So we manually add them to account for both cases.
-    const accountIDs = [...new Set<number>([getUserAccountID(), ...newAccountIDs, ...oldAccountIDs])];
+    const accountIDs = [...new Set<number>([currentUserAccountID, ...newAccountIDs, ...oldAccountIDs])];
 
     const splitShares: SplitShares = accountIDs.reduce((acc: SplitShares, accountID): SplitShares => {
         // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
         // In the case of going back to the participants page and removing a participant
         // a simple merge will have the previous participant still present in the splitShares object
         // So we manually set their entry to null
-        if (!newAccountIDs.includes(accountID) && accountID !== getUserAccountID()) {
+        if (!newAccountIDs.includes(accountID) && accountID !== currentUserAccountID) {
             acc[accountID] = null;
             return acc;
         }
 
-        const isPayer = accountID === getUserAccountID();
-        const participantsLength = newAccountIDs.includes(getUserAccountID()) ? newAccountIDs.length - 1 : newAccountIDs.length;
+        const isPayer = accountID === currentUserAccountID;
+        const participantsLength = newAccountIDs.includes(currentUserAccountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
         const splitAmount = calculateIOUAmount(participantsLength, amount, currency, isPayer);
         acc[accountID] = {
             amount: splitAmount,
@@ -1129,7 +1129,7 @@ function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmou
     if (!accountIDs) {
         return;
     }
-    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, isDraft);
+    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, getUserAccountID(), isDraft);
 }
 
 function setDraftSplitTransaction(

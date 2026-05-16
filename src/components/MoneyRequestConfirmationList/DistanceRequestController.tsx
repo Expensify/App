@@ -33,6 +33,7 @@ type DistanceRequestControllerProps = {
     distance: number;
     distanceRequestAmount: number;
     shouldCalculateDistanceAmount: boolean;
+    currentUserAccountID: number;
     isDistanceRequestWithPendingRoute: boolean;
     hasRoute: boolean;
     defaultMileageRateCustomUnitRateID: string | undefined;
@@ -65,6 +66,7 @@ function DistanceRequestController({
     distance,
     distanceRequestAmount,
     shouldCalculateDistanceAmount,
+    currentUserAccountID,
     isDistanceRequestWithPendingRoute,
     hasRoute,
     defaultMileageRateCustomUnitRateID,
@@ -147,9 +149,20 @@ function DistanceRequestController({
         // If it's a split request among individuals, set the split shares
         const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
-            setSplitShares(transaction, amount, currency, participantAccountIDs);
+            setSplitShares(transaction, amount, currency, participantAccountIDs, currentUserAccountID);
         }
-    }, [shouldCalculateDistanceAmount, isReadOnly, distanceRequestAmount, transactionID, currency, isTypeSplit, isPolicyExpenseChat, selectedParticipantsProp, transaction]);
+    }, [
+        shouldCalculateDistanceAmount,
+        isReadOnly,
+        distanceRequestAmount,
+        transactionID,
+        currency,
+        isTypeSplit,
+        isPolicyExpenseChat,
+        selectedParticipantsProp,
+        transaction,
+        currentUserAccountID,
+    ]);
 
     useEffect(() => {
         if (
