@@ -144,12 +144,7 @@ function BasePicker<TPickerValue>({
         },
     }));
 
-    /**
-     * We pass light text on Android, since Android Native alerts have a dark background in all themes for now.
-     * We use theme.text instead of theme.textLight because textLight maps to a dark color in high contrast themes,
-     * making picker items invisible on the dark native dialog background.
-     */
-    const itemColor = useMemo(() => theme.text, [theme]);
+    const itemColor = theme.text;
 
     // Windows will reuse the text color of the select for each one of the options
     // so we might need to color accordingly so it doesn't blend with the background.
