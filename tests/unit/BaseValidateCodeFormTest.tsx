@@ -288,7 +288,7 @@ describe('BaseValidateCodeForm focus behavior on screen focus', () => {
         expect(() => ref.current?.focus()).not.toThrow();
     });
 
-    it('does not steal focus if the screen unfocuses before isWindowReadyToFocus resolves', async () => {
+    it('does not steal focus if the screen loses focus before isWindowReadyToFocus resolves', async () => {
         const state = mockEnsureState();
         state.isMobileSafariReturn = false;
 
