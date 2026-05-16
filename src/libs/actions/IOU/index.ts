@@ -199,10 +199,6 @@ function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transac
     return allTransactionDrafts;
 }
 
-function getUserAccountID(): number {
-    return deprecatedUserAccountID;
-}
-
 function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
     return deprecatedCurrentUserPersonalDetails;
 }
