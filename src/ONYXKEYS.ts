@@ -426,9 +426,6 @@ const ONYXKEYS = {
     /** The policyID of the last workspace whose settings were accessed by the user */
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
-    /** Whether we should show the compose input or not */
-    SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
-
     /** Is app in beta version */
     IS_BETA: 'isBeta',
 
@@ -723,6 +720,9 @@ const ONYXKEYS = {
 
     /** The transaction IDs to be highlighted when opening the Expenses search route page */
     TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE: 'transactionIdsHighlightOnSearchRoute',
+
+    /** The preferred policy ID to be used when creating a group */
+    DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID: 'domainGroupCreatePreferredPolicyID',
 
     /** Collection Keys */
     COLLECTION: {
@@ -1124,6 +1124,12 @@ const ONYXKEYS = {
         EDIT_DOMAIN_GROUP_NAME_FORM_DRAFT: 'editDomainGroupNameFormDraft',
         ADD_AGENT_FORM: 'addAgentForm',
         ADD_AGENT_FORM_DRAFT: 'addAgentFormDraft',
+        CREATE_DOMAIN_GROUP_FORM: 'createDomainGroupForm',
+        CREATE_DOMAIN_GROUP_FORM_DRAFT: 'createDomainGroupFormDraft',
+        EDIT_AGENT_NAME_FORM: 'editAgentNameForm',
+        EDIT_AGENT_NAME_FORM_DRAFT: 'editAgentNameFormDraft',
+        EDIT_AGENT_PROMPT_FORM: 'editAgentPromptForm',
+        EDIT_AGENT_PROMPT_FORM_DRAFT: 'editAgentPromptFormDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1270,6 +1276,9 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM]: FormTypes.AddWorkEmailForm;
     [ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM]: FormTypes.DomainGroupEditNameForm;
     [ONYXKEYS.FORMS.ADD_AGENT_FORM]: FormTypes.AddAgentForm;
+    [ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM]: FormTypes.DomainGroupCreateForm;
+    [ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM]: FormTypes.EditAgentNameForm;
+    [ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM]: FormTypes.EditAgentPromptForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1477,7 +1486,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
-    [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
     [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
@@ -1591,6 +1599,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE]: Record<string, Record<string, boolean>>;
+    [ONYXKEYS.DOMAIN_GROUP_CREATE_PREFERRED_POLICY_ID]: string | undefined;
 };
 
 type OnyxDerivedValuesMapping = {

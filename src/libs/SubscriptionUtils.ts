@@ -47,11 +47,6 @@ type SubscriptionPlanInfo = {
     description: string;
 };
 
-type SubscriptionPlanIllustrations = {
-    Mailbox: IconAsset;
-    ShieldYellow: IconAsset;
-};
-
 let deprecatedCurrentUserAccountID = -1;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -531,7 +526,8 @@ function getSubscriptionPrice(
     privateSubscriptionType: SubscriptionType | undefined,
     hasTeam2025Pricing: boolean,
 ): number {
-    if (!privateSubscriptionType || !plan) {
+    // Submit is a free plan — no subscription price to look up.
+    if (!privateSubscriptionType || !plan || plan === CONST.POLICY.TYPE.SUBMIT) {
         return 0;
     }
 
@@ -698,4 +694,4 @@ export {
     hasInsufficientFundsError,
 };
 
-export type {DiscountInfo, SubscriptionPlanIllustrations};
+export type {DiscountInfo};
