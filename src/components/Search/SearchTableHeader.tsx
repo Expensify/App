@@ -88,6 +88,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.MCC,
+        translationKey: 'common.mcc',
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
         translationKey: 'iou.attendees',
     },
@@ -113,8 +118,18 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'iou.taxRate',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_CODE,
+        translationKey: 'workspace.taxes.taxCode',
+        isColumnSortable: false,
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
+        translationKey: 'workspace.categories.glCode',
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,

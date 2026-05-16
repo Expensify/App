@@ -41,6 +41,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import CategoryCell from './DataCells/CategoryCell';
+import CategoryGLCodeCell from './DataCells/CategoryGLCodeCell';
 import DeferredChatBubbleCell from './DataCells/DeferredChatBubbleCell';
 import MerchantOrDescriptionCell from './DataCells/MerchantCell';
 import ReceiptCell from './DataCells/ReceiptCell';
@@ -253,6 +254,15 @@ function TransactionItemRowWide({
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
                         />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.MCC:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MCC)]}
+                    >
+                        <TextCell text={transactionItem.modifiedMCCGroup ?? transactionItem.mccGroup ?? ''} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
@@ -472,6 +482,15 @@ function TransactionItemRowWide({
                         <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
+                    >
+                        <TextCell text={transactionItem.comment?.taxCode ?? ''} />
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
                 return (
                     <View
@@ -484,6 +503,18 @@ function TransactionItemRowWide({
                                 shouldShowTooltip={shouldShowTooltip}
                             />
                         )}
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE)]}
+                    >
+                        <CategoryGLCodeCell
+                            transactionItem={transactionItem}
+                            policyID={effectivePolicyID}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:

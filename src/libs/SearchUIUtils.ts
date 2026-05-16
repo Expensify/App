@@ -4063,6 +4063,8 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.to';
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             return 'common.category';
+        case CONST.SEARCH.TABLE_COLUMNS.MCC:
+            return 'common.mcc';
         case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
             return 'iou.attendees';
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
@@ -4097,6 +4099,10 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.tax';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
             return 'iou.taxRate';
+        case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
+            return 'workspace.taxes.taxCode';
+        case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
+            return 'workspace.categories.glCode';
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
             return 'common.longReportID';
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
