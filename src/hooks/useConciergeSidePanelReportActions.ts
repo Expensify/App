@@ -237,7 +237,8 @@ function useConciergeReportActions({
         filteredVisibleActions,
         filteredReportActions,
         showConciergeWelcome,
-        showFullHistory,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/prefer-nullish-coalescing
+        showFullHistory: showFullHistory || reportActionIDFromRoute !== undefined,
         hasPreviousMessages,
         handleShowPreviousMessages,
     };
