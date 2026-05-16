@@ -54,7 +54,7 @@ const mockEnsureState = (): MockStateShape => {
 };
 
 jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- jest.requireActual returns unknown; this is the standard pattern for spreading the actual module in jest.mock factories.
     const actualNav = jest.requireActual('@react-navigation/native');
     const ReactActual = jest.requireActual<typeof React>('react');
     // Stable navigation object so useCallback([navigation]) doesn't change across renders.
@@ -286,5 +286,31 @@ describe('BaseValidateCodeForm focus behavior on screen focus', () => {
         await waitForBatchedUpdatesWithAct();
         // ref.focus is part of the imperative handle — calling it should not throw.
         expect(() => ref.current?.focus()).not.toThrow();
+    });
+
+    it('does not steal focus if the screen unfocuses before isWindowReadyToFocus resolves', async () => {
+        const state = mockEnsureState();
+        state.isMobileSafariReturn = false;
+
+        const {unmount} = renderForm();
+        await waitForBatchedUpdatesWithAct();
+
+        // transitionEnd fires while the window is still blurred; focusOnce kicks off the pending promise.
+        await act(async () => {
+            for (const handler of state.transitionEndHandlers) {
+                handler({data: {closing: false}});
+            }
+        });
+
+        // Screen unmounts (or blurs) before isWindowReadyToFocus settles — cleanup must mark the effect cancelled.
+        unmount();
+
+        // Now resolve the window-ready promise. The deferred focus should NOT happen.
+        await act(async () => {
+            state.windowReady.resolve();
+            await state.windowReady.promise;
+        });
+
+        expect(state.focusLastSelected).not.toHaveBeenCalled();
     });
 });
