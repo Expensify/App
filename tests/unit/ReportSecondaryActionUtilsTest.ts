@@ -1513,7 +1513,7 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
     });
 
-    it('does not include RECEIVED_PAYMENT option when payments are disabled', () => {
+    it('include RECEIVED_PAYMENT option when payments are disabled', () => {
         const report = {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -1540,7 +1540,7 @@ describe('getSecondaryAction', () => {
             policy,
             reportActions: [],
         });
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(false);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.RECEIVED_PAYMENT)).toBe(true);
     });
 
     it('does not include RECEIVED_PAYMENT option when a bank payment action exists', () => {
