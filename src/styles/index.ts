@@ -1449,7 +1449,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         textInputLeftIconContainer: {
             justifyContent: 'center',
-            paddingRight: 8, paddingRight: 12,
+            paddingRight: 12,
         },
 
         secureInput: {
@@ -1943,7 +1943,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             flexDirection: 'row',
             paddingLeft: 8,
-            paddingRight: 8, paddingRight: 12,
+            paddingRight: 12,
             marginHorizontal: 12,
             borderRadius: variables.componentBorderRadiusNormal,
         },
