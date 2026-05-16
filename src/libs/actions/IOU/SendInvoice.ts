@@ -84,6 +84,7 @@ type SendInvoiceOptions = {
     isFromGlobalCreate?: boolean;
     senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
     shouldHandleNavigation?: boolean;
+    delegateAccountID?: number | undefined;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -587,6 +588,7 @@ function getSendInvoiceInformation({
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
     senderPolicyTags,
+    delegateAccountID,
 }: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
@@ -665,7 +667,7 @@ function getSendInvoiceInformation({
     }
 
     // STEP 5: Build optimistic reportActions.
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction, undefined, undefined, undefined, delegateAccountID);
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
@@ -679,6 +681,7 @@ function getSendInvoiceInformation({
             participants: [receiver],
             transactionID: optimisticTransaction.transactionID,
             currentUserAccountID,
+            delegateAccountIDParam: delegateAccountID,
         });
 
     // STEP 6: Build Onyx Data
@@ -735,6 +738,7 @@ function sendInvoice({
     isFromGlobalCreate = false,
     senderPolicyTags,
     shouldHandleNavigation = true,
+    delegateAccountID,
 }: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -769,6 +773,7 @@ function sendInvoice({
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
         senderPolicyTags: senderPolicyTags ?? {},
+        delegateAccountID,
     });
 
     const parameters: SendInvoiceParams = {

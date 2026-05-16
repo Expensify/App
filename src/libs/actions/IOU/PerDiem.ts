@@ -234,6 +234,7 @@ type PerDiemExpenseInformation = {
     shouldDeferAutoSubmit?: boolean;
     optimisticChatReportID?: string;
     shouldHandleNavigation?: boolean;
+    delegateAccountID?: number | undefined;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -255,6 +256,7 @@ type PerDiemExpenseInformationParams = {
     optimisticReportPreviewActionID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     optimisticChatReportID?: string;
+    delegateAccountID?: number | undefined;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -265,6 +267,7 @@ type PerDiemExpenseInformationForSelfDM = {
     currentUserEmailParam: string;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     shouldHandleNavigation?: boolean;
+    delegateAccountID?: number | undefined;
 };
 
 type PerDiemExpenseInformationForSelfDMResult = {
@@ -306,6 +309,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         optimisticReportPreviewActionID,
         personalDetails,
         optimisticChatReportID,
+        delegateAccountID,
     } = perDiemExpenseInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -450,6 +454,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
             currentUserAccountID: currentUserAccountIDParam,
+            delegateAccountIDParam: delegateAccountID,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -457,7 +462,16 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID, conciergeReportID);
+        reportPreviewAction = buildOptimisticReportPreview(
+            chatReport,
+            iouReport,
+            comment,
+            optimisticTransaction,
+            undefined,
+            optimisticReportPreviewActionID,
+            conciergeReportID,
+            delegateAccountID,
+        );
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -544,6 +558,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         quickAction,
         personalDetails,
+        delegateAccountID,
     });
 
     return {
@@ -572,7 +587,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to submit a per diem expense from self DM.
  */
 function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDiemExpenseInformationForSelfDM): PerDiemExpenseInformationForSelfDMResult {
-    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction} = perDiemExpenseInformation;
+    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction, delegateAccountID} = perDiemExpenseInformation;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
@@ -730,6 +745,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
         transactionID: optimisticTransaction.transactionID,
         isPersonalTrackingExpense: true,
         currentUserAccountID: currentUserAccountIDParam,
+        delegateAccountIDParam: delegateAccountID,
     });
 
     onyxData.optimisticData?.push(
@@ -901,6 +917,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         shouldDeferAutoSubmit,
         optimisticChatReportID,
         shouldHandleNavigation = true,
+        delegateAccountID,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -952,6 +969,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         optimisticReportPreviewActionID,
         personalDetails,
         optimisticChatReportID,
+        delegateAccountID,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
@@ -1021,7 +1039,16 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  * Submit a per diem expense from self DM
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
-    const {selfDMReport, policy, transactionParams, currentUserAccountIDParam, currentUserEmailParam, quickAction, shouldHandleNavigation = true} = submitPerDiemExpenseInformation;
+    const {
+        selfDMReport,
+        policy,
+        transactionParams,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        quickAction,
+        shouldHandleNavigation = true,
+        delegateAccountID,
+    } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, billable, reimbursable} = transactionParams;
 
     if (
@@ -1042,6 +1069,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
         currentUserAccountIDParam,
         currentUserEmailParam,
         quickAction,
+        delegateAccountID,
     });
 
     const customUnitRate = getPerDiemRateCustomUnitRate(policy, customUnit.customUnitRateID);
