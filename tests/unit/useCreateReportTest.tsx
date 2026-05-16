@@ -45,6 +45,7 @@ jest.mock('@libs/interceptAnonymousUser', () => jest.fn((cb: () => void) => cb()
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
 }));
 
 const reportIDCounter = {value: 100};
