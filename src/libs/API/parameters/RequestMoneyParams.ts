@@ -46,6 +46,24 @@ type RequestMoneyParams = {
     /** Unit for time tracking (e.g., 'h' for hours) */
     unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
 
+    /** Distance in miles/kilometers for distance-based expenses */
+    distance?: number;
+
+    /** Waypoints for distance-based expenses (JSON stringified) */
+    waypoints?: string;
+
+    /** Custom unit rate ID for distance-based expenses */
+    customUnitRateID?: string;
+
+    /** Odometer start reading for distance-based expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance-based expenses */
+    odometerEnd?: number;
+
+    /** Whether this is a distance request */
+    isDistance?: boolean;
+
     /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
     shouldDeferAutoSubmit?: boolean;
 };

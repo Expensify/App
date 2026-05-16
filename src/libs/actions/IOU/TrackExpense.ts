@@ -1791,6 +1791,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             break;
         }
         default: {
+            const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+
             // This is only required when inviting admins to test drive the app
             const guidedSetupData: GuidedSetupData | undefined = isTestDrive
                 ? prepareOnboardingOnyxData({
@@ -1835,6 +1837,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 isTestDrive,
                 guidedSetupData: guidedSetupData ? JSON.stringify(guidedSetupData) : undefined,
                 testDriveCommentReportActionID,
+                isDistance: isDistanceRequest,
+                distance: isDistanceRequest ? distance : undefined,
+                waypoints: isDistanceRequest ? sanitizedWaypoints : undefined,
+                customUnitRateID: isDistanceRequest ? customUnitRateID : undefined,
+                odometerStart: isDistanceRequest ? odometerStart : undefined,
+                odometerEnd: isDistanceRequest ? odometerEnd : undefined,
                 ...(transactionType === CONST.TRANSACTION.TYPE.TIME
                     ? {
                           type: transactionType,
