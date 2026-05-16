@@ -236,8 +236,7 @@ function getOnyxTargetTransactionData({
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -264,10 +263,9 @@ function getOnyxTargetTransactionData({
             targetTransactionThreadReport?.reportID,
             filteredTransactionChanges,
             policy,
+            delegateAccountID,
             undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
-            undefined,
-            delegateAccountID,
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -339,8 +337,7 @@ type MergeTransactionRequestParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
     selfDMReport: OnyxEntry<Report>;
 };
 /**

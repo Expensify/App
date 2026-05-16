@@ -66,8 +66,7 @@ type UpdateMoneyRequestDateParams = {
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     hash?: number;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 };
 
 type SearchSnapshotOnyxData = {
@@ -160,7 +159,7 @@ function updateMoneyRequestDate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash, undefined, undefined, delegateAccountID);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -214,8 +213,7 @@ function updateMoneyRequestBillable({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -268,8 +266,7 @@ function updateMoneyRequestReimbursable({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
         return;
@@ -324,8 +321,7 @@ function updateMoneyRequestMerchant({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
@@ -333,7 +329,7 @@ function updateMoneyRequestMerchant({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash, undefined, undefined, delegateAccountID);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -385,8 +381,7 @@ function updateMoneyRequestAttendees({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         attendees,
@@ -426,8 +421,7 @@ type UpdateMoneyRequestTagParams = {
     isASAPSubmitBetaEnabled: boolean;
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the tag of an expense */
@@ -497,8 +491,7 @@ function updateMoneyRequestTaxAmount({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges = {
         taxAmount,
@@ -536,8 +529,7 @@ type UpdateMoneyRequestTaxRateParams = {
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the created tax rate of an expense */
@@ -601,8 +593,7 @@ type UpdateMoneyRequestDistanceParams = {
     odometerEnd?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the waypoints of a distance expense */
@@ -647,10 +638,10 @@ function updateMoneyRequestDistance({
             transactionThreadReport?.reportID,
             transactionChanges,
             policy,
+            delegateAccountID,
             undefined,
             undefined,
             distanceOriginalPolicy,
-            delegateAccountID,
         );
     } else {
         data = getUpdateMoneyRequestParams({
@@ -752,8 +743,7 @@ function updateMoneyRequestCategory({
     isASAPSubmitBetaEnabled: boolean;
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         category,
@@ -808,8 +798,7 @@ function updateMoneyRequestDescription({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 }) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
@@ -818,7 +807,7 @@ function updateMoneyRequestDescription({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash, undefined, undefined, delegateAccountID);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -875,8 +864,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode?: string;
     updatedTaxValue?: string;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
@@ -901,7 +889,7 @@ function updateMoneyRequestDistanceRate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, undefined, undefined, undefined, delegateAccountID);
+        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -947,8 +935,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policyRecentlyUsedCurrencies: string[];
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -986,7 +973,7 @@ function updateMoneyRequestAmountAndCurrency({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash, undefined, undefined, delegateAccountID);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, delegateAccountID, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -1037,8 +1024,7 @@ type GetUpdateMoneyRequestParamsType = {
     isSplitTransaction?: boolean;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66407
     isOffline?: boolean;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -1682,11 +1668,10 @@ function getUpdateTrackExpenseParams(
     transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    delegateAccountID: number | undefined,
     hash?: number,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number,
 ): UpdateMoneyRequestData<
     | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     | typeof ONYXKEYS.COLLECTION.TRANSACTION

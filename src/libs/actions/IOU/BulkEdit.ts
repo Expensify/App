@@ -83,8 +83,7 @@ type UpdateMultipleMoneyRequestsParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     currentUserLogin: string;
     currentUserAccountID: number;
-    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
-    delegateAccountID?: number;
+    delegateAccountID: number | undefined;
 };
 
 function updateMultipleMoneyRequests({
