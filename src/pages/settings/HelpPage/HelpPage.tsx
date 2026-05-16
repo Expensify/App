@@ -126,6 +126,7 @@ function HelpPage() {
         ? {
               key: partnerManagerDetails.login,
               title: partnerManagerDetails.displayName,
+              description: translate('initialSettingsPage.helpPage.partnerManagerDescription'),
               icon: partnerManagerDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
               onPress: () => navigateToAndOpenReportWithAccountIDs([partnerManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
@@ -139,6 +140,7 @@ function HelpPage() {
         ? {
               key: accountExecutiveDetails.login,
               title: accountExecutiveDetails.displayName,
+              description: translate('initialSettingsPage.helpPage.accountExecutiveDescription'),
               icon: accountExecutiveDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
               onPress: () => navigateToAndOpenReportWithAccountIDs([accountExecutiveDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
@@ -152,6 +154,7 @@ function HelpPage() {
         ? {
               key: accountManagerDetails.login,
               title: accountManagerDetails.displayName,
+              description: translate('initialSettingsPage.helpPage.accountManagerDescription'),
               icon: accountManagerDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
               onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas),
@@ -201,7 +204,7 @@ function HelpPage() {
                                 <View style={[styles.flex1, styles.mt5, styles.gap5]}>
                                     {!!partnerManagerItem && (
                                         <View>
-                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.partnerManagerDescription')}</Text>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.partnerManager')}</Text>
                                             <MenuItemList
                                                 menuItems={[partnerManagerItem]}
                                                 shouldUseSingleExecution
@@ -210,7 +213,7 @@ function HelpPage() {
                                     )}
                                     {!!accountExecutiveItem && (
                                         <View>
-                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountExecutiveDescription')}</Text>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountExecutive')}</Text>
                                             <MenuItemList
                                                 menuItems={[accountExecutiveItem]}
                                                 shouldUseSingleExecution
@@ -219,7 +222,7 @@ function HelpPage() {
                                     )}
                                     {!!accountManagerItem && (
                                         <View>
-                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountManagerDescription')}</Text>
+                                            <Text style={[styles.textLabelSupportingNormal]}>{translate('initialSettingsPage.helpPage.accountManager')}</Text>
                                             <MenuItemList
                                                 menuItems={[accountManagerItem]}
                                                 shouldUseSingleExecution
