@@ -2869,9 +2869,9 @@ const CONST = {
 
     GUSTO: {
         APPROVAL_MODE: {
-            BASIC: 'basic',
-            MANAGER: 'manager',
-            CUSTOM: 'custom',
+            BASIC: 'APPROVAL_SUBMIT_AND_APPROVE',
+            MANAGER: 'APPROVAL_ADVANCED',
+            CUSTOM: 'APPROVAL_MANUAL',
         },
     },
 
