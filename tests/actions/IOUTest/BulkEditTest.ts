@@ -83,6 +83,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
                 true,
                 policy,
+                undefined,
                 expect.anything(),
             );
 
@@ -289,6 +290,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.objectContaining({amount: -1000, currency: CONST.CURRENCY.USD}),
                 true,
                 policy,
+                undefined,
                 expect.anything(),
             );
 
@@ -430,6 +432,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.objectContaining({amount: 1000, currency: CONST.CURRENCY.USD}),
                 false,
                 policy,
+                undefined,
                 expect.anything(),
             );
 
@@ -1342,6 +1345,7 @@ describe('actions/IOU/BulkEdit', () => {
                 expect.anything(),
                 expect.anything(),
                 expect.objectContaining({id: transactionPolicy.id}),
+                undefined,
                 expect.anything(),
             );
 
