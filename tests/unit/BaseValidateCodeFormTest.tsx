@@ -128,9 +128,12 @@ function Wrapper({children}: {children: React.ReactNode}) {
     );
 }
 
-function renderForm() {
+type FormHandle = {focus: () => void; focusLastSelected: () => void};
+
+function renderForm(ref?: React.Ref<FormHandle>) {
     return render(
         <BaseValidateCodeForm
+            ref={ref}
             validateCodeActionErrorField="actionVerified"
             handleSubmitForm={jest.fn()}
             clearError={jest.fn()}
@@ -251,5 +254,37 @@ describe('BaseValidateCodeForm focus behavior on screen focus', () => {
         } finally {
             jest.useRealTimers();
         }
+    });
+
+    it('forwards ref.focusLastSelected to the input after the animated-transition timeout', async () => {
+        const state = mockEnsureState();
+        state.isMobileSafariReturn = true; // Skip the screen-focus path so we only observe the imperative-handle call.
+
+        jest.useFakeTimers();
+        try {
+            const ref = React.createRef<FormHandle>();
+            renderForm(ref);
+            await waitForBatchedUpdatesWithAct();
+            state.focusLastSelected.mockClear();
+
+            await act(async () => {
+                ref.current?.focusLastSelected();
+                jest.advanceTimersByTime(500);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(state.focusLastSelected).toHaveBeenCalledTimes(1);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('exposes a ref.focus method that calls focus on the underlying input', async () => {
+        mockEnsureState().isMobileSafariReturn = true;
+        const ref = React.createRef<FormHandle>();
+        renderForm(ref);
+        await waitForBatchedUpdatesWithAct();
+        // ref.focus is part of the imperative handle — calling it should not throw.
+        expect(() => ref.current?.focus()).not.toThrow();
     });
 });
