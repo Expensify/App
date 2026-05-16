@@ -441,7 +441,9 @@ const rules = {
 };
 
 const employeeAccountID = 2;
+const policyAdminAccountID = 1;
 const categoryApprover1Email = 'categoryapprover1@test.com';
+const categoryApprover1AccountID = 3;
 const categoryApprover2Email = 'categoryapprover2@test.com';
 const tagApprover1Email = 'tagapprover1@test.com';
 const tagApprover2Email = 'tagapprover2@test.com';
@@ -7842,6 +7844,64 @@ describe('ReportUtils', () => {
                     });
                 });
             });
+        });
+    });
+
+    describe('getNextApproverAccountID', () => {
+        beforeEach(async () => {
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'employee@test.com', accountID: employeeAccountID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+        });
+
+        it('should prefer a valid submit target over a stale report manager when unapproving', async () => {
+            const policyID = 'next-approver-policy';
+            const policyTest: Policy = {
+                ...createRandomPolicy(0),
+                id: policyID,
+                approver: 'owner@test.com',
+                owner: 'owner@test.com',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                employeeList,
+                rules,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(100, undefined),
+                ownerAccountID: employeeAccountID,
+                managerID: policyAdminAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(0),
+                category: 'cat1',
+                reportID: expenseReport.reportID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyTest);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            expect(getNextApproverAccountID(expenseReport, true)).toBe(categoryApprover1AccountID);
+        });
+
+        it('should fall back to report manager when submit target is invalid', async () => {
+            const expenseReport: Report = {
+                ...createRandomReport(101, undefined),
+                ownerAccountID: employeeAccountID,
+                managerID: policyAdminAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            expect(getNextApproverAccountID(expenseReport, true)).toBe(policyAdminAccountID);
         });
     });
 
