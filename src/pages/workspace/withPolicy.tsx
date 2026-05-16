@@ -103,7 +103,6 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...(props as TProps)}
                 policy={policy}
                 policyDraft={policyDraft}

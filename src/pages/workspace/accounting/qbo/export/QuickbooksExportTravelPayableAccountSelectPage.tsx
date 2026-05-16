@@ -12,13 +12,13 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 function QuickbooksExportTravelPayableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
-    const {accountPayable} = policy?.connections?.quickbooksOnline?.data ?? {};
+    const {creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
     const backPath = ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID);
     const data: Array<SelectorType<string>> =
-        accountPayable?.map((account) => ({
+        creditCards?.map((account) => ({
             value: account.id,
             text: account.name,
             keyForList: account.name,

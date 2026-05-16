@@ -1399,6 +1399,8 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptDeleteFailureError: '删除此收据时发生意外错误。请稍后再试。',
             receiptFailureMessage: '<rbr>上传您的收据时出错。请<a href="download">保存收据</a>并在稍后<a href="retry">重试</a>。</rbr>',
             receiptFailureMessageShort: '上传您的收据时出错。',
+            receiptUploadFailedMessage: '收据上传失败。保存收据，或删除该支出并失去它。',
+            saveReceipt: '保存收据',
             genericDeleteFailureMessage: '删除此报销时发生意外错误。请稍后重试。',
             genericEditFailureMessage: '编辑此报销时发生意外错误。请稍后再试。',
             genericSmartscanFailureMessage: '交易缺少字段',
@@ -2405,6 +2407,7 @@ const translations: TranslationDeepObject<typeof en> = {
             revealDetails: '显示详细信息',
             revealCvv: '显示 CVV',
             copyCardNumber: '复制卡号',
+            copyCvv: '复制 CVV',
             updateAddress: '更新地址',
         },
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `已添加到 ${platform} 钱包`,
@@ -2660,6 +2663,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         emptyAgents: {title: '尚未创建代理', subtitle: '别再手动处理这些事情了。交给智能代理去执行，为自己节省大量时间。'},
         error: {
             genericAdd: '添加此智能体时出现了问题',
+            genericUpdate: '更新此代理时出现问题',
+            updateName: '更新此代理名称时出现问题',
+            updatePrompt: '更新此代理的说明时出现问题',
+            updateAvatar: '更新此代理的头像时出现问题',
         },
     },
     addAgentPage: {
@@ -2667,11 +2674,22 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         agentName: '代理名称',
         instructions: '编写自定义说明',
         createAgent: '创建代理',
-        switchAvatar: '切换头像',
+        editAvatar: '切换头像',
         defaultAgentName: (displayName: string) => `${displayName} 的代理人`,
         defaultPrompt:
             '拒绝与赌博、电影或其他明显非商务原因相关的报销。\n\n提醒用户务必附上一张能清楚显示小费金额的收据图片。\n\n如果报销报告与同一用户之前的报告非常相似，则批准该报告。\n\n拒绝包含超过 500 美元差旅费用的报销报告。',
     },
+    editAgentPage: {
+        title: '编辑代理',
+        agentName: '代理人姓名',
+        instructions: '编写自定义说明',
+        deleteAgent: '删除代理',
+        deleteAgentTitle: '删除代理？',
+        deleteAgentMessage: '确定要删除此代理吗？此操作无法撤销。',
+    },
+    editAgentAvatarPage: {title: '编辑头像'},
+    editAgentNamePage: {title: '代理人姓名'},
+    editAgentPromptPage: {title: '编写自定义说明', error: {emptyPrompt: '请输入给您代理的指示。'}},
     expenseRulesPage: {
         title: '报销规则',
         findRule: '查找规则',
@@ -5050,6 +5068,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             free: '免费',
             control: '控制',
             collect: '收款',
+            submit: '提交',
         },
         companyCards: {
             addCards: '添加卡片',
@@ -5579,7 +5598,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 subtitle: '为时间跟踪设置可计费的小时费率。',
                 defaultHourlyRate: '默认时薪',
             },
-            hrWarningModal: {disconnectText: '若要禁用人力资源功能，请先将 Gusto 与此工作区断开连接。'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -6836,11 +6855,17 @@ ${reportName}
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return '同步 Gusto 员工';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return '正在从 Gusto 加载数据';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return '在政策中为员工开通账号';
+                    case 'zenefitsSyncTitle':
+                        return '正在同步 TriNet 员工';
+                    case 'zenefitsSyncLoadData':
+                        return '正在从 TriNet 加载数据';
+                    case 'zenefitsSyncProvisioning':
+                        return '在政策中为员工开通账号';
                     case 'jobDone':
                         return '正在加载导入的数据';
                     default: {
@@ -6871,6 +6896,41 @@ ${reportName}
                 syncError: '无法连接到 Gusto',
                 disconnectTitle: '断开 Gusto',
                 disconnectPrompt: '确定要断开与 Gusto 的连接吗？',
+                syncResults: {
+                    title: 'Gusto 同步结果',
+                    successTitle: '已成功同步你的 Gusto 连接！',
+                    added: '已添加',
+                    removed: '已移除',
+                    skipped: '已跳过',
+                    employeeCount: () => ({
+                        one: '1 员工',
+                        other: (count: number) => `${count} 员工`,
+                    }),
+                },
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: '连接',
+                syncNow: '立即同步',
+                disconnect: '断开连接',
+                lastSync: (relativeDate: string) => `上次同步时间：${relativeDate}`,
+                syncError: '无法连接到 TriNet',
+                disconnectTitle: '断开 TriNet 连接',
+                disconnectPrompt: '确定要断开 TriNet 吗？',
+                connectionDescription: '连接 TriNet，将员工审批与你的工作区保持同步。',
+                approvalMode: '审批模式',
+                finalApprover: '最终审批人',
+                notSet: '未设置',
+                approvalModeDescription: '成员和管理者已设置为与 TriNet 同步。',
+                approvalModeWarningTitle: '更改审批模式？',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `您确定要更改此工作区的审批模式吗？在我们的<a href="${helpSiteURL}">帮助网站</a>中了解更多关于不同 TriNet 启用的工作流模式的信息。`,
+                approvalModeWarningConfirm: '更改审批模式',
+                approvalModes: {
+                    basic: {label: '基础审批', description: '所有用户都提交给同一个人进行处理和审批。'},
+                    manager: {label: '经理审批', description: '员工会将报销报告提交给在 TriNet 中配置的直属经理。'},
+                    custom: {label: '自定义审批', description: '我会在 Expensify 中手动设置审批流程。'},
+                },
             },
         },
     },
@@ -7509,7 +7569,7 @@ ${reportName}
         bulkActions: {
             editMultiple: '批量编辑',
             editMultipleTitle: '编辑多个费用',
-            editMultipleDescription: '更改将应用于所有选定的费用，并将覆盖之前设置的任何值。',
+            editMultipleDescription: '更改将应用于所有选中的报销，并覆盖任何先前设置的值。',
             approve: '批准',
             pay: '支付',
             delete: '删除',
@@ -7835,7 +7895,7 @@ ${reportName}
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}，共计 ${dayCount} ${dayCount === 1 ? '天' : '天'}，截至 ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary}，时间范围：${timePeriod}，日期：${date}`,
         startTimer: '开始计时',
-        stopTimer: '停止计时器',
+        stopTimer: (duration: string) => `停止计时器 (${duration})`,
         scheduleOOO: '安排外出办公',
         scheduleOOOTitle: '安排外出办公',
         date: '日期',
@@ -8608,12 +8668,14 @@ ${reportName}
     },
     delegate: {
         switchAccount: '切换账户：',
+        switch: '切换',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot：委托访问',
         copilotDelegatedAccessDescription: '允许其他成员访问你的账户。',
         learnMoreAboutDelegatedAccess: '了解更多关于委托访问的信息',
         addCopilot: '添加副驾',
         membersCanAccessYourAccount: '这些成员可以访问你的账户：',
-        youCanAccessTheseAccounts: '您可以通过账户切换器访问这些账户：',
+        youCanAccessTheseAccounts: '您可以访问这些账户：',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
