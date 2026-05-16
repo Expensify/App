@@ -896,12 +896,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '时间敏感',
             addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加地址'},
             addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
-            earlyDiscount: {
-                title: ({discountType}: {discountType: number}) => `首年 ${discountType}% 折扣`,
-                supportingText: ({hours, minutes, seconds}: {hours: number; minutes: number; seconds: number}) =>
-                    `剩余 ${String(hours).padStart(2, '0')}小时 ${String(minutes).padStart(2, '0')}分 ${String(seconds).padStart(2, '0')}秒`,
-                cta: '领取优惠',
-            },
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
             reviewCardFraud: {
                 title: '审查您 Expensify 卡上的潜在欺诈交易',

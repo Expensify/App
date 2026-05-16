@@ -925,12 +925,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Tijdgevoelig',
             addShippingAddress: {title: 'We hebben je verzendadres nodig', subtitle: 'Geef een adres op om je Expensify Kaart te ontvangen.', cta: 'Adres toevoegen'},
             addPaymentCard: {title: 'Voeg een betaalkaart toe om Expensify te blijven gebruiken', subtitle: 'Account > Abonnement', cta: 'Toevoegen'},
-            earlyDiscount: {
-                title: ({discountType}: {discountType: number}) => `${discountType}% korting op je eerste jaar`,
-                supportingText: ({hours, minutes, seconds}: {hours: number; minutes: number; seconds: number}) =>
-                    `${String(hours).padStart(2, '0')}u ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s resterend`,
-                cta: 'Aanbieding claimen',
-            },
             activateCard: {title: 'Activeer je Expensify Kaart', subtitle: 'Valideer je kaart en begin met uitgeven.', cta: 'Activeren'},
             reviewCardFraud: {
                 title: 'Controleer mogelijk misbruik van je Expensify Kaart',

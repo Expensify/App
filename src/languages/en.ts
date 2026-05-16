@@ -977,12 +977,6 @@ const translations = {
                 subtitle: 'Account > Subscription',
                 cta: 'Add',
             },
-            earlyDiscount: {
-                title: ({discountType}: {discountType: number}) => `${discountType}% off your first year`,
-                supportingText: ({hours, minutes, seconds}: {hours: number; minutes: number; seconds: number}) =>
-                    `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}sec remaining`,
-                cta: 'Claim offer',
-            },
             activateCard: {
                 title: 'Activate your Expensify Card',
                 subtitle: 'Validate your card and start spending.',

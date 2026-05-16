@@ -913,12 +913,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '時間に敏感',
             addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
             addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
-            earlyDiscount: {
-                title: ({discountType}: {discountType: number}) => `初年度 ${discountType}% オフ`,
-                supportingText: ({hours, minutes, seconds}: {hours: number; minutes: number; seconds: number}) =>
-                    `残り ${String(hours).padStart(2, '0')}時間 ${String(minutes).padStart(2, '0')}分 ${String(seconds).padStart(2, '0')}秒`,
-                cta: 'オファーを受け取る',
-            },
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
             reviewCardFraud: {
                 title: 'Expensify カードの不正利用の可能性を確認する',

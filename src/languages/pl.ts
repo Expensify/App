@@ -927,12 +927,6 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Wymaga szybkiej reakcji',
             addShippingAddress: {title: 'Potrzebujemy Twojego adresu wysyłki', subtitle: 'Podaj adres, na który mamy wysłać twoją Kartę Expensify.', cta: 'Dodaj adres'},
             addPaymentCard: {title: 'Dodaj kartę płatniczą, żeby dalej korzystać z Expensify', subtitle: 'Konto > Subskrypcja', cta: 'Dodaj'},
-            earlyDiscount: {
-                title: ({discountType}: {discountType: number}) => `${discountType}% zniżki na pierwszy rok`,
-                supportingText: ({hours, minutes, seconds}: {hours: number; minutes: number; seconds: number}) =>
-                    `Pozostało ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`,
-                cta: 'Odbierz ofertę',
-            },
             activateCard: {title: 'Aktywuj swoją Kartę Expensify', subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
             reviewCardFraud: {
                 title: 'Sprawdź potencjalne oszustwo na swojej Karcie Expensify',
