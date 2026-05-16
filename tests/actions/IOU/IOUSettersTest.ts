@@ -328,7 +328,7 @@ describe('IOU setter functions', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
             await waitForBatchedUpdates();
 
-            resetSplitShares(transaction, 8000, 'USD');
+            resetSplitShares(transaction, 8000, 'USD', USER_ACCOUNT_ID);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
@@ -349,7 +349,7 @@ describe('IOU setter functions', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
             await waitForBatchedUpdates();
 
-            resetSplitShares(transaction, 8000, 'USD', false);
+            resetSplitShares(transaction, 8000, 'USD', USER_ACCOUNT_ID, false);
             await waitForBatchedUpdates();
 
             const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);

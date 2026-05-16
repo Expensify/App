@@ -400,7 +400,7 @@ function IOURequestStepAmount({
         if (!isEditing) {
             // Edits to the amount from the splits page should reset the split shares.
             if (transaction?.splitShares) {
-                resetSplitShares(transaction, newAmount, selectedCurrency, true);
+                resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, true);
             }
             navigateToNextPage({amount, paymentMethod});
             return;
@@ -428,7 +428,7 @@ function IOURequestStepAmount({
 
         // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
         if (transaction?.splitShares) {
-            resetSplitShares(transaction, newAmount, selectedCurrency, false);
+            resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountIDParam, false);
         }
 
         updateMoneyRequestAmountAndCurrency({

@@ -615,7 +615,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
-        resetSplitShares(transaction);
+        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
     }
     if (backTo) {
         Navigation.goBack(backTo);
