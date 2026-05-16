@@ -54,7 +54,6 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
 
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 isConnectionDataFetchNeeded={isConnectionDataFetchNeeded}
             />

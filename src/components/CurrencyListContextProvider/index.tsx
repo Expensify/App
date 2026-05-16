@@ -109,4 +109,4 @@ function useCurrencyListActions(): CurrencyListActionsContextType {
 }
 
 export {CurrencyListContextProvider, useCurrencyListState, useCurrencyListActions};
-export type {CurrencyListActionsContextType, CurrencyListStateContextType} from './types';
+export type {CurrencyListActionsContextType} from './types';

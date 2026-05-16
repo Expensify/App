@@ -25,7 +25,7 @@ import {setIsComposerFullSize} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerEditActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerText} from './ComposerContext';
 import useSidePanelContext from './useSidePanelContext';
 
 function useComposerSubmit(reportID: string) {
@@ -40,11 +40,11 @@ function useComposerSubmit(reportID: string) {
     const delegateAccountID = useDelegateAccountID();
 
     const {composerRef, attachmentFileRef} = useComposerMeta();
-    const {didResetComposerHeight, draftComment} = useComposerState();
-    const {setDidResetComposerHeight, clearComposer} = useComposerActions();
+    const composerText = useComposerText();
+    const {clearComposer} = useComposerActions();
     const {isSendDisabled, debouncedCommentMaxLengthValidation} = useComposerSendState();
-    const {isEditingInComposer, editingMessage, effectiveDraft} = useComposerEditState();
-    const {publishDraft} = useComposerEditActions();
+    const {isEditingInComposer, editingMessage, effectiveDraft, didResetComposerHeightWhileEditing, editingState} = useComposerEditState();
+    const {publishDraft, setDidResetComposerHeightWhileEditing} = useComposerEditActions();
     const {scrollOffsetRef} = useContext(ActionListContext);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -72,7 +72,7 @@ function useComposerSubmit(reportID: string) {
     const validateAndSubmitDraft = (draftMessage: string) => {
         const draftMessageTrimmed = draftMessage.trim();
 
-        const isSubmittingEdit = isEditingInComposer || didResetComposerHeight;
+        const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;
         if (isSubmittingEdit && !attachmentFileRef.current) {
             publishDraft(draftMessageTrimmed);
             return;
@@ -182,17 +182,20 @@ function useComposerSubmit(reportID: string) {
             setIsComposerFullSize(reportID, false);
         }
 
-        // If there is a draft comment and we are submitting an edit, we don't want to clear the composer height and the draft comment.
-        // Therefore, we directly trigger the validation and submission of the draft comment.
-        if (isEditingInComposer && editingMessage !== null && draftComment) {
-            validateAndSubmitDraft(editingMessage);
+        const isFinishingComposerEdit =
+            editingState === CONST.REPORT_ACTION_EDIT_MESSAGE_STATE.EDITING && (isEditingInComposer || didResetComposerHeightWhileEditing) && !attachmentFileRef.current;
+
+        if (isFinishingComposerEdit) {
+            const hasNonEmptyEditingMessage = editingMessage !== null && editingMessage !== '';
+            const draftMessageForEdit = hasNonEmptyEditingMessage ? editingMessage : composerText;
+            validateAndSubmitDraft(draftMessageForEdit);
             return;
         }
 
         if (effectiveDraft !== null && effectiveDraft !== '') {
             composerRef.current?.resetHeight();
             if (isEditingInComposer) {
-                setDidResetComposerHeight(true);
+                setDidResetComposerHeightWhileEditing(true);
             }
         }
 

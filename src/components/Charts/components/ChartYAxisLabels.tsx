@@ -63,4 +63,3 @@ function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, label
 }
 
 export default ChartYAxisLabels;
-export type {ChartYAxisLabelsProps};
