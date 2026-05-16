@@ -10,4 +10,4 @@ type GustoSyncResult = {
     skippedEmployees?: GustoSyncSkippedEmployee[];
 };
 
-export type {GustoSyncResult, GustoSyncSkippedEmployee};
+export default GustoSyncResult;

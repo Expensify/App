@@ -13735,7 +13735,6 @@ export type {
     OptionData,
     TransactionDetails,
     PartialReportAction,
-    ParsingDetails,
     SelfDMParameters,
     OptimisticReportAction,
     CreateDraftTransactionParams,

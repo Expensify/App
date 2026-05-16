@@ -38,5 +38,4 @@ function consumeNavigationToken(): boolean {
     return token;
 }
 
-export type {PendingAvatar, PendingPresetAvatar, PendingFileAvatar};
 export {setInitialPresetID, getInitialPresetID, setPendingAvatar, getPendingAvatar, clearPendingAvatar, setNavigationToken, consumeNavigationToken};

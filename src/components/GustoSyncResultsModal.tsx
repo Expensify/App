@@ -4,7 +4,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
+import type GustoSyncResult from '@libs/API/GustoSyncResult';
 import CONST from '@src/CONST';
 import Button from './Button';
 import FixedFooter from './FixedFooter';
