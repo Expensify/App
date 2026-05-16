@@ -3,6 +3,8 @@ import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-
 import type {SelectionListProps} from '@components/SelectionList/types';
 import type useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import type useSingleExecution from '@hooks/useSingleExecution';
+import {isMobileChrome} from '@libs/Browser';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import type {ExtendedTargetedEvent, ListItem, SelectableListItemProps} from './types';
 
@@ -92,8 +94,8 @@ function ListItemRenderer<TItem extends ListItem>({
                     if (shouldIgnoreFocus || isDisabled) {
                         return;
                     }
-                    // No sourceCapabilities = programmatic focus (focus-return restore, context-menu close); don't move the cursor or it scroll-jumps the list. Pointer focus carries sourceCapabilities.
-                    if (event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
+                    // Keyboard Tab also lacks sourceCapabilities but must still sync the cursor — so gate on the restore/mobile-Chrome signals, not sourceCapabilities alone.
+                    if (event.nativeEvent && !event.nativeEvent.sourceCapabilities && (isFocusRestoreInProgress() || isMobileChrome())) {
                         return;
                     }
                     setFocusedIndex(normalizedIndex ?? index);

@@ -8,6 +8,9 @@ function notifyPushParamsBackward(_routeKey: string, _targetParams: unknown): vo
 /* eslint-enable @typescript-eslint/no-unused-vars */
 function cancelPendingFocusRestore(): void {}
 function skipNextFocusRestore(): void {}
+function isFocusRestoreInProgress(): boolean {
+    return false;
+}
 // Web-only guard; native has no DOM activeElement, so AUTO never needs to skip.
 function shouldSkipAutoFocusDueToExistingFocus(): boolean {
     return false;
@@ -20,5 +23,6 @@ export {
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    isFocusRestoreInProgress,
     shouldSkipAutoFocusDueToExistingFocus,
 };

@@ -46,6 +46,7 @@ function setTriggerEntry(routeKey: string, entry: TriggerEntry): void {
 let prevState: NavigationState | undefined;
 let pendingRestore: {cancel: () => void} | null = null;
 let skipNextRestore = false;
+let isRestoringFocus = false;
 let focusinHandler: ((e: FocusEvent) => void) | null = null;
 let mouseActivationHandler: ((e: MouseEvent) => void) | null = null;
 let stateUnsubscribe: (() => void) | null = null;
@@ -142,6 +143,11 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
 /** Suppress focus-restore for the next backward nav. Call before a form-submit goBack so the re-focused row doesn't shadow the page's pressOnEnter submit. Back/Esc dismissals don't call this, so they still restore (WCAG 2.4.3). */
 function skipNextFocusRestore(): void {
     skipNextRestore = true;
+}
+
+/** True while restoreTriggerForRoute is calling .focus(). Lists consult this in onFocus to skip cursor-sync for the programmatic restore without suppressing genuine keyboard Tab focus (neither carries sourceCapabilities). */
+function isFocusRestoreInProgress(): boolean {
+    return isRestoringFocus;
 }
 
 // 'retry' = in DOM but cannot accept focus now; 'gone' = detached, drop the entry.
@@ -266,7 +272,12 @@ function restoreTriggerForRoute(routeKey: string): boolean {
     const focusOptions: FocusOptions = {preventScroll: true, focusVisible: getHadTabNavigation()};
     for (const candidate of candidates) {
         const before = document.activeElement;
-        candidate.focus(focusOptions);
+        isRestoringFocus = true;
+        try {
+            candidate.focus(focusOptions);
+        } finally {
+            isRestoringFocus = false;
+        }
         const after = document.activeElement;
         if (after === candidate) {
             triggerMap.delete(routeKey);
@@ -512,6 +523,7 @@ export {
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     resetForTests,
