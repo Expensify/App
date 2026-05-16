@@ -1878,7 +1878,19 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
     const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
     const hasExplicitType = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) ?? false;
 
-    if (hasInFilter && !hasExplicitType) {
+    // Only force type=CHAT when in: filter has a non-empty value.
+    // If the user just typed "in:" without a value (still in autocomplete mode),
+    // don't override the query type, allowing onboarding suggestions like "Take a test drive" to appear.
+    const hasInFilterWithValue = rawFilterList?.some(
+        (filter) =>
+            !filter.isDefault &&
+            filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN &&
+            Array.isArray(filter.value) &&
+            filter.value.length > 0 &&
+            filter.value.some((val) => typeof val === 'string' && val.trim().length > 0),
+    );
+
+    if (hasInFilterWithValue && !hasExplicitType) {
         standardizedQuery.type = CONST.SEARCH.DATA_TYPES.CHAT;
     }
 
