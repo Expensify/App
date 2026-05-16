@@ -2732,9 +2732,10 @@ ${amount} para ${merchant} - ${date}`,
         emptyAgents: {title: 'Nenhum agente criado', subtitle: 'Pare de fazer tudo manualmente. Instrua um agente e economize muito tempo.'},
         error: {
             genericAdd: 'Houve um problema ao adicionar este agente',
-            genericUpdate: 'Houve um problema ao atualizar este agente',
+            genericUpdate: 'Ocorreu um problema ao atualizar este agente',
             updateName: 'Ocorreu um problema ao atualizar o nome deste agente',
             updatePrompt: 'Ocorreu um problema ao atualizar as instruções deste agente',
+            updateAvatar: 'Ocorreu um problema ao atualizar o avatar deste agente',
         },
     },
     addAgentPage: {
@@ -2742,7 +2743,7 @@ ${amount} para ${merchant} - ${date}`,
         agentName: 'Nome do agente',
         instructions: 'Escrever instruções personalizadas',
         createAgent: 'Criar agente',
-        switchAvatar: 'Trocar avatar',
+        editAvatar: 'Trocar avatar',
         defaultAgentName: (displayName: string) => `Agente de ${displayName}`,
         defaultPrompt:
             'Rejeite despesas relacionadas a jogos de azar, cinema ou outros motivos claramente não relacionados ao negócio.\n\nLembre o usuário de sempre incluir uma imagem do recibo em que a gorjeta fique clara.\n\nAprove o relatório se ele for muito semelhante a relatórios anteriores do mesmo usuário.\n\nRejeite relatórios com mais de US$ 500 em despesas de viagem.',
@@ -2753,8 +2754,9 @@ ${amount} para ${merchant} - ${date}`,
         instructions: 'Escrever instruções personalizadas',
         deleteAgent: 'Excluir agente',
         deleteAgentTitle: 'Excluir agente?',
-        deleteAgentMessage: 'Tem certeza de que deseja excluir este agente? Esta ação não pode ser desfeita.',
+        deleteAgentMessage: 'Tem certeza de que quer excluir este agente? Essa ação não pode ser desfeita.',
     },
+    editAgentAvatarPage: {title: 'Editar avatar'},
     editAgentNamePage: {title: 'Nome do agente'},
     editAgentPromptPage: {title: 'Escrever instruções personalizadas', error: {emptyPrompt: 'Insira as instruções para o seu agente.'}},
     expenseRulesPage: {
@@ -3288,7 +3290,6 @@ ${amount} para ${merchant} - ${date}`,
         enterPhoneNumber: 'Qual é o seu número de telefone?',
         personalDetails: 'Dados pessoais',
         privateDataMessage: 'Esses dados são usados para viagens e pagamentos. Eles nunca são exibidos no seu perfil público.',
-        basicDetails: 'Detalhes básicos',
         legalName: 'Nome legal',
         legalFirstName: 'Primeiro nome legal',
         legalLastName: 'Sobrenome legal',
@@ -5743,7 +5744,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 subtitle: 'Defina uma taxa horária faturável para o controle de tempo.',
                 defaultHourlyRate: 'Taxa horária padrão',
             },
-            hrWarningModal: {disconnectText: 'Para desativar o RH, primeiro desconecte o Gusto deste workspace.'},
+            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desativar RH, desconecte primeiro a integração ${integration} deste workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Exemplos:',
@@ -7028,15 +7029,21 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                 switch (stage) {
                     case 'gustoSyncTitle':
-                        return 'Synchronizing Gusto Employees';
+                        return 'Sincronizando funcionários do Gusto';
                     case 'gustoSyncLoadData':
-                        return 'Loading data from Gusto';
+                        return 'Carregando dados do Gusto';
                     case 'gustoSyncProvisioning':
-                        return 'Provisioning employees in policy';
+                        return 'Provisionamento de funcionários na política';
+                    case 'zenefitsSyncTitle':
+                        return 'Sincronizando funcionários da TriNet';
+                    case 'zenefitsSyncLoadData':
+                        return 'Carregando dados do TriNet';
+                    case 'zenefitsSyncProvisioning':
+                        return 'Provisionamento de funcionários na política';
                     case 'jobDone':
                         return 'Aguardando o carregamento dos dados importados';
                     default: {
-                        return `Tradução ausente para o estágio: ${stage}`;
+                        return `Tradução ausente para a etapa: ${stage}`;
                     }
                 }
             },
@@ -7063,6 +7070,41 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 syncError: 'Não é possível conectar ao Gusto',
                 disconnectTitle: 'Desconectar Gusto',
                 disconnectPrompt: 'Tem certeza de que deseja desconectar o Gusto?',
+                syncResults: {
+                    title: 'Resultados da sincronização com Gusto',
+                    successTitle: 'Sua conexão com o Gusto foi sincronizada com sucesso!',
+                    added: 'Adicionado',
+                    removed: 'Removido',
+                    skipped: 'Ignorado',
+                    employeeCount: () => ({
+                        one: '1 funcionário',
+                        other: (count: number) => `${count} funcionários`,
+                    }),
+                },
+            },
+            zenefits: {
+                title: 'TriNet',
+                connect: 'Conectar',
+                syncNow: 'Sincronizar agora',
+                disconnect: 'Desconectar',
+                lastSync: (relativeDate: string) => `Última sincronização ${relativeDate}`,
+                syncError: 'Não é possível conectar ao TriNet',
+                disconnectTitle: 'Desconectar TriNet',
+                disconnectPrompt: 'Tem certeza de que quer desconectar a TriNet?',
+                connectionDescription: 'Conecte o TriNet para manter as aprovações de funcionários sincronizadas com o seu espaço de trabalho.',
+                approvalMode: 'Modo de aprovação',
+                finalApprover: 'Aprovador final',
+                notSet: 'Não definido',
+                approvalModeDescription: 'Os membros e gerentes estão configurados para sincronizar com o TriNet.',
+                approvalModeWarningTitle: 'Alterar modo de aprovação?',
+                approvalModeWarningPrompt: (helpSiteURL: string) =>
+                    `Tem certeza de que deseja alterar o modo de aprovação deste espaço de trabalho? Saiba mais sobre os diferentes modos de fluxo de trabalho habilitados pelo TriNet no nosso <a href="${helpSiteURL}">site de ajuda</a>.`,
+                approvalModeWarningConfirm: 'Alterar modo de aprovação',
+                approvalModes: {
+                    basic: {label: 'Aprovação básica', description: 'Todos os usuários enviam para uma única pessoa para processamento e aprovação.'},
+                    manager: {label: 'Aprovação do gerente', description: 'Os funcionários enviam relatórios para o gerente direto configurado no TriNet.'},
+                    custom: {label: 'Aprovação personalizada', description: 'Vou configurar manualmente fluxos de aprovação no Expensify.'},
+                },
             },
         },
     },
@@ -8054,7 +8096,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} por ${dayCount} ${dayCount === 1 ? 'dia' : 'dias'} até ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} de ${timePeriod} em ${date}`,
         startTimer: 'Iniciar cronômetro',
-        stopTimer: 'Parar cronômetro',
+        stopTimer: (duration: string) => `Parar cronômetro (${duration})`,
         scheduleOOO: 'Agendar ausência',
         scheduleOOOTitle: 'Agendar ausência do escritório',
         date: 'Data',
@@ -8850,12 +8892,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     },
     delegate: {
         switchAccount: 'Trocar de conta:',
+        switch: 'Trocar',
+        copilot: 'Copilot',
         copilotDelegatedAccess: 'Copilot: Acesso delegado',
         copilotDelegatedAccessDescription: 'Permitir que outros membros acessem sua conta.',
         learnMoreAboutDelegatedAccess: 'Saiba mais sobre acesso delegado',
         addCopilot: 'Adicionar copiloto',
         membersCanAccessYourAccount: 'Esses membros podem acessar sua conta:',
-        youCanAccessTheseAccounts: 'Você pode acessar essas contas pelo alternador de conta:',
+        youCanAccessTheseAccounts: 'Você pode acessar essas contas:',
         role: ({role}: OptionalParam<DelegateRoleParams> = {}) => {
             switch (role) {
                 case CONST.DELEGATE_ROLE.ALL:
