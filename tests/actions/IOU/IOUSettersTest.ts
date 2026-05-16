@@ -11,12 +11,16 @@ import {
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
 } from '@libs/actions/IOU';
+import {resetSplitShares, setSplitShares} from '@libs/actions/IOU/Split';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Transaction from '@src/types/onyx/Transaction';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const TRANSACTION_ID = 'test-txn-1';
+const USER_ACCOUNT_ID = 1;
+const PARTICIPANT_ACCOUNT_ID = 2;
 
 describe('IOU setter functions', () => {
     beforeAll(() => {
@@ -236,6 +240,125 @@ describe('IOU setter functions', () => {
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
             expect(draft?.reimbursable).toBe(false);
+        });
+    });
+
+    describe('setSplitShares', () => {
+        function createTransactionWithSplitShares(): Transaction {
+            const transaction = createRandomTransaction(1);
+            transaction.transactionID = TRANSACTION_ID;
+            transaction.amount = 10000;
+            transaction.currency = 'USD';
+            transaction.splitShares = {
+                [USER_ACCOUNT_ID]: {amount: 5000, isModified: false},
+                [PARTICIPANT_ACCOUNT_ID]: {amount: 5000, isModified: false},
+            };
+            return transaction;
+        }
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+        });
+
+        it('should write splitShares to TRANSACTION_DRAFT by default', async () => {
+            const transaction = createTransactionWithSplitShares();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await waitForBatchedUpdates();
+
+            setSplitShares(transaction, 10000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID]);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft?.splitShares).toBeDefined();
+            expect(draft?.splitShares?.[USER_ACCOUNT_ID]).toBeDefined();
+            expect(draft?.splitShares?.[PARTICIPANT_ACCOUNT_ID]).toBeDefined();
+        });
+
+        it('should write splitShares to TRANSACTION when isDraft is false', async () => {
+            const transaction = createTransactionWithSplitShares();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+            await waitForBatchedUpdates();
+
+            setSplitShares(transaction, 10000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], false);
+            await waitForBatchedUpdates();
+
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+            expect(updated?.splitShares).toBeDefined();
+            expect(updated?.splitShares?.[USER_ACCOUNT_ID]).toBeDefined();
+            expect(updated?.splitShares?.[PARTICIPANT_ACCOUNT_ID]).toBeDefined();
+        });
+
+        it('should not create an orphaned TRANSACTION_DRAFT entry when isDraft is false', async () => {
+            const transaction = createTransactionWithSplitShares();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+            await waitForBatchedUpdates();
+
+            setSplitShares(transaction, 8000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], false);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft).toBeUndefined();
+        });
+
+        it('should do nothing when transaction is null', async () => {
+            setSplitShares(undefined, 10000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID]);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft).toBeUndefined();
+        });
+    });
+
+    describe('resetSplitShares', () => {
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: USER_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+        });
+
+        it('should reset splitShares on TRANSACTION_DRAFT by default', async () => {
+            const transaction = createRandomTransaction(1);
+            transaction.transactionID = TRANSACTION_ID;
+            transaction.amount = 6000;
+            transaction.currency = 'USD';
+            transaction.splitShares = {
+                [USER_ACCOUNT_ID]: {amount: 3000, isModified: false},
+                [PARTICIPANT_ACCOUNT_ID]: {amount: 3000, isModified: false},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
+            await waitForBatchedUpdates();
+
+            resetSplitShares(transaction, 8000, 'USD');
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft?.splitShares).toBeDefined();
+            expect(draft?.splitShares?.[USER_ACCOUNT_ID]).toBeDefined();
+            expect(draft?.splitShares?.[PARTICIPANT_ACCOUNT_ID]).toBeDefined();
+        });
+
+        it('should reset splitShares on TRANSACTION when isDraft is false', async () => {
+            const transaction = createRandomTransaction(1);
+            transaction.transactionID = TRANSACTION_ID;
+            transaction.amount = 6000;
+            transaction.currency = 'USD';
+            transaction.splitShares = {
+                [USER_ACCOUNT_ID]: {amount: 3000, isModified: false},
+                [PARTICIPANT_ACCOUNT_ID]: {amount: 3000, isModified: false},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+            await waitForBatchedUpdates();
+
+            resetSplitShares(transaction, 8000, 'USD', false);
+            await waitForBatchedUpdates();
+
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
+            expect(updated?.splitShares).toBeDefined();
+            expect(updated?.splitShares?.[USER_ACCOUNT_ID]).toBeDefined();
+            expect(updated?.splitShares?.[PARTICIPANT_ACCOUNT_ID]).toBeDefined();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+            expect(draft).toBeUndefined();
         });
     });
 });
