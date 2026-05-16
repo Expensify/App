@@ -28,7 +28,7 @@ function updateGustoApprovalMode(
     }
 
     const previousApprovalMode = currentApprovalMode ?? null;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -44,6 +44,15 @@ function updateGustoApprovalMode(
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: {
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,
+                timestamp: new Date().toISOString(),
+            },
+        },
     ];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -61,7 +70,7 @@ function updateGustoApprovalMode(
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -77,6 +86,11 @@ function updateGustoApprovalMode(
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: null,
+        },
     ];
 
     write(WRITE_COMMANDS.UPDATE_GUSTO_APPROVAL_MODE, {policyID, approvalMode}, {optimisticData, successData, failureData});
@@ -88,7 +102,7 @@ function updateGustoFinalApprover(policyID: string | undefined, finalApprover: s
     }
 
     const previousFinalApprover = currentFinalApprover ?? null;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -102,6 +116,15 @@ function updateGustoFinalApprover(policyID: string | undefined, finalApprover: s
                         },
                     },
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: {
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.GUSTO,
+                timestamp: new Date().toISOString(),
             },
         },
     ];
@@ -121,7 +144,7 @@ function updateGustoFinalApprover(policyID: string | undefined, finalApprover: s
             },
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -136,6 +159,11 @@ function updateGustoFinalApprover(policyID: string | undefined, finalApprover: s
                     },
                 },
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`,
+            value: null,
         },
     ];
 
