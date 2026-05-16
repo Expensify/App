@@ -125,7 +125,7 @@ function updateMultipleMoneyRequests({
             }
         }
 
-        let transactionThreadReportID = transaction.transactionThreadReportID ?? reportAction?.childReportID;
+        let transactionThreadReportID = reportAction?.childReportID ?? transaction.transactionThreadReportID;
         let transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
 
         // Offline-created expenses can be missing a transaction thread until it's opened once.
