@@ -73,7 +73,6 @@ const WRITE_COMMANDS = {
     UPDATE_DATE_OF_BIRTH: 'UpdateDateOfBirth',
     UPDATE_PHONE_NUMBER: 'UpdatePhoneNumber',
     UPDATE_HOME_ADDRESS: 'UpdateHomeAddress',
-    UPDATE_PRIVATE_PERSONAL_DETAILS: 'UpdatePrivatePersonalDetails',
     UPDATE_POLICY_ADDRESS: 'SetPolicyAddress',
     UPDATE_AUTOMATIC_TIMEZONE: 'UpdateAutomaticTimezone',
     UPDATE_SELECTED_TIMEZONE: 'UpdateSelectedTimezone',
@@ -609,6 +608,7 @@ const WRITE_COMMANDS = {
     CREATE_DOMAIN_SECURITY_GROUP: 'CreateDomainSecurityGroup',
     UPDATE_AGENT_NAME: 'UpdateAgentName',
     UPDATE_AGENT_PROMPT: 'UpdateAgentPrompt',
+    UPDATE_AGENT_AVATAR: 'UpdateAgentAvatar',
     DELETE_AGENT: 'DeleteAgent',
 } as const;
 
@@ -661,7 +661,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_PHONE_NUMBER]: Parameters.UpdatePhoneNumberParams;
     [WRITE_COMMANDS.UPDATE_POLICY_ADDRESS]: Parameters.UpdatePolicyAddressParams;
     [WRITE_COMMANDS.UPDATE_HOME_ADDRESS]: Parameters.UpdateHomeAddressParams;
-    [WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS]: Parameters.UpdatePrivatePersonalDetailsParams;
     [WRITE_COMMANDS.UPDATE_AUTOMATIC_TIMEZONE]: Parameters.UpdateAutomaticTimezoneParams;
     [WRITE_COMMANDS.UPDATE_SELECTED_TIMEZONE]: Parameters.UpdateSelectedTimezoneParams;
     [WRITE_COMMANDS.UPDATE_USER_AVATAR]: Parameters.UpdateUserAvatarParams;
@@ -1238,6 +1237,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_AGENT]: Parameters.CreateAgentParams;
     [WRITE_COMMANDS.UPDATE_AGENT_NAME]: Parameters.UpdateAgentNameParams;
     [WRITE_COMMANDS.UPDATE_AGENT_PROMPT]: Parameters.UpdateAgentPromptParams;
+    [WRITE_COMMANDS.UPDATE_AGENT_AVATAR]: Parameters.UpdateAgentAvatarParams;
     [WRITE_COMMANDS.DELETE_AGENT]: Parameters.DeleteAgentParams;
 };
 

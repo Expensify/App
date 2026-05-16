@@ -377,6 +377,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_AGENTS_ADD,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.AGENTS.ADD_AVATAR]: {
+                            path: ROUTES.SETTINGS_AGENTS_ADD_AVATAR,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.AGENTS.EDIT]: {
                             path: ROUTES.SETTINGS_AGENTS_EDIT.route,
                             parse: {
@@ -391,6 +395,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.AGENTS.EDIT_PROMPT]: {
                             path: ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.route,
+                            parse: {
+                                accountID: Number,
+                            },
+                        },
+                        [SCREENS.SETTINGS.AGENTS.EDIT_AVATAR]: {
+                            path: ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.route,
                             parse: {
                                 accountID: Number,
                             },
@@ -493,14 +503,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
                             path: ROUTES.SETTINGS_ADDRESS,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.route,
-                            exact: true,
-                        },
-                        [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE]: {
-                            path: ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_MAGIC_CODE,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: DYNAMIC_ROUTES.ADDRESS_COUNTRY.path,
@@ -2261,6 +2263,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.SECURITY]: {
                             path: ROUTES.SETTINGS_SECURITY,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.COPILOT]: {
+                            path: ROUTES.SETTINGS_COPILOT,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.WALLET.ROOT]: {

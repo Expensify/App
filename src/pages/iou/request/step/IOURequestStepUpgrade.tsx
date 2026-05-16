@@ -10,6 +10,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import WorkspaceConfirmationForm from '@components/WorkspaceConfirmationForm';
 import type {WorkspaceConfirmationSubmitFunctionParams} from '@components/WorkspaceConfirmationForm';
 import useActivePolicy from '@hooks/useActivePolicy';
+import useCreateNewReport from '@hooks/useCreateNewReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -23,7 +24,6 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import type CreateWorkspaceParams from '@libs/API/parameters/CreateWorkspaceParams';
 import getPlatform from '@libs/getPlatform';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -37,7 +37,7 @@ import CONST from '@src/CONST';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
 
@@ -77,6 +77,7 @@ function IOURequestStepUpgrade({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
     const {selectedTransactions} = useSearchStateContext();
@@ -196,11 +197,16 @@ function IOURequestStepUpgrade({
                 break;
             }
             case CONST.UPGRADE_PATHS.REPORTS:
-                Navigation.goBack();
-                if (action === CONST.IOU.ACTION.CREATE) {
-                    // Coming from "Create report" button (no workspace) → go to workspace selection which creates the report
-                    navigateWithMicrotask(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
+                if (action === CONST.IOU.ACTION.CREATE && policyID) {
+                    // Coming from "Create report" (no workspace) — create directly with the just-created
+                    // workspace. forceReplace removes the upgrade screen from history so back returns to
+                    // the originating screen, not the upgrade step.
+                    const {reportID: newReportID} = createReportForCurrentUser(policyID);
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newReportID), {forceReplace: true});
+                    });
                 } else {
+                    Navigation.goBack();
                     navigateWithMicrotask(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
                 }
 
@@ -236,6 +242,7 @@ function IOURequestStepUpgrade({
         iouType,
         isTrack,
         allPolicyTags,
+        createReportForCurrentUser,
     ]);
 
     const participant = transaction?.participants?.[0];

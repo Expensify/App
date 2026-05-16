@@ -22,6 +22,8 @@ import {translateLocal} from '../utils/TestHelper';
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
     getReportRHPActiveRoute: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     navigate: jest.fn(),
 }));
 

@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 import type {Dispatch, SetStateAction} from 'react';
-import useInlineEditState from '@components/Table/EditableCell/useInlineEditState';
+import useInlineEditState from '@components/TransactionItemRow/EditableCell/useInlineEditState';
 
 type SetupOptions<T> = {
     canEdit?: boolean;

@@ -13,9 +13,8 @@ import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+import useCreateReport from '@hooks/useCreateReport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -27,17 +26,15 @@ import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import useSearchEmptyStateIllustration from './useSearchEmptyStateIllustration';
@@ -140,9 +137,6 @@ function EmptySearchViewContent({
     });
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
     });
@@ -151,12 +145,6 @@ function EmptySearchViewContent({
     });
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
-
-    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
-
-    const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
-    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
-    const shouldShowEmptyReportConfirmation = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
 
     const filteredPolicyID = queryJSON?.policyID;
     let isFilteredWorkspaceAccessible = true;
@@ -190,19 +178,10 @@ function EmptySearchViewContent({
         });
     };
 
-    const {openCreateReportConfirmation: openCreateReportFromSearch} = useCreateEmptyReportConfirmation({
-        policyID: defaultChatEnabledPolicyID,
-        policyName: defaultChatEnabledPolicy?.name ?? '',
-        onConfirm: handleCreateWorkspaceReport,
+    const {createReport, isVisible: isCreateReportVisible} = useCreateReport({
+        onCreateReport: handleCreateWorkspaceReport,
+        groupPoliciesWithChatEnabled,
     });
-
-    const handleCreateReportClick = () => {
-        if (shouldShowEmptyReportConfirmation) {
-            openCreateReportFromSearch();
-        } else {
-            handleCreateWorkspaceReport(false);
-        }
-    };
 
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
@@ -299,47 +278,11 @@ function EmptySearchViewContent({
                                       },
                                   ]
                                 : []),
-                            ...(groupPoliciesWithChatEnabled.length > 0
+                            ...(isCreateReportVisible
                                 ? [
                                       {
                                           buttonText: translate('quickAction.createReport'),
-                                          buttonAction: () => {
-                                              interceptAnonymousUser(() => {
-                                                  const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
-
-                                                  if (
-                                                      !workspaceIDForReportCreation ||
-                                                      (defaultChatEnabledPolicy &&
-                                                          shouldRestrictUserBillableActions(
-                                                              defaultChatEnabledPolicy,
-                                                              ownerBillingGracePeriodEnd,
-                                                              userBillingGracePeriodEnds,
-                                                              amountOwed,
-                                                              accountID,
-                                                          ) &&
-                                                          groupPoliciesWithChatEnabled.length > 1)
-                                                  ) {
-                                                      // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
-                                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
-                                                      return;
-                                                  }
-
-                                                  if (
-                                                      !defaultChatEnabledPolicy ||
-                                                      !shouldRestrictUserBillableActions(
-                                                          defaultChatEnabledPolicy,
-                                                          ownerBillingGracePeriodEnd,
-                                                          userBillingGracePeriodEnds,
-                                                          amountOwed,
-                                                          accountID,
-                                                      )
-                                                  ) {
-                                                      handleCreateReportClick();
-                                                  } else {
-                                                      Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-                                                  }
-                                              });
-                                          },
+                                          buttonAction: createReport,
                                           success: true,
                                       },
                                   ]
