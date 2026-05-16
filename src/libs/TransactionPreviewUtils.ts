@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -457,6 +458,108 @@ function createTransactionPreviewConditionals({
     };
 }
 
+/**
+ * Lightweight check for whether a transaction has any RBR (Red Brick Road) indicator.
+ * Evaluates transaction-level signals (violations, hold, missing fields, receipt errors,
+ * report action errors, and DEW submit failures) with proper context for dismissed
+ * violations and report settlement/approval status.
+ *
+ * This logic mirrors the `shouldShowRBR` computation in `createTransactionPreviewConditionals`.
+ */
+function transactionHasRBR(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    violations: OnyxTypes.TransactionViolations,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    reportActions?: OnyxTypes.ReportActions,
+): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    // Check for non-dismissed violation-type or warning-type violations
+    if (
+        hasViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy, true) ||
+        hasWarningTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy)
+    ) {
+        return true;
+    }
+
+    // Check for notice-type violations (only on paid group policies)
+    if (hasNoticeTypeViolation(transaction, violations, currentUserEmail, currentUserAccountID, iouReport, policy, true) && isPaidGroupPolicyUtil(iouReport)) {
+        return true;
+    }
+
+    // Check for distance-request modified-amount violations (type VIOLATION or NOTICE)
+    if (
+        isDistanceRequest(transaction) &&
+        violations?.some(
+            (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
+        )
+    ) {
+        return true;
+    }
+
+    // Check if transaction is on hold — only counts as RBR when the report
+    // is not fully settled and not fully approved (matching createTransactionPreviewConditionals)
+    const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
+    const isFullySettled = isSettled(iouReport?.reportID) && !isSettlementOrApprovalPartial;
+    const isFullyApproved = isReportApproved({report: iouReport}) && !isSettlementOrApprovalPartial;
+    if (!isFullySettled && !isFullyApproved && isOnHold(transaction)) {
+        return true;
+    }
+
+    // Check if transaction has missing required fields (uses hasMissingSmartscanFields
+    // which guards against distance requests and receipts being scanned)
+    if (hasMissingSmartscanFields(transaction, iouReport)) {
+        return true;
+    }
+
+    // Check if transaction has receipt error
+    if (hasReceiptError(transaction)) {
+        return true;
+    }
+
+    // Check for report action errors associated with this transaction
+    if (hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions)) {
+        return true;
+    }
+
+    // Check for DEW submit failures
+    if (hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions)) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Compare two transactions by their RBR (Red Brick Road) status.
+ * Transactions with RBR indicators are sorted before those without.
+ * Returns 0 when both transactions have the same RBR status.
+ */
+function compareByRBR(
+    a: OnyxTypes.Transaction,
+    b: OnyxTypes.Transaction,
+    violations: Record<string, OnyxTypes.TransactionViolations | undefined> | undefined,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    reportActions?: OnyxTypes.ReportActions,
+): number {
+    const aViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${a.transactionID}`] ?? [];
+    const bViolations = violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${b.transactionID}`] ?? [];
+    const aHasRBR = transactionHasRBR(a, aViolations, currentUserEmail, currentUserAccountID, iouReport, policy, reportActions);
+    const bHasRBR = transactionHasRBR(b, bViolations, currentUserEmail, currentUserAccountID, iouReport, policy, reportActions);
+    if (aHasRBR === bHasRBR) {
+        return 0;
+    }
+    return aHasRBR ? -1 : 1;
+}
+
 export {
     getReviewNavigationRoute,
     getIOUPayerAndReceiver,
@@ -465,5 +568,7 @@ export {
     getViolationTranslatePath,
     getUniqueActionErrorsForTransaction,
     formatLastFourPAN,
+    transactionHasRBR,
+    compareByRBR,
 };
 export type {TranslationPathOrText};

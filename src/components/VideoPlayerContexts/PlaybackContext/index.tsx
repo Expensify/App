@@ -1,7 +1,7 @@
 import type {VideoPlayer, VideoPlayerStatus, VideoView} from 'expo-video';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
-import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
+import {isChatThread} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ProtectedCurrentRouteReportID} from './playbackContextReportIDUtils';
@@ -21,7 +21,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const [shareVersion, setShareVersion] = useState(0);
     const mountedVideoPlayersRef = useRef<string[]>([]);
     const playerStatus = useRef<VideoPlayerStatus>('loading');
-
     const resetContextProperties = () => {
         setSharedElement(null);
         setOriginalParent(null);
@@ -33,7 +32,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     const video = usePlaybackContextVideoRefs(resetContextProperties);
 
     const updateCurrentURLAndReportID: PlaybackActionsContextValues['updateCurrentURLAndReportID'] = useCallback(
-        (url, reportID) => {
+        (url, report, reportID) => {
             if (!reportID) {
                 return;
             }
@@ -50,7 +49,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 return;
             }
 
-            const report = getReportOrDraftReport(reportID);
             const isReportAChatThread = isChatThread(report);
             let reportIDtoSet;
             if (isReportAChatThread) {

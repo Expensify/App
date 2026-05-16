@@ -29,6 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
@@ -277,7 +278,6 @@ function openReportFromDeepLink(
     }
 
     // Navigate to the report after sign-in/sign-up.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         waitForUserSignIn().then(() => {
             // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
@@ -364,7 +364,7 @@ function openReportFromDeepLink(
                             }
                         };
 
-                        if (isAnonymousUser()) {
+                        if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
                             handleDeeplinkNavigation();
                         }
                     });

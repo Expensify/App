@@ -61,9 +61,29 @@ type DomainSecurityGroupErrors = {
     enableRestrictedPolicyCreationErrors?: OnyxCommon.Errors;
 
     /**
-     * Errors related to deleting the security group
+     * Errors related to group-level operations (create, delete) on the security group
      */
     errors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to toggling the preferred workspace setting
+     */
+    enableRestrictedPrimaryPolicyErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to changing the preferred workspace ID
+     */
+    restrictedPrimaryPolicyIDErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the restricted default login selection
+     */
+    enableRestrictedPrimaryLoginErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to the override preferred policy with card policy setting
+     */
+    overridePreferredPolicyWithCardPolicyErrors?: OnyxCommon.Errors;
 };
 
 /**
@@ -101,5 +121,5 @@ type DomainErrors = {
     setTwoFactorAuthRequiredError?: OnyxCommon.Errors;
 } & PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroupErrors>;
 
-export type {GeneralDomainMemberErrors, DomainMemberErrors, DomainSecurityGroupErrors};
+export type {DomainMemberErrors, DomainSecurityGroupErrors};
 export default DomainErrors;

@@ -17,29 +17,23 @@ type MonthPickerModalProps = {
     /** Currently selected month (0-indexed) */
     currentMonth?: number;
 
-    /** The year currently being viewed */
-    currentYear?: number;
-
-    /** A minimum date (earliest) allowed to select */
-    minDate?: Date;
-
-    /** A maximum date (latest) allowed to select */
-    maxDate?: Date;
-
     /** Function to call when the user selects a month */
     onMonthChange?: (month: number) => void;
 
     /** Function to call when the user closes the month picker */
     onClose?: () => void;
+
+    /** Whether RIGHT_DOCKED modal should keep backdrop in narrow pane context */
+    shouldEnableBackdropInNarrowPane?: boolean;
 };
 
-function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear(), minDate, maxDate, onMonthChange, onClose}: MonthPickerModalProps) {
+function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const monthNames = DateUtils.getMonthNames();
 
-    const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, currentYear, currentMonth, minDate, maxDate), [monthNames, currentMonth, currentYear, minDate, maxDate]);
+    const allMonths = useMemo(() => DateUtils.getFilteredMonthItems(monthNames, currentMonth), [monthNames, currentMonth]);
 
     const {data, headerMessage} = useMemo(() => {
         const filteredMonths = searchText === '' ? allMonths : allMonths.filter((month) => month.text.toLowerCase().includes(searchText.toLowerCase()));
@@ -75,6 +69,7 @@ function MonthPickerModal({isVisible, currentMonth = new Date().getMonth(), curr
             shouldHandleNavigationBack
             shouldUseCustomBackdrop
             onBackdropPress={onClose}
+            shouldKeepRightDockedBackdropInNarrowPane={shouldEnableBackdropInNarrowPane}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper

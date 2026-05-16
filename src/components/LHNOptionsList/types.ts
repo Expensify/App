@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, View, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -71,20 +71,11 @@ type OptionRowLHNDataProps = {
     /** The derived report attributes for all reports */
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
 
-    /** The concierge report ID, hoisted from list level to avoid per-item subscription */
-    conciergeReportID: OnyxEntry<string>;
-
     /** TestID of the row, indicating order */
     testID: number;
 };
 
 type OptionRowLHNProps = {
-    /** The ID of the report that the option is for */
-    reportID: string;
-
-    /** The report for this option */
-    report?: Report;
-
     /** Whether this option is currently in focus so we can modify its style */
     isOptionFocused?: boolean;
 
@@ -94,11 +85,8 @@ type OptionRowLHNProps = {
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
 
-    /** Additional style props */
-    style?: StyleProp<TextStyle>;
-
     /** The item that should be rendered */
-    optionItem?: OptionData;
+    optionItem: OptionData;
 
     /** Whether a report contains a draft */
     hasDraftComment: boolean;
@@ -107,9 +95,6 @@ type OptionRowLHNProps = {
 
     /** The testID of the row */
     testID: number;
-
-    /** The concierge report ID from Onyx */
-    conciergeReportID: OnyxEntry<string>;
 };
 
 type RenderItemProps = {item: Report; index: number};

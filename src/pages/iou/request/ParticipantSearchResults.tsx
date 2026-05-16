@@ -119,6 +119,7 @@ function ParticipantSearchResults({
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
 }: ParticipantSearchResultsProps) {
+    const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
     const isCategorizeOrShareAction = action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE;
     const isAllowedToSplit =
@@ -164,7 +165,8 @@ function ParticipantSearchResults({
 
     // This is necessary to prevent showing the Manager McTest when there are multiple transactions being created
     const hasMultipleTransactions = optimisticTransactions.length > 1;
-    const canShowManagerMcTest = !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT && !hasMultipleTransactions;
+    const isCurrentUserMemberOfAnyPolicy = Object.values(allPolicies ?? {}).some((pol) => pol?.isPolicyExpenseChatEnabled && pol?.id && pol.id !== CONST.POLICY.ID_FAKE);
+    const canShowManagerMcTest = !hasBeenAddedToNudgeMigration && action !== CONST.IOU.ACTION.SUBMIT && !hasMultipleTransactions && !isCurrentUserMemberOfAnyPolicy;
 
     const getValidOptionsConfig = {
         selectedOptions: participants as Participant[],
@@ -223,7 +225,7 @@ function ParticipantSearchResults({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isCorporateCardTransaction,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -274,6 +276,7 @@ function ParticipantSearchResults({
     const sections: Array<Section<OptionWithKey>> = [];
     let header = '';
     if (areOptionsInitialized && didScreenTransitionEnd) {
+        const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
         const formatResults = formatSectionsFromSearchTerm(
             searchTerm,
             participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
@@ -292,7 +295,7 @@ function ParticipantSearchResults({
         if ((availableOptions.workspaceChats ?? []).length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),
-                data: availableOptions.workspaceChats ?? [],
+                data: (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option))),
                 sectionIndex: 1,
             });
         }
@@ -311,7 +314,7 @@ function ParticipantSearchResults({
             if (recentReports.length > 0) {
                 sections.push({
                     title: translate('common.recents'),
-                    data: recentReports,
+                    data: recentReports.filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option))),
                     sectionIndex: 3,
                 });
             }
@@ -319,7 +322,7 @@ function ParticipantSearchResults({
             if (availableOptions.personalDetails.length > 0 && !isPerDiemRequest && !isTimeRequest) {
                 sections.push({
                     title: translate('common.contacts'),
-                    data: availableOptions.personalDetails,
+                    data: availableOptions.personalDetails.filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option))),
                     sectionIndex: 4,
                 });
             }
@@ -425,7 +428,6 @@ function ParticipantSearchResults({
         // `InteractionManager.runAfterInteractions` is marked deprecated in RN types but remains the
         // supported primitive for deferring work until native animations/gestures settle. No
         // replacement exists in the RN API we can migrate to today.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     };
 
@@ -542,4 +544,3 @@ function ParticipantSearchResults({
 }
 
 export default ParticipantSearchResults;
-export type {ParticipantSearchResultsProps};

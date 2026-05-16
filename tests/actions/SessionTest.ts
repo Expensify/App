@@ -7,6 +7,7 @@ import {confirmReadyToOpenApp, openApp, reconnectApp} from '@libs/actions/App';
 import {buildOldDotURL, openExternalLink} from '@libs/actions/Link';
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {getAll as getAllPersistedRequests} from '@libs/actions/PersistedRequests';
+import {initReconnect} from '@libs/actions/Reconnect';
 import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
@@ -16,6 +17,7 @@ import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribeToPushNotifications';
+import reauthenticate from '@libs/Reauthentication';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import * as SessionUtil from '@src/libs/actions/Session';
@@ -56,12 +58,29 @@ Onyx.init({
 });
 
 OnyxUpdateManager();
+initReconnect();
 beforeEach(() => {
     setHasRadio(true);
     return Onyx.clear().then(waitForBatchedUpdates);
 });
 
 describe('Session', () => {
+    test('reauthenticate redirects to sign in with "No credentials available" when credentials are missing', async () => {
+        // Given no signed-in user — beforeEach calls Onyx.clear(), so NetworkStore's credentials are null
+
+        const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+
+        // When reauthenticate is called with no credentials stored
+        const result = await reauthenticate('TestCommand');
+        await waitForBatchedUpdates();
+
+        // Then it should redirect to sign in instead of attempting to call Authenticate with undefined credentials
+        expect(result).toBe(false);
+        expect(redirectToSignInSpy).toHaveBeenCalledWith('No credentials available');
+
+        redirectToSignInSpy.mockRestore();
+    });
+
     test('Authenticate is called with saved credentials when a session expires', async () => {
         // Given a test user and set of authToken with subscriptions to session and credentials
         const TEST_USER_LOGIN = 'test@testguy.com';

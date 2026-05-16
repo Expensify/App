@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Keyboard} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -17,6 +18,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
@@ -35,11 +37,12 @@ import {
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
-import {getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU';
+import {setMoneyRequestAmount, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU';
+import {getMoneyRequestParticipantsFromReport, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import {trackExpense} from '@userActions/IOU/TrackExpense';
@@ -97,6 +100,10 @@ function IOURequestStepAmount({
     const reportTransactions = useReportTransactions(report?.reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const iouOrExpenseReport = useReportOrReportDraft(report?.chatReportID);
+    const actualChatReportID = iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) ? iouOrExpenseReport.chatReportID : undefined;
+    const actualChatReport = useReportOrReportDraft(actualChatReportID);
+    const transactionAssociatedReport = useReportOrReportDraft(transaction?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -162,14 +169,13 @@ function IOURequestStepAmount({
         // When editing, report is the transaction thread. We need to get the actual chat report.
         // Transaction thread's chatReportID points to the IOU/expense report,
         // and the IOU/expense report's chatReportID points to the actual chat.
-        const iouOrExpenseReport = report?.chatReportID ? getReportOrDraftReport(report.chatReportID) : undefined;
         if (iouOrExpenseReport && isMoneyRequestReport(iouOrExpenseReport) && iouOrExpenseReport.chatReportID) {
-            return getReportOrDraftReport(iouOrExpenseReport.chatReportID);
+            return actualChatReport;
         }
 
         // Fallback to the passed report if we can't traverse
         return report;
-    }, [isEditing, report]);
+    }, [isEditing, report, iouOrExpenseReport, actualChatReport]);
 
     useFocusEffect(
         useCallback(() => {
@@ -371,7 +377,7 @@ function IOURequestStepAmount({
 
                 // Preserve user's participant selection to avoid forcing them back to default workspace.
                 const iouReportID = transaction?.reportID;
-                const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : getReportOrDraftReport(iouReportID);
+                const selectedReport = iouReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReport : transactionAssociatedReport;
                 const navigationIOUType = isSelfDM(selectedReport) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
                 const chatReportID = selectedReport?.chatReportID ?? selectedReport?.reportID;
 
@@ -391,12 +397,11 @@ function IOURequestStepAmount({
     const saveAmountAndCurrency = ({amount, paymentMethod}: AmountParams) => {
         const newAmount = convertToBackendAmount(Number.parseFloat(amount));
 
-        // Edits to the amount from the splits page should reset the split shares.
-        if (transaction?.splitShares) {
-            resetSplitShares(transaction, newAmount, selectedCurrency);
-        }
-
         if (!isEditing) {
+            // Edits to the amount from the splits page should reset the split shares.
+            if (transaction?.splitShares) {
+                resetSplitShares(transaction, newAmount, selectedCurrency, true);
+            }
             navigateToNextPage({amount, paymentMethod});
             return;
         }
@@ -419,6 +424,11 @@ function IOURequestStepAmount({
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount});
             navigateBack();
             return;
+        }
+
+        // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
+        if (transaction?.splitShares) {
+            resetSplitShares(transaction, newAmount, selectedCurrency, false);
         }
 
         updateMoneyRequestAmountAndCurrency({
@@ -444,6 +454,7 @@ function IOURequestStepAmount({
     };
 
     const hideCurrencyPicker = () => {
+        Keyboard.dismiss();
         setIsCurrencyPickerVisible(false);
     };
 
@@ -466,6 +477,7 @@ function IOURequestStepAmount({
             shouldShowWrapper={!!backTo || isEditing}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
+            shouldEnableKeyboardAvoidingView={false}
         >
             <IOURequestStepCurrencyModal
                 isPickerVisible={isCurrencyPickerVisible}

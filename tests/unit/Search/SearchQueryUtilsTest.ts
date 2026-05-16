@@ -411,6 +411,30 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense withdrawalType:expensify-card');
         });
 
+        test('with single withdrawal status filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense withdrawalStatus:pending');
+        });
+
+        test('with multi-value withdrawal status filter', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense withdrawalStatus:pending,cleared,failed');
+        });
+
         test('with withdrawn filter', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -894,6 +918,47 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        test('withdrawal status filter parses valid values and drops invalid ones', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            let queryString = 'sortBy:date sortOrder:desc type:expense withdrawal-status:pending,cleared,failed';
+            let queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            let result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.CLEARED, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
+            });
+
+            // invalid values are dropped, valid ones retained
+            queryString = 'sortBy:date sortOrder:desc type:expense withdrawal-status:pending,INVALID,failed';
+            queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result).toEqual({
+                type: 'expense',
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                withdrawalStatus: [CONST.SEARCH.SETTLEMENT_STATUS.PENDING, CONST.SEARCH.SETTLEMENT_STATUS.FAILED],
+            });
+        });
+
         test('parses negative backend amounts into filter form values', () => {
             const policyCategories = {};
             const policyTags = {};
@@ -1288,6 +1353,111 @@ describe('SearchQueryUtils', () => {
             // invalid should be filtered out, cash and card are valid CONST.SEARCH.TRANSACTION_TYPE values
             expect(result.expenseType).toEqual(['cash', 'card']);
         });
+
+        test('from:me resolves to current user account ID when currentUserAccountID is provided', () => {
+            const currentUserAccountID = 12345;
+            const queryString = 'type:expense from:me';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {
+                '12345': {
+                    accountID: 12345,
+                    login: 'testuser@example.com',
+                    displayName: 'Test User',
+                },
+            };
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(
+                queryJSON,
+                policyCategories,
+                policyTags,
+                currencyList,
+                personalDetails,
+                cardList,
+                reports,
+                taxRates,
+                undefined,
+                currentUserAccountID,
+            );
+
+            expect(result.from).toEqual(['12345']);
+        });
+
+        test('from:me is filtered out when currentUserAccountID is not provided', () => {
+            const queryString = 'type:expense from:me';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {
+                '12345': {
+                    accountID: 12345,
+                    login: 'testuser@example.com',
+                    displayName: 'Test User',
+                },
+            };
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result.from).toEqual([]);
+        });
+
+        test('to:me resolves to current user account ID', () => {
+            const currentUserAccountID = 99999;
+            const queryString = 'type:expense to:me';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {
+                '99999': {
+                    accountID: 99999,
+                    login: 'otheruser@example.com',
+                    displayName: 'Other User',
+                },
+            };
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(
+                queryJSON,
+                policyCategories,
+                policyTags,
+                currencyList,
+                personalDetails,
+                cardList,
+                reports,
+                taxRates,
+                undefined,
+                currentUserAccountID,
+            );
+
+            expect(result.to).toEqual(['99999']);
+        });
     });
 
     describe('shouldHighlight', () => {
@@ -1622,6 +1792,24 @@ describe('SearchQueryUtils', () => {
             const result = getFilterDisplayValue({
                 filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
                 filterValue: '12345',
+                personalDetails,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+            });
+
+            expect(result).toBe(CONST.SEARCH.ME);
+        });
+
+        it('should return "me" when filterValue is the literal "me" keyword', () => {
+            const personalDetails = {};
+
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: CONST.SEARCH.ME,
                 personalDetails,
                 reports: mockReports,
                 cardList: mockCardList,

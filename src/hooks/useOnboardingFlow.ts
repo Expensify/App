@@ -2,10 +2,10 @@ import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
 import {useEffect} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager} from 'react-native';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-imports
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
@@ -47,63 +47,65 @@ function useOnboardingFlowRouter() {
 
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const handle = InteractionManager.runAfterInteractions(() => {
-            // Prevent showing onboarding if we are logging in as a new user with short lived token
-            if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
-                return;
-            }
 
-            if (isLoadingApp !== false || isOnboardingLoading) {
-                return;
-            }
-
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata, dismissedProductTrainingMetadata)) {
-                return;
-            }
-
-            if (CONFIG.IS_HYBRID_APP && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
-                return;
-            }
-
-            if (CONFIG.IS_HYBRID_APP) {
-                // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
-                if (isSingleNewDotEntry) {
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                // Prevent showing onboarding if we are logging in as a new user with short lived token
+                if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
                     return;
                 }
 
-                // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
-                if (isHybridAppOnboardingCompleted === false) {
-                    Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
+                if (isLoadingApp !== false || isOnboardingLoading) {
+                    return;
                 }
-            }
 
-            const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
-            // OD signup sets inviteType + creates a workspace, so invited/group members can still need NewDot onboarding.
-            if (isMigratedUser || (isInvitedOrGroupMember && isOnboardingCompleted)) {
-                return;
-            }
+                if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata, dismissedProductTrainingMetadata)) {
+                    return;
+                }
 
-            // Explicitly start the onboarding flow when onboarding is not completed.
-            // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
-            // navigate goes through the router where OnboardingGuard would block the navigation.
-            // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
-            // Skip when HybridApp explanation modal is active (OldDot-transitioning users).
-            if (isOnboardingCompleted === false && !(CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false)) {
-                Navigation.waitForProtectedRoutes().then(() => {
-                    startOnboardingFlow({
-                        onboardingValuesParam: onboardingValues ?? undefined,
-                        isUserFromPublicDomain: !!account?.isFromPublicDomain,
-                        hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
-                        currentOnboardingCompanySize: onboardingCompanySize,
-                        currentOnboardingPurposeSelected: onboardingPurposeSelected,
-                        onboardingInitialPath,
-                        onboardingValues,
+                if (CONFIG.IS_HYBRID_APP && isLoadingOnyxValue(isSingleNewDotEntryMetadata)) {
+                    return;
+                }
+
+                if (CONFIG.IS_HYBRID_APP) {
+                    // For single entries, such as using the Travel feature from OldDot, we don't want to show onboarding
+                    if (isSingleNewDotEntry) {
+                        return;
+                    }
+
+                    // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
+                    if (isHybridAppOnboardingCompleted === false) {
+                        Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
+                    }
+                }
+
+                const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                const isInvitedOrGroupMember = (!CONFIG.IS_HYBRID_APP && (hasNonPersonalPolicy || wasInvitedToNewDot)) ?? false;
+                // OD signup sets inviteType + creates a workspace, so invited/group members can still need NewDot onboarding.
+                if (isMigratedUser || (isInvitedOrGroupMember && isOnboardingCompleted)) {
+                    return;
+                }
+
+                // Explicitly start the onboarding flow when onboarding is not completed.
+                // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
+                // navigate goes through the router where OnboardingGuard would block the navigation.
+                // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
+                // Skip when HybridApp explanation modal is active (OldDot-transitioning users).
+                if (isOnboardingCompleted === false && !(CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false)) {
+                    Navigation.waitForProtectedRoutes().then(() => {
+                        startOnboardingFlow({
+                            onboardingValuesParam: onboardingValues ?? undefined,
+                            isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                            hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                            currentOnboardingCompanySize: onboardingCompanySize,
+                            currentOnboardingPurposeSelected: onboardingPurposeSelected,
+                            onboardingInitialPath,
+                            onboardingValues,
+                        });
                     });
-                });
-            }
+                }
+            },
         });
 
         return () => {
