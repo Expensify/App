@@ -434,7 +434,7 @@ const ViolationsUtils = {
         if (customUnitRateID && customUnitRateID.length > 0 && !isSelfDM) {
             const isPerDiem = TransactionUtils.isPerDiemRequest(updatedTransaction);
             const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policy, customUnitRateID);
-            if (customRate) {
+            if (customRate && customRate.enabled !== false) {
                 newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
             } else {
                 newTransactionViolations.push({
