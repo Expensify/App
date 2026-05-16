@@ -66,6 +66,7 @@ type UpdateMoneyRequestDateParams = {
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
     hash?: number;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 };
 
@@ -213,6 +214,7 @@ function updateMoneyRequestBillable({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
@@ -266,6 +268,7 @@ function updateMoneyRequestReimbursable({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 }) {
     if (!transactionID || !transactionThreadReport?.reportID) {
@@ -321,6 +324,7 @@ function updateMoneyRequestMerchant({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 }) {
     const transactionChanges: TransactionChanges = {
@@ -381,6 +385,7 @@ function updateMoneyRequestAttendees({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 }) {
     const transactionChanges: TransactionChanges = {
@@ -421,6 +426,7 @@ type UpdateMoneyRequestTagParams = {
     isASAPSubmitBetaEnabled: boolean;
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 };
 
@@ -491,6 +497,7 @@ function updateMoneyRequestTaxAmount({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 }) {
     const transactionChanges = {
@@ -529,6 +536,7 @@ type UpdateMoneyRequestTaxRateParams = {
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 };
 
@@ -593,6 +601,7 @@ type UpdateMoneyRequestDistanceParams = {
     odometerEnd?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 };
 
@@ -743,6 +752,7 @@ function updateMoneyRequestCategory({
     isASAPSubmitBetaEnabled: boolean;
     hash?: number;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 }) {
     const transactionChanges: TransactionChanges = {
@@ -798,6 +808,7 @@ function updateMoneyRequestDescription({
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 }) {
     const parsedComment = getParsedComment(comment);
@@ -864,6 +875,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode?: string;
     updatedTaxValue?: string;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 }) {
     const transactionChanges: TransactionChanges = {
@@ -935,6 +947,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     policyRecentlyUsedCurrencies: string[];
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     hash?: number;
+    // TODO: delegateAccountID: will be made required in PR 8c+d when all component callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number;
 };
 
