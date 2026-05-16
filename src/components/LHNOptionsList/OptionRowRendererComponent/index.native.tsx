@@ -15,7 +15,6 @@ type OptionRowRendererComponentProps = {
 function OptionRowRendererComponent({...props}: OptionRowRendererComponentProps) {
     return (
         <View
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             style={[props.style, {zIndex: -props.index}]}
         />

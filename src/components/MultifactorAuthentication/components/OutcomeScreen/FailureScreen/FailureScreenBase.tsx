@@ -37,4 +37,3 @@ function FailureScreenBase({headerTitle = 'multifactorAuthentication.verificatio
 FailureScreenBase.displayName = 'FailureScreenBase';
 
 export default FailureScreenBase;
-export type {FailureScreenBaseProps};
