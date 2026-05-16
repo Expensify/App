@@ -52,6 +52,7 @@
     "knip": "KNIP=true knip --include dependencies --exclude unlisted --no-exit-code --reporter compact",
     "knip:full": "KNIP=true knip --reporter compact",
     "knip:json": "KNIP=true knip --reporter json --no-exit-code",
+    "knip-changed": "./scripts/knip-changed.sh",
     "shellcheck": "./scripts/shellCheck.sh",
     "spell": "cspell --color **/*",
     "spell-changed": "cspell --color --no-must-find-files",
