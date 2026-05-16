@@ -5533,6 +5533,9 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
             CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+            CONST.SEARCH.TABLE_COLUMNS.MCC,
+            CONST.SEARCH.TABLE_COLUMNS.TAX_CODE,
+            CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
         ]);
 
         return customResult.filter((col) => nonDataColumns.has(col) || columns[col]);

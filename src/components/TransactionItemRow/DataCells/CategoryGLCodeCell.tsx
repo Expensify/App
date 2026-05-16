@@ -11,7 +11,8 @@ type CategoryGLCodeCellProps = {
 
 function CategoryGLCodeCell({transactionItem, policyID}: CategoryGLCodeCellProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID ?? ''}`);
-    const glCode = policyCategories?.[transactionItem.category ?? '']?.['GL Code'] ?? '';
+    const categoryName = transactionItem.modifiedCategory ?? transactionItem.category ?? '';
+    const glCode = policyCategories?.[categoryName]?.glCode ?? policyCategories?.[categoryName]?.['GL Code'] ?? '';
 
     return <TextCell text={glCode} />;
 }

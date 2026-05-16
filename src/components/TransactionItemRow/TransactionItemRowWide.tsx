@@ -488,7 +488,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_CODE)]}
                     >
-                        <TextCell text={transactionItem.comment?.taxCode ?? ''} />
+                        <TextCell text={transactionItem.taxCode ?? transactionItem.comment?.taxCode ?? ''} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
