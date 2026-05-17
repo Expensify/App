@@ -357,7 +357,7 @@ describe('useCreateReport', () => {
 
     describe('empty report confirmation dismissed', () => {
         it('calls onCreateReport directly when confirmation was previously dismissed', () => {
-            mockUseShouldShowEmptyReportConfirmation.mockReturnValue(true);
+            mockUseShouldShowEmptyReportConfirmation.mockReturnValue(false);
             setupUseOnyx({
                 [ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED]: true,
             });
