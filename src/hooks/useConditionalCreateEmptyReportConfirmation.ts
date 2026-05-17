@@ -33,7 +33,7 @@ export default function useConditionalCreateEmptyReportConfirmation({
     onCancel,
     shouldBypassConfirmation = false,
 }: UseConditionalCreateEmptyReportConfirmationParams): UseConditionalCreateEmptyReportConfirmationResult {
-    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(policyID);
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(policyID, shouldBypassConfirmation);
 
     const handleReportCreationConfirmed = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
