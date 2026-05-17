@@ -29,7 +29,7 @@ function TagCell({canEdit, onSave, shouldUseNarrowLayout, shouldShowTooltip, tra
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: transactionItem?.tag ?? '',
-        onSave: (newTag: string) => onSave?.(newTag),
+        onSave,
     });
 
     const tagForDisplay = getTagForDisplay(transactionItem);

@@ -28,7 +28,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing, handleSave} = usePopoverEditState({
         canEdit,
         value: categoryForComparison,
-        onSave: (newCategory: string) => onSave?.(newCategory),
+        onSave,
     });
 
     const handleCategorySelected = (item: ListItem) => {
