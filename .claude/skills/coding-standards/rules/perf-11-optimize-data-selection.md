@@ -126,18 +126,21 @@ const [hasEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
 
 Flag ONLY when ANY of these are true:
 
-- A component uses `useOnyx` and either:
-  - Subscribes to a broad data structure without selecting specific fields, causing re-renders when unrelated fields change
-  - Uses a `selector` whose output is still large or complex (e.g., full collection, large mapped/transformed result, `Set`, `Map`), or returns an intermediate data structure that is further reduced by the component
+- **Single-key subscriptions without selectors**: A component subscribes to a single Onyx key via `useOnyx` without a selector and only uses a few fields - recommend a selector that picks just those fields (cheap `deepEqual` on a small object)
+- **Collection subscriptions with expensive selectors**: A `selector` on a collection key returns a large or complex output (e.g., full mapped collection, arrays of objects, `Set`, `Map`) - the `deepEqual` cost negates the re-render savings. Recommend subscribing without a selector and transforming inline via `useMemo`.
+- **Per-row list item components subscribing to entire collections**: This is the strongest anti-pattern - a component rendered per row in a list should never subscribe to a full collection. Always flag this.
 - A selector on a collection references other large external datasets (e.g., another Onyx collection passed via closure) and iterates over them on every change to the subscribed collection, compounding the computation cost on unrelated updates
 
 **DO NOT flag if:**
 
 - The selector returns a primitive value (`boolean`, `string`, `number`, `undefined`)
 - The selector returns a small object with only a few fields picked from a single item (not a collection)
-- The selector meaningfully reduces a large dataset to a small result (e.g., a primitive or a few items) by iterating over the subscribed collection itself — the `deepEqual` cost on a small result is negligible
+- The selector meaningfully reduces a large dataset to a small result (e.g., a primitive or a few items) by iterating over the subscribed collection itself - the `deepEqual` cost on a small result is negligible
+- A **collection-level selector returns a primitive or boolean** (e.g., `selector: (collection) => !!someCheck(collection)`) - this is fine since `deepEqual` on a primitive is trivial
+- A **collection-level selector picks a small number of primitive fields per item** and the consuming component is expensive to re-render (many hooks, heavy derived computations) - the `deepEqual` tradeoff may be worthwhile. Do not blanket-reject these; instead note the tradeoff.
 - The `useOnyx` call is on a single-item key (not a collection), and the selector picks specific fields
 - The data structure is static or the function requires the entire object for valid operations
+- The **full collection is genuinely needed** by the consuming logic and no practical narrowing exists (e.g., a search component that filters across all items)
 
 **Search Patterns** (hints for reviewers):
 - `useOnyx`

@@ -69,6 +69,13 @@ Flag ONLY when ALL of these are true:
 - The code is intentionally duplicated for performance reasons or due to external constraints
 - The duplication is in test or mock code
 - The duplication is a temporary measure with a plan for refactoring
+- Hooks or decomposed components **independently subscribe to the same Onyx keys by ID** - this follows the established "hooks own their data - pass IDs not objects" pattern where each hook encapsulates its own data dependencies rather than receiving pre-fetched objects as props
+- Two code paths appear similar but serve **different features, report types, or execution contexts** (e.g., different list components, different backend behaviors). Frame the observation as a question ("Are these paths intentionally different?") rather than asserting a bug.
+
+**When suggesting extraction of a shared hook or utility, verify that:**
+- Consumers do not need intermediate values that would be hidden by the abstraction
+- The proposed hook would not hide expensive subscriptions (e.g., multiple `useOnyx` calls) behind a simple-looking interface
+- The abstraction boundary represents a meaningful concept, not just coincidental code similarity
 
 **Search Patterns** (hints for reviewers):
 - Similar code patterns repeated across files/components

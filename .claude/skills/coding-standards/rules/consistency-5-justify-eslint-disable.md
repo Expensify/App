@@ -40,6 +40,7 @@ Flag ONLY when ALL of these are true:
 **DO NOT flag if:**
 
 - The disablement is justified with a clear comment explaining why the rule is disabled
+- The eslint-disable suppresses a **widely-known deprecated API with no available replacement** (e.g., `InteractionManager.runAfterInteractions`) - the justification is self-evident across the codebase. If the disable comment is missing, suggest a standard justification rather than treating it as a blocking violation.
 
 **Search Patterns** (hints for reviewers):
 - `eslint-disable`

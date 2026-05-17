@@ -127,3 +127,6 @@ The goal is to fix the root cause (make code compiler-friendly) rather than slap
 - The file does not compile with React Compiler (verified by the compliance check in the Verification section above)
 - The code is inside `node_modules/`, `patches/`, or test fixtures
 - The manual memoization exists in unchanged lines (pre-existing code not touched by the diff)
+- `React.memo` uses a **custom comparator** and the component receives props from a **third-party library** (e.g., `victory-native`, `react-native-reanimated`) that produces fresh object references the compiler cannot stabilize. In this case, suggest documenting why the custom comparator is needed rather than removing it.
+- `useCallback`/`useMemo` is used to **stabilize values passed to a React Context Provider** and the PR description or discussion indicates the memoization is an intentional fix for cascading re-renders or crashes in consumers. Suggest verifying compiler output rather than outright removal.
+- The memoization is an **explicit fix for a known crash or performance regression** (evidenced by the PR description, linked issue, or commit message). Suggest verifying the compiler handles it rather than demanding removal.

@@ -203,6 +203,8 @@ Flag when a component, hook, or utility aggregates multiple unrelated responsibi
 - Effects are extracted into focused custom hooks with single responsibilities (e.g., `useDebugShortcut`, `usePriorityMode`) — inline `useEffect` calls are a code smell and should be named hooks
 - The internal function is a **callback or event handler** (e.g., `handlePress`, `onSubmit`), not a render helper — only functions that return JSX qualify
 - The internal function is a **single early return** for a guard clause (e.g., `if (!data) return <EmptyState />;` at the top of the component) — simple guards in the component body are not render helpers
+- The internal function is a **simple conditional dispatcher** (switch/if-else) that returns already-extracted, independently-defined components — the memoization concern does not apply when the helper just selects which existing component to render rather than containing significant inline JSX
+- A `useEffect` is added to a **context provider** and the effect directly reacts to the provider's own state (e.g., triggering an action when the provider's state reaches a specific value). Only flag effects that introduce genuinely unrelated responsibilities to the provider's domain.
 
 **Search Patterns** (hints for reviewers):
 - `useEffect`
