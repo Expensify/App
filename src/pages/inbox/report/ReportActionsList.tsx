@@ -72,6 +72,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import getReportActionsListInitialNumToRender from './getReportActionsListInitialNumToRender';
+import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
@@ -841,7 +842,9 @@ function ReportActionsList({
         () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived), draftReportAction?.reportActionID, draftMessageHTML],
         [draftMessageHTML, draftReportAction?.reportActionID, unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
     );
-    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
+    const {editingReportActionID} = useReportActionActiveEdit();
+    const shouldShowComposerForActiveEditDraft = shouldUseNarrowLayout && editingReportActionID !== null;
+    const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
     const canShowHeader = isOffline || hasHeaderRendered.current;
 

@@ -32,6 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
+import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
@@ -77,6 +78,10 @@ function ReportFooter() {
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
+    const {editingReportActionID} = useReportActionActiveEdit();
+
+    // Narrow-screen edits use the bottom composer (#90516); mount it when a draft exists even if posting is admin-only.
+    const shouldShowComposerForActiveEditDraft = shouldUseNarrowLayout && editingReportActionID !== null;
 
     if (!isCurrentReportLoadedFromOnyx || !report || !reportIDFromRoute) {
         return null;
@@ -84,15 +89,17 @@ function ReportFooter() {
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
 
+    const renderComposer = () => (
+        <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                <ReportActionCompose reportID={reportIDFromRoute} />
+            </SwipeableView>
+        </View>
+    );
+
     // Happy path — user can compose
     if (!shouldHideComposer) {
-        return (
-            <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-                <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                    <ReportActionCompose reportID={reportIDFromRoute} />
-                </SwipeableView>
-            </View>
-        );
+        return renderComposer();
     }
 
     // Archived room
@@ -153,6 +160,10 @@ function ReportFooter() {
 
     // Admins-only room
     if (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) {
+        if (shouldShowComposerForActiveEditDraft) {
+            return renderComposer();
+        }
+
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <Banner
