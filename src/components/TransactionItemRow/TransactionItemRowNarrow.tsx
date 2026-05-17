@@ -120,7 +120,6 @@ function TransactionItemRowNarrow({
                                     transactionItem={transactionItem}
                                     shouldShowTooltip={shouldShowTooltip}
                                     shouldUseNarrowLayout
-                                    report={report}
                                 />
                             </View>
                         </View>
