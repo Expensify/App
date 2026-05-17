@@ -16,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import {setMoneyRequestDistanceRate} from '@libs/actions/IOU/MoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getOptimisticRateName, validateCreateDistanceRateForm, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
