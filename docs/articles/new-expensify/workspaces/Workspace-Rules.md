@@ -77,8 +77,9 @@ To enable it:
 3. Toggle it on and select any categories to monitor:
    - Alcohol
    - Gambling
-   - Tobacco
+   - Handwritten receipts
    - Hotel Incidentals
+   - Tobacco
    - Adult Entertainment
 
 **Note:** Violations appear in both New Expensify and Expensify Classic, but the rule must be enabled in **New Expensify**.

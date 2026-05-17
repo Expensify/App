@@ -13,6 +13,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
+import type OnboardingRHPVariant from '@src/types/onyx/OnboardingRHPVariant';
 import type {OnboardingCompanySize} from './OnboardingFlow';
 import { getMicroSecondOnyxErrorWithMessage } from '@libs/ErrorUtils';
 import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
@@ -65,6 +66,10 @@ function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
 
 function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
+function setOnboardingRHPVariant(value?: OnboardingRHPVariant) {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, value ?? null);
 }
 
 function updateOnboardingLastVisitedPath(path: string) {
@@ -205,6 +210,7 @@ export {
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
+    setOnboardingRHPVariant,
     completeHybridAppOnboarding,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,

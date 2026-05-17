@@ -54,6 +54,8 @@ jest.mock('@libs/Navigation/Navigation', () => {
     };
     return {
         navigate: jest.fn(),
+        getActiveRouteWithoutParams: jest.fn(() => ''),
+        isNavigationReady: jest.fn(() => Promise.resolve()),
         goBack: jest.fn(),
         navigationRef: mockRef,
     };
@@ -127,11 +129,12 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         isTimeRequest: false,
         showMoreFields: false,
         setShowMoreFields: jest.fn(),
+        clearFormErrors: jest.fn(),
+        setFormError: jest.fn(),
     };
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <ScreenWrapper testID="MoneyRequestConfirmationListFooter">
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <MoneyRequestConfirmationListFooter {...defaultProps} />
             </ScreenWrapper>
         </ComposeProviders>,

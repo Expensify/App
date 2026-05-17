@@ -79,7 +79,7 @@ function buildConfirmAction({
     onConfirm,
     onSendMoney,
 }: BuildConfirmActionParams) {
-    return ({paymentType: paymentMethod}: PaymentActionParams) => {
+    return ({paymentType: paymentMethod}: PaymentActionParams = {}) => {
         // Routing short-circuit: invoices without company info go to the company info step before we validate anything.
         if (iouType === CONST.IOU.TYPE.INVOICE && !hasInvoicingDetails(policy) && transactionID && !routeError) {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.getRoute(iouType, transactionID, reportID, Navigation.getActiveRoute()));
