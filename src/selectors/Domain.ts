@@ -135,7 +135,7 @@ function selectSecurityGroupForAccount(accountID: number) {
 
             const [key, group] = entry;
 
-            if (group.shared && accountIDStr in group.shared) {
+            if (group.shared?.[accountIDStr] != null) {
                 return {
                     key,
                     securityGroup: group,
@@ -182,6 +182,16 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
 
 const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];
 
+function selectRestrictedPrimaryPolicyID(groupID?: string) {
+    return (domain: OnyxEntry<Domain>): string | undefined => {
+        const targetGroup = groupsSelector(domain)?.find((g) => g.id === groupID);
+        if (!targetGroup?.details.enableRestrictedPrimaryPolicy || !targetGroup?.details.restrictedPrimaryPolicyID) {
+            return undefined;
+        }
+        return targetGroup.details.restrictedPrimaryPolicyID;
+    };
+}
+
 /**
  * Creates a selector that checks if a given account ID is an admin of the domain.
  * It checks whether the account ID appears as a value in any expensify_adminPermissions_* entry.
@@ -215,8 +225,17 @@ function domainSecurityGroupSettingErrorsSelector(settingName: keyof DomainSecur
     };
 }
 
+/** Creates a selector that returns true if a security group has any pending delete action. */
+function isSecurityGroupPendingDeleteSelector(groupID?: string) {
+    return (domainPendingActions: OnyxEntry<DomainPendingActions>): boolean => {
+        const groupPendingActions = domainPendingActions?.[`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`];
+        return Object.values(groupPendingActions ?? {}).some((action) => action === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    };
+}
+
 export {
     domainMemberSettingsSelector,
+    selectRestrictedPrimaryPolicyID,
     domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
     domainNameSelector,
@@ -237,6 +256,7 @@ export {
     selectGroupByID,
     domainSecurityGroupSettingPendingActionSelector,
     domainSecurityGroupSettingErrorsSelector,
+    isSecurityGroupPendingDeleteSelector,
 };
 
 export {type DomainSecurityGroupWithID};

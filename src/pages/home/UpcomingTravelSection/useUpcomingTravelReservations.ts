@@ -1,30 +1,18 @@
 import {accountIDSelector} from '@selectors/Session';
 import {useMemo} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
-import {isTripRoom} from '@libs/ReportUtils';
 import type {ReservationData} from '@libs/TripReservationUtils';
 import {getReservationsFromTripReport} from '@libs/TripReservationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+import useTripRoomReports from './useTripRoomReports';
 
 type UpcomingReservation = ReservationData & {
     reportID: string;
 };
 
-const tripRoomSelector = (report: OnyxEntry<Report>): Report | undefined => {
-    if (!report || !isTripRoom(report)) {
-        return;
-    }
-    return report;
-};
-
-const allTripRoomsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, tripRoomSelector);
-
 function useUpcomingTravelReservations(): UpcomingReservation[] {
-    const [tripRoomReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: allTripRoomsSelector});
+    const tripRoomReports = useTripRoomReports();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     return useMemo(() => {
@@ -32,12 +20,11 @@ function useUpcomingTravelReservations(): UpcomingReservation[] {
         const windowEnd = new Date(now);
         windowEnd.setDate(windowEnd.getDate() + CONST.UPCOMING_TRAVEL_WINDOW_DAYS);
 
-        const reports = Object.values(tripRoomReports ?? {});
         const upcoming: UpcomingReservation[] = [];
 
-        for (const report of reports) {
+        for (const report of tripRoomReports) {
             // Only include reservations where the current user is the traveler
-            if (!report || report.ownerAccountID !== accountID) {
+            if (report.ownerAccountID !== accountID) {
                 continue;
             }
             const reservations = getReservationsFromTripReport(report);
