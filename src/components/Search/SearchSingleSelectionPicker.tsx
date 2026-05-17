@@ -85,7 +85,7 @@ function SearchSingleSelectionPicker({
         : [
               {
                   title: undefined,
-                  data: [...noneItem, ...initiallySelectedItemSection],
+                  data: [...initiallySelectedItemSection, ...noneItem],
                   sectionIndex: 0,
               },
               {
