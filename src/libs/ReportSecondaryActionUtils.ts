@@ -567,7 +567,7 @@ function isHoldActionForTransaction(
     const isActionOwner = isActionCreator(reportAction);
 
     if (isOpenExpenseReport(report)) {
-        return isActionOwner;
+        return isActionOwner && canHoldRequest;
     }
 
     if (!iouOrExpenseReport || !canHoldRequest) {
