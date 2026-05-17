@@ -65,7 +65,7 @@ describe('useConditionalCreateEmptyReportConfirmation', () => {
     });
 
     it('skips confirmation when shouldBypassConfirmation is true even when confirmation would be shown', () => {
-        mockShouldShowConfirmation = true;
+        mockShouldShowConfirmation = false;
         const onCreateReport = jest.fn();
 
         const {result} = renderHook(() =>

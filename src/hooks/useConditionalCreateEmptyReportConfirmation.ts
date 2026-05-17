@@ -50,13 +50,13 @@ export default function useConditionalCreateEmptyReportConfirmation({
     });
 
     const handleCreateReport = useCallback(() => {
-        if (shouldShowEmptyReportConfirmation && !shouldBypassConfirmation) {
+        if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
             return;
         }
 
         onCreateReport(false);
-    }, [shouldShowEmptyReportConfirmation, shouldBypassConfirmation, onCreateReport, openCreateReportConfirmation]);
+    }, [shouldShowEmptyReportConfirmation, onCreateReport, openCreateReportConfirmation]);
 
     return {
         handleCreateReport,
