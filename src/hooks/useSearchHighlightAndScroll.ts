@@ -14,7 +14,6 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -227,40 +226,23 @@ function useSearchHighlightAndScroll({
             }
 
             const newKeys = new Set<string>();
+            const consumedManualIDs: string[] = [];
             for (const id of newTransactionIDs) {
                 const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
                 highlightedIDs.current.add(newTransactionKey);
                 newKeys.add(newTransactionKey);
+                if (manualHighlightTransactionIDs.has(id)) {
+                    consumedManualIDs.push(id);
+                }
             }
             setNewSearchResultKeys(newKeys);
+
+            // Clear consumed manual highlight flags so subsequent detect runs don't re-highlight the same IDs.
+            if (consumedManualIDs.length > 0) {
+                mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(consumedManualIDs.map((id) => [id, false])));
+            }
         }
-    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight]);
-
-    // Reset transactionIDsToHighlight after they have been highlighted
-    useEffect(() => {
-        if (isEmptyObject(transactionIDsToHighlight) || newSearchResultKeys === null) {
-            return;
-        }
-
-        const highlightedTransactionIDs = Object.keys(transactionIDsToHighlight).filter(
-            (id) => transactionIDsToHighlight[id] && newSearchResultKeys?.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`),
-        );
-
-        // We need to use requestAnimationFrame here to ensure that setTimeout actually starts
-        // only after the user has navigated to the "Reports > Expenses" page.
-        // Otherwise, there is still a chance we might miss the timing because setTimeout runs too early,
-        // causing the highlight not to appear.
-        let timer: NodeJS.Timeout;
-        const animation = requestAnimationFrame(() => {
-            timer = setTimeout(() => {
-                mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(highlightedTransactionIDs.map((id) => [id, false])));
-            }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
-        });
-        return () => {
-            clearTimeout(timer);
-            cancelAnimationFrame(animation);
-        };
-    }, [transactionIDsToHighlight, queryJSON.type, newSearchResultKeys]);
+    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight, queryJSON.type]);
 
     // Remove transactionIDsToHighlight when the user leaves the current search type
     useEffect(
@@ -329,7 +311,9 @@ function useSearchHighlightAndScroll({
         triggeredByHookRef.current = false;
     };
 
-    return {newSearchResultKeys, handleSelectionListScroll, newTransactions};
+    const hasQueuedHighlights = newSearchResultKeys !== null && newSearchResultKeys.size > 0;
+
+    return {newSearchResultKeys, handleSelectionListScroll, newTransactions, hasQueuedHighlights};
 }
 
 /**

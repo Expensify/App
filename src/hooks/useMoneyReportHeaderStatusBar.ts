@@ -137,4 +137,3 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
 }
 
 export default useMoneyReportHeaderStatusBar;
-export type {StatusBarType};
