@@ -649,32 +649,6 @@ function mergeTransactionRequest({
             });
         }
 
-        if (targetIOUActionOnOriginalReport) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mergeTransaction.reportID}`,
-                value: {
-                    [targetIOUActionOnOriginalReport.reportActionID]: null,
-                },
-            });
-
-            successData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mergeTransaction.reportID}`,
-                value: {
-                    [targetIOUActionOnOriginalReport.reportActionID]: null,
-                },
-            });
-
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mergeTransaction.reportID}`,
-                value: {
-                    [targetIOUActionOnOriginalReport.reportActionID]: targetIOUActionOnOriginalReport,
-                },
-            });
-        }
-
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mergeTransaction.reportID}`,
@@ -701,8 +675,8 @@ function mergeTransactionRequest({
 
         // Remove the surviving expense's IOU action from its original report so it does not
         // appear in both reports during offline/optimistic state.
-        const targetIOUAction = targetIOUActionOnOriginalReport ?? getIOUActionForReportID(targetTransaction.reportID, targetTransaction.transactionID);
-        if (targetIOUAction) {
+        if (targetIOUActionOnOriginalReport) {
+            const targetIOUAction = targetIOUActionOnOriginalReport;
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction.reportID}`,
