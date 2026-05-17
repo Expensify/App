@@ -91,7 +91,9 @@ function useEditComposerToggle({selection, composerRef, onFocus, onValueChange, 
             }
 
             // When editing ends, focus the main composer again.
-            onFocus?.();
+            if (wasEditingRef.current) {
+                onFocus?.();
+            }
 
             wasEditingRef.current = false;
             wasEditingInComposerRef.current = shouldUseNarrowLayout;
