@@ -457,8 +457,10 @@ function PureReportActionItem({
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
 
     const hasActionErrors = !isEmptyValueObject(action.errors);
+
     // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
     const hasOnlyReceiptErrors = hasActionErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
+
     const isContextMenuDisabled = useMemo(() => {
         return draftMessage !== undefined || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
     }, [draftMessage, hasActionErrors, hasOnlyReceiptErrors, shouldDisplayContextMenuValue]);
