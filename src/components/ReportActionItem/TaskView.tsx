@@ -254,6 +254,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                                 shouldGreyOutWhenDisabled={false}
                                 numberOfLinesTitle={0}
+                                interactive={!isDisableInteractive}
                                 shouldUseDefaultCursorWhenDisabled
                                 sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_DESCRIPTION}
                             />
