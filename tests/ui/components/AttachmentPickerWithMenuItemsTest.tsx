@@ -1,7 +1,7 @@
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import {View} from 'react-native';
+import type {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -35,28 +35,25 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isTopmostRouteModalScreen: jest.fn(() => false),
 }));
 
-jest.mock(
-    '@components/PopoverMenu',
-    () =>
-        ({children, menuItems, onItemSelected}: {children?: React.ReactNode; menuItems: Array<{text: string; onSelected: () => void}>; onItemSelected?: () => void}) => {
-            const RN = jest.requireActual<typeof import('react-native')>('react-native');
-            return (
-                <RN.View>
-                    {menuItems?.map((item: {text: string; onSelected: () => void}) => (
-                        <RN.Pressable
-                            key={item.text}
-                            onPress={() => {
-                                item.onSelected();
-                                onItemSelected?.();
-                            }}
-                        >
-                            <RN.Text>{item.text}</RN.Text>
-                        </RN.Pressable>
-                    ))}
-                </RN.View>
-            );
-        },
-);
+jest.mock('@components/PopoverMenu', () => ({menuItems, onItemSelected}: {menuItems: Array<{text: string; onSelected: () => void}>; onItemSelected?: () => void}) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const RN = jest.requireActual<typeof import('react-native')>('react-native');
+    return (
+        <RN.View>
+            {menuItems?.map((item: {text: string; onSelected: () => void}) => (
+                <RN.Pressable
+                    key={item.text}
+                    onPress={() => {
+                        item.onSelected();
+                        onItemSelected?.();
+                    }}
+                >
+                    <RN.Text>{item.text}</RN.Text>
+                </RN.Pressable>
+            ))}
+        </RN.View>
+    );
+});
 
 jest.mock(
     '@components/AttachmentPicker',
