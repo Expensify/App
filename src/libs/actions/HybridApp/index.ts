@@ -37,9 +37,11 @@ function updateTryNewDotLoadingState(isTryNewDotUpdate = false, isInitialTryNewD
 Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
     callback: (hybridApp) => {
-        if (!hybridApp?.closingReactNativeApp) {
-            isClosingReactNativeApp = false;
+        if (hybridApp?.closingReactNativeApp) {
+            return;
         }
+
+        isClosingReactNativeApp = false;
     },
 });
 
