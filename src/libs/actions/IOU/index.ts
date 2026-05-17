@@ -2,16 +2,10 @@ import type {OnyxCollection, OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
-import Log from '@libs/Log';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import {getCategoryTaxDetails, getDistanceInMeters, isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
-import type {Unit} from '@src/types/onyx/Policy';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -334,37 +328,6 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
-function setMoneyRequestTimeRate(transactionID: string, rate: number, isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {units: {rate}}});
-}
-
-function setMoneyRequestTimeCount(transactionID: string, count: number, isDraft: boolean) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {units: {count}}});
-}
-
-/**
- * Sets the category for a money request transaction draft.
- * @param transactionID - The transaction ID
- * @param category - The category name
- * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
- * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
- */
-function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>, isMovingFromTrackExpense?: boolean) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
-    if (isMovingFromTrackExpense) {
-        return;
-    }
-    if (!policy) {
-        setMoneyRequestTaxRateValues(transactionID, {taxCode: '', taxAmount: null, taxValue: null});
-        return;
-    }
-    const transaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy);
-    if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
-        setMoneyRequestTaxRateValues(transactionID, {taxCode: categoryTaxCode, taxAmount: categoryTaxAmount, taxValue: categoryTaxValue});
-    }
-}
-
 function setMoneyRequestTag(transactionID: string, tag: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
 }
@@ -381,173 +344,21 @@ function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
 }
 
-/**
- * Set custom unit rateID for the transaction draft, also updates quantity and distanceUnit
- * if passed transaction previously had it to make sure that transaction does not have inconsistent
- * states (for example distanceUnit not matching distance unit of the new customUnitRateID)
- */
-function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined, transaction: OnyxEntry<OnyxTypes.Transaction>, policy: OnyxEntry<OnyxTypes.Policy>) {
-    const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-
-    let newDistanceUnit: Unit | undefined;
-    let newQuantity: number | undefined;
-
-    if (customUnitRateID && transaction) {
-        const distanceRate = isFakeP2PRate
-            ? DistanceRequestUtils.getRate({transaction: undefined, policy: undefined, useTransactionDistanceUnit: false, isFakeP2PRate})
-            : DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
-
-        const transactionDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
-        const transactionQuantity = transaction.comment?.customUnit?.quantity;
-
-        const shouldUpdateDistanceUnit = !!transactionDistanceUnit && !!distanceRate?.unit;
-        const shouldUpdateQuantity = transactionQuantity !== null && transactionQuantity !== undefined;
-
-        if (shouldUpdateDistanceUnit) {
-            newDistanceUnit = distanceRate.unit;
-        }
-        if (shouldUpdateQuantity && !!distanceRate?.unit) {
-            const newQuantityInMeters = getDistanceInMeters(transaction, transactionDistanceUnit);
-
-            // getDistanceInMeters returns 0 only if there was not enough input to get the correct
-            // distance in meters or if the current transaction distance is 0
-            if (newQuantityInMeters !== 0) {
-                newQuantity = DistanceRequestUtils.convertDistanceUnit(newQuantityInMeters, distanceRate.unit);
-            }
-        }
-    }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        comment: {
-            customUnit: {
-                customUnitRateID,
-                ...(!isFakeP2PRate && {defaultP2PRate: null}),
-                distanceUnit: newDistanceUnit,
-                quantity: newQuantity,
-            },
-        },
-    });
-}
-
-function setGPSTransactionDraftData(transactionID: string, gpsDraftDetails: OnyxTypes.GpsDraftDetails | undefined, distance: number) {
-    const waypoints = getGPSWaypoints(gpsDraftDetails);
-    const routes = getGPSRoutes(gpsDraftDetails);
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-        comment: {
-            customUnit: {quantity: distance},
-            waypoints,
-        },
-        routes,
-    });
-}
-
-/**
- * Revert custom unit of the draft transaction to the original transaction's value
- */
-function resetDraftTransactionsCustomUnit(transaction: OnyxEntry<OnyxTypes.Transaction>) {
-    if (!transaction?.transactionID) {
-        return;
-    }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, {
-        comment: {
-            customUnit: transaction.comment?.customUnit ?? {},
-        },
-    });
-}
-
-/**
- * Set custom unit ID for the transaction draft
- */
-function setCustomUnitID(transactionID: string, customUnitID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitID}}});
-}
-
-function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number, isDraft: boolean, distanceUnit: Unit) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat, distanceUnit}}});
-}
-
-/**
- * Set the distance rate of a transaction.
- * Used when creating a new transaction or moving an existing one from Self DM
- */
-function setMoneyRequestDistanceRate(currentTransaction: OnyxEntry<OnyxTypes.Transaction>, customUnitRateID: string, policy: OnyxEntry<OnyxTypes.Policy>, isDraft: boolean) {
-    if (!currentTransaction) {
-        Log.warn('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
-        return;
-    }
-    if (policy) {
-        Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
-    }
-
-    const newDistanceUnit = getDistanceRateCustomUnit(policy)?.attributes?.unit;
-    const transactionID = currentTransaction?.transactionID;
-    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : currentTransaction;
-
-    let newDistance;
-    if (newDistanceUnit && newDistanceUnit !== transaction?.comment?.customUnit?.distanceUnit && !isOdometerDistanceRequestTransactionUtils(transaction)) {
-        newDistance = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit), newDistanceUnit);
-    }
-
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            customUnit: {
-                customUnitRateID,
-                ...(!!policy && {defaultP2PRate: null}),
-                ...(newDistanceUnit && {distanceUnit: newDistanceUnit}),
-                ...(newDistance && {quantity: newDistance}),
-            },
-        },
-    });
-}
-
-function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null, isDraft = true) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxCode});
-}
-
-function setMoneyRequestTaxValue(transactionID: string, taxValue: string | null, isDraft = true) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxValue});
-}
-
-function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number | null, isDraft = true) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxAmount});
-}
-
-type TaxRateValues = {
-    taxCode: string | null;
-    taxAmount: number | null;
-    taxValue: string | null;
-};
-
-function setMoneyRequestTaxRateValues(transactionID: string, taxRateValues: TaxRateValues, isDraft = true) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...taxRateValues});
-}
-
 export {
-    resetDraftTransactionsCustomUnit,
-    setCustomUnitRateID,
-    setGPSTransactionDraftData,
-    setCustomUnitID,
     setMoneyRequestAmount,
     clearMoneyRequestAmount,
     clearMoneyRequestMerchant,
     setMoneyRequestAttendees,
     setMoneyRequestAccountant,
     setMoneyRequestBillable,
-    setMoneyRequestCategory,
     setMoneyRequestCreated,
     setMoneyRequestDateAttribute,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
-    setMoneyRequestDistance,
-    setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
     setMoneyRequestReportID,
     setMoneyRequestPendingFields,
     setMoneyRequestTag,
-    setMoneyRequestTaxAmount,
-    setMoneyRequestTaxRate,
-    setMoneyRequestTaxValue,
-    setMoneyRequestTaxRateValues,
     setMoneyRequestReimbursable,
     getAllPersonalDetails,
     getAllTransactions,
@@ -565,7 +376,5 @@ export {
     getPolicyTagsData,
     getPolicyTags,
     getMoneyRequestPolicyTags,
-    setMoneyRequestTimeRate,
-    setMoneyRequestTimeCount,
 };
 export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, ReplaceReceipt, RequestMoneyParticipantParams, UpdateMoneyRequestData, BaseTransactionParams};
