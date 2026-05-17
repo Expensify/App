@@ -84,8 +84,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const transactionsByReportID = todos?.transactionsByReportID;
 
     const policiesWithEmptyReportsForAccountSelector = useMemo(
-        () => policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID ?? {}, hasDismissedEmptyReportsConfirmation),
-        [accountID, transactionsByReportID],
+        () => policyIDsWithEmptyReportsSelector(accountID, transactionsByReportID ?? {}, !!hasDismissedEmptyReportsConfirmation),
+        [accountID, transactionsByReportID, hasDismissedEmptyReportsConfirmation],
     );
     const [policiesWithEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policiesWithEmptyReportsForAccountSelector});
 
