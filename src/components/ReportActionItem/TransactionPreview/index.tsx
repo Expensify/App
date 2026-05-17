@@ -80,7 +80,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, false, originalReportID);
+        showContextMenuForReport(event, contextMenuAnchor, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID);
     };
 
     const offlineWithFeedbackOnClose = useCallback(() => {
@@ -119,7 +119,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_PREVIEW.CARD}
             >
                 <TransactionPreviewContent
-                    /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...props}
                     action={iouAction}
                     isBillSplit={isBillSplit && !transaction?.comment?.originalTransactionID}
@@ -144,7 +143,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     return (
         <TransactionPreviewContent
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             action={iouAction}
             isBillSplit={isBillSplit}

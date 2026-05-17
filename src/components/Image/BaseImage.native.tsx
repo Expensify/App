@@ -52,7 +52,6 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
             source={resolvedSource}
             recyclingKey={getImageRecyclingKey(source)}
             style={style as ExpoImageProps['style']}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );

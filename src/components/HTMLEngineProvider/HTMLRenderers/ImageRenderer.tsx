@@ -14,7 +14,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,7 +92,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
         </AttachmentIDContextProvider>
     );
 
-    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
+    const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 
     return imagePreviewModalDisabled ? (
@@ -126,17 +125,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                         if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        return onShowContextMenu(() =>
-                            showContextMenuForReport(
-                                event,
-                                anchor,
-                                report?.reportID,
-                                action,
-                                checkIfContextMenuActive,
-                                isArchivedNonExpenseReport(report, isReportArchived),
-                                originalReportID,
-                            ),
-                        );
+                        return onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID));
                     }}
                     isNested
                     shouldUseHapticsOnLongPress

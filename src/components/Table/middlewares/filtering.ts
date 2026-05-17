@@ -181,4 +181,4 @@ function filter<T, FilterKey extends string = string>({data, filters, currentFil
 }
 
 export default useFiltering;
-export type {FilteringMiddlewareParams, UseFilteringProps, FilteringMethods, FilterConfig, FilterConfigEntry, IsItemInFilterCallback};
+export type {FilteringMethods, FilterConfig, FilterConfigEntry, IsItemInFilterCallback};
