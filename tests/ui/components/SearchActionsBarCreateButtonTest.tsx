@@ -47,10 +47,9 @@ jest.mock('@hooks/usePopoverPosition', () => () => ({
     calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0})),
 }));
 
-jest.mock('@hooks/useShouldShowEmptyReportConfirmation', () => () => false);
-
+const mockOpenCreateReportConfirmation = jest.fn();
 jest.mock('@hooks/useCreateEmptyReportConfirmation', () => () => ({
-    openCreateReportConfirmation: jest.fn(),
+    openCreateReportConfirmation: mockOpenCreateReportConfirmation,
 }));
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => true);
@@ -306,6 +305,82 @@ describe('SearchActionsBarCreateButton', () => {
 
         // Then it navigates to workspace selection since there are multiple workspaces and the default is restricted
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+    });
+
+    it('should open confirmation modal when an empty report exists and confirmation is not dismissed', async () => {
+        mockUsePolicyForMovingExpenses.mockReturnValue({
+            policyForMovingExpensesID: MOCK_POLICY_ID,
+            policyForMovingExpenses: MOCK_POLICY,
+            shouldSelectPolicy: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}empty-report`, {
+                reportID: 'empty-report',
+                policyID: MOCK_POLICY_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 0,
+                nonReimbursableTotal: 0,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = screen.getByText(translateLocal('common.create'));
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        const createReportItem = screen.getByText(translateLocal('report.newReport.createReport'));
+        fireEvent.press(createReportItem, createMockPressEvent(createReportItem));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenCreateReportConfirmation).toHaveBeenCalled();
+        expect(mockCreateNewReport).not.toHaveBeenCalled();
+    });
+
+    it('should not open confirmation modal when confirmation has been dismissed', async () => {
+        mockUsePolicyForMovingExpenses.mockReturnValue({
+            policyForMovingExpensesID: MOCK_POLICY_ID,
+            policyForMovingExpenses: MOCK_POLICY,
+            shouldSelectPolicy: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
+            await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, MOCK_POLICY_ID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}empty-report`, {
+                reportID: 'empty-report',
+                policyID: MOCK_POLICY_ID,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 0,
+                nonReimbursableTotal: 0,
+            });
+            await Onyx.merge(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = screen.getByText(translateLocal('common.create'));
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        const createReportItem = screen.getByText(translateLocal('report.newReport.createReport'));
+        fireEvent.press(createReportItem, createMockPressEvent(createReportItem));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
     });
 
     it('should navigate to restricted action page when owner billing is restricted and only one workspace exists', async () => {
