@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -166,16 +166,13 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
     });
 
-    // Focus-return restore: keep the cursor sync (keyboard nav continues from the row) but suppress the scroll it would trigger (deploy blocker #90839).
-    const setFocusedIndexFromRowFocus = useCallback(
-        (index: number) => {
-            if (isFocusRestoreInProgress() && index !== focusedIndex) {
-                suppressNextFocusScrollRef.current = true;
-            }
-            setFocusedIndex(index);
-        },
-        [focusedIndex, setFocusedIndex],
-    );
+    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
+    const setFocusedIndexFromRowFocus = (index: number) => {
+        if (isFocusRestoreInProgress() && index !== focusedIndex) {
+            suppressNextFocusScrollRef.current = true;
+        }
+        setFocusedIndex(index);
+    };
 
     const getFocusedItem = (): TItem | undefined => {
         if (focusedIndex < 0 || focusedIndex >= flattenedData.length) {

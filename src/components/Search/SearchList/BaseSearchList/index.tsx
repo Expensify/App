@@ -64,7 +64,7 @@ function BaseSearchList({
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
-        // Don't let the accessibility focus-return restore drive the arrow-cursor — it would highlight + scroll the row on back nav. DOM focus is still restored by the .focus() itself.
+        // The focus-return restore shouldn't move the keyboard cursor here, or the row gets highlighted and scrolled into view on back nav. The .focus() still restores DOM focus for screen readers.
         if (isFocusRestoreInProgress()) {
             return;
         }

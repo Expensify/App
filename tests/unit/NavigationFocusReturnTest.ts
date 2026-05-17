@@ -1206,7 +1206,7 @@ describe('isFocusRestoreInProgress', () => {
 
         expect(isFocusRestoreInProgress()).toBe(false);
 
-        // The list consumers (BaseSelectionList / BaseSearchList) read this in the row's onFocus, which fires synchronously inside .focus().
+        // Lists read this in the row's onFocus, which fires synchronously during .focus().
         let valueDuringFocus: boolean | undefined;
         trigger.addEventListener('focus', () => {
             valueDuringFocus = isFocusRestoreInProgress();

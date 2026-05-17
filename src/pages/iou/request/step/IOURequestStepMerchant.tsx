@@ -83,7 +83,7 @@ function IOURequestStepMerchant({
             return;
         }
         shouldNavigateAfterSaveRef.current = false;
-        // Save path only — the Back button (onBackButtonPress) must still restore focus.
+        // Only on the save path. The Back button (onBackButtonPress) should still restore focus.
         skipNextFocusRestore();
         navigateBack();
     }, [isSaved, navigateBack]);

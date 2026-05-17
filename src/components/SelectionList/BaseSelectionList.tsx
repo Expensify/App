@@ -228,16 +228,13 @@ function BaseSelectionList<TItem extends ListItem>({
         onArrowUpDownCallback,
     });
 
-    // Focus-return restore: keep the cursor sync (keyboard nav continues from the row) but suppress the scroll it would trigger (deploy blocker #90839).
-    const setFocusedIndexFromRowFocus = useCallback(
-        (index: number) => {
-            if (isFocusRestoreInProgress() && index !== focusedIndex) {
-                suppressNextFocusScrollRef.current = true;
-            }
-            setFocusedIndex(index);
-        },
-        [focusedIndex, setFocusedIndex],
-    );
+    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
+    const setFocusedIndexFromRowFocus = (index: number) => {
+        if (isFocusRestoreInProgress() && index !== focusedIndex) {
+            suppressNextFocusScrollRef.current = true;
+        }
+        setFocusedIndex(index);
+    };
 
     // extraData helps FlashList detect when data changes significantly (e.g., during filtering)
     // Including data.length ensures FlashList resets its layout cache when the list size changes

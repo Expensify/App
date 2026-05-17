@@ -140,12 +140,12 @@ function notifyPushParamsBackward(routeKey: string, targetParams: unknown): void
     scheduleRestore(compoundParamsKey(routeKey, targetParams));
 }
 
-/** Suppress focus-restore for the next backward nav. Call before a form-submit goBack so the re-focused row doesn't swallow a follow-up pressOnEnter submit; Back/Esc don't call it (WCAG 2.4.3 still holds). */
+/** Skips the focus restore for the next back navigation. Call it before a form-submit goBack so the re-focused row doesn't eat the next Enter (which should hit the page's submit). Back and Esc don't call it, so they still restore focus. */
 function skipNextFocusRestore(): void {
     skipNextRestore = true;
 }
 
-/** True only while restoreTriggerForRoute is calling .focus(). Lists check this to suppress the restore's scroll without misclassifying keyboard Tab (neither carries sourceCapabilities). */
+/** True only while restoreTriggerForRoute is in its .focus() call. Lists use it to tell the restore apart from a real keyboard Tab, which also has no sourceCapabilities. */
 function isFocusRestoreInProgress(): boolean {
     return isRestoringFocus;
 }

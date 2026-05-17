@@ -335,7 +335,7 @@ describe('BaseSelectionList', () => {
 
         expect(mockScrollToIndex).not.toHaveBeenCalled();
 
-        // Cursor still synced: the one-shot suppress is consumed, so a later non-restore focus on another row scrolls (focusedIndex moved, not stale).
+        // Cursor still moved: a later non-restore focus on another row scrolls, so focusedIndex wasn't left stale.
         mockIsFocusRestoreInProgress.mockReturnValue(false);
         const otherRow = screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}7`);
         fireEvent(otherRow, 'focus', {nativeEvent: {sourceCapabilities: {firesTouchEvents: false}}});
