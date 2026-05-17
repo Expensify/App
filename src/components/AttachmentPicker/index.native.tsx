@@ -108,7 +108,7 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
  * send to the xhr will be handled properly.
  */
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
-    const fileName = fileData.name || 'chat_attachment';
+    const fileName = fileData.name || CONST.DEFAULT_ATTACHMENT_FILENAME;
     const fileResult: FileObject = {
         name: cleanFileName(fileName),
         type: fileData.type,

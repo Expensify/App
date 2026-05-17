@@ -845,8 +845,13 @@ async function addActions({
     // the persisted API request both reference a path that won't be purged.
     let resolvedFile = file;
     if (file?.uri) {
-        const durableUri = await moveReceiptToDurableStorage(file.uri, file.name ?? 'chat_attachment');
-        resolvedFile = {...file, uri: durableUri, source: durableUri} as FileObject;
+        try {
+            const durableUri = await moveReceiptToDurableStorage(file.uri, file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME);
+            resolvedFile = {...file, uri: durableUri, source: durableUri} as FileObject;
+        } catch (error) {
+            Log.warn('[addActions] Failed to move attachment to durable storage, using original URI', {error});
+            resolvedFile = file;
+        }
     }
 
     if (resolvedFile) {
