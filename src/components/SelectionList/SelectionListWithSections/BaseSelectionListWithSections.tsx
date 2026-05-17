@@ -166,12 +166,21 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         onArrowUpDownCallback: () => setShouldDisableHoverStyle(true),
     });
 
-    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
-    const setFocusedIndexFromRowFocus = (index: number) => {
-        if (isFocusRestoreInProgress() && index !== focusedIndex) {
+    // Move the cursor, and skip the scroll the move would otherwise trigger when the index actually changes.
+    const setFocusedIndexWithoutScrollOnChange = (index: number) => {
+        if (index !== focusedIndex) {
             suppressNextFocusScrollRef.current = true;
         }
         setFocusedIndex(index);
+    };
+
+    // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
+    const setFocusedIndexFromRowFocus = (index: number) => {
+        if (isFocusRestoreInProgress()) {
+            setFocusedIndexWithoutScrollOnChange(index);
+        } else {
+            setFocusedIndex(index);
+        }
     };
 
     const getFocusedItem = (): TItem | undefined => {
@@ -199,10 +208,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
         }
         if (shouldUpdateFocusedIndex && typeof indexToFocus === 'number') {
-            if (indexToFocus !== focusedIndex) {
-                suppressNextFocusScrollRef.current = true;
-            }
-            setFocusedIndex(indexToFocus);
+            setFocusedIndexWithoutScrollOnChange(indexToFocus);
         }
         onSelectRow(item);
 
