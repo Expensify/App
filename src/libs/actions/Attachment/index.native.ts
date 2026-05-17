@@ -94,11 +94,11 @@ async function getCachedAttachment({attachment, source}: GetCachedAttachmentProp
     }
     const cachedSource = attachment?.source;
     const isCached = cachedSource && (await RNFS.exists(cachedSource));
-    if (isCached) {
-        return `file://${cachedSource}`;
+    if (!isCached) {
+        return;
     }
 
-    return source.uri;
+    return `file://${cachedSource}`;
 }
 
 async function removeCachedAttachment({attachmentID, localSource}: RemoveCachedAttachmentProps): Promise<void> {

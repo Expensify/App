@@ -138,16 +138,15 @@ async function getCachedAttachment({attachmentID, attachment, source}: GetCached
         if (isStale) {
             const cachedUri = await cacheAttachment({attachmentID, source: {uri: imageSource}}).catch((error) => {
                 Log.hmmm('[AttachmentCache] Failed to re-cache markdown attachment', {message: (error as Error).message});
-                return imageSource;
             });
-            return cachedUri;
+            return cachedUri ? cachedUri : undefined;
         }
     }
 
     const cacheName = isAuthRemoteAttachment ? CONST.CACHE_NAME.AUTH_IMAGES : CONST.CACHE_NAME.ATTACHMENTS;
     const cacheKey = isAuthRemoteAttachment ? imageSource : attachmentID;
     if (!cacheKey) {
-        return imageSource;
+        return;
     }
     const cachedAttachment = await CacheAPI.get(cacheName, cacheKey);
     const isUncached = !cachedAttachment;

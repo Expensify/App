@@ -73,10 +73,14 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
             .catch((error) => {
                 if (!isUnmounted.current) {
                     setHasError(true);
+
+                    if (objectURL.current) {
+                        URL.revokeObjectURL(objectURL.current);
+                    }
                 }
                 Log.hmmm('[AttachmentCache] Failed to get cached attachment', {message: (error as Error).message});
             });
-    }, [uri, hasHeaders, source?.headers, attachment, attachmentMetadata.status, attachmentID, source]);
+    }, [uri, hasHeaders, attachment, attachmentMetadata.status, attachmentID, source]);
 
     // Skip if there's no attachmentID and headers
     if (!hasHeaders && !attachmentID) {
@@ -86,20 +90,25 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
     // If caching failed, fall back to the original source so expo-image
     // handles it normally (including error reporting via onError)
     if (hasError) {
+        console.log('return cuz has error', attachmentID);
         return source;
     }
 
     // If cache fetch is still in progress and the current source
     // is coming from local source i.e blob:, return the current source
     if (uri?.startsWith('blob:') && !cachedUri) {
+        console.log('return local source', attachmentID);
         return source;
     }
 
     // If cache fetch is still in progress — return null so expo-image doesn't
     // render the remote source (which would bypass our cache)
     if (!cachedUri) {
+        console.log('cachedURI - return null', attachmentID);
         return null;
     }
+
+    console.log('returning cachedURI', attachmentID, cachedUri);
 
     return {uri: cachedUri};
 }

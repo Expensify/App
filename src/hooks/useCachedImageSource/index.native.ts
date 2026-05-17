@@ -39,12 +39,6 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
                     return;
                 }
                 if (!revoked) {
-                    console.log('data', {
-                        attachment,
-                        attachmentID,
-                        cachedSource,
-                        originalSource: source?.uri,
-                    });
                     setCachedUri(cachedSource);
                 }
             })
@@ -58,7 +52,7 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
         return () => {
             revoked = true;
         };
-    }, [uri, hasHeaders, attachmentID, attachment, source]);
+    }, [uri, hasHeaders, attachmentID, attachment, attachmentMetadata.status, source]);
 
     // Skip if there's no attachmentID, because expo-image
     // already handle remote attachments natively
