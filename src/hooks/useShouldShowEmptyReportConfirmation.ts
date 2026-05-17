@@ -9,7 +9,7 @@ function useShouldShowEmptyReportConfirmation(policyID: string | undefined): boo
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const hasEmptyReportSelector = useCallback(
         (reports: Parameters<typeof hasEmptyReportsForPolicy>[0]) => {
-            if (hasDismissedConfirmation) {
+            if (!!hasDismissedConfirmation) {
                 return false;
             }
             return hasEmptyReportsForPolicy(reports, policyID, accountID);
