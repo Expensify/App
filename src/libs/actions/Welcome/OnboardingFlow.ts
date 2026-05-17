@@ -15,6 +15,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
 
@@ -98,6 +99,19 @@ function startOnboardingFlow(startOnboardingFlowParams: GetOnboardingInitialPath
     } as PartialState<NavigationState>);
 }
 
+const PRIVATE_DOMAIN_ONBOARDING_SCREENS = new Set<string>([SCREENS.ONBOARDING.PERSONAL_DETAILS, SCREENS.ONBOARDING.PRIVATE_DOMAIN, SCREENS.ONBOARDING.WORKSPACES]);
+
+function isResumablePrivateDomainOnboardingPath(onboardingPath: OnyxEntry<string>): boolean {
+    if (!onboardingPath) {
+        return false;
+    }
+
+    const state = getStateFromPath(onboardingPath, linkingConfig.config);
+    const focusedRoute = findFocusedRoute(state as PartialState<NavigationState<RootNavigatorParamList>>);
+
+    return PRIVATE_DOMAIN_ONBOARDING_SCREENS.has(focusedRoute?.name ?? '');
+}
+
 function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingInitialPathParamsType): string {
     const {
         isUserFromPublicDomain,
@@ -131,7 +145,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
-        if (onboardingInitialPath) {
+        if (isResumablePrivateDomainOnboardingPath(onboardingInitialPath)) {
             return onboardingInitialPath;
         }
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;

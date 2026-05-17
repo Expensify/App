@@ -1,6 +1,7 @@
 import {getOnboardingInitialPath} from '@libs/actions/Welcome/OnboardingFlow';
 import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 describe('OnboardingFlow', () => {
     describe('getOnboardingInitialPath', () => {
@@ -86,6 +87,48 @@ describe('OnboardingFlow', () => {
             };
             const path = getOnboardingInitialPath(params);
             expect(path).toBe('/onboarding/employees');
+        });
+
+        it('should ignore stale non-private-domain onboarding path for private domain users with accessible policies', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: `/${ROUTES.ONBOARDING_EMPLOYEES.route}`,
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe(`/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`);
+        });
+
+        it('should resume private-domain onboarding from a valid private-domain step', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: `/${ROUTES.ONBOARDING_WORKSPACES.route}`,
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe(`/${ROUTES.ONBOARDING_WORKSPACES.route}`);
         });
     });
 });
