@@ -918,6 +918,68 @@ describe('OptionsListUtils', () => {
             expect(workspaceRoom).toBeDefined();
         });
 
+        it('should keep user-created workspace rooms searchable for workspace admins even when hidden', () => {
+            const adminPolicyID = 'ADMIN123';
+            const adminPolicy: Policy = {
+                ...POLICY,
+                id: adminPolicyID,
+                name: 'Admin Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            const policyCollection: OnyxCollection<Policy> = {
+                ...allPolicies,
+                [`${ONYXKEYS.COLLECTION.POLICY}${adminPolicyID}`]: adminPolicy,
+            };
+
+            const hiddenWorkspaceRoomReportID = '99';
+            const reportsWithHiddenWorkspaceRoom: OnyxCollection<Report> = {
+                ...REPORTS,
+                [hiddenWorkspaceRoomReportID]: {
+                    lastReadTime: '2021-01-14 11:25:39.302',
+                    lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+                    isPinned: false,
+                    reportID: hiddenWorkspaceRoomReportID,
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                        1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                    reportName: '',
+                    oldPolicyName: 'Secret Workspace Room',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+                    policyID: adminPolicyID,
+                },
+            };
+
+            const reportAttributesDerived = createMockReportAttributesDerived(reportsWithHiddenWorkspaceRoom, PERSONAL_DETAILS, CURRENT_USER_ACCOUNT_ID);
+            const options = createOptionList(PERSONAL_DETAILS, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reportsWithHiddenWorkspaceRoom, policyCollection, reportAttributesDerived);
+            expect(options.reports.find((report) => report.reportID === hiddenWorkspaceRoomReportID)).toBeDefined();
+
+            const results = getSearchOptions({
+                options,
+                reportAttributesDerived,
+                draftComments: {},
+                betas: [CONST.BETAS.ALL],
+                isUsedInChatFinder: true,
+                includeReadOnly: true,
+                searchQuery: 'Secret',
+                maxResults: undefined,
+                includeUserToInvite: false,
+                includeRecentReports: true,
+                loginList,
+                policyCollection,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
+                conciergeReportID: undefined,
+            });
+
+            const workspaceRoom = results.recentReports.find((report) => report.reportID === hiddenWorkspaceRoomReportID);
+            expect(workspaceRoom).toBeDefined();
+        });
+
         it('should handle empty policyCollection', () => {
             // Given a set of options
             // When we call getSearchOptions with empty policyCollection

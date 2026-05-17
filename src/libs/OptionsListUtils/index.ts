@@ -2495,6 +2495,8 @@ function getValidOptions(
         };
 
         const filteringFunction = (report: SearchOption<Report>) => {
+            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
             if (excludeHidden) {
                 if (report.isThread && report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
                     return false;
@@ -2509,12 +2511,14 @@ function getValidOptions(
                 ) {
                     const participant = report.item?.participants?.[currentUserAccountID];
                     if (participant && isHiddenForCurrentUser(participant.notificationPreference)) {
-                        return false;
+                        const isUserCreatedWorkspaceRoom = report.item?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+                        if (!isUserCreatedWorkspaceRoom || !isPolicyAdmin(policy)) {
+                            return false;
+                        }
                     }
                 }
             }
 
-            const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
             if (!isSearchTermsFound(report)) {
                 return false;
             }
