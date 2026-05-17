@@ -89,9 +89,12 @@ function ReportFooter() {
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
 
-    const renderComposerSwipeable = () => (
+    const renderComposerSwipeable = (isEditOnly = false) => (
         <SwipeableView onSwipeDown={Keyboard.dismiss}>
-            <ReportActionCompose reportID={reportIDFromRoute} />
+            <ReportActionCompose
+                reportID={reportIDFromRoute}
+                isEditOnly={isEditOnly}
+            />
         </SwipeableView>
     );
 
@@ -158,21 +161,19 @@ function ReportFooter() {
         );
     }
 
-    // Admins-only room — keep the banner visible; mount the composer below it while editing on narrow screens.
+    // Admins-only room — keep the banner visible; mount the composer above it while editing on narrow screens.
     if (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) {
+        const isEditingWithComposer = shouldShowComposerForActiveEditDraft;
+
         return (
-            <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+            <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
+                {isEditingWithComposer && <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>{renderComposerSwipeable(true)}</View>}
                 <Banner
-                    containerStyles={[styles.chatFooterBanner]}
+                    containerStyles={[styles.chatFooterBanner, isEditingWithComposer && styles.mt2]}
                     text={translate('adminOnlyCanPost')}
                     icon={expensifyIcons.Lightbulb}
                     shouldShowIcon
                 />
-                {shouldShowComposerForActiveEditDraft && (
-                    <View style={[styles.mt4, isComposerFullSize && styles.chatFooterFullCompose, {minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0}]}>
-                        {renderComposerSwipeable()}
-                    </View>
-                )}
                 {!shouldUseNarrowLayout && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
