@@ -50,7 +50,6 @@ function DesktopWebUploadView({PDFValidationComponent, shouldAcceptMultipleFiles
             return;
         }
         for (const file of files) {
-            // eslint-disable-next-line no-param-reassign
             file.uri = URL.createObjectURL(file);
         }
 
@@ -87,7 +86,6 @@ function DesktopWebUploadView({PDFValidationComponent, shouldAcceptMultipleFiles
                                 />
                                 <View
                                     style={[styles.uploadFileViewTextContainer, styles.userSelectNone]}
-                                    // eslint-disable-next-line react/jsx-props-no-spreading, react-hooks/refs
                                     {...panResponder.panHandlers}
                                 >
                                     <Text style={[styles.textFileUpload, styles.mb2]}>{translate(shouldAcceptMultipleFiles ? 'receipt.uploadMultiple' : 'receipt.upload')}</Text>
@@ -132,4 +130,3 @@ function DesktopWebUploadView({PDFValidationComponent, shouldAcceptMultipleFiles
 }
 
 export default DesktopWebUploadView;
-export type {DesktopWebUploadViewProps};

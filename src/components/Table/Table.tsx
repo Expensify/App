@@ -1,5 +1,6 @@
 import type {FlashListRef} from '@shopify/flash-list';
 import React, {useImperativeHandle, useRef} from 'react';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useFiltering from './middlewares/filtering';
 import useSearching from './middlewares/searching';
 import useSorting from './middlewares/sorting';
@@ -130,6 +131,7 @@ import type {TableHandle, TableMethods, TableProps} from './types';
  */
 function Table<T, ColumnKey extends string = string, FilterKey extends string = string>({
     ref,
+    title,
     data = [],
     columns,
     filters,
@@ -143,6 +145,8 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
+
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<T, FilterKey>({filters, isItemInFilter});
 
@@ -177,6 +181,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
     });
 
     const originalDataLength = data?.length ?? 0;
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     // Check if filters are applied (not default values)
     const hasActiveFilters = filters
@@ -192,6 +197,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<T, ColumnKey, FilterKey> = {
+        title,
         listRef,
         listProps,
         processedData,
@@ -205,6 +211,7 @@ function Table<T, ColumnKey extends string = string, FilterKey extends string = 
         hasActiveFilters,
         hasSearchString,
         isEmptyResult,
+        shouldUseNarrowTableLayout,
     };
 
     return <TableContext.Provider value={contextValue as unknown as TableContextValue<unknown, string>}>{children}</TableContext.Provider>;

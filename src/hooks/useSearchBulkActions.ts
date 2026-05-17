@@ -101,12 +101,20 @@ function getRestrictedPolicyID(
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     amountOwed: OnyxEntry<number>,
     allPolicies: OnyxCollection<Policy>,
+    currentUserAccountID: number,
 ): string | undefined {
     return items
         .map((item) => item.policyID)
         .find(
             (policyID): policyID is string =>
-                !!policyID && shouldRestrictUserBillableActions(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`], ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed),
+                !!policyID &&
+                shouldRestrictUserBillableActions(
+                    allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                    ownerBillingGracePeriodEnd,
+                    billingGracePeriods,
+                    amountOwed,
+                    currentUserAccountID,
+                ),
         );
 }
 
@@ -261,6 +269,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Export',
         'Table',
+        'TablePencil',
         'DocumentMerge',
         'Send',
         'Trashcan',
@@ -286,7 +295,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Workflows',
     ]);
 
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
     const selectedTransactionReportIDs = useMemo(
         () => [
@@ -314,7 +323,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [selectedTransactions],
     );
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
-    const totalFormattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions, selectedBulkCurrency);
+    const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
 
     const onlyShowPayElsewhere = useMemo(() => {
         const firstPolicyID = selectedPolicyIDs.at(0);
@@ -327,11 +336,41 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const invoiceReceiverPolicy = invoiceReceiverPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
             return (
                 report &&
-                !canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy) &&
-                canIOUBePaid(report, chatReport, selectedPolicy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy)
+                !canIOUBePaid(
+                    report,
+                    chatReport,
+                    selectedPolicy,
+                    bankAccountList,
+                    currentUserPersonalDetails?.login ?? '',
+                    currentUserPersonalDetails.accountID,
+                    undefined,
+                    false,
+                    undefined,
+                    invoiceReceiverPolicy,
+                ) &&
+                canIOUBePaid(
+                    report,
+                    chatReport,
+                    selectedPolicy,
+                    bankAccountList,
+                    currentUserPersonalDetails?.login ?? '',
+                    currentUserPersonalDetails.accountID,
+                    undefined,
+                    true,
+                    undefined,
+                    invoiceReceiverPolicy,
+                )
             );
         });
-    }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs, bankAccountList]);
+    }, [
+        selectedPolicyIDs,
+        currentSearchResults?.data,
+        selectedTransactionReportIDs,
+        selectedReportIDs,
+        bankAccountList,
+        currentUserPersonalDetails?.login,
+        currentUserPersonalDetails.accountID,
+    ]);
 
     const {bulkPayButtonOptions, businessBankAccountOptions, shouldShowBusinessBankAccountOptions} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
@@ -514,7 +553,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const selectedItems = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
-        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
+        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
         if (restrictedPolicyID) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
             return;
@@ -527,7 +566,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             hash,
             reportIDList.filter((reportID) => reportID !== undefined),
         );
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             clearSelectedTransactions();
         });
@@ -543,6 +581,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ownerBillingGracePeriodEnd,
         amountOwed,
         policies,
+        accountID,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -575,7 +614,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(async () => {
             const result = await showConfirmModal({
                 title: deleteModalTitle,
@@ -588,7 +626,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 if (isExpenseReportType) {
                     for (const reportID of selectedReportIDs) {
@@ -664,7 +701,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
-            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
+            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
             if (restrictedPolicyID) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                 return;
@@ -766,7 +803,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             payMoneyRequestOnSearch(hash, paymentData);
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 clearSelectedTransactions();
             });
@@ -873,10 +909,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, []);
 
     const isDuplicateReportOptionVisible = useMemo(() => {
-        if (!isBetaEnabled(CONST.BETAS.BULK_DUPLICATE_REPORT)) {
-            return false;
-        }
-
         if (!isExpenseReportType || !defaultExpensePolicy || selectedReports.length === 0) {
             return false;
         }
@@ -887,7 +919,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             return report.ownerAccountID === accountID && report.type === CONST.REPORT.TYPE.EXPENSE;
         });
-    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID, isBetaEnabled]);
+    }, [isExpenseReportType, defaultExpensePolicy, selectedReports, accountID]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -1033,9 +1065,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             if (!allSelectedAreDeleted) {
                 for (const template of exportTemplates) {
+                    const isStandardTemplate =
+                        template.templateName === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT || template.templateName === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT;
                     exportOptions.push({
                         text: template.name,
-                        icon: expensifyIcons.Table,
+                        icon: isStandardTemplate ? expensifyIcons.Table : expensifyIcons.TablePencil,
                         description: template.description,
                         onSelected: () => {
                             beginExportWithTemplate(template.templateName, template.type, template.policyID);
@@ -1189,7 +1223,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 text: translate('iou.changeApprover.title'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+                onSelected: () => navigateToSearchRHP(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
             });
         }
 
@@ -1214,7 +1248,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
+                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                         return;
@@ -1313,9 +1347,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             selectedTransactions[transactionID].reportAction?.childReportID,
                             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
                             isOffline,
+                            currentUserPersonalDetails?.login ?? '',
+                            currentUserPersonalDetails?.accountID,
                         );
                     }
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         clearSelectedTransactions();
                     });
@@ -1509,7 +1544,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
-        styles.textWrap,
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         currentSearchKey,
@@ -1517,7 +1551,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         amountOwed,
         allTransactions,
         isBetaEnabled,
-        shouldShowBusinessBankAccountOptions,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
@@ -1577,4 +1610,3 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
 export default useSearchBulkActions;
 export {shouldShowBulkDuplicateOption};
-export type {ShouldShowBulkDuplicateParams};

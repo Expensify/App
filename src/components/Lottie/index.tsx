@@ -41,7 +41,6 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             return;
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionTask = InteractionManager.runAfterInteractions(() => {
             setIsInteractionComplete(true);
         });
@@ -117,7 +116,6 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
 
     return (
         <LottieView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             source={animationFile}
             key={`${hasNavigatedAway}`}

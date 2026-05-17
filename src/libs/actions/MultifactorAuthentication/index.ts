@@ -1,4 +1,3 @@
-/* eslint-disable rulesdir/no-api-side-effects-method */
 // These functions use makeRequestWithSideEffects because challenge data must be returned immediately
 // for security and timing requirements (see detailed explanation below)
 import Onyx from 'react-native-onyx';

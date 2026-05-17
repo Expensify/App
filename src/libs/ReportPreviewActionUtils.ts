@@ -39,8 +39,6 @@ function canSubmit(
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report);
     const isOpen = isOpenReport(report);
-    const isManager = report.managerID === currentUserAccountID;
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     if (!!transactions && transactions?.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
@@ -62,7 +60,7 @@ function canSubmit(
         return false;
     }
 
-    return isExpense && (isSubmitter || isManager || isAdmin) && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
+    return isExpense && isSubmitter && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
@@ -227,7 +225,7 @@ function getReportPreviewAction({
     }
 
     // We want to have action displayed for either paid or approved animations
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }

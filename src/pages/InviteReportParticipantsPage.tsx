@@ -148,7 +148,7 @@ function InviteReportParticipantsPage({report}: InviteReportParticipantsPageProp
                 parsePhoneNumber(appendCountryCode(processedLogin, countryCode)).possible ? addSMSDomainIfPhoneNumber(appendCountryCode(processedLogin, countryCode)) : processedLogin
             ]
         ) {
-            return translate('messages.userIsAlreadyMember', {login: processedLogin, name: reportName ?? ''});
+            return translate('messages.userIsAlreadyMember', processedLogin, reportName ?? '');
         }
         return getHeaderMessage(
             selectedOptionsForDisplay.length + availableOptions.recentReports.length + availableOptions.personalDetails.length !== 0,

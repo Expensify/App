@@ -15,7 +15,6 @@ const EMPTY_OPTIONS = {recentReports: [], personalDetails: [], userToInvite: nul
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('@libs/OptionsListUtils', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     ...jest.requireActual('@libs/OptionsListUtils'),
     getValidOptions: jest.fn(() => EMPTY_OPTIONS),

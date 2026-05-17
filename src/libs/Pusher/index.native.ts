@@ -227,7 +227,6 @@ function subscribe<EventName extends PusherEventName>(
     const promise = initPromise.then(
         () =>
             new Promise<void>((resolve, reject) => {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     if (disposed) {
                         resolve();
