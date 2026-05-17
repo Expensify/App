@@ -387,7 +387,7 @@ function SettlementButton({
                     .filter((method) => {
                         const accountData = method?.accountData as AccountData;
                         const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                        return accountData?.type === requiredAccountType && !isPartiallySetup;
+                        return accountData?.type === requiredAccountType && !isPartiallySetup && (!currency || ('bankCurrency' in method && method.bankCurrency === currency));
                     })
                     .map((formattedPaymentMethod) => ({
                         text: formattedPaymentMethod?.title ?? '',
