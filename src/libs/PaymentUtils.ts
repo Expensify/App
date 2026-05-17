@@ -157,7 +157,7 @@ function isAccountData(data: unknown): data is AccountData {
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
  */
-function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[]): BusinessBankAccountOption[] {
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string): BusinessBankAccountOption[] {
     return formattedPaymentMethods
         .filter((method) => {
             if (!isAccountData(method?.accountData)) {
@@ -169,7 +169,8 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[])
                 accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
                 (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
                 method?.methodID != null &&
-                !isPartiallySetup
+                !isPartiallySetup &&
+                (!currency || ('bankCurrency' in method && method.bankCurrency === currency))
             );
         })
         .map((formattedPaymentMethod) => ({

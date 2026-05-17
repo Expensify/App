@@ -270,7 +270,7 @@ function SettlementButton({
     };
 
     const personalBankAccountList = getLatestPersonalBankAccount();
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency);
     const businessBankAccountOptions =
         isExpenseReport && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({...account, value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT}))

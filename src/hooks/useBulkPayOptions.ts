@@ -89,7 +89,7 @@ function useBulkPayOptions({
             .filter((method) => {
                 const accountData = method?.accountData as AccountData;
                 const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
-                return accountData?.type === requiredAccountType && !isPartiallySetup;
+                return accountData?.type === requiredAccountType && !isPartiallySetup && (!currency || ('bankCurrency' in method && method.bankCurrency === currency));
             })
             .map((formattedPaymentMethod) => ({
                 text: formattedPaymentMethod?.title ?? '',
@@ -108,7 +108,7 @@ function useBulkPayOptions({
             }));
     };
 
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency);
     const businessBankAccountOptions =
         shouldShowBusinessBankAccountOptions && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({
