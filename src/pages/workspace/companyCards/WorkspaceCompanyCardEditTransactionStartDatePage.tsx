@@ -1,4 +1,4 @@
-import {format, parseISO, subDays} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -46,8 +46,10 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
     const [allBankCards] = useCardsList(feedName);
     const card = allBankCards?.[cardID];
     const currentStartDate = card?.scrapeMinDate;
+    const savedDateOption = currentStartDate ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM : CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING;
 
-    const [dateOptionSelected, setDateOptionSelected] = useState<DateOption>(CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+    const [localDateOption, setLocalDateOption] = useState<DateOption | undefined>(undefined);
+    const dateOptionSelected = localDateOption ?? savedDateOption;
 
     const [startDate, setStartDate] = useState(() => {
         if (currentStartDate) {
@@ -60,7 +62,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
 
     const handleSelectDateOption = (dateOption: DateOption) => {
         setErrorText('');
-        setDateOptionSelected(dateOption);
+        setLocalDateOption(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
         }
@@ -76,8 +78,7 @@ function WorkspaceCompanyCardEditTransactionStartDatePage({route}: WorkspaceComp
             return;
         }
 
-        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
-        const newStartDate = dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate;
+        const newStartDate = dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate;
 
         updateCardTransactionStartDate(domainOrWorkspaceAccountID, cardID, newStartDate, bank, currentStartDate);
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID), {compareParams: false});
