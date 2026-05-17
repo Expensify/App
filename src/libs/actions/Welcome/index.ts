@@ -13,9 +13,14 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
+import type OnboardingRHPVariant from '@src/types/onyx/OnboardingRHPVariant';
 import type {OnboardingCompanySize} from './OnboardingFlow';
 
 let isLoadingReportData = true;
+// Tracks whether we've seen loading start (true) in the current session.
+// Without this, a stale persisted `false` from a previous session would
+// resolve the onServerDataReady() promise before OpenApp/ReconnectApp completes.
+let hasStartedLoading = false;
 
 let resolveIsReadyPromise: (value?: Promise<void>) => void | undefined;
 let isServerDataReadyPromise = new Promise<void>((resolve) => {
@@ -59,6 +64,10 @@ function setOnboardingAdminsChatReportID(adminsChatReportID?: string) {
 
 function setOnboardingPolicyID(policyID?: string) {
     Onyx.set(ONYXKEYS.ONBOARDING_POLICY_ID, policyID ?? null);
+}
+
+function setOnboardingRHPVariant(value?: OnboardingRHPVariant) {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, value ?? null);
 }
 
 function updateOnboardingLastVisitedPath(path: string) {
@@ -116,10 +125,16 @@ function completeHybridAppOnboarding() {
 // and doesn't need to trigger component re-renders.
 Onyx.connectWithoutView({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-    initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
-        checkServerDataReady();
+        if (isLoadingReportData) {
+            hasStartedLoading = true;
+        }
+        // Only resolve once loading has started — this ensures a stale
+        // persisted `false` from a previous session is ignored.
+        if (hasStartedLoading) {
+            checkServerDataReady();
+        }
     },
 });
 
@@ -128,6 +143,7 @@ function resetAllChecks() {
         resolveIsReadyPromise = resolve;
     });
     isLoadingReportData = true;
+    hasStartedLoading = false;
 }
 
 function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
@@ -175,6 +191,7 @@ export {
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
+    setOnboardingRHPVariant,
     completeHybridAppOnboarding,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,

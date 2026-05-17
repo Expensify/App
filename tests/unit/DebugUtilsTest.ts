@@ -1,5 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
@@ -30,6 +30,8 @@ const MOCK_REPORT_ACTION: ReportAction = {
 const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
+const RORY_EMAIL = 'rory@email.com';
+const RORY_ACCOUNT_ID = 5;
 
 const MOCK_CONST_ENUM = {
     foo: 'foo',
@@ -1006,7 +1008,7 @@ describe('DebugUtils', () => {
             Onyx.clear();
         });
         it('returns undefined reason when report is not defined', () => {
-            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined) ?? {};
+            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID) ?? {};
             expect(reason).toBeUndefined();
         });
         it('returns correct reason when report has a join request', async () => {
@@ -1024,50 +1026,70 @@ describe('DebugUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasJoinRequest');
         });
         it('returns correct reason when report is unread with mention', () => {
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                    lastMentionedTime: '2024-08-10 18:70:44.171',
-                    lastReadTime: '2024-08-08 18:70:44.171',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                        lastMentionedTime: '2024-08-10 18:70:44.171',
+                        lastReadTime: '2024-08-08 18:70:44.171',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.isUnreadWithMention');
         });
         it('returns correct reason when report has a task which is waiting for assignee to complete it', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: 12345});
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                    type: CONST.REPORT.TYPE.TASK,
-                    hasParentAccess: false,
-                    managerID: 12345,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                        type: CONST.REPORT.TYPE.TASK,
+                        hasParentAccess: false,
+                        managerID: 12345,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.isWaitingForAssigneeToCompleteAction');
         });
         it('returns correct reason when report has a child report awaiting action from the user', () => {
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                    hasOutstandingChildRequest: true,
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                        hasOutstandingChildRequest: true,
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasChildReportAwaitingAction');
         });
         it('returns undefined reason when report has no GBR', () => {
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reason).toBeUndefined();
         });
         it('returns undefined reportAction when report is not defined', () => {
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined) ?? {};
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID) ?? {};
             expect(reportAction).toBeUndefined();
         });
         it('returns the report action which is a join request', async () => {
@@ -1091,9 +1113,13 @@ describe('DebugUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reportAction} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns the report action which is awaiting action', async () => {
@@ -1157,17 +1183,22 @@ describe('DebugUtils', () => {
                 },
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,
+                    email: RORY_EMAIL,
                 },
             });
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report) ?? {};
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report, RORY_EMAIL, 12345) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns undefined report action when report has no GBR', () => {
             const {reportAction} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                ) ?? {};
             expect(reportAction).toBeUndefined();
         });
     });
@@ -1197,6 +1228,7 @@ describe('DebugUtils', () => {
                         undefined,
                         false,
                         {},
+                        false,
                     ) ?? {};
                 expect(reportAction).toBeUndefined();
             });
@@ -1260,6 +1292,7 @@ describe('DebugUtils', () => {
                         undefined,
                         false,
                         {},
+                        false,
                     ) ?? {};
                 expect(reportAction).toBe(undefined);
             });
@@ -1327,8 +1360,16 @@ describe('DebugUtils', () => {
                     };
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions);
                     const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, undefined, false, reportErrors) ??
-                        {};
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                            MOCK_CHAT_REPORT,
+                            chatReportR14932,
+                            MOCK_CHAT_REPORT_ACTIONS,
+                            mockTransactions,
+                            undefined,
+                            false,
+                            reportErrors,
+                            false,
+                        ) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
                 it('returns correct report action which is a split bill and has an error', async () => {
@@ -1400,7 +1441,8 @@ describe('DebugUtils', () => {
                     };
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions);
                     const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, mockTransactions, undefined, false, reportErrors) ?? {};
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, mockTransactions, undefined, false, reportErrors, false) ??
+                        {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1458,6 +1500,7 @@ describe('DebugUtils', () => {
                         undefined,
                         false,
                         reportErrors,
+                        false,
                     ) ?? {};
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
@@ -1486,7 +1529,8 @@ describe('DebugUtils', () => {
 
                 const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions);
                 const {reason} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, sharedAllTransactions, undefined, false, reportErrors) ?? {};
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, sharedAllTransactions, undefined, false, reportErrors, false) ??
+                    {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
             it('returns correct reason when there are violations', () => {
@@ -1501,6 +1545,7 @@ describe('DebugUtils', () => {
                         undefined,
                         true,
                         {},
+                        false,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
@@ -1516,6 +1561,7 @@ describe('DebugUtils', () => {
                         undefined,
                         true,
                         {},
+                        false,
                         true,
                     ) ?? {};
                 expect(reason).toBe(undefined);
@@ -1572,8 +1618,91 @@ describe('DebugUtils', () => {
                         reportID: '1',
                     } as Transaction,
                 };
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}, false) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
+            });
+            it('forwards isOffline through to SidebarUtils so the live IOU transaction-thread receipt error surfaces only when isOffline=false excludes the deleted pending-delete action', () => {
+                // Given: an expense report with two IOU actions — one live (with a receipt-errored transaction) and one deleted-with-pending-delete.
+                const OFFLINE_EXPENSE_REPORT: Report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID: '2',
+                };
+                const OFFLINE_CHAT_REPORT: Report = {
+                    reportID: '2',
+                };
+                const liveTransactionID = 'tx-debug-live';
+                const deletedTransactionID = 'tx-debug-deleted';
+                const OFFLINE_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 12345,
+                        created: '2024-08-08 18:20:44.171',
+                        message: [{type: 'TEXT', text: 'live'}],
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: liveTransactionID,
+                            amount: 10,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    } as ReportAction,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '2': {
+                        reportActionID: '2',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 12345,
+                        created: '2024-08-08 18:25:44.171',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        message: [{type: 'TEXT', text: '', html: ''}],
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: deletedTransactionID,
+                            amount: 20,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    } as ReportAction,
+                };
+                const OFFLINE_TRANSACTIONS: OnyxCollection<Transaction> = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: {
+                        transactionID: liveTransactionID,
+                        amount: 10,
+                        errors: {
+                            someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
+                        },
+                    } as unknown as Transaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: {
+                        transactionID: deletedTransactionID,
+                        amount: 20,
+                    } as unknown as Transaction,
+                };
+
+                const offline = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                    OFFLINE_EXPENSE_REPORT,
+                    OFFLINE_CHAT_REPORT,
+                    OFFLINE_REPORT_ACTIONS,
+                    OFFLINE_TRANSACTIONS,
+                    {},
+                    false,
+                    {},
+                    true,
+                );
+                const online = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                    OFFLINE_EXPENSE_REPORT,
+                    OFFLINE_CHAT_REPORT,
+                    OFFLINE_REPORT_ACTIONS,
+                    OFFLINE_TRANSACTIONS,
+                    {},
+                    false,
+                    {},
+                    false,
+                );
+
+                // Online: deleted pending-delete is skipped → 1 IOU thread → receipt error surfaces.
+                expect(online?.reason).toBe('debug.reasonRBR.hasErrors');
+                // Offline: deleted pending-delete is counted → 2 IOU actions → no single thread → no receipt error via that path.
+                expect(offline).toBeNull();
             });
         });
     });

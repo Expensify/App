@@ -8,6 +8,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -18,64 +19,23 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
-import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getSpendRuleFormValuesFromCardRule, getSpendRuleSummaryParts, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SpendRuleForm} from '@src/types/form';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import {getTruncatedSpendRuleSummary} from './SpendRulesUtils';
 
 type SpendRulesSectionProps = {
     policyID: string;
 };
 
-type SpendRuleSummaryPart = {
-    badgeLabel: string;
-    text: string;
-    isNeutral?: boolean;
-};
-
-function getSpendRuleSummaryParts(
-    formValues: SpendRuleForm,
-    selectedCurrency: string | undefined,
-    actionLabel: string,
-    translate: ReturnType<typeof useLocalize>['translate'],
-): SpendRuleSummaryPart[] {
-    const summaryParts: SpendRuleSummaryPart[] = [];
-    const merchantNames = getTruncatedSpendRuleSummary(formValues.merchantNames, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
-    const categories = getTruncatedSpendRuleSummary(
-        formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
-        (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
-    );
-    const maxAmount = formValues.maxAmount.trim();
-
-    if (merchantNames) {
-        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.merchants')}: ${merchantNames}`});
-    }
-
-    if (categories) {
-        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.categories')}: ${categories}`});
-    }
-
-    if (maxAmount) {
-        summaryParts.push({
-            badgeLabel: translate('workspace.rules.spendRules.max'),
-            text: `${translate('iou.amount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(maxAmount)), selectedCurrency ?? CONST.CURRENCY.USD)}`,
-            isNeutral: true,
-        });
-    }
-
-    return summaryParts;
-}
-
 function SpendRulesSection({policyID}: SpendRulesSectionProps) {
+    const {convertToDisplayString} = useCurrencyListActions();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -92,8 +52,18 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     useEffect(() => {
+        if (!defaultFundID || defaultFundID === CONST.DEFAULT_NUMBER_ID) {
+            return;
+        }
+        if (expensifyCardSettings?.isLoading) {
+            return;
+        }
+        if (expensifyCardSettings?.hasOnceLoaded) {
+            return;
+        }
+
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
-    }, [policyID, defaultFundID]);
+    }, [defaultFundID, expensifyCardSettings?.hasOnceLoaded, expensifyCardSettings?.isLoading, policyID]);
 
     const isSpendRulesListLoading = !isOffline && (isLoadingOnyxValue(cardsListResult) || !expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
 
@@ -148,7 +118,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 ruleID,
                 actionLabel,
                 cardSummary,
-                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate),
+                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate, convertToDisplayString),
                 isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
                 created: cardRule.created,
                 pendingAction: cardRule.pendingAction,

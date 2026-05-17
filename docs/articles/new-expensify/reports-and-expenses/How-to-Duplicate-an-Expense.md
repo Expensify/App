@@ -22,7 +22,7 @@ Page creation GH: https://github.com/Expensify/Expensify/issues/614406
 
 ## Who can duplicate an expense
 
-Anyone can duplicate their own expenses. **Duplicate expense** is available for cash, distance, and per diem expenses in any status, including Unreported, Draft, Processing, Approved, and Paid. 
+Anyone can duplicate their own expenses. **Duplicate expense** is available for cash, distance, and per diem expenses in any status, including Unreported, Draft, Processing, Approved, Paid, and Deleted. 
 
 Card expenses (company cards and Expensify Cards) cannot be duplicated.
 
@@ -30,7 +30,7 @@ Card expenses (company cards and Expensify Cards) cannot be duplicated.
 
 ## How to duplicate a single expense 
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Reports > Expenses**
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Spend > Expenses**
 2. Click to open the eligible expense you want to duplicate. 
 3. Select **More**. 
 4. Choose **Duplicate expense**.
@@ -45,13 +45,13 @@ You can select multiple eligible expenses and duplicate them all in one action.
 
 **On web:**
 
-1. In the navigation tabs on the left, click **Reports > Expenses**.
+1. In the navigation tabs on the left, click **Spend > Expenses**.
 2. Select two or more cash, distance, or per diem expenses that you created.
 3. Click **Selected**, then **Duplicate expenses**.
 
 **On mobile**
 
-1. In the navigation tabs on the bottom, tap **Reports > Expenses**.
+1. In the navigation tabs on the bottom, tap **Spend > Expenses**.
 2. Long-press an expense, then tap **Select** to enter selection mode.
 3. Select two or more cash, distance, or per diem expenses that you created.
 4. Tap **Selected**, then **Duplicate expenses**.

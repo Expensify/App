@@ -10,7 +10,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import SidePanelActions from '@libs/actions/SidePanel';
 import DateUtils from '@libs/DateUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -82,7 +82,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
     const isRHPHomePage = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
-    const isUserAdmin = isPolicyAdmin(activePolicy, sessionEmail);
+    const isUserAdmin = canEditWorkspaceSettings(activePolicy);
     const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
@@ -93,7 +93,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
-        if (!shouldHideSidePanel) {
+        if (shouldHideSidePanel) {
+            setSessionStartTime(null);
+        } else if (!sessionStartTime) {
             setSessionStartTime(DateUtils.getDBTime());
         }
     }
@@ -135,6 +137,11 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
+    const openSidePanel = () => {
+        setSessionStartTime(DateUtils.getDBTime());
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
+    };
+
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateValue = {
@@ -153,7 +160,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const actionsValue = {
-        openSidePanel: () => SidePanelActions.openSidePanel(!isExtraLargeScreenWidth),
+        openSidePanel,
         closeSidePanel,
     };
 

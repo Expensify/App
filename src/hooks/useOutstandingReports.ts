@@ -1,8 +1,8 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {getOutstandingReportsForUser, isReportIneligibleForMoveExpenses, isSelfDM} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser, isSelfDM} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useMappedPolicies from './useMappedPolicies';
 import useOnyx from './useOnyx';
@@ -13,7 +13,6 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [allPoliciesID] = useMappedPolicies(policyIdMapper);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
 
@@ -21,12 +20,6 @@ export default function useOutstandingReports(selectedReportID: string | undefin
     if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
         return [];
     }
-
-    const filterEligibleReports = (reports: Array<OnyxEntry<Report>>) =>
-        reports.filter((report) => {
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-            return !isReportIneligibleForMoveExpenses(report, policy);
-        });
 
     if (!selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport)) {
         const result = [];
@@ -38,10 +31,8 @@ export default function useOutstandingReports(selectedReportID: string | undefin
             const reports = getOutstandingReportsForUser(policyID, ownerAccountID, outstandingReportsByPolicyID[policyID] ?? {}, reportNameValuePairs, isEditing);
             result.push(...reports);
         }
-        return filterEligibleReports(result);
+        return result;
     }
 
-    return filterEligibleReports(
-        getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs, isEditing),
-    );
+    return getOutstandingReportsForUser(selectedPolicyID, ownerAccountID, outstandingReportsByPolicyID?.[selectedPolicyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, reportNameValuePairs, isEditing);
 }

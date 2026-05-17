@@ -2,7 +2,6 @@ import type {Mock} from 'jest-mock';
 import type {OnyxEntry} from 'react-native-onyx';
 import MockedOnyx from 'react-native-onyx';
 import {confirmReadyToOpenApp, reconnectApp} from '@libs/actions/App';
-// eslint-disable-next-line no-restricted-syntax -- namespace import needed to spy on the reconnect function in tests
 import * as Reconnect from '@libs/actions/Reconnect';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import CONST from '@src/CONST';

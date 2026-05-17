@@ -65,7 +65,7 @@ function ThreeDotsMenu({
     };
 
     const hidePopoverMenu = useCallback((selectedItem?: PopoverMenuItem) => {
-        if (selectedItem && selectedItem.shouldKeepModalOpen) {
+        if (selectedItem?.shouldKeepModalOpen || selectedItem?.shouldCloseModalOnSelect === false) {
             return;
         }
         setPopupMenuVisible(false);
@@ -153,7 +153,6 @@ function ThreeDotsMenu({
     return (
         <>
             <View>
-                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <TooltipToRender {...tooltipProps}>
                     <PressableWithoutFeedback
                         onPress={onThreeDotsPress}
@@ -166,7 +165,7 @@ function ThreeDotsMenu({
                             e.preventDefault();
                         }}
                         ref={buttonRef}
-                        style={[styles.touchableButtonImage, iconStyles]}
+                        style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth, iconStyles]}
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}

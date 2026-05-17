@@ -1,5 +1,7 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import type {WithWritableReportOrNotFoundProps} from '@pages/iou/request/step/withWritableReportOrNotFound';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {Route} from '@src/ROUTES';
@@ -84,12 +86,6 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
     WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SCAN | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
         transaction: OnyxEntry<Transaction>;
-
-        /**
-         * Callback function that is triggered on the `onLayout` event.
-         * Receives a function (`setTestReceiptAndNavigate`) as an argument,
-         */
-        onLayout?: (setTestReceiptAndNavigate: () => void) => void;
     };
 
 type ReceiptFile = {
@@ -98,5 +94,7 @@ type ReceiptFile = {
     transactionID: string;
 };
 
+type ScanRoute = PlatformStackRouteProp<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN | typeof SCREENS.MONEY_REQUEST.CREATE>;
+
 export default IOURequestStepScanProps;
-export type {ReceiptFile, UseMobileReceiptScanParams, UseReceiptScanParams};
+export type {ReceiptFile, ScanRoute, UseMobileReceiptScanParams, UseReceiptScanParams};

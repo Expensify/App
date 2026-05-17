@@ -92,7 +92,6 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         () => ({
             anchor: null,
             report,
-            isReportArchived: false,
             action,
             transactionThreadReport: undefined,
             isDisabled: true,
@@ -128,7 +127,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                         if (isDisableInteractive) {
                                             return;
                                         }
-                                        if (e && e.type === 'click') {
+                                        if (e?.type === 'click') {
                                             (e.currentTarget as HTMLElement).blur();
                                         }
 
