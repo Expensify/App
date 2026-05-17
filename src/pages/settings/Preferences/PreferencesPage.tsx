@@ -75,7 +75,6 @@ function PreferencesPage() {
                         isCentralPane
                         illustrationContainerStyle={styles.cardSectionIllustrationContainer}
                         illustrationBackgroundColor={colors.blue500}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...preferencesIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
