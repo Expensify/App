@@ -1,8 +1,12 @@
 import {useCallback, useEffect, useRef} from 'react';
+import {emojiNameTable} from '@assets/emojis';
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
 import CONST from '@src/CONST';
 import type UseHtmlPaste from './types';
+
+const EMOJI_SHORTCODE_REGEX = /:([a-z0-9_+-]+):/gi;
+const EMOJI_IMAGE_ALT_REGEX = /^([a-f\d]{4,6}(?:-[a-f\d]{4,6})*)(?:@\d+x)?\.(?:png|gif|webp)$/i;
 
 const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: number) => {
     const currentText = target.textContent ?? '';
@@ -38,15 +42,51 @@ const insertAtCaret = (target: HTMLElement, insertedText: string, maxLength: num
     }
 };
 
+const convertEmojiShortcodesToUnicode = (text: string): string => text.replaceAll(EMOJI_SHORTCODE_REGEX, (match, emojiName: string) => emojiNameTable[emojiName]?.code ?? match);
+
+const getEmojiFromImageAlt = (alt: string): string => {
+    const emojiHexCodepoints = alt.match(EMOJI_IMAGE_ALT_REGEX)?.[1];
+
+    if (!emojiHexCodepoints) {
+        return '';
+    }
+
+    const codepoints = emojiHexCodepoints.split('-').map((codepoint) => Number.parseInt(codepoint, 16));
+
+    if (codepoints.some((codepoint) => Number.isNaN(codepoint) || codepoint > 0x10ffff)) {
+        return '';
+    }
+
+    return String.fromCodePoint(...codepoints);
+};
+
 const isEmojiImage = (image: HTMLImageElement): boolean => {
     const dataset = image.dataset;
 
-    return !!(
+    return (
         dataset.stringifyEmoji !== undefined || // For Slack
         dataset.emoji !== undefined || // For gmail
         dataset.stringifyType === 'emoji' ||
         Object.keys(dataset).some((key) => key.toLowerCase().includes('emoji'))
     );
+};
+
+const getEmojiReplacementText = (image: HTMLImageElement): string => {
+    const emojiFromImageAlt = getEmojiFromImageAlt(image.alt);
+    if (emojiFromImageAlt) {
+        return emojiFromImageAlt;
+    }
+
+    const emojiFromShortcode = convertEmojiShortcodesToUnicode(image.alt);
+    if (emojiFromShortcode !== image.alt) {
+        return emojiFromShortcode;
+    }
+
+    if (isEmojiImage(image)) {
+        return image.alt;
+    }
+
+    return '';
 };
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
@@ -162,13 +202,17 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                 const htmlDocument = domparser.parseFromString(pastedHTML, TEXT_HTML);
                 const embeddedImages = Array.from(htmlDocument.images);
 
+                // Replace emoji images before parsing HTML so they do not become inaccessible markdown image URLs.
                 for (const image of embeddedImages) {
-                    if (!isEmojiImage(image) || !image.alt) {
+                    const emojiText = getEmojiReplacementText(image);
+
+                    if (!emojiText) {
                         continue;
                     }
 
-                    image.replaceWith(htmlDocument.createTextNode(image.alt));
+                    image.replaceWith(htmlDocument.createTextNode(emojiText));
                 }
+
                 // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
                 // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
                 if (pastedHTML.startsWith('<p dir="ltr">')) {
