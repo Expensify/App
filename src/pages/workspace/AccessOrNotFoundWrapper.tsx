@@ -2,6 +2,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -14,7 +15,16 @@ import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditWorkspaceSettings, canSendInvoice, isControlPolicy, isGroupPolicy, isPolicyAccessible, isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil} from '@libs/PolicyUtils';
+import {
+    canEditWorkspaceSettings,
+    canMemberRead,
+    canMemberWrite,
+    canSendInvoice,
+    isControlPolicy,
+    isGroupPolicy,
+    isPolicyAccessible,
+    isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil,
+} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -64,6 +74,9 @@ const ACCESS_VARIANTS = {
 >;
 
 type AccessVariant = keyof typeof ACCESS_VARIANTS;
+type RequiredPolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
+type RequiredPolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
+
 type AccessOrNotFoundWrapperChildrenProps = {
     /** The report that holds the transaction */
     report: OnyxEntry<Report>;
@@ -90,6 +103,12 @@ type AccessOrNotFoundWrapperProps = {
 
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
+
+    /** Policy feature permission needed to access the page */
+    requiredPolicyFeature?: RequiredPolicyFeature;
+
+    /** Access level needed for the policy feature */
+    requiredPolicyFeatureAccess?: RequiredPolicyFeatureAccess;
 
     /** Props for customizing fallback pages */
     fullPageNotFoundViewProps?: FullPageNotFoundViewProps;
@@ -139,6 +158,8 @@ function AccessOrNotFoundWrapper({
     iouType,
     allPolicies,
     featureName,
+    requiredPolicyFeature,
+    requiredPolicyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     ...props
 }: AccessOrNotFoundWrapperProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -178,9 +199,14 @@ function AccessOrNotFoundWrapper({
         }
         return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
+    const hasRequiredPolicyPermission = requiredPolicyFeature
+        ? requiredPolicyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE
+            ? canMemberWrite(policy, login, requiredPolicyFeature)
+            : canMemberRead(policy, login, requiredPolicyFeature)
+        : true;
 
     const isPolicyNotAccessible = !isPolicyAccessible(policy, login);
-    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked;
+    const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || !hasRequiredPolicyPermission || shouldBeBlocked;
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.

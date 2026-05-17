@@ -4,6 +4,7 @@ import type {ReactNode} from 'react';
 import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -19,7 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import {canEditWorkspaceSettings, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canMemberRead, canMemberWrite, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +30,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+
+type RequiredPolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
+type RequiredPolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
     Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
@@ -57,6 +61,12 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether to show this page to non admin policy members */
         shouldShowNonAdmin?: boolean;
+
+        /** Policy feature permission needed to show this page */
+        requiredPolicyFeature?: RequiredPolicyFeature;
+
+        /** Access level needed for the policy feature */
+        requiredPolicyFeatureAccess?: RequiredPolicyFeatureAccess;
 
         /** Whether to show the not found page */
         shouldShowNotFoundPage?: boolean;
@@ -122,6 +132,8 @@ function WorkspacePageWithSections({
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
     shouldShowNonAdmin = false,
+    requiredPolicyFeature,
+    requiredPolicyFeatureAccess = CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     shouldEnableMaxHeight = true,
     headerContent,
     testID,
@@ -163,6 +175,11 @@ function WorkspacePageWithSections({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const shouldShowPolicy = useMemo(() => shouldShowPolicyUtil(policy, false, currentUserLogin), [policy, currentUserLogin]);
+    const hasRequiredPolicyPermission = requiredPolicyFeature
+        ? requiredPolicyFeatureAccess === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE
+            ? canMemberWrite(policy, currentUserLogin, requiredPolicyFeature)
+            : canMemberRead(policy, currentUserLogin, requiredPolicyFeature)
+        : undefined;
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     const shouldShow = useMemo(() => {
@@ -172,9 +189,11 @@ function WorkspacePageWithSections({
         }
 
         // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
-        return (!isEmptyObject(policy) && !canEditWorkspaceSettings(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
+        const canShowPage = hasRequiredPolicyPermission ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
+
+        return (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicy && !(isPendingDelete && !prevIsPendingDelete));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
+    }, [hasRequiredPolicyPermission, policy, shouldShowNonAdmin, shouldShowPolicy]);
 
     const handleOnBackButtonPress = () => {
         if (shouldShow) {

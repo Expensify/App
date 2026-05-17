@@ -494,6 +494,9 @@ const translations: TranslationDeepObject<typeof en> = {
         previousYear: 'Vorheriges Jahr',
         nextYear: 'Nächstes Jahr',
         avatar: 'Avatar',
+        cardAdmin: 'Kartenverwaltung',
+        peopleAdmin: 'Personenverwaltung',
+        paymentsAdmin: 'Zahlungsadministrator',
     },
     socials: {
         podcast: 'Folgen Sie uns auf Podcast',
@@ -4321,6 +4324,12 @@ ${amount} für ${merchant} – ${date}`,
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Prüfer';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Kartenverwaltung';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'Personenverwaltung';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Zahlungsadministrator';
                     case CONST.POLICY.ROLE.USER:
                         return 'Mitglied';
                     default:
@@ -4355,6 +4364,9 @@ ${amount} für ${merchant} – ${date}`,
             travelInvoicingVendor: 'Reiseanbieter',
             travelInvoicingPayableAccount: 'Reiseverbindlichkeitskonto',
             hr: 'Personalwesen',
+            cardAdminAlternateText: 'Arbeitsbereichskarten verwalten.',
+            peopleAdminAlternateText: 'Mitglieder und Genehmigungsabläufe verwalten.',
+            paymentsAdminAlternateText: 'Workflow-Zahlungen verwalten.',
         },
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',

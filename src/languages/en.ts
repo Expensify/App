@@ -356,6 +356,9 @@ const translations = {
         update: 'Update',
         member: 'Member',
         auditor: 'Auditor',
+        cardAdmin: 'Card Admin',
+        peopleAdmin: 'People Admin',
+        paymentsAdmin: 'Payments Admin',
         role: 'Role',
         roleCannotBeChanged: (workflowsLinkPage: string) => `Role can't be changed because this member is a <a href="${workflowsLinkPage}">payer</a> on this workspace.`,
         currency: 'Currency',
@@ -4390,6 +4393,9 @@ const translations = {
             memberAlternateText: 'Submit and approve reports.',
             adminAlternateText: 'Manage reports and workspace settings.',
             auditorAlternateText: 'View and comment on reports.',
+            cardAdminAlternateText: 'Manage workspace cards.',
+            peopleAdminAlternateText: 'Manage members and approval workflows.',
+            paymentsAdminAlternateText: 'Manage workflow payments.',
             reimbursementChoice: {
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES]: 'Direct',
                 [CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO]: 'None',
@@ -4401,6 +4407,12 @@ const translations = {
                         return 'Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
                         return 'Auditor';
+                    case CONST.POLICY.ROLE.CARD_ADMIN:
+                        return 'Card Admin';
+                    case CONST.POLICY.ROLE.PEOPLE_ADMIN:
+                        return 'People Admin';
+                    case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
+                        return 'Payments Admin';
                     case CONST.POLICY.ROLE.USER:
                         return 'Member';
                     default:
