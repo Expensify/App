@@ -697,6 +697,7 @@ function getReportFromHoldRequestsOnyxData({
     isApprovalFlow?: boolean;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    // TODO: delegateAccountID will be made required in PR 13 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 }): {
     optimisticHoldReportID: string;

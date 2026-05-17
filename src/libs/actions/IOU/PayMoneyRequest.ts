@@ -95,6 +95,7 @@ type PayMoneyRequestFunctionParams = {
     methodID?: number;
     conciergeReportID: string | undefined;
     onPaid?: () => void;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 };
 
@@ -142,6 +143,7 @@ function getPayMoneyRequestParams({
     defaultWorkspaceName?: string;
     // TODO: This will be required eventually. Ref: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    // TODO: delegateAccountID will be made required in PR 12 when all callers pass the value (https://github.com/Expensify/App/issues/66425)
     delegateAccountID?: number | undefined;
 }): PayMoneyRequestData {
     const allTransactionViolations = getAllTransactionViolations();
