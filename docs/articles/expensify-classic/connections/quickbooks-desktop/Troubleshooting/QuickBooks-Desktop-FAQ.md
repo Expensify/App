@@ -103,12 +103,14 @@ If you see:
 
 This means the Expensify application is already registered in QuickBooks Web Connector and a second registration is being attempted. QuickBooks requires each application to have a unique OwnerID/FileID pair. If one already exists, the new registration is rejected.
 
-### How to Fix the QBWC1039 Error
+## How to fix the QBWC1039 error
 
-#### Step One: Remove the Existing Owner ID Using the CP3 Tool
+## How to remove the existing Owner ID using the CP3 tool
+
+You'll need the [CP3 tool from Intuit](https://http-download.intuit.com/http.intuit/CP3Tool/QBWC_CP3Tool.exe) to remove the existing Owner ID stamp.
 
 1. Open **QuickBooks Desktop**.
-2. Download the [CP3 tool from Intuit](https://http-download.intuit.com/http.intuit/CP3Tool/QBWC_CP3Tool.exe), then select **Open**.
+2. Download and open the CP3 tool.
 3. Select **Select the file**, then search for your QWC configuration file.
 4. Select **Open**, then click **Remove Stamp**.
 5. On the **QuickBooks Application Certificate** window, select **Yes**, then **Continue**.
@@ -117,7 +119,7 @@ This means the Expensify application is already registered in QuickBooks Web Con
 8. You should see a confirmation that the Owner ID was removed. Select **OK**.
 9. Exit and reopen both **QuickBooks Desktop** and **Web Connector**.
 
-#### Step Two: Re-add the Expensify Application
+## How to re-add the Expensify application in Web Connector
 
 1. In Expensify, go to **Settings**.
 2. Select **Workspaces**.
@@ -135,11 +137,11 @@ QuickBooks Desktop will prompt you to approve the Application Certificate.
 
 Return to Expensify and allow the Workspace to finish syncing.
 
-#### If QuickBooks Desktop Is Hosted (e.g., Rightworks)
+## How to fix the QBWC1039 error when QuickBooks Desktop is hosted (e.g., Rightworks)
 
 If your QuickBooks Desktop is hosted in a remote/cloud environment (such as Rightworks or another hosting provider), you will likely **not** be able to run the CP3 tool yourself. In this case:
 
 1. Contact your hosting provider's support team and request that they remove the existing Owner ID stamp using the CP3 tool. For example, Rightworks support is available at **(888) 417-4448, option 2** (available 24/7). They can perform a screenshare via phone and set up a three-way call if needed.
 2. Your hosting provider may need to close your remote desktop session to make the changes.
 3. **Important:** After the hosting provider completes their changes, you must use the **same QWC configuration file** you originally saved. Do not generate a new one.
-4. Reconnect the Expensify application following **Step Two** above.
+4. Reconnect the Expensify application following the steps in **How to re-add the Expensify application in Web Connector** above.
