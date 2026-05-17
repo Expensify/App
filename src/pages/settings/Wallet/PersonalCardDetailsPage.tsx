@@ -129,8 +129,6 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         ? format(getLocalDateFromDatetime(card.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING)
         : translate('workspace.moreFeatures.companyCards.neverUpdated');
 
-    const plaidUrl = getPlaidInstitutionIconUrl(cardBank as CompanyCardFeed);
-
     const getCardIconSource = () => {
         return getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons);
     };
@@ -144,6 +142,8 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     if (card && !isUserPersonalCard) {
         return <NotFoundPage />;
     }
+
+    const plaidUrl = getPlaidInstitutionIconUrl(cardBank as CompanyCardFeed);
 
     return (
         <ScreenWrapper
