@@ -12,6 +12,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
 import useReportTransactions from '@hooks/useReportTransactions';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -231,6 +232,9 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
+    const transactionIDs = transactions?.map((transaction) => transaction.transactionID);
+    const [storedTransactions] = useTransactionsByID(transactionIDs);
+
     function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
         if (!transactions.length) {
             return;
@@ -271,6 +275,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = transactions.find((tx) => tx.transactionID === existingTransactionID);
+            const existingTransaction = existingTransactionID ? storedTransactions?.find((tx) => tx?.transactionID === existingTransactionID) : undefined;
             let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
             if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
                 const distance = item.comment?.customUnit?.quantity;
@@ -358,6 +363,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 transactionViolations: transactionViolationsRef.current,
                 policyRecentlyUsedCurrencies,
                 quickAction,
+                existingTransaction,
                 existingTransactionDraft,
                 draftTransactionIDs,
                 isSelfTourViewed,

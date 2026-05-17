@@ -119,19 +119,16 @@ function IOURequestStepConfirmation({
     const personalDetails = usePersonalDetails();
     const allPolicyCategories = usePolicyCategories();
 
-    const [transactionDrafts] = useOptimisticDraftTransactions(initialTransaction);
-    const hasMultipleTransactions = transactionDrafts.length > 1;
+    const [transactions] = useOptimisticDraftTransactions(initialTransaction);
+    const hasMultipleTransactions = transactions.length > 1;
+
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const transactionIDs = useMemo(() => transactionDrafts?.map((transaction) => transaction.transactionID), [transactionDrafts.length]);
-    const [transactions] = useTransactionsByID(transactionIDs);
+    const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
     // We will use setCurrentTransactionID later to switch between transactions
 
     const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
-    const currentTransactionIndex = useMemo(
-        () => transactionDrafts.findIndex((transaction) => transaction.transactionID === currentTransactionID),
-        [transactionDrafts, currentTransactionID],
-    );
+    const currentTransactionIndex = useMemo(() => transactions.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactions, currentTransactionID]);
     const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
@@ -627,14 +624,14 @@ function IOURequestStepConfirmation({
     }
 
     const showNextTransaction = () => {
-        const nextTransaction = transactionDrafts.at(currentTransactionIndex + 1);
+        const nextTransaction = transactions.at(currentTransactionIndex + 1);
         if (nextTransaction) {
             setCurrentTransactionID(nextTransaction.transactionID);
         }
     };
 
     const showPreviousTransaction = () => {
-        const previousTransaction = transactionDrafts.at(currentTransactionIndex - 1);
+        const previousTransaction = transactions.at(currentTransactionIndex - 1);
         if (previousTransaction) {
             setCurrentTransactionID(previousTransaction.transactionID);
         }
@@ -642,7 +639,7 @@ function IOURequestStepConfirmation({
 
     const removeCurrentTransaction = () => {
         if (currentTransactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-            const nextTransaction = transactionDrafts.at(currentTransactionIndex + 1);
+            const nextTransaction = transactions.at(currentTransactionIndex + 1);
             replaceDefaultDraftTransaction(nextTransaction);
             return;
         }
@@ -744,13 +741,13 @@ function IOURequestStepConfirmation({
                     {!shouldHideHeader && (
                         <HeaderWithBackButton
                             title={headerTitle}
-                            subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactionDrafts.length}` : undefined}
+                            subtitle={hasMultipleTransactions ? `${currentTransactionIndex + 1} ${translate('common.of')} ${transactions.length}` : undefined}
                             onBackButtonPress={navigateBack}
                         >
                             {hasMultipleTransactions ? (
                                 <PrevNextButtons
                                     isPrevButtonDisabled={currentTransactionIndex === 0}
-                                    isNextButtonDisabled={currentTransactionIndex === transactionDrafts.length - 1}
+                                    isNextButtonDisabled={currentTransactionIndex === transactions.length - 1}
                                     onNext={showNextTransaction}
                                     onPrevious={showPreviousTransaction}
                                 />
