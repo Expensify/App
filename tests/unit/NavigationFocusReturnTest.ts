@@ -22,6 +22,7 @@ const {
     notifyPushParamsBackward,
     cancelPendingFocusRestore,
     skipNextFocusRestore,
+    isFocusRestoreInProgress,
     compoundParamsKey,
     shouldSkipAutoFocusDueToExistingFocus,
     setupNavigationFocusReturn,
@@ -39,6 +40,7 @@ const {
     notifyPushParamsBackward: (routeKey: string, targetParams: unknown) => void;
     cancelPendingFocusRestore: () => void;
     skipNextFocusRestore: () => void;
+    isFocusRestoreInProgress: () => boolean;
     compoundParamsKey: (routeKey: string, params: unknown) => string;
     shouldSkipAutoFocusDueToExistingFocus: () => boolean;
     setupNavigationFocusReturn: () => void;
@@ -1187,6 +1189,43 @@ describe('restoreTriggerForRoute', () => {
         const spy = jest.spyOn(trigger, 'focus');
         expect(restoreTriggerForRoute('route-a')).toBe(true);
         expect(spy).toHaveBeenCalledWith({preventScroll: true, focusVisible: expectedFocusVisible});
+    });
+});
+
+describe('isFocusRestoreInProgress', () => {
+    beforeEach(() => {
+        simulateTab();
+    });
+
+    it('is false normally, true synchronously inside the restore .focus(), and false again after', () => {
+        const trigger = appendButton();
+        trigger.focus();
+        setLastInteractiveElementForTests(trigger);
+        captureTriggerForRoute('route-a');
+        trigger.blur();
+
+        expect(isFocusRestoreInProgress()).toBe(false);
+
+        // The list consumers (BaseSelectionList / BaseSearchList) read this in the row's onFocus, which fires synchronously inside .focus().
+        let valueDuringFocus: boolean | undefined;
+        trigger.addEventListener('focus', () => {
+            valueDuringFocus = isFocusRestoreInProgress();
+        });
+
+        expect(restoreTriggerForRoute('route-a')).toBe(true);
+
+        expect(valueDuringFocus).toBe(true);
+        expect(isFocusRestoreInProgress()).toBe(false);
+    });
+
+    it('stays false for a focus not driven by restoreTriggerForRoute (e.g. genuine keyboard Tab)', () => {
+        const el = appendButton();
+        let valueDuringFocus: boolean | undefined;
+        el.addEventListener('focus', () => {
+            valueDuringFocus = isFocusRestoreInProgress();
+        });
+        el.focus();
+        expect(valueDuringFocus).toBe(false);
     });
 });
 

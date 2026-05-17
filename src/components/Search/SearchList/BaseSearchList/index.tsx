@@ -11,6 +11,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
+import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import type BaseSearchListProps from './types';
 
@@ -63,6 +64,10 @@ function BaseSearchList({
     });
 
     const handleFocusByIndex = (index: number, event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
+        // Don't let the accessibility focus-return restore drive the arrow-cursor — it would highlight + scroll the row on back nav. DOM focus is still restored by the .focus() itself.
+        if (isFocusRestoreInProgress()) {
+            return;
+        }
         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
         if (isMobileChrome() && event.nativeEvent) {
             if (!event.nativeEvent.sourceCapabilities) {
