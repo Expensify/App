@@ -124,3 +124,5 @@ export type {EditExpensifyCardLimitTypeForm} from './EditExpensifyCardLimitTypeF
 export type {DomainGroupCreateForm} from './DomainGroupCreateForm';
 export type {AddWorkEmailForm} from './AddWorkEmailForm';
 export type {AddAgentForm} from './AddAgentForm';
+export type {EditAgentNameForm} from './EditAgentNameForm';
+export type {EditAgentPromptForm} from './EditAgentPromptForm';
