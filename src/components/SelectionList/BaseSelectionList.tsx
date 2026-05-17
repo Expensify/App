@@ -229,12 +229,15 @@ function BaseSelectionList<TItem extends ListItem>({
     });
 
     // Keep the cursor on the restored row so keyboard nav continues from there, but don't scroll to it on the way back.
-    const setFocusedIndexFromRowFocus = (index: number) => {
-        if (isFocusRestoreInProgress() && index !== focusedIndex) {
-            suppressNextFocusScrollRef.current = true;
-        }
-        setFocusedIndex(index);
-    };
+    const setFocusedIndexFromRowFocus = useCallback(
+        (index: number) => {
+            if (isFocusRestoreInProgress() && index !== focusedIndex) {
+                suppressNextFocusScrollRef.current = true;
+            }
+            setFocusedIndex(index);
+        },
+        [focusedIndex, setFocusedIndex],
+    );
 
     // extraData helps FlashList detect when data changes significantly (e.g., during filtering)
     // Including data.length ensures FlashList resets its layout cache when the list size changes
