@@ -264,6 +264,32 @@ describe('SearchActionsBarCreateButton', () => {
         expect(screen.getByText(translateLocal('report.newReport.createReport'))).toBeOnTheScreen();
     });
 
+    it('should call startMoneyRequest when "Create expense" is pressed', async () => {
+        mockUsePolicyForMovingExpenses.mockReturnValue({
+            policyForMovingExpensesID: MOCK_POLICY_ID,
+            policyForMovingExpenses: MOCK_POLICY,
+            shouldSelectPolicy: false,
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`, MOCK_POLICY);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        const createButton = screen.getByText(translateLocal('common.create'));
+        fireEvent.press(createButton);
+        await waitForBatchedUpdatesWithAct();
+
+        const createExpenseItem = screen.getByText(translateLocal('iou.createExpense'));
+        fireEvent.press(createExpenseItem, createMockPressEvent(createExpenseItem));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockInterceptAnonymousUser).toHaveBeenCalled();
+    });
+
     it('should navigate to workspace selector when owner billing is restricted and multiple workspaces exist', async () => {
         // Given the current user owns a workspace that is past due billing with an outstanding amount
         const pastDueGracePeriod = getUnixTime(subDays(new Date(), 3));
