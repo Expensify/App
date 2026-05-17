@@ -232,7 +232,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
-    const transactionIDs = transactions?.map((transaction) => transaction.transactionID);
+    const transactionIDs = transactions?.map((tx) => tx.transactionID);
     const [storedTransactions] = useTransactionsByID(transactionIDs);
 
     function requestMoney(selectedParticipantsArg: Participant[], shouldHandleNav: boolean, gpsPoint?: GpsPoint) {
