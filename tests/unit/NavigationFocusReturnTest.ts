@@ -1227,6 +1227,20 @@ describe('isFocusRestoreInProgress', () => {
         el.focus();
         expect(valueDuringFocus).toBe(false);
     });
+
+    it('resets to false even when .focus() throws', () => {
+        const trigger = appendButton();
+        trigger.focus();
+        setLastInteractiveElementForTests(trigger);
+        captureTriggerForRoute('route-a');
+        trigger.blur();
+        jest.spyOn(trigger, 'focus').mockImplementation(() => {
+            throw new Error('boom');
+        });
+
+        expect(() => restoreTriggerForRoute('route-a')).toThrow('boom');
+        expect(isFocusRestoreInProgress()).toBe(false);
+    });
 });
 
 describe('shouldSkipAutoFocusDueToExistingFocus', () => {
