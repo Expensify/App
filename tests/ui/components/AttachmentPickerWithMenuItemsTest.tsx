@@ -35,27 +35,24 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isTopmostRouteModalScreen: jest.fn(() => false),
 }));
 
-jest.mock('@components/PopoverMenu', () => ({menuItems, onItemSelected}: {menuItems: Array<{text: string; onSelected: () => void}>; onItemSelected?: () => void}) => {
-    const {View} = require('react-native');
-    const {Pressable} = require('react-native');
-    const {Text} = require('react-native');
-
-    return (
-        <View>
-            {menuItems?.map((item: {text: string; onSelected: () => void}) => (
-                <Pressable
-                    key={item.text}
-                    onPress={() => {
-                        item.onSelected();
-                        onItemSelected?.();
-                    }}
-                >
-                    <Text>{item.text}</Text>
-                </Pressable>
-            ))}
-        </View>
-    );
-});
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- ignore for testing
+const {View: MockView, Pressable: MockPressable, Text: MockText} = jest.requireActual('react-native');
+jest.mock('@components/PopoverMenu', () => ({menuItems, onItemSelected}: {menuItems: Array<{text: string; onSelected: () => void}>; onItemSelected?: () => void}) => (
+    <MockView>
+        {menuItems?.map((item: {text: string; onSelected: () => void}) => (
+            <MockPressable
+                key={item.text}
+                accessibilityRole="button"
+                onPress={() => {
+                    item.onSelected();
+                    onItemSelected?.();
+                }}
+            >
+                <MockText>{item.text}</MockText>
+            </MockPressable>
+        ))}
+    </MockView>
+));
 
 jest.mock(
     '@components/AttachmentPicker',
