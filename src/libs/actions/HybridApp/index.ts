@@ -14,6 +14,7 @@ let currentSessionAccountID: Session['accountID'];
 let isLoadingApp = true;
 let isLoadingTryNewDot = true;
 let hasReceivedTryNewDotUpdate = false;
+let isClosingReactNativeApp = false;
 
 function getSessionAccountID(session: OnyxEntry<Session>): Session['accountID'] {
     return session?.accountID;
@@ -32,6 +33,15 @@ function updateTryNewDotLoadingState(isTryNewDotUpdate = false, isInitialTryNewD
 
     isLoadingTryNewDot = isLoadingApp !== false;
 }
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.HYBRID_APP,
+    callback: (hybridApp) => {
+        if (!hybridApp?.closingReactNativeApp) {
+            isClosingReactNativeApp = false;
+        }
+    },
+});
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
@@ -68,6 +78,7 @@ Onyx.connectWithoutView({
 
         currentTryNewDot = undefined;
         hasReceivedTryNewDotUpdate = false;
+        isClosingReactNativeApp = false;
         isLoadingTryNewDot = nextSessionAccountID !== undefined || isLoadingApp !== false;
     },
 });
@@ -109,13 +120,21 @@ function closeReactNativeApp({shouldSetNVP, isTrackingGPS, shouldIgnoreTryNewDot
         return;
     }
 
-    Navigation.clearPreloadedRoutes();
-    if (CONFIG.IS_HYBRID_APP) {
-        Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true});
+    if (CONFIG.IS_HYBRID_APP && isClosingReactNativeApp) {
+        return;
     }
 
-    // eslint-disable-next-line no-restricted-properties
-    HybridAppModule.closeReactNativeApp({shouldSetNVP});
+    if (CONFIG.IS_HYBRID_APP) {
+        isClosingReactNativeApp = true;
+    }
+
+    const closingPromise = CONFIG.IS_HYBRID_APP ? Onyx.merge(ONYXKEYS.HYBRID_APP, {closingReactNativeApp: true}) : Promise.resolve();
+
+    closingPromise.then(() => {
+        Navigation.clearPreloadedRoutes();
+        // eslint-disable-next-line no-restricted-properties
+        HybridAppModule.closeReactNativeApp({shouldSetNVP});
+    });
 }
 
 /*
