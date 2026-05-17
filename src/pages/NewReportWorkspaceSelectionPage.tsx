@@ -182,7 +182,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        const shouldShowEmptyReportConfirmation = !!policiesWithEmptyReports?.[policy.policyID]
+        const shouldShowEmptyReportConfirmation = !!policiesWithEmptyReports?.[policy.policyID];
         if (!shouldShowEmptyReportConfirmation) {
             createReport(policy.policyID, false);
             return;
