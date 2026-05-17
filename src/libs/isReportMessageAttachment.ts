@@ -17,37 +17,37 @@ function isReportMessageAttachment(message: Message | undefined): boolean {
         return true;
     }
 
-    // Attachment-only = exactly one attachment tag and nothing else; any text/element outside it → attachment+text.
+    // Attachment-only = one or more attachment tags and nothing else; any text/element outside them → attachment+text.
     let attachmentCount = 0;
     let hasOtherContent = false;
-    // Skip the filename text inside an open <a>/<video> so it isn't counted as user content.
-    let openAttachmentTag: string | null = null;
+    // Holds the tag name of the open <a>/<video> attachment so its inner filename text isn't counted as user content.
+    let openAttachmentTagName: string | null = null;
 
     const parser = new HtmlParser({
         ontext: (text) => {
-            if (openAttachmentTag || !text.trim()) {
+            if (openAttachmentTagName || !text.trim()) {
                 return;
             }
             hasOtherContent = true;
         },
         onopentag: (name, attribs) => {
-            if (openAttachmentTag || name === 'br') {
+            if (openAttachmentTagName || name === 'br') {
                 return;
             }
             if (ATTACHMENT_TAGS.has(name) && !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]) {
                 attachmentCount += 1;
                 if (name === 'a' || name === 'video') {
-                    openAttachmentTag = name;
+                    openAttachmentTagName = name;
                 }
                 return;
             }
             hasOtherContent = true;
         },
         onclosetag: (name) => {
-            if (name !== openAttachmentTag) {
+            if (name !== openAttachmentTagName) {
                 return;
             }
-            openAttachmentTag = null;
+            openAttachmentTagName = null;
         },
     });
     parser.write(message.html);

@@ -113,4 +113,14 @@ describe('isReportMessageAttachment', () => {
         };
         expect(isReportMessageAttachment(message)).toBe(true);
     });
+
+    // Multi-upload is normally split into separate actions; if multiple attachments share one message, classification stays attachment-only.
+    it('returns true for multiple attachments with no surrounding text', () => {
+        const message: Message = {
+            text: 'a.doc https://www.expensify.com/chat-attachments/1/a.doc\nb.pdf https://www.expensify.com/chat-attachments/2/b.pdf',
+            html: '<a href="https://www.expensify.com/chat-attachments/1/a.doc" data-expensify-source="https://www.expensify.com/chat-attachments/1/a.doc">a.doc</a><a href="https://www.expensify.com/chat-attachments/2/b.pdf" data-expensify-source="https://www.expensify.com/chat-attachments/2/b.pdf">b.pdf</a>',
+            type: '',
+        };
+        expect(isReportMessageAttachment(message)).toBe(true);
+    });
 });
