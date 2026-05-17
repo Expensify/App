@@ -32,6 +32,7 @@ type WorkspaceDistanceRatesTableRowProps = {
     canSelectMultiple: boolean;
     onToggle: () => void;
     onPress: () => void;
+    onLongPress?: () => void;
     shouldUseNarrowTableLayout: boolean;
     statusLabels: Record<string, string>;
 };
@@ -43,7 +44,17 @@ function formatDateColumn(dateString: string | undefined): string {
     return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_FORMAT);
 }
 
-function WorkspaceDistanceRatesTableRow({item, rowIndex, isSelected, canSelectMultiple, onToggle, onPress, shouldUseNarrowTableLayout, statusLabels}: WorkspaceDistanceRatesTableRowProps) {
+function WorkspaceDistanceRatesTableRow({
+    item,
+    rowIndex,
+    isSelected,
+    canSelectMultiple,
+    onToggle,
+    onPress,
+    onLongPress,
+    shouldUseNarrowTableLayout,
+    statusLabels,
+}: WorkspaceDistanceRatesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -67,6 +78,7 @@ function WorkspaceDistanceRatesTableRow({item, rowIndex, isSelected, canSelectMu
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
             offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
             onPress={onPress}
+            onLongPress={onLongPress}
         >
             {({hovered}) => (
                 <>

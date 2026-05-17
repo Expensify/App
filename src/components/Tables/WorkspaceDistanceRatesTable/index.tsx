@@ -27,6 +27,7 @@ type WorkspaceDistanceRatesTableProps = {
     onToggleRate: (rateID: string) => void;
     onToggleAllRates: () => void;
     onPressRate: (rateID: string) => void;
+    onLongPressRate?: (rateID: string) => void;
     onDismissError: (rateID: string) => void;
     pendingAction?: OnyxCommon.PendingAction;
     pendingFields?: OnyxCommon.PendingFields<string>;
@@ -47,6 +48,7 @@ function WorkspaceDistanceRatesTable({
     onToggleRate,
     onToggleAllRates,
     onPressRate,
+    onLongPressRate,
     onDismissError,
     pendingAction,
     pendingFields,
@@ -150,6 +152,7 @@ function WorkspaceDistanceRatesTable({
             canSelectMultiple={canSelectMultiple}
             onToggle={() => onToggleRate(item.rateID)}
             onPress={() => onPressRate(item.rateID)}
+            onLongPress={onLongPressRate ? () => onLongPressRate(item.rateID) : undefined}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             statusLabels={statusLabels}
         />
@@ -192,7 +195,14 @@ function WorkspaceDistanceRatesTable({
         </View>
     ) : null;
 
-    const ListHeader = !shouldUseNarrowTableLayout ? <Table.Header /> : null;
+    const shouldShowSearchBar = Object.keys(customUnitRates).length > CONST.SEARCH_ITEM_LIMIT;
+
+    const ListHeader = (
+        <>
+            {shouldShowSearchBar && <Table.SearchBar />}
+            {!shouldUseNarrowTableLayout && <Table.Header />}
+        </>
+    );
 
     return (
         <Table
@@ -208,12 +218,15 @@ function WorkspaceDistanceRatesTable({
             ListHeaderComponent={shouldUseNarrowTableLayout ? ListHeader : undefined}
         >
             {!shouldUseNarrowTableLayout && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5]}>
-                    {SelectAllHeader}
-                    <View style={[styles.flex1]}>
-                        <Table.Header />
+                <>
+                    {shouldShowSearchBar && <Table.SearchBar />}
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mh5]}>
+                        {SelectAllHeader}
+                        <View style={[styles.flex1]}>
+                            <Table.Header />
+                        </View>
                     </View>
-                </View>
+                </>
             )}
 
             <Table.Body contentContainerStyle={tableBodyContentContainerStyle} />

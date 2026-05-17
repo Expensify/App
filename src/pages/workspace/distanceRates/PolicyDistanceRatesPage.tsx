@@ -33,7 +33,7 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
-import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearCreateDistanceRateItemAndError,
     clearDeleteDistanceRateError,
@@ -388,6 +388,16 @@ function PolicyDistanceRatesPage({
         [policyID],
     );
 
+    const handleLongPressRate = useCallback(
+        (rateID: string) => {
+            if (shouldUseNarrowLayout && !isMobileSelectionModeEnabled) {
+                turnOnMobileSelectionMode();
+            }
+            toggleRateByID(rateID);
+        },
+        [shouldUseNarrowLayout, isMobileSelectionModeEnabled, toggleRateByID],
+    );
+
     const getCustomListHeader = () => {
         if (filteredDistanceRatesList.length === 0) {
             return null;
@@ -576,6 +586,7 @@ function PolicyDistanceRatesPage({
                             onToggleRate={toggleRateByID}
                             onToggleAllRates={toggleAllRatesForTable}
                             onPressRate={openRateDetailsByID}
+                            onLongPressRate={handleLongPressRate}
                             onDismissError={dismissErrorByID}
                             pendingAction={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined}
                             pendingFields={customUnit?.pendingFields}
