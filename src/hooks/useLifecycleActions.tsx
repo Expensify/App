@@ -13,7 +13,7 @@ import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
     getIntegrationNameFromExportMessage as getIntegrationNameFromExportMessageUtils,
     getNextApproverAccountID,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils,
     hasViolations as hasViolationsReportUtils,
     isExported as isExportedUtils,
     isReportOwner,
@@ -125,7 +125,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
           })
         : '';
 
-    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
     const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy);
 
@@ -313,6 +313,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
             icon: expensifyIcons.CircularArrowBackwards,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.RETRACT,
             onSelected: async () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (isExported) {
                     const reopenExportedReportWarningText = (
                         <Text>
@@ -347,6 +352,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
             icon: expensifyIcons.CircularArrowBackwards,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REOPEN,
             onSelected: async () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (isExported) {
                     const reopenExportedReportWarningText = (
                         <Text>
@@ -387,4 +397,3 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
 }
 
 export default useLifecycleActions;
-export type {UseLifecycleActionsParams, UseLifecycleActionsResult};

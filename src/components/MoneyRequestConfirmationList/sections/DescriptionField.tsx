@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDescription} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {getDescription, hasReceipt} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -32,6 +33,7 @@ type DescriptionFieldProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     isEditingSplitBill: boolean;
+    onSubmitForm?: () => void;
 };
 
 function DescriptionField({
@@ -47,18 +49,20 @@ function DescriptionField({
     policy,
     transaction,
     isEditingSplitBill,
+    onSubmitForm,
 }: DescriptionFieldProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const iouComment = getDescription(transaction);
+    // `getDescription` returns raw `transaction.comment.comment`, which can be HTML for saved transactions.
+    // We normalize to markdown so both the read-only and editable inputs receive a consistent format.
+    const iouComment = Parser.htmlToMarkdown(getDescription(transaction));
 
     const contextMenuStateValue = {
         anchor: null,
         report: undefined,
-        isReportArchived: false,
         action: undefined,
         isDisabled: true,
         shouldDisplayContextMenu: false,
@@ -99,6 +103,8 @@ function DescriptionField({
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
+                                    submitBehavior="blurAndSubmit"
+                                    onSubmitEditing={onSubmitForm}
                                     label={translate('common.description')}
                                     accessibilityLabel={translate('common.description')}
                                     autoGrowHeight

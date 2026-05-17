@@ -37,5 +37,4 @@ function WidgetContainer({children, title, containerStyles, titleRightContent}: 
     );
 }
 
-export type {WidgetContainerProps};
 export default WidgetContainer;

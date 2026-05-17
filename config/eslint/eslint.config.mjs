@@ -55,6 +55,7 @@ const restrictedImportPaths = [
             'ActivityIndicator',
             'Animated',
             'findNodeHandle',
+            'InteractionManager',
         ],
         message: [
             '',
@@ -65,6 +66,7 @@ const restrictedImportPaths = [
             "For 'ScrollView', please use '@components/ScrollView' instead.",
             "For 'ActivityIndicator', please use '@components/ActivityIndicator' instead.",
             "For 'Animated', please use 'Animated' from 'react-native-reanimated' instead.",
+            "For 'InteractionManager', please use afterTransition callbacks on Navigation/KeyboardUtils or other alternatives. See contributingGuides/INTERACTION_MANAGER.md.",
         ].join('\n'),
     },
     {
@@ -156,6 +158,11 @@ const restrictedImportPaths = [
 
 const restrictedImportPatterns = [
     {
+        group: ['**/TransitionTracker', './TransitionTracker', '../TransitionTracker'],
+        message:
+            "TransitionTracker is an internal primitive. Please use higher-level APIs (Navigation with 'afterTransition'/'waitForTransition', KeyboardUtils, useConfirmModal). See contributingGuides/INTERACTION_MANAGER.md.",
+    },
+    {
         group: ['**/assets/animations/**/*.json'],
         message: "Do not import animations directly. Please use the '@components/LottieAnimations' import instead.",
     },
@@ -246,10 +253,6 @@ const config = defineConfig([
             },
         },
 
-        linterOptions: {
-            reportUnusedDisableDirectives: 'off',
-        },
-
         files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         rules: {
             '@lwc/lwc/no-async-await': 'off',
@@ -266,6 +269,16 @@ const config = defineConfig([
             '@typescript-eslint/max-params': ['error', {max: 10}],
             '@typescript-eslint/naming-convention': [
                 'error',
+                {
+                    selector: ['variable', 'property'],
+                    format: null,
+                    // Allow __esModule because it is a well-known interop property injected by bundlers
+                    // (e.g. Babel/Webpack) and sometimes required by library internals (e.g. react-native-skia).
+                    filter: {
+                        regex: '^__esModule$',
+                        match: true,
+                    },
+                },
                 {
                     selector: ['variable', 'property'],
                     format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
@@ -320,9 +333,10 @@ const config = defineConfig([
             // ESLint core rules
             'es/no-nullish-coalescing-operators': 'off',
             'es/no-optional-chaining': 'off',
-            '@typescript-eslint/no-deprecated': 'error',
+            '@typescript-eslint/no-deprecated': ['error', {allow: ['translateFn']}],
             'arrow-body-style': 'off',
             'no-continue': 'off',
+            'no-empty': ['error', {allowEmptyCatch: true}],
 
             // Import specific rules
             'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
@@ -387,11 +401,6 @@ const config = defineConfig([
                 {
                     selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
                     message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
-                },
-                {
-                    selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
-                    message:
-                        'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
                 },
                 {
                     selector: 'ImportNamespaceSpecifier[parent.source.value=/^@libs/]',
@@ -734,6 +743,7 @@ const config = defineConfig([
         '**/*.config.mjs',
         '**/node_modules/**/*',
         '**/dist/**/*',
+        '.eslint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',
         'docs/assets/**/*',
@@ -751,6 +761,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',
         'src/languages/ja.ts',

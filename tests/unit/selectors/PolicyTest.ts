@@ -2,9 +2,10 @@ import {
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
     hasMultipleOutputCurrenciesSelector,
+    hasOnlyPersonalPoliciesSelector,
     hasPoliciesConnectedToQBDSelector,
-    hasReusablePoliciesConnectedToQBDSelector,
-    reusablePoliciesConnectedToQBDSelector,
+    hasReusablePoliciesConnectedToSelector,
+    reusablePoliciesConnectedToSelector,
 } from '@selectors/Policy';
 import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
@@ -62,6 +63,36 @@ function buildSelectorPolicy(id: number, overrides: Partial<Policy>): Policy {
         pendingAction: undefined,
         ...overrides,
     };
+}
+
+function buildNetSuitePolicy(id: number, overrides: Partial<Policy> = {}): Policy {
+    return buildSelectorPolicy(id, {
+        role: CONST.POLICY.ROLE.ADMIN,
+        connections: {
+            netsuite: {
+                verified: true,
+                lastSync: {
+                    isSuccessful: true,
+                },
+            },
+        } as Policy['connections'],
+        ...overrides,
+    });
+}
+
+function buildSageIntacctPolicy(id: number, overrides: Partial<Policy> = {}): Policy {
+    return buildSelectorPolicy(id, {
+        role: CONST.POLICY.ROLE.ADMIN,
+        connections: {
+            intacct: {
+                lastSync: {
+                    isConnected: true,
+                    isSuccessful: true,
+                },
+            },
+        } as Policy['connections'],
+        ...overrides,
+    });
 }
 
 describe('activeAdminPoliciesSelector', () => {
@@ -163,7 +194,7 @@ describe('hasPoliciesConnectedToQBDSelector', () => {
     });
 });
 
-describe('reusablePoliciesConnectedToQBDSelector', () => {
+describe('reusablePoliciesConnectedToSelector for QBD', () => {
     it('includes healthy QBD admin workspaces from other policies', () => {
         const currentPolicyID = '1';
         const policies: OnyxCollection<Policy> = {
@@ -193,7 +224,7 @@ describe('reusablePoliciesConnectedToQBDSelector', () => {
             }),
         };
 
-        const result = reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID);
+        const result = reusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.QBD, currentPolicyID);
 
         expect(result).toHaveLength(1);
         expect(result.at(0)?.name).toBe('Healthy Workspace');
@@ -216,7 +247,7 @@ describe('reusablePoliciesConnectedToQBDSelector', () => {
             }),
         };
 
-        expect(reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID)).toEqual([]);
+        expect(reusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.QBD, currentPolicyID)).toEqual([]);
     });
 
     it('excludes workspaces that have not completed a successful QBD sync yet', () => {
@@ -233,7 +264,7 @@ describe('reusablePoliciesConnectedToQBDSelector', () => {
             }),
         };
 
-        expect(reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID)).toEqual([]);
+        expect(reusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.QBD, currentPolicyID)).toEqual([]);
     });
 
     it('excludes workspaces with a QBD sync error', () => {
@@ -255,7 +286,7 @@ describe('reusablePoliciesConnectedToQBDSelector', () => {
             }),
         };
 
-        const result = reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID);
+        const result = reusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.QBD, currentPolicyID);
 
         expect(result).toEqual([]);
     });
@@ -279,11 +310,11 @@ describe('reusablePoliciesConnectedToQBDSelector', () => {
             }),
         };
 
-        expect(reusablePoliciesConnectedToQBDSelector(policies, currentPolicyID)).toEqual([]);
+        expect(reusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.QBD, currentPolicyID)).toEqual([]);
     });
 });
 
-describe('hasReusablePoliciesConnectedToQBDSelector', () => {
+describe('hasReusablePoliciesConnectedToSelector for QBD', () => {
     it('returns false when no other eligible reusable QBD workspaces exist', () => {
         const currentPolicyID = '1';
         const policies: OnyxCollection<Policy> = {
@@ -300,6 +331,102 @@ describe('hasReusablePoliciesConnectedToQBDSelector', () => {
             }),
         };
 
-        expect(hasReusablePoliciesConnectedToQBDSelector(policies, currentPolicyID)).toBe(false);
+        expect(hasReusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.QBD, currentPolicyID)).toBe(false);
+    });
+});
+
+describe('reusablePoliciesConnectedToSelector', () => {
+    it('returns reusable policies for the requested accounting connection', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildNetSuitePolicy(1, {name: 'Current Workspace'}),
+            policy2: buildNetSuitePolicy(2, {name: 'Healthy NetSuite Workspace'}),
+            policy3: buildSageIntacctPolicy(3, {name: 'Healthy Sage Intacct Workspace'}),
+        };
+
+        expect(reusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, currentPolicyID).map((policy) => policy.name)).toEqual(['Healthy NetSuite Workspace']);
+        expect(hasReusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, currentPolicyID)).toBe(true);
+    });
+});
+
+describe('reusablePoliciesConnectedToSelector for NetSuite', () => {
+    it('includes only healthy NetSuite admin workspaces from other policies', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildNetSuitePolicy(1, {name: 'Current Workspace'}),
+            policy2: buildNetSuitePolicy(2, {name: 'Healthy Workspace'}),
+            policy3: buildNetSuitePolicy(3, {
+                name: 'Broken Workspace',
+                connections: {
+                    netsuite: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            isSuccessful: false,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+            policy4: buildNetSuitePolicy(4, {
+                name: 'Unverified Workspace',
+                connections: {
+                    netsuite: {
+                        verified: false,
+                    },
+                } as Policy['connections'],
+            }),
+        };
+
+        expect(reusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.NETSUITE, currentPolicyID).map((policy) => policy.name)).toEqual(['Healthy Workspace']);
+    });
+});
+
+describe('reusablePoliciesConnectedToSelector for Sage Intacct', () => {
+    it('includes only healthy Sage Intacct admin workspaces from other policies', () => {
+        const currentPolicyID = '1';
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSageIntacctPolicy(1, {name: 'Current Workspace'}),
+            policy2: buildSageIntacctPolicy(2, {name: 'Healthy Workspace'}),
+            policy3: buildSageIntacctPolicy(3, {
+                name: 'Broken Workspace',
+                connections: {
+                    intacct: {
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            isConnected: false,
+                            isSuccessful: false,
+                        },
+                    },
+                } as Policy['connections'],
+            }),
+            policy4: buildSageIntacctPolicy(4, {
+                name: 'Unverified Workspace',
+                connections: {
+                    intacct: {},
+                } as Policy['connections'],
+            }),
+        };
+
+        expect(reusablePoliciesConnectedToSelector(policies, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, currentPolicyID).map((policy) => policy.name)).toEqual(['Healthy Workspace']);
+    });
+});
+
+describe('hasOnlyPersonalPoliciesSelector', () => {
+    it('returns true when only personal or deleted policies exist', () => {
+        const policies: OnyxCollection<Policy> = {
+            personalPolicy: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.PERSONAL}),
+            deletedTeamPolicy: buildSelectorPolicy(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        expect(hasOnlyPersonalPoliciesSelector(policies)).toBe(true);
+    });
+
+    it('returns false when at least one active non-personal policy exists', () => {
+        const policies: OnyxCollection<Policy> = {
+            personalPolicy: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.PERSONAL}),
+            teamPolicy: buildSelectorPolicy(2, {type: CONST.POLICY.TYPE.TEAM}),
+        };
+
+        expect(hasOnlyPersonalPoliciesSelector(policies)).toBe(false);
     });
 });

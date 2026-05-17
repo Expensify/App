@@ -20,6 +20,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExportActions from '@hooks/useExportActions';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -46,7 +47,13 @@ import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
-import {hasHeldExpenses, hasUpdatedTotal, hasViolations as hasViolationsReportUtils, isInvoiceReport as isInvoiceReportUtil, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {
+    hasHeldExpensesFromTransactions,
+    hasUpdatedTotal,
+    hasViolations as hasViolationsReportUtils,
+    isInvoiceReport as isInvoiceReportUtil,
+    isIOUReport as isIOUReportUtil,
+} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
@@ -77,9 +84,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isBulkSubmitApprovePayBetaEnabled = isBetaEnabled(CONST.BETAS.BULK_SUBMIT_APPROVE_PAY);
     const activeAdminPolicies = useActiveAdminPolicies();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
+    const {convertToDisplayString} = useCurrencyListActions();
 
     const {selectedTransactionIDs, currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -110,12 +117,11 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const activePolicy = usePolicy(activePolicyID);
+    const chatReportPolicy = usePolicy(chatReport?.policyID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-
-    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    const isAnyTransactionOnHold = hasHeldExpenses(moneyRequestReport?.reportID);
 
     const {transactionThreadReportID, reportActions} = useTransactionThreadReport(reportID);
 
@@ -129,6 +135,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
+
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const isAnyTransactionOnHold = hasHeldExpensesFromTransactions(transactions);
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -213,9 +222,10 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     };
 
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
-    const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
-    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy);
-    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy);
+    const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions, convertToDisplayString);
+    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, false, undefined, invoiceReceiverPolicy);
+    const onlyShowPayElsewhere =
+        !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, undefined, invoiceReceiverPolicy);
     const isPayable = hasPayAction && canIOUBePaid;
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
@@ -264,14 +274,17 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                 introSelected,
                 iouReportCurrentNextStepDeprecated: nextStep,
                 currentUserAccountID: accountID,
+                currentUserLogin: currentUserLogin ?? '',
                 activePolicy,
                 policy,
+                chatReportPolicy,
                 betas,
                 isSelfTourViewed,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                conciergeReportID,
                 onPaid: () => {
                     startAnimation();
                 },
@@ -345,7 +358,6 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             }
             const nonPendingCount = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
             if (nonPendingCount === selectedTransactionIDs.length) {
-                // eslint-disable-next-line no-restricted-syntax -- backTo is a legacy route param, preserving existing behavior
                 const backToRoute = ((route.params as {backTo?: Route} | undefined)?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined)) as
                     | Route
                     | undefined;
@@ -359,43 +371,41 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
 
     // Ref writes below are inside onSelected callbacks that only fire on user interaction, never during render.
-    /* eslint-disable react-hooks/refs */
-    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = !isBulkSubmitApprovePayBetaEnabled
-        ? []
-        : [
-              ...(hasSubmitAction && !shouldBlockSubmit
-                  ? [
-                        {
-                            text: translate('common.submit'),
-                            icon: expensifyIcons.Send,
-                            value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
-                            onSelected: () => handleSubmitReport(true),
-                        },
-                    ]
-                  : []),
-              ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
-                  ? [
-                        {
-                            text: translate('iou.approve'),
-                            icon: expensifyIcons.ThumbsUp,
-                            value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                            onSelected: () => confirmApproval(true),
-                        },
-                    ]
-                  : []),
-              ...(hasPayAction && !(isOffline && !canAllowSettlement)
-                  ? [
-                        {
-                            text: translate('iou.settlePayment', totalAmount),
-                            icon: expensifyIcons.Cash,
-                            value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
-                            rightIcon: expensifyIcons.ArrowRight,
-                            backButtonText: translate('iou.settlePayment', totalAmount),
-                            subMenuItems: paymentSubMenuItems,
-                        },
-                    ]
-                  : []),
-          ];
+
+    const selectionModeReportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [
+        ...(hasSubmitAction && !shouldBlockSubmit
+            ? [
+                  {
+                      text: translate('common.submit'),
+                      icon: expensifyIcons.Send,
+                      value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
+                      onSelected: () => handleSubmitReport(true),
+                  },
+              ]
+            : []),
+        ...(hasApproveAction && !isBlockSubmitDueToPreventSelfApproval
+            ? [
+                  {
+                      text: translate('iou.approve'),
+                      icon: expensifyIcons.ThumbsUp,
+                      value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
+                      onSelected: () => confirmApproval(true),
+                  },
+              ]
+            : []),
+        ...(hasPayAction && !(isOffline && !canAllowSettlement)
+            ? [
+                  {
+                      text: translate('iou.settlePayment', totalAmount),
+                      icon: expensifyIcons.Cash,
+                      value: CONST.REPORT.PRIMARY_ACTIONS.PAY as string,
+                      rightIcon: expensifyIcons.ArrowRight,
+                      backButtonText: translate('iou.settlePayment', totalAmount),
+                      subMenuItems: paymentSubMenuItems,
+                  },
+              ]
+            : []),
+    ];
 
     const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
         if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
@@ -513,4 +523,3 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 }
 
 export default MoneyReportHeaderSelectionDropdown;
-export type {MoneyReportHeaderSelectionDropdownProps};

@@ -13,7 +13,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import DateUtils from '@libs/DateUtils';
-// eslint-disable-next-line no-restricted-syntax -- disabled because we need ReportActionsUtils to mock
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import ReportActionsView from '@pages/inbox/report/ReportActionsView';
 import CONST from '@src/CONST';

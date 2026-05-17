@@ -1,0 +1,10 @@
+# @desc   Open the SearchRouter from the Inbox tab. Triggers the ManualOpenSearchRouter Sentry span (Search button tap -> SearchRouterPage visible). Assumes the user is signed in.
+# @pre    text="Inbox"
+# @pre    role="button" label="Search"
+# @post   label="Search for something..." editable=true
+# @tag    navigation
+# @tag    perf
+# @tag    search
+# @tag    sentry-ManualOpenSearchRouter
+press "label=\"Inbox\" || label=\"Inbox. Your review is required\""
+press "role=\"button\" label=\"Search\""

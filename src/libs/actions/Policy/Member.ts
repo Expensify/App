@@ -818,7 +818,7 @@ function buildAddMembersToWorkspaceOnyxData(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserAccountID: number | undefined,
+    currentUserAccountID: number,
     approverEmail?: string,
     policyExpenseChatNotificationPreference?: NotificationPreference,
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
@@ -843,7 +843,7 @@ function buildAddMembersToWorkspaceOnyxData(
     const announceRoomChat = optimisticAnnounceChat.announceChatData;
 
     // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, reportActionsList, undefined, policyExpenseChatNotificationPreference);
+    const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, currentUserAccountID, reportActionsList, undefined, policyExpenseChatNotificationPreference);
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -954,7 +954,7 @@ function addMembersToWorkspace(
     policyMemberAccountIDs: number[],
     role: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserAccountID: number | undefined,
+    currentUserAccountID: number,
     approverEmail?: string,
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66578
     reportActionsList?: OnyxCollection<ReportActions>,
@@ -1083,28 +1083,55 @@ function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
 }
 
 /**
- * Add member to the selected private domain workspace based on policyID
+ * Add member to the selected private domain workspace based on policyID.
+ *
+ * The optimistic merge is intentionally limited to `isLoading: true`. We can't
+ * tell the policy's real type/role from the joinable-policy payload (it's not
+ * exposed on `JoinablePolicy`), so writing speculative `type: SUBMIT` /
+ * `role: EDITOR` would corrupt Team/Corporate policies joined via the same
+ * private-domain flow. The `isLoading` flag is enough to suppress the brief
+ * NotFoundPage flash in `WorkspaceInitialPage` / `AccessOrNotFoundWrapper`
+ * until the backend response hydrates the policy with its actual shape.
  */
 function joinAccessiblePolicy(policyID: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
+    const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
-    const optimisticData: Array<OnyxUpdate<typeof memberJoinKey>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
             value: {policyID},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {isLoading: true},
+        },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof memberJoinKey>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {isLoading: false},
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: memberJoinKey,
             value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {isLoading: false},
+        },
     ];
 
-    API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, successData, failureData});
 }
 
 /**

@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitiallyFocusedKey from '@hooks/useInitiallyFocusedKey';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
@@ -33,36 +34,40 @@ function SearchMultipleSelectionPicker<T extends string | string[]>({
     const {translate, localeCompare} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
 
-    const [selectedItemIDs, setSelectedItemIDs] = useState(() => new Set((initiallySelectedItems ?? []).map((item) => item.value.toString())));
+    const [initialSelectedIDs] = useState(() => new Set((initiallySelectedItems ?? []).map((item) => item.value.toString())));
+    const [selectedItemIDs, setSelectedItemIDs] = useState(() => initialSelectedIDs);
+    const initiallyFocusedKey = useInitiallyFocusedKey(() => {
+        let minItem: SearchMultipleSelectionPickerItem<T> | undefined;
+        for (const item of items) {
+            if (initialSelectedIDs.has(item.value.toString())) {
+                if (!minItem || sortOptionsWithEmptyValue(item.value.toString(), minItem.value.toString(), localeCompare) < 0) {
+                    minItem = item;
+                }
+            }
+        }
+        return minItem?.name;
+    });
 
     const searchLower = debouncedSearchTerm.toLowerCase();
-    const selectedSectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: T; leftElement?: React.ReactNode}> = [];
-    const remainingSectionData: typeof selectedSectionData = [];
+    const sectionData: Array<{text: string; keyForList: string; isSelected: boolean; value: T; leftElement?: React.ReactNode}> = [];
     for (const item of items) {
         if (!item.name.toLowerCase().includes(searchLower)) {
             continue;
         }
         const isSelected = selectedItemIDs.has(item.value.toString());
-        (isSelected ? selectedSectionData : remainingSectionData).push({text: item.name, keyForList: item.name, isSelected, value: item.value, leftElement: item.leftElement});
+        sectionData.push({text: item.name, keyForList: item.name, isSelected, value: item.value, leftElement: item.leftElement});
     }
 
-    const sortByValue = (a: {value: string | string[]}, b: {value: string | string[]}) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare);
-    selectedSectionData.sort(sortByValue);
-    remainingSectionData.sort(sortByValue);
+    sectionData.sort((a, b) => sortOptionsWithEmptyValue(a.value.toString(), b.value.toString(), localeCompare));
 
-    const noResultsFound = !selectedSectionData.length && !remainingSectionData.length;
+    const noResultsFound = !sectionData.length;
     const sections = noResultsFound
         ? []
         : [
               {
-                  title: undefined,
-                  data: selectedSectionData,
-                  sectionIndex: 0,
-              },
-              {
                   title: pickerTitle,
-                  data: remainingSectionData,
-                  sectionIndex: 1,
+                  data: sectionData,
+                  sectionIndex: 0,
               },
           ];
 
@@ -101,6 +106,9 @@ function SearchMultipleSelectionPicker<T extends string | string[]>({
         <SelectionListWithSections
             sections={sections}
             ListItem={MultiSelectListItem}
+            initiallyFocusedItemKey={initiallyFocusedKey}
+            shouldUpdateFocusedIndex
+            shouldClearInputOnSelect={false}
             shouldShowTextInput={shouldShowTextInput}
             textInputOptions={textInputOptions}
             onSelectRow={onSelectItem}

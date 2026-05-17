@@ -31,6 +31,8 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
+const TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME = 'DO-NOT-DELETE_Expensify-2FA-RecoveryCodes.txt';
+
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download']);
     const styles = useThemeStyles();
@@ -62,7 +64,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
             Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute());
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
         if (isLoadingOnyxValue(accountMetadata) || account?.requiresTwoFactorAuth || account?.recoveryCodes || !isUserValidated) {
             return;
         }
@@ -147,7 +149,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             text={translate('common.download')}
                                             icon={icons.Download}
                                             onPress={() => {
-                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate);
+                                                localFileDownload(TWO_FACTOR_AUTH_RECOVERY_CODES_FILENAME, account?.recoveryCodes ?? '', translate, undefined, undefined, false);
                                                 setError('');
                                                 setCodesAreCopied();
                                                 announceStatus(translate('fileDownload.success.title'));
