@@ -186,6 +186,7 @@ import Stopwatch from '@assets/images/simple-illustrations/simple-illustration__
 import SubscriptionAnnual from '@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg';
 import SubscriptionPPU from '@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg';
 import Sunglasses from '@assets/images/simple-illustrations/simple-illustration__sunglasses.svg';
+import SyncUsers from '@assets/images/simple-illustrations/simple-illustration__syncusers.svg';
 import Tag from '@assets/images/simple-illustrations/simple-illustration__tag.svg';
 import Target from '@assets/images/simple-illustrations/simple-illustration__target.svg';
 import TeachersUnite from '@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg';
@@ -391,6 +392,7 @@ const Illustrations = {
     LockOpen,
     Mailbox,
     NewUser,
+    SyncUsers,
     ShieldYellow,
     Clock,
     Members,

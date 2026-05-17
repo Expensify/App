@@ -61,13 +61,14 @@ function AgentsPage() {
             }
             const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
             const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
+            const hasAvatarErrors = Object.keys(agentPrompt?.avatarErrors ?? {}).length > 0;
             return {
                 accountID,
                 displayName: details.displayName ?? details.login ?? '',
                 login: details.login ?? '',
                 pendingAction: agentPrompt?.pendingAction,
                 errors: agentPrompt?.errors,
-                hasUpdateErrors: hasNameErrors || hasPromptErrors,
+                hasUpdateErrors: hasNameErrors || hasPromptErrors || hasAvatarErrors,
             };
         })
         .filter(Boolean) as AgentItem[];
