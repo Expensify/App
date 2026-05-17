@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
-import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
+import ReportActionCompose, {EditOnlyReportActionComposer} from './ReportActionCompose/ReportActionCompose';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
@@ -89,16 +89,19 @@ function ReportFooter() {
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
 
-    const renderComposerSwipeable = (isEditOnly = false) => (
+    const renderEditOnlyComposerSwipeable = () => (
         <SwipeableView onSwipeDown={Keyboard.dismiss}>
-            <ReportActionCompose
-                reportID={reportIDFromRoute}
-                isEditOnly={isEditOnly}
-            />
+            <EditOnlyReportActionComposer reportID={reportIDFromRoute} />
         </SwipeableView>
     );
 
-    const renderComposer = () => <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>{renderComposerSwipeable()}</View>;
+    const renderComposer = () => (
+        <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
+            <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                <ReportActionCompose reportID={reportIDFromRoute} />
+            </SwipeableView>
+        </View>
+    );
 
     // Happy path — user can compose
     if (!shouldHideComposer) {
@@ -167,7 +170,7 @@ function ReportFooter() {
 
         return (
             <View style={[styles.chatFooter, !isEditingWithComposer && styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
-                {isEditingWithComposer && <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>{renderComposerSwipeable(true)}</View>}
+                {isEditingWithComposer && <View style={[isComposerFullSize ? styles.chatFooterFullCompose : undefined, styles.mb2]}>{renderEditOnlyComposerSwipeable()}</View>}
                 <Banner
                     containerStyles={[styles.chatFooterBanner, isEditingWithComposer && styles.mt2]}
                     text={translate('adminOnlyCanPost')}
