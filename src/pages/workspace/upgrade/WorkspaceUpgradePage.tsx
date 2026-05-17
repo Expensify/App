@@ -15,7 +15,7 @@ import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canModifyPlan, getDefaultApprover, getPerDiemCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
@@ -138,7 +138,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     // useCallback is needed here because confirmUpgrade is passed as a prop to child components;
     // the rule flags it because the deps could be inlined, but removing useCallback would cause unnecessary re-renders.
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
+
     const confirmUpgrade = useCallback(() => {
         if (!policyID) {
             return;
@@ -231,7 +231,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }, [isUpgraded, canPerformUpgrade, confirmUpgrade]),
     );
 
-    if (!canPerformUpgrade) {
+    // Gate the page to users who can edit workspace settings (admins on any policy,
+    // or editors on Submit policies). `canPerformUpgrade` (strict admin) still controls
+    // whether the upgrade button is active, so editors see the intro but can't upgrade.
+    if (!canEditWorkspaceSettings(policy)) {
         return <NotFoundPage />;
     }
 
@@ -264,7 +267,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         policyID={policyID}
                         feature={feature}
                         onUpgrade={onUpgradeToCorporate}
-                        buttonDisabled={isOffline}
+                        buttonDisabled={isOffline || !canPerformUpgrade}
                         loading={policy?.isPendingUpgrade}
                         backTo={route.params.backTo}
                     />

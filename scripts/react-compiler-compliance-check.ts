@@ -17,7 +17,7 @@ import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import {error as logError, errorDetail as logErrorDetail, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
 
 type SourceLocation = {

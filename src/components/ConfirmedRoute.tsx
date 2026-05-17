@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -7,12 +7,12 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getArrayDepth from '@libs/getArrayDepth';
 import {getWaypointIndex} from '@libs/TransactionUtils';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
 import ImageSVG from './ImageSVG';
@@ -49,58 +49,46 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
 
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
-    const getMarkerComponent = useCallback(
-        (icon: IconAsset): ReactNode => (
-            <ImageSVG
-                src={icon}
-                width={CONST.MAP_MARKER_SIZE}
-                height={CONST.MAP_MARKER_SIZE}
-                fill={theme.icon}
-            />
-        ),
-        [theme],
-    );
-
-    const getWaypointMarkers = useCallback(
-        (waypointsData: WaypointCollection): WayPoint[] => {
-            const numberOfWaypoints = Object.keys(waypointsData).length;
-            const lastWaypointIndex = numberOfWaypoints - 1;
-
-            return Object.entries(waypointsData)
-                .map(([key, waypoint]) => {
-                    if (!waypoint?.lat || !waypoint?.lng) {
-                        return;
-                    }
-
-                    const index = getWaypointIndex(key);
-                    let MarkerComponent: IconAsset;
-                    if (index === 0) {
-                        MarkerComponent = expensifyIcons.DotIndicatorUnfilled;
-                    } else if (index === lastWaypointIndex) {
-                        MarkerComponent = expensifyIcons.Location;
-                    } else {
-                        MarkerComponent = expensifyIcons.DotIndicator;
-                    }
-
-                    return {
-                        id: `${waypoint.lng},${waypoint.lat},${index}`,
-                        coordinate: [waypoint.lng, waypoint.lat] as const,
-                        markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
-                    };
-                })
-                .filter((waypoint): waypoint is WayPoint => !!waypoint);
-        },
-        [getMarkerComponent, expensifyIcons.DotIndicator, expensifyIcons.DotIndicatorUnfilled, expensifyIcons.Location],
-    );
-
-    const waypointMarkers = getWaypointMarkers(waypoints);
-
     useEffect(() => {
         initMapboxToken();
         return stopMapboxToken;
     }, []);
 
-    const shouldDisplayMap = !requireRouteToDisplayMap || !!coordinates.length;
+    const getMarkerComponent = (icon: IconAsset): ReactNode => (
+        <ImageSVG
+            src={icon}
+            width={CONST.MAP_MARKER_SIZE}
+            height={CONST.MAP_MARKER_SIZE}
+            fill={theme.icon}
+        />
+    );
+
+    const lastWaypointIndex = Object.keys(waypoints).length - 1;
+    const waypointMarkers: WayPoint[] = [];
+    for (const [key, waypoint] of Object.entries(waypoints)) {
+        if (!waypoint?.lat || !waypoint?.lng) {
+            continue;
+        }
+
+        const index = getWaypointIndex(key);
+        let MarkerComponent: IconAsset;
+        if (index === 0) {
+            MarkerComponent = expensifyIcons.DotIndicatorUnfilled;
+        } else if (index === lastWaypointIndex) {
+            MarkerComponent = expensifyIcons.Location;
+        } else {
+            MarkerComponent = expensifyIcons.DotIndicator;
+        }
+
+        waypointMarkers.push({
+            id: `${waypoint.lng},${waypoint.lat},${index}`,
+            coordinate: [waypoint.lng, waypoint.lat] as const,
+            markerComponent: (): ReactNode => getMarkerComponent(MarkerComponent),
+        });
+    }
+
+    const hasCoordinates = getArrayDepth(coordinates) === 3 ? !!coordinates.flat().length : !!coordinates.length;
+    const shouldDisplayMap = !requireRouteToDisplayMap || hasCoordinates;
 
     return !isOffline && !!mapboxAccessToken?.token && shouldDisplayMap ? (
         <DistanceMapView

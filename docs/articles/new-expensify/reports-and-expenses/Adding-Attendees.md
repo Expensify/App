@@ -1,8 +1,8 @@
 ---
 title: Adding Attendees
-description: Learn how to add attendees to your expenses and resolve category limit errors by splitting the cost across participants.
-keywords: [New Expensify, add attendees, expense attendees, split expense, category limit, attendee allocation]
-internalScope: Audience is all members. Covers adding attendees to an expense. Does not cover category limit policies member management. 
+description: Learn how to add attendees to your expenses, view attendee columns, and sort by attendees in search results.
+keywords: [New Expensify, add attendees, expense attendees, split expense, category limit, attendee allocation, sort attendees, per attendee]
+internalScope: Audience is all members. Covers adding attendees to an expense and viewing attendee columns. Does not cover category limit policies member management.
 ---
 
 # Adding Attendees
@@ -39,14 +39,20 @@ The selected attendees are added to the expense.
 
 ---
 
-# How to view attendees on a report
+## How to view attendees on a report
 
-When any expense in a report has attendees, the report automatically shows two additional columns:
+When any expense in a report has attendees, the report shows two additional columns:
 
 - **Attendees:** displays the attendees added to each expense.
 - **Per attendee:** shows the total amount divided equally among all attendees.
 
-These columns appear in both the report and search results.
+In search results (**Reports > Expenses**), these columns are not shown by default. To enable them:
+
+1. Go to **Reports > Expenses**.
+2. Click **Columns**.
+3. Select **Attendees** and **Per attendee amount**.
+
+Once enabled, you can click the column header to sort expenses by that column.
 
 ---
 

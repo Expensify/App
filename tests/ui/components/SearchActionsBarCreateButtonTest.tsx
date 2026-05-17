@@ -21,6 +21,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((cb: () => void) => cb()),
     getActiveRoute: jest.fn(() => ''),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     isTopmostRouteModalScreen: jest.fn(() => false),
 }));
 

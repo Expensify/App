@@ -61,8 +61,8 @@ function canUseDismissModalFastPath(snapshot: SubmitNavigationSnapshot): boolean
  *   isPreInserted && !isReportPreInserted  -> SEARCH_PRE_INSERT
  *   isReportPreInserted                    -> REPORT_PRE_INSERT
  *   canUseDismissModalFastPath()           -> DISMISS_MODAL
- *   isReportInRHP && destinationReportID   -> REPORT_IN_RHP_DISMISS
- *   isFromGlobalCreate && canDismiss       -> SEARCH_DISMISS
+ *   isFromGlobalCreate && canDismissFromSearch && isSearchTopmostFullScreen -> SEARCH_DISMISS
+ *   isReportInRHP && destinationReportID && !isSplitRequest -> REPORT_IN_RHP_DISMISS
  *   else                                   -> DEFAULT
  */
 function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
@@ -75,11 +75,11 @@ function getSubmitHandler(snapshot: SubmitNavigationSnapshot): SubmitHandler {
     if (canUseDismissModalFastPath(snapshot)) {
         return SUBMIT_HANDLER.DISMISS_MODAL;
     }
-    if (snapshot.isReportInRHP && snapshot.destinationReportID && !snapshot.isSplitRequest) {
-        return SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS;
-    }
     if (snapshot.isFromGlobalCreate && snapshot.canDismissFromSearch && snapshot.isSearchTopmostFullScreen) {
         return SUBMIT_HANDLER.SEARCH_DISMISS;
+    }
+    if (snapshot.isReportInRHP && snapshot.destinationReportID && !snapshot.isSplitRequest) {
+        return SUBMIT_HANDLER.REPORT_IN_RHP_DISMISS;
     }
     return SUBMIT_HANDLER.DEFAULT;
 }
