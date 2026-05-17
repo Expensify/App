@@ -1,5 +1,6 @@
 import type {NullishDeep, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
@@ -76,6 +77,20 @@ function validateCreateDistanceRateForm(
     }
 
     return errors;
+}
+
+function getRateStatus(rate: Rate): ValueOf<typeof CONST.CUSTOM_UNITS.RATE_STATUS> {
+    if (!rate.enabled) {
+        return CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE;
+    }
+    const today = new Date().toISOString().split('T').at(0) ?? '';
+    if (rate.startDate && rate.startDate > today) {
+        return CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE;
+    }
+    if (rate.endDate && rate.endDate < today) {
+        return CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED;
+    }
+    return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
 }
 
 type PolicyDistanceRateUpdateField = keyof Pick<Rate, 'name' | 'rate'> | keyof TaxRateAttributes;
@@ -164,4 +179,4 @@ function buildOnyxDataForPolicyDistanceRateUpdates(
     return {optimisticData, successData, failureData};
 }
 
-export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates};
+export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, getRateStatus, buildOnyxDataForPolicyDistanceRateUpdates};

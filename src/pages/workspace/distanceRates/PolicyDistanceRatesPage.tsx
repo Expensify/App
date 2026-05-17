@@ -15,6 +15,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Switch from '@components/Switch';
+import WorkspaceDistanceRatesTable from '@components/Tables/WorkspaceDistanceRatesTable';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useFilteredSelection from '@hooks/useFilteredSelection';
@@ -23,6 +24,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -66,6 +68,8 @@ function PolicyDistanceRatesPage({
     },
 }: PolicyDistanceRatesPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
+    const {isBetaEnabled} = usePermissions();
+    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -326,13 +330,20 @@ function PolicyDistanceRatesPage({
         setSelectedDistanceRates([]);
     };
 
+    const toggleRateByID = useCallback(
+        (rateID: string) => {
+            setSelectedDistanceRates((prevSelectedRates) => {
+                if (prevSelectedRates.includes(rateID)) {
+                    return prevSelectedRates.filter((selectedRate) => selectedRate !== rateID);
+                }
+                return [...prevSelectedRates, rateID];
+            });
+        },
+        [setSelectedDistanceRates],
+    );
+
     const toggleRate = (rate: RateForList) => {
-        setSelectedDistanceRates((prevSelectedRates) => {
-            if (prevSelectedRates.includes(rate.value)) {
-                return prevSelectedRates.filter((selectedRate) => selectedRate !== rate.value);
-            }
-            return [...prevSelectedRates, rate.value];
-        });
+        toggleRateByID(rate.value);
     };
 
     const toggleAllRates = () => {
@@ -346,6 +357,36 @@ function PolicyDistanceRatesPage({
             );
         }
     };
+
+    const toggleAllRatesForTable = useCallback(() => {
+        if (selectedDistanceRates.length > 0) {
+            setSelectedDistanceRates([]);
+        } else {
+            setSelectedDistanceRates(
+                Object.entries(selectableRates)
+                    .filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                    .map(([key]) => key),
+            );
+        }
+    }, [selectedDistanceRates.length, selectableRates, setSelectedDistanceRates]);
+
+    const dismissErrorByID = (rateID: string) => {
+        if (!customUnit?.customUnitID) {
+            return;
+        }
+        if (customUnitRates[rateID]?.errors) {
+            clearDeleteDistanceRateError(policyID, customUnit.customUnitID, rateID);
+            return;
+        }
+        clearCreateDistanceRateItemAndError(policyID, customUnit.customUnitID, rateID);
+    };
+
+    const openRateDetailsByID = useCallback(
+        (rateID: string) => {
+            Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATE_DETAILS.getRoute(policyID, rateID));
+        },
+        [policyID],
+    );
 
     const getCustomListHeader = () => {
         if (filteredDistanceRatesList.length === 0) {
@@ -525,28 +566,42 @@ function PolicyDistanceRatesPage({
                         reasonAttributes={reasonAttributes}
                     />
                 )}
-                {Object.values(customUnitRates).length > 0 && (
-                    <SelectionListWithModal
-                        data={filteredDistanceRatesList}
-                        ListItem={TableListItem}
-                        onSelectRow={openRateDetails}
-                        onSelectionButtonPress={toggleRate}
-                        selectedItems={selectedDistanceRates}
-                        customListHeader={getCustomListHeader()}
-                        onTurnOnSelectionMode={(item) => item && toggleRate(item)}
-                        onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        customListHeaderContent={headerContent}
-                        canSelectMultiple={canSelectMultiple}
-                        selectAllAccessibilityLabel={translate('accessibilityHints.selectAllDistanceRates')}
-                        onDismissError={dismissError}
-                        shouldShowListEmptyContent={false}
-                        showScrollIndicator={false}
-                        turnOnSelectionModeOnLongPress
-                        shouldHeaderBeInsideList
-                        shouldShowRightCaret
-                    />
-                )}
+                {Object.values(customUnitRates).length > 0 &&
+                    (isDateBoundMileageRateEnabled ? (
+                        <WorkspaceDistanceRatesTable
+                            customUnitRates={customUnitRates}
+                            unitTranslation={unitTranslation}
+                            selectedDistanceRates={selectedDistanceRates}
+                            canSelectMultiple={canSelectMultiple}
+                            onToggleRate={toggleRateByID}
+                            onToggleAllRates={toggleAllRatesForTable}
+                            onPressRate={openRateDetailsByID}
+                            onDismissError={dismissErrorByID}
+                            pendingAction={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ? policy?.pendingAction : undefined}
+                            pendingFields={customUnit?.pendingFields}
+                        />
+                    ) : (
+                        <SelectionListWithModal
+                            data={filteredDistanceRatesList}
+                            ListItem={TableListItem}
+                            onSelectRow={openRateDetails}
+                            onSelectionButtonPress={toggleRate}
+                            selectedItems={selectedDistanceRates}
+                            customListHeader={getCustomListHeader()}
+                            onTurnOnSelectionMode={(item) => item && toggleRate(item)}
+                            onSelectAll={filteredDistanceRatesList.length > 0 ? toggleAllRates : undefined}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            customListHeaderContent={headerContent}
+                            canSelectMultiple={canSelectMultiple}
+                            selectAllAccessibilityLabel={translate('accessibilityHints.selectAllDistanceRates')}
+                            onDismissError={dismissError}
+                            shouldShowListEmptyContent={false}
+                            showScrollIndicator={false}
+                            turnOnSelectionModeOnLongPress
+                            shouldHeaderBeInsideList
+                            shouldShowRightCaret
+                        />
+                    ))}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

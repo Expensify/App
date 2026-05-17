@@ -6570,6 +6570,10 @@ const translations = {
             }),
             enableRate: 'Enable rate',
             status: 'Status',
+            statusActive: 'Active',
+            statusFuture: 'Future',
+            statusExpired: 'Expired',
+            statusInactive: 'Inactive',
             unit: 'Unit',
             taxFeatureNotEnabledMessage:
                 '<muted-text>Taxes must be enabled on the workspace to use this feature. Head over to <a href="#">More features</a> to make that change.</muted-text>',

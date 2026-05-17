@@ -4015,6 +4015,12 @@ const CONST = {
         FAKE_P2P_ID: '_FAKE_P2P_ID_',
         MILES_TO_KILOMETERS: 1.609344,
         KILOMETERS_TO_MILES: 0.621371,
+        RATE_STATUS: {
+            ACTIVE: 'active',
+            FUTURE: 'future',
+            EXPIRED: 'expired',
+            INACTIVE: 'inactive',
+        },
     },
 
     TERMS: {
