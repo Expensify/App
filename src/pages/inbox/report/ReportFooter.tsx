@@ -31,7 +31,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
-import ReportActionCompose, {EditOnlyReportActionComposer} from './ReportActionCompose/ReportActionCompose';
+import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
@@ -91,7 +91,7 @@ function ReportFooter() {
 
     const renderEditOnlyComposerSwipeable = () => (
         <SwipeableView onSwipeDown={Keyboard.dismiss}>
-            <EditOnlyReportActionComposer reportID={reportIDFromRoute} />
+            <ReportActionCompose.EditOnly reportID={reportIDFromRoute} />
         </SwipeableView>
     );
 
