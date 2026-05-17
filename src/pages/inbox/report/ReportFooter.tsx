@@ -89,13 +89,13 @@ function ReportFooter() {
 
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
 
-    const renderComposer = () => (
-        <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>
-            <SwipeableView onSwipeDown={Keyboard.dismiss}>
-                <ReportActionCompose reportID={reportIDFromRoute} />
-            </SwipeableView>
-        </View>
+    const renderComposerSwipeable = () => (
+        <SwipeableView onSwipeDown={Keyboard.dismiss}>
+            <ReportActionCompose reportID={reportIDFromRoute} />
+        </SwipeableView>
     );
+
+    const renderComposer = () => <View style={[chatFooterStyles, isComposerFullSize && styles.chatFooterFullCompose]}>{renderComposerSwipeable()}</View>;
 
     // Happy path — user can compose
     if (!shouldHideComposer) {
@@ -158,12 +158,8 @@ function ReportFooter() {
         );
     }
 
-    // Admins-only room
+    // Admins-only room — keep the banner visible; mount the composer below it while editing on narrow screens.
     if (isAdminsOnlyPostingRoom && !isUserPolicyAdmin) {
-        if (shouldShowComposerForActiveEditDraft) {
-            return renderComposer();
-        }
-
         return (
             <View style={[styles.chatFooter, styles.mt4, shouldUseNarrowLayout && styles.mb5]}>
                 <Banner
@@ -172,6 +168,11 @@ function ReportFooter() {
                     icon={expensifyIcons.Lightbulb}
                     shouldShowIcon
                 />
+                {shouldShowComposerForActiveEditDraft && (
+                    <View style={[styles.mt4, isComposerFullSize && styles.chatFooterFullCompose, {minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0}]}>
+                        {renderComposerSwipeable()}
+                    </View>
+                )}
                 {!shouldUseNarrowLayout && (
                     <View style={styles.offlineIndicatorContainer}>
                         <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />
