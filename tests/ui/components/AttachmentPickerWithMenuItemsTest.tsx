@@ -36,22 +36,24 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@components/PopoverMenu', () => ({menuItems, onItemSelected}: {menuItems: Array<{text: string; onSelected: () => void}>; onItemSelected?: () => void}) => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const RN = jest.requireActual<typeof import('react-native')>('react-native');
+    const {View} = require('react-native');
+    const {Pressable} = require('react-native');
+    const {Text} = require('react-native');
+
     return (
-        <RN.View>
+        <View>
             {menuItems?.map((item: {text: string; onSelected: () => void}) => (
-                <RN.Pressable
+                <Pressable
                     key={item.text}
                     onPress={() => {
                         item.onSelected();
                         onItemSelected?.();
                     }}
                 >
-                    <RN.Text>{item.text}</RN.Text>
-                </RN.Pressable>
+                    <Text>{item.text}</Text>
+                </Pressable>
             ))}
-        </RN.View>
+        </View>
     );
 });
 
