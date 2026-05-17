@@ -79,6 +79,7 @@ import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -798,7 +799,7 @@ function buildOptimisticResolvedFollowups(reportAction: OnyxEntry<ReportAction>)
  * @param isInSidePanel - Whether the comment is being added from the side panel
  * @param pregeneratedResponseParams - Optional params for pre-generated response (API only, no optimistic action - used when response display is delayed)
  */
-function addActions({
+async function addActions({
     report,
     notifyReportID,
     ancestors,
@@ -839,16 +840,25 @@ function addActions({
         reportCommentText = reportComment.commentText;
     }
 
-    if (file) {
+    // Move file to durable storage so it survives app force-kill while offline.
+    // This must happen before building the optimistic action so that the HTML and
+    // the persisted API request both reference a path that won't be purged.
+    let resolvedFile = file;
+    if (file?.uri) {
+        const durableUri = await moveReceiptToDurableStorage(file.uri, file.name ?? 'chat_attachment');
+        resolvedFile = {...file, uri: durableUri, source: durableUri} as FileObject;
+    }
+
+    if (resolvedFile) {
         // When we are adding an attachment we will call AddAttachment.
         // It supports sending an attachment with an optional comment and AddComment supports adding a single text comment only.
         commandName = WRITE_COMMANDS.ADD_ATTACHMENT;
-        const attachment = buildOptimisticAddCommentReportAction({text, file, reportID, attachmentID, delegateAccountIDParam: delegateAccountID});
+        const attachment = buildOptimisticAddCommentReportAction({text, file: resolvedFile, reportID, attachmentID, delegateAccountIDParam: delegateAccountID});
         attachmentAction = attachment.reportAction;
-        cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
+        cacheAttachment({attachmentID, uri: resolvedFile.uri ?? '', mimeType: resolvedFile.type});
     }
 
-    if (text && file) {
+    if (text && resolvedFile) {
         // When there is both text and a file, the text for the report comment needs to be parsed)
         reportCommentText = getParsedComment(text ?? '', {reportID});
 
@@ -857,7 +867,7 @@ function addActions({
     }
 
     // Store all markdown text attachments i.e `![](https://images.unsplash.com/...)`
-    const resolvedReportActionID = file ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
+    const resolvedReportActionID = resolvedFile ? attachmentAction?.reportActionID : reportCommentAction?.reportActionID;
     const attachmentTags = [...reportCommentText.matchAll(CONST.REGEX.ATTACHMENT.ATTACHMENT)];
 
     const attachments = attachmentTags.flatMap((htmlTag, index) => {
@@ -907,10 +917,10 @@ function addActions({
     const optimisticReportActions: OnyxCollection<OptimisticAddCommentReportAction | ReportAction> = {};
 
     // Only add the reportCommentAction when there is no file attachment. If there is both a file attachment and text, that will all be contained in the attachmentAction.
-    if (text && reportCommentAction?.reportActionID && !file) {
+    if (text && reportCommentAction?.reportActionID && !resolvedFile) {
         optimisticReportActions[reportCommentAction.reportActionID] = reportCommentAction;
     }
-    if (file && attachmentAction?.reportActionID) {
+    if (resolvedFile && attachmentAction?.reportActionID) {
         optimisticReportActions[attachmentAction.reportActionID] = attachmentAction;
     }
 
@@ -927,10 +937,10 @@ function addActions({
     const parameters: AddCommentOrAttachmentParams = {
         reportID,
         reportActionID: resolvedReportActionID,
-        commentReportActionID: file && reportCommentAction ? reportCommentAction.reportActionID : null,
+        commentReportActionID: resolvedFile && reportCommentAction ? reportCommentAction.reportActionID : null,
         reportComment: reportCommentText,
-        file,
-        clientCreatedTime: file ? attachmentAction?.created : reportCommentAction?.created,
+        file: resolvedFile,
+        clientCreatedTime: resolvedFile ? attachmentAction?.created : reportCommentAction?.created,
         idempotencyKey: Str.guid(),
     };
 
@@ -939,7 +949,7 @@ function addActions({
         parameters.isOldDotConciergeChat = true;
     }
 
-    if (file) {
+    if (resolvedFile) {
         parameters.attachmentID = attachmentID;
     }
 
