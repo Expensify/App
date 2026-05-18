@@ -132,8 +132,8 @@ describe('WorkspaceTravelInvoicingSection', () => {
             // Wait for component to render
             await waitForBatchedUpdatesWithAct();
 
-            // Central Invoicing section should be visible
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            // Travel Invoicing section should be visible
+            expect(screen.getByText('Travel invoicing')).toBeTruthy();
         });
 
         it('should render sections when paymentBankAccountID is not set', async () => {
@@ -153,7 +153,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Travel invoicing')).toBeTruthy();
         });
     });
 
@@ -185,7 +185,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
-            expect(screen.getByText('Central invoicing')).toBeTruthy();
+            expect(screen.getByText('Travel invoicing')).toBeTruthy();
         });
 
         it('should display current travel spend label when configured', async () => {
