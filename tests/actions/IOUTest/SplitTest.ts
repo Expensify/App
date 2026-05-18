@@ -57,7 +57,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
     dismissModalWithReport: jest.fn(),
     dismissToPreviousRHP: jest.fn(),
-    dismissToSuperWideRHP: jest.fn(),
+    dismissToSuperWideRHP: jest.fn((options?: {afterTransition?: () => void}) => {
+        options?.afterTransition?.();
+    }),
     navigateBackToLastSuperWideRHPScreen: jest.fn(),
     goBack: jest.fn(),
     getTopmostReportId: jest.fn(() => '23423423'),
