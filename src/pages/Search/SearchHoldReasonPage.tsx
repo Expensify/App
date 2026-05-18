@@ -47,7 +47,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
                 for (const transactionID of selectedTransactionIDs) {
                     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                    putTransactionsOnHold([transactionID], comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors, transactionViolations);
+                    putTransactionsOnHold([transactionID], comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, ancestors);
                 }
                 clearSelectedTransactions(true);
             } else {
@@ -55,7 +55,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                     const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, ancestors, transactionViolations);
+                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, ancestors);
                 }
                 clearSelectedTransactions();
             }
