@@ -61,9 +61,15 @@ type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
 type AccountingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>;
 type HRConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES>;
 
+/** Display info for an HR provider connected to a policy. */
 type HRProviderInfo = {
+    /** The internal connection name used as the key on `policy.connections` (e.g. `'gusto'`, `'zenefits'`, `'merge_hris'`). */
     connectionName: string;
+
+    /** Human-readable label shown in the UI (e.g. `'Gusto'`, `'TriNet'`, or a Merge HR provider brand like `'Workday'`). */
     displayName: string;
+
+    /** Optional logo URL. Populated only for Merge HR providers when their slug resolves in `MERGE_HR_PROVIDERS`. */
     iconUrl?: string;
 };
 
