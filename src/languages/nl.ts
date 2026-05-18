@@ -6353,11 +6353,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 chooseBankAccount: 'Kies de bankrekening waarop de betalingen met je Expensify Kaart worden afgestemd.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Zorg ervoor dat deze rekening overeenkomt met je <a href="${settlementAccountUrl}">Expensify Kaart-afwikkelingsrekening</a> (eindigend op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
-                chooseTravelInvoicingBankAccount: 'Kies de bankrekening waarop je betalingen voor centrale facturering worden afgeletterd.',
+                chooseTravelInvoicingBankAccount: 'Kies de bankrekening waarop de betalingen van je reiskostenfacturen worden afgeletterd.',
                 travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
-                    `Zorg ervoor dat deze rekening overeenkomt met je afwikkelingsrekening voor centrale facturering (die eindigt op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
+                    `Zorg ervoor dat deze rekening overeenkomt met je afwikkelingsrekening voor reiskostenfacturatie (die eindigt op ${lastFourPAN}), zodat Continue Afstemming goed werkt.`,
             },
-            syncTravelInvoicingSettlements: 'Afrekeningen voor centrale facturering synchroniseren',
+            syncTravelInvoicingSettlements: 'Reisfactureringsafrekeningen synchroniseren',
         },
         export: {
             notReadyHeading: 'Niet klaar om te exporteren',
