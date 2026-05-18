@@ -415,7 +415,6 @@ function PureReportActionItem({
                 },
                 reportAction: {
                     reportActionID: action.reportActionID,
-                    draftMessage,
                     isThreadReportParentAction,
                 },
                 callbacks: {
@@ -564,7 +563,6 @@ function PureReportActionItem({
                                             disabledActions={disabledActions}
                                             isVisible={hovered}
                                             isThreadReportParentAction={isThreadReportParentAction}
-                                            draftMessage={draftMessage}
                                             checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                                             setIsEmojiPickerActive={setIsEmojiPickerActive}
                                         />
