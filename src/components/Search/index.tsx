@@ -1113,6 +1113,10 @@ function Search({
     );
 
     const onSelectRowInMobileSelectionMode = (item: SearchListItem) => {
+        if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
+
         toggleTransaction(item);
     };
 
