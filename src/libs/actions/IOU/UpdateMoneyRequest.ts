@@ -65,7 +65,73 @@ type UpdateMoneyRequestDateParams = {
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isOffline: boolean;
+    hash?: number;
 };
+
+type SearchSnapshotOnyxData = {
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+    successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+};
+
+type SearchSnapshotUpdateParams = {
+    hash?: number;
+    transactionID: string | undefined;
+    updatedTransaction: OnyxTypes.Transaction;
+    pendingFields: OnyxTypes.Transaction['pendingFields'];
+    clearedPendingFields: OnyxTypes.Transaction['pendingFields'];
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    optimisticViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
+    currentTransactionViolations?: OnyxEntry<OnyxTypes.TransactionViolations>;
+};
+
+/**
+ * Builds Onyx writes for the Search snapshot.
+ * Search result rows render from snapshot data, so TRANSACTION writes alone do not refresh the list.
+ */
+function getSearchSnapshotUpdates({
+    hash,
+    transactionID,
+    updatedTransaction,
+    pendingFields,
+    clearedPendingFields,
+    transaction,
+    optimisticViolations,
+    currentTransactionViolations,
+}: SearchSnapshotUpdateParams): SearchSnapshotOnyxData {
+    if (!hash || !transactionID) {
+        return {
+            optimisticData: [],
+            successData: [],
+            failureData: [],
+        };
+    }
+
+    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const;
+    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+    const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as const;
+
+    const optimisticSnapshotData: SearchResultDataType = {};
+    optimisticSnapshotData[transactionKey] = {...updatedTransaction, pendingFields};
+    if (optimisticViolations !== undefined) {
+        optimisticSnapshotData[violationsKey] = optimisticViolations;
+    }
+
+    const successSnapshotData: NullishDeep<SearchResultDataType> = {};
+    successSnapshotData[transactionKey] = {pendingFields: clearedPendingFields};
+
+    const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+    failureSnapshotData[transactionKey] = {...transaction, pendingFields: clearedPendingFields};
+    if (currentTransactionViolations !== undefined) {
+        failureSnapshotData[violationsKey] = currentTransactionViolations;
+    }
+
+    return {
+        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: snapshotKey, value: {data: optimisticSnapshotData}}],
+        successData: [{onyxMethod: Onyx.METHOD.MERGE, key: snapshotKey, value: {data: successSnapshotData}}],
+        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: snapshotKey, value: {data: failureSnapshotData}}],
+    };
+}
 
 /** Updates the created date of an expense */
 function updateMoneyRequestDate({
@@ -83,6 +149,7 @@ function updateMoneyRequestDate({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
     isOffline,
+    hash,
 }: UpdateMoneyRequestDateParams) {
     const transactionChanges: TransactionChanges = {
         created: value,
@@ -90,7 +157,7 @@ function updateMoneyRequestDate({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -107,6 +174,7 @@ function updateMoneyRequestDate({
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
             isOffline,
+            hash,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -229,6 +297,7 @@ function updateMoneyRequestMerchant({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    hash,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -241,6 +310,7 @@ function updateMoneyRequestMerchant({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    hash?: number;
 }) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
@@ -248,7 +318,7 @@ function updateMoneyRequestMerchant({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -264,6 +334,7 @@ function updateMoneyRequestMerchant({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            hash,
         });
     }
     const {params, onyxData} = data;
@@ -536,7 +607,7 @@ function updateMoneyRequestDistance({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, undefined, distanceOriginalPolicy);
+        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy, undefined, undefined, distanceOriginalPolicy);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: transaction?.transactionID,
@@ -673,6 +744,7 @@ function updateMoneyRequestDescription({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
+    hash,
 }: {
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -685,6 +757,7 @@ function updateMoneyRequestDescription({
     currentUserEmailParam: string;
     isASAPSubmitBetaEnabled: boolean;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    hash?: number;
 }) {
     const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
@@ -693,7 +766,7 @@ function updateMoneyRequestDescription({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -709,6 +782,7 @@ function updateMoneyRequestDescription({
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             iouReportNextStep: parentReportNextStep,
+            hash,
         });
     }
     const {params, onyxData} = data;
@@ -815,6 +889,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
     isASAPSubmitBetaEnabled: boolean;
     policyRecentlyUsedCurrencies: string[];
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
+    hash?: number;
 };
 
 /** Updates the amount and currency fields of an expense */
@@ -838,6 +913,7 @@ function updateMoneyRequestAmountAndCurrency({
     isASAPSubmitBetaEnabled,
     policyRecentlyUsedCurrencies,
     parentReportNextStep,
+    hash,
 }: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
@@ -850,7 +926,7 @@ function updateMoneyRequestAmountAndCurrency({
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy, hash);
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID,
@@ -868,6 +944,7 @@ function updateMoneyRequestAmountAndCurrency({
             isASAPSubmitBetaEnabled,
             policyRecentlyUsedCurrencies,
             iouReportNextStep: parentReportNextStep,
+            hash,
         });
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
@@ -960,6 +1037,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             | typeof ONYXKEYS.COLLECTION.REPORT
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
             | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
     const failureData: Array<
@@ -1414,29 +1492,24 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: currentTransactionViolations,
         });
+
         if (hash) {
-            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
-            const optimisticSnapshotData: SearchResultDataType = {};
-            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : [];
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: optimisticSnapshotData,
-                },
+            const snapshotUpdates = getSearchSnapshotUpdates({
+                hash,
+                transactionID,
+                updatedTransaction,
+                pendingFields,
+                clearedPendingFields,
+                transaction,
+                optimisticViolations: Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : [],
+                currentTransactionViolations,
             });
 
-            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
-            const failureSnapshotData: SearchResultDataType = {};
-            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = currentTransactionViolations;
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: failureSnapshotData,
-                },
-            });
+            optimisticData.push(...snapshotUpdates.optimisticData);
+            successData.push(...snapshotUpdates.successData);
+            failureData.push(...snapshotUpdates.failureData);
         }
+
         if (
             violationsOnyxData &&
             ((iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN ||
@@ -1536,14 +1609,25 @@ function getUpdateTrackExpenseParams(
     transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    hash?: number,
     shouldBuildOptimisticModifiedExpenseReportAction = true,
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>,
 ): UpdateMoneyRequestData<
-    typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
+    | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION
+    | typeof ONYXKEYS.COLLECTION.REPORT
+    | typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT
+    | typeof ONYXKEYS.COLLECTION.SNAPSHOT
 > {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [];
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+    > = [];
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+    > = [];
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+    > = [];
 
     // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
     const pendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
@@ -1570,6 +1654,11 @@ function getUpdateTrackExpenseParams(
     }
 
     const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => key in transactionChanges));
+
+    // Preserve full-precision distance to avoid `increasedDistance` drift; mirrors `getUpdateMoneyRequestParams`.
+    if ('distance' in transactionChanges && typeof transactionChanges.distance === 'number') {
+        dataToIncludeInParams.distance = transactionChanges.distance;
+    }
 
     const apiParams: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
@@ -1652,6 +1741,21 @@ function getUpdateTrackExpenseParams(
             errorFields: null,
         },
     });
+
+    if (updatedTransaction) {
+        const snapshotUpdates = getSearchSnapshotUpdates({
+            hash,
+            transactionID,
+            updatedTransaction,
+            pendingFields,
+            clearedPendingFields,
+            transaction,
+        });
+
+        optimisticData.push(...snapshotUpdates.optimisticData);
+        successData.push(...snapshotUpdates.successData);
+        failureData.push(...snapshotUpdates.failureData);
+    }
 
     if (updatedReportAction) {
         optimisticData.push({

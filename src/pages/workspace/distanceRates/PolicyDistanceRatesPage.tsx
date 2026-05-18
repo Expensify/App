@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -324,10 +323,7 @@ function PolicyDistanceRatesPage({
         const transactionIDsAffected = selectedDistanceRates.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionIDsMap?.[rateID] ?? []);
 
         deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
-
-        InteractionManager.runAfterInteractions(() => {
-            setSelectedDistanceRates([]);
-        });
+        setSelectedDistanceRates([]);
     };
 
     const toggleRate = (rate: RateForList) => {
