@@ -4,21 +4,21 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type CentralInvoicingSubtitleWrapperProps = {
+type TravelInvoicingSubtitleWrapperProps = {
     htmlComponent?: React.ReactNode;
 };
 
-function CentralInvoicingSubtitleWrapper({htmlComponent}: CentralInvoicingSubtitleWrapperProps) {
+function TravelInvoicingSubtitleWrapper({htmlComponent}: TravelInvoicingSubtitleWrapperProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     return (
         <View style={[styles.mt2, styles.mr5]}>
             <Text style={[styles.mutedNormalTextLabel, styles.textLabelSupportingEmptyValue, styles.lh20]}>
-                {translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subtitle')} {htmlComponent}
+                {translate('workspace.moreFeatures.travel.travelInvoicing.travelInvoicingSection.subtitle')} {htmlComponent}
             </Text>
         </View>
     );
 }
 
-export default CentralInvoicingSubtitleWrapper;
+export default TravelInvoicingSubtitleWrapper;

@@ -2340,6 +2340,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 [SCREENS.WORKSPACE.MEMBERS]: {
                                     path: ROUTES.WORKSPACE_MEMBERS.route,
                                 },
+                                [SCREENS.WORKSPACE.ROOMS]: {
+                                    path: ROUTES.WORKSPACE_ROOMS.route,
+                                },
                                 [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
                                     path: ROUTES.POLICY_ACCOUNTING.route,
                                 },
