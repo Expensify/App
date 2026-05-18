@@ -15922,7 +15922,6 @@ describe('ReportUtils', () => {
             // Cleanup
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${onyxPolicy.id}`, null);
         });
-
     });
 
     describe('getBillableAndTaxTotal', () => {
