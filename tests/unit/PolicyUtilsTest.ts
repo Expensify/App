@@ -2835,6 +2835,5 @@ describe('PolicyUtils', () => {
                 expect(getHRApprovalMode(policy, 'gusto')).toBeNull();
             });
         });
-
     });
 });
