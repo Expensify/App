@@ -73,7 +73,7 @@ function ConfirmationFieldList({
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
-    const {action, iouType, transactionID, policyID, isReadOnly, isPolicyExpenseChat, isEditingSplitBill} = useConfirmationFields();
+    const {action, iouType, transactionID, policyID, isReadOnly, isPolicyExpenseChat} = useConfirmationFields();
 
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [existingTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -91,8 +91,6 @@ function ConfirmationFieldList({
         isPolicyExpenseChat,
         isReadOnly,
         isDistanceRequest: expenseMode.isDistance,
-        isManualDistanceRequest: distanceFlags.isManualDistanceRequest,
-        isOdometerDistanceRequest: distanceFlags.isOdometerDistanceRequest,
         isPerDiemRequest: expenseMode.isPerDiem,
         isTimeRequest: expenseMode.isTime,
         isTypeInvoice: expenseMode.isInvoice,
@@ -180,7 +178,6 @@ function ConfirmationFieldList({
                 toggleHandlers={toggleHandlers}
                 isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
-                isEditingSplitBill={isEditingSplitBill}
             />
 
             {compactState.isCompactMode && shouldShowMoreButton && (

@@ -2,6 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -44,7 +45,6 @@ type AmountFieldProps = {
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
     reportID: string;
     reportActionID: string | undefined;
-    isEditingSplitBill: boolean;
     policy: OnyxEntry<OnyxTypes.Policy>;
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
@@ -68,12 +68,12 @@ function AmountField({
     iouType,
     reportID,
     reportActionID,
-    isEditingSplitBill,
     policy,
     clearFormErrors,
     setFormError,
     autoFocus = false,
 }: AmountFieldProps) {
+    const {isEditingSplitBill} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -83,7 +83,7 @@ function AmountField({
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
 
-    const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector, isEditingSplitBill);
+    const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
 
     const transactionForHandlers = transactionSlice as OnyxEntry<OnyxTypes.Transaction>;
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;

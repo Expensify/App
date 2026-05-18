@@ -152,11 +152,7 @@ function MoneyRequestConfirmationListFooter({
             <View style={isCompactMode ? styles.flex1 : undefined}>
                 <View>
                     <InvoiceSenderSection
-                        iouType={iouType}
-                        reportID={reportID}
                         selectedParticipants={selectedParticipants}
-                        isReadOnly={isReadOnly}
-                        didConfirm={didConfirm}
                         transaction={transaction}
                     />
                     <DistanceMapSection
@@ -164,19 +160,11 @@ function MoneyRequestConfirmationListFooter({
                         isDistanceRequest={expenseMode.isDistance}
                         isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
                         isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
-                        iouType={iouType}
-                        isReadOnly={isReadOnly}
                     />
                     <PerDiemSection
-                        action={action}
-                        iouType={iouType}
                         isPerDiemRequest={expenseMode.isPerDiem}
                         transaction={transaction}
-                        reportID={reportID}
-                        transactionID={transactionID}
                         policy={policy}
-                        isReadOnly={isReadOnly}
-                        didConfirm={didConfirm}
                         shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                         formError={errorState.formError}
                     />
@@ -184,16 +172,11 @@ function MoneyRequestConfirmationListFooter({
 
                 <ReceiptSection
                     transaction={transaction}
-                    transactionID={transactionID}
-                    reportID={reportID}
-                    action={action}
-                    iouType={iouType}
                     policy={policy}
                     isPerDiemRequest={expenseMode.isPerDiem}
                     isDistanceRequest={expenseMode.isDistance}
                     isManualDistanceRequest={distanceFlags.isManualDistanceRequest}
                     isOdometerDistanceRequest={distanceFlags.isOdometerDistanceRequest}
-                    isReadOnly={isReadOnly}
                     isReceiptEditable={receiptOptions.isReceiptEditable ?? false}
                     shouldDisplayReceipt={receiptOptions.shouldDisplayReceipt}
                     isLoadingReceipt={receiptOptions.isLoadingReceipt ?? false}

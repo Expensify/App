@@ -64,8 +64,7 @@ function TransactionDetailsFields({
     fieldVisibility,
     onSubmitForm,
 }: TransactionDetailsFieldsProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isEditingSplitBill, isNewManualExpenseFlowEnabled, isPolicyExpenseChat} =
-        useConfirmationFields();
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled, isPolicyExpenseChat} = useConfirmationFields();
     const shouldAutoFocusAmountField = !canUseTouchScreen();
 
     return (
@@ -88,7 +87,6 @@ function TransactionDetailsFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    isEditingSplitBill={isEditingSplitBill}
                     policy={policy}
                     clearFormErrors={errorState.clearFormErrors}
                     setFormError={errorState.setFormError}
@@ -109,7 +107,6 @@ function TransactionDetailsFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
-                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
 
@@ -124,7 +121,6 @@ function TransactionDetailsFields({
                 reportID={reportID}
                 reportActionID={reportActionID}
                 policy={policy}
-                isEditingSplitBill={isEditingSplitBill}
                 onSubmitForm={onSubmitForm}
             />
 

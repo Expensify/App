@@ -90,8 +90,6 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         isReadOnly: false,
         didConfirm: false,
         isPolicyExpenseChat: true,
-        transaction,
-        transactionID: transaction.transactionID,
         expenseMode: {isDistance: false, isTime: false, isInvoice: false, isPerDiem: false},
         distanceFlags: {isManualDistanceRequest: false, isOdometerDistanceRequest: false, isGPSDistanceRequest: false},
         distanceData: {distance: 0, hasRoute: false, unit: undefined, rate: undefined, distanceRateName: undefined, distanceRateCurrency: 'USD'},

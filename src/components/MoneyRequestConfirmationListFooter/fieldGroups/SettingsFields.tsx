@@ -32,9 +32,6 @@ type SettingsFieldsProps = {
 
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'toggles' | 'report'>;
-
-    /** Whether we're editing an existing split expense */
-    isEditingSplitBill: boolean;
 };
 
 /**
@@ -51,7 +48,6 @@ function SettingsFields({
     toggleHandlers,
     isCompactMode,
     fieldVisibility,
-    isEditingSplitBill,
 }: SettingsFieldsProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, isPolicyExpenseChat} = useConfirmationFields();
 
@@ -68,7 +64,6 @@ function SettingsFields({
                     onToggleReimbursable={toggleHandlers.onToggleReimbursable}
                     onToggleBillable={toggleHandlers.onToggleBillable}
                     transactionID={transactionID}
-                    isEditingSplitBill={isEditingSplitBill}
                 />
             )}
             {fieldVisibility.report && (
