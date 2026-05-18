@@ -647,10 +647,11 @@ function getGuideAndAccountManagerInfo(
  * Build a soft-exclusion map of every Expensify-team login (Guides, Account Managers, support staff)
  * present in personalDetails. Used by the Reports From filter so internal staff don't leak into
  * suggestions for customer accounts. Returns empty when the current user is themselves Expensify
- * team, so they still see their colleagues.
+ * team, so they still see their colleagues. The `shouldExclude` flag lets call sites opt out without
+ * an extra ternary, since most filters don't apply this soft exclusion.
  */
-function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, currentUserLogin: string | undefined): Record<string, boolean> {
-    if (!currentUserLogin || isExpensifyTeam(currentUserLogin)) {
+function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsList>, currentUserLogin: string | undefined, shouldExclude: boolean): Record<string, boolean> {
+    if (!shouldExclude || !currentUserLogin || isExpensifyTeam(currentUserLogin)) {
         return {};
     }
 

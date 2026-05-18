@@ -86,7 +86,7 @@ function SearchFiltersParticipantsSelector({
         [personalDetails, recentAttendees, currentUserEmail, currentUserAccountID, shouldAllowNameOnlyOptions],
     );
 
-    const expensifyTeamExclusions = !shouldExcludeExpensifyTeamMembers ? (CONST.EMPTY_OBJECT as Record<string, boolean>) : getExpensifyTeamExclusions(personalDetails, currentUserEmail);
+    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, currentUserEmail, shouldExcludeExpensifyTeamMembers);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, toggleSelection, areOptionsInitialized, onListEndReached} =
         useSearchSelector({

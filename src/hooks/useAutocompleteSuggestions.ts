@@ -220,8 +220,7 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
             // Only the From filter soft-excludes Expensify-team logins so internal staff don't leak into customer suggestions.
-            const fromExclusions =
-                autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ? getExpensifyTeamExclusions(personalDetails, currentUserEmail) : (CONST.EMPTY_OBJECT as Record<string, boolean>);
+            const fromExclusions = getExpensifyTeamExclusions(personalDetails, currentUserEmail, autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
 
             const participants = getSearchOptions({
                 options,

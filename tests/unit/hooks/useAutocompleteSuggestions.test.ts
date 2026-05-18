@@ -414,7 +414,7 @@ describe('useAutocompleteSuggestions', () => {
                 autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, value: ''},
                 ranges: [],
             });
-            getExpensifyTeamExclusions.mockReturnValue({'am@expensify.com': true});
+            getExpensifyTeamExclusions.mockImplementation((_personalDetails: unknown, _login: unknown, shouldExclude: boolean) => (shouldExclude ? {'am@expensify.com': true} : {}));
 
             renderHook(() =>
                 useAutocompleteSuggestions({
