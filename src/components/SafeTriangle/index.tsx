@@ -152,6 +152,7 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
             style={[styles.pFixed, styles.cursorPointer, svgRect, {zIndex: 1000}]}
             width={svgRect.width}
             height={svgRect.height}
+            onWheel={clearTriangle}
             pointerEvents="none"
         >
             <Polygon
