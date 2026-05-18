@@ -24,7 +24,7 @@ import {getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyU
 import type {OptionData} from '@libs/ReportUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import {getUpdatedTransactionTag, hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag, isPerDiemRequest} from '@libs/TransactionUtils';
+import {getTag, getTagArrayFromName, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -89,7 +89,33 @@ function IOURequestStepTag({
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
-    const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists);
+
+    // Surface the parent (original) transaction's tag for SPLIT_EXPENSE edits so the user can
+    // re-select an "orphaned" tag from a deleted source workspace even when the active workspace
+    // has no tags configured. Without this the picker would render an empty list with no way to
+    // restore the previously selected value.
+    const [allTransactionsForSplitParent] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const parentTransactionTag = useMemo(() => {
+        if (!isEditingSplit) {
+            return '';
+        }
+        const parentTransactionID = transaction?.comment?.originalTransactionID;
+        if (!parentTransactionID) {
+            return '';
+        }
+        const parentTransaction = allTransactionsForSplitParent?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${parentTransactionID}`];
+        return parentTransaction?.tag ?? '';
+    }, [isEditingSplit, transaction?.comment?.originalTransactionID, allTransactionsForSplitParent]);
+
+    const additionalTagsToInclude = useMemo(() => {
+        if (!parentTransactionTag) {
+            return undefined;
+        }
+        const parentTagAtIndex = getTagArrayFromName(parentTransactionTag).at(tagListIndex);
+        return parentTagAtIndex ? [parentTagAtIndex] : undefined;
+    }, [parentTransactionTag, tagListIndex]);
+
+    const shouldShowTag = transactionTag || hasEnabledTags(policyTagLists) || !!additionalTagsToInclude?.length;
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
@@ -186,6 +212,7 @@ function IOURequestStepTag({
                     transactionTag={transactionTag}
                     hasDependentTags={hasDependentTags}
                     onSubmit={updateTag}
+                    additionalTagsToInclude={additionalTagsToInclude}
                 />
             )}
         </StepScreenWrapper>

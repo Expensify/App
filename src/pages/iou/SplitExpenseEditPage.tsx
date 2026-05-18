@@ -23,18 +23,19 @@ import type {ViolationField} from '@hooks/useViolations';
 import {initDraftSplitExpenseDataForEdit, removeSplitExpenseField, updateSplitExpenseField} from '@libs/actions/IOU/SplitExpenseItems';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
-import {getDecodedCategoryName, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryDescriptionRequired, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getGroupPaidPoliciesWithExpenseChatEnabled, getTagLists} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
+import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isReportInGroupPolicy, isSelfDM} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getDistanceInMeters, getRateID, getTag, getTagForDisplay, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -108,22 +109,36 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const originalSign = (splitExpenseItem?.amount ?? 0) < 0 ? -1 : 1;
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
-    const shouldShowCategory = !!effectivePolicy?.areCategoriesEnabled && !!policyCategories;
+    const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
+    const isSelfDMSplit = isSelfDM(draftTransactionReport);
+    const isExpenseUnreported = isSelfDMSplit;
+    const isPolicyExpenseChat = isReportInGroupPolicy(draftTransactionReport);
+
+    const originalTransactionCategory = transaction?.category ?? '';
+    const originalTransactionTag = transaction?.tag ?? '';
+
+    const transactionCategory = splitExpenseDraftTransactionDetails?.category ?? '';
+    const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;
+    const hasOriginalCategory = !!originalTransactionCategory && !isCategoryMissing(originalTransactionCategory);
+    const shouldShowCategory =
+        hasOriginalCategory ||
+        (isPolicyExpenseChat && (!!categoryForDisplay || hasEnabledOptions(policyCategories ?? {}))) ||
+        (isExpenseUnreported && (!effectivePolicy || hasEnabledOptions(policyCategories ?? {})));
 
     const transactionTag = getTag(splitExpenseDraftTransaction);
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, effectivePolicy, parentReport);
 
-    const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
-    const isSelfDMSplit = isSelfDM(draftTransactionReport);
-
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
     const reportAttributes = useReportAttributes();
     const reportName = getReportName(currentReport, reportAttributes) || parentReport?.reportName;
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, effectivePolicy?.areRulesEnabled);
 
-    const shouldShowTags = !!effectivePolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
+    // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original
+    // (parent) transaction carried a tag — same rationale as `shouldShowCategory` above: workspace
+    // deletion leaves the gate flags false, but the preserved tag should still be re-selectable.
+    const shouldShowTags = !!originalTransactionTag || ((isPolicyExpenseChat || isExpenseUnreported) && !!(transactionTag || hasEnabledTags(policyTagLists)));
     const tagVisibility = useMemo(
         () =>
             getTagVisibility({

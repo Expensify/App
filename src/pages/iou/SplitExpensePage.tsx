@@ -156,16 +156,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const transactionDetailsAmount = useMemo(() => {
         // `initSplitExpense` computes the total against the fallback rate for self-DM splits
         // where the original rate was deleted from the workspace, and stores it on the draft.
-        // Prefer the draft amount so the header reflects the same value the splits were built on
-        // (no recomputation here — just reading the value computed at split creation time).
         const draftAmount = draftTransaction?.amount;
+        const signedAmount = transactionDetails?.amount;
         if (typeof draftAmount === 'number' && draftAmount !== 0) {
-            return Math.abs(draftAmount);
+            const sign = typeof signedAmount === 'number' && signedAmount < 0 ? -1 : 1;
+            return sign * Math.abs(draftAmount);
         }
-        if (typeof transactionDetails?.amount !== 'number') {
+        if (typeof signedAmount !== 'number') {
             return 0;
         }
-        return transactionDetails.amount;
+        return signedAmount;
     }, [draftTransaction?.amount, transactionDetails.amount]);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
