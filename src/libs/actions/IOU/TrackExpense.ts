@@ -14,6 +14,7 @@ import type {
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils} from '@libs/IOUUtils';
@@ -1407,6 +1408,28 @@ function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, o
     API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
 }
 
+/**
+ * Returns `true` when `customUnit.quantity` (in `distanceUnit`) diverges from
+ * `customUnit.routeDistanceMeters` — i.e. the user typed a manual value on the "Manual" tab
+ * after a map route had already populated the distance.
+ *
+ * Returns `false` for map-routed / GPS-tracked expenses (quantity matches the route) and any
+ * case missing the data needed for a confident compare — those flows must keep `waypoints` so
+ * BE can preserve / regenerate the map receipt.
+ */
+function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>): boolean {
+    const quantity = transaction?.comment?.customUnit?.quantity;
+    const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+    if (typeof quantity !== 'number' || !distanceUnit || typeof routeDistanceMeters !== 'number' || routeDistanceMeters <= 0) {
+        return false;
+    }
+    // Compare in display units — `quantity` is stored at 2dp, so a meters round-trip would
+    // exceed any sub-meter tolerance from rounding alone (~5m km / ~8m mi).
+    const routeQuantity = DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, distanceUnit);
+    return Math.abs(quantity - routeQuantity) > 0.01;
+}
+
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
     const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID} = convertTrackedExpenseParams;
     const {accountID: payerAccountID, email: payerEmail} = payerParams;
@@ -1473,6 +1496,13 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         });
     }
 
+    // Drop `waypoints` only when the transaction's stored distance diverges from the route's
+    // computed distance, so BE doesn't recompute and overwrite the manual override. GPS-tracked
+    // / map-routed expenses match the route — they must keep waypoints so BE can regenerate the
+    // map receipt.
+    const sourceTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const hasManualDistanceOverrideForRequest = hasManualDistanceOverride(sourceTransaction);
+
     if (workspaceParams) {
         const additionalFailureData = getConvertTrackedExpenseWorkspaceFailureData({
             iouReportID: iouParams.reportID,
@@ -1490,6 +1520,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         // Removing the ghost IOU report on API failure which can cause unexpected errors.
         failureData?.push(...additionalFailureData);
 
+        const workspaceParamsForAPI = hasManualDistanceOverrideForRequest ? {...workspaceParams, waypoints: undefined} : workspaceParams;
         const params = {
             amount,
             distance,
@@ -1506,7 +1537,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             moneyRequestPreviewReportActionID: iouParams.reportActionID,
             modifiedExpenseReportActionID: convertTrackedExpenseInformation.modifiedExpenseReportActionID,
             reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
-            ...workspaceParams,
+            ...workspaceParamsForAPI,
         };
 
         addTrackedExpenseToPolicy(params, {optimisticData, successData, failureData});
@@ -1535,7 +1566,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
         isDistance,
         customUnitRateID,
-        waypoints,
+        waypoints: hasManualDistanceOverrideForRequest ? undefined : waypoints,
     };
     API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
@@ -2776,6 +2807,7 @@ export {
     getDeleteTrackExpenseInformation,
     getNavigationUrlAfterTrackExpenseDelete,
     getTrackExpenseInformation,
+    hasManualDistanceOverride,
     trackExpense,
     requestMoney,
 };
