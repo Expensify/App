@@ -308,13 +308,21 @@ function ReportActionsList({
     ]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
-    const initialScrollKey = useMemo(() => {
-        return linkedReportActionID ?? unreadMarkerReportActionID ?? undefined;
-    }, [linkedReportActionID, unreadMarkerReportActionID]);
-
     const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction), [parentReportAction]);
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldBeAlignedToTop = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
+    const initialScrollKey = useMemo(() => {
+        const actionID = linkedReportActionID ?? unreadMarkerReportActionID;
+        if (!actionID) {
+            return;
+        }
+
+        // The correct scroll behavior in this case will be handled by shouldFocusToTopOnMount logic
+        if (shouldBeAlignedToTop && sortedVisibleReportActionsObjects[actionID]?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+            return;
+        }
+        return actionID;
+    }, [linkedReportActionID, unreadMarkerReportActionID, shouldBeAlignedToTop, sortedVisibleReportActionsObjects]);
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey;
     const [shouldAutoscrollToBottom, setShouldAutoscrollToBottom] = useState(shouldFocusToTopOnMount);
     const renderedVisibleReportActions = useMemo(() => {
