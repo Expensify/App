@@ -309,6 +309,7 @@ import addTrailingForwardSlash from './UrlUtils';
 import type {AvatarSource} from './UserAvatarUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
+import {isInvalidMerchantValue} from './ValidationUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
@@ -4712,7 +4713,7 @@ function canEditMoneyRequest(
         return !isForwarded;
     }
 
-    return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport?.reportID) && !isClosedReport(moneyRequestReport) && isRequestor;
+    return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport) && !isClosedReport(moneyRequestReport) && isRequestor;
 }
 
 function getNextApproverAccountID(report: OnyxEntry<Report>, isUnapproved = false) {
@@ -4900,7 +4901,7 @@ function canEditFieldOfMoneyRequest({
         return false;
     }
 
-    if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
+    if (isSettled(moneyRequestReport) || isReportApproved({report: moneyRequestReport})) {
         return false;
     }
 
@@ -11333,6 +11334,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         .find((action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === transactionID);
 
     const {created, amount, currency, merchant, mccGroup} = getTransactionDetails(transaction) ?? {};
+    const isMerchantValid = !isInvalidMerchantValue(merchant);
     const baseComment = getTransactionCommentObject(transaction);
     // Use modifiedAttendees if present (for edited transactions), otherwise use the attendees from comment
     const comment = {
@@ -11352,10 +11354,12 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         modifiedAmount: undefined,
         modifiedCurrency: undefined,
         amount,
+        isAmountSet: true,
         currency,
         comment,
         merchant,
         modifiedMerchant: '',
+        isMerchantSet: !!isMerchantValid,
         modifiedAttendees: undefined,
         mccGroup,
         participants: [],

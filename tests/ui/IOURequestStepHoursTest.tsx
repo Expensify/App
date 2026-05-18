@@ -20,6 +20,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     goBack: jest.fn(),
     setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
 }));

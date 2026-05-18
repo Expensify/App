@@ -1,6 +1,6 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getLatestUserChronosTimerCommand, isChronosStartOrStopMessage, isChronosTimerRunningFromVisibleActions, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
+import {getTimeOfChronosTimerRunningFromVisibleActions, isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
@@ -4784,10 +4784,10 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('getLatestUserChronosTimerCommand', () => {
+    describe('getTimeOfChronosTimerRunningFromVisibleActions', () => {
         const currentUserAccountID = 100;
 
-        function makeUserTimerComment(text: string, actorAccountID: number, overrides: Partial<ReportAction> = {}): ReportAction {
+        function makeUserTimerComment(text: string, actorAccountID: number = currentUserAccountID, overrides: Partial<ReportAction> = {}): ReportAction {
             return getFakeReportAction(actorAccountID, {
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 actorAccountID,
@@ -4797,30 +4797,31 @@ describe('ReportActionsUtils', () => {
         }
 
         it('returns null when there are no matching comments', () => {
-            expect(getLatestUserChronosTimerCommand([], currentUserAccountID)).toBe(null);
-            expect(getLatestUserChronosTimerCommand([makeUserTimerComment('hello', currentUserAccountID)], currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([], currentUserAccountID)).toBeNull();
+            expect(getTimeOfChronosTimerRunningFromVisibleActions([makeUserTimerComment('hello')], currentUserAccountID)).toBeNull();
         });
 
-        it('returns the newest matching command when sorted newest-first', () => {
+        it('returns the created timestamp of the newest start command when sorted newest-first', () => {
+            const startCreated = '2024-01-03 10:00:00.000';
             const sortedNewestFirst = [
-                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: '2024-01-03 10:00:00.000'}),
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: startCreated}),
                 makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(startCreated);
         });
 
-        it('returns stop when the newest timer command is stop', () => {
+        it('returns null when the newest timer command is stop', () => {
             const sortedNewestFirst = [
                 makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores comments from other users', () => {
             const sortedNewestFirst = [makeUserTimerComment('start', 999, {reportActionID: '2'}), makeUserTimerComment('hello', currentUserAccountID, {reportActionID: '1'})];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
 
         it('ignores non-ADD_COMMENT actions', () => {
@@ -4831,34 +4832,7 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'start', isDeletedParentAction: false, isEdited: false, text: 'start', type: 'TEXT', whisperedTo: []}],
                 }),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
-        });
-    });
-
-    describe('isChronosTimerRunningFromVisibleActions', () => {
-        const currentUserAccountID = 200;
-
-        function makeUserTimerComment(text: string, overrides: Partial<ReportAction> = {}): ReportAction {
-            return getFakeReportAction(currentUserAccountID, {
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID: currentUserAccountID,
-                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
-                ...overrides,
-            });
-        }
-
-        it('returns true when the latest user timer command is start', () => {
-            const sortedNewestFirst = [makeUserTimerComment('start', {reportActionID: '2'}), makeUserTimerComment('stop', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(true);
-        });
-
-        it('returns false when the latest user timer command is stop', () => {
-            const sortedNewestFirst = [makeUserTimerComment('stop', {reportActionID: '2'}), makeUserTimerComment('start', {reportActionID: '1'})];
-            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(false);
-        });
-
-        it('returns false when there is no timer command', () => {
-            expect(isChronosTimerRunningFromVisibleActions([makeUserTimerComment('stats')], currentUserAccountID)).toBe(false);
+            expect(getTimeOfChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBeNull();
         });
     });
 
