@@ -22,8 +22,6 @@ When you order a physical GBP/EUR Expensify Card, you'll set a 4-digit PIN as pa
 
 Your PIN will be active once the card is activated.
 
-**Note:** Your PIN cannot be consecutive ascending or descending digits (e.g., 1234) or the same digit repeated four times (e.g., 0000).
-
 ---
 
 # Reveal your PIN
@@ -56,20 +54,6 @@ You'll see a confirmation page once your PIN is changed.
 Cardholders in offline PIN countries cannot change their PIN in the app. When you tap **Change PIN**, you'll be directed to change your PIN at any ATM instead.
 
 Your region is determined by the billing address on your card.
-
----
-
-# Unlock your card after a PIN block
-
-If you enter your PIN incorrectly too many times at a point of sale, your card will be locked. You'll receive a Concierge notification with a link to your card details page.
-
-1. Go to **Account > Wallet** and select your physical Expensify Card.
-2. Tap **Unlock card**.
-3. Verify your identity via biometrics or passkey.
-
-**Online PIN countries:** Your card is immediately unlocked and ready to use.
-
-**Offline PIN countries (UK, France, Ireland, Finland, Iceland, Israel):** After unlocking in the app, you must also change your PIN at any ATM before your card will work for in-person transactions again. You'll see a reminder on the **Change PIN** row on your card details page until the PIN change is completed.
 
 ---
 
