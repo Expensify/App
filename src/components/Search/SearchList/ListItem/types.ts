@@ -9,7 +9,6 @@ import type {
     CardList,
     LastPaymentMethod,
     PersonalDetails,
-    PersonalDetailsList,
     Policy,
     Report,
     ReportAction,
@@ -50,12 +49,6 @@ type SearchListActionProps = {
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** The report data */
     report?: Report;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** User billing fund ID */
-    userBillingFundID: number | undefined;
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -290,9 +283,6 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
     /** All the data of the report collection */
     allReports?: OnyxCollection<Report>;
-
-    /** Personal details list */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type TaskListItemType = ListItem &
