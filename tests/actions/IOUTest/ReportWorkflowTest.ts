@@ -3682,7 +3682,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Non-reimbursable-only report: total=0, nonReimbursableTotal=-5000
             // canBePaidNow returns false (REIMBURSEMENT_NO early-exits when onlyShowPayElsewhere=false)
             // canBePaidElsewhere returns true (SUBMITTED status + non-reimbursable spend)
-            // But since all transactions are non-reimbursable, PAY badge should be skipped
+            // But since all transactions are non-reimbursable, PAY badge should be skipped.
+            // Use a different managerID so canApproveIOU also returns false (current user is not the manager).
             const fakeIouReport: Report = {
                 ...createRandomReport(Number(iouReportID), CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 reportID: iouReportID,
@@ -3690,7 +3691,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 policyID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                managerID: RORY_ACCOUNT_ID,
+                managerID: 999999,
                 total: 0,
                 nonReimbursableTotal: -5000,
                 isWaitingOnBankAccount: false,
