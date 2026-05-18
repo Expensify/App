@@ -240,7 +240,7 @@ function PureReportActionItem({
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
     const hasDraft = draftMessage !== undefined;
-    const isEditingInline = !shouldUseNarrowLayout && hasDraft
+    const isEditingInline = !shouldUseNarrowLayout && hasDraft;
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
@@ -398,10 +398,10 @@ function PureReportActionItem({
      * @param [event] - A press event.
      */
     const showPopover = (event: GestureResponderEvent | MouseEvent) => {
-            // Block menu on the message being Edited or if the report action item has errors
-            if (isContextMenuDisabled) {
-                return;
-            }
+        // Block menu on the message being Edited or if the report action item has errors
+        if (isContextMenuDisabled) {
+            return;
+        }
 
         handleShowContextMenu(() => {
             setIsContextMenuActive(true);

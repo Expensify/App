@@ -38,7 +38,18 @@ type ReportActionItemFrameProps = {
     iouReport?: OnyxTypes.Report;
 };
 
-function ReportActionItemFrame({children, action, report, displayAsGroup, isEditingInline, isWhisper, isOnSearch, hovered, isActive, iouReport}: ReportActionItemFrameProps): React.JSX.Element {
+function ReportActionItemFrame({
+    children,
+    action,
+    report,
+    displayAsGroup,
+    isEditingInline,
+    isWhisper,
+    isOnSearch,
+    hovered,
+    isActive,
+    iouReport,
+}: ReportActionItemFrameProps): React.JSX.Element {
     const styles = useThemeStyles();
 
     if (isEditingInline) {

@@ -1,3 +1,8 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+import type {GestureResponderEvent} from 'react-native';
+import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
@@ -5,15 +10,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { navigateToAndOpenChildReport } from '@libs/actions/Report';
-import { hasSeenTourSelector } from '@selectors/Onboarding';
+import {navigateToAndOpenChildReport} from '@libs/actions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Report, ReportAction } from '@src/types/onyx';
-import React from 'react';
-import type { GestureResponderEvent } from 'react-native';
-import { View } from 'react-native';
-import type { OnyxEntry } from 'react-native-onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type ReportActionItemThreadProps = {
     /** The current report */
@@ -56,7 +56,7 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
     const replyText = numberOfReplies === 1 ? translate('threads.reply') : translate('threads.replies');
 
     const timeStamp = datetimeToCalendarTime(mostRecentReply, false);
-    const wrapperStyle =  isEditingInline ? styles.chatItemReactionsDraftRight : {};
+    const wrapperStyle = isEditingInline ? styles.chatItemReactionsDraftRight : {};
 
     return (
         <View style={wrapperStyle}>
