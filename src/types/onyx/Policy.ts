@@ -3,6 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {GustoSyncResult} from '@libs/API/GustoSyncResult';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type {MergeHRConnectionName} from '@src/CONST/MERGE_HR_PROVIDERS';
 import type * as OnyxTypes from '.';
 import type * as OnyxCommon from './OnyxCommon';
 import type {WorkspaceTravelSettings} from './TravelSettings';
@@ -1517,20 +1518,29 @@ type FinancialForceConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 /** Gusto connection data */
 type GustoConnectionData = Record<string, never>;
 
-/** Gusto connection config */
-type GustoConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
+/** Shared approval config for HR integrations (Gusto, Merge HR) */
+type HRConnectionConfigBase = OnyxCommon.OnyxValueWithOfflineFeedback<
     {
-        /** Gusto approval mode */
+        /** Approval mode */
         approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null;
 
         /** Workspace member who acts as the final approver */
         finalApprover: string | null;
 
-        /** Collections of form field errors */
+        /** Collection of form field errors */
         errorFields?: OnyxCommon.ErrorFields;
     },
     'approvalMode' | 'finalApprover'
 >;
+
+/** Gusto connection config */
+type GustoConnectionConfig = HRConnectionConfigBase;
+
+/** Merge HR connection config (shared by all Merge-backed HR integrations) */
+type MergeHRConnectionConfig = HRConnectionConfigBase & {
+    /** Merge provider slug identifying the connected HR system */
+    mergeProviderSlug: MergeHRConnectionName;
+};
 
 /** TriNet (Zenefits) connection data */
 type ZenefitsConnectionData = Record<string, never>;
@@ -1689,6 +1699,15 @@ type Connections = {
 
     /** TriNet (Zenefits) integration connection */
     [CONST.POLICY.CONNECTIONS.NAME.ZENEFITS]: Connection<ZenefitsConnectionData, ZenefitsConnectionConfig>;
+
+    /** Merge HR – Workday integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_WORKDAY]: Connection<Record<string, never>, MergeHRConnectionConfig>;
+
+    /** Merge HR – BambooHR integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_BAMBOOHR]: Connection<Record<string, never>, MergeHRConnectionConfig>;
+
+    /** Merge HR – HiBob integration connection */
+    [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR_HIBOB]: Connection<Record<string, never>, MergeHRConnectionConfig>;
 };
 
 /** All integration connections, including unsupported ones */
