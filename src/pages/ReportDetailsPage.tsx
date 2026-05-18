@@ -847,7 +847,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                               }
                             : undefined
                     }
-                    furtherDetailsComponent={nameSectionFurtherDetailsContent}
                 />
             </View>
         </OfflineWithFeedback>
