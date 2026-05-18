@@ -1511,7 +1511,7 @@ describe('actions/Task', () => {
             const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined);
 
             expect(result).toBe(`r/${parentReportID}`);
-            expect(Navigation.goBack).toHaveBeenCalledWith(`r/${parentReportID}`);
+            expect(Navigation.goBack).toHaveBeenCalledWith();
         });
 
         it('should navigate back to backTo when provided and the task report is deleted', async () => {
@@ -1545,7 +1545,7 @@ describe('actions/Task', () => {
             const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined, [], backTo);
 
             expect(result).toBe(backTo);
-            expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
+            expect(Navigation.goBack).toHaveBeenCalledWith(backTo, {compareParams: false});
         });
 
         it('should return conciergeReportID-based URL when no parentReportID and no recent report', async () => {
@@ -1574,7 +1574,7 @@ describe('actions/Task', () => {
 
             expect(result).toBe(`r/${conciergeReportID}`);
             expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
-            expect(Navigation.goBack).toHaveBeenCalledWith(`r/${conciergeReportID}`);
+            expect(Navigation.goBack).toHaveBeenCalledWith();
         });
 
         it('should navigate away when task report has visible actions', async () => {
@@ -1602,13 +1602,13 @@ describe('actions/Task', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // Even when the task has visible actions, deleting it should still leave the task view.
+            // When the task still has visible actions and there's no backTo, stay on the deleted task page.
             doesReportHaveVisibleActionsSpy.mockReturnValue(true);
 
             const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123', undefined);
 
-            expect(result).toBe(`r/${parentReportID}`);
-            expect(Navigation.goBack).toHaveBeenCalledWith(`r/${parentReportID}`);
+            expect(result).toBeUndefined();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
         });
 
         it('should return undefined when no parentReportID, no recent report, and conciergeReportID is undefined', async () => {

@@ -923,7 +923,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
 
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
-        if (caseID === CASES.DEFAULT) {
+        if (caseID === CASES.DEFAULT && backTo) {
             const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, backTo);
 
             if (urlToNavigateBack) {
@@ -1024,7 +1024,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
             return;
         }
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            if (caseID === CASES.DEFAULT) {
+            if (caseID === CASES.DEFAULT && backTo) {
                 deleteTransaction();
                 return;
             }
@@ -1035,7 +1035,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata, reportLoading
                 deleteTransaction();
             });
         });
-    }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
+    }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction, backTo]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 

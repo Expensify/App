@@ -1388,9 +1388,14 @@ function deleteTask(
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, backTo);
+    const shouldNavigateAfterDelete = !!backTo || shouldDeleteTaskReport;
+    const urlToNavigateBack = shouldNavigateAfterDelete ? getNavigationUrlOnTaskDelete(report, conciergeReportID, backTo) : undefined;
     if (urlToNavigateBack) {
-        Navigation.goBack(urlToNavigateBack);
+        if (backTo) {
+            Navigation.goBack(urlToNavigateBack, {compareParams: false});
+        } else {
+            Navigation.goBack();
+        }
         return urlToNavigateBack;
     }
 }
