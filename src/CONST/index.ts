@@ -6,9 +6,6 @@ import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
 import type {SearchFilterKey} from '@components/Search/types';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import type {MileageRate} from '@libs/DistanceRequestUtils';
-import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
-import addTrailingForwardSlash from '@libs/UrlUtils';
 import {
     ANIMATED_TRANSITION as ANIMATION_TIMING_ANIMATED_TRANSITION,
     DEFAULT_IN as ANIMATION_TIMING_DEFAULT_IN,
@@ -17,7 +14,10 @@ import {
     DEFAULT_RIGHT_DOCKED_IOS_OUT as ANIMATION_TIMING_DEFAULT_RIGHT_DOCKED_IOS_OUT,
     FAB_IN as ANIMATION_TIMING_FAB_IN,
     FAB_OUT as ANIMATION_TIMING_FAB_OUT,
-} from '@styles/utils/animationTiming';
+} from '@libs/Animation/animationTiming';
+import type {MileageRate} from '@libs/DistanceRequestUtils';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
+import addTrailingForwardSlash from '@libs/UrlUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
