@@ -1701,6 +1701,36 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
+        it('should return false for CARD_ISSUED_VIRTUAL action with empty message array', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                reportActionID: 'card-issued-virtual-action-123',
+                actorAccountID: 123,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 456,
+                    cardID: 789,
+                },
+            };
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it('should return true for shouldReportActionBeVisible on CARD_ISSUED_VIRTUAL action with empty message array', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+                reportActionID: 'card-issued-virtual-action-456',
+                actorAccountID: 123,
+                created: '2024-01-01',
+                message: [],
+                originalMessage: {
+                    assigneeAccountID: 456,
+                    cardID: 789,
+                },
+            };
+            expect(ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true)).toBe(true);
+        });
+
         it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
