@@ -26,7 +26,7 @@ const getConfiguration = (environment: Environment): Promise<Configuration> =>
                 : {
                       proxy: [
                           {
-                              context: ['/api', '/staging', '/chat-attachments', '/receipts'],
+                              context: ['/api', '/staging', '/chat-attachments', '/receipts', '/authentication'],
                               target: 'http://[::1]:9000',
                           },
                       ],
