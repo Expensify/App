@@ -1,13 +1,14 @@
 import {act, render} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import type {SelectedTransactions} from '@components/Search/types';
+import type {SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 import SearchTransactionsChangeReport from '@pages/Search/SearchTransactionsChangeReport';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import {createExpenseReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@userActions/Transaction', () => ({
@@ -76,6 +77,26 @@ const SOURCE_REPORT_ID = 'source-report-1';
 const DESTINATION_REPORT_ID = 'destination-report-1';
 const POLICY_ID = 'policy-1';
 
+function makeSelectedTransaction(overrides: Partial<SelectedTransactionInfo> = {}): SelectedTransactionInfo {
+    return {
+        isSelected: true,
+        canReject: false,
+        canHold: false,
+        canSplit: false,
+        hasBeenSplit: false,
+        canChangeReport: true,
+        isHeld: false,
+        canUnhold: false,
+        action: CONST.SEARCH.ACTION_TYPES.VIEW,
+        reportID: SOURCE_REPORT_ID,
+        policyID: POLICY_ID,
+        amount: -100,
+        currency: CONST.CURRENCY.USD,
+        isFromOneTransactionReport: false,
+        ...overrides,
+    };
+}
+
 describe('SearchTransactionsChangeReport', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -109,19 +130,20 @@ describe('SearchTransactionsChangeReport', () => {
             currency: CONST.CURRENCY.USD,
         };
         const transaction: Transaction = {
+            ...createRandomTransaction(1),
             transactionID: 'txn-1',
             reportID: SOURCE_REPORT_ID,
             amount: -100,
             currency: CONST.CURRENCY.USD,
-            created: '2023-10-01',
-            modified: '2023-10-01',
         };
 
         mockSelectedTransactions = {
-            [transaction.transactionID]: {
+            [transaction.transactionID]: makeSelectedTransaction({
                 reportID: SOURCE_REPORT_ID,
                 transaction,
-            },
+                amount: transaction.amount,
+                currency: transaction.currency ?? CONST.CURRENCY.USD,
+            }),
         };
         mockSelectedTransactionIDs = [transaction.transactionID];
 
@@ -151,25 +173,33 @@ describe('SearchTransactionsChangeReport', () => {
 
     it('does not forward originalReport when selected transactions come from different source reports', async () => {
         const transactionOne: Transaction = {
+            ...createRandomTransaction(1),
             transactionID: 'txn-1',
             reportID: SOURCE_REPORT_ID,
             amount: -100,
             currency: CONST.CURRENCY.USD,
-            created: '2023-10-01',
-            modified: '2023-10-01',
         };
         const transactionTwo: Transaction = {
+            ...createRandomTransaction(2),
             transactionID: 'txn-2',
             reportID: 'other-source-report',
             amount: -50,
             currency: CONST.CURRENCY.USD,
-            created: '2023-10-01',
-            modified: '2023-10-01',
         };
 
         mockSelectedTransactions = {
-            [transactionOne.transactionID]: {reportID: SOURCE_REPORT_ID, transaction: transactionOne},
-            [transactionTwo.transactionID]: {reportID: 'other-source-report', transaction: transactionTwo},
+            [transactionOne.transactionID]: makeSelectedTransaction({
+                reportID: SOURCE_REPORT_ID,
+                transaction: transactionOne,
+                amount: transactionOne.amount,
+                currency: transactionOne.currency ?? CONST.CURRENCY.USD,
+            }),
+            [transactionTwo.transactionID]: makeSelectedTransaction({
+                reportID: 'other-source-report',
+                transaction: transactionTwo,
+                amount: transactionTwo.amount,
+                currency: transactionTwo.currency ?? CONST.CURRENCY.USD,
+            }),
         };
         mockSelectedTransactionIDs = [transactionOne.transactionID, transactionTwo.transactionID];
 

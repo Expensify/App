@@ -60,11 +60,18 @@ describe('useReportSelectionActions', () => {
     beforeEach(async () => {
         await Onyx.clear();
         jest.clearAllMocks();
-        jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation((callback) => {
-            if (typeof callback === 'function') {
-                callback();
+        jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation((task) => {
+            if (typeof task === 'function') {
+                task();
             }
-            return {cancel: jest.fn()};
+            return {
+                then: (onfulfilled?: () => void) => {
+                    onfulfilled?.();
+                    return Promise.resolve();
+                },
+                done: () => undefined,
+                cancel: jest.fn(),
+            };
         });
     });
 

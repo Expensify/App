@@ -1434,7 +1434,8 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedSourceReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
-            getAllReportActionsSpy.mockImplementation((reportID?: string) => {
+            getAllReportActionsSpy.mockImplementation((...args: unknown[]) => {
+                const reportID = args.at(0) as string | undefined;
                 if (reportID === PARENT_REPORT_ID) {
                     return {[PARENT_REPORT_ACTION_ID]: parentReportAction};
                 }
