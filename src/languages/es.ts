@@ -6168,7 +6168,11 @@ ${amount} para ${merchant} - ${date}`,
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
                 settlementAccountReconciliation: (settlementAccountUrl, lastFourPAN) =>
                     `Asegúrate de que esta cuenta coincide con <a href="${settlementAccountUrl}">la cuenta de liquidación de tu Tarjeta Expensify</a> (que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
+                chooseTravelInvoicingBankAccount: 'Elige la cuenta bancaria con la que se reconciliarán los pagos de tus facturas de viaje.',
+                travelInvoicingSettlementAccountReconciliation: (lastFourPAN: string) =>
+                    `Asegúrate de que esta cuenta coincida con tu cuenta de liquidación de facturas de viaje (que termina en ${lastFourPAN}) para que la conciliación continua funcione correctamente.`,
             },
+            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
         },
         card: {
             issueCard: 'Emitir tarjeta',

@@ -510,6 +510,8 @@ const WRITE_COMMANDS = {
     CONFIGURE_TRAVEL_INVOICING_FOR_POLICY: 'ConfigureTravelInvoicingForPolicy',
     DEACTIVATE_TRAVEL_INVOICING: 'DeactivateTravelInvoicing',
     SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: 'SetTravelInvoicingSettlementAccount',
+    SET_TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT: 'SetTravelInvoicingReconciliationBankAccount',
+    TOGGLE_TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION: 'ToggleTravelInvoicingContinuousReconciliation',
     UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY: 'UpdateTravelInvoiceSettlementFrequency',
     UPDATE_TRAVEL_INVOICING_MONTHLY_LIMIT: 'UpdateTravelInvoicingMonthlyLimit',
     PAY_TRAVEL_INVOICING_SPEND: 'PayTravelInvoicingSpend',
@@ -1157,6 +1159,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CONFIGURE_TRAVEL_INVOICING_FOR_POLICY]: Parameters.ConfigureTravelInvoicingForPolicyParams;
     [WRITE_COMMANDS.DEACTIVATE_TRAVEL_INVOICING]: Parameters.DeactivateTravelInvoicingParams;
     [WRITE_COMMANDS.SET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: Parameters.SetTravelInvoicingSettlementAccountParams;
+    [WRITE_COMMANDS.SET_TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT]: Parameters.SetTravelInvoicingReconciliationBankAccountParams;
+    [WRITE_COMMANDS.TOGGLE_TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION]: Parameters.ToggleTravelInvoicingContinuousReconciliationParams;
     [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICE_SETTLEMENT_FREQUENCY]: Parameters.UpdateTravelInvoicingSettlementFrequencyParams;
     [WRITE_COMMANDS.UPDATE_TRAVEL_INVOICING_MONTHLY_LIMIT]: Parameters.UpdateTravelInvoicingMonthlyLimitParams;
     [WRITE_COMMANDS.PAY_TRAVEL_INVOICING_SPEND]: Parameters.PayTravelInvoicingSpendParams;
