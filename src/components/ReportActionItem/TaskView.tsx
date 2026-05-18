@@ -92,7 +92,6 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         () => ({
             anchor: null,
             report,
-            isReportArchived: false,
             action,
             transactionThreadReport: undefined,
             isDisabled: true,

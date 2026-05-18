@@ -183,8 +183,14 @@ function ScreenWrapper({
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const shouldBlockSingleEntryOldAppExit = shouldHideOldAppRedirect(tryNewDot, isLoadingTryNewDot, CONFIG.IS_HYBRID_APP);
+    const [initialActiveRouteWithoutParams, setInitialActiveRouteWithoutParams] = useState('');
+    useEffect(() => {
+        Navigation.isNavigationReady().then(() => setInitialActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams()));
+    }, []);
+    const initialURLWithoutParams = initialURL?.replaceAll(/\?.*/g, '');
+    const doesInitialURLMatchActiveRoute = !!initialURLWithoutParams?.endsWith(Navigation.getActiveRouteWithoutParams() || initialActiveRouteWithoutParams);
 
-    usePreventRemove(isSingleNewDotEntry && !!initialURL?.endsWith(Navigation.getActiveRouteWithoutParams()) && !shouldBlockSingleEntryOldAppExit, () => {
+    usePreventRemove(isSingleNewDotEntry && doesInitialURLMatchActiveRoute && !shouldBlockSingleEntryOldAppExit, () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }
@@ -281,7 +287,6 @@ function ScreenWrapper({
                 includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
                 isFocused={isFocused}
                 shouldHideFromAccessibility={shouldHideFromAccessibility}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restContainerProps}
             >
                 {isDevelopment && <CustomDevMenu />}
@@ -306,4 +311,4 @@ function ScreenWrapper({
 }
 
 export default withNavigationFallback(ScreenWrapper);
-export type {ScreenWrapperProps, ScreenWrapperChildrenProps};
+export type {ScreenWrapperChildrenProps};

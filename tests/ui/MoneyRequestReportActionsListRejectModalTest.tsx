@@ -53,6 +53,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getState: jest.fn(() => ({})),
     },
     getActiveRoute: jest.fn(() => 'activeRoute'),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
     getDeepestFocusedScreen: jest.fn(() => undefined),
 }));
 

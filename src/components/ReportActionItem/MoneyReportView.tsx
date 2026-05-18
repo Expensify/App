@@ -20,6 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resolveReportFieldValue} from '@libs/Formula';
+import {isSingleTransactionReport} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {
@@ -70,6 +71,14 @@ type MoneyReportViewProps = {
 
     /** Whether we should display the animated banner above the component */
     shouldShowAnimatedBackground?: boolean;
+
+    /**
+     * When true, the Total amount is rendered as a loading indicator regardless of `isOffline`.
+     * Use this when the caller knows the underlying total is being recomputed and a
+     * network-independent update is expected, so falling back to the (stale) amount while offline
+     * would be misleading.
+     */
+    isTotalPending?: boolean;
 };
 
 function MoneyReportView({
@@ -80,6 +89,7 @@ function MoneyReportView({
     shouldHideThreadDividerLine,
     pendingAction,
     shouldShowAnimatedBackground = true,
+    isTotalPending = false,
 }: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -89,14 +99,15 @@ function MoneyReportView({
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const isSettled = isSettledReportUtils(report?.reportID);
-    const isTotalUpdated = hasUpdatedTotal(report, policy);
+    const isTotalUpdated = hasUpdatedTotal(report, policy) && !isTotalPending;
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const transactions = useReportTransactions(report?.reportID);
     const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
 
     const isTaxEnabled = isPolicyTaxEnabled(policy);
-    const shouldShowBreakdown = nonReimbursableSpend || !!billableTotal || (!!taxTotal && isTaxEnabled);
+    const isSingleNonReimbursableExpense = isSingleTransactionReport(report, transactions) && transactions.at(0)?.reimbursable === false;
+    const shouldShowBreakdown = !isSingleNonReimbursableExpense && (!!nonReimbursableSpend || !!billableTotal || (!!taxTotal && isTaxEnabled));
     const formattedTotalAmount = convertToDisplayString(totalDisplaySpend, report?.currency);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
@@ -107,6 +118,7 @@ function MoneyReportView({
         context: 'MoneyReportView.Total',
         isTotalUpdated,
         isOffline,
+        isTotalPending,
     };
 
     const subAmountTextStyles: StyleProp<TextStyle> = [
@@ -228,7 +240,7 @@ function MoneyReportView({
                                             />
                                         </View>
                                     )}
-                                    {!isTotalUpdated && !isOffline ? (
+                                    {!isTotalUpdated && (!isOffline || isTotalPending) ? (
                                         <ActivityIndicator
                                             style={[styles.moneyRequestLoadingHeight]}
                                             color={theme.textSupporting}
