@@ -54,7 +54,6 @@ function SecuritySettingsPage() {
     const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const privateSubscription = usePrivateSubscription();
-    const isUserValidated = account?.validated;
     const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const {isAccountLocked} = useLockedAccountState();
