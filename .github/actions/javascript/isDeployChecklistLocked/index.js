@@ -11660,11 +11660,19 @@ exports.getDeployChecklist = getDeployChecklist;
 exports.getDeployChecklistData = getDeployChecklistData;
 exports.generateDeployChecklistBodyAndAssignees = generateDeployChecklistBodyAndAssignees;
 exports.parseChecklistSection = parseChecklistSection;
+const request_error_1 = __nccwpck_require__(537);
 const dedent_1 = __importDefault(__nccwpck_require__(6762));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 /** Milliseconds to wait before each subsequent `listForRepo` attempt. */
 const LIST_RETRY_DELAYS_MS = [2000, 5000];
+/**
+ * HTTP statuses that indicate a definitively-permanent failure of `listForRepo` -
+ * retrying cannot help (auth, missing resource, validation). Note that `403` is
+ * intentionally absent because GitHub returns secondary-rate-limit and abuse
+ * detection responses as `403` and those should be retried with backoff.
+ */
+const NON_RETRYABLE_LIST_STATUSES = new Set([401, 404, 422]);
 /**
  * Thrown by `getDeployChecklist` when GitHub successfully confirms there is no open
  * StagingDeployCash issue and the most recent checklist is closed - i.e. we're in the
@@ -11716,7 +11724,8 @@ function getDeployChecklistInternalQA(issue) {
 /**
  * Calls `issues.listForRepo` with simple retry-on-throw. Retries 1 + `LIST_RETRY_DELAYS_MS.length`
  * times total, sleeping the corresponding delay between attempts. Empty results are NOT retried -
- * the caller must decide whether an empty list is legitimate.
+ * the caller must decide whether an empty list is legitimate. Permanent statuses listed in
+ * `NON_RETRYABLE_LIST_STATUSES` short-circuit and re-throw on the first attempt.
  */
 async function listForRepoWithRetry(params) {
     let lastError;
@@ -11728,6 +11737,10 @@ async function listForRepoWithRetry(params) {
         }
         catch (error) {
             lastError = error;
+            if (error instanceof request_error_1.RequestError && NON_RETRYABLE_LIST_STATUSES.has(error.status)) {
+                console.warn(`listForRepo failed with permanent status ${error.status}; not retrying`, error);
+                throw error;
+            }
             const delay = LIST_RETRY_DELAYS_MS.at(attempt - 1);
             if (delay === undefined) {
                 throw error;
@@ -11758,22 +11771,25 @@ async function getDeployChecklist() {
         return getDeployChecklistData(issue);
     }
     // The filtered open list was empty. Cross-check against state:'all' to tell
-    // a legitimate between-cycles window apart from an API inconsistency.
+    // a legitimate between-cycles window apart from an API inconsistency. Any open
+    // issue anywhere in the response - not just the most recent - blocks the deploy,
+    // so a stale older issue that got reopened cannot slip through.
     const allIssues = await listForRepoWithRetry({
         owner: CONST_1.default.GITHUB_OWNER,
         repo: CONST_1.default.APP_REPO,
         labels: CONST_1.default.LABELS.STAGING_DEPLOY,
         state: 'all',
     });
-    const mostRecent = allIssues.at(0);
-    if (!mostRecent) {
+    if (allIssues.length === 0) {
         // The label has been in continuous use; an empty state:'all' result is pathological.
         throw new Error(`No ${CONST_1.default.LABELS.STAGING_DEPLOY} issues found at all (state:'all' returned empty). Refusing to deploy.`);
     }
-    if (mostRecent.state === 'open') {
-        throw new Error(`Inconsistent GitHub response: state:open returned empty but the most recent ${CONST_1.default.LABELS.STAGING_DEPLOY} issue #${mostRecent.number} is open. Refusing to deploy.`);
+    const openIssuesInAll = allIssues.filter((issue) => issue.state === 'open');
+    if (openIssuesInAll.length > 0) {
+        throw new Error(`Inconsistent GitHub response: state:open returned empty but state:all reports open ${CONST_1.default.LABELS.STAGING_DEPLOY} issue(s) #${openIssuesInAll.map((issue) => issue.number).join(', #')}. Refusing to deploy.`);
     }
-    throw new NoOpenDeployChecklistError(`No open ${CONST_1.default.LABELS.STAGING_DEPLOY} issue (most recent #${mostRecent.number} is closed).`);
+    const mostRecent = allIssues.at(0);
+    throw new NoOpenDeployChecklistError(`No open ${CONST_1.default.LABELS.STAGING_DEPLOY} issue (most recent #${mostRecent?.number} is closed).`);
 }
 function getDeployChecklistData(issue) {
     try {

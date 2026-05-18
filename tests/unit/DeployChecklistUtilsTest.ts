@@ -278,6 +278,56 @@ describe('DeployChecklistUtils', () => {
             await expect(getDeployChecklist()).rejects.toBeInstanceOf(NoOpenDeployChecklistError);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
+
+        test('short-circuits permanent statuses (404) without retrying', async () => {
+            const err404 = new RequestError('Not Found', 404, {
+                request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
+            });
+            GithubUtils.octokit.issues.listForRepo = jest.fn().mockRejectedValue(err404) as unknown as ListForRepoMethod;
+
+            await expect(getDeployChecklist()).rejects.toBeInstanceOf(RequestError);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(1);
+        });
+
+        test('keeps 403 retryable (secondary rate limits)', async () => {
+            const err403 = new RequestError('Secondary rate limit', 403, {
+                request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
+            });
+            GithubUtils.octokit.issues.listForRepo = jest
+                .fn()
+                .mockRejectedValueOnce(err403)
+                .mockResolvedValueOnce({data: [{number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''}]}) as unknown as ListForRepoMethod;
+
+            jest.useFakeTimers();
+            const pending = getDeployChecklist();
+            await jest.advanceTimersByTimeAsync(2000);
+            const data = await pending;
+            jest.useRealTimers();
+
+            expect(data.number).toBe(77);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
+        });
+
+        test('state:all reports a non-first open issue → fails closed with that number', async () => {
+            GithubUtils.octokit.issues.listForRepo = jest
+                .fn()
+                .mockResolvedValueOnce({data: []})
+                .mockResolvedValueOnce({
+                    data: [
+                        {number: 900, state: 'closed'},
+                        {number: 800, state: 'open'},
+                        {number: 700, state: 'closed'},
+                    ],
+                }) as unknown as ListForRepoMethod;
+            try {
+                await getDeployChecklist();
+                throw new Error('Expected getDeployChecklist to reject');
+            } catch (e: unknown) {
+                expect(e).not.toBeInstanceOf(NoOpenDeployChecklistError);
+                expect((e as Error).message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
+                expect((e as Error).message).toEqual(expect.stringContaining('#800'));
+            }
+        });
     });
 
     describe('generateDeployChecklistBody', () => {
