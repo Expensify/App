@@ -392,25 +392,23 @@ class IOSPlatform implements Platform {
      * own xcrun simctl boot step — boot is idempotent and lets the
      * daemon refresh its device list.
      */
+    /*
+     * NOTE on flag combo: passing --session here conflicts with
+     * device selectors per the daemon's session-lock policy
+     * (run 25924098549 hit: "boot cannot override session lock
+     * policy with --device=..., --udid=..."). Boot is a pure
+     * device warmup, no session binding needed yet — that happens
+     * at open time.
+     */
     try {
       execFileSync(
         "agent-device",
-        [
-          "boot",
-          "--platform",
-          "ios",
-          "--device",
-          dev.name,
-          "--udid",
-          dev.udid,
-          "--session",
-          SESSION,
-        ],
+        ["boot", "--platform", "ios", "--device", dev.name],
         { stdio: "inherit", timeout: 60_000 },
       );
     } catch (e) {
       process.stdout.write(
-        `platform.ios: agent-device boot failed: ${(e as Error).message.slice(0, 120)}\n`,
+        `platform.ios: agent-device boot failed: ${(e as Error).message.slice(0, 200)}\n`,
       );
     }
 
