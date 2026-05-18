@@ -113,6 +113,27 @@ describe('Transaction', () => {
     });
 
     describe('changeTransactionsReport', () => {
+        type OnyxWriteEntry = {key: string; value: Record<string, unknown>};
+
+        function isDedicatedLifecycleInheritanceValue(value: Record<string, unknown> | undefined): value is {stateNum: number; statusNum: number} {
+            if (!value) {
+                return false;
+            }
+
+            const keys = Object.keys(value);
+            return keys.length === 2 && 'stateNum' in value && 'statusNum' in value;
+        }
+
+        function findDedicatedLifecycleReportUpdate(updates: OnyxWriteEntry[] | undefined, reportID: string, stateNum: number, statusNum: number) {
+            return updates?.find(
+                (data) =>
+                    data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportID}` &&
+                    isDedicatedLifecycleInheritanceValue(data.value) &&
+                    data.value.stateNum === stateNum &&
+                    data.value.statusNum === statusNum,
+            );
+        }
+
         function createIOUAction(transaction: Transaction, reportID = transaction.reportID, type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE> = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
             return {
                 reportActionID: rand64(),
@@ -1286,6 +1307,279 @@ describe('Transaction', () => {
             expect(missingTagViolations).toHaveLength(2);
             expect(missingTagViolations.some((violation) => violation.data?.tagName === 'Region')).toBe(true);
             expect(missingTagViolations.some((violation) => violation.data?.tagName === 'City')).toBe(true);
+        });
+
+        it('inherits lifecycle state from originalReport when moving into an optimistic new report', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const FAKE_OPTIMISTIC_NEW_REPORT_ID = '5';
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+            const submittedSourceReport: Report = {
+                ...createExpenseReport(6),
+                reportID: FAKE_OLD_REPORT_ID,
+                ownerAccountID: CURRENT_USER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+                total: -100,
+            };
+            const optimisticNewReport: Report = {
+                ...createExpenseReport(7),
+                reportID: FAKE_OPTIMISTIC_NEW_REPORT_ID,
+                ownerAccountID: CURRENT_USER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+                pendingFields: {
+                    createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedSourceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: optimisticNewReport,
+                originalReport: submittedSourceReport,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const optimisticData = (apiWriteCall?.[2] as {optimisticData?: OnyxWriteEntry[]})?.optimisticData;
+            const successData = (apiWriteCall?.[2] as {successData?: OnyxWriteEntry[]})?.successData;
+            const failureData = (apiWriteCall?.[2] as {failureData?: OnyxWriteEntry[]})?.failureData;
+
+            const lifecycleOptimisticUpdate = findDedicatedLifecycleReportUpdate(
+                optimisticData,
+                FAKE_OPTIMISTIC_NEW_REPORT_ID,
+                CONST.REPORT.STATE_NUM.OPEN,
+                CONST.REPORT.STATUS_NUM.SUBMITTED,
+            );
+            const lifecycleSuccessUpdate = findDedicatedLifecycleReportUpdate(successData, FAKE_OPTIMISTIC_NEW_REPORT_ID, CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.SUBMITTED);
+            const lifecycleFailureUpdate = findDedicatedLifecycleReportUpdate(
+                failureData,
+                FAKE_OPTIMISTIC_NEW_REPORT_ID,
+                optimisticNewReport.stateNum ?? CONST.REPORT.STATE_NUM.OPEN,
+                optimisticNewReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            );
+
+            expect(lifecycleOptimisticUpdate).toBeDefined();
+            expect(lifecycleSuccessUpdate).toBeDefined();
+            expect(lifecycleFailureUpdate).toBeDefined();
+
+            mockAPIWrite.mockRestore();
+        });
+
+        it('inherits parent report preview child lifecycle state when optimistic new report has a parent preview action', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const getAllReportActionsSpy = jest.spyOn(require('@libs/ReportActionsUtils'), 'getAllReportActions');
+            const FAKE_OPTIMISTIC_NEW_REPORT_ID = '5';
+            const PARENT_REPORT_ID = '6';
+            const PARENT_REPORT_ACTION_ID = 'parent-action-1';
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+            const submittedSourceReport: Report = {
+                ...createExpenseReport(6),
+                reportID: FAKE_OLD_REPORT_ID,
+                ownerAccountID: CURRENT_USER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+                total: -100,
+            };
+            const optimisticNewReport: Report = {
+                ...createExpenseReport(7),
+                reportID: FAKE_OPTIMISTIC_NEW_REPORT_ID,
+                ownerAccountID: CURRENT_USER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+                parentReportID: PARENT_REPORT_ID,
+                parentReportActionID: PARENT_REPORT_ACTION_ID,
+                pendingFields: {
+                    createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            };
+            const parentReportAction = {
+                reportActionID: PARENT_REPORT_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedSourceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            getAllReportActionsSpy.mockImplementation((reportID?: string) => {
+                if (reportID === PARENT_REPORT_ID) {
+                    return {[PARENT_REPORT_ACTION_ID]: parentReportAction};
+                }
+                return {};
+            });
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: optimisticNewReport,
+                originalReport: submittedSourceReport,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: Record<string, {childStateNum?: number; childStatusNum?: number}>}>})?.optimisticData;
+            const parentPreviewOptimisticUpdate = optimisticData?.find(
+                (data) =>
+                    data.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}` &&
+                    data.value?.[PARENT_REPORT_ACTION_ID]?.childStateNum === CONST.REPORT.STATE_NUM.OPEN &&
+                    data.value?.[PARENT_REPORT_ACTION_ID]?.childStatusNum === CONST.REPORT.STATUS_NUM.SUBMITTED,
+            );
+
+            expect(parentPreviewOptimisticUpdate).toBeDefined();
+
+            getAllReportActionsSpy.mockRestore();
+            mockAPIWrite.mockRestore();
+        });
+
+        it('does not inherit lifecycle state when originalReport is omitted', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const FAKE_OPTIMISTIC_NEW_REPORT_ID = '5';
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+            const optimisticNewReport: Report = {
+                ...createExpenseReport(7),
+                reportID: FAKE_OPTIMISTIC_NEW_REPORT_ID,
+                ownerAccountID: CURRENT_USER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                pendingFields: {
+                    createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: optimisticNewReport,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const optimisticData = (apiWriteCall?.[2] as {optimisticData?: OnyxWriteEntry[]})?.optimisticData;
+            const lifecycleOptimisticUpdate = findDedicatedLifecycleReportUpdate(
+                optimisticData,
+                FAKE_OPTIMISTIC_NEW_REPORT_ID,
+                CONST.REPORT.STATE_NUM.OPEN,
+                CONST.REPORT.STATUS_NUM.SUBMITTED,
+            );
+
+            expect(lifecycleOptimisticUpdate).toBeUndefined();
+
+            mockAPIWrite.mockRestore();
+        });
+
+        it('does not inherit lifecycle state when destination report is not an optimistic create', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+            const submittedSourceReport: Report = {
+                ...createExpenseReport(6),
+                reportID: FAKE_OLD_REPORT_ID,
+                ownerAccountID: CURRENT_USER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+                total: -100,
+            };
+            const existingDestinationReport: Report = {
+                ...createExpenseReport(7),
+                reportID: FAKE_NEW_REPORT_ID,
+                ownerAccountID: CURRENT_USER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedSourceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: existingDestinationReport,
+                originalReport: submittedSourceReport,
+                policy: undefined,
+                allTransactions,
+                policyTagList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const optimisticData = (apiWriteCall?.[2] as {optimisticData?: OnyxWriteEntry[]})?.optimisticData;
+            const lifecycleOptimisticUpdate = findDedicatedLifecycleReportUpdate(optimisticData, FAKE_NEW_REPORT_ID, CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+            expect(lifecycleOptimisticUpdate).toBeUndefined();
+
+            mockAPIWrite.mockRestore();
         });
 
         it('should auto-select a valid distance rate when moving a distance expense with an invalid P2P rate to a workspace', async () => {

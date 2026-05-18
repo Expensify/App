@@ -66,6 +66,7 @@ function SearchTransactionsChangeReport() {
         Object.values(selectedTransactions).every((transaction) => transaction.reportID === firstTransactionReportID) && firstTransactionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID
             ? firstTransactionReportID
             : undefined;
+    const originalReport = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`] : undefined;
     // Get the policyID from the selected transactions' report to pass to usePolicyForMovingExpenses
     // This ensures the "Create report" button shows the correct workspace instead of the user's default
     const selectedReportPolicyID = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`]?.policyID : undefined;
@@ -115,6 +116,7 @@ function SearchTransactionsChangeReport() {
                 accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 email: session?.email ?? '',
                 newReport: optimisticReport,
+                originalReport,
                 policy: policyForMovingExpenses,
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
@@ -191,6 +193,7 @@ function SearchTransactionsChangeReport() {
             accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             email: session?.email ?? '',
             newReport: destinationReport,
+            originalReport,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],

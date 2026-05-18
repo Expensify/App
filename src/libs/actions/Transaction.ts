@@ -844,6 +844,7 @@ type ChangeTransactionsReportProps = {
     accountID: number;
     email: string;
     newReport?: OnyxEntry<Report>;
+    originalReport?: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
     policyCategories?: OnyxEntry<PolicyCategories>;
@@ -857,6 +858,7 @@ function changeTransactionsReport({
     accountID,
     email,
     newReport,
+    originalReport,
     policy,
     reportNextStep,
     policyCategories,
@@ -1703,6 +1705,10 @@ function changeTransactionsReport({
 
     // 9. Update next steps for all affected reports
     const destinationReportID = reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (existingSelfDMReportID ?? selfDMReport?.reportID) : reportID;
+    const shouldInheritLifecycleStateFromSource =
+        destinationReportID === newReport?.reportID && !!newReport?.pendingFields?.createReport && originalReport?.stateNum !== undefined && originalReport?.statusNum !== undefined;
+    const inheritedDestinationStateNum = shouldInheritLifecycleStateFromSource ? originalReport.stateNum : undefined;
+    const inheritedDestinationStatusNum = shouldInheritLifecycleStateFromSource ? originalReport.statusNum : undefined;
     const affectedReportIDs = new Set<string>();
 
     for (const reportIDToUpdate of Object.keys(updatedReportTotals)) {
@@ -1731,11 +1737,18 @@ function changeTransactionsReport({
 
         const updatedTotal = updatedReportTotals[affectedReportID] ?? affectedReport.total;
         const updatedTransactionCount = updatedReportTransactionCounts[affectedReportID] ?? affectedReport.transactionCount;
+        const isDestinationReportForInheritance = affectedReportID === destinationReportID && inheritedDestinationStateNum !== undefined && inheritedDestinationStatusNum !== undefined;
         const updatedReport = {
             ...affectedReport,
             total: updatedTotal,
             transactionCount: updatedTransactionCount,
             reportID: affectedReport.reportID ?? affectedReportID,
+            ...(isDestinationReportForInheritance
+                ? {
+                      stateNum: inheritedDestinationStateNum,
+                      statusNum: inheritedDestinationStatusNum,
+                  }
+                : {}),
         };
 
         const predictedNextStatus = updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN;
@@ -1817,6 +1830,72 @@ function changeTransactionsReport({
                 pendingFields: failurePendingFields,
             },
         });
+    }
+
+    // Inherit lifecycle state (stateNum/statusNum) from the source report when moving expenses
+    // into a newly-created destination report. This is applied as a dedicated update outside the
+    // nextStep loop so it cannot be silently dropped if the destination report is missing from
+    // affectedReport lookups (e.g. allReports not yet updated from CREATE_APP_REPORT optimistic SET).
+    if (shouldInheritLifecycleStateFromSource && destinationReportID && inheritedDestinationStateNum !== undefined && inheritedDestinationStatusNum !== undefined) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`,
+            value: {
+                stateNum: inheritedDestinationStateNum,
+                statusNum: inheritedDestinationStatusNum,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`,
+            value: {
+                stateNum: inheritedDestinationStateNum,
+                statusNum: inheritedDestinationStatusNum,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`,
+            value: {
+                stateNum: newReport?.stateNum ?? CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: newReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            },
+        });
+
+        if (newReport?.parentReportID && newReport?.parentReportActionID) {
+            const parentReportAction = getAllReportActions(newReport.parentReportID)?.[newReport.parentReportActionID];
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReport.parentReportID}`,
+                value: {
+                    [newReport.parentReportActionID]: {
+                        childStateNum: inheritedDestinationStateNum,
+                        childStatusNum: inheritedDestinationStatusNum,
+                    },
+                },
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReport.parentReportID}`,
+                value: {
+                    [newReport.parentReportActionID]: {
+                        childStateNum: inheritedDestinationStateNum,
+                        childStatusNum: inheritedDestinationStatusNum,
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReport.parentReportID}`,
+                value: {
+                    [newReport.parentReportActionID]: {
+                        childStateNum: parentReportAction?.childStateNum ?? newReport.stateNum ?? CONST.REPORT.STATE_NUM.OPEN,
+                        childStatusNum: parentReportAction?.childStatusNum ?? newReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+                    },
+                },
+            });
+        }
     }
 
     const parameters: ChangeTransactionsReportParams = {

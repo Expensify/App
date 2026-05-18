@@ -27,7 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
@@ -104,6 +104,21 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const createReport = (policyID: string, shouldDismissEmptyReportsConfirmation?: boolean) => {
         const optimisticReport = createNewReport(policyID, shouldDismissEmptyReportsConfirmation);
         const selectedTransactionsKeys = Object.keys(selectedTransactions);
+        const sourceReportIDs = new Set<string>();
+        for (const transactionKey of selectedTransactionsKeys) {
+            const sourceReportID = selectedTransactions[transactionKey]?.reportID;
+            if (sourceReportID && sourceReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+                sourceReportIDs.add(sourceReportID);
+            }
+        }
+        for (const transactionID of selectedTransactionIDs) {
+            const sourceReportID = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
+            if (sourceReportID && sourceReportID !== CONST.REPORT.UNREPORTED_REPORT_ID) {
+                sourceReportIDs.add(sourceReportID);
+            }
+        }
+        const originalReportID = sourceReportIDs.size === 1 ? [...sourceReportIDs].at(0) : undefined;
+        const originalReport = getReportOrDraftReport(originalReportID);
 
         if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
             const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
@@ -115,6 +130,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     email: currentUserPersonalDetails?.email ?? '',
                     newReport: optimisticReport,
+                    originalReport,
                     policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                     reportNextStep,
                     policyCategories: undefined,

@@ -179,6 +179,7 @@ function useReportSelectionActions({
                 );
 
                 if (isEditing) {
+                    const originalReport = transaction.reportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`] : undefined;
                     const policyTagList = item?.policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
                     changeTransactionsReport({
                         transactionIDs: [transaction.transactionID],
@@ -186,6 +187,7 @@ function useReportSelectionActions({
                         accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                         email: session?.email ?? '',
                         newReport: report,
+                        originalReport,
                         policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                         reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
