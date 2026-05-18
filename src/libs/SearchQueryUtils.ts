@@ -1053,6 +1053,7 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
  *
  * Reverse operation of buildQueryStringFromFilterFormValues()
  */
+// eslint-disable-next-line @typescript-eslint/max-params
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
     policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
@@ -1063,8 +1064,8 @@ function buildFilterFormValuesFromQuery(
     reports: OnyxCollection<OnyxTypes.Report>,
     taxRates: Record<string, string[]>,
     exportedToFilterOptions?: string[],
-    bankAccountList?: OnyxTypes.BankAccountList,
     currentUserAccountID?: number,
+    bankAccountList?: OnyxTypes.BankAccountList,
 ) {
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;

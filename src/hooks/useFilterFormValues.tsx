@@ -112,8 +112,8 @@ const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
               allReports,
               taxRates,
               exportedToFilterOptions,
-              bankAccountList,
               currentUserPersonalDetails.accountID,
+              bankAccountList,
           )
         : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
 
