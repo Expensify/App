@@ -19,7 +19,7 @@ Only **Domain Admins** can create and manage Domain Groups.
 
 ## Where to find Domain Groups
 
-1. Go to Settings using the navigation tabs (on the left on web, on the bottom on mobile). 
+1. Go to Workspaces using the navigation tabs (on the left on web, on the bottom on mobile). 
 2. Click **Workspaces > Domains**.
 3. Choose your domain.
 4. Click **Groups**.
@@ -56,7 +56,6 @@ Enable this to require members to use their company email address to access Expe
 **Restrict expense workspace creation/removal**
 
 Enable this to prevent members from creating or removing workspaces. Restrict expense workspace creation/removal ensures centralized workspace management and prevents employees from creating additional workspaces outside the company’s approved setup.
-
 
 **Preferred workspace**
 
