@@ -16,17 +16,17 @@ type MergeHRProviderEntry = {
 const MERGE_HR_PROVIDERS = {
     workday: {
         displayName: 'Workday',
-        iconUrl: '',
+        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformWorkday.png',
         connectionName: `${MERGE_HR_PREFIX}workday`,
     },
     bamboohr: {
         displayName: 'BambooHR',
-        iconUrl: '',
+        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/BambooHR_Square_Logo.jpg',
         connectionName: `${MERGE_HR_PREFIX}bamboohr`,
     },
     hibob: {
         displayName: 'HiBob',
-        iconUrl: '',
+        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformHibob.png',
         connectionName: `${MERGE_HR_PREFIX}hibob`,
     },
 } as const satisfies Record<string, MergeHRProviderEntry>;
