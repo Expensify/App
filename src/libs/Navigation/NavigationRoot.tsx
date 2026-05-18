@@ -80,17 +80,10 @@ function parseAndLogRoute(state: NavigationState) {
     const lastRoute = state.routes.at(-1);
     const activeTabName = getActiveTabName(lastRoute);
 
-    // Skip saving when the focused route is the navigator itself (no nested screen yet), e.g. during
-    // the intermediate state right after `TabActions.jumpTo(WORKSPACE_NAVIGATOR)` and before the
-    // navigator mounts. The path collapses to `/` in that moment and would clobber the real path
-    // that WorkspaceRouter.getInitialState needs to read.
-    const isFocusedOnEmptyNavigator = focusedRoute?.name === activeTabName;
-    if (!isFocusedOnEmptyNavigator) {
-        if (activeTabName === NAVIGATORS.WORKSPACE_NAVIGATOR) {
-            saveWorkspacesTabPathToSessionStorage(currentPath);
-        } else if (activeTabName === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
-            saveSettingsTabPathToSessionStorage(currentPath);
-        }
+    if (activeTabName === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+        saveWorkspacesTabPathToSessionStorage(currentPath);
+    } else if (activeTabName === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+        saveSettingsTabPathToSessionStorage(currentPath);
     }
 
     // Fullstory Page navigation tracking
