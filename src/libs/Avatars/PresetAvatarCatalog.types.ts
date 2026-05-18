@@ -90,8 +90,10 @@ type LetterAvatarIDs =
     | 'letter-default-avatar_y'
     | 'letter-default-avatar_z';
 
+type BotAvatarIDs = 'bot-avatar--blue' | 'bot-avatar--green' | 'bot-avatar--ice' | 'bot-avatar--pink' | 'bot-avatar--tangerine' | 'bot-avatar--yellow';
+
 type LetterAvatarColorStyle = {backgroundColor: string; fillColor: string};
 type AvatarEntry = {local: React.FC<SvgProps>; url: string};
-type PresetAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs;
+type PresetAvatarID = DefaultAvatarIDs | SeasonF1AvatarIDs | BotAvatarIDs;
 
-export type {DefaultAvatarIDs, SeasonF1AvatarIDs, LetterAvatarIDs, PresetAvatarID, LetterAvatarColorStyle, AvatarEntry};
+export type {DefaultAvatarIDs, SeasonF1AvatarIDs, BotAvatarIDs, LetterAvatarIDs, PresetAvatarID, LetterAvatarColorStyle, AvatarEntry};
