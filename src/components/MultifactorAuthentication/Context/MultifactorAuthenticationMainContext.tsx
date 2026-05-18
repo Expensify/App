@@ -510,7 +510,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         });
     }, [dispatch, isOffline, state.scenario, state.payload]);
 
-    const requestCancel = useCallback(() => {
+    const requestCancel = () => {
         if (state.isFlowComplete) {
             dispatch({type: 'CLOSE_MODAL'});
             return;
@@ -520,14 +520,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             return;
         }
         dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: true});
-    }, [cancel, dispatch, isOffline, state.isFlowComplete, state.scenario]);
+    };
 
-    const hideCancelConfirm = useCallback(() => dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: false}), [dispatch]);
+    const hideCancelConfirm = () => dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: false});
 
-    const confirmCancel = useCallback(() => {
+    const confirmCancel = () => {
         dispatch({type: 'SET_CANCEL_CONFIRM_VISIBLE', payload: false});
         cancel();
-    }, [cancel, dispatch]);
+    };
 
     useSyncMfaModalNavigatorWithHistory(state.isModalOpen, requestCancel);
 
