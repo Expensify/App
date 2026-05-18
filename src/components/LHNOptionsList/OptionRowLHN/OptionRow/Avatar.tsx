@@ -1,22 +1,33 @@
 import React from 'react';
-import type {ColorValue, ViewStyle} from 'react-native';
+import type {ColorValue} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import LHNAvatar from '@components/LHNOptionsList/LHNAvatar';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDelegateAccountIDFromReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 
+type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
+
 type AvatarProps = {
+    /** Option data for the row. Source of avatar icons, subscript flag, tooltip eligibility, and delegate metadata. */
     optionItem: OptionData;
-    isInFocusMode: boolean;
-    subscriptAvatarBorderColor: ColorValue;
-    secondaryAvatarBackgroundColor: ColorValue;
-    singleAvatarContainerStyle: ViewStyle[];
+
+    /** Display density mode. `COMPACT` switches the avatar size to `SMALL`. */
+    viewMode: OptionMode;
+
+    /** Background color used for both the subscript icon border and the secondary avatar background. Matches the row background so the chrome blends in. */
+    avatarBackgroundColor: ColorValue;
 };
 
-function AvatarInner({optionItem, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: AvatarProps) {
+function AvatarInner({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
+    const styles = useThemeStyles();
     const personalDetails = usePersonalDetails();
+
+    const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
+    const singleAvatarContainerStyle = [styles.actionAvatar, styles.mr3];
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(optionItem?.parentReportAction);
 
@@ -53,9 +64,9 @@ function AvatarInner({optionItem, isInFocusMode, subscriptAvatarBorderColor, sec
             icons={icons}
             shouldShowSubscript={!!optionItem.shouldShowSubscript}
             size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-            subscriptAvatarBorderColor={subscriptAvatarBorderColor}
+            subscriptAvatarBorderColor={avatarBackgroundColor}
             useMidSubscriptSize={isInFocusMode}
-            secondaryAvatarBackgroundColor={secondaryAvatarBackgroundColor}
+            secondaryAvatarBackgroundColor={avatarBackgroundColor}
             singleAvatarContainerStyle={singleAvatarContainerStyle}
             shouldShowTooltip={shouldOptionShowTooltip(optionItem)}
             delegateAccountID={skipDelegate ? undefined : delegateAccountID}
@@ -66,7 +77,7 @@ function AvatarInner({optionItem, isInFocusMode, subscriptAvatarBorderColor, sec
 
 AvatarInner.displayName = 'OptionRow.AvatarInner';
 
-function Avatar({optionItem, isInFocusMode, subscriptAvatarBorderColor, secondaryAvatarBackgroundColor, singleAvatarContainerStyle}: AvatarProps) {
+function Avatar({optionItem, viewMode, avatarBackgroundColor}: AvatarProps) {
     // Bail out before subscribing to personal details when the row has no avatar to render.
     if (!optionItem.icons?.length || !optionItem.icons.at(0)) {
         return null;
@@ -74,10 +85,8 @@ function Avatar({optionItem, isInFocusMode, subscriptAvatarBorderColor, secondar
     return (
         <AvatarInner
             optionItem={optionItem}
-            isInFocusMode={isInFocusMode}
-            subscriptAvatarBorderColor={subscriptAvatarBorderColor}
-            secondaryAvatarBackgroundColor={secondaryAvatarBackgroundColor}
-            singleAvatarContainerStyle={singleAvatarContainerStyle}
+            viewMode={viewMode}
+            avatarBackgroundColor={avatarBackgroundColor}
         />
     );
 }

@@ -3298,16 +3298,27 @@ function editReportComment(
     );
 }
 
-/** Deletes the draft for a comment report action. */
-function deleteReportActionDraft(reportID: string | undefined, reportAction: ReportAction) {
-    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: null});
+/** Clears drafts for all comment report action across all reports */
+function clearAllReportActionDrafts() {
+    Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {});
 }
 
 /** Saves the draft for a comment report action. This will put the comment into "edit mode" */
-function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction, draftMessage: string) {
+function saveReportActionDraft(reportID: string | undefined, reportAction: ReportAction | null, draftMessage: string) {
+    if (!reportAction) {
+        return;
+    }
+
     const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {[reportAction.reportActionID]: {message: draftMessage}});
+    if (!originalReportID) {
+        return;
+    }
+
+    Onyx.setCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {
+        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`]: {
+            [reportAction.reportActionID]: {message: draftMessage},
+        },
+    });
 }
 
 function updateNotificationPreference(
@@ -6025,7 +6036,7 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
     fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
-function exportReportToPDF({reportID}: ExportReportPDFParams) {
+async function exportReportToPDF({reportID}: ExportReportPDFParams) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -6045,7 +6056,7 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
         reportID,
     } satisfies ExportReportPDFParams;
 
-    API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
+    return API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
 }
 
 function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, currentUserLogin: string, encryptedAuthToken: string) {
@@ -7734,7 +7745,7 @@ export {
     extractRHPVariantFromResponse,
     createNewReport,
     deleteReport,
-    deleteReportActionDraft,
+    clearAllReportActionDrafts,
     deleteReportComment,
     deleteReportField,
     dismissTrackExpenseActionableWhisper,
